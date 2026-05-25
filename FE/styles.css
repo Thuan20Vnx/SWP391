@@ -1838,31 +1838,8 @@ body {
   color: var(--primary);
 }
 
-/* Floating Action Button for AI Chat policy */
-.fixed-chat-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background-color: var(--primary);
-  color: var(--text-white);
-  padding: 12px 24px;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 14px rgba(242, 111, 33, 0.4);
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-decoration: none;
-  z-index: 90;
-  transition: var(--transition-smooth);
-}
 
-.fixed-chat-fab:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(242, 111, 33, 0.5);
-}
+
 
 /* Mobile responsive hamburger menu button */
 .btn-mobile-menu-toggle {
