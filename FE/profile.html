@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Quản lý và cập nhật thông tin cá nhân của bạn trên FPT Students Community để nhận đề xuất sự kiện phù hợp từ AI.">
+  <title>Hồ sơ cá nhân - FPT Students Community</title>
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-body">
+  <!-- Mobile Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <div class="dashboard-container">
+    <!-- Sidebar Aside -->
+    <aside class="sidebar-aside" id="sidebar">
+      <!-- Logo -->
+      <div class="sidebar-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span class="logo-text">F<span>Events</span></span>
+      </div>
+
+      <!-- User Profile Card -->
+      <a href="#" class="sidebar-user-card">
+        <img class="sidebar-avatar" src="profile_avatar.png" alt="User Avatar">
+        <div class="sidebar-user-info">
+          <span class="sidebar-user-name">Trần Xuân Thuận</span>
+          <span class="sidebar-user-role">Sinh viên K18</span>
+        </div>
+      </a>
+
+      <!-- Menu Navigation -->
+      <nav class="sidebar-menu">
+        <!-- Section 1 -->
+        <div class="menu-section">
+          <a href="#" class="menu-item active">
+            <div class="menu-item-content">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Hồ sơ cá nhân</span>
+            </div>
+          </a>
+          <a href="#" class="menu-item">
+            <div class="menu-item-content">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <span>Đăng nhập SSO</span>
+            </div>
+            <span class="status-dot"></span>
+          </a>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="menu-section">
+          <span class="menu-header">Sự kiện</span>
+          <a href="#" class="menu-item">
+            <div class="menu-item-content">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span>Tìm kiếm & Duyệt sự kiện</span>
+            </div>
+          </a>
+          <a href="#" class="menu-item">
+            <div class="menu-item-content">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Sự kiện của tôi</span>
+            </div>
+          </a>
+          <a href="#" class="menu-item">
+            <div class="menu-item-content">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <span>Quản lý lịch trình</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Quick Scan -->
+        <button class="btn-scan-aside">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="7" y1="7" x2="17" y2="7"></line>
+            <line x1="7" y1="12" x2="17" y2="12"></line>
+            <line x1="7" y1="17" x2="13" y2="17"></line>
+          </svg>
+          <span>Quét mã tham gia</span>
+        </button>
+
+        <!-- Section 3 -->
+        <div class="menu-section">
+          <span class="menu-header">Tiện ích</span>
+          <a href="#" class="menu-item">
+            <div class="menu-item-content">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>Đánh giá sự kiện</span>
+            </div>
+          </a>
+          <a href="#" class="menu-item">
+            <div class="menu-item-content">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span>Thông báo</span>
+            </div>
+          </a>
+        </div>
+      </nav>
+
+      <!-- Logout -->
+      <div class="sidebar-footer">
+        <a href="login.html" class="btn-logout">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Đăng xuất</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Container -->
+    <main class="dashboard-main">
+      <!-- Top Navigation Bar -->
+      <header class="top-navbar">
+        <div class="navbar-left">
+          <!-- Mobile Menu Toggle Button -->
+          <button class="btn-mobile-menu-toggle" id="menu-toggle" aria-label="Mở menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <!-- Breadcrumbs -->
+          <div class="breadcrumbs">
+            <a href="#">Trang chủ</a>
+            <span style="color: #cbd5e1;">/</span>
+            <a href="#">Hồ sơ</a>
+            <span style="color: #cbd5e1;">/</span>
+            <span class="current">Hồ sơ cá nhân</span>
+          </div>
+        </div>
+
+        <div class="navbar-right">
+          <!-- Search Wrapper -->
+          <div class="search-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" placeholder="Tìm kiếm thông báo...">
+          </div>
+
+          <!-- Notification Bell -->
+          <button class="btn-icon-nav" aria-label="Xem thông báo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </button>
+
+          <!-- User Dropdown Menu link -->
+          <a href="#" class="navbar-user-menu">
+            <img class="navbar-user-avatar" src="profile_avatar.png" alt="User Profile">
+            <div class="navbar-user-details">
+              <span class="navbar-user-name">Trần Xuân Thuận</span>
+              <span class="navbar-user-role">Sinh viên K18</span>
+            </div>
+          </a>
+        </div>
+      </header>
+
+      <!-- Dashboard Scrollable Body -->
+      <div class="dashboard-content-wrapper">
+        <!-- Page Header -->
+        <div class="page-header">
+          <h1>Hồ sơ cá nhân</h1>
+          <p>Quản lý và cập nhật thông tin cá nhân của bạn để nhận các đề xuất sự kiện phù hợp từ AI.</p>
+        </div>
+
+        <!-- Layout Grid -->
+        <div class="profile-grid">
+          <!-- Left Column (Avatar & Clubs) -->
+          <div class="profile-left-column" style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Avatar card -->
+            <div class="profile-card avatar-card">
+              <div class="avatar-card-content">
+                <div class="profile-avatar-container">
+                  <img class="large-profile-avatar" id="profile-avatar-img" src="profile_avatar.png" alt="Avatar lớn">
+                  <label for="avatar-upload-input" class="btn-avatar-edit-pencil" title="Thay đổi ảnh đại diện">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </label>
+                  <input type="file" id="avatar-upload-input" accept="image/*" style="display: none;">
+                </div>
+                <button type="button" class="btn-upload-avatar" onclick="document.getElementById('avatar-upload-input').click();">Thay đổi ảnh đại diện</button>
+              </div>
+            </div>
+
+            <!-- Clubs card -->
+            <div class="profile-card clubs-card">
+              <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem; color: var(--primary);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Câu lạc bộ của tôi</span>
+              </div>
+              <div class="tag-list">
+                <span class="club-tag">FU-DEVIES</span>
+                <span class="club-tag">Minori Japanese Club</span>
+                <span class="club-tag">DreamTeam</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column (Form Details) -->
+          <div class="profile-right-column">
+            <div class="profile-card" style="display: flex; flex-direction: column; gap: 32px;">
+              <!-- SSO details card -->
+              <div>
+                <div class="profile-card-header">
+                  <h2 class="profile-card-title">Thông tin định danh SSO</h2>
+                  <div class="card-status-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <span>ĐÃ XÁC THỰC</span>
+                  </div>
+                </div>
+
+                <div class="profile-form-grid">
+                  <div class="profile-input-group">
+                    <label for="sso-name">Họ và tên</label>
+                    <input type="text" id="sso-name" value="Trần Xuân Thuận" readonly>
+                  </div>
+                  <div class="profile-input-group">
+                    <label for="sso-course">Khóa học</label>
+                    <input type="text" id="sso-course" value="K18" readonly>
+                  </div>
+                  <div class="profile-input-group profile-form-grid-full">
+                    <label for="sso-email">Email sinh viên</label>
+                    <input type="email" id="sso-email" value="thuantx.k18@fpt.edu.vn" readonly>
+                  </div>
+                  <div class="profile-input-group profile-form-grid-full">
+                    <label for="sso-campus">Cơ sở đào tạo</label>
+                    <input type="text" id="sso-campus" value="FPT University Da Nang" readonly>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Editable details card -->
+              <form id="profile-edit-form" style="display: flex; flex-direction: column; gap: 24px; border-top: 1px solid #f1f5f9; padding-top: 24px;">
+                <h2 class="profile-card-title" style="margin-bottom: 8px;">Thông tin cá nhân & Sở thích</h2>
+
+                <div class="profile-input-group profile-form-grid-full">
+                  <label for="user-orientation">Định hướng chuyên môn</label>
+                  <textarea id="user-orientation" placeholder="Nhập định hướng chuyên môn của bạn...">Back-end Development, Internet of Things (IoT)</textarea>
+                </div>
+
+                <!-- Interests checklist -->
+                <div class="interest-section">
+                  <div class="interest-title-wrapper">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>AI Recommend: Sở thích sự kiện</span>
+                  </div>
+
+                  <div class="interest-tag-list">
+                    <label class="interest-tag-checkbox">
+                      <input type="checkbox" name="interests" value="hardware" checked>
+                      <div class="interest-tag-content">
+                        <svg class="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Phần cứng & Vi điều khiển</span>
+                      </div>
+                    </label>
+
+                    <label class="interest-tag-checkbox">
+                      <input type="checkbox" name="interests" value="ai" checked>
+                      <div class="interest-tag-content">
+                        <svg class="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>AI</span>
+                      </div>
+                    </label>
+
+                    <label class="interest-tag-checkbox">
+                      <input type="checkbox" name="interests" value="japan" checked>
+                      <div class="interest-tag-content">
+                        <svg class="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Văn hóa Nhật Bản</span>
+                      </div>
+                    </label>
+
+                    <label class="interest-tag-checkbox">
+                      <input type="checkbox" name="interests" value="charity" checked>
+                      <div class="interest-tag-content">
+                        <svg class="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Thiện nguyện</span>
+                      </div>
+                    </label>
+
+                    <label class="interest-tag-checkbox">
+                      <input type="checkbox" name="interests" value="sports">
+                      <div class="interest-tag-content">
+                        <svg class="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Thể thao</span>
+                      </div>
+                    </label>
+
+                    <label class="interest-tag-checkbox">
+                      <input type="checkbox" name="interests" value="music">
+                      <div class="interest-tag-content">
+                        <svg class="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Âm nhạc & Nghệ thuật</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <button type="submit" id="save-btn" class="primary-button btn-save-profile">
+                  <span class="btn-text">Lưu thay đổi</span>
+                  <span class="btn-spinner hidden"></span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Footer -->
+      <footer class="dashboard-footer">
+        <div class="dashboard-footer-content">
+          <div class="footer-top">
+            <div class="footer-info">
+              <a href="#" class="footer-logo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span class="footer-logo-text font-bold">F<span>Events</span></span>
+              </a>
+              <p>Nền tảng quản lý sự kiện chuyên nghiệp và sáng tạo dành riêng cho hệ sinh thái FPT.</p>
+            </div>
+            
+            <div class="footer-column">
+              <h3>Khám phá</h3>
+              <ul class="footer-links">
+                <li><a href="#">Sự kiện sắp tới</a></li>
+                <li><a href="#">Câu lạc bộ nổi bật</a></li>
+                <li><a href="#">Tin tức công nghệ</a></li>
+                <li><a href="#">Thư viện hình ảnh</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-column">
+              <h3>Hỗ trợ</h3>
+              <ul class="footer-links">
+                <li><a href="#">Trung tâm hỗ trợ</a></li>
+                <li><a href="#">Liên hệ chúng tôi</a></li>
+                <li><a href="#">Điều khoản dịch vụ</a></li>
+                <li><a href="#">Chính sách bảo mật</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-column">
+              <h3>Kết nối</h3>
+              <div class="social-links">
+                <a href="#" class="social-link" aria-label="Facebook">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                  </svg>
+                </a>
+                <a href="#" class="social-link" aria-label="Instagram">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-bottom">
+            <span class="copyright-text">© 2024 FPT Event Platform. All rights reserved.</span>
+            <div class="footer-bottom-links">
+              <a href="#">Báo cáo</a>
+              <a href="#">Cookie Policy</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Cookie FAB Policy -->
+  <a href="#" class="fixed-chat-fab">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+      <path d="M2 12h20"></path>
+    </svg>
+    <span>Cookie Policy</span>
+  </a>
+
+  <!-- Notification Container (Toast Messages) -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="profile.js"></script>
+</body>
+</html>
