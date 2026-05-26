@@ -47,6 +47,9 @@ const Profile = ({ showToast }) => {
           email: u.email,
           phone: u.phone
         });
+        if (u.picture) {
+          setAvatar(u.picture);
+        }
         if (u.orientation !== undefined) {
           setOrientation(u.orientation);
         }
