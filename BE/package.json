@@ -1,0 +1,15 @@
+{
+  "name": "swp391-backend",
+  "version": "1.0.0",
+  "description": "Mock Backend for FPT Students Community",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
