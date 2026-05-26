@@ -15,8 +15,15 @@ const Profile = ({ showToast }) => {
     phone: ''
   });
 
+  // Track if course cohort has been changed once
+  const [courseChanged, setCourseChanged] = useState(false);
+
   // Responsive Sidebar State
   const [sidebarActive, setSidebarActive] = useState(false);
+
+  // Edit profile mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [backupData, setBackupData] = useState(null);
 
   // Avatar Upload State
   const [avatar, setAvatar] = useState(defaultAvatar);
@@ -41,19 +48,20 @@ const Profile = ({ showToast }) => {
       .then(data => {
         const u = data.user;
         setProfileData({
-          fullname: u.fullname,
-          course: u.course,
-          campus: u.campus,
-          email: u.email,
-          phone: u.phone
+          fullname: u.fullname || '',
+          course: u.course || '',
+          campus: u.campus || '',
+          email: u.email || '',
+          phone: u.phone || ''
         });
+        setCourseChanged(u.courseChanged || false);
         if (u.picture) {
           setAvatar(u.picture);
         }
         if (u.orientation !== undefined) {
           setOrientation(u.orientation);
         }
-        
+
         // Populate interests checklist state
         if (u.interests) {
           const map = {
@@ -164,11 +172,14 @@ const Profile = ({ showToast }) => {
     } else {
       showToast(`Đã bỏ sở thích: ${label}`, 'info');
     }
-  };
-
-  // Handle Profile Info Save
+  };  // Handle Profile Info Save
   const handleProfileSubmit = (e) => {
     e.preventDefault();
+
+    if (!profileData.fullname.trim()) {
+      showToast('Vui lòng nhập họ và tên!', 'error');
+      return;
+    }
 
     if (!orientation.trim()) {
       showToast('Vui lòng nhập định hướng chuyên môn!', 'error');
@@ -185,7 +196,7 @@ const Profile = ({ showToast }) => {
       sports: 'Thể thao',
       music: 'Âm nhạc & Nghệ thuật'
     };
-    
+
     const activeInterests = Object.keys(interests)
       .filter(k => interests[k])
       .map(k => map[k]);
@@ -195,8 +206,12 @@ const Profile = ({ showToast }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: profileData.email,
+        fullname: profileData.fullname.trim(),
+        phone: profileData.phone.trim(),
+        course: profileData.course,
         orientation: orientation.trim(),
-        interests: activeInterests
+        interests: activeInterests,
+        picture: avatar
       })
     })
       .then(res => res.json().then(data => ({ status: res.status, data })))
@@ -204,6 +219,20 @@ const Profile = ({ showToast }) => {
         setSaveLoading(false);
         if (status === 200) {
           showToast('Cập nhật hồ sơ thành công! AI đang tối ưu hóa đề xuất sự kiện cho bạn.', 'success');
+          setIsEditing(false);
+          if (data.user) {
+            setProfileData({
+              fullname: data.user.fullname || '',
+              course: data.user.course || '',
+              campus: data.user.campus || '',
+              email: data.user.email || '',
+              phone: data.user.phone || ''
+            });
+            setCourseChanged(data.user.courseChanged || false);
+            if (data.user.picture) {
+              setAvatar(data.user.picture);
+            }
+          }
         } else {
           showToast(data.message || 'Cập nhật thất bại!', 'error');
         }
@@ -213,7 +242,6 @@ const Profile = ({ showToast }) => {
         showToast('Không thể kết nối đến máy chủ Backend!', 'error');
       });
   };
-
   // Handle Change Password Submit
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
@@ -279,19 +307,40 @@ const Profile = ({ showToast }) => {
       });
   };
 
+  const startEditing = () => {
+    setBackupData({
+      profileData: { ...profileData },
+      orientation,
+      interests: { ...interests }
+    });
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    if (backupData) {
+      setProfileData(backupData.profileData);
+      setOrientation(backupData.orientation);
+      setInterests(backupData.interests);
+    }
+    setIsEditing(false);
+  };
+
   const handleLogout = (e) => {
     e.preventDefault();
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('loginMethod');
     showToast('Đã đăng xuất tài khoản thành công.', 'info');
     navigate('/login');
   };
 
+  const loginMethod = localStorage.getItem('loginMethod');
+
   return (
     <div className="dashboard-body">
       {/* Mobile Sidebar Overlay */}
-      <div 
-        className={`sidebar-overlay ${sidebarActive ? 'active' : ''}`} 
+      <div
+        className={`sidebar-overlay ${sidebarActive ? 'active' : ''}`}
         id="sidebar-overlay"
         onClick={() => setSidebarActive(false)}
       ></div>
@@ -300,8 +349,16 @@ const Profile = ({ showToast }) => {
         {/* Sidebar Aside */}
         <aside className={`sidebar-aside ${sidebarActive ? 'active' : ''}`} id="sidebar">
           {/* Logo */}
-          <div className="sidebar-logo">
-            <img className="logo-icon" src={fptLogo} alt="FEvents Logo" />
+          <div 
+            className="sidebar-logo" 
+            style={{ display: 'flex', justifyContent: 'center', padding: '12px 16px', cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+          >
+            <img
+              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+              alt="FEvents Logo"
+              style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
+            />
           </div>
 
           {/* User Profile Card */}
@@ -424,9 +481,9 @@ const Profile = ({ showToast }) => {
           <header className="top-navbar">
             <div className="navbar-left">
               {/* Mobile Menu Toggle Button */}
-              <button 
-                className="btn-mobile-menu-toggle" 
-                id="menu-toggle" 
+              <button
+                className="btn-mobile-menu-toggle"
+                id="menu-toggle"
                 aria-label="Mở menu"
                 onClick={() => setSidebarActive(true)}
               >
@@ -438,7 +495,7 @@ const Profile = ({ showToast }) => {
               </button>
               {/* Breadcrumbs */}
               <div className="breadcrumbs">
-                <a href="#" onClick={(e) => e.preventDefault()}>Trang chủ</a>
+                <Link to="/">Trang chủ</Link>
                 <span style={{ color: '#cbd5e1' }}>/</span>
                 <a href="#" onClick={(e) => e.preventDefault()}>Hồ sơ</a>
                 <span style={{ color: '#cbd5e1' }}>/</span>
@@ -453,8 +510,8 @@ const Profile = ({ showToast }) => {
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="Tìm kiếm thông báo..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -504,17 +561,17 @@ const Profile = ({ showToast }) => {
                           <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                       </label>
-                      <input 
-                        type="file" 
-                        id="avatar-upload-input" 
-                        accept="image/*" 
+                      <input
+                        type="file"
+                        id="avatar-upload-input"
+                        accept="image/*"
                         style={{ display: 'none' }}
                         onChange={handleAvatarChange}
                       />
                     </div>
-                    <button 
-                      type="button" 
-                      className="btn-upload-avatar" 
+                    <button
+                      type="button"
+                      className="btn-upload-avatar"
                       onClick={() => document.getElementById('avatar-upload-input').click()}
                     >
                       Thay đổi ảnh đại diện
@@ -543,7 +600,7 @@ const Profile = ({ showToast }) => {
 
               {/* Right Column (Form Details) */}
               <div className="profile-right-column">
-                <div className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                <form id="profile-edit-form" onSubmit={handleProfileSubmit} className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {/* SSO details card */}
                   <div>
                     <div className="profile-card-header">
@@ -560,15 +617,84 @@ const Profile = ({ showToast }) => {
                     <div className="profile-form-grid">
                       <div className="profile-input-group">
                         <label htmlFor="sso-name">Họ và tên</label>
-                        <input type="text" id="sso-name" value={profileData.fullname} readOnly />
+                        <input
+                          type="text"
+                          id="sso-name"
+                          value={profileData.fullname}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, fullname: e.target.value }))}
+                          required
+                          disabled={!isEditing}
+                        />
                       </div>
                       <div className="profile-input-group">
                         <label htmlFor="sso-course">Khóa học</label>
-                        <input type="text" id="sso-course" value={profileData.course} readOnly />
+                        {courseChanged ? (
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="text"
+                              id="sso-course"
+                              value={profileData.course}
+                              readOnly
+                              style={{ paddingRight: '120px' }}
+                            />
+                            <span style={{
+                              position: 'absolute',
+                              right: '12px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              fontSize: '0.75rem',
+                              color: '#ef4444',
+                              fontWeight: '600',
+                              backgroundColor: '#fee2e2',
+                              padding: '2px 8px',
+                              borderRadius: '4px'
+                            }}>
+                              Đã khóa (đổi 1 lần)
+                            </span>
+                          </div>
+                        ) : (
+                          <select
+                            id="sso-course"
+                            value={profileData.course}
+                            onChange={(e) => setProfileData(prev => ({ ...prev, course: e.target.value }))}
+                            disabled={!isEditing}
+                            style={{
+                              width: '100%',
+                              height: '48px',
+                              padding: '12px 16px',
+                              fontSize: '0.9rem',
+                              fontFamily: 'inherit',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '8px',
+                              outline: 'none',
+                              backgroundColor: 'var(--bg-card)',
+                              color: 'var(--text-main)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="K15">Khóa 15 (K15)</option>
+                            <option value="K16">Khóa 16 (K16)</option>
+                            <option value="K17">Khóa 17 (K17)</option>
+                            <option value="K18">Khóa 18 (K18)</option>
+                            <option value="K19">Khóa 19 (K19)</option>
+                            <option value="K20">Khóa 20 (K20)</option>
+                          </select>
+                        )}
                       </div>
-                      <div className="profile-input-group profile-form-grid-full">
+                      <div className="profile-input-group">
                         <label htmlFor="sso-email">Email sinh viên</label>
                         <input type="email" id="sso-email" value={profileData.email} readOnly />
+                      </div>
+                      <div className="profile-input-group">
+                        <label htmlFor="user-phone">Số điện thoại</label>
+                        <input
+                          type="tel"
+                          id="user-phone"
+                          placeholder="Nhập số điện thoại..."
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                          disabled={!isEditing}
+                        />
                       </div>
                       <div className="profile-input-group profile-form-grid-full">
                         <label htmlFor="sso-campus">Cơ sở đào tạo</label>
@@ -578,16 +704,17 @@ const Profile = ({ showToast }) => {
                   </div>
 
                   {/* Editable details card */}
-                  <form id="profile-edit-form" onSubmit={handleProfileSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px', borderTop: '1px solid #f1f5f9', paddingTop: '24px' }}>
-                    <h2 className="profile-card-title" style={{ marginBottom: '8px' }}>Thông tin cá nhân & Sở thích</h2>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                    <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>Thông tin cá nhân & Sở thích</h2>
 
                     <div className="profile-input-group profile-form-grid-full">
                       <label htmlFor="user-orientation">Định hướng chuyên môn</label>
-                      <textarea 
-                        id="user-orientation" 
+                      <textarea
+                        id="user-orientation"
                         placeholder="Nhập định hướng chuyên môn của bạn..."
                         value={orientation}
                         onChange={(e) => setOrientation(e.target.value)}
+                        disabled={!isEditing}
                       ></textarea>
                     </div>
 
@@ -601,13 +728,14 @@ const Profile = ({ showToast }) => {
                       </div>
 
                       <div className="interest-tag-list">
-                        <label className="interest-tag-checkbox">
-                          <input 
-                            type="checkbox" 
-                            name="interests" 
-                            value="hardware" 
+                        <label className={`interest-tag-checkbox ${!isEditing ? 'disabled' : ''}`}>
+                          <input
+                            type="checkbox"
+                            name="interests"
+                            value="hardware"
                             checked={interests.hardware}
                             onChange={(e) => handleInterestChange(e, 'hardware', 'Phần cứng & Vi điều khiển')}
+                            disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -617,13 +745,14 @@ const Profile = ({ showToast }) => {
                           </div>
                         </label>
 
-                        <label className="interest-tag-checkbox">
-                          <input 
-                            type="checkbox" 
-                            name="interests" 
-                            value="ai" 
+                        <label className={`interest-tag-checkbox ${!isEditing ? 'disabled' : ''}`}>
+                          <input
+                            type="checkbox"
+                            name="interests"
+                            value="ai"
                             checked={interests.ai}
                             onChange={(e) => handleInterestChange(e, 'ai', 'AI')}
+                            disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -633,13 +762,14 @@ const Profile = ({ showToast }) => {
                           </div>
                         </label>
 
-                        <label className="interest-tag-checkbox">
-                          <input 
-                            type="checkbox" 
-                            name="interests" 
-                            value="japan" 
+                        <label className={`interest-tag-checkbox ${!isEditing ? 'disabled' : ''}`}>
+                          <input
+                            type="checkbox"
+                            name="interests"
+                            value="japan"
                             checked={interests.japan}
                             onChange={(e) => handleInterestChange(e, 'japan', 'Văn hóa Nhật Bản')}
+                            disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -649,13 +779,14 @@ const Profile = ({ showToast }) => {
                           </div>
                         </label>
 
-                        <label className="interest-tag-checkbox">
-                          <input 
-                            type="checkbox" 
-                            name="interests" 
-                            value="charity" 
+                        <label className={`interest-tag-checkbox ${!isEditing ? 'disabled' : ''}`}>
+                          <input
+                            type="checkbox"
+                            name="interests"
+                            value="charity"
                             checked={interests.charity}
                             onChange={(e) => handleInterestChange(e, 'charity', 'Thiện nguyện')}
+                            disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -665,13 +796,14 @@ const Profile = ({ showToast }) => {
                           </div>
                         </label>
 
-                        <label className="interest-tag-checkbox">
-                          <input 
-                            type="checkbox" 
-                            name="interests" 
-                            value="sports" 
+                        <label className={`interest-tag-checkbox ${!isEditing ? 'disabled' : ''}`}>
+                          <input
+                            type="checkbox"
+                            name="interests"
+                            value="sports"
                             checked={interests.sports}
                             onChange={(e) => handleInterestChange(e, 'sports', 'Thể thao')}
+                            disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -681,13 +813,14 @@ const Profile = ({ showToast }) => {
                           </div>
                         </label>
 
-                        <label className="interest-tag-checkbox">
-                          <input 
-                            type="checkbox" 
-                            name="interests" 
-                            value="music" 
+                        <label className={`interest-tag-checkbox ${!isEditing ? 'disabled' : ''}`}>
+                          <input
+                            type="checkbox"
+                            name="interests"
+                            value="music"
                             checked={interests.music}
                             onChange={(e) => handleInterestChange(e, 'music', 'Âm nhạc & Nghệ thuật')}
+                            disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -699,134 +832,207 @@ const Profile = ({ showToast }) => {
                       </div>
                     </div>
 
-                    <button type="submit" id="save-btn" className="primary-button btn-save-profile" disabled={saveLoading}>
-                      {saveLoading ? (
-                        <span className="btn-spinner"></span>
-                      ) : (
-                        <span className="btn-text">Lưu thay đổi</span>
-                      )}
-                    </button>
-                  </form>
-                </div>
+                    {!isEditing ? (
+                      <button
+                        type="button"
+                        className="primary-button btn-save-profile"
+                        onClick={startEditing}
+                        style={{ backgroundColor: 'var(--primary)' }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Chỉnh sửa thông tin cá nhân
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '12px' }}>
+                        <button
+                          type="submit"
+                          id="save-btn"
+                          className="primary-button btn-save-profile"
+                          disabled={saveLoading}
+                          style={{ flex: 1, margin: 0 }}
+                        >
+                          {saveLoading ? (
+                            <span className="btn-spinner"></span>
+                          ) : (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                              </svg>
+                              <span className="btn-text">Lưu thay đổi</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={cancelEditing}
+                          disabled={saveLoading}
+                          style={{
+                            flex: 1,
+                            padding: '10px 16px',
+                            borderRadius: '8px',
+                            border: '1.5px solid #cbd5e1',
+                            backgroundColor: '#f8fafc',
+                            color: '#475569',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'var(--transition-fast)'
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f1f5f9';
+                            e.currentTarget.style.color = 'var(--text-main)';
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f8fafc';
+                            e.currentTarget.style.color = '#475569';
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                          Hủy
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </form>
 
                 {/* Change Password Card */}
-                <div className="profile-card" style={{ marginTop: '24px' }}>
-                  <form id="change-password-form" onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    <h2 className="profile-card-title">Thay đổi mật khẩu</h2>
-                    
-                    <div className="profile-form-grid">
-                      <div className="profile-input-group profile-form-grid-full">
-                        <label htmlFor="current-password">Mật khẩu hiện tại</label>
-                        <div className="profile-password-wrapper">
-                          <input 
-                            type={showCurrentPw ? "text" : "password"} 
-                            id="current-password" 
-                            placeholder="Nhập mật khẩu hiện tại" 
-                            required
-                            value={pwForm.currentPassword}
-                            onChange={(e) => setPwForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                          />
-                          <button 
-                            type="button" 
-                            className="profile-toggle-password" 
-                            onClick={() => setShowCurrentPw(!showCurrentPw)}
-                            aria-label={showCurrentPw ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
-                          >
-                            <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              {showCurrentPw ? (
-                                <>
-                                  <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                  <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
-                                </>
-                              ) : (
-                                <>
-                                  <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                  <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
-                                </>
-                              )}
-                            </svg>
-                          </button>
+                {loginMethod !== 'google' && (
+                  <div className="profile-card" style={{ marginTop: '24px' }}>
+                    <form id="change-password-form" onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      <h2 className="profile-card-title">Thay đổi mật khẩu</h2>
+
+                      <div className="profile-form-grid">
+                        <div className="profile-input-group profile-form-grid-full">
+                          <label htmlFor="current-password">Mật khẩu hiện tại</label>
+                          <div className="profile-password-wrapper">
+                            <input
+                              type={showCurrentPw ? "text" : "password"}
+                              id="current-password"
+                              placeholder="Nhập mật khẩu hiện tại"
+                              required
+                              value={pwForm.currentPassword}
+                              onChange={(e) => setPwForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                            />
+                            <button
+                              type="button"
+                              className="profile-toggle-password"
+                              onClick={() => setShowCurrentPw(!showCurrentPw)}
+                              aria-label={showCurrentPw ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
+                            >
+                              <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                {showCurrentPw ? (
+                                  <>
+                                    <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
+                                  </>
+                                ) : (
+                                  <>
+                                    <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
+                                  </>
+                                )}
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="profile-input-group">
+                          <label htmlFor="new-password">Mật khẩu mới</label>
+                          <div className="profile-password-wrapper">
+                            <input
+                              type={showNewPw ? "text" : "password"}
+                              id="new-password"
+                              placeholder="Nhập mật khẩu mới"
+                              required
+                              value={pwForm.newPassword}
+                              onChange={(e) => setPwForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                            />
+                            <button
+                              type="button"
+                              className="profile-toggle-password"
+                              onClick={() => setShowNewPw(!showNewPw)}
+                              aria-label={showNewPw ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
+                            >
+                              <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                {showNewPw ? (
+                                  <>
+                                    <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
+                                  </>
+                                ) : (
+                                  <>
+                                    <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
+                                  </>
+                                )}
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="profile-input-group">
+                          <label htmlFor="confirm-password">Xác nhận mật khẩu mới</label>
+                          <div className="profile-password-wrapper">
+                            <input
+                              type={showConfirmPw ? "text" : "password"}
+                              id="confirm-password"
+                              placeholder="Xác nhận mật khẩu mới"
+                              required
+                              value={pwForm.confirmPassword}
+                              onChange={(e) => setPwForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                            />
+                            <button
+                              type="button"
+                              className="profile-toggle-password"
+                              onClick={() => setShowConfirmPw(!showConfirmPw)}
+                              aria-label={showConfirmPw ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
+                            >
+                              <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                {showConfirmPw ? (
+                                  <>
+                                    <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
+                                  </>
+                                ) : (
+                                  <>
+                                    <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
+                                  </>
+                                )}
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="profile-input-group">
-                        <label htmlFor="new-password">Mật khẩu mới</label>
-                        <div className="profile-password-wrapper">
-                          <input 
-                            type={showNewPw ? "text" : "password"} 
-                            id="new-password" 
-                            placeholder="Nhập mật khẩu mới" 
-                            required
-                            value={pwForm.newPassword}
-                            onChange={(e) => setPwForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                          />
-                          <button 
-                            type="button" 
-                            className="profile-toggle-password" 
-                            onClick={() => setShowNewPw(!showNewPw)}
-                            aria-label={showNewPw ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
-                          >
-                            <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              {showNewPw ? (
-                                <>
-                                  <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                  <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
-                                </>
-                              ) : (
-                                <>
-                                  <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                  <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
-                                </>
-                              )}
+                      <button type="submit" id="change-pw-btn" className="primary-button btn-save-profile" disabled={pwLoading}>
+                        {pwLoading ? (
+                          <span className="btn-spinner"></span>
+                        ) : (
+                          <>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                             </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="profile-input-group">
-                        <label htmlFor="confirm-password">Xác nhận mật khẩu mới</label>
-                        <div className="profile-password-wrapper">
-                          <input 
-                            type={showConfirmPw ? "text" : "password"} 
-                            id="confirm-password" 
-                            placeholder="Xác nhận mật khẩu mới" 
-                            required
-                            value={pwForm.confirmPassword}
-                            onChange={(e) => setPwForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                          />
-                          <button 
-                            type="button" 
-                            className="profile-toggle-password" 
-                            onClick={() => setShowConfirmPw(!showConfirmPw)}
-                            aria-label={showConfirmPw ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
-                          >
-                            <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              {showConfirmPw ? (
-                                <>
-                                  <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                  <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
-                                </>
-                              ) : (
-                                <>
-                                  <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                  <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
-                                </>
-                              )}
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button type="submit" id="change-pw-btn" className="primary-button btn-save-profile" disabled={pwLoading}>
-                      {pwLoading ? (
-                        <span className="btn-spinner"></span>
-                      ) : (
-                        <span className="btn-text">Cập nhật mật khẩu</span>
-                      )}
-                    </button>
-                  </form>
-                </div>
+                            <span className="btn-text">Cập nhật mật khẩu</span>
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -836,12 +1042,16 @@ const Profile = ({ showToast }) => {
             <div className="dashboard-footer-content">
               <div className="footer-top">
                 <div className="footer-info">
-                  <a href="#" className="footer-logo" onClick={(e) => e.preventDefault()}>
-                    <img className="logo-icon" src={fptLogo} alt="FEvents Logo" style={{ height: '24px' }} />
+                  <a href="#" className="footer-logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
+                    <img
+                      src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+                      alt="FEvents Logo"
+                      style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
+                    />
                   </a>
                   <p>Nền tảng quản lý sự kiện chuyên nghiệp và sáng tạo dành riêng cho hệ sinh thái FPT.</p>
                 </div>
-                
+
                 <div className="footer-column">
                   <h3>Khám phá</h3>
                   <ul className="footer-links">
