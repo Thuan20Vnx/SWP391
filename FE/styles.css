@@ -1627,6 +1627,40 @@ body {
   border-color: #e2e8f0;
 }
 
+/* Password input wrapper & toggle in profile */
+.profile-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.profile-password-wrapper input {
+  padding-right: 48px;
+}
+
+.profile-toggle-password {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+  outline: none;
+  border-radius: 4px;
+}
+
+.profile-toggle-password:hover {
+  color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+
 /* Interests tag checkboxes list */
 .interest-section {
   display: flex;
