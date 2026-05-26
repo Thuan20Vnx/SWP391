@@ -74,21 +74,32 @@ const ForgotPassword = ({ showToast }) => {
     setLoading(true);
     setShowSnackbar(false);
 
-    setTimeout(() => {
-      setLoading(false);
-      setShowSnackbar(true);
-
-      const isPhone = patterns.phone.test(contact.trim());
-      if (isPhone) {
-        setSnackbarMessage("Mã OTP đã được gửi đến số điện thoại của bạn!");
-      } else {
-        setSnackbarMessage("Mã OTP đã được gửi đến email của bạn!");
-      }
-
-      setCountdown(60);
-      setIsCounting(true);
-      showToast('Yêu cầu gửi mã xác nhận thành công!', 'success');
-    }, 1500);
+    fetch('http://localhost:5000/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contact: contact })
+    })
+      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then(({ status, data }) => {
+        setLoading(false);
+        if (status === 200) {
+          setShowSnackbar(true);
+          if (data.isPhone) {
+            setSnackbarMessage("Mã OTP đã được gửi đến số điện thoại của bạn!");
+          } else {
+            setSnackbarMessage("Mã OTP đã được gửi đến email của bạn!");
+          }
+          setCountdown(60);
+          setIsCounting(true);
+          showToast('Yêu cầu gửi mã xác nhận thành công!', 'success');
+        } else {
+          showToast(data.message || 'Gửi mã xác nhận thất bại!', 'error');
+        }
+      })
+      .catch(err => {
+        setLoading(false);
+        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
+      });
   };
 
   const getGroupClass = () => {

@@ -33,6 +33,33 @@ const Login = ({ showToast }) => {
     };
   }, [showAlert]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authStatus = params.get('auth_status');
+    if (authStatus === 'success') {
+      const email = params.get('email');
+      const name = params.get('name');
+      
+      showToast(`Đăng nhập Google thành công! Chào mừng ${name}.`, 'success');
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userEmail', email);
+      
+      // Save this real account to googleAccounts in localStorage so it appears in the chooser list next time
+      const saved = localStorage.getItem('googleAccounts');
+      let accounts = saved ? JSON.parse(saved) : [];
+      if (!accounts.some(acc => acc.email.toLowerCase() === email.toLowerCase())) {
+        accounts.push({ email: email.toLowerCase(), name: name });
+        localStorage.setItem('googleAccounts', JSON.stringify(accounts));
+      }
+      
+      navigate('/profile', { replace: true });
+    } else if (authStatus === 'error') {
+      const message = params.get('message') || 'Đăng nhập Google thất bại.';
+      showToast(message, 'error');
+      navigate('/login', { replace: true });
+    }
+  }, [navigate, showToast]);
+
   const validateField = (name, value) => {
     let isValid = false;
 
@@ -109,34 +136,55 @@ const Login = ({ showToast }) => {
     setLoading(true);
     setShowAlert(false);
 
-    setTimeout(() => {
-      setLoading(false);
+    fetch('http://localhost:5000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password
+      })
+    })
+      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then(({ status, data }) => {
+        setLoading(false);
+        if (status === 200) {
+          showToast('Đăng nhập thành công! Chào mừng bạn quay trở lại FPT Students Community.', 'success');
+          
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userEmail', formData.email);
 
-      if (formData.email === 'admin@fpt.edu.vn' && formData.password === 'AdminPassword123!') {
-        showToast('Đăng nhập thành công! Chào mừng bạn quay trở lại FPT Students Community.', 'success');
-        
-        // Save mock login state in localStorage so Profile can read it if needed
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userEmail', formData.email);
+          navigate('/profile');
+        } else {
+          setShowAlert(true);
+          setValidFields(prev => ({ ...prev, password: false }));
+          setErrors(prev => ({ ...prev, password: true }));
 
-        navigate('/profile');
-      } else {
-        setShowAlert(true);
-        setValidFields(prev => ({ ...prev, password: false }));
-        setErrors(prev => ({ ...prev, password: true }));
+          const errorSpan = document.getElementById('error-password');
+          if (errorSpan) {
+            errorSpan.textContent = data.message || "Tài khoản hoặc mật khẩu không chính xác.";
+          }
 
-        const errorSpan = document.getElementById('error-password');
-        if (errorSpan) {
-          errorSpan.textContent = "Mật khẩu không chính xác. Vui lòng thử lại.";
+          triggerShake('password');
         }
-
-        triggerShake('password');
-      }
-    }, 1500);
+      })
+      .catch(err => {
+        setLoading(false);
+        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
+      });
   };
 
   const handleSsoClick = (provider) => {
     showToast(`Đang kết nối tài khoản ${provider}...`, 'success');
+  };
+
+  const loginWithGoogle = () => {
+    const params = new URLSearchParams({
+      client_id: "462966212822-ohmu33pmrp4dcpuq3hm00tnvuac4jqa9.apps.googleusercontent.com",
+      redirect_uri: "http://localhost:5000/api/auth/google/callback",
+      response_type: "code",
+      scope: "openid email profile",
+    });
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   };
 
   const getGroupClass = (name) => {
@@ -192,7 +240,7 @@ const Login = ({ showToast }) => {
               </button>
             </div>
 
-            <button type="button" id="google-login" className="sso-button google-button" onClick={() => handleSsoClick('Google')}>
+            <button type="button" id="google-login" className="sso-button google-button" onClick={loginWithGoogle}>
               <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>

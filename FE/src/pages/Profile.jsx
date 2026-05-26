@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/profile_avatar.png';
 import fptLogo from '../assets/fpt_logo.png';
 
 const Profile = ({ showToast }) => {
   const navigate = useNavigate();
+
+  // Profile data from backend
+  const [profileData, setProfileData] = useState({
+    fullname: 'Trần Xuân Thuận',
+    course: 'K18',
+    campus: 'FPT University Da Nang',
+    email: localStorage.getItem('userEmail') || 'thuantx.k18@fpt.edu.vn',
+    phone: ''
+  });
 
   // Responsive Sidebar State
   const [sidebarActive, setSidebarActive] = useState(false);
@@ -15,6 +24,61 @@ const Profile = ({ showToast }) => {
   // Form Orientation State
   const [orientation, setOrientation] = useState('Back-end Development, Internet of Things (IoT)');
   const [saveLoading, setSaveLoading] = useState(false);
+
+  // Load profile from Backend on mount
+  useEffect(() => {
+    const email = localStorage.getItem('userEmail');
+    if (!email) return;
+
+    fetch(`http://localhost:5000/api/user/profile?email=${email}`)
+      .then(res => {
+        if (res.status === 200) {
+          return res.json();
+        } else {
+          throw new Error('Failed to load profile');
+        }
+      })
+      .then(data => {
+        const u = data.user;
+        setProfileData({
+          fullname: u.fullname,
+          course: u.course,
+          campus: u.campus,
+          email: u.email,
+          phone: u.phone
+        });
+        if (u.picture) {
+          setAvatar(u.picture);
+        }
+        if (u.orientation !== undefined) {
+          setOrientation(u.orientation);
+        }
+        
+        // Populate interests checklist state
+        if (u.interests) {
+          const map = {
+            hardware: 'Phần cứng & Vi điều khiển',
+            ai: 'AI',
+            japan: 'Văn hóa Nhật Bản',
+            charity: 'Thiện nguyện',
+            sports: 'Thể thao',
+            music: 'Âm nhạc & Nghệ thuật'
+          };
+          setInterests({
+            hardware: u.interests.includes(map.hardware),
+            ai: u.interests.includes(map.ai),
+            japan: u.interests.includes(map.japan),
+            charity: u.interests.includes(map.charity),
+            sports: u.interests.includes(map.sports),
+            music: u.interests.includes(map.music)
+          });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        showToast('Không thể tải dữ liệu hồ sơ cá nhân từ Backend!', 'error');
+      });
+  }, []);
 
   // Interests Checklist State
   const [interests, setInterests] = useState({
@@ -113,29 +177,41 @@ const Profile = ({ showToast }) => {
 
     setSaveLoading(true);
 
-    setTimeout(() => {
-      setSaveLoading(false);
-      showToast('Cập nhật hồ sơ thành công! AI đang tối ưu hóa đề xuất sự kiện cho bạn.', 'success');
-      
-      const activeInterests = Object.keys(interests)
-        .filter(k => interests[k])
-        .map(k => {
-          const map = {
-            hardware: 'Phần cứng & Vi điều khiển',
-            ai: 'AI',
-            japan: 'Văn hóa Nhật Bản',
-            charity: 'Thiện nguyện',
-            sports: 'Thể thao',
-            music: 'Âm nhạc & Nghệ thuật'
-          };
-          return map[k];
-        });
+    const map = {
+      hardware: 'Phần cứng & Vi điều khiển',
+      ai: 'AI',
+      japan: 'Văn hóa Nhật Bản',
+      charity: 'Thiện nguyện',
+      sports: 'Thể thao',
+      music: 'Âm nhạc & Nghệ thuật'
+    };
+    
+    const activeInterests = Object.keys(interests)
+      .filter(k => interests[k])
+      .map(k => map[k]);
 
-      console.log('Saved Profile:', {
+    fetch('http://localhost:5000/api/user/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: profileData.email,
         orientation: orientation.trim(),
         interests: activeInterests
+      })
+    })
+      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then(({ status, data }) => {
+        setSaveLoading(false);
+        if (status === 200) {
+          showToast('Cập nhật hồ sơ thành công! AI đang tối ưu hóa đề xuất sự kiện cho bạn.', 'success');
+        } else {
+          showToast(data.message || 'Cập nhật thất bại!', 'error');
+        }
+      })
+      .catch(err => {
+        setSaveLoading(false);
+        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
       });
-    }, 1500);
   };
 
   // Handle Change Password Submit
@@ -171,22 +247,36 @@ const Profile = ({ showToast }) => {
 
     setPwLoading(true);
 
-    setTimeout(() => {
-      setPwLoading(false);
-      showToast('Thay đổi mật khẩu thành công!', 'success');
-      
-      // Reset pwForm
-      setPwForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+    fetch('http://localhost:5000/api/user/change-password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: profileData.email,
+        currentPassword,
+        newPassword
+      })
+    })
+      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then(({ status, data }) => {
+        setPwLoading(false);
+        if (status === 200) {
+          showToast('Thay đổi mật khẩu thành công!', 'success');
+          setPwForm({
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+          });
+          setShowCurrentPw(false);
+          setShowNewPw(false);
+          setShowConfirmPw(false);
+        } else {
+          showToast(data.message || 'Thay đổi mật khẩu thất bại!', 'error');
+        }
+      })
+      .catch(err => {
+        setPwLoading(false);
+        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
       });
-
-      // Restore visibility to hidden
-      setShowCurrentPw(false);
-      setShowNewPw(false);
-      setShowConfirmPw(false);
-    }, 1500);
   };
 
   const handleLogout = (e) => {
@@ -218,8 +308,8 @@ const Profile = ({ showToast }) => {
           <a href="#" className="sidebar-user-card" onClick={(e) => e.preventDefault()}>
             <img className="sidebar-avatar" src={avatar} alt="User Avatar" />
             <div className="sidebar-user-info">
-              <span className="sidebar-user-name">Trần Xuân Thuận</span>
-              <span className="sidebar-user-role">Sinh viên K18</span>
+              <span className="sidebar-user-name">{profileData.fullname}</span>
+              <span className="sidebar-user-role">Sinh viên {profileData.course}</span>
             </div>
           </a>
 
@@ -384,8 +474,8 @@ const Profile = ({ showToast }) => {
               <a href="#" className="navbar-user-menu" onClick={(e) => e.preventDefault()}>
                 <img className="navbar-user-avatar" src={avatar} alt="User Profile" />
                 <div className="navbar-user-details">
-                  <span className="navbar-user-name">Trần Xuân Thuận</span>
-                  <span className="navbar-user-role">Sinh viên K18</span>
+                  <span className="navbar-user-name">{profileData.fullname}</span>
+                  <span className="navbar-user-role">Sinh viên {profileData.course}</span>
                 </div>
               </a>
             </div>
@@ -470,19 +560,19 @@ const Profile = ({ showToast }) => {
                     <div className="profile-form-grid">
                       <div className="profile-input-group">
                         <label htmlFor="sso-name">Họ và tên</label>
-                        <input type="text" id="sso-name" value="Trần Xuân Thuận" readOnly />
+                        <input type="text" id="sso-name" value={profileData.fullname} readOnly />
                       </div>
                       <div className="profile-input-group">
                         <label htmlFor="sso-course">Khóa học</label>
-                        <input type="text" id="sso-course" value="K18" readOnly />
+                        <input type="text" id="sso-course" value={profileData.course} readOnly />
                       </div>
                       <div className="profile-input-group profile-form-grid-full">
                         <label htmlFor="sso-email">Email sinh viên</label>
-                        <input type="email" id="sso-email" value="thuantx.k18@fpt.edu.vn" readOnly />
+                        <input type="email" id="sso-email" value={profileData.email} readOnly />
                       </div>
                       <div className="profile-input-group profile-form-grid-full">
                         <label htmlFor="sso-campus">Cơ sở đào tạo</label>
-                        <input type="text" id="sso-campus" value="FPT University Da Nang" readOnly />
+                        <input type="text" id="sso-campus" value={profileData.campus} readOnly />
                       </div>
                     </div>
                   </div>
