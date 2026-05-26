@@ -1,0 +1,17 @@
+[
+  {
+    "fullname": "Trần Xuân Thuận",
+    "email": "admin@fpt.edu.vn",
+    "phone": "0312345678",
+    "password": "AdminPassword123!",
+    "course": "K18",
+    "campus": "FPT University Da Nang",
+    "orientation": "Back-end Development, Internet of Things (IoT)",
+    "interests": [
+      "Phần cứng & Vi điều khiển",
+      "AI",
+      "Văn hóa Nhật Bản",
+      "Thiện nguyện"
+    ]
+  }
+]
