@@ -8,7 +8,10 @@ const usersFilePath = path.join(__dirname, '../data/users.json');
 // Helper to read users
 const readUsers = () => {
   try {
-    const data = fs.readFileSync(usersFilePath, 'utf8');
+    let data = fs.readFileSync(usersFilePath, 'utf8');
+    if (data.charCodeAt(0) === 0xFEFF) {
+      data = data.slice(1);
+    }
     return JSON.parse(data);
   } catch (error) {
     return [];
@@ -48,14 +51,10 @@ router.get('/profile', (req, res) => {
 
 // PUT /api/user/profile
 router.put('/profile', (req, res) => {
-  const { email, orientation, interests } = req.body;
+  const { email, fullname, phone, orientation, interests, picture, course } = req.body;
 
   if (!email) {
     return res.status(400).json({ success: false, message: 'Thiếu email người dùng!' });
-  }
-
-  if (orientation === undefined || interests === undefined) {
-    return res.status(400).json({ success: false, message: 'Thiếu dữ liệu cập nhật!' });
   }
 
   const users = readUsers();
@@ -65,13 +64,48 @@ router.put('/profile', (req, res) => {
     return res.status(404).json({ success: false, message: 'Không tìm thấy thông tin người dùng!' });
   }
 
-  // Update profile details
-  users[userIndex].orientation = orientation;
-  users[userIndex].interests = interests;
+  const currentUser = users[userIndex];
+
+  // Update Họ và tên (Fullname)
+  if (fullname !== undefined) {
+    if (!fullname.trim()) {
+      return res.status(400).json({ success: false, message: 'Họ và tên không được để trống!' });
+    }
+    currentUser.fullname = fullname.trim();
+  }
+
+  // Update Số điện thoại (Phone)
+  if (phone !== undefined) {
+    currentUser.phone = phone.trim();
+  }
+
+  // Update Định hướng (Orientation)
+  if (orientation !== undefined) {
+    currentUser.orientation = orientation.trim();
+  }
+
+  // Update Sở thích (Interests)
+  if (interests !== undefined) {
+    currentUser.interests = interests;
+  }
+
+  // Update Ảnh đại diện (Picture)
+  if (picture !== undefined) {
+    currentUser.picture = picture;
+  }
+
+  // Update Khóa học (Course) - chỉ được thay đổi 1 lần
+  if (course !== undefined && course !== currentUser.course) {
+    if (currentUser.courseChanged) {
+      return res.status(400).json({ success: false, message: 'Khóa học chỉ được phép thay đổi 1 lần duy nhất!' });
+    }
+    currentUser.course = course;
+    currentUser.courseChanged = true;
+  }
 
   writeUsers(users);
 
-  const { password, ...userWithoutPassword } = users[userIndex];
+  const { password, ...userWithoutPassword } = currentUser;
   return res.status(200).json({
     success: true,
     message: 'Cập nhật thông tin cá nhân thành công!',

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Home from './pages/Home';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import { ToastContainer } from './components/Toast';
 import './index.css';
@@ -29,11 +31,12 @@ function App() {
     <Router>
       <div className="app-root">
         <Routes>
-          {/* Default route redirects to signup (index.html equivalent) */}
-          <Route path="/" element={<Signup showToast={showToast} />} />
+          {/* Default route is the beautiful new Home Page */}
+          <Route path="/" element={<Home showToast={showToast} />} />
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/login" element={<Login showToast={showToast} />} />
           <Route path="/forgot" element={<ForgotPassword showToast={showToast} />} />
+          <Route path="/reset-password" element={<ResetPassword showToast={showToast} />} />
 
           
           {/* Protected Profile Route */}
