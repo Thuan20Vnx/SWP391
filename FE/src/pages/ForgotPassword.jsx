@@ -150,9 +150,9 @@ const ForgotPassword = ({ showToast }) => {
           </header>
 
           {/* Form */}
-          <form id="forgot-form" onSubmit={handleSubmit} noValidate>
+          <form id="forgot-form" onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* Contact Field */}
-            <div className={getGroupClass()} id="group-contact" style={{ marginBottom: '24px' }}>
+            <div className={getGroupClass()} id="group-contact" style={{ marginBottom: '0px' }}>
               <div className="input-wrapper">
                 <span className="input-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -180,6 +180,7 @@ const ForgotPassword = ({ showToast }) => {
               type="submit" 
               id="forgot-btn" 
               className={`primary-button ${isCounting ? 'btn-countdown' : ''}`}
+              style={{ height: '46px' }}
               disabled={loading || isCounting}
             >
               {loading ? (
@@ -190,6 +191,25 @@ const ForgotPassword = ({ showToast }) => {
                 <span className="btn-text">Gửi mã xác nhận</span>
               )}
             </button>
+
+            {isCounting && (
+              <div style={{ marginTop: '20px', textAlign: 'center', background: '#fdf2eb', padding: '16px', borderRadius: '12px', border: '1px solid #f9b691' }}>
+                <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '8px', lineHeight: '1.4' }}>
+                  Bạn đã nhận được email khôi phục? Nhấp vào liên kết dưới đây để tới trang xác minh và đặt lại mật khẩu mới:
+                </p>
+                <Link 
+                  to={`/reset-password?email=${encodeURIComponent(contact)}`} 
+                  className="accent-link"
+                  style={{ fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '700' }}
+                >
+                  Xác minh OTP & Đổi mật khẩu
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </Link>
+              </div>
+            )}
 
             {/* Back Navigation Link */}
             <Link to="/login" className="back-link">

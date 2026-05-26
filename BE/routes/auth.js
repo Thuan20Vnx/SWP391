@@ -10,10 +10,16 @@ const usersFilePath = path.join(__dirname, '../data/users.json');
 // Memory map to hold registrations waiting for OTP confirmation
 const pendingUsers = new Map();
 
+// Memory map to hold password resets waiting for OTP confirmation
+const pendingResets = new Map();
+
 // Helper to read users from file
 const readUsers = () => {
   try {
-    const data = fs.readFileSync(usersFilePath, 'utf8');
+    let data = fs.readFileSync(usersFilePath, 'utf8');
+    if (data.charCodeAt(0) === 0xFEFF) {
+      data = data.slice(1);
+    }
     return JSON.parse(data);
   } catch (error) {
     console.error('Error reading users file:', error);
@@ -182,6 +188,158 @@ const sendOtpEmail = async (email, fullname, otp) => {
     from: `"F-Events Platform" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: '[F-Events] Mã xác minh đăng ký tài khoản mới',
+    html: htmlContent
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+// Helper to send Reset OTP email
+const sendResetEmail = async (email, fullname, otp) => {
+  // Always write the last OTP to file for automated testing in dev environment
+  try {
+    fs.writeFileSync(path.join(__dirname, '../data/last_otp.txt'), otp, 'utf8');
+  } catch (e) {
+    console.error('Error writing last_otp.txt:', e);
+  }
+
+  const resetLink = `http://localhost:5173/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`;
+
+  const mode = process.env.EMAIL_MODE || 'mock';
+  if (mode === 'mock') {
+    console.log('\n====================================');
+    console.log(`[MOCK EMAIL] Gửi OTP khôi phục mật khẩu đến: ${email}`);
+    console.log(`[MOCK EMAIL] Mã OTP của bạn là: ${otp}`);
+    console.log(`[MOCK EMAIL] Link khôi phục của bạn là: ${resetLink}`);
+    console.log('====================================\n');
+    return true;
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  const emailTemplate = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khôi phục mật khẩu F-Events</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container {
+        width: 100% !important;
+        padding: 10px !important;
+      }
+      .card {
+        padding: 24px 16px !important;
+      }
+      .btn {
+        display: block !important;
+        margin: 10px 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1E293B;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; padding: 40px 0;">
+    <tr>
+      <td align="center">
+        <table border="0" cellpadding="0" cellspacing="0" width="560" class="container" style="background-color: #F8FAFC;">
+          <!-- Header Logo -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+              <a href="http://localhost:5173" style="text-decoration: none;">
+                <h1 style="margin: 12px 0 4px 0; font-size: 24px; font-weight: 800; color: #F37021; letter-spacing: -0.5px;">F-Events</h1>
+              </a>
+              <p style="margin: 0; font-size: 12px; color: #64748B; font-weight: 500;">Khôi phục mật khẩu tài khoản của bạn</p>
+            </td>
+          </tr>
+          
+          <!-- Inner Card -->
+          <tr>
+            <td class="card" style="background-color: #FFFFFF; padding: 40px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+              <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 20px; font-weight: 700; color: #1E293B; border-left: 4px solid #F37021; padding-left: 12px;">Khôi Phục Mật Khẩu</h2>
+              
+              <p style="font-size: 15px; line-height: 24px; color: #334155; margin-bottom: 8px;">Chào <strong>\${fullname}</strong>,</p>
+              <p style="font-size: 15px; line-height: 24px; color: #334155; margin-bottom: 24px;">Chúng tôi đã nhận được yêu cầu khôi phục mật khẩu tài khoản F-Events của bạn. Vui lòng nhập mã OTP dưới đây tại trang đặt lại mật khẩu:</p>
+              
+              <!-- OTP Box -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; margin-bottom: 24px;">
+                <tr>
+                  <td align="center" style="padding: 24px 0;">
+                    <span style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; color: #F37021; letter-spacing: 12px; margin-left: 12px;">\${otp}</span>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="font-size: 15px; line-height: 24px; color: #334155; margin-bottom: 24px;">Hoặc bạn có thể click trực tiếp vào nút dưới đây để đến thẳng trang đặt lại mật khẩu và tự động xác minh OTP:</p>
+
+              <!-- Action Button -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center" style="padding-top: 8px; padding-bottom: 24px;">
+                    <a href="\${resetLink}" class="btn" style="display: inline-block; background: linear-gradient(135deg, #F37021 0%, #D9530F 100%); color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 28px; border-radius: 6px; box-shadow: 0 4px 6px rgba(243, 112, 33, 0.2);">Đặt Lại Mật Khẩu</a>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Security Warning Bulletpoints -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FFFBEB; border-radius: 6px; border-left: 4px solid #FCD34D;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td valign="top" style="font-size: 14px; line-height: 20px; color: #78350F; padding-bottom: 6px;">
+                          ⏱️ Mã OTP và đường liên kết có hiệu lực trong vòng <strong>5 phút</strong>.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td valign="top" style="font-size: 14px; line-height: 20px; color: #78350F; padding-bottom: 6px;">
+                          🔒 Tuyệt đối <strong>không chia sẻ</strong> mã xác minh này cho bất kỳ ai.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td valign="top" style="font-size: 14px; line-height: 20px; color: #78350F;">
+                          ✉️ Nếu bạn không yêu cầu thay đổi này, hãy bỏ qua email một cách an toàn.
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top: 32px;">
+              <p style="margin: 0 0 6px 0; font-size: 12px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">© 2026 F-Events Platform</p>
+              <p style="margin: 0; font-size: 11px; color: #94A3B8;">Đây là email tự động từ hệ thống, vui lòng không phản hồi email này.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const htmlContent = emailTemplate
+    .replace(/\${fullname}/g, fullname)
+    .replace(/\${otp}/g, otp.split('').join(' '))
+    .replace(/\${resetLink}/g, resetLink);
+
+  const mailOptions = {
+    from: `"F-Events Platform" <\${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: '[F-Events] Yêu cầu khôi phục mật khẩu',
     html: htmlContent
   };
 
@@ -367,7 +525,7 @@ router.post('/resend-otp', async (req, res) => {
 
 
 // POST /api/auth/forgot-password
-router.post('/forgot-password', (req, res) => {
+router.post('/forgot-password', async (req, res) => {
   const { contact } = req.body;
 
   if (!contact) {
@@ -387,11 +545,87 @@ router.post('/forgot-password', (req, res) => {
     });
   }
 
-  // Success flow
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const emailKey = user.email.toLowerCase();
+
+  pendingResets.set(emailKey, {
+    email: user.email,
+    otp: otpCode,
+    expiresAt: Date.now() + 5 * 60 * 1000
+  });
+
+  try {
+    await sendResetEmail(user.email, user.fullname, otpCode);
+    return res.status(200).json({
+      success: true,
+      message: 'Mã OTP đã được gửi thành công!',
+      isPhone: /^[0-9]+$/.test(contactVal),
+      email: user.email // send back the email for client convenience
+    });
+  } catch (error) {
+    console.error('Lỗi khi gửi email khôi phục mật khẩu:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Không thể gửi mã xác nhận đến email. Vui lòng thử lại sau!'
+    });
+  }
+});
+
+// POST /api/auth/reset-password (Xác nhận OTP và đổi mật khẩu mới)
+router.post('/reset-password', (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({ success: false, message: 'Vui lòng điền đầy đủ các thông tin bắt buộc!' });
+  }
+
+  const emailKey = email.trim().toLowerCase();
+  const pendingReset = pendingResets.get(emailKey);
+
+  if (!pendingReset) {
+    return res.status(400).json({
+      success: false,
+      message: 'Không tìm thấy yêu cầu đặt lại mật khẩu hoặc mã OTP đã hết hạn!'
+    });
+  }
+
+  if (Date.now() > pendingReset.expiresAt) {
+    pendingResets.delete(emailKey);
+    return res.status(400).json({
+      success: false,
+      message: 'Mã OTP đã hết hạn! Vui lòng thực hiện lại từ trang Quên mật khẩu.'
+    });
+  }
+
+  if (pendingReset.otp !== otp.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Mã xác minh OTP không chính xác. Vui lòng kiểm tra lại!'
+    });
+  }
+
+  // Update password in db
+  const users = readUsers();
+  const userIndex = users.findIndex(u => u.email.toLowerCase() === emailKey);
+
+  if (userIndex === -1) {
+    pendingResets.delete(emailKey);
+    return res.status(404).json({
+      success: false,
+      message: 'Không tìm thấy người dùng trên hệ thống!'
+    });
+  }
+
+  // Update password (plain text to match the rest of users.json)
+  users[userIndex].password = newPassword;
+  writeUsers(users);
+
+  // Clear from pending map
+  pendingResets.delete(emailKey);
+
   return res.status(200).json({
     success: true,
-    message: 'Mã OTP đã được gửi thành công!',
-    isPhone: /^[0-9]+$/.test(contactVal) // Helper for client to show correct text
+    message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.'
   });
 });
 
