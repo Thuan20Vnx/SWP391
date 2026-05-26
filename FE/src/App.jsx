@@ -34,6 +34,7 @@ function App() {
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/login" element={<Login showToast={showToast} />} />
           <Route path="/forgot" element={<ForgotPassword showToast={showToast} />} />
+
           
           {/* Protected Profile Route */}
           <Route 
