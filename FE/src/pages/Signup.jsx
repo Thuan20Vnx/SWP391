@@ -130,22 +130,39 @@ const Signup = ({ showToast }) => {
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      showToast(`Đăng ký thành công! Chào mừng ${formData.fullname.trim()} gia nhập FPT Students Community.`, 'success');
-      
-      // Reset form
-      setFormData({
-        fullname: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: '',
-        terms: false
+    fetch('http://localhost:5000/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullname: formData.fullname,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password
+      })
+    })
+      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then(({ status, data }) => {
+        setLoading(false);
+        if (status === 201) {
+          showToast(`Đăng ký thành công! Chào mừng ${formData.fullname.trim()} gia nhập FPT Students Community.`, 'success');
+          setFormData({
+            fullname: '',
+            email: '',
+            phone: '',
+            password: '',
+            confirmPassword: '',
+            terms: false
+          });
+          setErrors({});
+          setValidFields({});
+        } else {
+          showToast(data.message || 'Đăng ký thất bại!', 'error');
+        }
+      })
+      .catch(err => {
+        setLoading(false);
+        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
       });
-      setErrors({});
-      setValidFields({});
-    }, 1800);
   };
 
   const handleSsoClick = (provider) => {
