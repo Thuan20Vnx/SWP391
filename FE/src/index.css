@@ -57,7 +57,7 @@ body {
 .branding-column {
   position: relative;
   width: 40%;
-  background-image: url('fpt_community.png');
+  background-image: url('./assets/fpt_community.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -711,11 +711,11 @@ body {
 }
 
 .sso-subtext {
-  font-size: 1rem; /* 16px */
-  color: var(--color-icon);
+  font-size: 0.85rem; /* 13.6px for standard subtitle description size */
+  color: var(--text-muted);
   text-align: center;
-  margin-top: -8px; /* Offset the flex gap to keep it close to FeID button */
-  margin-bottom: 8px;
+  margin-top: 0px;
+  margin-bottom: 12px; /* Space between subtext and FeID button */
   width: 100%;
 }
 
@@ -827,7 +827,7 @@ body {
 
 /* Forgot Password Page Custom Layout Overrides */
 .page-container.forgot-page .branding-column {
-  background-image: url('fpt_architecture.png');
+  background-image: url('./assets/fpt_architecture.png');
 }
 
 .page-container.forgot-page .glass-overlay {
@@ -1626,6 +1626,40 @@ body {
   box-shadow: none;
   border-color: #e2e8f0;
 }
+
+/* Password input wrapper & toggle in profile */
+.profile-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.profile-password-wrapper input {
+  padding-right: 48px;
+}
+
+.profile-toggle-password {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+  outline: none;
+  border-radius: 4px;
+}
+
+.profile-toggle-password:hover {
+  color: var(--primary);
+  background-color: var(--primary-light);
+}
+
 
 /* Interests tag checkboxes list */
 .interest-section {

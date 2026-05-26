@@ -203,5 +203,133 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Password Visibility Toggle for Profile Change Password Card
+  const passwordToggles = document.querySelectorAll('.profile-toggle-password');
+  passwordToggles.forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const targetId = toggle.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      
+      const svg = toggle.querySelector('.eye-icon');
+      const offPath = svg.querySelector('.eye-off-path');
+      const offLine = svg.querySelector('.eye-off-line');
+      const onPath = svg.querySelector('.eye-on-path');
+      const onCircle = svg.querySelector('.eye-on-circle');
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (offPath) offPath.classList.add('hidden');
+        if (offLine) offLine.classList.add('hidden');
+        if (onPath) onPath.classList.remove('hidden');
+        if (onCircle) onCircle.classList.remove('hidden');
+        toggle.setAttribute('aria-label', 'Ẩn mật khẩu');
+      } else {
+        input.type = 'password';
+        if (offPath) offPath.classList.remove('hidden');
+        if (offLine) offLine.classList.remove('hidden');
+        if (onPath) onPath.classList.add('hidden');
+        if (onCircle) onCircle.classList.add('hidden');
+        toggle.setAttribute('aria-label', 'Hiển thị mật khẩu');
+      }
+    });
+  });
+
+  // Change Password Form Submit handler
+  const changePasswordForm = document.getElementById('change-password-form');
+  const changePwBtn = document.getElementById('change-pw-btn');
+
+  if (changePasswordForm && changePwBtn) {
+    const btnText = changePwBtn.querySelector('.btn-text');
+    const btnSpinner = changePwBtn.querySelector('.btn-spinner');
+
+    changePasswordForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const currentPasswordInput = document.getElementById('current-password');
+      const newPasswordInput = document.getElementById('new-password');
+      const confirmPasswordInput = document.getElementById('confirm-password');
+
+      const currentPassword = currentPasswordInput.value;
+      const newPassword = newPasswordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      // Validate empty fields
+      if (!currentPassword) {
+        showToast('Vui lòng nhập mật khẩu hiện tại!', 'error');
+        currentPasswordInput.focus();
+        return;
+      }
+
+      if (!newPassword) {
+        showToast('Vui lòng nhập mật khẩu mới!', 'error');
+        newPasswordInput.focus();
+        return;
+      }
+
+      // Validate new password length (minimum 6 characters)
+      if (newPassword.length < 6) {
+        showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', 'error');
+        newPasswordInput.focus();
+        return;
+      }
+
+      // Validate new password doesn't match current password
+      if (currentPassword === newPassword) {
+        showToast('Mật khẩu mới không được trùng với mật khẩu hiện tại!', 'error');
+        newPasswordInput.focus();
+        return;
+      }
+
+      // Validate confirm password matches
+      if (newPassword !== confirmPassword) {
+        showToast('Xác nhận mật khẩu mới không khớp!', 'error');
+        confirmPasswordInput.focus();
+        return;
+      }
+
+      // Simulate loading state
+      changePwBtn.disabled = true;
+      if (btnText) btnText.classList.add('hidden');
+      if (btnSpinner) btnSpinner.classList.remove('hidden');
+
+      setTimeout(() => {
+        // Reset save button state
+        changePwBtn.disabled = false;
+        if (btnText) btnText.classList.remove('hidden');
+        if (btnSpinner) btnSpinner.classList.add('hidden');
+
+        // Show premium success toast
+        showToast('Thay đổi mật khẩu thành công!', 'success');
+
+        // Reset form inputs
+        changePasswordForm.reset();
+
+        // Restore input type back to password in case it was toggled
+        [currentPasswordInput, newPasswordInput, confirmPasswordInput].forEach(input => {
+          input.type = 'password';
+        });
+
+        // Reset eye icons state back to eye-off visible
+        passwordToggles.forEach(toggle => {
+          const svg = toggle.querySelector('.eye-icon');
+          const offPath = svg.querySelector('.eye-off-path');
+          const offLine = svg.querySelector('.eye-off-line');
+          const onPath = svg.querySelector('.eye-on-path');
+          const onCircle = svg.querySelector('.eye-on-circle');
+
+          if (offPath) offPath.classList.remove('hidden');
+          if (offLine) offLine.classList.remove('hidden');
+          if (onPath) onPath.classList.add('hidden');
+          if (onCircle) onCircle.classList.add('hidden');
+          toggle.setAttribute('aria-label', 'Hiển thị mật khẩu');
+        });
+
+        console.log('Password successfully changed (mocked).');
+      }, 1500);
+    });
+  }
+
   // Sticky navbar or other scrolling layout interactions can be added here if needed
 });
+
