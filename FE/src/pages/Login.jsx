@@ -109,30 +109,41 @@ const Login = ({ showToast }) => {
     setLoading(true);
     setShowAlert(false);
 
-    setTimeout(() => {
-      setLoading(false);
+    fetch('http://localhost:5000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password
+      })
+    })
+      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then(({ status, data }) => {
+        setLoading(false);
+        if (status === 200) {
+          showToast('Đăng nhập thành công! Chào mừng bạn quay trở lại FPT Students Community.', 'success');
+          
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userEmail', formData.email);
 
-      if (formData.email === 'admin@fpt.edu.vn' && formData.password === 'AdminPassword123!') {
-        showToast('Đăng nhập thành công! Chào mừng bạn quay trở lại FPT Students Community.', 'success');
-        
-        // Save mock login state in localStorage so Profile can read it if needed
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userEmail', formData.email);
+          navigate('/profile');
+        } else {
+          setShowAlert(true);
+          setValidFields(prev => ({ ...prev, password: false }));
+          setErrors(prev => ({ ...prev, password: true }));
 
-        navigate('/profile');
-      } else {
-        setShowAlert(true);
-        setValidFields(prev => ({ ...prev, password: false }));
-        setErrors(prev => ({ ...prev, password: true }));
+          const errorSpan = document.getElementById('error-password');
+          if (errorSpan) {
+            errorSpan.textContent = data.message || "Tài khoản hoặc mật khẩu không chính xác.";
+          }
 
-        const errorSpan = document.getElementById('error-password');
-        if (errorSpan) {
-          errorSpan.textContent = "Mật khẩu không chính xác. Vui lòng thử lại.";
+          triggerShake('password');
         }
-
-        triggerShake('password');
-      }
-    }, 1500);
+      })
+      .catch(err => {
+        setLoading(false);
+        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
+      });
   };
 
   const handleSsoClick = (provider) => {
