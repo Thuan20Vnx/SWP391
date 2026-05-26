@@ -1,6 +1,10 @@
 // Script test kết nối MongoDB - chạy: node test-db.js
 require('dotenv').config();
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Use Google DNS to resolve MongoDB Atlas SRV records
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const uri = process.env.MONGO_URI;
 
