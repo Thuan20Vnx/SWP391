@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const SchoolMember = require('./SchoolMember');
 
 const userSchema = new mongoose.Schema({
   fullname: {
@@ -24,6 +25,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // ======= NEW: Role & Student ID for FPT recognition =======
+  role: {
+    type: String,
+    enum: ['student', 'staff', 'guest', 'ctsv'],
+    default: 'guest'
+  },
+  studentId: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  // ===========================================================
   course: {
     type: String,
     default: 'K18'
@@ -64,7 +77,38 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Helper: sanitize user object before sending to frontend
+// ============================================================
+// Static: Detect role & studentId from SchoolMember Whitelist
+// ============================================================
+userSchema.statics.detectRole = async function (email) {
+  if (!email) return { role: 'guest', studentId: '' };
+
+  const normalizedEmail = email.trim().toLowerCase();
+  
+  try {
+    const SchoolMember = mongoose.model('SchoolMember');
+    // Use regex for case-insensitive search in case Admin typed capital letters in Compass
+    const member = await SchoolMember.findOne({ 
+      email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') } 
+    });
+    
+    if (member) {
+      return { 
+        role: member.role ? member.role.toLowerCase() : 'guest', 
+        studentId: member.studentId || '' 
+      };
+    }
+  } catch (error) {
+    console.error('Lỗi khi tra cứu SchoolMember:', error);
+  }
+
+  // Not in whitelist -> guest
+  return { role: 'guest', studentId: '' };
+};
+
+// ============================================================
+// Static: Sanitize user object before sending to frontend
+// ============================================================
 userSchema.statics.sanitizeUser = function (user) {
   if (!user) return null;
   const obj = user.toObject ? user.toObject() : { ...user };

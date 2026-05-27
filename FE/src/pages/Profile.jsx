@@ -15,6 +15,10 @@ const Profile = ({ showToast }) => {
     phone: ''
   });
 
+  // Role & Student ID for FPT recognition
+  const [userRole, setUserRole] = useState('guest');
+  const [studentId, setStudentId] = useState('');
+
   // Track if course cohort has been changed once
   const [courseChanged, setCourseChanged] = useState(false);
 
@@ -55,12 +59,17 @@ const Profile = ({ showToast }) => {
           phone: u.phone || ''
         });
         setCourseChanged(u.courseChanged || false);
-        if (u.picture) {
+        if (u.avatar) {
+          setAvatar(u.avatar);
+        } else if (u.picture) {
           setAvatar(u.picture);
         }
         if (u.orientation !== undefined) {
           setOrientation(u.orientation);
         }
+        // Load role & studentId
+        if (u.role) setUserRole(u.role);
+        if (u.studentId) setStudentId(u.studentId);
 
         // Populate interests checklist state
         if (u.interests) {
@@ -330,11 +339,136 @@ const Profile = ({ showToast }) => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('loginMethod');
+    localStorage.removeItem('userRole');
     showToast('Đã đăng xuất tài khoản thành công.', 'info');
     navigate('/login');
   };
 
   const loginMethod = localStorage.getItem('loginMethod');
+
+  // ============================================================
+  // RoleBadge Component — Visual badge for student/staff/guest
+  // ============================================================
+  const RoleBadge = ({ role, size = 'sm' }) => {
+    const config = {
+      student: {
+        label: 'Sinh viên FPT',
+        className: 'role-badge--student',
+        icon: (
+          <svg width={size === 'lg' ? 16 : 12} height={size === 'lg' ? 16 : 12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        )
+      },
+      staff: {
+        label: 'Cán bộ FPT',
+        className: 'role-badge--staff',
+        icon: (
+          <svg width={size === 'lg' ? 16 : 12} height={size === 'lg' ? 16 : 12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        )
+      },
+      ctsv: {
+        label: 'Phòng CTSV',
+        className: 'role-badge--staff', // Using staff style for now, can change later
+        icon: (
+          <svg width={size === 'lg' ? 16 : 12} height={size === 'lg' ? 16 : 12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        )
+      },
+      guest: {
+        label: 'Khách',
+        className: 'role-badge--guest',
+        icon: (
+          <svg width={size === 'lg' ? 16 : 12} height={size === 'lg' ? 16 : 12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        )
+      }
+    };
+
+    const c = config[role] || config.guest;
+    return (
+      <span className={`role-badge ${c.className} ${size === 'lg' ? 'role-badge--lg' : ''}`}>
+        {c.icon}
+        <span>{c.label}</span>
+      </span>
+    );
+  };
+
+  // ============================================================
+  // RoleInfoSection — Detailed role info card in profile
+  // ============================================================
+  const RoleInfoSection = ({ role, studentIdVal }) => {
+    const roleConfig = {
+      student: {
+        title: '🎓 Sinh viên FPT University',
+        subtitle: studentIdVal ? `Mã sinh viên: ${studentIdVal}` : 'Đã xác thực bằng email sinh viên FPT',
+        sectionClass: '',
+        iconClass: 'role-info-icon--student',
+        icon: (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        )
+      },
+      staff: {
+        title: '👨‍🏫 Cán bộ / Giảng viên FPT',
+        subtitle: 'Đã xác thực bằng email nội bộ FPT',
+        sectionClass: 'role-info-section--staff',
+        iconClass: 'role-info-icon--staff',
+        icon: (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        )
+      },
+      ctsv: {
+        title: '🛡️ Phòng Công Tác Sinh Viên',
+        subtitle: 'Đã xác thực quyền Quản trị CTSV',
+        sectionClass: 'role-info-section--staff',
+        iconClass: 'role-info-icon--staff',
+        icon: (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        )
+      },
+      guest: {
+        title: '👤 Tài khoản Khách',
+        subtitle: 'Sử dụng email ngoài hệ thống FPT. Một số tính năng có thể bị giới hạn.',
+        sectionClass: 'role-info-section--guest',
+        iconClass: 'role-info-icon--guest',
+        icon: (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        )
+      }
+    };
+
+    const rc = roleConfig[role] || roleConfig.guest;
+
+    return (
+      <div className={`role-info-section ${rc.sectionClass}`}>
+        <div className={`role-info-icon ${rc.iconClass}`}>
+          {rc.icon}
+        </div>
+        <div className="role-info-details">
+          <span className="role-info-title">{rc.title}</span>
+          <span className="role-info-subtitle">{rc.subtitle}</span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="dashboard-body">
@@ -366,7 +500,12 @@ const Profile = ({ showToast }) => {
             <img className="sidebar-avatar" src={avatar} alt="User Avatar" />
             <div className="sidebar-user-info">
               <span className="sidebar-user-name">{profileData.fullname}</span>
-              <span className="sidebar-user-role">Sinh viên {profileData.course}</span>
+              <span className="sidebar-user-role">
+                {userRole === 'student' ? `Sinh viên ${profileData.course}` : userRole === 'staff' ? 'Cán bộ FPT' : userRole === 'ctsv' ? 'Phòng CTSV' : 'Khách'}
+              </span>
+              <div className="sidebar-role-badge">
+                <RoleBadge role={userRole} />
+              </div>
             </div>
           </a>
 
@@ -532,7 +671,9 @@ const Profile = ({ showToast }) => {
                 <img className="navbar-user-avatar" src={avatar} alt="User Profile" />
                 <div className="navbar-user-details">
                   <span className="navbar-user-name">{profileData.fullname}</span>
-                  <span className="navbar-user-role">Sinh viên {profileData.course}</span>
+                  <span className="navbar-user-role">
+                    {userRole === 'student' ? `Sinh viên ${profileData.course}` : userRole === 'staff' ? 'Cán bộ FPT' : userRole === 'ctsv' ? 'Phòng CTSV' : 'Khách'}
+                  </span>
                 </div>
               </a>
             </div>
@@ -613,6 +754,9 @@ const Profile = ({ showToast }) => {
                         <span>ĐÃ XÁC THỰC</span>
                       </div>
                     </div>
+
+                    {/* Role Info Section */}
+                    <RoleInfoSection role={userRole} studentIdVal={studentId} />
 
                     <div className="profile-form-grid">
                       <div className="profile-input-group">
@@ -696,6 +840,15 @@ const Profile = ({ showToast }) => {
                           disabled={!isEditing}
                         />
                       </div>
+                      {studentId && (
+                        <div className="profile-input-group">
+                          <label htmlFor="student-id">Mã sinh viên</label>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input type="text" id="student-id" value={studentId} readOnly />
+                            <RoleBadge role={userRole} size="lg" />
+                          </div>
+                        </div>
+                      )}
                       <div className="profile-input-group profile-form-grid-full">
                         <label htmlFor="sso-campus">Cơ sở đào tạo</label>
                         <input type="text" id="sso-campus" value={profileData.campus} readOnly />

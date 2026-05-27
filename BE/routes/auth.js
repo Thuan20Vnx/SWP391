@@ -275,6 +275,16 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (isMatch) {
+      // Auto-detect role for existing users who don't have role yet
+      if (!user.role || user.role === 'guest') {
+        const detected = await User.detectRole(user.email);
+        if (detected.role !== 'guest') {
+          user.role = detected.role;
+          user.studentId = detected.studentId;
+          await user.save();
+        }
+      }
+
       return res.status(200).json({
         success: true,
         message: 'Đăng nhập thành công!',
@@ -408,6 +418,9 @@ router.post('/verify-otp', async (req, res) => {
       });
     }
 
+    // Auto-detect role & studentId from email
+    const { role, studentId } = await User.detectRole(pendingUser.email);
+
     // Create user in MongoDB with hashed password
     const newUser = await User.create({
       fullname: pendingUser.fullname,
@@ -415,6 +428,8 @@ router.post('/verify-otp', async (req, res) => {
       phone: pendingUser.phone,
       passwordHash: pendingUser.passwordHash, // Already bcrypt hashed
       authProvider: 'local',
+      role: role,
+      studentId: studentId,
       course: 'K18',
       campus: 'FPT University Da Nang',
       orientation: '',
@@ -632,17 +647,32 @@ router.post('/google', async (req, res) => {
     let user = await User.findOne({ email: googleEmail.toLowerCase() });
 
     if (user) {
+      // Auto-detect role for existing users who don't have role yet
+      let needSave = false;
+      if (!user.role || user.role === 'guest') {
+        const detected = await User.detectRole(user.email);
+        if (detected.role !== 'guest') {
+          user.role = detected.role;
+          user.studentId = detected.studentId;
+          needSave = true;
+        }
+      }
       // User exists, update picture if available
       if (googlePicture) {
         user.picture = googlePicture;
-        await user.save();
+        needSave = true;
       }
+      if (needSave) await user.save();
+
       return res.status(200).json({
         success: true,
         message: 'Đăng nhập bằng Google thành công!',
         user: sanitizeUser(user)
       });
     } else {
+      // Auto-detect role & studentId from Google email
+      const { role, studentId } = await User.detectRole(googleEmail);
+
       // User does not exist, auto-signup (Google user — no passwordHash needed)
       const newUser = await User.create({
         fullname: googleName,
@@ -650,6 +680,8 @@ router.post('/google', async (req, res) => {
         phone: '',
         passwordHash: null, // Google users don't need a password
         authProvider: 'google',
+        role: role,
+        studentId: studentId,
         course: 'K18',
         campus: 'FPT University Da Nang',
         orientation: '',
@@ -718,12 +750,17 @@ router.get('/google/callback', async (req, res) => {
         await user.save();
       }
     } else {
+      // Auto-detect role & studentId from callback email
+      const { role: detectedRole, studentId: detectedStudentId } = await User.detectRole(email);
+
       await User.create({
         fullname: name,
         email: email.toLowerCase(),
         phone: '',
         passwordHash: null,
         authProvider: 'google',
+        role: detectedRole,
+        studentId: detectedStudentId,
         course: 'K18',
         campus: 'FPT University Da Nang',
         orientation: '',

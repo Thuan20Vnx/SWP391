@@ -289,8 +289,8 @@ const Home = ({ showToast }) => {
 
           {/* Navigation Links */}
           <nav className={`header-nav ${mobileMenuOpen ? 'mobile-active' : ''}`}>
-            <a href="#" className="nav-link active" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); }}>Trang chủ</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); showToast('Tính năng Sự kiện đang được tích hợp sâu!', 'info'); setMobileMenuOpen(false); }}>Sự kiện</a>
+            <Link to="/" className="nav-link active" onClick={() => setMobileMenuOpen(false)}>Trang chủ</Link>
+            <Link to="/events" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Sự kiện</Link>
             <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); showToast('Tính năng Câu lạc bộ đang phát triển!', 'info'); setMobileMenuOpen(false); }}>Câu lạc bộ</a>
             <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); showToast('Bản tin FPT Students đang cập nhật!', 'info'); setMobileMenuOpen(false); }}>Tin tức</a>
           </nav>

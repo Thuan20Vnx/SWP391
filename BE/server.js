@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const connectDB = require('./src/config/db');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const eventRoutes = require('./routes/event');
 
 // Connect to MongoDB
 connectDB();
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
 // Register API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/events', eventRoutes);
 
 // Start Server
 app.listen(PORT, () => {

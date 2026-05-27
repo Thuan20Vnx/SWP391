@@ -45,6 +45,16 @@ const Login = ({ showToast }) => {
       localStorage.setItem('userEmail', email);
       localStorage.setItem('loginMethod', 'google');
 
+      // Fetch profile to get role
+      fetch(`http://localhost:5000/api/user/profile?email=${email}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.success && d.user) {
+            localStorage.setItem('userRole', d.user.role || 'guest');
+          }
+        })
+        .catch(() => {});
+
       // Save this real account to googleAccounts in localStorage so it appears in the chooser list next time
       const saved = localStorage.getItem('googleAccounts');
       let accounts = saved ? JSON.parse(saved) : [];
@@ -95,21 +105,14 @@ const Login = ({ showToast }) => {
     setShowAlert(false);
 
     const isValid = patterns.email.test(value.trim());
-    const isFptEmail = value.trim().toLowerCase().endsWith('@fpt.edu.vn') || value.trim().toLowerCase().endsWith('@fe.edu.vn');
 
     setErrors(prev => ({ ...prev, email: !isValid }));
     setValidFields(prev => ({ ...prev, email: isValid }));
 
-    // Custom warning for FPT Student Email format
     const errorSpan = document.getElementById('error-email');
     if (errorSpan) {
-      if (isValid && !isFptEmail) {
-        errorSpan.textContent = "Hệ thống khuyên dùng email FPT (@fpt.edu.vn)";
-        errorSpan.style.color = "var(--primary)";
-      } else {
-        errorSpan.textContent = "Vui lòng nhập email hợp lệ";
-        errorSpan.style.color = "var(--border-error)";
-      }
+      errorSpan.textContent = "Vui lòng nhập email hợp lệ";
+      errorSpan.style.color = "var(--border-error)";
     }
   };
 
@@ -149,7 +152,18 @@ const Login = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
-          showToast('Đăng nhập thành công! Chào mừng bạn quay trở lại FPT Students Community.', 'success');
+          // Save role to localStorage
+          const userRole = data.user?.role || 'guest';
+          localStorage.setItem('userRole', userRole);
+
+          // Role-specific welcome message
+          const roleMessages = {
+            student: 'Chào mừng sinh viên FPT quay trở lại! 🎓',
+            staff: 'Chào mừng cán bộ FPT! 👨‍🏫',
+            ctsv: 'Chào mừng Phòng Công Tác Sinh Viên! 🛡️',
+            guest: 'Chào mừng bạn đến với F-Events! 👋'
+          };
+          showToast(roleMessages[userRole] || roleMessages.guest, 'success');
 
           localStorage.setItem('isLoggedIn', 'true');
           localStorage.setItem('userEmail', formData.email);
