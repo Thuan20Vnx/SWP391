@@ -53,7 +53,7 @@ const Login = ({ showToast }) => {
         localStorage.setItem('googleAccounts', JSON.stringify(accounts));
       }
 
-      navigate('/profile', { replace: true });
+      navigate('/', { replace: true });
     } else if (authStatus === 'error') {
       const message = params.get('message') || 'Đăng nhập Google thất bại.';
       showToast(message, 'error');
@@ -155,7 +155,7 @@ const Login = ({ showToast }) => {
           localStorage.setItem('userEmail', formData.email);
           localStorage.setItem('loginMethod', 'local');
 
-          navigate('/profile');
+          navigate('/');
         } else {
           setShowAlert(true);
           setValidFields(prev => ({ ...prev, password: false }));

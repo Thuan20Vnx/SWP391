@@ -11,7 +11,7 @@ const Profile = ({ showToast }) => {
     fullname: 'Trần Xuân Thuận',
     course: 'K18',
     campus: 'FPT University Da Nang',
-    email: localStorage.getItem('userEmail') || 'thuantx.k18@fpt.edu.vn',
+    email: localStorage.getItem('userEmail') || 'thuantx.k19@fpt.edu.vn',
     phone: ''
   });
 
@@ -349,8 +349,8 @@ const Profile = ({ showToast }) => {
         {/* Sidebar Aside */}
         <aside className={`sidebar-aside ${sidebarActive ? 'active' : ''}`} id="sidebar">
           {/* Logo */}
-          <div 
-            className="sidebar-logo" 
+          <div
+            className="sidebar-logo"
             style={{ display: 'flex', justifyContent: 'center', padding: '12px 16px', cursor: 'pointer' }}
             onClick={() => navigate('/')}
           >
