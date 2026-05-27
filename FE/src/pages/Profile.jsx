@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/profile_avatar.png';
 import fptLogo from '../assets/fpt_logo.png';
+import { API_BASE, getAuthHeaders } from '../utils/api';
 
 const Profile = ({ showToast }) => {
   const navigate = useNavigate();
@@ -34,10 +35,10 @@ const Profile = ({ showToast }) => {
 
   // Load profile from Backend on mount
   useEffect(() => {
-    const email = localStorage.getItem('userEmail');
-    if (!email) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
 
-    fetch(`http://localhost:5000/api/user/profile?email=${email}`)
+    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
       .then(res => {
         if (res.status === 200) {
           return res.json();
@@ -201,11 +202,10 @@ const Profile = ({ showToast }) => {
       .filter(k => interests[k])
       .map(k => map[k]);
 
-    fetch('http://localhost:5000/api/user/profile', {
+    fetch(`${API_BASE}/api/user/profile`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
-        email: profileData.email,
         fullname: profileData.fullname.trim(),
         phone: profileData.phone.trim(),
         course: profileData.course,
@@ -275,11 +275,10 @@ const Profile = ({ showToast }) => {
 
     setPwLoading(true);
 
-    fetch('http://localhost:5000/api/user/change-password', {
+    fetch(`${API_BASE}/api/user/change-password`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
-        email: profileData.email,
         currentPassword,
         newPassword
       })
@@ -330,6 +329,7 @@ const Profile = ({ showToast }) => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('loginMethod');
+    localStorage.removeItem('authToken');
     showToast('Đã đăng xuất tài khoản thành công.', 'info');
     navigate('/login');
   };

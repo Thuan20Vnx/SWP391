@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/profile_avatar.png';
+import { API_BASE, getAuthHeaders } from '../utils/api';
 
 const Home = ({ showToast }) => {
   const navigate = useNavigate();
@@ -114,9 +115,9 @@ const Home = ({ showToast }) => {
     setIsLoggedIn(logged);
 
     if (logged) {
-      const email = localStorage.getItem('userEmail');
-      if (email) {
-        fetch(`http://localhost:5000/api/user/profile?email=${email}`)
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
           .then(res => {
             if (res.status === 200) return res.json();
             throw new Error('Load failed');
@@ -258,6 +259,7 @@ const Home = ({ showToast }) => {
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('authToken');
     setIsLoggedIn(false);
     showToast('Đã đăng xuất tài khoản thành công.', 'info');
     navigate('/');

@@ -33,6 +33,15 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'API endpoint không tồn tại!' });
+});
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+});
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`Backend server running at http://localhost:${PORT}/`);

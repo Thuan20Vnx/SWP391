@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../src/models/User');
+const { signToken } = require('../src/utils/jwt');
 
 // Memory map to hold registrations waiting for OTP confirmation
 const pendingUsers = new Map();
@@ -278,7 +279,8 @@ router.post('/login', async (req, res) => {
       return res.status(200).json({
         success: true,
         message: 'Đăng nhập thành công!',
-        user: sanitizeUser(user)
+        user: sanitizeUser(user),
+        token: signToken(user)
       });
     } else {
       return res.status(401).json({
@@ -426,7 +428,8 @@ router.post('/verify-otp', async (req, res) => {
     return res.status(201).json({
       success: true,
       message: 'Đăng ký tài khoản thành công!',
-      user: sanitizeUser(newUser)
+      user: sanitizeUser(newUser),
+      token: signToken(newUser)
     });
   } catch (error) {
     console.error('Lỗi khi tạo tài khoản:', error);
@@ -600,6 +603,7 @@ router.post('/google', async (req, res) => {
   let googleEmail = '';
   let googleName = '';
   let googlePicture = '';
+  let googleId = '';
 
   try {
     if (clientId !== 'mock' && !isMock) {
@@ -615,6 +619,7 @@ router.post('/google', async (req, res) => {
       googleEmail = payload.email;
       googleName = payload.name || payload.given_name || 'Người dùng Google';
       googlePicture = payload.picture || '';
+      googleId = payload.sub || '';
     } else {
       // Mock Google Login in development
       if (!email || !name) {
@@ -623,6 +628,7 @@ router.post('/google', async (req, res) => {
       googleEmail = email.trim().toLowerCase();
       googleName = name.trim();
       googlePicture = req.body.picture || '';
+      googleId = `mock-${googleEmail}`;
     }
 
     if (!googleEmail) {
@@ -632,23 +638,21 @@ router.post('/google', async (req, res) => {
     let user = await User.findOne({ email: googleEmail.toLowerCase() });
 
     if (user) {
-      // User exists, update picture if available
-      if (googlePicture) {
-        user.picture = googlePicture;
-        await user.save();
-      }
+      if (googleId) user.googleId = googleId;
+      if (googlePicture) user.picture = googlePicture;
+      if (googleId || googlePicture) await user.save();
       return res.status(200).json({
         success: true,
         message: 'Đăng nhập bằng Google thành công!',
-        user: sanitizeUser(user)
+        user: sanitizeUser(user),
+        token: signToken(user)
       });
     } else {
-      // User does not exist, auto-signup (Google user — no passwordHash needed)
       const newUser = await User.create({
         fullname: googleName,
         email: googleEmail.toLowerCase(),
-        phone: '',
-        passwordHash: null, // Google users don't need a password
+        passwordHash: null,
+        googleId: googleId || null,
         authProvider: 'google',
         course: 'K18',
         campus: 'FPT University Da Nang',
@@ -660,7 +664,8 @@ router.post('/google', async (req, res) => {
       return res.status(201).json({
         success: true,
         message: 'Tự động tạo tài khoản và đăng nhập thành công!',
-        user: sanitizeUser(newUser)
+        user: sanitizeUser(newUser),
+        token: signToken(newUser)
       });
     }
   } catch (error) {
@@ -688,6 +693,7 @@ router.get('/google/callback', async (req, res) => {
   let email = '';
   let name = '';
   let picture = '';
+  let googleId = '';
 
   try {
     if (!clientSecret || clientSecret === 'mock') {
@@ -695,6 +701,7 @@ router.get('/google/callback', async (req, res) => {
       email = 'kxnhan1507@gmail.com';
       name = 'Nhân Khưu Xuân';
       picture = '';
+      googleId = 'mock-kxnhan1507';
     } else {
       const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
       const { tokens } = await oauth2Client.getToken(code);
@@ -708,21 +715,21 @@ router.get('/google/callback', async (req, res) => {
       email = payload.email;
       name = payload.name || payload.given_name || 'Người dùng Google';
       picture = payload.picture || '';
+      googleId = payload.sub || '';
     }
 
     let user = await User.findOne({ email: email.toLowerCase() });
 
     if (user) {
-      if (picture) {
-        user.picture = picture;
-        await user.save();
-      }
+      if (googleId) user.googleId = googleId;
+      if (picture) user.picture = picture;
+      if (googleId || picture) await user.save();
     } else {
-      await User.create({
+      user = await User.create({
         fullname: name,
         email: email.toLowerCase(),
-        phone: '',
         passwordHash: null,
+        googleId: googleId || null,
         authProvider: 'google',
         course: 'K18',
         campus: 'FPT University Da Nang',
@@ -732,7 +739,10 @@ router.get('/google/callback', async (req, res) => {
       });
     }
 
-    return res.redirect(`http://localhost:5173/login?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`);
+    const authToken = signToken(user);
+    return res.redirect(
+      `http://localhost:5173/login?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`
+    );
 
   } catch (error) {
     console.error('Lỗi khi xử lý callback đăng nhập Google:', error);
