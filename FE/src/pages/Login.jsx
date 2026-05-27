@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import fptLogo from '../assets/fpt_logo.png';
+import { API_BASE } from '../utils/api';
 
 const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -39,11 +40,13 @@ const Login = ({ showToast }) => {
     if (authStatus === 'success') {
       const email = params.get('email');
       const name = params.get('name');
+      const token = params.get('token');
 
       showToast(`Đăng nhập Google thành công! Chào mừng ${name}.`, 'success');
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('userEmail', email);
       localStorage.setItem('loginMethod', 'google');
+      if (token) localStorage.setItem('authToken', token);
 
       // Fetch profile to get role
       fetch(`http://localhost:5000/api/user/profile?email=${email}`)
@@ -63,7 +66,7 @@ const Login = ({ showToast }) => {
         localStorage.setItem('googleAccounts', JSON.stringify(accounts));
       }
 
-      navigate('/profile', { replace: true });
+      navigate('/', { replace: true });
     } else if (authStatus === 'error') {
       const message = params.get('message') || 'Đăng nhập Google thất bại.';
       showToast(message, 'error');
@@ -140,7 +143,7 @@ const Login = ({ showToast }) => {
     setLoading(true);
     setShowAlert(false);
 
-    fetch('http://localhost:5000/api/auth/login', {
+    fetch(`${API_BASE}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -168,8 +171,9 @@ const Login = ({ showToast }) => {
           localStorage.setItem('isLoggedIn', 'true');
           localStorage.setItem('userEmail', formData.email);
           localStorage.setItem('loginMethod', 'local');
+          if (data.token) localStorage.setItem('authToken', data.token);
 
-          navigate('/profile');
+          navigate('/');
         } else {
           setShowAlert(true);
           setValidFields(prev => ({ ...prev, password: false }));
