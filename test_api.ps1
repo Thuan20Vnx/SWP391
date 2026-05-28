@@ -67,32 +67,37 @@ try {
     $loginRes = Invoke-RestMethod -Uri "$baseUrl/api/auth/login" -Method Post -Body $loginBody -ContentType "application/json"
     Show-Response "Login Success Response" $loginRes
 
+    if (-not $loginRes.token) {
+        throw "Login response missing JWT token"
+    }
+    $authHeaders = @{
+        Authorization = "Bearer $($loginRes.token)"
+    }
+
     # 4. Test Retrieve Profile Endpoint
     Write-Host "`n4. Testing Get Profile Endpoint..." -ForegroundColor Yellow
-    $profileRes = Invoke-RestMethod -Uri "$baseUrl/api/user/profile?email=$testEmail" -Method Get
+    $profileRes = Invoke-RestMethod -Uri "$baseUrl/api/user/profile" -Method Get -Headers $authHeaders
     Show-Response "Get Profile Response" $profileRes
 
     # 5. Test Update Profile Endpoint (Interests and Orientation)
     Write-Host "`n5. Testing Update Profile Endpoint..." -ForegroundColor Yellow
     $updateBody = @{
-        email = $testEmail
         orientation = "Full-stack Developer, Cloud Architecture"
         interests = @("AI", "Văn hóa Nhật Bản", "Thể thao")
     } | ConvertTo-Json
 
-    $updateRes = Invoke-RestMethod -Uri "$baseUrl/api/user/profile" -Method Put -Body $updateBody -ContentType "application/json"
+    $updateRes = Invoke-RestMethod -Uri "$baseUrl/api/user/profile" -Method Put -Body $updateBody -ContentType "application/json" -Headers $authHeaders
     Show-Response "Update Profile Response" $updateRes
 
     # 6. Test Change Password Endpoint
     Write-Host "`n6. Testing Change Password Endpoint..." -ForegroundColor Yellow
     $newPassword = "NewPassword$randNum`!"
     $changePwBody = @{
-        email = $testEmail
         currentPassword = $testPassword
         newPassword = $newPassword
     } | ConvertTo-Json
 
-    $changePwRes = Invoke-RestMethod -Uri "$baseUrl/api/user/change-password" -Method Put -Body $changePwBody -ContentType "application/json"
+    $changePwRes = Invoke-RestMethod -Uri "$baseUrl/api/user/change-password" -Method Put -Body $changePwBody -ContentType "application/json" -Headers $authHeaders
     Show-Response "Change Password Response" $changePwRes
 
     # 7. Test Login with New Password

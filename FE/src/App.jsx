@@ -6,6 +6,9 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
+import Events from './pages/Events';
+import CreateEvent from './pages/CreateEvent';
+import AdminDashboard from './pages/AdminDashboard';
 import { ToastContainer } from './components/Toast';
 import './index.css';
 
@@ -45,6 +48,25 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile showToast={showToast} />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Event Routes */}
+          <Route path="/events" element={<Events showToast={showToast} />} />
+          <Route 
+            path="/create-event" 
+            element={
+              <ProtectedRoute>
+                <CreateEvent showToast={showToast} />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/events" 
+            element={
+              <ProtectedRoute>
+                <AdminDashboard showToast={showToast} />
               </ProtectedRoute>
             } 
           />

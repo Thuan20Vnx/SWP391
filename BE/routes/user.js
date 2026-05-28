@@ -1,149 +1,160 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
+const bcrypt = require('bcrypt');
+const User = require('../src/models/User');
+const authMiddleware = require('../src/middleware/auth');
 
-const usersFilePath = path.join(__dirname, '../data/users.json');
+const sanitizeUser = (user) => User.sanitizeUser(user);
 
-// Helper to read users
-const readUsers = () => {
-  try {
-    let data = fs.readFileSync(usersFilePath, 'utf8');
-    if (data.charCodeAt(0) === 0xFEFF) {
-      data = data.slice(1);
-    }
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
-};
+router.use(authMiddleware);
 
-// Helper to write users
-const writeUsers = (users) => {
-  try {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), 'utf8');
-  } catch (error) {
-    console.error(error);
-  }
-};
-
+// ============================================================
 // GET /api/user/profile
-router.get('/profile', (req, res) => {
-  const { email } = req.query;
+// ============================================================
+router.get('/profile', async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.authEmail });
 
-  if (!email) {
-    return res.status(400).json({ success: false, message: 'Thiếu email người dùng!' });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thông tin người dùng!' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: sanitizeUser(user)
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy thông tin profile:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
-
-  const users = readUsers();
-  const user = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
-
-  if (!user) {
-    return res.status(404).json({ success: false, message: 'Không tìm thấy thông tin người dùng!' });
-  }
-
-  const { password, ...userWithoutPassword } = user;
-  return res.status(200).json({
-    success: true,
-    user: userWithoutPassword
-  });
 });
 
+// ============================================================
 // PUT /api/user/profile
-router.put('/profile', (req, res) => {
-  const { email, fullname, phone, orientation, interests, picture, course } = req.body;
+// ============================================================
+router.put('/profile', async (req, res) => {
+  const { fullname, phone, orientation, interests, picture, avatar, course } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ success: false, message: 'Thiếu email người dùng!' });
-  }
+  try {
+    const user = await User.findOne({ email: req.authEmail });
 
-  const users = readUsers();
-  const userIndex = users.findIndex(u => u.email.toLowerCase() === email.trim().toLowerCase());
-
-  if (userIndex === -1) {
-    return res.status(404).json({ success: false, message: 'Không tìm thấy thông tin người dùng!' });
-  }
-
-  const currentUser = users[userIndex];
-
-  // Update Họ và tên (Fullname)
-  if (fullname !== undefined) {
-    if (!fullname.trim()) {
-      return res.status(400).json({ success: false, message: 'Họ và tên không được để trống!' });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thông tin người dùng!' });
     }
-    currentUser.fullname = fullname.trim();
-  }
 
-  // Update Số điện thoại (Phone)
-  if (phone !== undefined) {
-    currentUser.phone = phone.trim();
-  }
-
-  // Update Định hướng (Orientation)
-  if (orientation !== undefined) {
-    currentUser.orientation = orientation.trim();
-  }
-
-  // Update Sở thích (Interests)
-  if (interests !== undefined) {
-    currentUser.interests = interests;
-  }
-
-  // Update Ảnh đại diện (Picture)
-  if (picture !== undefined) {
-    currentUser.picture = picture;
-  }
-
-  // Update Khóa học (Course) - chỉ được thay đổi 1 lần
-  if (course !== undefined && course !== currentUser.course) {
-    if (currentUser.courseChanged) {
-      return res.status(400).json({ success: false, message: 'Khóa học chỉ được phép thay đổi 1 lần duy nhất!' });
+    if (fullname !== undefined) {
+      if (!fullname.trim()) {
+        return res.status(400).json({ success: false, message: 'Họ và tên không được để trống!' });
+      }
+      user.fullname = fullname.trim();
     }
-    currentUser.course = course;
-    currentUser.courseChanged = true;
+
+    if (phone !== undefined) {
+      const trimmedPhone = phone.trim();
+      if (trimmedPhone) {
+        const phoneExists = await User.findOne({
+          phone: trimmedPhone,
+          _id: { $ne: user._id }
+        });
+        if (phoneExists) {
+          return res.status(400).json({ success: false, message: 'Số điện thoại đã được sử dụng bởi tài khoản khác!' });
+        }
+        user.phone = trimmedPhone;
+      } else {
+        user.phone = undefined;
+      }
+    }
+
+    if (orientation !== undefined) {
+      user.orientation = orientation.trim();
+    }
+
+    if (interests !== undefined) {
+      user.interests = interests;
+    }
+
+    if (avatar !== undefined) {
+      if (avatar && typeof avatar === 'string' && avatar.length > 0) {
+        if (avatar.startsWith('data:') && !avatar.startsWith('data:image/')) {
+          return res.status(400).json({ success: false, message: 'Avatar phải là ảnh hợp lệ (data:image/...)!' });
+        }
+      }
+      user.avatar = avatar;
+    }
+
+    if (picture !== undefined) {
+      if (picture && typeof picture === 'string' && picture.length > 0) {
+        if (picture.startsWith('data:') && !picture.startsWith('data:image/')) {
+          return res.status(400).json({ success: false, message: 'Picture phải là ảnh hợp lệ (data:image/...)!' });
+        }
+      }
+      user.picture = picture;
+    }
+
+    if (course !== undefined && course !== user.course) {
+      if (user.courseChanged) {
+        return res.status(400).json({ success: false, message: 'Khóa học chỉ được phép thay đổi 1 lần duy nhất!' });
+      }
+      user.course = course;
+      user.courseChanged = true;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Cập nhật thông tin cá nhân thành công!',
+      user: sanitizeUser(user)
+    });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật profile:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
-
-  writeUsers(users);
-
-  const { password, ...userWithoutPassword } = currentUser;
-  return res.status(200).json({
-    success: true,
-    message: 'Cập nhật thông tin cá nhân thành công!',
-    user: userWithoutPassword
-  });
 });
 
+// ============================================================
 // PUT /api/user/change-password
-router.put('/change-password', (req, res) => {
-  const { email, currentPassword, newPassword } = req.body;
+// ============================================================
+router.put('/change-password', async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
 
-  if (!email || !currentPassword || !newPassword) {
+  if (!currentPassword || !newPassword) {
     return res.status(400).json({ success: false, message: 'Vui lòng cung cấp đầy đủ thông tin!' });
   }
 
-  const users = readUsers();
-  const userIndex = users.findIndex(u => u.email.toLowerCase() === email.trim().toLowerCase());
+  try {
+    const user = await User.findOne({ email: req.authEmail });
 
-  if (userIndex === -1) {
-    return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng!' });
-  }
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng!' });
+    }
 
-  // Verify current password
-  if (users[userIndex].password !== currentPassword) {
-    return res.status(400).json({
-      success: false,
-      message: 'Mật khẩu hiện tại không chính xác!'
+    if (!user.passwordHash) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tài khoản này sử dụng đăng nhập Google, không thể đổi mật khẩu!'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mật khẩu hiện tại không chính xác!'
+      });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Thay đổi mật khẩu thành công!'
     });
+  } catch (error) {
+    console.error('Lỗi khi thay đổi mật khẩu:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
-
-  // Update to new password
-  users[userIndex].password = newPassword;
-  writeUsers(users);
-
-  return res.status(200).json({
-    success: true,
-    message: 'Thay đổi mật khẩu thành công!'
-  });
 });
 
 module.exports = router;

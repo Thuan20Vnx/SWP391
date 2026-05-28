@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
-
-const usersFilePath = path.join(__dirname, '../data/users.json');
+const User = require('../src/models/User');
+const { signToken } = require('../src/utils/jwt');
 
 // Memory map to hold registrations waiting for OTP confirmation
 const pendingUsers = new Map();
@@ -13,27 +14,42 @@ const pendingUsers = new Map();
 // Memory map to hold password resets waiting for OTP confirmation
 const pendingResets = new Map();
 
-// Helper to read users from file
-const readUsers = () => {
-  try {
-    let data = fs.readFileSync(usersFilePath, 'utf8');
-    if (data.charCodeAt(0) === 0xFEFF) {
-      data = data.slice(1);
-    }
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading users file:', error);
-    return [];
-  }
-};
+// ============================================================
+// Helper: sanitize user (shortcut to User.sanitizeUser)
+// ============================================================
+const sanitizeUser = (user) => User.sanitizeUser(user);
 
-// Helper to write users to file
-const writeUsers = (users) => {
-  try {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), 'utf8');
-  } catch (error) {
-    console.error('Error writing users file:', error);
+// ============================================================
+// Helper: Get Nodemailer Transporter (Gmail or Ethereal)
+// ============================================================
+let etherealAccount = null;
+
+const getTransporter = async () => {
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
   }
+
+  // Generate test SMTP service account from ethereal.email if not configured
+  if (!etherealAccount) {
+    console.log('Tạo tài khoản Ethereal giả lập để test gửi email...');
+    etherealAccount = await nodemailer.createTestAccount();
+  }
+
+  return nodemailer.createTransport({
+    host: etherealAccount.smtp.host,
+    port: etherealAccount.smtp.port,
+    secure: etherealAccount.smtp.secure,
+    auth: {
+      user: etherealAccount.user,
+      pass: etherealAccount.pass
+    }
+  });
 };
 
 const APP_URL = process.env.APP_URL || 'http://localhost:5173';
@@ -82,31 +98,20 @@ const buildEmailShell = ({ title, bodyHtml }) => `<!DOCTYPE html>
 </body>
 </html>`;
 
-// Helper to send OTP email
+// ============================================================
+// Helper: send OTP email
+// ============================================================
 const sendOtpEmail = async (email, fullname, otp) => {
   // Always write the last OTP to file for automated testing in dev environment
   try {
-    fs.writeFileSync(path.join(__dirname, '../data/last_otp.txt'), otp, 'utf8');
+    const dataDir = path.join(__dirname, '../data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(path.join(dataDir, 'last_otp.txt'), otp, 'utf8');
   } catch (e) {
     console.error('Error writing last_otp.txt:', e);
   }
 
-  const mode = process.env.EMAIL_MODE || 'mock';
-  if (mode === 'mock') {
-    console.log('\n====================================');
-    console.log(`[MOCK EMAIL] Gửi OTP xác thực đến: ${email}`);
-    console.log(`[MOCK EMAIL] Mã OTP của bạn là: ${otp}`);
-    console.log('====================================\n');
-    return true;
-  }
-
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
+  const transporter = await getTransporter();
 
   const otpBoxes = buildOtpDigitBoxes(otp);
   const htmlContent = buildEmailShell({
@@ -128,44 +133,41 @@ const sendOtpEmail = async (email, fullname, otp) => {
     `
   });
 
+  const senderEmail = process.env.EMAIL_USER || 'no-reply@fevents.com';
+
   const mailOptions = {
-    from: `"F-Events" <${process.env.EMAIL_USER}>`,
+    from: `"F-Events" <${senderEmail}>`,
     to: email,
     subject: 'Mã xác minh đăng ký F-Events',
     html: htmlContent
   };
 
-  await transporter.sendMail(mailOptions);
+  const info = await transporter.sendMail(mailOptions);
+
+  // If using Ethereal (mock), print the URL so user can view the email
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.log('\n====================================');
+    console.log(`[MOCK EMAIL SENT] Gửi OTP đến: ${email}`);
+    console.log(`👀 XEM EMAIL TẠI ĐÂY: ${nodemailer.getTestMessageUrl(info)}`);
+    console.log('====================================\n');
+  }
 };
 
-// Helper to send Reset OTP email
+// ============================================================
+// Helper: send Reset OTP email
+// ============================================================
 const sendResetEmail = async (email, fullname, otp) => {
-  // Always write the last OTP to file for automated testing in dev environment
   try {
-    fs.writeFileSync(path.join(__dirname, '../data/last_otp.txt'), otp, 'utf8');
+    const dataDir = path.join(__dirname, '../data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(path.join(dataDir, 'last_otp.txt'), otp, 'utf8');
   } catch (e) {
     console.error('Error writing last_otp.txt:', e);
   }
 
   const resetLink = `${APP_URL}/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`;
 
-  const mode = process.env.EMAIL_MODE || 'mock';
-  if (mode === 'mock') {
-    console.log('\n====================================');
-    console.log(`[MOCK EMAIL] Gửi OTP khôi phục mật khẩu đến: ${email}`);
-    console.log(`[MOCK EMAIL] Mã OTP của bạn là: ${otp}`);
-    console.log(`[MOCK EMAIL] Link khôi phục của bạn là: ${resetLink}`);
-    console.log('====================================\n');
-    return true;
-  }
-
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
+  const transporter = await getTransporter();
 
   const otpBoxes = buildOtpDigitBoxes(otp);
   const htmlContent = buildEmailShell({
@@ -194,72 +196,139 @@ const sendResetEmail = async (email, fullname, otp) => {
     `
   });
 
+  const senderEmail = process.env.EMAIL_USER || 'no-reply@fevents.com';
+
   const mailOptions = {
-    from: `"F-Events" <${process.env.EMAIL_USER}>`,
+    from: `"F-Events" <${senderEmail}>`,
     to: email,
     subject: 'Đặt lại mật khẩu F-Events',
     html: htmlContent
   };
 
-  await transporter.sendMail(mailOptions);
+  const info = await transporter.sendMail(mailOptions);
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.log('\n====================================');
+    console.log(`[MOCK EMAIL SENT] Gửi OTP khôi phục đến: ${email}`);
+    console.log(`👀 XEM EMAIL TẠI ĐÂY: ${nodemailer.getTestMessageUrl(info)}`);
+    console.log('====================================\n');
+  }
 };
 
+// ============================================================
 // POST /api/auth/login
-router.post('/login', (req, res) => {
+// ============================================================
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ success: false, message: 'Vui lòng điền đầy đủ email và mật khẩu!' });
   }
 
-  const users = readUsers();
-  const user = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password);
+  try {
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
 
-  if (user) {
-    const { password, ...userWithoutPassword } = user;
-    return res.status(200).json({
-      success: true,
-      message: 'Đăng nhập thành công!',
-      user: userWithoutPassword
-    });
-  } else {
-    return res.status(401).json({
-      success: false,
-      message: 'Tài khoản hoặc mật khẩu không chính xác. Vui lòng thử lại!'
-    });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tài khoản hoặc mật khẩu không chính xác. Vui lòng thử lại!'
+      });
+    }
+
+    // Google-only users don't have passwordHash
+    if (!user.passwordHash) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tài khoản này sử dụng đăng nhập Google. Vui lòng đăng nhập bằng Google!'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+    if (isMatch) {
+      // Auto-detect role for existing users who don't have role yet
+      if (!user.role || user.role === 'guest') {
+        const detected = await User.detectRole(user.email);
+        if (detected.role !== 'guest') {
+          user.role = detected.role;
+          user.studentId = detected.studentId;
+          await user.save();
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Đăng nhập thành công!',
+        user: sanitizeUser(user),
+        token: signToken(user)
+      });
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: 'Tài khoản hoặc mật khẩu không chính xác. Vui lòng thử lại!'
+      });
+    }
+  } catch (error) {
+    console.error('Lỗi khi đăng nhập:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
 
+// ============================================================
 // POST /api/auth/signup (Gửi yêu cầu đăng ký và phát OTP)
+// ============================================================
 router.post('/signup', async (req, res) => {
   const { fullname, email, phone, password } = req.body;
 
-  if (!fullname || !email || !phone || !password) {
-    return res.status(400).json({ success: false, message: 'Vui lòng điền đầy đủ các thông tin bắt buộc!' });
+  if (!fullname || !fullname.trim()) {
+    return res.status(400).json({ success: false, message: 'Họ và tên không được để trống!' });
   }
-
-  const users = readUsers();
-  const duplicate = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase() || u.phone === phone.trim());
-  if (duplicate) {
-    return res.status(400).json({
-      success: false,
-      message: 'Email hoặc Số điện thoại đã được đăng ký trên hệ thống!'
-    });
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email không được để trống!' });
   }
-
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const emailKey = email.trim().toLowerCase();
-
-  pendingUsers.set(emailKey, {
-    fullname: fullname.trim(),
-    email: email.trim(),
-    phone: phone.trim(),
-    password: password,
-    otp: otpCode,
-    expiresAt: Date.now() + 5 * 60 * 1000
-  });
+  if (!phone) {
+    return res.status(400).json({ success: false, message: 'Số điện thoại không được để trống!' });
+  }
+  if (!password) {
+    return res.status(400).json({ success: false, message: 'Mật khẩu không được để trống!' });
+  }
 
   try {
+    // Check duplicate email
+    const emailExists = await User.findOne({ email: email.trim().toLowerCase() });
+    if (emailExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email đã được đăng ký trên hệ thống!'
+      });
+    }
+
+    // Check duplicate phone
+    if (phone.trim()) {
+      const phoneExists = await User.findOne({ phone: phone.trim() });
+      if (phoneExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Số điện thoại đã được đăng ký trên hệ thống!'
+        });
+      }
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const emailKey = email.trim().toLowerCase();
+
+    // Hash password before storing in pending map
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    pendingUsers.set(emailKey, {
+      fullname: fullname.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      passwordHash: hashedPassword,
+      otp: otpCode,
+      expiresAt: Date.now() + 5 * 60 * 1000
+    });
+
     await sendOtpEmail(email.trim(), fullname.trim(), otpCode);
     return res.status(200).json({
       success: true,
@@ -275,8 +344,10 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// POST /api/auth/verify-otp (Xác nhận OTP và ghi nhận tài khoản)
-router.post('/verify-otp', (req, res) => {
+// ============================================================
+// POST /api/auth/verify-otp (Xác nhận OTP và tạo user trong MongoDB)
+// ============================================================
+router.post('/verify-otp', async (req, res) => {
   const { email, otp } = req.body;
 
   if (!email || !otp) {
@@ -308,41 +379,52 @@ router.post('/verify-otp', (req, res) => {
     });
   }
 
-  const users = readUsers();
-  const duplicate = users.find(u => u.email.toLowerCase() === emailKey || u.phone === pendingUser.phone);
-  if (duplicate) {
-    pendingUsers.delete(emailKey);
-    return res.status(400).json({
-      success: false,
-      message: 'Tài khoản này đã được đăng ký trước đó!'
+  try {
+    // Double-check duplicate before creating
+    const duplicate = await User.findOne({ email: emailKey });
+    if (duplicate) {
+      pendingUsers.delete(emailKey);
+      return res.status(400).json({
+        success: false,
+        message: 'Tài khoản này đã được đăng ký trước đó!'
+      });
+    }
+
+    // Auto-detect role & studentId from email
+    const { role, studentId } = await User.detectRole(pendingUser.email);
+
+    // Create user in MongoDB with hashed password
+    const newUser = await User.create({
+      fullname: pendingUser.fullname,
+      email: pendingUser.email.trim().toLowerCase(),
+      phone: pendingUser.phone,
+      passwordHash: pendingUser.passwordHash, // Already bcrypt hashed
+      authProvider: 'local',
+      role: role,
+      studentId: studentId,
+      course: 'K18',
+      campus: 'FPT University Da Nang',
+      orientation: '',
+      interests: []
     });
+
+    pendingUsers.delete(emailKey);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Đăng ký tài khoản thành công!',
+      user: sanitizeUser(newUser),
+      token: signToken(newUser)
+    });
+  } catch (error) {
+    console.error('Lỗi khi tạo tài khoản:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ khi tạo tài khoản!' });
   }
-
-  const newUser = {
-    fullname: pendingUser.fullname,
-    email: pendingUser.email,
-    phone: pendingUser.phone,
-    password: pendingUser.password,
-    course: 'K18',
-    campus: 'FPT University Da Nang',
-    orientation: '',
-    interests: []
-  };
-
-  users.push(newUser);
-  writeUsers(users);
-
-  pendingUsers.delete(emailKey);
-
-  const { password: _, ...userWithoutPassword } = newUser;
-  return res.status(201).json({
-    success: true,
-    message: 'Đăng ký tài khoản thành công!',
-    user: userWithoutPassword
-  });
 });
 
+// ============================================================
 // POST /api/auth/resend-otp (Gửi lại mã OTP mới)
+// ============================================================
 router.post('/resend-otp', async (req, res) => {
   const { email } = req.body;
 
@@ -381,8 +463,9 @@ router.post('/resend-otp', async (req, res) => {
   }
 });
 
-
+// ============================================================
 // POST /api/auth/forgot-password
+// ============================================================
 router.post('/forgot-password', async (req, res) => {
   const { contact } = req.body;
 
@@ -390,35 +473,39 @@ router.post('/forgot-password', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Vui lòng điền Email hoặc Số điện thoại!' });
   }
 
-  const users = readUsers();
-  const contactVal = contact.trim().toLowerCase();
-  
-  // Find user by email or phone
-  const user = users.find(u => u.email.toLowerCase() === contactVal || u.phone === contactVal);
-
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: 'Email hoặc Số điện thoại không tồn tại trên hệ thống!'
-    });
-  }
-
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const emailKey = user.email.toLowerCase();
-
-  pendingResets.set(emailKey, {
-    email: user.email,
-    otp: otpCode,
-    expiresAt: Date.now() + 5 * 60 * 1000
-  });
-
   try {
+    const contactVal = contact.trim().toLowerCase();
+
+    // Find user by email or phone
+    const user = await User.findOne({
+      $or: [
+        { email: contactVal },
+        { phone: contactVal }
+      ]
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Email hoặc Số điện thoại không tồn tại trên hệ thống!'
+      });
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const emailKey = user.email.toLowerCase();
+
+    pendingResets.set(emailKey, {
+      email: user.email,
+      otp: otpCode,
+      expiresAt: Date.now() + 5 * 60 * 1000
+    });
+
     await sendResetEmail(user.email, user.fullname, otpCode);
     return res.status(200).json({
       success: true,
       message: 'Mã OTP đã được gửi thành công!',
       isPhone: /^[0-9]+$/.test(contactVal),
-      email: user.email // send back the email for client convenience
+      email: user.email
     });
   } catch (error) {
     console.error('Lỗi khi gửi email khôi phục mật khẩu:', error);
@@ -429,8 +516,10 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
+// ============================================================
 // POST /api/auth/reset-password (Xác nhận OTP và đổi mật khẩu mới)
-router.post('/reset-password', (req, res) => {
+// ============================================================
+router.post('/reset-password', async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
   if (!email || !otp || !newPassword) {
@@ -462,32 +551,36 @@ router.post('/reset-password', (req, res) => {
     });
   }
 
-  // Update password in db
-  const users = readUsers();
-  const userIndex = users.findIndex(u => u.email.toLowerCase() === emailKey);
+  try {
+    const user = await User.findOne({ email: emailKey });
 
-  if (userIndex === -1) {
+    if (!user) {
+      pendingResets.delete(emailKey);
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy người dùng trên hệ thống!'
+      });
+    }
+
+    // Hash new password with bcrypt before saving
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
     pendingResets.delete(emailKey);
-    return res.status(404).json({
-      success: false,
-      message: 'Không tìm thấy người dùng trên hệ thống!'
+
+    return res.status(200).json({
+      success: true,
+      message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.'
     });
+  } catch (error) {
+    console.error('Lỗi khi đặt lại mật khẩu:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
-
-  // Update password (plain text to match the rest of users.json)
-  users[userIndex].password = newPassword;
-  writeUsers(users);
-
-  // Clear from pending map
-  pendingResets.delete(emailKey);
-
-  return res.status(200).json({
-    success: true,
-    message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.'
-  });
 });
 
+// ============================================================
 // POST /api/auth/google (Google Sign-In / SSO)
+// ============================================================
 router.post('/google', async (req, res) => {
   const { token, email, name, isMock } = req.body;
   const clientId = process.env.GOOGLE_CLIENT_ID || 'mock';
@@ -495,13 +588,13 @@ router.post('/google', async (req, res) => {
   let googleEmail = '';
   let googleName = '';
   let googlePicture = '';
+  let googleId = '';
 
   try {
     if (clientId !== 'mock' && !isMock) {
       if (!token) {
         return res.status(400).json({ success: false, message: 'Thiếu mã token Google!' });
       }
-      // Real Google Verification
       const client = new OAuth2Client(clientId);
       const ticket = await client.verifyIdToken({
         idToken: token,
@@ -511,6 +604,7 @@ router.post('/google', async (req, res) => {
       googleEmail = payload.email;
       googleName = payload.name || payload.given_name || 'Người dùng Google';
       googlePicture = payload.picture || '';
+      googleId = payload.sub || '';
     } else {
       // Mock Google Login in development
       if (!email || !name) {
@@ -519,49 +613,65 @@ router.post('/google', async (req, res) => {
       googleEmail = email.trim().toLowerCase();
       googleName = name.trim();
       googlePicture = req.body.picture || '';
+      googleId = `mock-${googleEmail}`;
     }
 
     if (!googleEmail) {
       return res.status(400).json({ success: false, message: 'Không thể xác thực email từ Google!' });
     }
 
-    const users = readUsers();
-    let userIndex = users.findIndex(u => u.email.toLowerCase() === googleEmail.toLowerCase());
+    let user = await User.findOne({ email: googleEmail.toLowerCase() });
 
-    if (userIndex !== -1) {
-      // User exists, update picture if available
-      if (googlePicture) {
-        users[userIndex].picture = googlePicture;
-        writeUsers(users);
+    if (user) {
+      // Auto-detect role for existing users who don't have role yet
+      let needSave = false;
+      if (!user.role || user.role === 'guest') {
+        const detected = await User.detectRole(user.email);
+        if (detected.role !== 'guest') {
+          user.role = detected.role;
+          user.studentId = detected.studentId;
+          needSave = true;
+        }
       }
-      const { password, ...userWithoutPassword } = users[userIndex];
+      // User exists, update picture and googleId if available
+      if (googleId && user.googleId !== googleId) {
+        user.googleId = googleId;
+        needSave = true;
+      }
+      if (googlePicture && user.picture !== googlePicture) {
+        user.picture = googlePicture;
+        needSave = true;
+      }
+      if (needSave) await user.save();
       return res.status(200).json({
         success: true,
         message: 'Đăng nhập bằng Google thành công!',
-        user: userWithoutPassword
+        user: sanitizeUser(user),
+        token: signToken(user)
       });
     } else {
-      // User does not exist, auto-signup
-      const newUser = {
+      // Auto-detect role & studentId from Google email
+      const { role, studentId } = await User.detectRole(googleEmail);
+      const newUser = await User.create({
         fullname: googleName,
-        email: googleEmail,
-        phone: '',
-        password: Math.random().toString(36).slice(-10) + '!',
+        email: googleEmail.toLowerCase(),
+        passwordHash: null,
+        googleId: googleId || null,
+        authProvider: 'google',
+        role: role,
+        studentId: studentId,
         course: 'K18',
         campus: 'FPT University Da Nang',
         orientation: '',
         interests: [],
         picture: googlePicture
-      };
+      });
 
-      users.push(newUser);
-      writeUsers(users);
-
-      const { password, ...userWithoutPassword } = newUser;
       return res.status(201).json({
         success: true,
         message: 'Tự động tạo tài khoản và đăng nhập thành công!',
-        user: userWithoutPassword
+        user: sanitizeUser(newUser),
+        token: signToken(newUser)
       });
     }
   } catch (error) {
@@ -573,7 +683,9 @@ router.post('/google', async (req, res) => {
   }
 });
 
+// ============================================================
 // GET /api/auth/google/callback (Google OAuth2 Callback)
+// ============================================================
 router.get('/google/callback', async (req, res) => {
   const { code } = req.query;
   if (!code) {
@@ -587,20 +699,20 @@ router.get('/google/callback', async (req, res) => {
   let email = '';
   let name = '';
   let picture = '';
+  let googleId = '';
 
   try {
     if (!clientSecret || clientSecret === 'mock') {
-      // Fallback for development/testing without client secret
       console.log('[MOCK CALLBACK] Client Secret is not set. Simulating login...');
       email = 'kxnhan1507@gmail.com';
       name = 'Nhân Khưu Xuân';
       picture = '';
+      googleId = 'mock-kxnhan1507';
     } else {
-      // Real exchange using google-auth-library
       const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
       const { tokens } = await oauth2Client.getToken(code);
       oauth2Client.setCredentials(tokens);
-      
+
       const ticket = await oauth2Client.verifyIdToken({
         idToken: tokens.id_token,
         audience: clientId
@@ -609,36 +721,39 @@ router.get('/google/callback', async (req, res) => {
       email = payload.email;
       name = payload.name || payload.given_name || 'Người dùng Google';
       picture = payload.picture || '';
+      googleId = payload.sub || '';
     }
 
-    const users = readUsers();
-    let userIndex = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+    let user = await User.findOne({ email: email.toLowerCase() });
 
-    if (userIndex !== -1) {
-      // User exists, update picture if available
-      if (picture) {
-        users[userIndex].picture = picture;
-        writeUsers(users);
-      }
+    if (user) {
+      if (googleId) user.googleId = googleId;
+      if (picture) user.picture = picture;
+      if (googleId || picture) await user.save();
     } else {
-      // Auto register
-      const newUser = {
+      // Auto-detect role & studentId from callback email
+      const { role: detectedRole, studentId: detectedStudentId } = await User.detectRole(email);
+
+      user = await User.create({
         fullname: name,
-        email: email,
-        phone: '',
-        password: Math.random().toString(36).slice(-10) + '!',
+        email: email.toLowerCase(),
+        passwordHash: null,
+        googleId: googleId || null,
+        authProvider: 'google',
+        role: detectedRole,
+        studentId: detectedStudentId,
         course: 'K18',
         campus: 'FPT University Da Nang',
         orientation: '',
         interests: [],
         picture: picture
-      };
-      users.push(newUser);
-      writeUsers(users);
+      });
     }
 
-    // Redirect to React frontend login page with credentials
-    return res.redirect(`http://localhost:5173/login?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`);
+    const authToken = signToken(user);
+    return res.redirect(
+      `http://localhost:5173/login?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`
+    );
 
   } catch (error) {
     console.error('Lỗi khi xử lý callback đăng nhập Google:', error);

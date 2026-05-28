@@ -103,21 +103,14 @@ const Signup = ({ showToast }) => {
     setFormData(prev => ({ ...prev, email: value }));
 
     const isValid = patterns.email.test(value.trim());
-    const isFptEmail = value.trim().toLowerCase().endsWith('@fpt.edu.vn') || value.trim().toLowerCase().endsWith('@fe.edu.vn');
 
     setErrors(prev => ({ ...prev, email: !isValid }));
     setValidFields(prev => ({ ...prev, email: isValid }));
 
-    // Custom warning for FPT Student Email format
     const errorSpan = document.getElementById('error-email');
     if (errorSpan) {
-      if (isValid && !isFptEmail) {
-        errorSpan.textContent = "Hệ thống khuyên dùng email FPT (@fpt.edu.vn)";
-        errorSpan.style.color = "var(--primary)";
-      } else {
-        errorSpan.textContent = "Vui lòng nhập email hợp lệ (ví dụ: student@fpt.edu.vn)";
-        errorSpan.style.color = "var(--border-error)";
-      }
+      errorSpan.textContent = "Vui lòng nhập email hợp lệ";
+      errorSpan.style.color = "var(--border-error)";
     }
   };
 

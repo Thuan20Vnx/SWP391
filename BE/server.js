@@ -2,8 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const connectDB = require('./src/config/db');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const eventRoutes = require('./routes/event');
+
+// Connect to MongoDB
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,6 +33,16 @@ app.get('/', (req, res) => {
 // Register API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/events', eventRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'API endpoint không tồn tại!' });
+});
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+});
 
 // Start Server
 app.listen(PORT, () => {

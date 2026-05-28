@@ -4,4 +4,6 @@ dist/
 .DS_Store
 .env
 last_otp.txt
+BE/data/users.json
+BE/data/last_otp.txt
 figma-ui-mcp-plugin/
