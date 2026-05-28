@@ -1,6 +1,5 @@
 import React from 'react';
-import defaultAvatar from '../assets/profile_avatar.png';
-import { formatMssv } from '../utils/studentId';
+import defaultAvatar from '../constants/defaultAvatar';
 
 const Icon = ({ children, size = 18 }) => (
   <span className="nav-hub__icon" aria-hidden="true">
@@ -20,18 +19,6 @@ const NavItem = ({ icon, label, active, variant, onClick }) => (
     <span className="nav-hub__item-label">{label}</span>
   </button>
 );
-
-const getSubtitle = (userProfile) => {
-  if (!userProfile) return '';
-  const { role, studentId, course } = userProfile;
-  if (role === 'student') {
-    if (studentId) return formatMssv(studentId);
-    return 'Sinh viên FPT';
-  }
-  if (role === 'staff') return 'Cán bộ FPT';
-  if (role === 'ctsv') return 'Phòng CTSV';
-  return 'Tài khoản khách';
-};
 
 const ProfileSidebarMenu = ({
   activeItem = '',
@@ -55,7 +42,6 @@ const ProfileSidebarMenu = ({
         </div>
         <div className="nav-hub__header-text">
           <h3 className="nav-hub__name">{userProfile?.fullname || 'Người dùng'}</h3>
-          <p className="nav-hub__subtitle">{getSubtitle(userProfile)}</p>
         </div>
       </header>
 

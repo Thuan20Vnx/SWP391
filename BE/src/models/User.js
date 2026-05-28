@@ -144,6 +144,11 @@ userSchema.statics.syncCourseFromStudentId = function (user) {
   return changed;
 };
 
+userSchema.statics.hasCustomAvatar = function (user) {
+  const isCustom = (value) => typeof value === 'string' && value.startsWith('data:image/');
+  return isCustom(user?.picture) || isCustom(user?.avatar);
+};
+
 // Ghi thẳng course/MSSV xuống MongoDB (không phụ thuộc isModified/save hook)
 userSchema.statics.syncAndPersistUserProfile = async function (user, extraSet = {}) {
   if (!user) return user;
