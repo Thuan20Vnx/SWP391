@@ -134,14 +134,26 @@ const Profile = ({ showToast }) => {
   // Handle Sidebar Menu item click
   const handleFeatureNotImplemented = (e) => {
     e.preventDefault();
+    showToast('Tính năng đang được phát triển.', 'info');
   };
 
-  const handleScanClick = () => {};
+  const handleSidebarNavigate = (path) => (e) => {
+    e.preventDefault();
+    setSidebarActive(false);
+    navigate(path);
+  };
 
-  const handleNotificationClick = () => {};
+  const handleScanClick = () => {
+    showToast('Tính năng quét QR check-in đang được phát triển.', 'info');
+  };
+
+  const handleNotificationClick = () => {
+    navigate('/announcements');
+  };
 
   const canChangePassword = authProvider !== 'google';
   const displayAvatar = avatar || defaultAvatar;
+  const profilePageTitle = activeMenu === 'change-password' ? 'Thay đổi mật khẩu' : 'Thông tin cá nhân';
   const passwordStrength = getPasswordStrength(pwForm.newPassword);
   const confirmPasswordMatch =
     pwForm.confirmPassword.length > 0
@@ -511,6 +523,21 @@ const Profile = ({ showToast }) => {
 
           {/* Menu Navigation */}
           <nav className="sidebar-menu">
+            {/* Section 0 */}
+            <div className="menu-section">
+              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/dashboard')}>
+                <div className="menu-item-content">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                  </svg>
+                  <span>Tổng quan</span>
+                </div>
+              </a>
+            </div>
+
             {/* Section 1 */}
             <div className="menu-section">
               <a href="#" className={`menu-item ${activeMenu === 'profile' ? 'active' : ''}`} onClick={handleNavigateProfile}>
@@ -519,7 +546,7 @@ const Profile = ({ showToast }) => {
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
-                  <span>Hồ sơ cá nhân</span>
+                  <span>Thông tin cá nhân</span>
                 </div>
               </a>
               <a
@@ -540,7 +567,7 @@ const Profile = ({ showToast }) => {
             {/* Section 2 */}
             <div className="menu-section">
               <span className="menu-header">Sự kiện</span>
-              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Tìm kiếm & Duyệt sự kiện')}>
+              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/events')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -549,7 +576,7 @@ const Profile = ({ showToast }) => {
                   <span>Tìm kiếm & Duyệt sự kiện</span>
                 </div>
               </a>
-              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Sự kiện của tôi')}>
+              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/my-events')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -557,7 +584,7 @@ const Profile = ({ showToast }) => {
                   <span>Sự kiện của tôi</span>
                 </div>
               </a>
-              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Quản lý lịch trình')}>
+              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/schedule')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -584,7 +611,7 @@ const Profile = ({ showToast }) => {
             {/* Section 3 */}
             <div className="menu-section">
               <span className="menu-header">Tiện ích</span>
-              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Đánh giá sự kiện')}>
+              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/event-reviews')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -592,7 +619,7 @@ const Profile = ({ showToast }) => {
                   <span>Đánh giá sự kiện</span>
                 </div>
               </a>
-              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Thông báo')}>
+              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/announcements')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -639,11 +666,7 @@ const Profile = ({ showToast }) => {
               <div className="breadcrumbs">
                 <Link to="/">Trang chủ</Link>
                 <span style={{ color: '#cbd5e1' }}>/</span>
-                <a href="#" onClick={(e) => e.preventDefault()}>Hồ sơ</a>
-                <span style={{ color: '#cbd5e1' }}>/</span>
-                <span className="current">
-                  {activeMenu === 'change-password' ? 'Thay đổi mật khẩu' : 'Hồ sơ cá nhân'}
-                </span>
+                <span className="current">{profilePageTitle}</span>
               </div>
             </div>
 
@@ -678,7 +701,7 @@ const Profile = ({ showToast }) => {
           <div className="dashboard-content-wrapper">
             {/* Page Header */}
             <div className="page-header">
-              <h1>{activeMenu === 'change-password' ? 'Thay đổi mật khẩu' : 'Hồ sơ cá nhân'}</h1>
+              <h1>{profilePageTitle}</h1>
               <p>
                 {activeMenu === 'change-password'
                   ? 'Cập nhật mật khẩu đăng nhập tài khoản của bạn.'
@@ -1167,20 +1190,20 @@ const Profile = ({ showToast }) => {
                 <div className="footer-column">
                   <h3>Khám phá</h3>
                   <ul className="footer-links">
-                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Sự kiện sắp tới')}>Sự kiện sắp tới</a></li>
-                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Câu lạc bộ nổi bật')}>Câu lạc bộ nổi bật</a></li>
-                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Tin tức công nghệ')}>Tin tức công nghệ</a></li>
-                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Thư viện hình ảnh')}>Thư viện hình ảnh</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Sự kiện sắp tới</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Câu lạc bộ nổi bật</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/announcements')}>Tin tức công nghệ</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/my-events')}>Thư viện hình ảnh</a></li>
                   </ul>
                 </div>
 
                 <div className="footer-column">
                   <h3>Hỗ trợ</h3>
                   <ul className="footer-links">
-                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Trung tâm hỗ trợ')}>Trung tâm hỗ trợ</a></li>
-                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Liên hệ chúng tôi')}>Liên hệ chúng tôi</a></li>
-                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Điều khoản dịch vụ')}>Điều khoản dịch vụ</a></li>
-                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Chính sách bảo mật')}>Chính sách bảo mật</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/support')}>Trung tâm hỗ trợ</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/contact')}>Liên hệ chúng tôi</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/terms')}>Điều khoản dịch vụ</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/privacy')}>Chính sách bảo mật</a></li>
                   </ul>
                 </div>
 

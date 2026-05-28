@@ -202,6 +202,7 @@ const Home = ({ showToast }) => {
     }
 
     if (action === 'notifications') {
+      navigate('/announcements');
       return;
     }
 
@@ -211,6 +212,17 @@ const Home = ({ showToast }) => {
     }
 
     if (action === 'schedule') {
+      navigate('/schedule');
+      return;
+    }
+
+    if (action === 'my-events') {
+      navigate('/my-events');
+      return;
+    }
+
+    if (action === 'dashboard') {
+      navigate('/dashboard');
       return;
     }
   };
@@ -366,7 +378,7 @@ const Home = ({ showToast }) => {
             <Link to="/" className="nav-link active" onClick={() => setMobileMenuOpen(false)}>Trang chủ</Link>
             <Link to="/events" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Sự kiện</Link>
             <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); }}>Câu lạc bộ</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); }}>Tin tức</a>
+            <Link to="/announcements" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Tin tức</Link>
           </nav>
 
           {/* Search event inputs */}
