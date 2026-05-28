@@ -5,6 +5,7 @@ import defaultAvatar from '../constants/defaultAvatar';
 import ProfileSidebarMenu from '../components/ProfileSidebarMenu';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { getRoleLabel } from '../utils/role';
 
 const Home = ({ showToast }) => {
   const navigate = useNavigate();
@@ -434,6 +435,9 @@ const Home = ({ showToast }) => {
                   >
                     <div className="profile-info-text">
                       <span className="profile-name">{userProfile.fullname}</span>
+                      <span className="profile-role" style={{ fontSize: '12px', color: '#8a7b72', display: 'block', marginTop: '2px' }}>
+                        {getRoleLabel(userProfile.role)}
+                      </span>
                     </div>
                     <div className="profile-avatar-circle">
                       <img src={userProfile.picture} alt="User Avatar" />
