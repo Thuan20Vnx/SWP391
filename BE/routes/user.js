@@ -19,6 +19,8 @@ router.get('/profile', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy thông tin người dùng!' });
     }
 
+    await User.syncAndPersistUserProfile(user);
+
     return res.status(200).json({
       success: true,
       user: sanitizeUser(user)
@@ -42,7 +44,20 @@ router.put('/profile', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy thông tin người dùng!' });
     }
 
-    if (fullname !== undefined) {
+    if (user.role === 'student') {
+      if (fullname !== undefined && fullname.trim() !== (user.fullname || '')) {
+        return res.status(403).json({
+          success: false,
+          message: 'Sinh viên không được phép thay đổi họ và tên!'
+        });
+      }
+      if (course !== undefined && course !== user.course) {
+        return res.status(403).json({
+          success: false,
+          message: 'Sinh viên không được phép thay đổi khóa học!'
+        });
+      }
+    } else if (fullname !== undefined) {
       if (!fullname.trim()) {
         return res.status(400).json({ success: false, message: 'Họ và tên không được để trống!' });
       }
@@ -91,13 +106,15 @@ router.put('/profile', async (req, res) => {
       user.picture = picture;
     }
 
-    if (course !== undefined && course !== user.course) {
+    if (user.role !== 'student' && course !== undefined && course !== user.course) {
       if (user.courseChanged) {
         return res.status(400).json({ success: false, message: 'Khóa học chỉ được phép thay đổi 1 lần duy nhất!' });
       }
       user.course = course;
       user.courseChanged = true;
     }
+
+    User.syncCourseFromStudentId(user);
 
     await user.save();
 
@@ -120,6 +137,14 @@ router.put('/change-password', async (req, res) => {
 
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ success: false, message: 'Vui lòng cung cấp đầy đủ thông tin!' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, message: 'Mật khẩu mới phải có ít nhất 6 ký tự!' });
+  }
+
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ success: false, message: 'Mật khẩu mới không được trùng với mật khẩu hiện tại!' });
   }
 
   try {
