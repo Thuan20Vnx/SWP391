@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/profile_avatar.png';
+import ProfileSidebarMenu from '../components/ProfileSidebarMenu';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 
@@ -12,8 +13,17 @@ const Home = ({ showToast }) => {
   const [userProfile, setUserProfile] = useState({
     fullname: 'Trần Xuân Thuận',
     course: 'K18',
-    picture: defaultAvatar
+    picture: defaultAvatar,
+    email: '',
+    phone: '',
+    campus: '',
+    role: 'student',
+    studentId: '',
+    orientation: '',
+    interests: []
   });
+
+  const [profilePopupOpen, setProfilePopupOpen] = useState(false);
 
   // Mobile Menu State
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -128,8 +138,16 @@ const Home = ({ showToast }) => {
             setUserProfile({
               fullname: u.fullname || 'Trần Xuân Thuận',
               course: u.course || 'K18',
-              picture: u.picture || defaultAvatar
+              picture: u.picture || u.avatar || defaultAvatar,
+              email: u.email || '',
+              phone: u.phone || '',
+              campus: u.campus || '',
+              role: u.role || 'guest',
+              studentId: u.studentId || '',
+              orientation: u.orientation || '',
+              interests: u.interests || []
             });
+            localStorage.setItem('userRole', u.role || 'guest');
           })
           .catch(err => {
             console.error('Failed to fetch user data for Home header:', err);
@@ -138,6 +156,63 @@ const Home = ({ showToast }) => {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (!profilePopupOpen) return;
+
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setProfilePopupOpen(false);
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [profilePopupOpen]);
+
+  const getRoleLabel = (role) => {
+    if (role === 'student') return `Sinh viên ${userProfile.course}`;
+    if (role === 'staff') return 'Cán bộ FPT';
+    if (role === 'ctsv') return 'Phòng CTSV';
+    return 'Khách';
+  };
+
+  const handleOpenProfilePopup = () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    setProfilePopupOpen((prev) => !prev);
+  };
+
+  const handleProfileMenuAction = (action, label) => {
+    setProfilePopupOpen(false);
+
+    if (action === 'profile') {
+      navigate('/profile');
+      return;
+    }
+
+    if (action === 'browse-events') {
+      navigate('/events');
+      return;
+    }
+
+    if (action === 'scan') {
+      return;
+    }
+
+    if (action === 'notifications') {
+      return;
+    }
+
+    if (action === 'settings') {
+      navigate('/settings');
+      return;
+    }
+
+    if (action === 'schedule') {
+      return;
+    }
+  };
 
   // Automatic Hero Slide transition
   useEffect(() => {
@@ -177,7 +252,6 @@ const Home = ({ showToast }) => {
     }
 
     setFilteredEvents(result);
-    showToast(`Đã lọc ra ${result.length} sự kiện tương ứng!`, 'success');
   };
 
   // Quick Filter by Search Bar on Nav
@@ -188,7 +262,6 @@ const Home = ({ showToast }) => {
         ev.category.toLowerCase().includes(searchQuery.toLowerCase().trim())
       );
       setFilteredEvents(result);
-      showToast(`Đã tìm kiếm sự kiện với từ khóa: "${searchQuery}"`, 'info');
     }
   };
 
@@ -205,12 +278,9 @@ const Home = ({ showToast }) => {
     setEvents(prev => prev.map(ev => {
       if (ev.id === eventId) {
         if (ev.registered) {
-          showToast(`Đã hủy đăng ký sự kiện: ${ev.title}`, 'info');
           return { ...ev, registered: false, remainingTickets: ev.remainingTickets + 1 };
-        } else {
-          showToast(`Đăng ký tham gia thành công: ${ev.title}! Vé đã được gửi qua email.`, 'success');
-          return { ...ev, registered: true, remainingTickets: ev.remainingTickets - 1 };
         }
+        return { ...ev, registered: true, remainingTickets: ev.remainingTickets - 1 };
       }
       return ev;
     }));
@@ -246,7 +316,7 @@ const Home = ({ showToast }) => {
       } else if (lowercase.includes('prompt') || lowercase.includes('ai') || lowercase.includes('workshop')) {
         botResponse = 'Workshop "Làm chủ Prompt Engineering với AI" được tổ chức vào ngày 22/05 lúc 14:00 tại Phòng Lab 402 Gamma. Nhanh tay đăng ký nhé!';
       } else if (lowercase.includes('profile') || lowercase.includes('hồ sơ') || lowercase.includes('trang cá nhân')) {
-        botResponse = 'Bạn có thể xem và chỉnh sửa thông tin cá nhân của mình bằng cách nhấp trực tiếp vào hình đại diện ở phía trên bên phải của trang chủ.';
+        botResponse = 'Bạn có thể mở menu tài khoản bằng cách nhấp vào hình đại diện ở góc trên bên phải — menu sẽ hiện ra ngay tại trang chủ.';
       } else if (lowercase.includes('đăng ký') || lowercase.includes('vé')) {
         botResponse = 'Để đăng ký sự kiện, bạn chỉ cần bấm nút "Đăng ký ngay" trên thẻ sự kiện. Hệ thống sẽ tự động gửi QR vé về tài khoản của bạn!';
       } else if (lowercase.includes('hello') || lowercase.includes('chào') || lowercase.includes('hi')) {
@@ -262,7 +332,7 @@ const Home = ({ showToast }) => {
     localStorage.removeItem('userEmail');
     localStorage.removeItem('authToken');
     setIsLoggedIn(false);
-    showToast('Đã đăng xuất tài khoản thành công.', 'info');
+    setProfilePopupOpen(false);
     navigate('/');
   };
 
@@ -294,8 +364,8 @@ const Home = ({ showToast }) => {
           <nav className={`header-nav ${mobileMenuOpen ? 'mobile-active' : ''}`}>
             <Link to="/" className="nav-link active" onClick={() => setMobileMenuOpen(false)}>Trang chủ</Link>
             <Link to="/events" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Sự kiện</Link>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); showToast('Tính năng Câu lạc bộ đang phát triển!', 'info'); setMobileMenuOpen(false); }}>Câu lạc bộ</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); showToast('Bản tin FPT Students đang cập nhật!', 'info'); setMobileMenuOpen(false); }}>Tin tức</a>
+            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); }}>Câu lạc bộ</a>
+            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); }}>Tin tức</a>
           </nav>
 
           {/* Search event inputs */}
@@ -320,7 +390,7 @@ const Home = ({ showToast }) => {
             {/* Notification Bell */}
             <button
               className="notif-bell-btn"
-              onClick={() => showToast('Bạn chưa có thông báo mới nào hôm nay.', 'info')}
+              onClick={() => {}}
               aria-label="Thông báo"
             >
               <svg viewBox="0 0 24 24" width="22" height="22">
@@ -333,20 +403,48 @@ const Home = ({ showToast }) => {
             <div className="auth-profile-wrapper">
               {isLoggedIn ? (
                 <div className="profile-display-card">
-                  <Link to="/profile" className="profile-display-card-link" title="Đến trang cá nhân của bạn">
+                  <button
+                    type="button"
+                    className={`profile-display-card-link ${profilePopupOpen ? 'profile-display-card-link--open' : ''}`}
+                    title="Mở menu tài khoản"
+                    onClick={handleOpenProfilePopup}
+                    aria-expanded={profilePopupOpen}
+                  >
                     <div className="profile-info-text">
                       <span className="profile-name">{userProfile.fullname}</span>
-                      <span className="profile-role">Sinh viên {userProfile.course}</span>
+                      <span className="profile-role">{getRoleLabel(userProfile.role)}</span>
+                      {userProfile.role === 'student' && (
+                        <span className="profile-student-brief">
+                          {[userProfile.studentId, userProfile.course].filter(Boolean).join(' · ')}
+                        </span>
+                      )}
                     </div>
                     <div className="profile-avatar-circle">
                       <img src={userProfile.picture} alt="User Avatar" />
                     </div>
-                  </Link>
-                  <button className="small-logout-btn" onClick={handleLogout} title="Đăng xuất">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" fill="currentColor" />
-                    </svg>
                   </button>
+
+                  {profilePopupOpen && (
+                    <>
+                      <div
+                        className="profile-menu-backdrop"
+                        onClick={() => setProfilePopupOpen(false)}
+                        role="presentation"
+                      />
+                      <div
+                        className="profile-menu-dropdown"
+                        role="menu"
+                        aria-label="Menu tài khoản"
+                      >
+                        <ProfileSidebarMenu
+                          activeItem=""
+                          userProfile={userProfile}
+                          onMenuAction={handleProfileMenuAction}
+                          onLogout={handleLogout}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="auth-buttons">
@@ -375,7 +473,6 @@ const Home = ({ showToast }) => {
                 className="hero-cta-btn"
                 onClick={() => {
                   if (index === 0) handleRegister('event-hackathon');
-                  else showToast('Hệ thống đang chuyển bạn tới chi tiết sự kiện này!', 'info');
                 }}
               >
                 Đăng ký tham gia ngay
@@ -463,7 +560,7 @@ const Home = ({ showToast }) => {
             </span>
             <h2>Gợi ý cho bạn</h2>
           </div>
-          <a href="#" className="see-all-link" onClick={(e) => { e.preventDefault(); setFilteredEvents(events); setCategoryFilter('Tất cả'); showToast('Hiển thị toàn bộ danh sách sự kiện!', 'info'); }}>
+          <a href="#" className="see-all-link" onClick={(e) => { e.preventDefault(); setFilteredEvents(events); setCategoryFilter('Tất cả'); }}>
             <span>Xem tất cả</span>
             <svg viewBox="0 0 24 24" width="16" height="16">
               <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor" />
@@ -625,20 +722,20 @@ const Home = ({ showToast }) => {
           <div className="footer-links-col">
             <h4>Khám phá</h4>
             <ul className="footer-links-list">
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Đang tải danh sách sự kiện sắp tới!', 'info'); }}>Sự kiện sắp tới</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Đang tải danh sách câu lạc bộ!', 'info'); }}>Câu lạc bộ</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Địa điểm tổ chức sự kiện!', 'info'); }}>Địa điểm</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Thành viên tiêu biểu!', 'info'); }}>Thành viên</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()}>Sự kiện sắp tới</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()}>Câu lạc bộ</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()}>Địa điểm</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()}>Thành viên</a></li>
             </ul>
           </div>
 
           <div className="footer-links-col">
             <h4>Hỗ trợ</h4>
             <ul className="footer-links-list">
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Trung tâm trợ giúp sinh viên!', 'info'); }}>Trung tâm trợ giúp</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Hướng dẫn đăng ký vé sự kiện!', 'info'); }}>Hướng dẫn đăng ký</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Liên hệ trực ban điều hành!', 'info'); }}>Liên hệ ban tổ chức</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Báo cáo lỗi hệ thống!', 'info'); }}>Báo cáo sự cố</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()}>Trung tâm trợ giúp</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()}>Hướng dẫn đăng ký</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()}>Liên hệ ban tổ chức</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()}>Báo cáo sự cố</a></li>
             </ul>
           </div>
 
@@ -667,8 +764,8 @@ const Home = ({ showToast }) => {
         <div className="footer-bottom-row">
           <p className="copyright-text">© 2026 FPT Event Platform. All rights reserved.</p>
           <div className="footer-policy-links">
-            <a href="#" onClick={(e) => { e.preventDefault(); showToast('Chính sách bảo mật thông tin!', 'info'); }}>Bảo mật</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); showToast('Chính sách Cookie!', 'info'); }}>Cookie Policy</a>
+            <a href="#" onClick={(e) => e.preventDefault()}>Bảo mật</a>
+            <a href="#" onClick={(e) => e.preventDefault()}>Cookie Policy</a>
           </div>
         </div>
       </footer>

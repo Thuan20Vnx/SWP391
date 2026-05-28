@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import fptLogo from '../assets/fpt_logo.png';
-import { API_BASE } from '../utils/api';
+import { API_BASE, getAuthHeaders } from '../utils/api';
 
 const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -42,14 +42,12 @@ const Login = ({ showToast }) => {
       const name = params.get('name');
       const token = params.get('token');
 
-      showToast(`Đăng nhập Google thành công! Chào mừng ${name}.`, 'success');
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('userEmail', email);
       localStorage.setItem('loginMethod', 'google');
       if (token) localStorage.setItem('authToken', token);
 
-      // Fetch profile to get role
-      fetch(`http://localhost:5000/api/user/profile?email=${email}`)
+      fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
         .then(r => r.json())
         .then(d => {
           if (d.success && d.user) {
@@ -159,15 +157,6 @@ const Login = ({ showToast }) => {
           const userRole = data.user?.role || 'guest';
           localStorage.setItem('userRole', userRole);
 
-          // Role-specific welcome message
-          const roleMessages = {
-            student: 'Chào mừng sinh viên FPT quay trở lại! 🎓',
-            staff: 'Chào mừng cán bộ FPT! 👨‍🏫',
-            ctsv: 'Chào mừng Phòng Công Tác Sinh Viên! 🛡️',
-            guest: 'Chào mừng bạn đến với F-Events! 👋'
-          };
-          showToast(roleMessages[userRole] || roleMessages.guest, 'success');
-
           localStorage.setItem('isLoggedIn', 'true');
           localStorage.setItem('userEmail', formData.email);
           localStorage.setItem('loginMethod', 'local');
@@ -193,9 +182,7 @@ const Login = ({ showToast }) => {
       });
   };
 
-  const handleSsoClick = (provider) => {
-    showToast(`Đang kết nối tài khoản ${provider}...`, 'success');
-  };
+  const handleSsoClick = () => {};
 
   const loginWithGoogle = () => {
     const params = new URLSearchParams({

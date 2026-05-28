@@ -17,6 +17,9 @@ const connectDB = async () => {
 
         console.log(`MongoDB connected successfully: ${conn.connection.host}`);
         console.log(`Database name: ${conn.connection.name}`);
+
+        const User = require('../models/User');
+        await User.syncAllStudentCourses();
     } catch (error) {
         console.error("MongoDB connection failed:");
         console.error(error.message);

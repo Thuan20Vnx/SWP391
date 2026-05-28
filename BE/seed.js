@@ -49,7 +49,6 @@ const seedData = async () => {
                 phone: '0901111111',
                 passwordHash: defaultPassword,
                 authProvider: 'local',
-                course: 'K18',
                 campus: 'FPT University Da Nang',
             },
             {
@@ -70,10 +69,10 @@ const seedData = async () => {
 
         console.log('Inserting test user accounts...');
         for (const u of usersToCreate) {
-            // Use the new async detectRole logic
-            const { role, studentId } = await User.detectRole(u.email);
+            const { role, studentId, course } = await User.detectRole(u.email);
             u.role = role;
             u.studentId = studentId;
+            if (course) u.course = course;
             await User.create(u);
             console.log(`Created User: ${u.email} -> Detected Role: ${role}`);
         }
