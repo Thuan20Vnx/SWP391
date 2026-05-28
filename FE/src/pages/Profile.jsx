@@ -151,7 +151,7 @@ const Profile = ({ showToast }) => {
     }
   };
 
-  // Handle Avatar Change
+  // Handle Avatar Change — auto-save to backend immediately
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -166,8 +166,26 @@ const Profile = ({ showToast }) => {
 
       const reader = new FileReader();
       reader.onload = (event) => {
-        setAvatar(event.target.result);
-        showToast('Thay đổi ảnh đại diện tạm thời thành công!', 'success');
+        const newAvatarData = event.target.result;
+        setAvatar(newAvatarData);
+
+        // Auto-save avatar to backend immediately
+        fetch(`${API_BASE}/api/user/profile`, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ picture: newAvatarData })
+        })
+          .then(res => res.json().then(data => ({ status: res.status, data })))
+          .then(({ status, data }) => {
+            if (status === 200) {
+              showToast('Đã lưu ảnh đại diện thành công!', 'success');
+            } else {
+              showToast(data.message || 'Lưu ảnh đại diện thất bại!', 'error');
+            }
+          })
+          .catch(() => {
+            showToast('Không thể kết nối đến máy chủ để lưu ảnh đại diện!', 'error');
+          });
       };
       reader.readAsDataURL(file);
     }
