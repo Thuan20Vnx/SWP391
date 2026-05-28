@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/profile_avatar.png';
 import ProfileSidebarMenu from '../components/ProfileSidebarMenu';
+import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 
 const Home = ({ showToast }) => {
@@ -353,7 +354,7 @@ const Home = ({ showToast }) => {
           {/* Logo F Events */}
           <div className="header-logo" onClick={() => navigate('/')}>
             <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+              src={fptLogo}
               alt="F Events Logo"
               className="logo-img"
             />
@@ -712,7 +713,7 @@ const Home = ({ showToast }) => {
       <footer className="home-footer">
         <div className="footer-top-columns">
           <div className="footer-branding-col">
-            <img src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM" alt="F Events" className="footer-logo-img" />
+            <img src={fptLogo} alt="F Events" className="footer-logo-img" />
             <p className="footer-brand-desc">
               FPT Event Platform - Nền tảng kết nối, kiến tạo và lan tỏa sức trẻ thông qua những sự kiện, hoạt động ngoại khóa dành riêng cho sinh viên FPT.
             </p>
