@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/profile_avatar.png';
-import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { formatMssv } from '../utils/studentId';
 
 const Profile = ({ showToast }) => {
   const navigate = useNavigate();
@@ -25,6 +25,11 @@ const Profile = ({ showToast }) => {
 
   // Responsive Sidebar State
   const [sidebarActive, setSidebarActive] = useState(false);
+  const [activeMenu, setActiveMenu] = useState('profile');
+  const [authProvider, setAuthProvider] = useState('local');
+
+  const profileSectionRef = useRef(null);
+  const passwordSectionRef = useRef(null);
 
   // Edit profile mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -70,7 +75,8 @@ const Profile = ({ showToast }) => {
         }
         // Load role & studentId
         if (u.role) setUserRole(u.role);
-        if (u.studentId) setStudentId(u.studentId);
+        if (u.studentId) setStudentId(formatMssv(u.studentId));
+        if (u.authProvider) setAuthProvider(u.authProvider);
 
         // Populate interests checklist state
         if (u.interests) {
@@ -123,19 +129,30 @@ const Profile = ({ showToast }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Handle Sidebar Menu item click
-  const handleFeatureNotImplemented = (e, label) => {
+  const handleFeatureNotImplemented = (e) => {
     e.preventDefault();
-    showToast(`Tính năng "${label}" đang được phát triển và liên kết hệ thống!`, 'info');
   };
 
-  // Handle Quick Scan click
-  const handleScanClick = () => {
-    showToast('Đang khởi động trình quét camera... Vui lòng chuẩn bị QR code sự kiện.', 'info');
+  const handleScanClick = () => {};
+
+  const handleNotificationClick = () => {};
+
+  const canChangePassword = authProvider !== 'google';
+
+  const handleNavigateProfile = (e) => {
+    e.preventDefault();
+    setActiveMenu('profile');
+    setSidebarActive(false);
+    setIsEditing(false);
+    profileSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  // Handle Notification Bell click
-  const handleNotificationClick = () => {
-    showToast('Không có thông báo mới nào dành cho bạn.', 'info');
+  const handleNavigateChangePassword = (e) => {
+    e.preventDefault();
+    setActiveMenu('change-password');
+    setSidebarActive(false);
+    setIsEditing(false);
+    passwordSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   // Handle Search Submit on Enter keypress
@@ -143,7 +160,6 @@ const Profile = ({ showToast }) => {
     if (e.key === 'Enter') {
       const query = searchQuery.trim();
       if (query) {
-        showToast(`Đang tìm kiếm thông báo cho từ khóa: "${query}"...`, 'info');
         setSearchQuery('');
       } else {
         showToast('Vui lòng nhập từ khóa tìm kiếm!', 'error');
@@ -167,7 +183,6 @@ const Profile = ({ showToast }) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         setAvatar(event.target.result);
-        showToast('Thay đổi ảnh đại diện tạm thời thành công!', 'success');
       };
       reader.readAsDataURL(file);
     }
@@ -177,16 +192,11 @@ const Profile = ({ showToast }) => {
   const handleInterestChange = (e, key, label) => {
     const checked = e.target.checked;
     setInterests(prev => ({ ...prev, [key]: checked }));
-    if (checked) {
-      showToast(`Đã thêm sở thích: ${label}`, 'info');
-    } else {
-      showToast(`Đã bỏ sở thích: ${label}`, 'info');
-    }
   };  // Handle Profile Info Save
   const handleProfileSubmit = (e) => {
     e.preventDefault();
 
-    if (!profileData.fullname.trim()) {
+    if (userRole !== 'student' && !profileData.fullname.trim()) {
       showToast('Vui lòng nhập họ và tên!', 'error');
       return;
     }
@@ -215,9 +225,8 @@ const Profile = ({ showToast }) => {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        fullname: profileData.fullname.trim(),
+        ...(userRole !== 'student' ? { fullname: profileData.fullname.trim() } : {}),
         phone: profileData.phone.trim(),
-        course: profileData.course,
         orientation: orientation.trim(),
         interests: activeInterests,
         picture: avatar
@@ -227,7 +236,6 @@ const Profile = ({ showToast }) => {
       .then(({ status, data }) => {
         setSaveLoading(false);
         if (status === 200) {
-          showToast('Cập nhật hồ sơ thành công! AI đang tối ưu hóa đề xuất sự kiện cho bạn.', 'success');
           setIsEditing(false);
           if (data.user) {
             setProfileData({
@@ -296,7 +304,6 @@ const Profile = ({ showToast }) => {
       .then(({ status, data }) => {
         setPwLoading(false);
         if (status === 200) {
-          showToast('Thay đổi mật khẩu thành công!', 'success');
           setPwForm({
             currentPassword: '',
             newPassword: '',
@@ -340,11 +347,8 @@ const Profile = ({ showToast }) => {
     localStorage.removeItem('loginMethod');
     localStorage.removeItem('userRole');
     localStorage.removeItem('authToken');
-    showToast('Đã đăng xuất tài khoản thành công.', 'info');
     navigate('/login');
   };
-
-  const loginMethod = localStorage.getItem('loginMethod');
 
   // ============================================================
   // RoleBadge Component — Visual badge for student/staff/guest
@@ -401,75 +405,6 @@ const Profile = ({ showToast }) => {
     );
   };
 
-  // ============================================================
-  // RoleInfoSection — Detailed role info card in profile
-  // ============================================================
-  const RoleInfoSection = ({ role, studentIdVal }) => {
-    const roleConfig = {
-      student: {
-        title: '🎓 Sinh viên FPT University',
-        subtitle: studentIdVal ? `Mã sinh viên: ${studentIdVal}` : 'Đã xác thực bằng email sinh viên FPT',
-        sectionClass: '',
-        iconClass: 'role-info-icon--student',
-        icon: (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-          </svg>
-        )
-      },
-      staff: {
-        title: '👨‍🏫 Cán bộ / Giảng viên FPT',
-        subtitle: 'Đã xác thực bằng email nội bộ FPT',
-        sectionClass: 'role-info-section--staff',
-        iconClass: 'role-info-icon--staff',
-        icon: (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-          </svg>
-        )
-      },
-      ctsv: {
-        title: '🛡️ Phòng Công Tác Sinh Viên',
-        subtitle: 'Đã xác thực quyền Quản trị CTSV',
-        sectionClass: 'role-info-section--staff',
-        iconClass: 'role-info-icon--staff',
-        icon: (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-        )
-      },
-      guest: {
-        title: '👤 Tài khoản Khách',
-        subtitle: 'Sử dụng email ngoài hệ thống FPT. Một số tính năng có thể bị giới hạn.',
-        sectionClass: 'role-info-section--guest',
-        iconClass: 'role-info-icon--guest',
-        icon: (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        )
-      }
-    };
-
-    const rc = roleConfig[role] || roleConfig.guest;
-
-    return (
-      <div className={`role-info-section ${rc.sectionClass}`}>
-        <div className={`role-info-icon ${rc.iconClass}`}>
-          {rc.icon}
-        </div>
-        <div className="role-info-details">
-          <span className="role-info-title">{rc.title}</span>
-          <span className="role-info-subtitle">{rc.subtitle}</span>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="dashboard-body">
       {/* Mobile Sidebar Overlay */}
@@ -500,9 +435,11 @@ const Profile = ({ showToast }) => {
             <img className="sidebar-avatar" src={avatar} alt="User Avatar" />
             <div className="sidebar-user-info">
               <span className="sidebar-user-name">{profileData.fullname}</span>
-              <span className="sidebar-user-role">
-                {userRole === 'student' ? `Sinh viên ${profileData.course}` : userRole === 'staff' ? 'Cán bộ FPT' : userRole === 'ctsv' ? 'Phòng CTSV' : 'Khách'}
-              </span>
+              {userRole !== 'student' && (
+                <span className="sidebar-user-role">
+                  {userRole === 'staff' ? 'Cán bộ FPT' : userRole === 'ctsv' ? 'Phòng CTSV' : 'Khách'}
+                </span>
+              )}
               <div className="sidebar-role-badge">
                 <RoleBadge role={userRole} />
               </div>
@@ -513,7 +450,7 @@ const Profile = ({ showToast }) => {
           <nav className="sidebar-menu">
             {/* Section 1 */}
             <div className="menu-section">
-              <a href="#" className="menu-item active" onClick={(e) => e.preventDefault()}>
+              <a href="#" className={`menu-item ${activeMenu === 'profile' ? 'active' : ''}`} onClick={handleNavigateProfile}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -522,15 +459,18 @@ const Profile = ({ showToast }) => {
                   <span>Hồ sơ cá nhân</span>
                 </div>
               </a>
-              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Đăng nhập SSO')}>
+              <a
+                href="#change-password-section"
+                className={`menu-item ${activeMenu === 'change-password' ? 'active' : ''}`}
+                onClick={handleNavigateChangePassword}
+              >
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
-                  <span>Đăng nhập SSO</span>
+                  <span>Thay đổi mật khẩu</span>
                 </div>
-                <span className="status-dot"></span>
               </a>
             </div>
 
@@ -638,7 +578,9 @@ const Profile = ({ showToast }) => {
                 <span style={{ color: '#cbd5e1' }}>/</span>
                 <a href="#" onClick={(e) => e.preventDefault()}>Hồ sơ</a>
                 <span style={{ color: '#cbd5e1' }}>/</span>
-                <span className="current">Hồ sơ cá nhân</span>
+                <span className="current">
+                  {activeMenu === 'change-password' ? 'Thay đổi mật khẩu' : 'Hồ sơ cá nhân'}
+                </span>
               </div>
             </div>
 
@@ -671,9 +613,11 @@ const Profile = ({ showToast }) => {
                 <img className="navbar-user-avatar" src={avatar} alt="User Profile" />
                 <div className="navbar-user-details">
                   <span className="navbar-user-name">{profileData.fullname}</span>
-                  <span className="navbar-user-role">
-                    {userRole === 'student' ? `Sinh viên ${profileData.course}` : userRole === 'staff' ? 'Cán bộ FPT' : userRole === 'ctsv' ? 'Phòng CTSV' : 'Khách'}
-                  </span>
+                  {userRole !== 'student' && (
+                    <span className="navbar-user-role">
+                      {userRole === 'staff' ? 'Cán bộ FPT' : userRole === 'ctsv' ? 'Phòng CTSV' : 'Khách'}
+                    </span>
+                  )}
                 </div>
               </a>
             </div>
@@ -683,8 +627,12 @@ const Profile = ({ showToast }) => {
           <div className="dashboard-content-wrapper">
             {/* Page Header */}
             <div className="page-header">
-              <h1>Hồ sơ cá nhân</h1>
-              <p>Quản lý và cập nhật thông tin cá nhân của bạn để nhận các đề xuất sự kiện phù hợp từ AI.</p>
+              <h1>{activeMenu === 'change-password' ? 'Thay đổi mật khẩu' : 'Hồ sơ cá nhân'}</h1>
+              <p>
+                {activeMenu === 'change-password'
+                  ? 'Cập nhật mật khẩu đăng nhập tài khoản của bạn.'
+                  : 'Quản lý và cập nhật thông tin cá nhân của bạn để nhận các đề xuất sự kiện phù hợp từ AI.'}
+              </p>
             </div>
 
             {/* Layout Grid */}
@@ -740,7 +688,8 @@ const Profile = ({ showToast }) => {
               </div>
 
               {/* Right Column (Form Details) */}
-              <div className="profile-right-column">
+              <div className="profile-right-column" ref={profileSectionRef}>
+                {activeMenu === 'profile' && (
                 <form id="profile-edit-form" onSubmit={handleProfileSubmit} className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {/* SSO details card */}
                   <div>
@@ -755,9 +704,6 @@ const Profile = ({ showToast }) => {
                       </div>
                     </div>
 
-                    {/* Role Info Section */}
-                    <RoleInfoSection role={userRole} studentIdVal={studentId} />
-
                     <div className="profile-form-grid">
                       <div className="profile-input-group">
                         <label htmlFor="sso-name">Họ và tên</label>
@@ -767,64 +713,34 @@ const Profile = ({ showToast }) => {
                           value={profileData.fullname}
                           onChange={(e) => setProfileData(prev => ({ ...prev, fullname: e.target.value }))}
                           required
-                          disabled={!isEditing}
+                          readOnly={userRole === 'student'}
+                          disabled={userRole !== 'student' && !isEditing}
                         />
                       </div>
-                      <div className="profile-input-group">
-                        <label htmlFor="sso-course">Khóa học</label>
-                        {courseChanged ? (
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              type="text"
-                              id="sso-course"
-                              value={profileData.course}
-                              readOnly
-                              style={{ paddingRight: '120px' }}
-                            />
-                            <span style={{
-                              position: 'absolute',
-                              right: '12px',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              fontSize: '0.75rem',
-                              color: '#ef4444',
-                              fontWeight: '600',
-                              backgroundColor: '#fee2e2',
-                              padding: '2px 8px',
-                              borderRadius: '4px'
-                            }}>
-                              Đã khóa (đổi 1 lần)
-                            </span>
-                          </div>
-                        ) : (
-                          <select
+                      {userRole === 'student' && (
+                        <div className="profile-input-group">
+                          <label htmlFor="sso-student-id">MSSV</label>
+                          <input
+                            type="text"
+                            id="sso-student-id"
+                            value={studentId || '—'}
+                            readOnly
+                            placeholder="Chưa có MSSV"
+                            title="MSSV định dạng DSxxxxxx hoặc DExxxxxx"
+                          />
+                        </div>
+                      )}
+                      {userRole === 'student' && (
+                        <div className="profile-input-group">
+                          <label htmlFor="sso-course">Khóa học</label>
+                          <input
+                            type="text"
                             id="sso-course"
                             value={profileData.course}
-                            onChange={(e) => setProfileData(prev => ({ ...prev, course: e.target.value }))}
-                            disabled={!isEditing}
-                            style={{
-                              width: '100%',
-                              height: '48px',
-                              padding: '12px 16px',
-                              fontSize: '0.9rem',
-                              fontFamily: 'inherit',
-                              border: '1px solid var(--border-color)',
-                              borderRadius: '8px',
-                              outline: 'none',
-                              backgroundColor: 'var(--bg-card)',
-                              color: 'var(--text-main)',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <option value="K15">Khóa 15 (K15)</option>
-                            <option value="K16">Khóa 16 (K16)</option>
-                            <option value="K17">Khóa 17 (K17)</option>
-                            <option value="K18">Khóa 18 (K18)</option>
-                            <option value="K19">Khóa 19 (K19)</option>
-                            <option value="K20">Khóa 20 (K20)</option>
-                          </select>
-                        )}
-                      </div>
+                            readOnly
+                          />
+                        </div>
+                      )}
                       <div className="profile-input-group">
                         <label htmlFor="sso-email">Email sinh viên</label>
                         <input type="email" id="sso-email" value={profileData.email} readOnly />
@@ -840,19 +756,12 @@ const Profile = ({ showToast }) => {
                           disabled={!isEditing}
                         />
                       </div>
-                      {studentId && (
-                        <div className="profile-input-group">
-                          <label htmlFor="student-id">Mã sinh viên</label>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <input type="text" id="student-id" value={studentId} readOnly />
-                            <RoleBadge role={userRole} size="lg" />
-                          </div>
+                      {userRole === 'student' && (
+                        <div className="profile-input-group profile-form-grid-full">
+                          <label htmlFor="sso-campus">Cơ sở đào tạo</label>
+                          <input type="text" id="sso-campus" value={profileData.campus} readOnly />
                         </div>
                       )}
-                      <div className="profile-input-group profile-form-grid-full">
-                        <label htmlFor="sso-campus">Cơ sở đào tạo</label>
-                        <input type="text" id="sso-campus" value={profileData.campus} readOnly />
-                      </div>
                     </div>
                   </div>
 
@@ -1059,13 +968,22 @@ const Profile = ({ showToast }) => {
                     )}
                   </div>
                 </form>
+                )}
 
-                {/* Change Password Card */}
-                {loginMethod !== 'google' && (
-                  <div className="profile-card" style={{ marginTop: '24px' }}>
+                {activeMenu === 'change-password' && (
+                <div
+                  id="change-password-section"
+                  ref={passwordSectionRef}
+                  className="profile-card profile-card--password profile-card--highlight"
+                >
+                  <h2 className="profile-card-title">Thay đổi mật khẩu</h2>
+
+                  {!canChangePassword ? (
+                    <p className="profile-password-notice">
+                      Tài khoản đăng nhập Google không hỗ trợ đổi mật khẩu tại đây. Vui lòng quản lý mật khẩu qua tài khoản Google của bạn.
+                    </p>
+                  ) : (
                     <form id="change-password-form" onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                      <h2 className="profile-card-title">Thay đổi mật khẩu</h2>
-
                       <div className="profile-form-grid">
                         <div className="profile-input-group profile-form-grid-full">
                           <label htmlFor="current-password">Mật khẩu hiện tại</label>
@@ -1184,7 +1102,8 @@ const Profile = ({ showToast }) => {
                         )}
                       </button>
                     </form>
-                  </div>
+                  )}
+                </div>
                 )}
               </div>
             </div>
