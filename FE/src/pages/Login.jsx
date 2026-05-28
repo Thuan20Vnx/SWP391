@@ -7,6 +7,8 @@ const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 };
 
+const REMEMBER_EMAIL_KEY = 'rememberedLoginEmail';
+
 const Login = ({ showToast }) => {
   const navigate = useNavigate();
 
@@ -19,6 +21,7 @@ const Login = ({ showToast }) => {
   const [validFields, setValidFields] = useState({});
   const [shakeFields, setShakeFields] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
@@ -33,6 +36,18 @@ const Login = ({ showToast }) => {
       if (alertTimeout) clearTimeout(alertTimeout);
     };
   }, [showAlert]);
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
+    if (!savedEmail) return;
+
+    setFormData((prev) => ({ ...prev, email: savedEmail }));
+    setRememberMe(true);
+    setValidFields((prev) => ({
+      ...prev,
+      email: patterns.email.test(savedEmail.trim()),
+    }));
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -153,7 +168,6 @@ const Login = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
-          // Save role to localStorage
           const userRole = data.user?.role || 'guest';
           localStorage.setItem('userRole', userRole);
 
@@ -161,6 +175,12 @@ const Login = ({ showToast }) => {
           localStorage.setItem('userEmail', formData.email);
           localStorage.setItem('loginMethod', 'local');
           if (data.token) localStorage.setItem('authToken', data.token);
+
+          if (rememberMe) {
+            localStorage.setItem(REMEMBER_EMAIL_KEY, formData.email.trim().toLowerCase());
+          } else {
+            localStorage.removeItem(REMEMBER_EMAIL_KEY);
+          }
 
           navigate('/');
         } else {
@@ -350,9 +370,21 @@ const Login = ({ showToast }) => {
               <span className="error-message" id="error-password">Mật khẩu phải từ 8 ký tự trở lên</span>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="forgot-password-container" style={{ marginTop: '-8px' }}>
-              <Link to="/forgot" id="forgot-link" className="accent-link" style={{ color: 'var(--primary)', fontWeight: '600' }}>Quên mật khẩu?</Link>
+            {/* Remember me & Forgot password */}
+            <div className="login-options-row">
+              <label className="checkbox-container login-remember-me" htmlFor="remember-me">
+                <input
+                  type="checkbox"
+                  id="remember-me"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                <span className="checkbox-checkmark"></span>
+                <span className="checkbox-label">Ghi nhớ tài khoản</span>
+              </label>
+              <Link to="/forgot" id="forgot-link" className="accent-link" style={{ color: 'var(--primary)', fontWeight: '600' }}>
+                Quên mật khẩu?
+              </Link>
             </div>
 
             {/* Submit Button */}
