@@ -36,6 +36,52 @@ const writeUsers = (users) => {
   }
 };
 
+const APP_URL = process.env.APP_URL || 'http://localhost:5173';
+const OTP_EXPIRY_MINUTES = 5;
+
+const buildOtpDigitBoxes = (otp) => {
+  const spacer = '<td width="6"></td>';
+  const cells = otp.split('').map((digit) =>
+    `<td width="44" height="52" align="center" valign="middle" style="background-color:#faf8f6;border:1px solid #e0c0b2;border-radius:8px;font-size:24px;font-weight:600;color:#1e293b;font-family:Consolas,'Courier New',monospace;">${digit}</td>`
+  ).join(spacer);
+  return `<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin:32px auto 28px;"><tr>${cells}</tr></table>`;
+};
+
+const buildEmailShell = ({ title, bodyHtml }) => `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f0ed;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;-webkit-font-smoothing:antialiased;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color:#f3f0ed;padding:48px 16px;">
+    <tr>
+      <td align="center">
+        <table border="0" cellpadding="0" cellspacing="0" width="480" role="presentation" style="max-width:480px;width:100%;">
+          <tr>
+            <td style="padding-bottom:20px;">
+              <img src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM" alt="F-Events" width="96" height="54" style="display:block;border:0;" />
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#ffffff;border:1px solid #e8ddd6;border-radius:12px;padding:36px 32px;">
+              ${bodyHtml}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding-top:24px;font-size:12px;line-height:18px;color:#8a7b72;text-align:center;">
+              <p style="margin:0 0 4px;">F-Events · Quản lý sự kiện sinh viên FPT University</p>
+              <p style="margin:0;">Email tự động, vui lòng không trả lời.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
 // Helper to send OTP email
 const sendOtpEmail = async (email, fullname, otp) => {
   // Always write the last OTP to file for automated testing in dev environment
@@ -62,132 +108,30 @@ const sendOtpEmail = async (email, fullname, otp) => {
     }
   });
 
-  const emailTemplate = `<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xác minh tài khoản F-Events</title>
-  <style>
-    @media only screen and (max-width: 600px) {
-      .container {
-        width: 100% !important;
-        padding: 10px !important;
-      }
-      .card {
-        padding: 24px 16px !important;
-      }
-      .btn-group {
-        display: block !important;
-        text-align: center !important;
-      }
-      .btn {
-        display: block !important;
-        margin: 10px 0 !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-      }
-      .btn-secondary {
-        margin-left: 0 !important;
-      }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; color: #1E293B;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; padding: 40px 0;">
-    <tr>
-      <td align="center">
-        <table border="0" cellpadding="0" cellspacing="0" width="560" class="container" style="background-color: #F8FAFC;">
-          <!-- Header Logo -->
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <a href="http://localhost:5173" style="text-decoration: none;">
-                <img src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM" alt="F-Events Logo" width="64" height="64" style="display: block; border: 0; outline: none;" />
-              </a>
-              <h1 style="margin: 12px 0 4px 0; font-size: 24px; font-weight: 800; color: #F37021; letter-spacing: -0.5px;">F-Events</h1>
-              <p style="margin: 0; font-size: 12px; color: #64748B; font-weight: 500;">Hệ thống quản lý sự kiện dành cho sinh viên FPT University</p>
-            </td>
-          </tr>
-          
-          <!-- Inner Card -->
-          <tr>
-            <td class="card" style="background-color: #FFFFFF; padding: 40px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);">
-              <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 20px; font-weight: 700; color: #1E293B; border-left: 4px solid #F37021; padding-left: 12px;">Xác Minh Tài Khoản</h2>
-              
-              <p style="font-size: 15px; line-height: 24px; color: #334155; margin-bottom: 8px;">Chào <strong>{{username}}</strong>,</p>
-              <p style="font-size: 15px; line-height: 24px; color: #334155; margin-bottom: 24px;">Cảm ơn bạn đã đăng ký tài khoản tại <strong>F-Events</strong>. Để hoàn tất quá trình xác minh email và kích hoạt tài khoản, vui lòng sử dụng mã OTP bên dưới:</p>
-              
-              <!-- OTP Box -->
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; margin-bottom: 24px;">
-                <tr>
-                  <td align="center" style="padding: 24px 0;">
-                    <span style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; color: #F37021; letter-spacing: 12px; margin-left: 12px;">{{otp}}</span>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Security Warning Bulletpoints -->
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FFFBEB; border-radius: 6px; border-left: 4px solid #FCD34D; margin-bottom: 28px;">
-                <tr>
-                  <td style="padding: 16px;">
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                      <tr>
-                        <td valign="top" style="font-size: 14px; line-height: 20px; color: #78350F; padding-bottom: 6px;">
-                          ⏱️ Mã OTP có hiệu lực trong vòng <strong>{{expiry}} phút</strong>.
-                        </td>
-                      </tr>
-                      <tr>
-                        <td valign="top" style="font-size: 14px; line-height: 20px; color: #78350F; padding-bottom: 6px;">
-                          🔒 Tuyệt đối <strong>không chia sẻ</strong> mã xác minh này cho bất kỳ ai.
-                        </td>
-                      </tr>
-                      <tr>
-                        <td valign="top" style="font-size: 14px; line-height: 20px; color: #78350F;">
-                          ✉️ Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email an toàn.
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- SaaS Buttons -->
-              <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                  <td align="center" class="btn-group" style="padding-top: 8px;">
-                    <a href="{{verifyLink}}" class="btn" style="display: inline-block; background: linear-gradient(135deg, #F37021 0%, #D9530F 100%); color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 6px; box-shadow: 0 4px 6px rgba(243, 112, 33, 0.2); transition: all 0.2s ease-in-out;">Xác Minh Tài Khoản</a>
-                    <a href="http://localhost:5173" class="btn btn-secondary" style="display: inline-block; background-color: #1E293B; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 6px; margin-left: 12px; transition: all 0.2s ease-in-out;">Truy Cập F-Events</a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td align="center" style="padding-top: 32px;">
-              <p style="margin: 0 0 6px 0; font-size: 12px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">© 2026 F-Events Platform</p>
-              <p style="margin: 0 0 16px 0; font-size: 12px; color: #94A3B8;">Hệ thống quản lý sự kiện sinh viên FPT University</p>
-              <p style="margin: 0; font-size: 11px; color: #94A3B8; line-height: 16px; max-width: 400px;">Đây là email tự động từ hệ thống, vui lòng không phản hồi email này.</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-
-  const htmlContent = emailTemplate
-    .replace(/{{username}}/g, fullname)
-    .replace(/{{otp}}/g, otp.split('').join(' '))
-    .replace(/{{expiry}}/g, '5')
-    .replace(/{{verifyLink}}/g, 'http://localhost:5173/signup');
+  const otpBoxes = buildOtpDigitBoxes(otp);
+  const htmlContent = buildEmailShell({
+    title: 'Mã xác minh F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Xác minh đăng ký</p>
+      <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Mã xác minh của bạn</h1>
+      <p style="margin:0 0 4px;font-size:15px;line-height:24px;color:#334155;">Xin chào ${fullname},</p>
+      <p style="margin:0;font-size:15px;line-height:24px;color:#334155;">Nhập mã bên dưới vào trang đăng ký để hoàn tất tạo tài khoản F-Events cho <strong style="color:#1e293b;">${email}</strong>.</p>
+      ${otpBoxes}
+      <p style="margin:0 0 24px;font-size:13px;line-height:20px;color:#8a7b72;text-align:center;">Mã có hiệu lực ${OTP_EXPIRY_MINUTES} phút.</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="border-top:1px solid #f0e8e2;">
+        <tr>
+          <td style="padding-top:20px;font-size:13px;line-height:20px;color:#8a7b72;">
+            Nếu bạn không yêu cầu đăng ký, có thể bỏ qua email này. Không chia sẻ mã với bất kỳ ai.
+          </td>
+        </tr>
+      </table>
+    `
+  });
 
   const mailOptions = {
-    from: `"F-Events Platform" <${process.env.EMAIL_USER}>`,
+    from: `"F-Events" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: '[F-Events] Mã xác minh đăng ký tài khoản mới',
+    subject: 'Mã xác minh đăng ký F-Events',
     html: htmlContent
   };
 
@@ -203,7 +147,7 @@ const sendResetEmail = async (email, fullname, otp) => {
     console.error('Error writing last_otp.txt:', e);
   }
 
-  const resetLink = `http://localhost:5173/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`;
+  const resetLink = `${APP_URL}/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`;
 
   const mode = process.env.EMAIL_MODE || 'mock';
   if (mode === 'mock') {
@@ -223,123 +167,37 @@ const sendResetEmail = async (email, fullname, otp) => {
     }
   });
 
-  const emailTemplate = `<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Khôi phục mật khẩu F-Events</title>
-  <style>
-    @media only screen and (max-width: 600px) {
-      .container {
-        width: 100% !important;
-        padding: 10px !important;
-      }
-      .card {
-        padding: 24px 16px !important;
-      }
-      .btn {
-        display: block !important;
-        margin: 10px 0 !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-      }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1E293B;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; padding: 40px 0;">
-    <tr>
-      <td align="center">
-        <table border="0" cellpadding="0" cellspacing="0" width="560" class="container" style="background-color: #F8FAFC;">
-          <!-- Header Logo -->
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <a href="http://localhost:5173" style="text-decoration: none;">
-                <h1 style="margin: 12px 0 4px 0; font-size: 24px; font-weight: 800; color: #F37021; letter-spacing: -0.5px;">F-Events</h1>
-              </a>
-              <p style="margin: 0; font-size: 12px; color: #64748B; font-weight: 500;">Khôi phục mật khẩu tài khoản của bạn</p>
-            </td>
-          </tr>
-          
-          <!-- Inner Card -->
-          <tr>
-            <td class="card" style="background-color: #FFFFFF; padding: 40px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-              <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 20px; font-weight: 700; color: #1E293B; border-left: 4px solid #F37021; padding-left: 12px;">Khôi Phục Mật Khẩu</h2>
-              
-              <p style="font-size: 15px; line-height: 24px; color: #334155; margin-bottom: 8px;">Chào <strong>\${fullname}</strong>,</p>
-              <p style="font-size: 15px; line-height: 24px; color: #334155; margin-bottom: 24px;">Chúng tôi đã nhận được yêu cầu khôi phục mật khẩu tài khoản F-Events của bạn. Vui lòng nhập mã OTP dưới đây tại trang đặt lại mật khẩu:</p>
-              
-              <!-- OTP Box -->
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; margin-bottom: 24px;">
-                <tr>
-                  <td align="center" style="padding: 24px 0;">
-                    <span style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; color: #F37021; letter-spacing: 12px; margin-left: 12px;">\${otp}</span>
-                  </td>
-                </tr>
-              </table>
-              
-              <p style="font-size: 15px; line-height: 24px; color: #334155; margin-bottom: 24px;">Hoặc bạn có thể click trực tiếp vào nút dưới đây để đến thẳng trang đặt lại mật khẩu và tự động xác minh OTP:</p>
-
-              <!-- Action Button -->
-              <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                  <td align="center" style="padding-top: 8px; padding-bottom: 24px;">
-                    <a href="\${resetLink}" class="btn" style="display: inline-block; background: linear-gradient(135deg, #F37021 0%, #D9530F 100%); color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 28px; border-radius: 6px; box-shadow: 0 4px 6px rgba(243, 112, 33, 0.2);">Đặt Lại Mật Khẩu</a>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Security Warning Bulletpoints -->
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FFFBEB; border-radius: 6px; border-left: 4px solid #FCD34D;">
-                <tr>
-                  <td style="padding: 16px;">
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                      <tr>
-                        <td valign="top" style="font-size: 14px; line-height: 20px; color: #78350F; padding-bottom: 6px;">
-                          ⏱️ Mã OTP và đường liên kết có hiệu lực trong vòng <strong>5 phút</strong>.
-                        </td>
-                      </tr>
-                      <tr>
-                        <td valign="top" style="font-size: 14px; line-height: 20px; color: #78350F; padding-bottom: 6px;">
-                          🔒 Tuyệt đối <strong>không chia sẻ</strong> mã xác minh này cho bất kỳ ai.
-                        </td>
-                      </tr>
-                      <tr>
-                        <td valign="top" style="font-size: 14px; line-height: 20px; color: #78350F;">
-                          ✉️ Nếu bạn không yêu cầu thay đổi này, hãy bỏ qua email một cách an toàn.
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td align="center" style="padding-top: 32px;">
-              <p style="margin: 0 0 6px 0; font-size: 12px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">© 2026 F-Events Platform</p>
-              <p style="margin: 0; font-size: 11px; color: #94A3B8;">Đây là email tự động từ hệ thống, vui lòng không phản hồi email này.</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-
-  const htmlContent = emailTemplate
-    .replace(/\${fullname}/g, fullname)
-    .replace(/\${otp}/g, otp.split('').join(' '))
-    .replace(/\${resetLink}/g, resetLink);
+  const otpBoxes = buildOtpDigitBoxes(otp);
+  const htmlContent = buildEmailShell({
+    title: 'Khôi phục mật khẩu F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Khôi phục mật khẩu</p>
+      <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Đặt lại mật khẩu</h1>
+      <p style="margin:0 0 4px;font-size:15px;line-height:24px;color:#334155;">Xin chào ${fullname},</p>
+      <p style="margin:0;font-size:15px;line-height:24px;color:#334155;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong style="color:#1e293b;">${email}</strong>. Dùng mã bên dưới hoặc nút để tiếp tục.</p>
+      ${otpBoxes}
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin-bottom:24px;">
+        <tr>
+          <td align="center">
+            <a href="${resetLink}" style="display:inline-block;background-color:#f26f21;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 28px;border-radius:8px;">Đặt lại mật khẩu</a>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:0 0 24px;font-size:13px;line-height:20px;color:#8a7b72;text-align:center;">Mã và liên kết có hiệu lực ${OTP_EXPIRY_MINUTES} phút.</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="border-top:1px solid #f0e8e2;">
+        <tr>
+          <td style="padding-top:20px;font-size:13px;line-height:20px;color:#8a7b72;">
+            Nếu bạn không yêu cầu thay đổi mật khẩu, hãy bỏ qua email này. Không chia sẻ mã với bất kỳ ai.
+          </td>
+        </tr>
+      </table>
+    `
+  });
 
   const mailOptions = {
-    from: `"F-Events Platform" <\${process.env.EMAIL_USER}>`,
+    from: `"F-Events" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: '[F-Events] Yêu cầu khôi phục mật khẩu',
+    subject: 'Đặt lại mật khẩu F-Events',
     html: htmlContent
   };
 
