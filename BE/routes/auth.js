@@ -19,6 +19,16 @@ const pendingResets = new Map();
 // ============================================================
 const sanitizeUser = (user) => User.sanitizeUser(user);
 
+const buildGoogleLoginUpdate = (user, { googleId, googlePicture }) => {
+  const update = { authProvider: 'google' };
+  if (googleId) update.googleId = googleId;
+  if (googlePicture && !User.hasCustomAvatar(user)) {
+    update.picture = googlePicture;
+    update.avatar = googlePicture;
+  }
+  return update;
+};
+
 // ============================================================
 // Helper: Get Nodemailer Transporter (Gmail or Ethereal)
 // ============================================================
@@ -614,11 +624,11 @@ router.post('/google', async (req, res) => {
     let user = await User.findOne({ email: googleEmail.toLowerCase() });
 
     if (user) {
-      await User.syncAndPersistUserProfile(user, {
-        authProvider: 'google',
-        ...(googleId ? { googleId } : {}),
-        ...(googlePicture ? { picture: googlePicture } : {}),
-      });
+      await User.syncAndPersistUserProfile(user, buildGoogleLoginUpdate(user, {
+        googleId,
+        googlePicture,
+      }));
+      user = await User.findOne({ email: googleEmail.toLowerCase() });
       return res.status(200).json({
         success: true,
         message: 'Đăng nhập bằng Google thành công!',
@@ -703,11 +713,11 @@ router.get('/google/callback', async (req, res) => {
     let user = await User.findOne({ email: email.toLowerCase() });
 
     if (user) {
-      await User.syncAndPersistUserProfile(user, {
-        authProvider: 'google',
-        ...(googleId ? { googleId } : {}),
-        ...(picture ? { picture } : {}),
-      });
+      await User.syncAndPersistUserProfile(user, buildGoogleLoginUpdate(user, {
+        googleId,
+        googlePicture: picture,
+      }));
+      user = await User.findOne({ email: email.toLowerCase() });
     } else {
       // Auto-detect role & studentId from callback email
       const { role: detectedRole, studentId: detectedStudentId, course: detectedCourse } = await User.detectRole(email);

@@ -95,6 +95,9 @@ router.put('/profile', async (req, res) => {
         }
       }
       user.avatar = avatar;
+      if (avatar) {
+        user.picture = avatar;
+      }
     }
 
     if (picture !== undefined) {
@@ -104,6 +107,9 @@ router.put('/profile', async (req, res) => {
         }
       }
       user.picture = picture;
+      if (picture) {
+        user.avatar = picture;
+      }
     }
 
     if (user.role !== 'student' && course !== undefined && course !== user.course) {
@@ -179,6 +185,31 @@ router.put('/change-password', async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi thay đổi mật khẩu:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// ============================================================
+// POST /api/user/verify-password
+// ============================================================
+router.post('/verify-password', async (req, res) => {
+  const { password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({ success: false, valid: false, message: 'Vui lòng nhập mật khẩu!' });
+  }
+
+  try {
+    const user = await User.findOne({ email: req.authEmail });
+
+    if (!user || !user.passwordHash) {
+      return res.status(400).json({ success: false, valid: false, message: 'Không thể xác minh mật khẩu!' });
+    }
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    return res.status(200).json({ success: true, valid });
+  } catch (error) {
+    console.error('Lỗi khi xác minh mật khẩu:', error);
+    return res.status(500).json({ success: false, valid: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
 

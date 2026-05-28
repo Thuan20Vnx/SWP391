@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import defaultAvatar from '../assets/profile_avatar.png';
+import { resolveUserAvatar } from '../utils/image';
+import defaultAvatar from '../constants/defaultAvatar';
 import ProfileSidebarMenu from '../components/ProfileSidebarMenu';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
@@ -10,14 +11,15 @@ const Home = ({ showToast }) => {
 
   // Authentication State
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [userProfile, setUserProfile] = useState({
-    fullname: 'Trần Xuân Thuận',
-    course: 'K18',
-    picture: defaultAvatar,
+    fullname: '',
+    course: '',
+    picture: '',
     email: '',
     phone: '',
     campus: '',
-    role: 'student',
+    role: 'guest',
     studentId: '',
     orientation: '',
     interests: []
@@ -125,36 +127,42 @@ const Home = ({ showToast }) => {
     const logged = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(logged);
 
-    if (logged) {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-          .then(res => {
-            if (res.status === 200) return res.json();
-            throw new Error('Load failed');
-          })
-          .then(data => {
-            const u = data.user;
-            setUserProfile({
-              fullname: u.fullname || 'Trần Xuân Thuận',
-              course: u.course || 'K18',
-              picture: u.picture || u.avatar || defaultAvatar,
-              email: u.email || '',
-              phone: u.phone || '',
-              campus: u.campus || '',
-              role: u.role || 'guest',
-              studentId: u.studentId || '',
-              orientation: u.orientation || '',
-              interests: u.interests || []
-            });
-            localStorage.setItem('userRole', u.role || 'guest');
-          })
-          .catch(err => {
-            console.error('Failed to fetch user data for Home header:', err);
-            // Keep default Trần Xuân Thuận details
-          });
-      }
+    if (!logged) {
+      setProfileLoading(false);
+      return;
     }
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setProfileLoading(false);
+      return;
+    }
+
+    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
+      .then(res => {
+        if (res.status === 200) return res.json();
+        throw new Error('Load failed');
+      })
+      .then(data => {
+        const u = data.user;
+        setUserProfile({
+          fullname: u.fullname || '',
+          course: u.course || '',
+          picture: resolveUserAvatar(u, defaultAvatar),
+          email: u.email || '',
+          phone: u.phone || '',
+          campus: u.campus || '',
+          role: u.role || 'guest',
+          studentId: u.studentId || '',
+          orientation: u.orientation || '',
+          interests: u.interests || []
+        });
+        localStorage.setItem('userRole', u.role || 'guest');
+      })
+      .catch(err => {
+        console.error('Failed to fetch user data for Home header:', err);
+      })
+      .finally(() => setProfileLoading(false));
   }, []);
 
   useEffect(() => {
@@ -167,13 +175,6 @@ const Home = ({ showToast }) => {
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [profilePopupOpen]);
-
-  const getRoleLabel = (role) => {
-    if (role === 'student') return `Sinh viên ${userProfile.course}`;
-    if (role === 'staff') return 'Cán bộ FPT';
-    if (role === 'ctsv') return 'Phòng CTSV';
-    return 'Khách';
-  };
 
   const handleOpenProfilePopup = () => {
     if (!isLoggedIn) {
@@ -402,6 +403,15 @@ const Home = ({ showToast }) => {
             {/* Profile Entry */}
             <div className="auth-profile-wrapper">
               {isLoggedIn ? (
+                profileLoading ? (
+                  <div className="profile-display-card profile-display-card--loading" aria-busy="true" aria-label="Đang tải thông tin tài khoản">
+                    <div className="profile-info-text">
+                      <span className="profile-skeleton profile-skeleton--name" />
+                      <span className="profile-skeleton profile-skeleton--line" />
+                    </div>
+                    <div className="profile-avatar-circle profile-skeleton profile-skeleton--avatar" />
+                  </div>
+                ) : (
                 <div className="profile-display-card">
                   <button
                     type="button"
@@ -412,12 +422,6 @@ const Home = ({ showToast }) => {
                   >
                     <div className="profile-info-text">
                       <span className="profile-name">{userProfile.fullname}</span>
-                      <span className="profile-role">{getRoleLabel(userProfile.role)}</span>
-                      {userProfile.role === 'student' && (
-                        <span className="profile-student-brief">
-                          {[userProfile.studentId, userProfile.course].filter(Boolean).join(' · ')}
-                        </span>
-                      )}
                     </div>
                     <div className="profile-avatar-circle">
                       <img src={userProfile.picture} alt="User Avatar" />
@@ -446,6 +450,7 @@ const Home = ({ showToast }) => {
                     </>
                   )}
                 </div>
+                )
               ) : (
                 <div className="auth-buttons">
                   <Link to="/login" className="btn-auth btn-auth-login">Đăng nhập</Link>
