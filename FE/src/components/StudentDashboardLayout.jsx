@@ -4,6 +4,7 @@ import defaultAvatar from '../constants/defaultAvatar';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { resolveUserAvatar } from '../utils/image';
+import { getRoleLabel } from '../utils/role';
 
 const menuSections = [
   {
@@ -114,6 +115,7 @@ const StudentDashboardLayout = ({
         setProfileData({
           fullname: user.fullname || '',
           picture: resolveUserAvatar(user, ''),
+          role: user.role || localStorage.getItem('userRole') || 'guest',
         });
       })
       .catch(() => {})
@@ -161,7 +163,12 @@ const StudentDashboardLayout = ({
               {profileLoading ? (
                 <span className="profile-skeleton profile-skeleton--name" />
               ) : (
-                <span className="sidebar-user-name">{profileData.fullname || 'Người dùng'}</span>
+                <>
+                  <span className="sidebar-user-name">{profileData.fullname || 'Người dùng'}</span>
+                  {profileData.role?.toLowerCase() !== 'student' && (
+                    <span className="sidebar-user-role">{getRoleLabel(profileData.role)}</span>
+                  )}
+                </>
               )}
             </div>
           </button>
@@ -253,7 +260,12 @@ const StudentDashboardLayout = ({
                   {profileLoading ? (
                     <span className="profile-skeleton profile-skeleton--name" />
                   ) : (
-                    <span className="navbar-user-name">{profileData.fullname || 'Người dùng'}</span>
+                    <>
+                      <span className="navbar-user-name">{profileData.fullname || 'Người dùng'}</span>
+                      {profileData.role?.toLowerCase() !== 'student' && (
+                        <span className="navbar-user-role">{getRoleLabel(profileData.role)}</span>
+                      )}
+                    </>
                   )}
                 </div>
               </button>

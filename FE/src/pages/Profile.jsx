@@ -5,6 +5,7 @@ import { API_BASE, getAuthHeaders } from '../utils/api';
 import { formatMssv } from '../utils/studentId';
 import { compressImageFile, resolveUserAvatar } from '../utils/image';
 import { getPasswordStrength } from '../utils/password';
+import { getRoleLabel } from '../utils/role';
 
 const Profile = ({ showToast }) => {
   const navigate = useNavigate();
@@ -516,7 +517,12 @@ const Profile = ({ showToast }) => {
               {profileLoading ? (
                 <span className="profile-skeleton profile-skeleton--name" />
               ) : (
-                <span className="sidebar-user-name">{profileData.fullname}</span>
+                <>
+                  <span className="sidebar-user-name">{profileData.fullname}</span>
+                  {userRole?.toLowerCase() !== 'student' && (
+                    <span className="sidebar-user-role">{getRoleLabel(userRole)}</span>
+                  )}
+                </>
               )}
             </div>
           </a>
@@ -690,7 +696,12 @@ const Profile = ({ showToast }) => {
                   {profileLoading ? (
                     <span className="profile-skeleton profile-skeleton--name" />
                   ) : (
-                    <span className="navbar-user-name">{profileData.fullname}</span>
+                    <>
+                      <span className="navbar-user-name">{profileData.fullname}</span>
+                      {userRole?.toLowerCase() !== 'student' && (
+                        <span className="navbar-user-role">{getRoleLabel(userRole)}</span>
+                      )}
+                    </>
                   )}
                 </div>
               </a>
@@ -701,7 +712,7 @@ const Profile = ({ showToast }) => {
           <div className="dashboard-content-wrapper">
             {/* Page Header */}
             <div className="page-header">
-              <h1>{profilePageTitle}</h1>
+              <h1>{activeMenu === 'change-password' ? 'Thay đổi mật khẩu' : `Chào mừng, ${profileData.fullname} 👋`}</h1>
               <p>
                 {activeMenu === 'change-password'
                   ? 'Cập nhật mật khẩu đăng nhập tài khoản của bạn.'
