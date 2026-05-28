@@ -6,11 +6,15 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 import Events from './pages/Events';
 import CreateEvent from './pages/CreateEvent';
 import AdminDashboard from './pages/AdminDashboard';
 import { ToastContainer } from './components/Toast';
+import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import './index.css';
+
+initThemeFromStorage();
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -50,6 +54,15 @@ function App() {
                 <Profile showToast={showToast} />
               </ProtectedRoute>
             } 
+          />
+
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings showToast={showToast} />
+              </ProtectedRoute>
+            }
           />
 
           {/* Event Routes */}
