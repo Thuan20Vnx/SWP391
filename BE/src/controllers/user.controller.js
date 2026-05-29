@@ -1,5 +1,7 @@
 const userService = require('../services/user.service');
 const registrationService = require('../services/registration.service');
+const clubService = require('../services/club.service');
+const reviewService = require('../services/review.service');
 
 const getProfile = async (req, res) => {
   const result = await userService.getProfile(req.authEmail);
@@ -28,10 +30,24 @@ const getMyEvents = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const getMyClubs = async (req, res) => {
+  const result = await clubService.getMyClubs(req.user._id, req.query.tab || 'joined');
+  res.status(200).json({ success: true, ...result });
+};
+
+const getEventReviews = async (req, res) => {
+  const result = await reviewService.getEventReviews(req.user._id, {
+    tab: req.query.tab || 'pending',
+  });
+  res.status(200).json({ success: true, ...result });
+};
+
 module.exports = {
   getProfile,
   updateProfile,
   changePassword,
   verifyPassword,
   getMyEvents,
+  getMyClubs,
+  getEventReviews,
 };

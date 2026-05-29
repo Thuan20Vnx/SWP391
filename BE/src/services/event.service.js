@@ -2,6 +2,7 @@ const Event = require('../models/Event');
 const AppError = require('../utils/AppError');
 const { isValidEventVenue } = require('../constants/eventVenues');
 const { getRegisteredEventIds } = require('./registration.service');
+const { enrichEventWithPricing } = require('../constants/eventPricing');
 
 const createEvent = async (user, body) => {
   const {
@@ -13,6 +14,7 @@ const createEvent = async (user, body) => {
     endDate,
     location,
     capacity,
+    ticketPrice,
   } = body;
 
   if (!title || !description || !startDate || !endDate || !location || !capacity) {
@@ -35,6 +37,7 @@ const createEvent = async (user, body) => {
     endDate,
     location,
     capacity,
+    ticketPrice: Math.max(0, Number(ticketPrice) || 0),
     registeredCount: 0,
     eventState: 'active',
     createdBy: user._id,
@@ -79,7 +82,7 @@ const updateEventStatus = async (eventId, { status, rejectionReason }) => {
   };
 };
 
-const getApprovedEvents = async ({ category, userId } = {}) => {
+const getApprovedEvents = async ({ category, user } = {}) => {
   const query = { status: 'approved' };
   if (category && category !== 'all') {
     query.category = category;
@@ -90,18 +93,37 @@ const getApprovedEvents = async ({ category, userId } = {}) => {
     .sort({ startDate: 1 });
 
   let registeredSet = new Set();
-  if (userId) {
-    const ids = await getRegisteredEventIds(userId);
+  if (user?._id) {
+    const ids = await getRegisteredEventIds(user._id);
     registeredSet = new Set(ids);
   }
 
   const eventsWithRegistration = events.map((event) => {
     const doc = event.toObject();
     doc.isRegistered = registeredSet.has(String(event._id));
-    return doc;
+    return enrichEventWithPricing(doc, user);
   });
 
   return { events: eventsWithRegistration };
+};
+
+const getEventById = async (eventId, { user } = {}) => {
+  const event = await Event.findOne({ _id: eventId, status: 'approved' })
+    .populate('createdBy', 'fullname email');
+
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+
+  const doc = event.toObject();
+  if (user?._id) {
+    const ids = await getRegisteredEventIds(user._id);
+    doc.isRegistered = ids.includes(String(event._id));
+  } else {
+    doc.isRegistered = false;
+  }
+
+  return { event: enrichEventWithPricing(doc, user) };
 };
 
 module.exports = {
@@ -109,4 +131,5 @@ module.exports = {
   getPendingEvents,
   updateEventStatus,
   getApprovedEvents,
+  getEventById,
 };

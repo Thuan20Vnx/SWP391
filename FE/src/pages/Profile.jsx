@@ -4,9 +4,10 @@ import defaultAvatar from '../constants/defaultAvatar';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { formatMssv } from '../utils/studentId';
 import { compressImageFile, resolveUserAvatar } from '../utils/image';
-import { getPasswordStrength } from '../utils/password';
 import { getRoleLabel } from '../utils/role';
 import { clearUserProfileCache } from '../hooks/useUserProfile';
+import { dispatchAuthChanged } from '../utils/authEvents';
+import DashboardSidebarNav from '../components/DashboardSidebarNav';
 
 const Profile = ({ showToast }) => {
   const navigate = useNavigate();
@@ -30,11 +31,8 @@ const Profile = ({ showToast }) => {
 
   // Responsive Sidebar State
   const [sidebarActive, setSidebarActive] = useState(false);
-  const [activeMenu, setActiveMenu] = useState('profile');
-  const [authProvider, setAuthProvider] = useState('local');
 
   const profileSectionRef = useRef(null);
-  const passwordSectionRef = useRef(null);
 
   // Edit profile mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -82,7 +80,6 @@ const Profile = ({ showToast }) => {
         // Load role & studentId
         if (u.role) setUserRole(u.role);
         if (u.studentId) setStudentId(formatMssv(u.studentId));
-        if (u.authProvider) setAuthProvider(u.authProvider);
 
         // Populate interests checklist state
         if (u.interests) {
@@ -121,18 +118,6 @@ const Profile = ({ showToast }) => {
     music: false
   });
 
-  // Change Password Form State
-  const [pwForm, setPwForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-  const [pwLoading, setPwLoading] = useState(false);
-  const [showCurrentPw, setShowCurrentPw] = useState(false);
-  const [showNewPasswords, setShowNewPasswords] = useState(false);
-  const [currentPwStatus, setCurrentPwStatus] = useState(null);
-  const verifyPasswordRequestRef = useRef(0);
-
   // Handle Sidebar Menu item click
   const handleFeatureNotImplemented = (e) => {
     e.preventDefault();
@@ -149,104 +134,14 @@ const Profile = ({ showToast }) => {
     showToast('Tính năng quét QR check-in đang được phát triển.', 'info');
   };
 
-  const handleNotificationClick = () => {
-    navigate('/announcements');
-  };
-
-  const canChangePassword = authProvider !== 'google';
   const displayAvatar = avatar || defaultAvatar;
-  const profilePageTitle = activeMenu === 'change-password' ? 'Thay đổi mật khẩu' : 'Thông tin cá nhân';
-  const passwordStrength = getPasswordStrength(pwForm.newPassword);
-  const confirmPasswordMatch =
-    pwForm.confirmPassword.length > 0
-      ? pwForm.newPassword === pwForm.confirmPassword
-      : null;
-
-  const verifyCurrentPassword = (password) => {
-    if (!password) {
-      setCurrentPwStatus(null);
-      return;
-    }
-
-    const requestId = ++verifyPasswordRequestRef.current;
-    setCurrentPwStatus('checking');
-
-    fetch(`${API_BASE}/api/user/verify-password`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ password })
-    })
-      .then((res) => res.json().then((data) => ({ status: res.status, data })))
-      .then(({ status, data }) => {
-        if (requestId !== verifyPasswordRequestRef.current) return;
-        if (status === 200 && data.valid) {
-          setCurrentPwStatus('valid');
-        } else {
-          setCurrentPwStatus('invalid');
-        }
-      })
-      .catch(() => {
-        if (requestId !== verifyPasswordRequestRef.current) return;
-        setCurrentPwStatus('invalid');
-      });
-  };
-
-  const handleCurrentPasswordChange = (value) => {
-    setPwForm((prev) => ({ ...prev, currentPassword: value }));
-    setCurrentPwStatus(null);
-  };
-
-  const handleCurrentPasswordBlur = (e) => {
-    verifyCurrentPassword(e.target.value);
-  };
-
-  const handleNewPasswordFocus = () => {
-    if (pwForm.currentPassword && currentPwStatus !== 'valid') {
-      verifyCurrentPassword(pwForm.currentPassword);
-    }
-  };
-
-  const toggleNewPasswordVisibility = () => {
-    setShowNewPasswords((prev) => !prev);
-  };
-
-  const renderPasswordToggle = (visible, onToggle) => (
-    <button
-      type="button"
-      className="profile-toggle-password"
-      onClick={onToggle}
-      aria-label={visible ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
-    >
-      <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        {visible ? (
-          <>
-            <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
-          </>
-        ) : (
-          <>
-            <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-            <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
-          </>
-        )}
-      </svg>
-    </button>
-  );
+  const profilePageTitle = 'Thông tin cá nhân';
 
   const handleNavigateProfile = (e) => {
     e.preventDefault();
-    setActiveMenu('profile');
     setSidebarActive(false);
     setIsEditing(false);
     profileSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const handleNavigateChangePassword = (e) => {
-    e.preventDefault();
-    setActiveMenu('change-password');
-    setSidebarActive(false);
-    setIsEditing(false);
-    passwordSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const saveAvatarToBackend = (imageData) => {
@@ -371,86 +266,6 @@ const Profile = ({ showToast }) => {
         showToast('Không thể kết nối đến máy chủ Backend!', 'error');
       });
   };
-  // Handle Change Password Submit
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
-
-    const { currentPassword, newPassword, confirmPassword } = pwForm;
-
-    if (!currentPassword) {
-      showToast('Vui lòng nhập mật khẩu hiện tại!', 'error');
-      return;
-    }
-
-    if (currentPwStatus === 'invalid') {
-      showToast('Mật khẩu hiện tại không chính xác!', 'error');
-      return;
-    }
-
-    if (currentPwStatus === 'checking') {
-      showToast('Đang kiểm tra mật khẩu hiện tại, vui lòng đợi!', 'error');
-      return;
-    }
-
-    if (currentPwStatus !== 'valid') {
-      verifyCurrentPassword(currentPassword);
-      showToast('Đang xác minh mật khẩu hiện tại, vui lòng thử lại!', 'error');
-      return;
-    }
-
-    if (!newPassword) {
-      showToast('Vui lòng nhập mật khẩu mới!', 'error');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', 'error');
-      return;
-    }
-
-    if (currentPassword === newPassword) {
-      showToast('Mật khẩu mới không được trùng với mật khẩu hiện tại!', 'error');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      showToast('Xác nhận mật khẩu mới không khớp!', 'error');
-      return;
-    }
-
-    setPwLoading(true);
-
-    fetch(`${API_BASE}/api/user/change-password`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({
-        currentPassword,
-        newPassword
-      })
-    })
-      .then(res => res.json().then(data => ({ status: res.status, data })))
-      .then(({ status, data }) => {
-        setPwLoading(false);
-        if (status === 200) {
-          setPwForm({
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-          });
-          setShowCurrentPw(false);
-          setShowNewPasswords(false);
-          setCurrentPwStatus(null);
-          showToast(data.message || 'Thay đổi mật khẩu thành công!', 'success');
-        } else {
-          showToast(data.message || 'Thay đổi mật khẩu thất bại!', 'error');
-        }
-      })
-      .catch(err => {
-        setPwLoading(false);
-        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
-      });
-  };
-
   const startEditing = () => {
     setBackupData({
       profileData: { ...profileData },
@@ -477,6 +292,7 @@ const Profile = ({ showToast }) => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('authToken');
     clearUserProfileCache();
+    dispatchAuthChanged();
     navigate('/login');
   };
 
@@ -530,99 +346,15 @@ const Profile = ({ showToast }) => {
             </div>
           </a>
 
-          {/* Menu Navigation */}
-          <nav className="sidebar-menu">
-            <div className="menu-section">
-              <a href="#" className={`menu-item ${activeMenu === 'profile' ? 'active' : ''}`} onClick={handleNavigateProfile}>
-                <div className="menu-item-content">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  <span>Thông tin cá nhân</span>
-                </div>
-              </a>
-              <a
-                href="#change-password-section"
-                className={`menu-item ${activeMenu === 'change-password' ? 'active' : ''}`}
-                onClick={handleNavigateChangePassword}
-              >
-                <div className="menu-item-content">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>Thay đổi mật khẩu</span>
-                </div>
-              </a>
-            </div>
-
-            {/* Section 2 */}
-            <div className="menu-section">
-              <span className="menu-header">Sự kiện</span>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/events')}>
-                <div className="menu-item-content">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                  <span>Tìm kiếm & Duyệt sự kiện</span>
-                </div>
-              </a>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/my-events')}>
-                <div className="menu-item-content">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                  <span>Sự kiện của tôi</span>
-                </div>
-              </a>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/schedule')}>
-                <div className="menu-item-content">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                  </svg>
-                  <span>Quản lý lịch trình</span>
-                </div>
-              </a>
-            </div>
-
-            {/* Quick Scan */}
-            <button className="btn-scan-aside" onClick={handleScanClick}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="7" y1="7" x2="17" y2="7"></line>
-                <line x1="7" y1="12" x2="17" y2="12"></line>
-                <line x1="7" y1="17" x2="13" y2="17"></line>
-              </svg>
-              <span>Quét mã tham gia</span>
-            </button>
-
-            {/* Section 3 */}
-            <div className="menu-section">
-              <span className="menu-header">Tiện ích</span>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/event-reviews')}>
-                <div className="menu-item-content">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                  <span>Đánh giá sự kiện</span>
-                </div>
-              </a>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/announcements')}>
-                <div className="menu-item-content">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                  </svg>
-                  <span>Thông báo</span>
-                </div>
-              </a>
-            </div>
-          </nav>
+          <DashboardSidebarNav
+            activeMenu="profile"
+            onScanClick={handleScanClick}
+            onCloseSidebar={() => setSidebarActive(false)}
+            onProfileMenuItem={(key, event) => {
+              if (key === 'profile') handleNavigateProfile(event);
+            }}
+            onNavigate={(path) => navigate(path)}
+          />
 
           {/* Logout */}
           <div className="sidebar-footer">
@@ -664,14 +396,6 @@ const Profile = ({ showToast }) => {
             </div>
 
             <div className="navbar-right">
-              {/* Notification Bell */}
-              <button className="btn-icon-nav" aria-label="Xem thông báo" onClick={handleNotificationClick}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-              </button>
-
               {/* User Dropdown Menu link */}
               <a href="#" className="navbar-user-menu" onClick={(e) => e.preventDefault()}>
                 {profileLoading ? (
@@ -697,13 +421,6 @@ const Profile = ({ showToast }) => {
 
           {/* Dashboard Scrollable Body */}
           <div className="dashboard-content-wrapper">
-            {activeMenu === 'change-password' && (
-              <div className="page-header">
-                <h1>Thay đổi mật khẩu</h1>
-                <p>Cập nhật mật khẩu đăng nhập tài khoản của bạn.</p>
-              </div>
-            )}
-
             {/* Layout Grid */}
             <div className="profile-grid">
               {profileLoading ? (
@@ -767,7 +484,6 @@ const Profile = ({ showToast }) => {
 
               {/* Right Column (Form Details) */}
               <div className="profile-right-column" ref={profileSectionRef}>
-                {activeMenu === 'profile' && (
                 <form id="profile-edit-form" onSubmit={handleProfileSubmit} className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>Thông tin cá nhân & Sở thích</h2>
 
@@ -1031,136 +747,6 @@ const Profile = ({ showToast }) => {
                     )}
                   </div>
                 </form>
-                )}
-
-                {activeMenu === 'change-password' && (
-                <div
-                  id="change-password-section"
-                  ref={passwordSectionRef}
-                  className="profile-card profile-card--password profile-card--highlight"
-                >
-                  <h2 className="profile-card-title">Thay đổi mật khẩu</h2>
-
-                  {!canChangePassword ? (
-                    <p className="profile-password-notice">
-                      Tài khoản đăng nhập Google không hỗ trợ đổi mật khẩu tại đây. Vui lòng quản lý mật khẩu qua tài khoản Google của bạn.
-                    </p>
-                  ) : (
-                    <form id="change-password-form" onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                      <div className="profile-form-grid">
-                        <div className="profile-input-group profile-form-grid-full">
-                          <label htmlFor="current-password">Mật khẩu hiện tại</label>
-                          <div className="profile-password-wrapper">
-                            <input
-                              type={showCurrentPw ? 'text' : 'password'}
-                              id="current-password"
-                              placeholder="Nhập mật khẩu hiện tại"
-                              required
-                              value={pwForm.currentPassword}
-                              onChange={(e) => handleCurrentPasswordChange(e.target.value)}
-                              onBlur={handleCurrentPasswordBlur}
-                              className={
-                                currentPwStatus === 'valid'
-                                  ? 'is-valid'
-                                  : currentPwStatus === 'invalid'
-                                    ? 'is-invalid'
-                                    : ''
-                              }
-                            />
-                            {renderPasswordToggle(showCurrentPw, () => setShowCurrentPw(!showCurrentPw))}
-                          </div>
-                          {currentPwStatus === 'checking' && (
-                            <p className="profile-password-feedback profile-password-feedback--checking">Đang kiểm tra...</p>
-                          )}
-                          {currentPwStatus === 'valid' && (
-                            <p className="profile-password-feedback profile-password-feedback--valid">Khớp</p>
-                          )}
-                          {currentPwStatus === 'invalid' && (
-                            <p className="profile-password-feedback profile-password-feedback--invalid">Không khớp</p>
-                          )}
-                        </div>
-
-                        <div className="profile-input-group">
-                          <label htmlFor="new-password">Mật khẩu mới</label>
-                          <div className="profile-password-wrapper">
-                            <input
-                              type={showNewPasswords ? 'text' : 'password'}
-                              id="new-password"
-                              placeholder="Nhập mật khẩu mới"
-                              required
-                              value={pwForm.newPassword}
-                              onChange={(e) => setPwForm((prev) => ({ ...prev, newPassword: e.target.value }))}
-                              onFocus={handleNewPasswordFocus}
-                            />
-                            {renderPasswordToggle(showNewPasswords, toggleNewPasswordVisibility)}
-                          </div>
-                          {pwForm.newPassword && (
-                            <div className="profile-password-strength">
-                              <div className="profile-password-strength__bars">
-                                {[1, 2, 3, 4].map((bar) => (
-                                  <span
-                                    key={bar}
-                                    className={`profile-password-strength__bar ${
-                                      bar <= passwordStrength.bars
-                                        ? `profile-password-strength__bar--${passwordStrength.level}`
-                                        : ''
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                              <span className={`profile-password-strength__label profile-password-strength__label--${passwordStrength.level}`}>
-                                {passwordStrength.label}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="profile-input-group">
-                          <label htmlFor="confirm-password">Xác nhận mật khẩu mới</label>
-                          <div className="profile-password-wrapper">
-                            <input
-                              type={showNewPasswords ? 'text' : 'password'}
-                              id="confirm-password"
-                              placeholder="Xác nhận mật khẩu mới"
-                              required
-                              value={pwForm.confirmPassword}
-                              onChange={(e) => setPwForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                              className={
-                                confirmPasswordMatch === true
-                                  ? 'is-valid'
-                                  : confirmPasswordMatch === false
-                                    ? 'is-invalid'
-                                    : ''
-                              }
-                            />
-                            {renderPasswordToggle(showNewPasswords, toggleNewPasswordVisibility)}
-                          </div>
-                          {confirmPasswordMatch === true && (
-                            <p className="profile-password-feedback profile-password-feedback--valid">Khớp</p>
-                          )}
-                          {confirmPasswordMatch === false && (
-                            <p className="profile-password-feedback profile-password-feedback--invalid">Không khớp</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <button type="submit" id="change-pw-btn" className="primary-button btn-save-profile" disabled={pwLoading}>
-                        {pwLoading ? (
-                          <span className="btn-spinner"></span>
-                        ) : (
-                          <>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
-                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </svg>
-                            <span className="btn-text">Cập nhật mật khẩu</span>
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  )}
-                </div>
-                )}
               </div>
               </>
               )}
@@ -1187,7 +773,6 @@ const Profile = ({ showToast }) => {
                   <ul className="footer-links">
                     <li><a href="#" onClick={handleSidebarNavigate('/events')}>Sự kiện sắp tới</a></li>
                     <li><a href="#" onClick={handleSidebarNavigate('/events')}>Câu lạc bộ nổi bật</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/announcements')}>Tin tức công nghệ</a></li>
                     <li><a href="#" onClick={handleSidebarNavigate('/my-events')}>Thư viện hình ảnh</a></li>
                   </ul>
                 </div>

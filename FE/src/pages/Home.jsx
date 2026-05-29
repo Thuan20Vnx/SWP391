@@ -4,11 +4,11 @@ import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import useUserProfile from '../hooks/useUserProfile';
-import { mapApiEventToHomeCard } from '../data/eventDiscoveryData';
+import { mapApiEventToHomeCard, filterActiveDiscoveryEvents } from '../data/eventDiscoveryData';
 
 const Home = ({ showToast }) => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useUserProfile();
+  const { isLoggedIn, userProfile } = useUserProfile();
 
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,14 +56,16 @@ const Home = ({ showToast }) => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.events?.length > 0) {
-          const mapped = data.events.slice(0, 4).map(mapApiEventToHomeCard);
+          const mapped = filterActiveDiscoveryEvents(data.events)
+            .slice(0, 4)
+            .map(mapApiEventToHomeCard);
           setEvents(mapped);
           setFilteredEvents(mapped);
         }
       })
       .catch((err) => console.error(err))
       .finally(() => setEventsLoading(false));
-  }, [isLoggedIn]);
+  }, [isLoggedIn, userProfile.role]);
 
   // Automatic Hero Slide transition
   useEffect(() => {

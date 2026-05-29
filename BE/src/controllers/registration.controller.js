@@ -1,7 +1,7 @@
 const registrationService = require('../services/registration.service');
 
 const registerForEvent = async (req, res) => {
-  const result = await registrationService.registerForEvent(req.user._id, req.params.id);
+  const result = await registrationService.registerForEvent(req.user, req.params.id);
   res.status(201).json({ success: true, ...result });
 };
 

@@ -48,6 +48,30 @@ const googleCallback = async (req, res) => {
   }
 };
 
+const googleCalendarConnect = (req, res) => {
+  try {
+    const token = req.query.token;
+    const { url } = authService.getGoogleCalendarAuthUrl(token);
+    res.redirect(url);
+  } catch (error) {
+    const message = encodeURIComponent(error.message || 'Không thể liên kết Google Calendar.');
+    res.redirect(`${CLIENT_ORIGIN}/login?auth_status=error&message=${message}`);
+  }
+};
+
+const googleCalendarCallback = async (req, res) => {
+  try {
+    const { redirectUrl } = await authService.googleCalendarCallback(
+      req.query.code,
+      req.query.state
+    );
+    res.redirect(redirectUrl);
+  } catch (error) {
+    const message = encodeURIComponent(error.message || 'Liên kết Google Calendar thất bại.');
+    res.redirect(`${CLIENT_ORIGIN}/?calendar_status=error&message=${message}`);
+  }
+};
+
 module.exports = {
   login,
   signup,
@@ -57,4 +81,6 @@ module.exports = {
   resetPassword,
   googleLogin,
   googleCallback,
+  googleCalendarConnect,
+  googleCalendarCallback,
 };

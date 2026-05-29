@@ -26,9 +26,9 @@ const SettingsPanel = ({ showToast }) => {
           />
         );
       case 'support':
-        return <SupportSection showToast={showToast} />;
+        return <SupportSection />;
       case 'about':
-        return <AboutSection showToast={showToast} />;
+        return <AboutSection />;
       default:
         return null;
     }
@@ -36,7 +36,7 @@ const SettingsPanel = ({ showToast }) => {
 
   return (
     <div className="settings-panel">
-      <SettingsSidebar activeSection={activeSection} onSelect={setActiveSection} variant="page" />
+      <SettingsSidebar activeSection={activeSection} onSelect={setActiveSection} />
       <main className="settings-panel__content">{renderSection()}</main>
     </div>
   );

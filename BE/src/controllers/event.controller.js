@@ -16,10 +16,16 @@ const updateEventStatus = async (req, res) => {
 };
 
 const getApprovedEvents = async (req, res) => {
-  const userId = req.user?._id;
   const result = await eventService.getApprovedEvents({
     category: req.query.category,
-    userId,
+    user: req.user || null,
+  });
+  res.status(200).json({ success: true, ...result });
+};
+
+const getEventById = async (req, res) => {
+  const result = await eventService.getEventById(req.params.id, {
+    user: req.user || null,
   });
   res.status(200).json({ success: true, ...result });
 };
@@ -29,5 +35,6 @@ module.exports = {
   getPendingEvents,
   updateEventStatus,
   getApprovedEvents,
+  getEventById,
 };
 

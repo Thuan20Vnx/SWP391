@@ -4,9 +4,6 @@ import SettingsRow from '../SettingsRow';
 import { SettingsCard, SettingsSectionHeader } from '../SettingsLayout';
 import { SECTION_META } from '../settingsConfig';
 
-const inputClass =
-  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
-
 const SecuritySection = ({ showToast }) => {
   const isGoogleLogin = localStorage.getItem('loginMethod') === 'google';
   const [pwForm, setPwForm] = useState({
@@ -46,6 +43,7 @@ const SecuritySection = ({ showToast }) => {
         if (status === 200) {
           setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
           setShowForm(false);
+          showToast('Đổi mật khẩu thành công.', 'success');
         } else {
           showToast(data.message || 'Đổi mật khẩu thất bại.', 'error');
         }
@@ -56,68 +54,71 @@ const SecuritySection = ({ showToast }) => {
       });
   };
 
-  const handleLogoutAllDevices = () => {};
+  const handleLogoutAllDevices = () => {
+    showToast('Tính năng đang được phát triển.', 'info');
+  };
 
   return (
-    <div>
+    <div className="settings-section">
       <SettingsSectionHeader {...SECTION_META.security} />
 
-      <div className="space-y-4">
+      <div className="settings-section__stack">
         <SettingsCard title="Mật khẩu">
           {isGoogleLogin ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Tài khoản đăng nhập qua Google không hỗ trợ đổi mật khẩu tại đây.
+            <p className="settings-note">
+              Tài khoản đăng nhập bằng Google không hỗ trợ đổi mật khẩu tại đây.
             </p>
+          ) : !showForm ? (
+            <SettingsRow
+              label="Đổi mật khẩu"
+              description="Cập nhật mật khẩu đăng nhập của bạn"
+              onClick={() => setShowForm(true)}
+            />
           ) : (
-            <>
-              {!showForm ? (
-                <SettingsRow
-                  label="Đổi mật khẩu"
-                  description="Cập nhật mật khẩu đăng nhập của bạn"
-                  onClick={() => setShowForm(true)}
+            <form className="settings-form" onSubmit={handlePasswordSubmit}>
+              <div className="profile-input-group">
+                <label htmlFor="current-password">Mật khẩu hiện tại</label>
+                <input
+                  id="current-password"
+                  type="password"
+                  placeholder="Nhập mật khẩu hiện tại"
+                  value={pwForm.currentPassword}
+                  onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))}
                 />
-              ) : (
-                <form onSubmit={handlePasswordSubmit} className="space-y-3">
-                  <input
-                    type="password"
-                    placeholder="Mật khẩu hiện tại"
-                    value={pwForm.currentPassword}
-                    onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))}
-                    className={inputClass}
-                  />
-                  <input
-                    type="password"
-                    placeholder="Mật khẩu mới"
-                    value={pwForm.newPassword}
-                    onChange={(e) => setPwForm((p) => ({ ...p, newPassword: e.target.value }))}
-                    className={inputClass}
-                  />
-                  <input
-                    type="password"
-                    placeholder="Xác nhận mật khẩu mới"
-                    value={pwForm.confirmPassword}
-                    onChange={(e) => setPwForm((p) => ({ ...p, confirmPassword: e.target.value }))}
-                    className={inputClass}
-                  />
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-                    >
-                      {loading ? 'Đang lưu...' : 'Lưu mật khẩu'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowForm(false)}
-                      className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                    >
-                      Hủy
-                    </button>
-                  </div>
-                </form>
-              )}
-            </>
+              </div>
+              <div className="profile-input-group">
+                <label htmlFor="new-password">Mật khẩu mới</label>
+                <input
+                  id="new-password"
+                  type="password"
+                  placeholder="Ít nhất 6 ký tự"
+                  value={pwForm.newPassword}
+                  onChange={(e) => setPwForm((p) => ({ ...p, newPassword: e.target.value }))}
+                />
+              </div>
+              <div className="profile-input-group">
+                <label htmlFor="confirm-password">Xác nhận mật khẩu</label>
+                <input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="Nhập lại mật khẩu mới"
+                  value={pwForm.confirmPassword}
+                  onChange={(e) => setPwForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                />
+              </div>
+              <div className="settings-form__actions">
+                <button type="submit" className="primary-button" disabled={loading}>
+                  {loading ? 'Đang lưu...' : 'Lưu mật khẩu'}
+                </button>
+                <button
+                  type="button"
+                  className="settings-form__cancel"
+                  onClick={() => setShowForm(false)}
+                >
+                  Hủy
+                </button>
+              </div>
+            </form>
           )}
         </SettingsCard>
 

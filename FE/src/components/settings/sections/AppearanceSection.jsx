@@ -7,37 +7,35 @@ const LANGUAGES = [
   { value: 'en', label: 'English' },
 ];
 
-const selectClass =
-  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 sm:max-w-xs';
-
-const AppearanceSection = ({ settings, updateSetting, showToast }) => (
-  <div>
+const AppearanceSection = ({ settings, updateSetting }) => (
+  <div className="settings-section">
     <SettingsSectionHeader {...SECTION_META.appearance} />
 
-    <div className="space-y-4">
+    <div className="settings-section__stack">
       <SettingsCard>
         <SettingsToggle
-          label="Dark mode"
-          description="Chuyển giao diện sang chế độ tối"
+          label="Chế độ tối"
+          description="Giảm ánh sáng màn hình khi sử dụng ban đêm"
           checked={settings.darkMode}
           onChange={(value) => updateSetting('darkMode', value)}
         />
       </SettingsCard>
 
-      <SettingsCard title="Ngôn ngữ">
-        <select
-          value={settings.language}
-          onChange={(e) => {
-            updateSetting('language', e.target.value);
-          }}
-          className={selectClass}
-        >
-          {LANGUAGES.map(({ value, label }) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+      <SettingsCard title="Ngôn ngữ hiển thị">
+        <div className="profile-input-group settings-select-field">
+          <label htmlFor="settings-language">Ngôn ngữ</label>
+          <select
+            id="settings-language"
+            value={settings.language}
+            onChange={(e) => updateSetting('language', e.target.value)}
+          >
+            {LANGUAGES.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
       </SettingsCard>
     </div>
   </div>

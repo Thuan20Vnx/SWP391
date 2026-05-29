@@ -5,12 +5,12 @@ import defaultAvatar from '../constants/defaultAvatar';
 import ProfileSidebarMenu from './ProfileSidebarMenu';
 import { getRoleLabel } from '../utils/role';
 import useUserProfile, { clearUserProfileCache } from '../hooks/useUserProfile';
+import { dispatchAuthChanged } from '../utils/authEvents';
 
 const NAV_ITEMS = [
   { key: 'home', label: 'Trang chủ', to: '/' },
   { key: 'events', label: 'Sự kiện', to: '/events' },
   { key: 'clubs', label: 'Câu lạc bộ', to: '/clubs' },
-  { key: 'announcements', label: 'Tin tức', to: '/announcements' },
 ];
 
 const SiteHeader = ({
@@ -50,11 +50,10 @@ const SiteHeader = ({
     const routes = {
       profile: '/profile',
       'browse-events': '/events',
-      notifications: '/announcements',
       settings: '/settings',
       schedule: '/schedule',
+      'my-clubs': '/my-clubs',
       'my-events': '/my-events',
-      dashboard: '/dashboard',
     };
 
     if (routes[action]) {
@@ -67,6 +66,7 @@ const SiteHeader = ({
     localStorage.removeItem('userEmail');
     localStorage.removeItem('authToken');
     clearUserProfileCache();
+    dispatchAuthChanged();
     setProfilePopupOpen(false);
     navigate('/');
   };

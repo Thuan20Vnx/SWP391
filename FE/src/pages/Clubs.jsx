@@ -1,28 +1,52 @@
-import React, { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ClubDiscoveryCard from '../components/ClubDiscoveryCard';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
+import { API_BASE, getAuthHeaders } from '../utils/api';
 import {
   CLUB_SAMPLE_DATA,
   HERO_TAGS,
   filterClubsBySearch,
   filterClubsByTag,
+  mapApiClubToListItem,
 } from '../data/clubDiscoveryData';
 
 const PAGE_SIZE = 3;
-const TOTAL_CLUBS = 52;
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80';
 
 const Clubs = ({ showToast }) => {
   const navigate = useNavigate();
-  const [clubs] = useState(CLUB_SAMPLE_DATA);
+  const [clubs, setClubs] = useState([]);
+  const [totalClubs, setTotalClubs] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [heroSearch, setHeroSearch] = useState('');
   const [headerSearch, setHeaderSearch] = useState('');
   const [activeTag, setActiveTag] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [layout, setLayout] = useState('grid');
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`${API_BASE}/api/clubs`, { headers: getAuthHeaders(false) })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.clubs?.length > 0) {
+          setClubs(data.clubs.map(mapApiClubToListItem));
+          setTotalClubs(data.total ?? data.clubs.length);
+        } else {
+          setClubs(CLUB_SAMPLE_DATA);
+          setTotalClubs(CLUB_SAMPLE_DATA.length);
+        }
+      })
+      .catch(() => {
+        setClubs(CLUB_SAMPLE_DATA);
+        setTotalClubs(CLUB_SAMPLE_DATA.length);
+        showToast?.('Không thể tải danh sách CLB', 'error');
+      })
+      .finally(() => setLoading(false));
+  }, [showToast]);
 
   const searchQuery = headerSearch || heroSearch;
 
@@ -34,7 +58,7 @@ const Clubs = ({ showToast }) => {
 
   const visibleClubs = filteredClubs.slice(0, visibleCount);
   const hasMore = visibleCount < filteredClubs.length;
-  const displayTotal = searchQuery || activeTag ? filteredClubs.length : TOTAL_CLUBS;
+  const displayTotal = searchQuery || activeTag ? filteredClubs.length : totalClubs;
 
   const handleHeroSearch = (e) => {
     e.preventDefault();
@@ -158,7 +182,11 @@ const Clubs = ({ showToast }) => {
             </div>
           </div>
 
-          {visibleClubs.length === 0 ? (
+          {loading ? (
+            <div className="clubs-page__empty">
+              <p>Đang tải danh sách câu lạc bộ...</p>
+            </div>
+          ) : visibleClubs.length === 0 ? (
             <div className="clubs-page__empty">
               <p>Không tìm thấy câu lạc bộ phù hợp.</p>
               <button

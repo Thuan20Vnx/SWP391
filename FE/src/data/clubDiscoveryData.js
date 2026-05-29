@@ -126,6 +126,23 @@ export const CLUB_SAMPLE_DATA = [
 
 export const formatMemberCount = (count) => `${count}+`;
 
+export const mapApiClubToListItem = (club) => ({
+  id: club.slug,
+  _id: club._id,
+  name: club.name,
+  category: club.category,
+  logoText: club.logoText,
+  logoColor: club.logoColor,
+  coverImage: club.coverImage,
+  memberCount: club.memberCount ?? 0,
+  followerCount: club.followerCount ?? 0,
+  description: club.description,
+  featuredEvent: club.featuredEvent || null,
+  tags: club.tags || [],
+  isFollowing: club.isFollowing === true,
+  fromApi: true,
+});
+
 export const filterClubsBySearch = (clubs, query) => {
   const q = query.trim().toLowerCase();
   if (!q) return clubs;

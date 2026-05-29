@@ -28,6 +28,20 @@ const eventRegistrationSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  listPrice: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  amountPaid: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  studentPrivilegeApplied: {
+    type: Boolean,
+    default: false,
+  },
 }, {
   timestamps: true,
 });

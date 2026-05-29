@@ -87,6 +87,23 @@ const eventSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  averageRating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5,
+  },
+  reviewCount: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  /** Giá vé gốc (VND). 0 = miễn phí cho mọi người. Sinh viên/giảng viên luôn miễn phí. */
+  ticketPrice: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
 }, {
   timestamps: true,
 });

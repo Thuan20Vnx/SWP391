@@ -8,12 +8,13 @@ import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
 import Clubs from './pages/Clubs';
 import ClubDetail from './pages/ClubDetail';
 import CreateEvent from './pages/CreateEvent';
 import AdminDashboard from './pages/AdminDashboard';
-import StudentDashboard from './pages/StudentDashboard';
 import MyEvents from './pages/MyEvents';
+import MyClubs from './pages/MyClubs';
 import Schedule from './pages/Schedule';
 import EventReviews from './pages/EventReviews';
 import Announcements from './pages/Announcements';
@@ -36,16 +37,17 @@ function App() {
 
   const showToast = (message, type = 'success') => {
     const id = Date.now() + Math.random().toString(36).substring(2, 9);
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type }]);
   };
 
   const removeToast = (id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
   return (
     <Router>
       <div className="app-root">
+        <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
         <Routes>
           {/* Default route is the beautiful new Home Page */}
           <Route path="/" element={<Home showToast={showToast} />} />
@@ -76,6 +78,7 @@ function App() {
 
           {/* Event Routes */}
           <Route path="/events" element={<Events showToast={showToast} />} />
+          <Route path="/events/:eventId" element={<EventDetail showToast={showToast} />} />
           <Route path="/clubs" element={<Clubs showToast={showToast} />} />
           <Route path="/clubs/:clubId" element={<ClubDetail showToast={showToast} />} />
           <Route 
@@ -95,19 +98,20 @@ function App() {
             } 
           />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <StudentDashboard showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
           <Route
             path="/my-events"
             element={
               <ProtectedRoute>
                 <MyEvents showToast={showToast} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-clubs"
+            element={
+              <ProtectedRoute>
+                <MyClubs showToast={showToast} />
               </ProtectedRoute>
             }
           />
@@ -152,9 +156,6 @@ function App() {
           {/* Catch-all redirects to signup */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-
-        {/* Global Toast Notifications */}
-        <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
       </div>
     </Router>
   );

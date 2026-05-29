@@ -9,6 +9,11 @@ const Event = require('./src/models/Event');
 const User = require('./src/models/User');
 const eventSeedData = require('./src/data/eventSeedData');
 
+const DEPRECATED_EVENT_TITLES = [
+  'F-Fest 2026: Giai điệu mùa hè',
+  'Hackathon 2026: Innovate for Green',
+];
+
 const seedEvents = async () => {
   try {
     await connectDB();
@@ -26,8 +31,17 @@ const seedEvents = async () => {
     }
 
     const seedTitles = eventSeedData.map((e) => e.title);
-    const deleted = await Event.deleteMany({ title: { $in: seedTitles } });
-    console.log(`🗑️  Đã xóa ${deleted.deletedCount} sự kiện seed cũ (nếu có).`);
+    const removedSeed = await Event.deleteMany({ title: { $in: seedTitles } });
+    const removedLegacy = await Event.deleteMany({
+      $or: [
+        { status: { $nin: ['pending', 'approved', 'rejected'] } },
+        { category: { $nin: Event.CATEGORIES } },
+      ],
+    });
+    console.log(`🗑️  Đã xóa ${removedSeed.deletedCount} sự kiện seed cũ (nếu có).`);
+    console.log(`🗑️  Đã xóa ${removedLegacy.deletedCount} sự kiện legacy không khớp schema.`);
+    const removedDeprecated = await Event.deleteMany({ title: { $in: DEPRECATED_EVENT_TITLES } });
+    console.log(`🗑️  Đã xóa ${removedDeprecated.deletedCount} sự kiện deprecated (nếu có).`);
 
     const eventsWithCreator = eventSeedData.map((event) => ({
       ...event,
