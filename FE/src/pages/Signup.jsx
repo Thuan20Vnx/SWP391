@@ -103,21 +103,14 @@ const Signup = ({ showToast }) => {
     setFormData(prev => ({ ...prev, email: value }));
 
     const isValid = patterns.email.test(value.trim());
-    const isFptEmail = value.trim().toLowerCase().endsWith('@fpt.edu.vn') || value.trim().toLowerCase().endsWith('@fe.edu.vn');
 
     setErrors(prev => ({ ...prev, email: !isValid }));
     setValidFields(prev => ({ ...prev, email: isValid }));
 
-    // Custom warning for FPT Student Email format
     const errorSpan = document.getElementById('error-email');
     if (errorSpan) {
-      if (isValid && !isFptEmail) {
-        errorSpan.textContent = "Hệ thống khuyên dùng email FPT (@fpt.edu.vn)";
-        errorSpan.style.color = "var(--primary)";
-      } else {
-        errorSpan.textContent = "Vui lòng nhập email hợp lệ (ví dụ: student@fpt.edu.vn)";
-        errorSpan.style.color = "var(--border-error)";
-      }
+      errorSpan.textContent = "Vui lòng nhập email hợp lệ";
+      errorSpan.style.color = "var(--border-error)";
     }
   };
 
@@ -168,7 +161,6 @@ const Signup = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200 && data.status === 'OTP_SENT') {
-          showToast(data.message || 'Mã OTP đã được gửi đến email của bạn!', 'success');
           setShowOtpStep(true);
           setCountdown(60);
           setIsOtpCounting(true);
@@ -207,7 +199,6 @@ const Signup = ({ showToast }) => {
       .then(({ status, data }) => {
         setOtpLoading(false);
         if (status === 201) {
-          showToast(`Đăng ký thành công! Chào mừng ${formData.fullname.trim()} gia nhập FPT Students Community.`, 'success');
           setFormData({
             fullname: '',
             email: '',
@@ -247,9 +238,7 @@ const Signup = ({ showToast }) => {
     })
       .then(res => res.json().then(data => ({ status: res.status, data })))
       .then(({ status, data }) => {
-        if (status === 200) {
-          showToast('Đã gửi lại mã OTP mới. Vui lòng kiểm tra email của bạn!', 'success');
-        } else {
+        if (status !== 200) {
           showToast(data.message || 'Gửi lại mã thất bại!', 'error');
         }
       })
@@ -259,9 +248,7 @@ const Signup = ({ showToast }) => {
   };
 
 
-  const handleSsoClick = (provider) => {
-    showToast(`Đang kết nối tài khoản ${provider}...`, 'success');
-  };
+  const handleSsoClick = () => {};
 
   const loginWithGoogle = () => {
     const params = new URLSearchParams({
@@ -293,6 +280,15 @@ const Signup = ({ showToast }) => {
 
       {/* Right Column: Signup Form (60%) */}
       <section className="form-column" aria-label="Biểu mẫu đăng ký tài khoản">
+        <div className="auth-form-shell">
+          <Link to="/" className="auth-page-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>Quay lại trang chủ</span>
+          </Link>
+
         <div className="form-container">
           {showOtpStep ? (
             <>
@@ -602,6 +598,7 @@ const Signup = ({ showToast }) => {
               </footer>
             </>
           )}
+        </div>
         </div>
       </section>
 

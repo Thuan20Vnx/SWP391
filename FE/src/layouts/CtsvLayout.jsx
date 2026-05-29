@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import defaultAvatar from '../assets/profile_avatar.png';
+import defaultAvatar from '../constants/defaultAvatar';
 import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { clearSession, getRoleDisplayLabel, getUserRole, isCtsvRole, normalizeRole } from '../utils/auth';

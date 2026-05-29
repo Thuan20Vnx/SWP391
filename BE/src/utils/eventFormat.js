@@ -1,9 +1,10 @@
 const STATUS_LABELS = {
+  pending: 'CHỜ DUYỆT',
+  approved: 'MỞ ĐĂNG KÝ',
+  rejected: 'TỪ CHỐI',
   draft: 'Bản nháp',
   pending_icpdp: 'CHỜ ICPDP',
   pending_ctsv: 'CHỜ CTSV DUYỆT',
-  approved: 'MỞ ĐĂNG KÝ',
-  rejected: 'TỪ CHỐI',
   revision: 'CẦN CHỈNH SỬA',
   live: 'ĐANG DIỄN RA',
   ended: 'ĐÃ KẾT THÚC'
@@ -29,7 +30,8 @@ const formatTime = (d) => {
 const formatEvent = (doc) => {
   if (!doc) return null;
   const o = doc.toObject ? doc.toObject({ virtuals: true }) : { ...doc };
-  const remaining = Math.max(0, (o.totalTickets || 0) - (o.registeredCount || 0));
+  const cap = o.capacity || o.totalTickets || 0;
+  const remaining = Math.max(0, cap - (o.registeredCount || 0));
   return {
     id: o._id?.toString() || o.id,
     title: o.title,
@@ -41,11 +43,13 @@ const formatEvent = (doc) => {
     endDate: o.endDate,
     location: o.location,
     remainingTickets: remaining,
-    totalTickets: o.totalTickets || 0,
+    totalTickets: cap,
+    capacity: cap,
     registeredCount: o.registeredCount || 0,
     status: STATUS_LABELS[o.status] || o.status,
     statusKey: o.status,
-    image: o.image || '',
+    image: o.image || o.thumbnail || '',
+    thumbnail: o.thumbnail || o.image || '',
     bannerFileName: o.bannerFileName || '',
     eventType: o.eventType || '',
     duration: o.duration || '',

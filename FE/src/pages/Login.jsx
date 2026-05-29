@@ -1,11 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
-import { API_BASE } from '../utils/api';
-import { getHomePathForRole, normalizeRole, persistSession } from '../utils/auth';
+import fptLogo from '../assets/fpt_logo.png';
+import { API_BASE, getAuthHeaders } from '../utils/api';
+import { cacheUserProfile } from '../hooks/useUserProfile';
+import { dispatchAuthChanged } from '../utils/authEvents';
+import { resolveUserAvatar } from '../utils/image';
+import defaultAvatar from '../constants/defaultAvatar';
 
 const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+};
+
+const REMEMBER_EMAIL_KEY = 'rememberedLoginEmail';
+
+const persistProfileFromUser = (user) => {
+  if (!user) return;
+  const profile = {
+    fullname: user.fullname || '',
+    course: user.course || '',
+    picture: resolveUserAvatar(user, defaultAvatar),
+    role: user.role || 'guest',
+  };
+  localStorage.setItem('userRole', profile.role);
+  cacheUserProfile(profile);
 };
 
 const Login = ({ showToast }) => {
@@ -20,20 +37,20 @@ const Login = ({ showToast }) => {
   const [validFields, setValidFields] = useState({});
   const [shakeFields, setShakeFields] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
-    let alertTimeout;
-    if (showAlert) {
-      alertTimeout = setTimeout(() => {
-        setShowAlert(false);
-      }, 3000);
-    }
-    return () => {
-      if (alertTimeout) clearTimeout(alertTimeout);
-    };
-  }, [showAlert]);
+    const savedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
+    if (!savedEmail) return;
+
+    setFormData((prev) => ({ ...prev, email: savedEmail }));
+    setRememberMe(true);
+    setValidFields((prev) => ({
+      ...prev,
+      email: patterns.email.test(savedEmail.trim()),
+    }));
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -43,13 +60,21 @@ const Login = ({ showToast }) => {
       const name = params.get('name');
       const token = params.get('token');
 
-      showToast(`Đăng nhập Google thành công! Chào mừng ${name}.`, 'success');
-      const googleUser = { email, fullname: name, role: 'student' };
-      if (email && (email.toLowerCase().includes('ctsv') || /^khoahiep/i.test(email))) {
-        googleUser.role = 'ctsv';
-      }
-      persistSession(googleUser, token, 'google');
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('loginMethod', 'google');
+      if (token) localStorage.setItem('authToken', token);
 
+      fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
+        .then(r => r.json())
+        .then(d => {
+          if (d.success && d.user) {
+            persistProfileFromUser(d.user);
+          }
+        })
+        .catch(() => {});
+
+      // Save this real account to googleAccounts in localStorage so it appears in the chooser list next time
       const saved = localStorage.getItem('googleAccounts');
       let accounts = saved ? JSON.parse(saved) : [];
       if (!accounts.some(acc => acc.email.toLowerCase() === email.toLowerCase())) {
@@ -57,7 +82,13 @@ const Login = ({ showToast }) => {
         localStorage.setItem('googleAccounts', JSON.stringify(accounts));
       }
 
-      navigate(getHomePathForRole(googleUser.role), { replace: true });
+      if (params.get('needs_calendar') === '1' && token) {
+        window.location.href = `${API_BASE}/api/auth/google/calendar?token=${encodeURIComponent(token)}`;
+        return;
+      }
+
+      dispatchAuthChanged();
+      navigate('/', { replace: true });
     } else if (authStatus === 'error') {
       const message = params.get('message') || 'Đăng nhập Google thất bại.';
       showToast(message, 'error');
@@ -83,7 +114,6 @@ const Login = ({ showToast }) => {
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
-    setShowAlert(false); // Hide general alert when typing again
     validateField(id, value);
 
     if (id === 'password') {
@@ -96,24 +126,16 @@ const Login = ({ showToast }) => {
   const handleEmailChange = (e) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, email: value }));
-    setShowAlert(false);
 
     const isValid = patterns.email.test(value.trim());
-    const isFptEmail = value.trim().toLowerCase().endsWith('@fpt.edu.vn') || value.trim().toLowerCase().endsWith('@fe.edu.vn');
 
     setErrors(prev => ({ ...prev, email: !isValid }));
     setValidFields(prev => ({ ...prev, email: isValid }));
 
-    // Custom warning for FPT Student Email format
     const errorSpan = document.getElementById('error-email');
     if (errorSpan) {
-      if (isValid && !isFptEmail) {
-        errorSpan.textContent = "Hệ thống khuyên dùng email FPT (@fpt.edu.vn)";
-        errorSpan.style.color = "var(--primary)";
-      } else {
-        errorSpan.textContent = "Vui lòng nhập email hợp lệ";
-        errorSpan.style.color = "var(--border-error)";
-      }
+      errorSpan.textContent = "Vui lòng nhập email hợp lệ";
+      errorSpan.style.color = "var(--border-error)";
     }
   };
 
@@ -139,7 +161,6 @@ const Login = ({ showToast }) => {
     }
 
     setLoading(true);
-    setShowAlert(false);
 
     fetch(`${API_BASE}/api/auth/login`, {
       method: 'POST',
@@ -153,17 +174,22 @@ const Login = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
-          const role = normalizeRole(data.user?.role);
-          const welcome =
-            role === 'ctsv' || role === 'icpdp'
-              ? 'Đăng nhập CTSV thành công! Chào mừng bạn đến cổng quản trị sự kiện.'
-              : 'Đăng nhập thành công! Chào mừng bạn quay trở lại FPT Students Community.';
-          showToast(welcome, 'success');
+          persistProfileFromUser(data.user);
 
-          persistSession(data.user, data.token, 'local');
-          navigate(getHomePathForRole(role), { replace: true });
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userEmail', formData.email);
+          localStorage.setItem('loginMethod', 'local');
+          if (data.token) localStorage.setItem('authToken', data.token);
+
+          if (rememberMe) {
+            localStorage.setItem(REMEMBER_EMAIL_KEY, formData.email.trim().toLowerCase());
+          } else {
+            localStorage.removeItem(REMEMBER_EMAIL_KEY);
+          }
+
+          dispatchAuthChanged();
+          navigate('/');
         } else {
-          setShowAlert(true);
           setValidFields(prev => ({ ...prev, password: false }));
           setErrors(prev => ({ ...prev, password: true }));
 
@@ -181,9 +207,7 @@ const Login = ({ showToast }) => {
       });
   };
 
-  const handleSsoClick = (provider) => {
-    showToast(`Đang kết nối tài khoản ${provider}...`, 'success');
-  };
+  const handleSsoClick = () => {};
 
   const loginWithGoogle = () => {
     const params = new URLSearchParams({
@@ -218,23 +242,21 @@ const Login = ({ showToast }) => {
 
       {/* Right Column: Login Form (50%) */}
       <section className="form-column" aria-label="Biểu mẫu đăng nhập tài khoản">
-        <div className="form-container" style={{ width: '100%', maxWidth: '420px' }}>
-          {/* Inline Error Alert Banner */}
-          <div id="login-alert" className={`alert-banner ${showAlert ? '' : 'hidden'}`} style={{ marginBottom: '24px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        <div className="auth-form-shell">
+          <Link to="/" className="auth-page-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
             </svg>
-            <span>Lỗi: Tài khoản hoặc mật khẩu không đúng!</span>
-            <button type="button" id="close-alert" className="alert-close" onClick={() => setShowAlert(false)} aria-label="Đóng thông báo">&times;</button>
-          </div>
+            <span>Quay lại trang chủ</span>
+          </Link>
 
+        <div className="form-container" style={{ width: '100%' }}>
           {/* Logo F-Events */}
           <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
             <img
-              src={FE_LOGO}
-              alt={FE_LOGO_ALT}
+              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+              alt="F-Events Logo"
               style={{ width: '115px', height: '64px', objectFit: 'contain' }}
             />
           </div>
@@ -351,9 +373,21 @@ const Login = ({ showToast }) => {
               <span className="error-message" id="error-password">Mật khẩu phải từ 8 ký tự trở lên</span>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="forgot-password-container" style={{ marginTop: '-8px' }}>
-              <Link to="/forgot" id="forgot-link" className="accent-link" style={{ color: 'var(--primary)', fontWeight: '600' }}>Quên mật khẩu?</Link>
+            {/* Remember me & Forgot password */}
+            <div className="login-options-row">
+              <label className="checkbox-container login-remember-me" htmlFor="remember-me">
+                <input
+                  type="checkbox"
+                  id="remember-me"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                <span className="checkbox-checkmark"></span>
+                <span className="checkbox-label">Ghi nhớ tài khoản</span>
+              </label>
+              <Link to="/forgot" id="forgot-link" className="accent-link" style={{ color: 'var(--primary)', fontWeight: '600' }}>
+                Quên mật khẩu?
+              </Link>
             </div>
 
             {/* Submit Button */}
@@ -379,6 +413,7 @@ const Login = ({ showToast }) => {
               <Link to="/signup" id="signup-link" className="accent-link" style={{ color: '#a04100', fontWeight: '700' }}>Đăng ký ngay</Link>
             </p>
           </footer>
+        </div>
         </div>
       </section>
     </main>

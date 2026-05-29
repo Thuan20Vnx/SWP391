@@ -1,11 +1,26 @@
 const mongoose = require('mongoose');
+const { EVENT_CAMPUS, EVENT_VENUES } = require('../constants/eventVenues');
+
+const EVENT_CATEGORIES = [
+  'Công nghệ',
+  'Văn hóa',
+  'Kinh tế',
+  'Học thuật',
+  'Nghệ thuật',
+  'Âm nhạc',
+  'Workshop',
+  'Thể thao',
+  'Kết nối',
+  'Khác'
+];
 
 const EVENT_STATUSES = [
+  'pending',
+  'approved',
+  'rejected',
   'draft',
   'pending_icpdp',
   'pending_ctsv',
-  'approved',
-  'rejected',
   'revision',
   'live',
   'ended'
@@ -24,16 +39,98 @@ const ticketTypeSchema = new mongoose.Schema(
 
 const eventSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true, trim: true },
-    description: { type: String, default: '' },
-    category: { type: String, default: 'Khác' },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date },
-    location: { type: String, default: '' },
-    totalTickets: { type: Number, default: 100 },
-    registeredCount: { type: Number, default: 0 },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200
+    },
+    description: {
+      type: String,
+      default: ''
+    },
+    thumbnail: {
+      type: String,
+      default:
+        'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80'
+    },
     image: { type: String, default: '' },
     bannerFileName: { type: String, default: '' },
+    category: {
+      type: String,
+      enum: EVENT_CATEGORIES,
+      default: 'Công nghệ'
+    },
+    startDate: {
+      type: Date,
+      required: true
+    },
+    endDate: {
+      type: Date
+    },
+    campus: {
+      type: String,
+      enum: [EVENT_CAMPUS],
+      default: EVENT_CAMPUS
+    },
+    location: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    capacity: {
+      type: Number,
+      default: 100,
+      min: 0
+    },
+    totalTickets: {
+      type: Number,
+      min: 0
+    },
+    registeredCount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    status: {
+      type: String,
+      enum: EVENT_STATUSES,
+      default: 'pending'
+    },
+    eventState: {
+      type: String,
+      enum: ['active', 'expired', 'postponed'],
+      default: 'active'
+    },
+    postponeReason: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    createdByEmail: { type: String, default: '' },
+    approvedByEmail: { type: String, default: '' },
+    rejectionReason: { type: String, default: '' },
+    ctsvNote: { type: String, default: '' },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    ticketPrice: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
     eventType: { type: String, default: '' },
     duration: { type: String, default: '' },
     format: {
@@ -45,34 +142,65 @@ const eventSchema = new mongoose.Schema(
     agenda: { type: String, default: '' },
     expectedAttendees: { type: Number, default: 50 },
     ticketTypes: { type: [ticketTypeSchema], default: [] },
-    status: {
-      type: String,
-      enum: EVENT_STATUSES,
-      default: 'pending_ctsv'
-    },
     source: {
       type: String,
       enum: ['club', 'school', 'partner'],
       default: 'club'
     },
-    createdByEmail: { type: String, default: '' },
-    approvedByEmail: { type: String, default: '' },
-    ctsvNote: { type: String, default: '' },
-    rejectionReason: { type: String, default: '' },
-    proposalId: { type: mongoose.Schema.Types.ObjectId, ref: 'EventProposal', default: null },
+    proposalId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'EventProposal',
+      default: null
+    },
     expectedRevenue: { type: Number, default: 0 }
   },
   { timestamps: true }
 );
 
+eventSchema.index({ status: 1, startDate: 1 });
+eventSchema.index({ category: 1, status: 1 });
+
+eventSchema.virtual('fillPercent').get(function () {
+  const cap = this.capacity || this.totalTickets || 0;
+  if (!cap) return 0;
+  return Math.min(100, Math.round((this.registeredCount / cap) * 100));
+});
+
 eventSchema.virtual('remainingTickets').get(function () {
-  return Math.max(0, this.totalTickets - this.registeredCount);
+  const cap = this.capacity || this.totalTickets || 0;
+  return Math.max(0, cap - (this.registeredCount || 0));
+});
+
+eventSchema.pre('save', function () {
+  if (!this.capacity && this.totalTickets) {
+    this.capacity = this.totalTickets;
+  }
+  if (!this.totalTickets && this.capacity) {
+    this.totalTickets = this.capacity;
+  }
+  if (!this.thumbnail && this.image) {
+    this.thumbnail = this.image;
+  }
+  if (!this.image && this.thumbnail) {
+    this.image = this.thumbnail;
+  }
+  const cap = this.capacity || 100;
+  if (this.registeredCount > cap) {
+    this.registeredCount = cap;
+  }
+  if (this.eventState !== 'postponed' && this.endDate && this.endDate < new Date()) {
+    this.eventState = 'expired';
+  }
 });
 
 eventSchema.set('toJSON', { virtuals: true });
 eventSchema.set('toObject', { virtuals: true });
 
+eventSchema.statics.CATEGORIES = EVENT_CATEGORIES;
+eventSchema.statics.CAMPUS = EVENT_CAMPUS;
+eventSchema.statics.VENUES = EVENT_VENUES;
+eventSchema.statics.EVENT_STATUSES = EVENT_STATUSES;
+
 const Event = mongoose.model('Event', eventSchema);
 
 module.exports = Event;
-module.exports.EVENT_STATUSES = EVENT_STATUSES;

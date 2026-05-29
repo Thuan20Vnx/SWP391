@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import defaultAvatar from '../assets/profile_avatar.png';
+import defaultAvatar from '../constants/defaultAvatar';
 import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { fetchCtsvEvents, fetchCtsvStats, MOCK_EVENTS, MOCK_STATS } from '../services/ctsvApi';

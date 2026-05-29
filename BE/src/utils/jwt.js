@@ -14,4 +14,4 @@ const signToken = (user) => {
 
 const verifyToken = (token) => jwt.verify(token, JWT_SECRET);
 
-module.exports = { signToken, verifyToken, JWT_SECRET };
+module.exports = { signToken, verifyToken };

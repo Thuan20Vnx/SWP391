@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import defaultAvatar from '../assets/profile_avatar.png';
-import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
+import SiteHeader from '../components/SiteHeader';
+import SiteFooter from '../components/SiteFooter';
 import { API_BASE, getAuthHeaders } from '../utils/api';
-import { clearSession, getRoleDisplayLabel, getUserRole, isCtsvRole, normalizeRole } from '../utils/auth';
+import useUserProfile from '../hooks/useUserProfile';
+import { mapApiEventToHomeCard, filterActiveDiscoveryEvents } from '../data/eventDiscoveryData';
 
 const Home = ({ showToast }) => {
   const navigate = useNavigate();
-
-  // Authentication State
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userProfile, setUserProfile] = useState({
-    fullname: 'Trần Xuân Thuận',
-    course: 'K18',
-    picture: defaultAvatar
-  });
-
-  // Mobile Menu State
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isLoggedIn, userProfile } = useUserProfile();
 
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,63 +25,11 @@ const Home = ({ showToast }) => {
   ]);
   const [chatInput, setChatInput] = useState('');
 
-  // Event Data State (Simulated backend/local source matching Figma specs)
-  const [events, setEvents] = useState([
-    {
-      id: 'event-f-fest',
-      title: 'Đêm nhạc F-Fest: Giai điệu mùa hè',
-      category: 'Âm nhạc',
-      date: '20/05/2026',
-      time: '19:00',
-      location: 'FPT Plaza 2, Khu đô thị FPT, Quận Ngũ Hành Sơn, Đà Nẵng',
-      remainingTickets: 15,
-      totalTickets: 200,
-      status: 'SẮP HẾT CHỖ',
-      image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80',
-      registered: false
-    },
-    {
-      id: 'event-prompt',
-      title: 'MISS GRAND FPTU 2026: BEAUTY FOR A CAUSE',
-      category: 'Cuộc thi',
-      date: '22/05/2026',
-      time: '14:00',
-      location: 'Đại học FPT Đà Nẵng - Khu đô thị FPT',
-      remainingTickets: 40,
-      totalTickets: 50,
-      status: 'MỞ ĐĂNG KÝ',
-      image: 'https://scontent.fhan2-4.fna.fbcdn.net/v/t39.30808-6/705403029_1427694349389553_9042205764042260599_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeGqr3fN2ncbJ3kTRNnkrqfTUA88PLy9ItdQDzw8vL0i1x6PI9N4fbjxcnN1zFWQKsvinv5MMDrkqzUE1Ha2WfZF&_nc_ohc=KNagPH3GpTIQ7kNvwEFbzgo&_nc_oc=AdpcxKrq6D8e7L1j7K-mbTcu7ELQM_FRhaZkOlR7BmwShxLfNo3SlxjXLwG8YfyNgKQ&_nc_zt=23&_nc_ht=scontent.fhan2-4.fna&_nc_gid=avGQ_Tw7XAX4k0EW0hSQoA&_nc_ss=7b2a8&oh=00_Af6QUlHZ_vYdTgfjiIu5w_RKPebIbXee2H7TN5ZeNerExw&oe=6A1B3B4B',
-      registered: false
-    },
-    {
-      id: 'event-hackathon',
-      title: 'Hackathon 2026: Innovate for Green',
-      category: 'Công nghệ',
-      date: '25/05/2026',
-      time: '08:00',
-      location: 'FPT Software Ho Chi Minh',
-      remainingTickets: 120,
-      totalTickets: 150,
-      status: 'MỞ ĐĂNG KÝ',
-      image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80',
-      registered: false
-    },
-    {
-      id: 'event-career',
-      title: 'Career Fair: Kết nối doanh nghiệp',
-      category: 'Kết nối',
-      date: '28/05/2026',
-      time: '09:00',
-      location: 'Sân bóng FPTU',
-      remainingTickets: 300,
-      totalTickets: 500,
-      status: 'MỞ ĐĂNG KÝ',
-      image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=600&q=80',
-      registered: false
-    }
-  ]);
+  // Event Data State — loaded from API
+  const [events, setEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
 
-  const [filteredEvents, setFilteredEvents] = useState(events);
+  const [filteredEvents, setFilteredEvents] = useState([]);
 
   // Hero Slider Data
   const sliderData = [
@@ -111,46 +50,22 @@ const Home = ({ showToast }) => {
     }
   ];
 
-  // Fetch authentication state & user details
+  // Load events from API
   useEffect(() => {
-    if (isCtsvRole()) {
-      navigate('/ctsv', { replace: true });
-      return;
-    }
-
-    const logged = localStorage.getItem('isLoggedIn') === 'true';
-    setIsLoggedIn(logged);
-
-    if (logged) {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-          .then(res => {
-            if (res.status === 200) return res.json();
-            throw new Error('Load failed');
-          })
-          .then(data => {
-            const u = data.user;
-            if (u.role) {
-              const role = normalizeRole(u.role);
-              localStorage.setItem('userRole', role);
-              if (isCtsvRole(role)) {
-                navigate('/ctsv', { replace: true });
-                return;
-              }
-            }
-            setUserProfile({
-              fullname: u.fullname || 'Trần Xuân Thuận',
-              course: u.course || 'K18',
-              picture: u.picture || defaultAvatar
-            });
-          })
-          .catch(err => {
-            console.error('Failed to fetch user data for Home header:', err);
-          });
-      }
-    }
-  }, [navigate]);
+    fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.events?.length > 0) {
+          const mapped = filterActiveDiscoveryEvents(data.events)
+            .slice(0, 4)
+            .map(mapApiEventToHomeCard);
+          setEvents(mapped);
+          setFilteredEvents(mapped);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setEventsLoading(false));
+  }, [isLoggedIn, userProfile.role]);
 
   // Automatic Hero Slide transition
   useEffect(() => {
@@ -190,7 +105,6 @@ const Home = ({ showToast }) => {
     }
 
     setFilteredEvents(result);
-    showToast(`Đã lọc ra ${result.length} sự kiện tương ứng!`, 'success');
   };
 
   // Quick Filter by Search Bar on Nav
@@ -201,32 +115,54 @@ const Home = ({ showToast }) => {
         ev.category.toLowerCase().includes(searchQuery.toLowerCase().trim())
       );
       setFilteredEvents(result);
-      showToast(`Đã tìm kiếm sự kiện với từ khóa: "${searchQuery}"`, 'info');
     }
   };
 
+  const handleViewDetail = (event) => {
+    navigate('/events');
+    showToast?.(`Xem chi tiết: ${event.title}`, 'success');
+  };
+
   // Event Registration Logic
-  const handleRegister = (eventId) => {
+  const handleRegister = async (eventId) => {
     if (!isLoggedIn) {
       showToast('Vui lòng đăng nhập để đăng ký tham gia sự kiện!', 'error');
-      setTimeout(() => {
-        navigate('/login');
-      }, 1500);
+      setTimeout(() => navigate('/login'), 1500);
       return;
     }
 
-    setEvents(prev => prev.map(ev => {
-      if (ev.id === eventId) {
-        if (ev.registered) {
-          showToast(`Đã hủy đăng ký sự kiện: ${ev.title}`, 'info');
-          return { ...ev, registered: false, remainingTickets: ev.remainingTickets + 1 };
-        } else {
-          showToast(`Đăng ký tham gia thành công: ${ev.title}! Vé đã được gửi qua email.`, 'success');
-          return { ...ev, registered: true, remainingTickets: ev.remainingTickets - 1 };
-        }
+    const target = events.find((ev) => ev.id === eventId);
+    if (!target) return;
+
+    if (target.registered) {
+      showToast('Bạn đã đăng ký sự kiện này. Xem tại Sự kiện của tôi.', 'success');
+      return;
+    }
+
+    if (target.eventState === 'expired' || target.eventState === 'postponed') {
+      showToast('Sự kiện này hiện không thể đăng ký.', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/events/${eventId}/register`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(data.message || 'Không thể đăng ký sự kiện.', 'error');
+        return;
       }
-      return ev;
-    }));
+
+      const updated = mapApiEventToHomeCard({ ...data.event, isRegistered: true });
+      setEvents((prev) => prev.map((ev) => (ev.id === eventId ? updated : ev)));
+      showToast(data.message || 'Đăng ký sự kiện thành công!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Không thể kết nối máy chủ.', 'error');
+    }
   };
 
   // Synchronize filtered events when main events state changes (e.g. registered/remaining updates)
@@ -259,7 +195,7 @@ const Home = ({ showToast }) => {
       } else if (lowercase.includes('prompt') || lowercase.includes('ai') || lowercase.includes('workshop')) {
         botResponse = 'Workshop "Làm chủ Prompt Engineering với AI" được tổ chức vào ngày 22/05 lúc 14:00 tại Phòng Lab 402 Gamma. Nhanh tay đăng ký nhé!';
       } else if (lowercase.includes('profile') || lowercase.includes('hồ sơ') || lowercase.includes('trang cá nhân')) {
-        botResponse = 'Bạn có thể xem và chỉnh sửa thông tin cá nhân của mình bằng cách nhấp trực tiếp vào hình đại diện ở phía trên bên phải của trang chủ.';
+        botResponse = 'Bạn có thể mở menu tài khoản bằng cách nhấp vào hình đại diện ở góc trên bên phải — menu sẽ hiện ra ngay tại trang chủ.';
       } else if (lowercase.includes('đăng ký') || lowercase.includes('vé')) {
         botResponse = 'Để đăng ký sự kiện, bạn chỉ cần bấm nút "Đăng ký ngay" trên thẻ sự kiện. Hệ thống sẽ tự động gửi QR vé về tài khoản của bạn!';
       } else if (lowercase.includes('hello') || lowercase.includes('chào') || lowercase.includes('hi')) {
@@ -270,103 +206,14 @@ const Home = ({ showToast }) => {
     }, 1000);
   };
 
-  const handleLogout = () => {
-    clearSession();
-    setIsLoggedIn(false);
-    showToast('Đã đăng xuất tài khoản thành công.', 'info');
-    navigate('/');
-  };
-
   return (
     <div className="home-layout">
-      {/* 1. Header (Figma 38:1393) */}
-      <header className="home-header">
-        <div className="header-container">
-          <button
-            className="mobile-hamburger-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Mở menu"
-          >
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
-            </svg>
-          </button>
-
-          {/* Logo F Events */}
-          <div className="header-logo" onClick={() => navigate('/')}>
-            <img src={FE_LOGO} alt={FE_LOGO_ALT} className="logo-img" />
-          </div>
-
-          {/* Navigation Links */}
-          <nav className={`header-nav ${mobileMenuOpen ? 'mobile-active' : ''}`}>
-            <a href="#" className="nav-link active" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); }}>Trang chủ</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); showToast('Tính năng Sự kiện đang được tích hợp sâu!', 'info'); setMobileMenuOpen(false); }}>Sự kiện</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); showToast('Tính năng Câu lạc bộ đang phát triển!', 'info'); setMobileMenuOpen(false); }}>Câu lạc bộ</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); showToast('Bản tin FPT Students đang cập nhật!', 'info'); setMobileMenuOpen(false); }}>Tin tức</a>
-          </nav>
-
-          {/* Search event inputs */}
-          <div className="header-search-box">
-            <span className="search-icon-inside">
-              <svg viewBox="0 0 24 24" width="18" height="18">
-                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor" />
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder="Tìm kiếm sự kiện..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleNavSearch}
-              className="search-input"
-            />
-          </div>
-
-          {/* Right Area: Actions (Notification & Authenticated State) */}
-          <div className="header-actions">
-            {/* Notification Bell */}
-            <button
-              className="notif-bell-btn"
-              onClick={() => showToast('Bạn chưa có thông báo mới nào hôm nay.', 'info')}
-              aria-label="Thông báo"
-            >
-              <svg viewBox="0 0 24 24" width="22" height="22">
-                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" fill="currentColor" />
-              </svg>
-              <span className="notif-badge"></span>
-            </button>
-
-            {/* Profile Entry */}
-            <div className="auth-profile-wrapper">
-              {isLoggedIn ? (
-                <div className="profile-display-card">
-                  <Link to="/profile" className="profile-display-card-link" title="Đến trang cá nhân của bạn">
-                    <div className="profile-info-text">
-                      <span className="profile-name">{userProfile.fullname}</span>
-                      <span className={`profile-role ${isCtsvRole() ? 'profile-role-ctsv' : ''}`}>
-                        {getRoleDisplayLabel(getUserRole(), userProfile.course)}
-                      </span>
-                    </div>
-                    <div className="profile-avatar-circle">
-                      <img src={userProfile.picture} alt="User Avatar" />
-                    </div>
-                  </Link>
-                  <button className="small-logout-btn" onClick={handleLogout} title="Đăng xuất">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" fill="currentColor" />
-                    </svg>
-                  </button>
-                </div>
-              ) : (
-                <div className="auth-buttons">
-                  <Link to="/login" className="btn-auth btn-auth-login">Đăng nhập</Link>
-                  <Link to="/signup" className="btn-auth btn-auth-signup">Đăng ký</Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <SiteHeader
+        activeNav="home"
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchKeyDown={handleNavSearch}
+      />
 
       {/* 2. Hero Banner Slider (Figma 38:1158) */}
       <section className="hero-banner-slider">
@@ -383,8 +230,11 @@ const Home = ({ showToast }) => {
               <button
                 className="hero-cta-btn"
                 onClick={() => {
-                  if (index === 0) handleRegister('event-hackathon');
-                  else showToast('Hệ thống đang chuyển bạn tới chi tiết sự kiện này!', 'info');
+                  if (index === 0 && events[0]?.id) {
+                    handleRegister(events[0].id);
+                  } else {
+                    navigate('/events');
+                  }
                 }}
               >
                 Đăng ký tham gia ngay
@@ -472,7 +322,7 @@ const Home = ({ showToast }) => {
             </span>
             <h2>Gợi ý cho bạn</h2>
           </div>
-          <a href="#" className="see-all-link" onClick={(e) => { e.preventDefault(); setFilteredEvents(events); setCategoryFilter('Tất cả'); showToast('Hiển thị toàn bộ danh sách sự kiện!', 'info'); }}>
+          <a href="#" className="see-all-link" onClick={(e) => { e.preventDefault(); setFilteredEvents(events); setCategoryFilter('Tất cả'); }}>
             <span>Xem tất cả</span>
             <svg viewBox="0 0 24 24" width="16" height="16">
               <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor" />
@@ -481,7 +331,11 @@ const Home = ({ showToast }) => {
         </div>
 
         {/* Dynamic Grid Cards */}
-        {filteredEvents.length > 0 ? (
+        {eventsLoading ? (
+          <div className="no-events-card">
+            <p>Đang tải sự kiện...</p>
+          </div>
+        ) : filteredEvents.length > 0 ? (
           <div className="event-grid-cards">
             {filteredEvents.map((ev) => (
               <article key={ev.id} className="event-card-item">
@@ -517,7 +371,7 @@ const Home = ({ showToast }) => {
 
                   <div className="event-card-divider"></div>
 
-                  {/* Remaining Tickets & Register Button */}
+                  {/* Remaining Tickets & Actions */}
                   <div className="event-card-footer">
                     <div className="ticket-info">
                       <div className="ticket-remain-row">
@@ -533,19 +387,29 @@ const Home = ({ showToast }) => {
                       </span>
                     </div>
 
-                    <button
-                      className={`btn-card-register ${ev.registered ? 'btn-registered' : ''}`}
-                      onClick={() => handleRegister(ev.id)}
-                    >
-                      {ev.registered ? (
-                        <>
-                          <svg viewBox="0 0 24 24" width="16" height="16" style={{ marginRight: '4px' }}>
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor" />
-                          </svg>
-                          Đã đăng ký
-                        </>
-                      ) : 'Đăng ký ngay'}
-                    </button>
+                    <div className="event-card-actions">
+                      <button
+                        type="button"
+                        className="btn-card-detail"
+                        onClick={() => handleViewDetail(ev)}
+                      >
+                        Xem chi tiết
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn-card-register ${ev.registered ? 'btn-registered' : ''}`}
+                        onClick={() => handleRegister(ev.id)}
+                      >
+                        {ev.registered ? (
+                          <>
+                            <svg viewBox="0 0 24 24" width="16" height="16" style={{ marginRight: '4px' }}>
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor" />
+                            </svg>
+                            Đã đăng ký
+                          </>
+                        ) : 'Đăng ký ngay'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </article>
@@ -621,66 +485,7 @@ const Home = ({ showToast }) => {
         </button>
       </div>
 
-      {/* 6. Footer (Figma 38:1341) */}
-      <footer className="home-footer">
-        <div className="footer-top-columns">
-          <div className="footer-branding-col">
-            <img src={FE_LOGO} alt={FE_LOGO_ALT} className="footer-logo-img" />
-            <p className="footer-brand-desc">
-              FPT Event Platform - Nền tảng kết nối, kiến tạo và lan tỏa sức trẻ thông qua những sự kiện, hoạt động ngoại khóa dành riêng cho sinh viên FPT.
-            </p>
-          </div>
-
-          <div className="footer-links-col">
-            <h4>Khám phá</h4>
-            <ul className="footer-links-list">
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Đang tải danh sách sự kiện sắp tới!', 'info'); }}>Sự kiện sắp tới</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Đang tải danh sách câu lạc bộ!', 'info'); }}>Câu lạc bộ</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Địa điểm tổ chức sự kiện!', 'info'); }}>Địa điểm</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Thành viên tiêu biểu!', 'info'); }}>Thành viên</a></li>
-            </ul>
-          </div>
-
-          <div className="footer-links-col">
-            <h4>Hỗ trợ</h4>
-            <ul className="footer-links-list">
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Trung tâm trợ giúp sinh viên!', 'info'); }}>Trung tâm trợ giúp</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Hướng dẫn đăng ký vé sự kiện!', 'info'); }}>Hướng dẫn đăng ký</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Liên hệ trực ban điều hành!', 'info'); }}>Liên hệ ban tổ chức</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); showToast('Báo cáo lỗi hệ thống!', 'info'); }}>Báo cáo sự cố</a></li>
-            </ul>
-          </div>
-
-          <div className="footer-social-col">
-            <h4>Kết nối xã hội</h4>
-            <div className="social-icon-row">
-              <a href="#" className="social-icon-box" aria-label="Facebook" onClick={(e) => e.preventDefault()}>
-                <svg viewBox="0 0 24 24" width="22" height="22">
-                  <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" fill="currentColor" />
-                </svg>
-              </a>
-              <a href="#" className="social-icon-box" aria-label="Instagram" onClick={(e) => e.preventDefault()}>
-                <svg viewBox="0 0 24 24" width="22" height="22">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" fill="currentColor" />
-                </svg>
-              </a>
-              <a href="#" className="social-icon-box" aria-label="Twitter/X" onClick={(e) => e.preventDefault()}>
-                <svg viewBox="0 0 24 24" width="22" height="22">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="currentColor" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="footer-bottom-row">
-          <p className="copyright-text">© 2026 FPT Event Platform. All rights reserved.</p>
-          <div className="footer-policy-links">
-            <a href="#" onClick={(e) => { e.preventDefault(); showToast('Chính sách bảo mật thông tin!', 'info'); }}>Bảo mật</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); showToast('Chính sách Cookie!', 'info'); }}>Cookie Policy</a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 };

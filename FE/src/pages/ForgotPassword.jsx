@@ -13,9 +13,6 @@ const ForgotPassword = ({ showToast }) => {
   const [shakeFields, setShakeFields] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const [showSnackbar, setShowSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  
   const [countdown, setCountdown] = useState(0);
   const [isCounting, setIsCounting] = useState(false);
   
@@ -53,7 +50,6 @@ const ForgotPassword = ({ showToast }) => {
   const handleInputChange = (e) => {
     const value = e.target.value;
     setContact(value);
-    setShowSnackbar(false); // Hide success message when typing again
     validateContact(value);
   };
 
@@ -72,7 +68,6 @@ const ForgotPassword = ({ showToast }) => {
     }
 
     setLoading(true);
-    setShowSnackbar(false);
 
     fetch('http://localhost:5000/api/auth/forgot-password', {
       method: 'POST',
@@ -83,15 +78,8 @@ const ForgotPassword = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
-          setShowSnackbar(true);
-          if (data.isPhone) {
-            setSnackbarMessage("Mã OTP đã được gửi đến số điện thoại của bạn!");
-          } else {
-            setSnackbarMessage("Mã OTP đã được gửi đến email của bạn!");
-          }
           setCountdown(60);
           setIsCounting(true);
-          showToast('Yêu cầu gửi mã xác nhận thành công!', 'success');
         } else {
           showToast(data.message || 'Gửi mã xác nhận thất bại!', 'error');
         }
@@ -121,19 +109,6 @@ const ForgotPassword = ({ showToast }) => {
 
       {/* Right Column: Form (60%) */}
       <section className="form-column" aria-label="Biểu mẫu khôi phục mật khẩu" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        {/* Success Snackbar */}
-        <div id="success-snackbar" className={`success-snackbar ${showSnackbar ? '' : 'hidden'}`}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" fill="#ffffff" stroke="#4caf50" strokeWidth="1.5"></circle>
-            <polyline points="9 11 12 14 16 9" stroke="#4caf50" strokeWidth="2"></polyline>
-          </svg>
-          <div className="snackbar-content">
-            <span className="snackbar-title">Thành công</span>
-            <span className="snackbar-message">{snackbarMessage}</span>
-          </div>
-          <button type="button" id="close-snackbar" className="snackbar-close" onClick={() => setShowSnackbar(false)} aria-label="Đóng thông báo">&times;</button>
-        </div>
-
         {/* Forgot Card Container */}
         <div className="forgot-card">
           {/* Badge Header */}
