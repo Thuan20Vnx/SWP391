@@ -6,6 +6,8 @@ const optionalAuth = require('../middleware/optionalAuth');
 const optionalAuthorize = require('../middleware/optionalAuthorize');
 const eventController = require('../controllers/event.controller');
 const registrationController = require('../controllers/registration.controller');
+const reviewController = require('../controllers/review.controller');
+const { EVENT_PARTICIPANT_ROLES } = require('../constants/eventPricing');
 
 const router = express.Router();
 
@@ -16,16 +18,23 @@ router.put('/:id/status', authorize('ctsv'), asyncHandler(eventController.update
 router.post(
   '/:id/register',
   authMiddleware,
-  authorize('student', 'staff'),
+  authorize(...EVENT_PARTICIPANT_ROLES),
   asyncHandler(registrationController.registerForEvent)
 );
 router.delete(
   '/:id/register',
   authMiddleware,
-  authorize('student', 'staff'),
+  authorize(...EVENT_PARTICIPANT_ROLES),
   asyncHandler(registrationController.cancelRegistration)
 );
+router.post(
+  '/:id/review',
+  authMiddleware,
+  authorize('student', 'staff'),
+  asyncHandler(reviewController.submitReview)
+);
 
+router.get('/:id', optionalAuth, optionalAuthorize, asyncHandler(eventController.getEventById));
 router.get('/', optionalAuth, optionalAuthorize, asyncHandler(eventController.getApprovedEvents));
 
 module.exports = router;

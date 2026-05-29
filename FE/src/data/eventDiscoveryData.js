@@ -1,3 +1,5 @@
+import { formatVnd } from '../utils/ticketPricing';
+
 const formatEventDate = (dateInput) => {
   const date = new Date(dateInput);
   if (Number.isNaN(date.getTime())) return '';
@@ -15,6 +17,12 @@ export const CATEGORY_FILTERS = [
   { id: 'workshop', label: 'Workshop', categories: ['Workshop', 'HỌC THUẬT'] },
   { id: 'sport', label: 'Thể thao', categories: ['Thể thao'] },
   { id: 'art', label: 'Nghệ thuật', categories: ['Nghệ thuật', 'NGHỆ THUẬT', 'VĂN HÓA'] },
+];
+
+export const STATE_FILTERS = [
+  { id: 'open', label: 'Đang mở' },
+  { id: 'expired', label: 'Đã kết thúc' },
+  { id: 'postponed', label: 'Bị hoãn' },
 ];
 
 export const CATEGORY_COLORS = {
@@ -99,7 +107,7 @@ export const FIGMA_SAMPLE_EVENTS = [
     id: 'figma-embedded',
     title: 'Workshop Lập trình Nhúng',
     thumbnail: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa65?auto=format&fit=crop&w=800&q=80',
-    category: 'Công nghệ',
+    category: 'Workshop',
     dateLabel: 'TBA (Sẽ thông báo sau)',
     location: 'Tầng 4 tòa Beta',
     filledSlots: 0,
@@ -143,27 +151,76 @@ const getPrimaryLabel = (eventState) => {
   return 'Đăng ký ngay';
 };
 
+/** Sự kiện hiển thị trên trang khám phá: active, còn slot, chưa kết thúc */
+export const isEventActiveForDiscovery = (event) => {
+  if (event.eventState !== 'active') return false;
+
+  const end = new Date(event.endDate);
+  if (!Number.isNaN(end.getTime()) && end < new Date()) return false;
+
+  const capacity = event.capacity ?? 0;
+  const registered = event.registeredCount ?? 0;
+  if (capacity > 0 && registered >= capacity) return false;
+
+  return true;
+};
+
+export const filterActiveDiscoveryEvents = (events) =>
+  events.filter(isEventActiveForDiscovery);
+
+/** Nhóm trạng thái hiển thị trên card (sau mapApiEventToCard) */
+export const getEventCardStateGroup = (event) => {
+  if (event.cardState === 'postponed') return 'postponed';
+  if (event.cardState === 'expired') return 'expired';
+  return 'open';
+};
+
+export const filterEventsByState = (events, stateId) => {
+  if (!stateId) return events;
+  return events.filter((ev) => getEventCardStateGroup(ev) === stateId);
+};
+
+const STATE_SORT_ORDER = { open: 0, postponed: 1, expired: 2 };
+
+export const sortEventsByStatePriority = (events) =>
+  [...events].sort(
+    (a, b) =>
+      (STATE_SORT_ORDER[getEventCardStateGroup(a)] ?? 0) -
+      (STATE_SORT_ORDER[getEventCardStateGroup(b)] ?? 0)
+  );
+
 export const mapApiEventToCard = (event) => {
   const eventState = event.eventState || 'active';
   const totalSlots = event.capacity || 100;
   const filledSlots = event.registeredCount ?? 0;
   const category = event.category || 'Sự kiện';
   const isRegistered = event.isRegistered === true;
+  const listPrice = event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0);
+  const amountDue = event.amountDue ?? listPrice;
+  const priceLabel = event.priceLabel || (amountDue === 0 ? 'MIỄN PHÍ' : formatVnd(amountDue));
 
   return {
     id: event._id,
     title: event.title,
     thumbnail: event.thumbnail || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
     category,
-    dateLabel: formatEventDate(event.startDate),
+    dateLabel: eventState === 'postponed'
+      ? 'TBA (Sẽ thông báo sau)'
+      : formatEventDate(event.startDate),
     location: event.location,
     filledSlots,
     totalSlots,
     cardState: isRegistered ? 'registered' : eventState,
     postponeReason: event.postponeReason || '',
-    primaryLabel: isRegistered ? 'Xem vé' : getPrimaryLabel(eventState),
+    primaryLabel: isRegistered
+      ? 'Xem vé'
+      : (event.primaryActionLabel || getPrimaryLabel(eventState)),
     registered: isRegistered,
     filterTags: [CATEGORY_TO_FILTER[category] || 'all'],
+    listPrice,
+    amountDue,
+    priceLabel,
+    studentPrivilegeApplied: event.studentPrivilegeApplied === true,
     fromApi: true,
   };
 };
@@ -199,6 +256,10 @@ export const mapApiEventToHomeCard = (event) => {
     image: event.thumbnail,
     registered: isRegistered,
     eventState: event.eventState || 'active',
+    listPrice: event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0),
+    amountDue: event.amountDue ?? Math.max(0, Number(event.ticketPrice) || 0),
+    priceLabel: event.priceLabel || 'MIỄN PHÍ',
+    studentPrivilegeApplied: event.studentPrivilegeApplied === true,
   };
 };
 

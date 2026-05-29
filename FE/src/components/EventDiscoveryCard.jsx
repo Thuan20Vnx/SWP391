@@ -26,6 +26,8 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
     postponeReason,
     primaryLabel,
     registered,
+    priceLabel,
+    studentPrivilegeApplied,
   } = event;
 
   const fillPercent = getFillPercent(filledSlots, totalSlots);
@@ -97,6 +99,15 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
                 style={{ width: `${fillPercent}%` }}
               />
             </div>
+          </div>
+        )}
+
+        {priceLabel && !isPostponed && (
+          <div className="event-discovery-card__price">
+            <span className="event-discovery-card__price-label">{priceLabel}</span>
+            {studentPrivilegeApplied && (
+              <span className="event-discovery-card__price-badge">Ưu đãi sinh viên</span>
+            )}
           </div>
         )}
 

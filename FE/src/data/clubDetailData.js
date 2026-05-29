@@ -97,19 +97,42 @@ export const FU_DEVER_DETAIL = {
   ],
 };
 
+/** Tạo trang chi tiết từ dữ liệu API hoặc card danh sách */
+export const mapApiClubToDetail = (club) => buildClubDetailFromList({
+  id: club.slug,
+  _id: club._id,
+  name: club.name,
+  category: club.category,
+  logoText: club.logoText,
+  logoColor: club.logoColor,
+  coverImage: club.coverImage,
+  memberCount: club.memberCount,
+  followerCount: club.followerCount,
+  description: club.description,
+  featuredEvent: club.featuredEvent,
+  isFollowing: club.isFollowing,
+  membershipStatus: club.membershipStatus || null,
+  eventsHeld: club.eventsHeld,
+  founded: club.founded,
+  organization: club.organization,
+});
+
 /** Tạo trang chi tiết tối thiểu từ card danh sách CLB */
 export const buildClubDetailFromList = (club) => ({
-  id: club.id,
+  id: club.id || club.slug,
+  _id: club._id,
+  isFollowing: club.isFollowing === true,
+  membershipStatus: club.membershipStatus || null,
   name: club.name.startsWith('Câu lạc bộ') ? club.name : `Câu lạc bộ ${club.name}`,
   category: club.category,
   logoText: club.logoText,
   logoColor: club.logoColor,
   bannerImage: club.coverImage,
   logoImage: null,
-  organization: 'FPT University',
+  organization: club.organization || 'FPT University',
   memberCount: club.memberCount,
-  eventsHeld: Math.max(12, Math.round(club.memberCount / 4)),
-  founded: 'Tháng 09, 2018',
+  eventsHeld: club.eventsHeld ?? Math.max(12, Math.round((club.memberCount || 0) / 4)),
+  founded: club.founded || 'Tháng 09, 2018',
   about: [
     club.description,
     `${club.name} là một trong những câu lạc bộ năng động tại trường, thường xuyên tổ chức workshop, sự kiện giao lưu và hoạt động ngoại khóa dành cho sinh viên.`,

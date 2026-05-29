@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { resolveUserAvatar } from '../utils/image';
 import defaultAvatar from '../constants/defaultAvatar';
+import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 
 const PROFILE_CACHE_KEY = 'fevents_user_profile';
 
@@ -62,7 +63,7 @@ const useUserProfile = () => {
     () => readCachedProfile() || emptyProfile
   );
 
-  useEffect(() => {
+  const refreshProfile = useCallback(() => {
     const logged = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(logged);
 
@@ -100,6 +101,16 @@ const useUserProfile = () => {
       })
       .finally(() => setProfileLoading(false));
   }, []);
+
+  useEffect(() => {
+    refreshProfile();
+  }, [refreshProfile]);
+
+  useEffect(() => {
+    const handleAuthChanged = () => refreshProfile();
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+  }, [refreshProfile]);
 
   return { isLoggedIn, userProfile, profileLoading };
 };

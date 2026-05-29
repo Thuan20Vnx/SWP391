@@ -15,8 +15,10 @@ const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
   GOOGLE_CALLBACK_URL,
+  GOOGLE_CALENDAR_CALLBACK_URL,
   CLIENT_ORIGIN,
 } = require('../config/env');
+const { verifyToken } = require('../utils/jwt');
 
 const sanitizeUser = (user) => User.sanitizeUser(user);
 
@@ -325,7 +327,6 @@ const googleCallback = async (code) => {
   let name = '';
   let picture = '';
   let googleId = '';
-  let googleCalendarRefreshToken = null;
 
   if (!GOOGLE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET === 'mock') {
     console.log('[MOCK CALLBACK] Client Secret is not set. Simulating login...');
@@ -342,10 +343,6 @@ const googleCallback = async (code) => {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
-    if (tokens.refresh_token) {
-      googleCalendarRefreshToken = tokens.refresh_token;
-    }
-
     const ticket = await oauth2Client.verifyIdToken({
       idToken: tokens.id_token,
       audience: GOOGLE_CLIENT_ID,
@@ -359,18 +356,11 @@ const googleCallback = async (code) => {
 
   let user = await User.findOne({ email: email.toLowerCase() });
 
-  const calendarTokenUpdate = googleCalendarRefreshToken
-    ? { googleCalendarRefreshToken }
-    : {};
-
   if (user) {
-    await User.syncAndPersistUserProfile(user, {
-      ...buildGoogleLoginUpdate(user, {
-        googleId,
-        googlePicture: picture,
-      }),
-      ...calendarTokenUpdate,
-    });
+    await User.syncAndPersistUserProfile(user, buildGoogleLoginUpdate(user, {
+      googleId,
+      googlePicture: picture,
+    }));
     user = await User.findOne({ email: email.toLowerCase() });
   } else {
     user = await createUserFromGoogle({
@@ -378,14 +368,90 @@ const googleCallback = async (code) => {
       name,
       picture,
       googleId,
-      googleCalendarRefreshToken,
     });
   }
 
   const authToken = signToken(user);
-  const redirectUrl = `${CLIENT_ORIGIN}/login?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`;
+  let redirectUrl = `${CLIENT_ORIGIN}/login?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`;
+
+  const userWithCalendar = await User.findOne({ email: email.toLowerCase() })
+    .select('+googleCalendarRefreshToken');
+  const canLinkCalendar = GOOGLE_CLIENT_SECRET && GOOGLE_CLIENT_SECRET !== 'mock';
+  if (canLinkCalendar && !userWithCalendar?.googleCalendarRefreshToken) {
+    redirectUrl += '&needs_calendar=1';
+  }
 
   return { redirectUrl };
+};
+
+const getGoogleCalendarAuthUrl = (authToken) => {
+  if (!authToken) {
+    throw new AppError('Thiếu token xác thực.', 401);
+  }
+
+  let email = '';
+  try {
+    const payload = verifyToken(authToken);
+    email = payload.email;
+  } catch {
+    throw new AppError('Token không hợp lệ.', 401);
+  }
+
+  if (!GOOGLE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET === 'mock') {
+    throw new AppError('Google Calendar chưa được cấu hình.', 503);
+  }
+
+  const oauth2Client = new OAuth2Client(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    GOOGLE_CALENDAR_CALLBACK_URL
+  );
+
+  const url = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: ['https://www.googleapis.com/auth/calendar.events'],
+    state: encodeURIComponent(email),
+  });
+
+  return { url };
+};
+
+const googleCalendarCallback = async (code, state) => {
+  if (!code) {
+    throw new AppError('Không nhận được mã code từ Google.', 400);
+  }
+
+  const email = decodeURIComponent(state || '').trim().toLowerCase();
+  if (!email) {
+    throw new AppError('Phiên liên kết Calendar không hợp lệ.', 400);
+  }
+
+  if (!GOOGLE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET === 'mock') {
+    return { redirectUrl: `${CLIENT_ORIGIN}/?calendar_status=mock` };
+  }
+
+  const oauth2Client = new OAuth2Client(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    GOOGLE_CALENDAR_CALLBACK_URL
+  );
+  const { tokens } = await oauth2Client.getToken(code);
+
+  if (!tokens.refresh_token) {
+    throw new AppError('Google không cấp refresh token. Hãy thu hồi quyền app trong tài khoản Google và thử lại.', 400);
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new AppError('Không tìm thấy tài khoản.', 404);
+  }
+
+  await User.syncAndPersistUserProfile(user, {
+    googleCalendarRefreshToken: tokens.refresh_token,
+  });
+
+  return { redirectUrl: `${CLIENT_ORIGIN}/?calendar_status=linked` };
 };
 
 module.exports = {
@@ -397,4 +463,6 @@ module.exports = {
   resetPassword,
   googleLogin,
   googleCallback,
+  getGoogleCalendarAuthUrl,
+  googleCalendarCallback,
 };

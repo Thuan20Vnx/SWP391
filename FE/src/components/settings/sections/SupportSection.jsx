@@ -7,23 +7,23 @@ const SupportSection = () => {
   const navigate = useNavigate();
 
   return (
-    <div>
+    <div className="settings-section">
       <SettingsSectionHeader {...SECTION_META.support} />
 
       <SettingsCard>
         <SettingsRow
           label="Trung tâm hỗ trợ"
-          description="Xem hướng dẫn và câu hỏi thường gặp"
+          description="Hướng dẫn sử dụng và câu hỏi thường gặp"
           onClick={() => navigate('/support')}
         />
         <SettingsRow
-          label="Báo lỗi"
-          description="Gửi báo cáo lỗi hoặc góp ý cải thiện"
+          label="Báo lỗi & góp ý"
+          description="Gửi phản hồi để cải thiện nền tảng"
           onClick={() => navigate('/contact')}
         />
         <SettingsRow
-          label="Liên hệ admin"
-          description="Nhắn tin trực tiếp với quản trị viên hệ thống"
+          label="Liên hệ quản trị viên"
+          description="Trao đổi trực tiếp với đội vận hành"
           onClick={() => navigate('/contact')}
         />
       </SettingsCard>

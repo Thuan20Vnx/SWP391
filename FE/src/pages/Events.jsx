@@ -7,32 +7,38 @@ import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import {
   CATEGORY_FILTERS,
+  STATE_FILTERS,
   FIGMA_SAMPLE_EVENTS,
   mapApiEventToCard,
   filterEventsByCategory,
   filterEventsBySearch,
+  filterEventsByState,
+  sortEventsByStatePriority,
 } from '../data/eventDiscoveryData';
 
 const PAGE_SIZE = 6;
 const USE_FIGMA_FALLBACK = false;
+const DEFAULT_STATE_FILTER = 'open';
 
 const Events = ({ showToast }) => {
   const navigate = useNavigate();
   const [events, setEvents] = useState(USE_FIGMA_FALLBACK ? FIGMA_SAMPLE_EVENTS : []);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [stateFilter, setStateFilter] = useState(DEFAULT_STATE_FILTER);
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const { isLoggedIn } = useUserProfile();
+  const { isLoggedIn, userProfile } = useUserProfile();
 
   useEffect(() => {
+    setLoading(true);
     fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.events?.length > 0) {
           setEvents(data.events.map(mapApiEventToCard));
         } else if (USE_FIGMA_FALLBACK) {
-          setEvents(FIGMA_SAMPLE_EVENTS);
+          setEvents(FIGMA_SAMPLE_EVENTS.filter((ev) => ev.cardState === 'active' && ev.filledSlots < ev.totalSlots));
         } else {
           setEvents([]);
         }
@@ -43,20 +49,26 @@ const Events = ({ showToast }) => {
         showToast?.('Không thể tải danh sách sự kiện', 'error');
       })
       .finally(() => setLoading(false));
-  }, [showToast]);
+  }, [showToast, isLoggedIn, userProfile.role]);
 
   const filteredEvents = useMemo(() => {
-    let result = filterEventsByCategory(events, activeFilter);
+    let result = filterEventsByState(events, stateFilter);
+    result = filterEventsByCategory(result, activeFilter);
     result = filterEventsBySearch(result, searchQuery);
-    return result;
-  }, [events, activeFilter, searchQuery]);
+    return sortEventsByStatePriority(result);
+  }, [events, stateFilter, activeFilter, searchQuery]);
 
   const visibleEvents = filteredEvents.slice(0, visibleCount);
   const hasMore = visibleCount < filteredEvents.length;
 
   const handleRegister = async (event) => {
-    if (event.cardState === 'expired' || event.cardState === 'postponed') {
-      showToast('Sự kiện này hiện không thể đăng ký.', 'error');
+    if (event.cardState === 'postponed') {
+      handleDetail(event);
+      return;
+    }
+
+    if (event.cardState === 'expired') {
+      showToast('Sự kiện này đã kết thúc, không thể đăng ký.', 'error');
       return;
     }
 
@@ -102,7 +114,7 @@ const Events = ({ showToast }) => {
   };
 
   const handleDetail = (event) => {
-    showToast(`Xem chi tiết: ${event.title}`, 'success');
+    navigate(`/events/${event.id}`);
   };
 
   return (
@@ -121,6 +133,22 @@ const Events = ({ showToast }) => {
         <section className="events-page__hero">
           <h1>Khám phá sự kiện tại FPT</h1>
           <p>Tìm kiếm và tham gia những sự kiện sôi động nhất dành cho cộng đồng FPT</p>
+        </section>
+
+        <section className="events-page__state-filters" aria-label="Lọc theo trạng thái">
+          {STATE_FILTERS.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              className={`events-page__state-pill ${stateFilter === filter.id ? 'is-active' : ''}`}
+              onClick={() => {
+                setStateFilter(filter.id);
+                setVisibleCount(PAGE_SIZE);
+              }}
+            >
+              {filter.label}
+            </button>
+          ))}
         </section>
 
         <section className="events-page__filters" aria-label="Lọc theo chủ đề">
@@ -145,12 +173,17 @@ const Events = ({ showToast }) => {
           </div>
         ) : visibleEvents.length === 0 ? (
           <div className="events-page__empty">
-            <p>Không tìm thấy sự kiện phù hợp.</p>
+            <p>
+              {stateFilter === 'expired' && 'Chưa có sự kiện đã kết thúc trong bộ lọc này.'}
+              {stateFilter === 'postponed' && 'Không có sự kiện bị hoãn.'}
+              {stateFilter === 'open' && 'Không có sự kiện đang mở đăng ký.'}
+            </p>
             <button
               type="button"
               className="events-page__reset-btn"
               onClick={() => {
                 setActiveFilter('all');
+                setStateFilter(DEFAULT_STATE_FILTER);
                 setSearchQuery('');
                 setVisibleCount(PAGE_SIZE);
               }}

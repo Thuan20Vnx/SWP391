@@ -2,6 +2,13 @@ const Event = require('../models/Event');
 const EventRegistration = require('../models/EventRegistration');
 const AppError = require('../utils/AppError');
 const {
+  calculateTicketAmount,
+  getListPrice,
+  hasStudentTicketPrivilege,
+  formatVnd,
+  enrichEventWithPricing,
+} = require('../constants/eventPricing');
+const {
   syncEventToGoogleCalendar,
   removeEventFromGoogleCalendar,
 } = require('./calendar.service');
@@ -34,6 +41,9 @@ const formatEventForMyEvents = (registration) => {
     registeredAt: registration.registeredAt,
     startDate: event.startDate,
     endDate: event.endDate,
+    amountPaid: registration.amountPaid ?? 0,
+    listPrice: registration.listPrice ?? 0,
+    studentPrivilegeApplied: registration.studentPrivilegeApplied === true,
   };
 };
 
@@ -55,46 +65,72 @@ const assertEventRegisterable = (event) => {
   }
 };
 
-const registerForEvent = async (userId, eventId) => {
+const registerForEvent = async (user, eventId) => {
   const event = await Event.findById(eventId);
   assertEventRegisterable(event);
 
-  let registration = await EventRegistration.findOne({ user: userId, event: eventId });
+  const listPrice = getListPrice(event);
+  const amountPaid = calculateTicketAmount(user, event);
+  const studentPrivilegeApplied = listPrice > 0 && amountPaid === 0 && hasStudentTicketPrivilege(user);
+
+  let registration = await EventRegistration.findOne({ user: user._id, event: eventId });
 
   if (registration?.status === 'registered') {
     throw new AppError('Bạn đã đăng ký sự kiện này rồi.', 409);
   }
 
+  const pricingFields = {
+    listPrice,
+    amountPaid,
+    studentPrivilegeApplied,
+  };
+
   if (registration?.status === 'cancelled') {
     registration.status = 'registered';
     registration.registeredAt = new Date();
     registration.cancelledAt = null;
+    Object.assign(registration, pricingFields);
     await registration.save();
   } else {
     registration = await EventRegistration.create({
-      user: userId,
+      user: user._id,
       event: eventId,
       status: 'registered',
+      ...pricingFields,
     });
   }
 
   event.registeredCount = Math.min(event.registeredCount + 1, event.capacity);
   await event.save();
 
-  const googleCalendarEventId = await syncEventToGoogleCalendar(userId, event);
+  const googleCalendarEventId = await syncEventToGoogleCalendar(user._id, event);
   if (googleCalendarEventId) {
     registration.googleCalendarEventId = googleCalendarEventId;
     await registration.save();
   }
 
   registration = await EventRegistration.findById(registration._id)
-    .populate('event', 'title startDate endDate location thumbnail category capacity registeredCount');
+    .populate('event', 'title startDate endDate location thumbnail category capacity registeredCount ticketPrice');
+
+  let message = 'Đăng ký sự kiện thành công!';
+  if (studentPrivilegeApplied) {
+    message = 'Đăng ký thành công! Sinh viên được miễn phí vé.';
+  } else if (amountPaid > 0) {
+    message = `Mua vé thành công (${formatVnd(amountPaid)}). Vé điện tử đã được xác nhận.`;
+  }
+
+  const eventDoc = registration.event?.toObject
+    ? registration.event.toObject()
+    : registration.event;
 
   return {
-    message: 'Đăng ký sự kiện thành công!',
+    message,
     registration: formatEventForMyEvents(registration),
-    event: registration.event,
+    event: enrichEventWithPricing({ ...eventDoc, isRegistered: true }, user),
     calendarSynced: Boolean(googleCalendarEventId),
+    amountPaid,
+    listPrice,
+    studentPrivilegeApplied,
   };
 };
 

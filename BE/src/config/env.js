@@ -5,5 +5,6 @@ module.exports = {
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || 'mock',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback',
+  GOOGLE_CALENDAR_CALLBACK_URL: process.env.GOOGLE_CALENDAR_CALLBACK_URL || 'http://localhost:5000/api/auth/google/calendar/callback',
   OTP_EXPIRY_MINUTES: 5,
 };

@@ -280,6 +280,15 @@ const Signup = ({ showToast }) => {
 
       {/* Right Column: Signup Form (60%) */}
       <section className="form-column" aria-label="Biểu mẫu đăng ký tài khoản">
+        <div className="auth-form-shell">
+          <Link to="/" className="auth-page-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>Quay lại trang chủ</span>
+          </Link>
+
         <div className="form-container">
           {showOtpStep ? (
             <>
@@ -589,6 +598,7 @@ const Signup = ({ showToast }) => {
               </footer>
             </>
           )}
+        </div>
         </div>
       </section>
 

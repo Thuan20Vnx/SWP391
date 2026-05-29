@@ -12,5 +12,7 @@ router.post('/forgot-password', asyncHandler(authController.forgotPassword));
 router.post('/reset-password', asyncHandler(authController.resetPassword));
 router.post('/google', asyncHandler(authController.googleLogin));
 router.get('/google/callback', authController.googleCallback);
+router.get('/google/calendar', authController.googleCalendarConnect);
+router.get('/google/calendar/callback', authController.googleCalendarCallback);
 
 module.exports = router;

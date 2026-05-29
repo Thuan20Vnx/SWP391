@@ -95,7 +95,7 @@ const StaticPage = ({ pageKey }) => {
     <div className="static-page">
       <header className="home-header static-page__header">
         <div className="header-container">
-          <button type="button" className="settings-page__back" onClick={() => navigate(-1)}>
+          <button type="button" className="auth-page-back" onClick={() => navigate(-1)}>
             ← Quay lại
           </button>
           <div className="header-logo" onClick={() => navigate('/')}>
