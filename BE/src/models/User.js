@@ -55,6 +55,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'local'
   },
+  role: {
+    type: String,
+    enum: ['student', 'ctsv', 'partner', 'admin', 'guest', 'icpdp', 'club_manager'],
+    default: 'student'
+  },
   courseChanged: {
     type: Boolean,
     default: false
@@ -63,7 +68,17 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
+const { resolveUserRole } = require('../utils/role');
+
+// Luôn ghi role vào DB khi tạo/cập nhật (chuẩn hóa chữ thường: CTSV → ctsv)
+userSchema.pre('save', function (next) {
+  const { normalizeRole } = require('../utils/role');
+  this.role = normalizeRole(this.role || resolveUserRole(this));
+  next();
+});
+
 // Helper: sanitize user object before sending to frontend
+
 userSchema.statics.sanitizeUser = function (user) {
   if (!user) return null;
   const obj = user.toObject ? user.toObject() : { ...user };
@@ -72,6 +87,7 @@ userSchema.statics.sanitizeUser = function (user) {
   delete obj.otp;
   delete obj.resetOtp;
   delete obj.__v;
+  obj.role = resolveUserRole(obj);
   return obj;
 };
 

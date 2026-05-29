@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/profile_avatar.png';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { clearSession, getRoleDisplayLabel, getUserRole, isCtsvRole, normalizeRole } from '../utils/auth';
 
 const Home = ({ showToast }) => {
   const navigate = useNavigate();
@@ -111,6 +113,11 @@ const Home = ({ showToast }) => {
 
   // Fetch authentication state & user details
   useEffect(() => {
+    if (isCtsvRole()) {
+      navigate('/ctsv', { replace: true });
+      return;
+    }
+
     const logged = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(logged);
 
@@ -124,6 +131,14 @@ const Home = ({ showToast }) => {
           })
           .then(data => {
             const u = data.user;
+            if (u.role) {
+              const role = normalizeRole(u.role);
+              localStorage.setItem('userRole', role);
+              if (isCtsvRole(role)) {
+                navigate('/ctsv', { replace: true });
+                return;
+              }
+            }
             setUserProfile({
               fullname: u.fullname || 'Trần Xuân Thuận',
               course: u.course || 'K18',
@@ -132,11 +147,10 @@ const Home = ({ showToast }) => {
           })
           .catch(err => {
             console.error('Failed to fetch user data for Home header:', err);
-            // Keep default Trần Xuân Thuận details
           });
       }
     }
-  }, []);
+  }, [navigate]);
 
   // Automatic Hero Slide transition
   useEffect(() => {
@@ -257,9 +271,7 @@ const Home = ({ showToast }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('authToken');
+    clearSession();
     setIsLoggedIn(false);
     showToast('Đã đăng xuất tài khoản thành công.', 'info');
     navigate('/');
@@ -282,11 +294,7 @@ const Home = ({ showToast }) => {
 
           {/* Logo F Events */}
           <div className="header-logo" onClick={() => navigate('/')}>
-            <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
-              alt="F Events Logo"
-              className="logo-img"
-            />
+            <img src={FE_LOGO} alt={FE_LOGO_ALT} className="logo-img" />
           </div>
 
           {/* Navigation Links */}
@@ -335,7 +343,9 @@ const Home = ({ showToast }) => {
                   <Link to="/profile" className="profile-display-card-link" title="Đến trang cá nhân của bạn">
                     <div className="profile-info-text">
                       <span className="profile-name">{userProfile.fullname}</span>
-                      <span className="profile-role">Sinh viên {userProfile.course}</span>
+                      <span className={`profile-role ${isCtsvRole() ? 'profile-role-ctsv' : ''}`}>
+                        {getRoleDisplayLabel(getUserRole(), userProfile.course)}
+                      </span>
                     </div>
                     <div className="profile-avatar-circle">
                       <img src={userProfile.picture} alt="User Avatar" />
@@ -615,7 +625,7 @@ const Home = ({ showToast }) => {
       <footer className="home-footer">
         <div className="footer-top-columns">
           <div className="footer-branding-col">
-            <img src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM" alt="F Events" className="footer-logo-img" />
+            <img src={FE_LOGO} alt={FE_LOGO_ALT} className="footer-logo-img" />
             <p className="footer-brand-desc">
               FPT Event Platform - Nền tảng kết nối, kiến tạo và lan tỏa sức trẻ thông qua những sự kiện, hoạt động ngoại khóa dành riêng cho sinh viên FPT.
             </p>

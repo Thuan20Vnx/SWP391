@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import fptLogo from '../assets/fpt_logo.png';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 
 const patterns = {
   fullname: /^[\p{L}\s]{5,50}$/u,
@@ -299,7 +299,7 @@ const Signup = ({ showToast }) => {
               {/* Logo F-Events */}
               <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
                 <img
-                  src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+                  src={FE_LOGO}
                   alt="F-Events Logo"
                   style={{ width: '115px', height: '64px', objectFit: 'contain' }}
                 />
@@ -385,7 +385,7 @@ const Signup = ({ showToast }) => {
               {/* Logo F-Events */}
               <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
                 <img
-                  src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+                  src={FE_LOGO}
                   alt="F-Events Logo"
                   style={{ width: '115px', height: '64px', objectFit: 'contain' }}
                 />

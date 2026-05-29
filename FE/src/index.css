@@ -3505,4 +3505,616 @@ body {
   align-items: flex-end;
 }
 
+/* CTSV portal */
+.nav-link-ctsv-badge {
+  color: var(--primary) !important;
+  font-weight: 700;
+}
+
+.nav-link-ctsv-badge.active::after {
+  content: '';
+  display: block;
+  height: 2px;
+  background: var(--primary);
+  margin-top: 4px;
+  border-radius: 2px;
+}
+
+.profile-role-ctsv,
+.sidebar-user-role.profile-role-ctsv,
+.navbar-user-role.profile-role-ctsv {
+  color: var(--primary) !important;
+  font-weight: 600;
+}
+
+/* CTSV home: stats + filter in normal document flow (no overlap) */
+.ctsv-home-layout .ctsv-stats-section {
+  padding: 32px 24px 8px;
+  margin: 0 auto;
+  position: static;
+  z-index: auto;
+  max-width: 1280px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ctsv-home-layout .filter-bar-section {
+  margin: 16px auto 24px;
+  padding: 0 24px;
+  position: static;
+  z-index: auto;
+  max-width: 1280px;
+  box-sizing: border-box;
+}
+
+.ctsv-home-layout .recommended-section {
+  padding-top: 32px;
+}
+
+.ctsv-home-layout .filter-icon,
+.ctsv-home-layout .recommended-title-icon {
+  display: none;
+}
+
+.ctsv-home-layout .filter-group {
+  padding-left: 0;
+}
+
+.ctsv-home-layout .recommended-title-container h2 {
+  margin: 0;
+}
+
+.ctsv-stats-section {
+  padding: 0 24px;
+  margin-top: -54px;
+  position: relative;
+  z-index: 5;
+}
+
+.ctsv-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1232px;
+  margin: 0 auto;
+}
+
+.ctsv-stat-card {
+  background: var(--bg-card);
+  border: 1px solid #e8dfd8;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.ctsv-stat-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.ctsv-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.ctsv-stat-trend {
+  font-size: 0.8rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.ctsv-stat-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-card-manage {
+  background: linear-gradient(135deg, #1e293b, #334155) !important;
+}
+
+.btn-card-manage:hover {
+  background: linear-gradient(135deg, #334155, #475569) !important;
+}
+
+.status-pill.status-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+@media (max-width: 900px) {
+  .ctsv-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ctsv-stats-section {
+    margin-top: 16px;
+  }
+
+  .ctsv-home-layout .ctsv-stats-section {
+    margin-top: 0;
+    padding-top: 24px;
+  }
+
+  .ctsv-home-layout .filter-bar-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .ctsv-home-layout .filter-divider-line {
+    width: 100%;
+    height: 1px;
+  }
+}
+
+/* CTSV app layout (dashboard & sub-pages) */
+.ctsv-app-layout {
+  min-height: 100vh;
+  background: #f8f6f4;
+  display: flex;
+  flex-direction: column;
+}
+
+.ctsv-top-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: var(--bg-card);
+  border-bottom: 1px solid #e8dfd8;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.ctsv-menu-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-main);
+}
+
+.ctsv-top-logo .logo-img {
+  height: 32px;
+}
+
+.ctsv-top-nav {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+}
+
+.ctsv-top-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.ctsv-top-nav a.active {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.ctsv-top-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.ctsv-top-name {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.ctsv-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--bg-card);
+  border-right: 1px solid #e8dfd8;
+  z-index: 200;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  box-sizing: border-box;
+}
+
+.ctsv-sidebar.open {
+  transform: translateX(0);
+}
+
+.ctsv-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 150;
+  border: none;
+  cursor: pointer;
+}
+
+.ctsv-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ctsv-sidebar-logo {
+  height: 28px;
+}
+
+.ctsv-sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ctsv-nav-section {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  margin: 16px 0 8px 12px;
+}
+
+.ctsv-nav-link {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.ctsv-nav-link:hover,
+.ctsv-nav-link.active {
+  background: rgba(232, 93, 44, 0.1);
+  color: var(--primary);
+}
+
+.ctsv-sidebar-footer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #e8dfd8;
+}
+
+.ctsv-sidebar-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ctsv-sidebar-user {
+  font-weight: 600;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.ctsv-sidebar-role {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--primary);
+}
+
+.ctsv-main-content {
+  flex: 1;
+  padding: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ctsv-page {
+  width: 100%;
+}
+
+.ctsv-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.ctsv-page-header h1 {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+}
+
+.ctsv-page-header p,
+.ctsv-muted {
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.ctsv-panel {
+  background: var(--bg-card);
+  border: 1px solid #e8dfd8;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.ctsv-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ctsv-panel-header a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ctsv-btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.ctsv-btn-secondary {
+  background: #fff;
+  color: var(--text-main);
+  border: 1px solid #e8dfd8;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ctsv-btn-danger {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ctsv-input,
+.ctsv-select,
+.ctsv-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e8dfd8;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  margin-top: 6px;
+}
+
+.ctsv-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.ctsv-filter-row .ctsv-input {
+  flex: 1;
+  min-width: 200px;
+  margin-top: 0;
+}
+
+.ctsv-filter-row .ctsv-select {
+  width: auto;
+  min-width: 160px;
+  margin-top: 0;
+}
+
+.ctsv-table-wrap {
+  overflow-x: auto;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid #e8dfd8;
+}
+
+.ctsv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ctsv-table th,
+.ctsv-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f0ebe6;
+}
+
+.ctsv-table th {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.ctsv-link-btn {
+  color: var(--primary);
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ctsv-back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ctsv-form {
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ctsv-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.ctsv-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ctsv-action-panel {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid #e8dfd8;
+}
+
+.ctsv-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.ctsv-detail-hero {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.ctsv-detail-img {
+  width: 280px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.ctsv-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ctsv-tabs button {
+  padding: 8px 16px;
+  border: 1px solid #e8dfd8;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.ctsv-tabs button.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.ctsv-detail-meta {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+
+.ctsv-detail-meta li {
+  padding: 4px 0;
+}
+
+.ctsv-calendar-month {
+  margin-bottom: 24px;
+}
+
+.ctsv-calendar-list {
+  list-style: none;
+  padding: 0;
+}
+
+.ctsv-calendar-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0ebe6;
+}
+
+.ctsv-cal-date {
+  min-width: 120px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.ctsv-list-plain {
+  list-style: none;
+  padding: 0;
+}
+
+.ctsv-list-plain li {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0ebe6;
+}
+
+@media (min-width: 1024px) {
+  .ctsv-app-layout {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .ctsv-top-header {
+    width: 100%;
+  }
+
+  .ctsv-sidebar {
+    position: sticky;
+    top: 57px;
+    height: calc(100vh - 57px);
+    transform: none;
+    flex-shrink: 0;
+  }
+
+  .ctsv-drawer-backdrop {
+    display: none;
+  }
+
+  .ctsv-menu-toggle {
+    display: none;
+  }
+
+  .ctsv-main-content {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 

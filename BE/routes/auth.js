@@ -7,6 +7,7 @@ const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../src/models/User');
 const { signToken } = require('../src/utils/jwt');
+const { resolveUserRole } = require('../src/utils/role');
 
 // Memory map to hold registrations waiting for OTP confirmation
 const pendingUsers = new Map();
@@ -410,13 +411,16 @@ router.post('/verify-otp', async (req, res) => {
       });
     }
 
-    // Create user in MongoDB with hashed password
+    const emailKeyNorm = pendingUser.email.trim().toLowerCase();
+    const role = resolveUserRole({ email: emailKeyNorm, orientation: '', campus: 'FPT University Da Nang' });
+
     const newUser = await User.create({
       fullname: pendingUser.fullname,
-      email: pendingUser.email.trim().toLowerCase(),
+      email: emailKeyNorm,
       phone: pendingUser.phone,
-      passwordHash: pendingUser.passwordHash, // Already bcrypt hashed
+      passwordHash: pendingUser.passwordHash,
       authProvider: 'local',
+      role,
       course: 'K18',
       campus: 'FPT University Da Nang',
       orientation: '',
@@ -654,6 +658,7 @@ router.post('/google', async (req, res) => {
         passwordHash: null,
         googleId: googleId || null,
         authProvider: 'google',
+        role: resolveUserRole({ email: googleEmail.toLowerCase() }),
         course: 'K18',
         campus: 'FPT University Da Nang',
         orientation: '',
@@ -731,6 +736,7 @@ router.get('/google/callback', async (req, res) => {
         passwordHash: null,
         googleId: googleId || null,
         authProvider: 'google',
+        role: resolveUserRole({ email: email.toLowerCase() }),
         course: 'K18',
         campus: 'FPT University Da Nang',
         orientation: '',

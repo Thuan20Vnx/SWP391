@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/profile_avatar.png';
-import fptLogo from '../assets/fpt_logo.png';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import {
+  clearSession,
+  getRoleDisplayLabel,
+  getUserRole,
+  isCtsvRole,
+  normalizeRole
+} from '../utils/auth';
 
 const Profile = ({ showToast }) => {
   const navigate = useNavigate();
@@ -32,6 +39,7 @@ const Profile = ({ showToast }) => {
   // Form Orientation State
   const [orientation, setOrientation] = useState('Back-end Development, Internet of Things (IoT)');
   const [saveLoading, setSaveLoading] = useState(false);
+  const [userRole, setUserRole] = useState(getUserRole());
 
   // Load profile from Backend on mount
   useEffect(() => {
@@ -48,6 +56,9 @@ const Profile = ({ showToast }) => {
       })
       .then(data => {
         const u = data.user;
+        const role = normalizeRole(u.role);
+        localStorage.setItem('userRole', role);
+        setUserRole(role);
         setProfileData({
           fullname: u.fullname || '',
           course: u.course || '',
@@ -326,10 +337,7 @@ const Profile = ({ showToast }) => {
 
   const handleLogout = (e) => {
     e.preventDefault();
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('loginMethod');
-    localStorage.removeItem('authToken');
+    clearSession();
     showToast('Đã đăng xuất tài khoản thành công.', 'info');
     navigate('/login');
   };
@@ -355,7 +363,7 @@ const Profile = ({ showToast }) => {
             onClick={() => navigate('/')}
           >
             <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+              src={FE_LOGO}
               alt="FEvents Logo"
               style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
             />
@@ -366,7 +374,9 @@ const Profile = ({ showToast }) => {
             <img className="sidebar-avatar" src={avatar} alt="User Avatar" />
             <div className="sidebar-user-info">
               <span className="sidebar-user-name">{profileData.fullname}</span>
-              <span className="sidebar-user-role">Sinh viên {profileData.course}</span>
+              <span className={`sidebar-user-role ${isCtsvRole(userRole) ? 'profile-role-ctsv' : ''}`}>
+                {getRoleDisplayLabel(userRole, profileData.course)}
+              </span>
             </div>
           </a>
 
@@ -532,7 +542,9 @@ const Profile = ({ showToast }) => {
                 <img className="navbar-user-avatar" src={avatar} alt="User Profile" />
                 <div className="navbar-user-details">
                   <span className="navbar-user-name">{profileData.fullname}</span>
-                  <span className="navbar-user-role">Sinh viên {profileData.course}</span>
+                  <span className={`navbar-user-role ${isCtsvRole(userRole) ? 'profile-role-ctsv' : ''}`}>
+                    {getRoleDisplayLabel(userRole, profileData.course)}
+                  </span>
                 </div>
               </a>
             </div>
@@ -1044,7 +1056,7 @@ const Profile = ({ showToast }) => {
                 <div className="footer-info">
                   <a href="#" className="footer-logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
                     <img
-                      src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+                      src={FE_LOGO}
                       alt="FEvents Logo"
                       style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
                     />

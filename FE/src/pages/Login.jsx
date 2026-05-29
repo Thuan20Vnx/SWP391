@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import fptLogo from '../assets/fpt_logo.png';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 import { API_BASE } from '../utils/api';
+import { getHomePathForRole, normalizeRole, persistSession } from '../utils/auth';
 
 const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -43,12 +44,12 @@ const Login = ({ showToast }) => {
       const token = params.get('token');
 
       showToast(`Đăng nhập Google thành công! Chào mừng ${name}.`, 'success');
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('loginMethod', 'google');
-      if (token) localStorage.setItem('authToken', token);
+      const googleUser = { email, fullname: name, role: 'student' };
+      if (email && (email.toLowerCase().includes('ctsv') || /^khoahiep/i.test(email))) {
+        googleUser.role = 'ctsv';
+      }
+      persistSession(googleUser, token, 'google');
 
-      // Save this real account to googleAccounts in localStorage so it appears in the chooser list next time
       const saved = localStorage.getItem('googleAccounts');
       let accounts = saved ? JSON.parse(saved) : [];
       if (!accounts.some(acc => acc.email.toLowerCase() === email.toLowerCase())) {
@@ -56,7 +57,7 @@ const Login = ({ showToast }) => {
         localStorage.setItem('googleAccounts', JSON.stringify(accounts));
       }
 
-      navigate('/', { replace: true });
+      navigate(getHomePathForRole(googleUser.role), { replace: true });
     } else if (authStatus === 'error') {
       const message = params.get('message') || 'Đăng nhập Google thất bại.';
       showToast(message, 'error');
@@ -152,14 +153,15 @@ const Login = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
-          showToast('Đăng nhập thành công! Chào mừng bạn quay trở lại FPT Students Community.', 'success');
+          const role = normalizeRole(data.user?.role);
+          const welcome =
+            role === 'ctsv' || role === 'icpdp'
+              ? 'Đăng nhập CTSV thành công! Chào mừng bạn đến cổng quản trị sự kiện.'
+              : 'Đăng nhập thành công! Chào mừng bạn quay trở lại FPT Students Community.';
+          showToast(welcome, 'success');
 
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('userEmail', formData.email);
-          localStorage.setItem('loginMethod', 'local');
-          if (data.token) localStorage.setItem('authToken', data.token);
-
-          navigate('/');
+          persistSession(data.user, data.token, 'local');
+          navigate(getHomePathForRole(role), { replace: true });
         } else {
           setShowAlert(true);
           setValidFields(prev => ({ ...prev, password: false }));
@@ -231,8 +233,8 @@ const Login = ({ showToast }) => {
           {/* Logo F-Events */}
           <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
             <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
-              alt="F-Events Logo"
+              src={FE_LOGO}
+              alt={FE_LOGO_ALT}
               style={{ width: '115px', height: '64px', objectFit: 'contain' }}
             />
           </div>
