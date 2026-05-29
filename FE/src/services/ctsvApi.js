@@ -32,6 +32,9 @@ export const fetchCtsvEvent = (id) => ctsvFetch(`/events/${id}`);
 export const createCtsvEvent = (body) =>
   ctsvFetch('/events', { method: 'POST', body: JSON.stringify(body) });
 
+export const updateCtsvEvent = (id, body) =>
+  ctsvFetch(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+
 export const approveCtsvEvent = (id, note = '') =>
   ctsvFetch(`/events/${id}/approve`, { method: 'PATCH', body: JSON.stringify({ note }) });
 

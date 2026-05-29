@@ -13,6 +13,65 @@ const Contract = require('../src/models/Contract');
 const Announcement = require('../src/models/Announcement');
 const { formatEvent, formatProposal } = require('../src/utils/eventFormat');
 
+const MAX_IMAGE_DATA_LEN = 4_500_000;
+
+const normalizeTicketTypes = (ticketTypes) => {
+  if (!Array.isArray(ticketTypes)) return [];
+  return ticketTypes.map((t) => ({
+    name: String(t.name || '').trim(),
+    priceType: t.priceType === 'paid' ? 'paid' : 'free',
+    priceAmount: t.priceType === 'paid' ? Math.max(0, Number(t.priceAmount) || 0) : 0,
+    qty: Math.max(0, Number(t.qty) || 0),
+    audience: t.audience || 'SV FPT'
+  }));
+};
+
+const pickSchoolEventFields = (body) => {
+  const {
+    title,
+    description,
+    category,
+    startDate,
+    endDate,
+    location,
+    totalTickets,
+    image,
+    bannerFileName,
+    eventType,
+    duration,
+    format,
+    speaker,
+    agenda,
+    expectedAttendees,
+    ticketTypes
+  } = body;
+
+  if (image && image.length > MAX_IMAGE_DATA_LEN) {
+    const err = new Error('IMAGE_TOO_LARGE');
+    err.code = 'IMAGE_TOO_LARGE';
+    throw err;
+  }
+
+  return {
+    title: title?.trim(),
+    description: description || '',
+    category: category || 'Khác',
+    startDate,
+    endDate,
+    location: location || '',
+    totalTickets: totalTickets || 100,
+    image: image || '',
+    bannerFileName: bannerFileName || '',
+    eventType: eventType || '',
+    duration: duration || '',
+    format: ['campus', 'online', 'hybrid'].includes(format) ? format : 'campus',
+    speaker: speaker || '',
+    agenda: agenda || '',
+    expectedAttendees: Number(expectedAttendees) || 0,
+    ticketTypes: normalizeTicketTypes(ticketTypes)
+  };
+};
+
 router.use(authMiddleware);
 router.use(requireCtsvPortal);
 
@@ -117,30 +176,16 @@ router.get('/events/:id', async (req, res) => {
 // POST /api/ctsv/events — tạo sự kiện cấp trường
 router.post('/events', requireCtsvApprove, async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      category,
-      startDate,
-      endDate,
-      location,
-      totalTickets,
-      image
-    } = req.body;
+    const data = pickSchoolEventFields(req.body);
 
-    if (!title?.trim() || !startDate) {
+    if (!data.title || !data.startDate) {
       return res.status(400).json({ success: false, message: 'Tiêu đề và ngày bắt đầu là bắt buộc!' });
     }
 
     const event = await Event.create({
-      title: title.trim(),
-      description: description || '',
-      category: category || 'Khác',
-      startDate: new Date(startDate),
-      endDate: endDate ? new Date(endDate) : undefined,
-      location: location || '',
-      totalTickets: totalTickets || 100,
-      image: image || '',
+      ...data,
+      startDate: new Date(data.startDate),
+      endDate: data.endDate ? new Date(data.endDate) : undefined,
       status: 'approved',
       source: 'school',
       createdByEmail: req.authEmail,
@@ -149,7 +194,46 @@ router.post('/events', requireCtsvApprove, async (req, res) => {
 
     return res.status(201).json({ success: true, event: formatEvent(event) });
   } catch (error) {
+    if (error.code === 'IMAGE_TOO_LARGE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Ảnh bìa quá lớn. Vui lòng cắt lại hoặc chọn ảnh nhỏ hơn.'
+      });
+    }
     console.error('ctsv create event:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// PUT /api/ctsv/events/:id — cập nhật sự kiện cấp trường (đầy đủ trường form)
+router.put('/events/:id', requireCtsvApprove, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
+    }
+
+    const data = pickSchoolEventFields(req.body);
+    if (!data.title || !data.startDate) {
+      return res.status(400).json({ success: false, message: 'Tiêu đề và ngày bắt đầu là bắt buộc!' });
+    }
+
+    Object.assign(event, {
+      ...data,
+      startDate: new Date(data.startDate),
+      endDate: data.endDate ? new Date(data.endDate) : event.endDate
+    });
+    await event.save();
+
+    return res.json({ success: true, event: formatEvent(event) });
+  } catch (error) {
+    if (error.code === 'IMAGE_TOO_LARGE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Ảnh bìa quá lớn. Vui lòng cắt lại hoặc chọn ảnh nhỏ hơn.'
+      });
+    }
+    console.error('ctsv update event:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

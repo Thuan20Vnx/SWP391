@@ -11,6 +11,17 @@ const EVENT_STATUSES = [
   'ended'
 ];
 
+const ticketTypeSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: '' },
+    priceType: { type: String, enum: ['free', 'paid'], default: 'free' },
+    priceAmount: { type: Number, default: 0 },
+    qty: { type: Number, default: 0 },
+    audience: { type: String, default: 'SV FPT' }
+  },
+  { _id: false }
+);
+
 const eventSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
@@ -22,6 +33,18 @@ const eventSchema = new mongoose.Schema(
     totalTickets: { type: Number, default: 100 },
     registeredCount: { type: Number, default: 0 },
     image: { type: String, default: '' },
+    bannerFileName: { type: String, default: '' },
+    eventType: { type: String, default: '' },
+    duration: { type: String, default: '' },
+    format: {
+      type: String,
+      enum: ['campus', 'online', 'hybrid'],
+      default: 'campus'
+    },
+    speaker: { type: String, default: '' },
+    agenda: { type: String, default: '' },
+    expectedAttendees: { type: Number, default: 50 },
+    ticketTypes: { type: [ticketTypeSchema], default: [] },
     status: {
       type: String,
       enum: EVENT_STATUSES,
