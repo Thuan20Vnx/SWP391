@@ -529,22 +529,6 @@ const Profile = ({ showToast }) => {
 
           {/* Menu Navigation */}
           <nav className="sidebar-menu">
-            {/* Section 0 */}
-            <div className="menu-section">
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/dashboard')}>
-                <div className="menu-item-content">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                    <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                  </svg>
-                  <span>Tổng quan</span>
-                </div>
-              </a>
-            </div>
-
-            {/* Section 1 */}
             <div className="menu-section">
               <a href="#" className={`menu-item ${activeMenu === 'profile' ? 'active' : ''}`} onClick={handleNavigateProfile}>
                 <div className="menu-item-content">
@@ -710,15 +694,12 @@ const Profile = ({ showToast }) => {
 
           {/* Dashboard Scrollable Body */}
           <div className="dashboard-content-wrapper">
-            {/* Page Header */}
-            <div className="page-header">
-              <h1>{activeMenu === 'change-password' ? 'Thay đổi mật khẩu' : `Chào mừng, ${profileData.fullname} 👋`}</h1>
-              <p>
-                {activeMenu === 'change-password'
-                  ? 'Cập nhật mật khẩu đăng nhập tài khoản của bạn.'
-                  : 'Quản lý và cập nhật thông tin cá nhân của bạn để nhận các đề xuất sự kiện phù hợp từ AI.'}
-              </p>
-            </div>
+            {activeMenu === 'change-password' && (
+              <div className="page-header">
+                <h1>Thay đổi mật khẩu</h1>
+                <p>Cập nhật mật khẩu đăng nhập tài khoản của bạn.</p>
+              </div>
+            )}
 
             {/* Layout Grid */}
             <div className="profile-grid">
