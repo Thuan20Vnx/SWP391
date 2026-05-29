@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StudentDashboardLayout from '../components/StudentDashboardLayout';
-import { myEvents } from '../data/studentMockData';
+import { API_BASE, getAuthHeaders } from '../utils/api';
 
 const tabs = [
   { key: 'upcoming', label: 'Sắp diễn ra' },
@@ -12,7 +12,59 @@ const tabs = [
 const MyEvents = ({ showToast }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upcoming');
-  const events = myEvents[activeTab] || [];
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`${API_BASE}/api/user/my-events?tab=${activeTab}`, {
+      headers: getAuthHeaders(false),
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          navigate('/login');
+          return Promise.reject(new Error('Unauthorized'));
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data.success) {
+          setEvents(data.events || []);
+        } else {
+          setEvents([]);
+        }
+      })
+      .catch((err) => {
+        if (err.message !== 'Unauthorized') {
+          showToast?.('Không thể tải sự kiện đã đăng ký.', 'error');
+        }
+        setEvents([]);
+      })
+      .finally(() => setLoading(false));
+  }, [activeTab, navigate, showToast]);
+
+  const handleCancel = async (event) => {
+    if (activeTab !== 'upcoming') return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/events/${event.eventId}/register`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast?.(data.message || 'Không thể hủy đăng ký.', 'error');
+        return;
+      }
+
+      setEvents((prev) => prev.filter((e) => e.id !== event.id));
+      showToast?.(data.message || 'Đã hủy đăng ký sự kiện.', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast?.('Không thể kết nối máy chủ.', 'error');
+    }
+  };
 
   return (
     <StudentDashboardLayout
@@ -41,7 +93,11 @@ const MyEvents = ({ showToast }) => {
       </div>
 
       <div className="student-event-list">
-        {events.length === 0 ? (
+        {loading ? (
+          <div className="student-empty-state">
+            <p>Đang tải...</p>
+          </div>
+        ) : events.length === 0 ? (
           <div className="student-empty-state">
             <span>📭</span>
             <h3>Chưa có sự kiện nào</h3>
@@ -58,7 +114,22 @@ const MyEvents = ({ showToast }) => {
                 <p>{event.location}</p>
                 <div className="student-event-card__actions">
                   <button type="button" className="student-outline-btn">Xem vé QR</button>
-                  <button type="button" className="student-link-btn">Chi tiết</button>
+                  {activeTab === 'upcoming' && (
+                    <button
+                      type="button"
+                      className="student-link-btn"
+                      onClick={() => handleCancel(event)}
+                    >
+                      Hủy đăng ký
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="student-link-btn"
+                    onClick={() => navigate('/events')}
+                  >
+                    Chi tiết
+                  </button>
                 </div>
               </div>
             </article>

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const SchoolMember = require('./SchoolMember');
+require('./SchoolMember');
 const {
   normalizeStudentId,
   deriveCourseFromStudentId,
@@ -67,6 +67,11 @@ const userSchema = new mongoose.Schema({
   googleId: {
     type: String,
     default: null
+  },
+  googleCalendarRefreshToken: {
+    type: String,
+    default: null,
+    select: false,
   },
   authProvider: {
     type: String,
@@ -246,9 +251,6 @@ userSchema.pre('save', function () {
   }
 });
 
-userSchema.statics.normalizeStudentId = normalizeStudentId;
-userSchema.statics.deriveCourseFromStudentId = deriveCourseFromStudentId;
-
 // ============================================================
 // Static: Sanitize user object before sending to frontend
 // ============================================================
@@ -259,6 +261,7 @@ userSchema.statics.sanitizeUser = function (user) {
   delete obj.password;
   delete obj.otp;
   delete obj.resetOtp;
+  delete obj.googleCalendarRefreshToken;
   delete obj.__v;
   return obj;
 };

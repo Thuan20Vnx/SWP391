@@ -30,7 +30,7 @@ const buildGoogleLoginUpdate = (user, { googleId, googlePicture }) => {
   return update;
 };
 
-const createUserFromGoogle = async ({ email, name, picture, googleId }) => {
+const createUserFromGoogle = async ({ email, name, picture, googleId, googleCalendarRefreshToken }) => {
   const { role, studentId, course } = await User.detectRole(email);
 
   return User.create({
@@ -38,6 +38,7 @@ const createUserFromGoogle = async ({ email, name, picture, googleId }) => {
     email: email.toLowerCase(),
     passwordHash: null,
     googleId: googleId || null,
+    googleCalendarRefreshToken: googleCalendarRefreshToken || null,
     authProvider: 'google',
     role,
     studentId,
@@ -324,6 +325,7 @@ const googleCallback = async (code) => {
   let name = '';
   let picture = '';
   let googleId = '';
+  let googleCalendarRefreshToken = null;
 
   if (!GOOGLE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET === 'mock') {
     console.log('[MOCK CALLBACK] Client Secret is not set. Simulating login...');
@@ -340,6 +342,10 @@ const googleCallback = async (code) => {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
+    if (tokens.refresh_token) {
+      googleCalendarRefreshToken = tokens.refresh_token;
+    }
+
     const ticket = await oauth2Client.verifyIdToken({
       idToken: tokens.id_token,
       audience: GOOGLE_CLIENT_ID,
@@ -353,14 +359,27 @@ const googleCallback = async (code) => {
 
   let user = await User.findOne({ email: email.toLowerCase() });
 
+  const calendarTokenUpdate = googleCalendarRefreshToken
+    ? { googleCalendarRefreshToken }
+    : {};
+
   if (user) {
-    await User.syncAndPersistUserProfile(user, buildGoogleLoginUpdate(user, {
-      googleId,
-      googlePicture: picture,
-    }));
+    await User.syncAndPersistUserProfile(user, {
+      ...buildGoogleLoginUpdate(user, {
+        googleId,
+        googlePicture: picture,
+      }),
+      ...calendarTokenUpdate,
+    });
     user = await User.findOne({ email: email.toLowerCase() });
   } else {
-    user = await createUserFromGoogle({ email, name, picture, googleId });
+    user = await createUserFromGoogle({
+      email,
+      name,
+      picture,
+      googleId,
+      googleCalendarRefreshToken,
+    });
   }
 
   const authToken = signToken(user);

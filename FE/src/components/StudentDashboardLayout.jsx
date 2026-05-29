@@ -5,6 +5,7 @@ import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { resolveUserAvatar } from '../utils/image';
 import { getRoleLabel } from '../utils/role';
+import { clearUserProfileCache } from '../hooks/useUserProfile';
 
 const menuSections = [
   {
@@ -127,6 +128,7 @@ const StudentDashboardLayout = ({
     localStorage.removeItem('userEmail');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
+    clearUserProfileCache();
     navigate('/login');
   };
 

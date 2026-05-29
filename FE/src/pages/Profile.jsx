@@ -6,6 +6,7 @@ import { formatMssv } from '../utils/studentId';
 import { compressImageFile, resolveUserAvatar } from '../utils/image';
 import { getPasswordStrength } from '../utils/password';
 import { getRoleLabel } from '../utils/role';
+import { clearUserProfileCache } from '../hooks/useUserProfile';
 
 const Profile = ({ showToast }) => {
   const navigate = useNavigate();
@@ -475,6 +476,7 @@ const Profile = ({ showToast }) => {
     localStorage.removeItem('loginMethod');
     localStorage.removeItem('userRole');
     localStorage.removeItem('authToken');
+    clearUserProfileCache();
     navigate('/login');
   };
 

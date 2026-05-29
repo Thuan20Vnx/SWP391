@@ -8,6 +8,8 @@ import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Events from './pages/Events';
+import Clubs from './pages/Clubs';
+import ClubDetail from './pages/ClubDetail';
 import CreateEvent from './pages/CreateEvent';
 import AdminDashboard from './pages/AdminDashboard';
 import StudentDashboard from './pages/StudentDashboard';
@@ -74,6 +76,8 @@ function App() {
 
           {/* Event Routes */}
           <Route path="/events" element={<Events showToast={showToast} />} />
+          <Route path="/clubs" element={<Clubs showToast={showToast} />} />
+          <Route path="/clubs/:clubId" element={<ClubDetail showToast={showToast} />} />
           <Route 
             path="/create-event" 
             element={

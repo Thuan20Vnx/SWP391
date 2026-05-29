@@ -1,21 +1,42 @@
 const Event = require('../models/Event');
 const AppError = require('../utils/AppError');
+const { isValidEventVenue } = require('../constants/eventVenues');
+const { getRegisteredEventIds } = require('./registration.service');
 
 const createEvent = async (user, body) => {
-  const { title, description, thumbnail, startDate, endDate, location, capacity } = body;
+  const {
+    title,
+    description,
+    thumbnail,
+    category,
+    startDate,
+    endDate,
+    location,
+    capacity,
+  } = body;
 
   if (!title || !description || !startDate || !endDate || !location || !capacity) {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
+  }
+
+  if (!isValidEventVenue(location)) {
+    throw new AppError(
+      'Địa điểm không hợp lệ. Chọn một trong: Sảnh tòa Gamma, Sảnh tòa Beta, Tầng 4 tòa Beta, Tầng 5 tòa Alpha.',
+      400
+    );
   }
 
   const newEvent = await Event.create({
     title,
     description,
     thumbnail: thumbnail || undefined,
+    category: category || 'Công nghệ',
     startDate,
     endDate,
     location,
     capacity,
+    registeredCount: 0,
+    eventState: 'active',
     createdBy: user._id,
     status: 'pending',
   });
@@ -58,12 +79,29 @@ const updateEventStatus = async (eventId, { status, rejectionReason }) => {
   };
 };
 
-const getApprovedEvents = async () => {
-  const events = await Event.find({ status: 'approved' })
+const getApprovedEvents = async ({ category, userId } = {}) => {
+  const query = { status: 'approved' };
+  if (category && category !== 'all') {
+    query.category = category;
+  }
+
+  const events = await Event.find(query)
     .populate('createdBy', 'fullname email')
     .sort({ startDate: 1 });
 
-  return { events };
+  let registeredSet = new Set();
+  if (userId) {
+    const ids = await getRegisteredEventIds(userId);
+    registeredSet = new Set(ids);
+  }
+
+  const eventsWithRegistration = events.map((event) => {
+    const doc = event.toObject();
+    doc.isRegistered = registeredSet.has(String(event._id));
+    return doc;
+  });
+
+  return { events: eventsWithRegistration };
 };
 
 module.exports = {

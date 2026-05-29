@@ -17,13 +17,7 @@ const deriveCourseFromStudentId = (studentId) => {
   return `K${match[2]}`;
 };
 
-const isValidStudentIdFormat = (studentId) => {
-  const normalized = normalizeStudentId(studentId);
-  return MSSV_PATTERN.test(normalized) && normalized.length >= 8;
-};
-
 module.exports = {
   normalizeStudentId,
   deriveCourseFromStudentId,
-  isValidStudentIdFormat,
 };

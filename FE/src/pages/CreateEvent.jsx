@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { EVENT_VENUES } from '../constants/eventVenues';
 
 const CreateEvent = ({ showToast }) => {
   const navigate = useNavigate();
@@ -105,10 +106,38 @@ const CreateEvent = ({ showToast }) => {
             </div>
           </div>
 
+          <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              Sự kiện chỉ được tổ chức trong khuôn viên trường.
+            </p>
+          </div>
+
           <div className="input-group">
             <div className="input-wrapper">
-              <input type="text" id="location" placeholder=" " required value={formData.location} onChange={handleInputChange} />
-              <label htmlFor="location">Địa điểm tổ chức</label>
+              <select
+                id="location"
+                required
+                value={formData.location}
+                onChange={handleInputChange}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border-default)',
+                  outline: 'none',
+                  background: 'var(--bg-input)',
+                  color: 'var(--text-main)',
+                  fontSize: '1rem',
+                }}
+              >
+                <option value="" disabled>Chọn địa điểm</option>
+                {EVENT_VENUES.map((venue) => (
+                  <option key={venue} value={venue}>{venue}</option>
+                ))}
+              </select>
+              <label htmlFor="location" style={{ transform: 'translateY(-50%) scale(0.8)', top: '0', background: 'var(--bg-input)' }}>
+                Địa điểm tổ chức
+              </label>
             </div>
           </div>
 

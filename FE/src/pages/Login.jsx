@@ -2,12 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { cacheUserProfile } from '../hooks/useUserProfile';
+import { resolveUserAvatar } from '../utils/image';
+import defaultAvatar from '../constants/defaultAvatar';
 
 const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 };
 
 const REMEMBER_EMAIL_KEY = 'rememberedLoginEmail';
+
+const persistProfileFromUser = (user) => {
+  if (!user) return;
+  const profile = {
+    fullname: user.fullname || '',
+    course: user.course || '',
+    picture: resolveUserAvatar(user, defaultAvatar),
+    role: user.role || 'guest',
+  };
+  localStorage.setItem('userRole', profile.role);
+  cacheUserProfile(profile);
+};
 
 const Login = ({ showToast }) => {
   const navigate = useNavigate();
@@ -66,7 +81,7 @@ const Login = ({ showToast }) => {
         .then(r => r.json())
         .then(d => {
           if (d.success && d.user) {
-            localStorage.setItem('userRole', d.user.role || 'guest');
+            persistProfileFromUser(d.user);
           }
         })
         .catch(() => {});
@@ -168,8 +183,7 @@ const Login = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
-          const userRole = data.user?.role || 'guest';
-          localStorage.setItem('userRole', userRole);
+          persistProfileFromUser(data.user);
 
           localStorage.setItem('isLoggedIn', 'true');
           localStorage.setItem('userEmail', formData.email);
@@ -209,7 +223,9 @@ const Login = ({ showToast }) => {
       client_id: "462966212822-ohmu33pmrp4dcpuq3hm00tnvuac4jqa9.apps.googleusercontent.com",
       redirect_uri: "http://localhost:5000/api/auth/google/callback",
       response_type: "code",
-      scope: "openid email profile",
+      scope: "openid email profile https://www.googleapis.com/auth/calendar.events",
+      access_type: "offline",
+      prompt: "consent",
     });
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   };
