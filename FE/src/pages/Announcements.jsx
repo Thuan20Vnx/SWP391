@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import StudentDashboardLayout from '../components/StudentDashboardLayout';
+import AnnouncementsLayout from '../components/AnnouncementsLayout';
 import { announcements } from '../data/studentMockData';
 
 const filters = ['Tất cả', 'Chưa đọc', 'Quan trọng'];
@@ -22,11 +22,9 @@ const Announcements = ({ showToast }) => {
   };
 
   return (
-    <StudentDashboardLayout
-      activeMenu="announcements"
-      pageTitle="Thông báo từ Nhà trường"
-      pageSubtitle="Cập nhật các thông tin quan trọng về học tập và sự kiện tại campus."
-      showToast={showToast}
+    <AnnouncementsLayout
+      title="Thông báo từ Nhà trường"
+      subtitle="Cập nhật các thông tin quan trọng về học tập và sự kiện tại campus."
     >
       <div className="student-page-actions">
         <button type="button" className="student-outline-btn" onClick={markAllRead}>
@@ -59,7 +57,9 @@ const Announcements = ({ showToast }) => {
             <div className="student-announcement-item__body">
               <div className="student-announcement-item__title-row">
                 {item.urgent && <span className="student-badge student-badge--danger">KHẨN</span>}
-                {item.important && !item.urgent && <span className="student-badge student-badge--warning">Quan trọng</span>}
+                {item.important && !item.urgent && (
+                  <span className="student-badge student-badge--warning">Quan trọng</span>
+                )}
                 <strong>{item.title}</strong>
               </div>
               <p>{item.excerpt}</p>
@@ -72,7 +72,7 @@ const Announcements = ({ showToast }) => {
           </button>
         ))}
       </div>
-    </StudentDashboardLayout>
+    </AnnouncementsLayout>
   );
 };
 

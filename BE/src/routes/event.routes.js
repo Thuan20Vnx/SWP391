@@ -12,8 +12,8 @@ const { EVENT_PARTICIPANT_ROLES } = require('../constants/eventPricing');
 const router = express.Router();
 
 router.post('/', authorize('student', 'staff'), asyncHandler(eventController.createEvent));
-router.get('/pending', authorize('ctsv'), asyncHandler(eventController.getPendingEvents));
-router.put('/:id/status', authorize('ctsv'), asyncHandler(eventController.updateEventStatus));
+router.get('/pending', authorize('ctsv', 'admin'), asyncHandler(eventController.getPendingEvents));
+router.put('/:id/status', authorize('ctsv', 'admin'), asyncHandler(eventController.updateEventStatus));
 
 router.post(
   '/:id/register',

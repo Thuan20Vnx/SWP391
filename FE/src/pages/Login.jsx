@@ -4,6 +4,7 @@ import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { cacheUserProfile } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
+import { getHomePathForRole, normalizeRole } from '../utils/auth';
 import { resolveUserAvatar } from '../utils/image';
 import defaultAvatar from '../constants/defaultAvatar';
 
@@ -188,7 +189,7 @@ const Login = ({ showToast }) => {
           }
 
           dispatchAuthChanged();
-          navigate('/');
+          navigate(getHomePathForRole(normalizeRole(data.user?.role)));
         } else {
           setValidFields(prev => ({ ...prev, password: false }));
           setErrors(prev => ({ ...prev, password: true }));

@@ -211,10 +211,27 @@ userSchema.statics.syncAllStudentCourses = async function () {
   }
 };
 
+const PROTECTED_ROLES = new Set([
+  'admin',
+  'ctsv',
+  'partner',
+  'icpdp',
+  'club_manager',
+  'staff',
+]);
+
 // Sync role/MSSV from whitelist + derive course from studentId
 userSchema.statics.ensureProfileSynced = async function (user) {
   const detected = await this.detectRole(user.email);
   let changed = false;
+  const currentRole = normalizeRole(user.role);
+
+  if (PROTECTED_ROLES.has(currentRole)) {
+    if (this.syncCourseFromStudentId(user)) {
+      return true;
+    }
+    return false;
+  }
 
   if ((!user.role || user.role === 'guest') && detected.role !== 'guest') {
     this.applySchoolMemberData(user, detected);

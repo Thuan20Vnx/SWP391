@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import Home from './pages/Home';
 import CtsvHome from './pages/CtsvHome';
@@ -28,7 +28,10 @@ import EventDetail from './pages/EventDetail';
 import Clubs from './pages/Clubs';
 import ClubDetail from './pages/ClubDetail';
 import CreateEvent from './pages/CreateEvent';
+import AdminLayout from './layouts/AdminLayout';
+import AdminMonitoringDashboard from './pages/AdminMonitoringDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminPlaceholder from './pages/admin/AdminPlaceholder';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
 import Schedule from './pages/Schedule';
@@ -38,7 +41,7 @@ import AnnouncementDetail from './pages/AnnouncementDetail';
 import StaticPage from './pages/StaticPage';
 
 import { ToastContainer } from './components/Toast';
-import { getHomePathForRole, getUserRole, isCtsvRole } from './utils/auth';
+import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole } from './utils/auth';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import './index.css';
 
@@ -62,6 +65,16 @@ const PublicHomeRoute = ({ showToast }) => {
     return <Navigate to="/ctsv" replace />;
   }
   return <Home showToast={showToast} />;
+};
+
+const AdminAreaGuard = () => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const { pathname } = useLocation();
+
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (isAdminRole()) return <Outlet />;
+  if (isCtsvRole() && pathname.startsWith('/admin/events')) return <Outlet />;
+  return <Navigate to="/" replace />;
 };
 
 function App() {
@@ -135,14 +148,48 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/events"
-            element={
-              <ProtectedRoute>
-                <AdminDashboard showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/admin" element={<AdminAreaGuard />}>
+            <Route element={<AdminLayout showToast={showToast} />}>
+              <Route index element={<AdminMonitoringDashboard />} />
+              <Route path="events" element={<AdminDashboard showToast={showToast} />} />
+              <Route
+                path="accounts"
+                element={
+                  <AdminPlaceholder
+                    title="Kiểm soát tài khoản"
+                    description="Quản lý tài khoản người dùng, phân quyền và whitelist."
+                  />
+                }
+              />
+              <Route
+                path="system"
+                element={
+                  <AdminPlaceholder
+                    title="Cấu hình hệ thống"
+                    description="Thiết lập email, payment gateway và thông số hệ thống."
+                  />
+                }
+              />
+              <Route
+                path="data"
+                element={
+                  <AdminPlaceholder
+                    title="Duy trì dữ liệu lõi"
+                    description="Sao lưu, khôi phục và đồng bộ dữ liệu lõi."
+                  />
+                }
+              />
+              <Route
+                path="analytics"
+                element={
+                  <AdminPlaceholder
+                    title="Đánh giá & Phân tích"
+                    description="Báo cáo hiệu suất và phân tích vận hành."
+                  />
+                }
+              />
+            </Route>
+          </Route>
           <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
           <Route
             path="/my-events"

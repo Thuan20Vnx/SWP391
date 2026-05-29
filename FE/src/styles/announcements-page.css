@@ -1,0 +1,52 @@
+/* Tin tức — full width, no student sidebar */
+
+.announcements-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-default, #fafafa);
+}
+
+.announcements-page__main {
+  flex: 1;
+  padding: 24px var(--home-content-padding, 24px) 48px;
+}
+
+.announcements-page__container {
+  max-width: var(--home-content-max, 1280px);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.announcements-page__title {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #251913;
+  line-height: 1.25;
+}
+
+.announcements-page__subtitle {
+  margin: 0 0 24px;
+  font-size: 1rem;
+  color: #584238;
+  line-height: 1.5;
+}
+
+.announcements-page .student-page-actions {
+  margin-bottom: 20px;
+}
+
+.announcements-page .student-back-btn {
+  margin-bottom: 20px;
+}
+
+@media (max-width: 640px) {
+  .announcements-page__title {
+    font-size: 1.5rem;
+  }
+
+  .announcements-page__main {
+    padding-top: 16px;
+  }
+}

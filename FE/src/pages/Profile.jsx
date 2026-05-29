@@ -4,7 +4,7 @@ import defaultAvatar from '../constants/defaultAvatar';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { formatMssv } from '../utils/studentId';
 import { compressImageFile, resolveUserAvatar } from '../utils/image';
-import { getRoleLabel } from '../utils/role';
+import { getRoleLabel, isAdminRoleLabel } from '../utils/role';
 import { clearUserProfileCache } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
@@ -339,7 +339,13 @@ const Profile = ({ showToast }) => {
                 <>
                   <span className="sidebar-user-name">{profileData.fullname}</span>
                   {userRole?.toLowerCase() !== 'student' && (
-                    <span className="sidebar-user-role">{getRoleLabel(userRole)}</span>
+                    <span
+                      className={`sidebar-user-role${
+                        isAdminRoleLabel(userRole) ? ' profile-role-admin' : ''
+                      }`}
+                    >
+                      {getRoleLabel(userRole, isAdminRoleLabel(userRole) ? profileData.course : undefined)}
+                    </span>
                   )}
                 </>
               )}
@@ -410,7 +416,13 @@ const Profile = ({ showToast }) => {
                     <>
                       <span className="navbar-user-name">{profileData.fullname}</span>
                       {userRole?.toLowerCase() !== 'student' && (
-                        <span className="navbar-user-role">{getRoleLabel(userRole)}</span>
+                        <span
+                          className={`navbar-user-role${
+                            isAdminRoleLabel(userRole) ? ' profile-role-admin' : ''
+                          }`}
+                        >
+                          {getRoleLabel(userRole, isAdminRoleLabel(userRole) ? profileData.course : undefined)}
+                        </span>
                       )}
                     </>
                   )}

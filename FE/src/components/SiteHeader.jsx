@@ -1,32 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import fptLogo from '../assets/fpt_logo.png';
 import defaultAvatar from '../constants/defaultAvatar';
 import ProfileSidebarMenu from './ProfileSidebarMenu';
+import AdminDrawerMenu from './admin/AdminDrawerMenu';
 import { getRoleLabel } from '../utils/role';
 import useUserProfile, { clearUserProfileCache } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
+import { getUserRole, isAdminRole, normalizeRole } from '../utils/auth';
+import '../styles/admin-menu.css';
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { key: 'home', label: 'Trang chủ', to: '/' },
   { key: 'events', label: 'Sự kiện', to: '/events' },
   { key: 'clubs', label: 'Câu lạc bộ', to: '/clubs' },
+  { key: 'news', label: 'Tin tức', to: '/announcements' },
 ];
+
+const ADMIN_NAV_ITEM = {
+  key: 'admin',
+  label: 'Quản trị viên',
+  to: '/admin',
+};
 
 const SiteHeader = ({
   activeNav = 'home',
-  searchPlaceholder = 'Tìm kiếm sự kiện...',
+  searchPlaceholder,
   searchValue = '',
   onSearchChange,
   onSearchKeyDown,
 }) => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
+  const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
   const { isLoggedIn, userProfile, profileLoading } = useUserProfile();
 
+  const role = normalizeRole(userProfile.role || getUserRole());
+  const showAdminMenu = isLoggedIn && isAdminRole(role);
+  const isAdminRoute = pathname.startsWith('/admin');
+  const resolvedSearchPlaceholder =
+    searchPlaceholder
+    ?? (isAdminRoute && showAdminMenu
+      ? 'Tìm kiếm tài khoản, mã lệnh, log hệ thống...'
+      : 'Tìm kiếm sự kiện...');
+
+  const navItems = showAdminMenu
+    ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM]
+    : BASE_NAV_ITEMS;
+
   useEffect(() => {
-    if (!profilePopupOpen) return;
+    setAdminDrawerOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!profilePopupOpen) return undefined;
 
     const handleEscape = (e) => {
       if (e.key === 'Escape') setProfilePopupOpen(false);
@@ -72,18 +101,33 @@ const SiteHeader = ({
   };
 
   return (
-    <header className="home-header site-header">
+    <>
+    <header className={`home-header site-header${showAdminMenu ? ' site-header--admin' : ''}`}>
       <div className="header-container site-header__container">
-        <button
-          type="button"
-          className="mobile-hamburger-btn"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Mở menu"
-        >
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
-          </svg>
-        </button>
+        {showAdminMenu ? (
+          <button
+            type="button"
+            className="admin-hamburger-btn"
+            onClick={() => setAdminDrawerOpen((v) => !v)}
+            aria-label="Mở menu quản trị"
+            aria-expanded={adminDrawerOpen}
+          >
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
+            </svg>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="mobile-hamburger-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Mở menu"
+          >
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
+            </svg>
+          </button>
+        )}
 
         <div className="header-logo site-header__logo-group">
           <img
@@ -96,7 +140,7 @@ const SiteHeader = ({
             onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
           />
           <nav className={`header-nav site-header__nav ${mobileMenuOpen ? 'mobile-active' : ''}`}>
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.key}
                 to={item.to}
@@ -117,7 +161,7 @@ const SiteHeader = ({
           </span>
           <input
             type="text"
-            placeholder={searchPlaceholder}
+            placeholder={resolvedSearchPlaceholder}
             value={searchValue}
             onChange={(e) => onSearchChange?.(e.target.value)}
             onKeyDown={onSearchKeyDown}
@@ -154,9 +198,19 @@ const SiteHeader = ({
                   >
                     <div className="profile-info-text">
                       <span className="profile-name">{userProfile.fullname || 'Người dùng'}</span>
-                      <span className="profile-role" style={{ fontSize: '12px', color: '#8a7b72', display: 'block', marginTop: '2px' }}>
-                        {getRoleLabel(userProfile.role)}
-                        {userProfile.course ? ` · ${userProfile.course}` : ''}
+                      <span
+                        className={`profile-role${
+                          isAdminRole(role) ? ' profile-role-admin' : ''
+                        }`}
+                      >
+                        {isAdminRole(role)
+                          ? getRoleLabel(userProfile.role, userProfile.course)
+                          : (
+                            <>
+                              {getRoleLabel(userProfile.role)}
+                              {userProfile.course ? ` · ${userProfile.course}` : ''}
+                            </>
+                          )}
                       </span>
                     </div>
                     <div className="profile-avatar-circle">
@@ -197,6 +251,14 @@ const SiteHeader = ({
         </div>
       </div>
     </header>
+
+    {showAdminMenu && (
+      <AdminDrawerMenu
+        open={adminDrawerOpen}
+        onClose={() => setAdminDrawerOpen(false)}
+      />
+    )}
+    </>
   );
 };
 

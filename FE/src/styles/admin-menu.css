@@ -1,0 +1,192 @@
+/* Admin drawer menu — Figma SWP391_2 */
+
+.admin-hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: 8px;
+  padding: 0;
+  border: 2px solid rgba(99, 102, 241, 0.35);
+  border-radius: 10px;
+  background: #fff;
+  color: #f26f21;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.admin-hamburger-btn:hover {
+  border-color: #f26f21;
+  background: rgba(242, 111, 33, 0.06);
+}
+
+.admin-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(37, 25, 19, 0.35);
+  z-index: 200;
+}
+
+.admin-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(320px, 88vw);
+  background: #fff;
+  border-radius: 0 16px 16px 0;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px 16px;
+  animation: admin-drawer-in 0.22s ease-out;
+}
+
+@keyframes admin-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.admin-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0e8e2;
+}
+
+.admin-drawer__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.admin-drawer__logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.admin-drawer__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #251913;
+  white-space: nowrap;
+}
+
+.admin-drawer__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #584238;
+  cursor: pointer;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.admin-drawer__close:hover {
+  background: #fafafa;
+}
+
+.admin-drawer__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.admin-drawer__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #251913;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-drawer__link svg {
+  color: #f26f21;
+  flex-shrink: 0;
+}
+
+.admin-drawer__link:hover {
+  background: #fff7ed;
+}
+
+.admin-drawer__link--active {
+  background: #f26f21;
+  color: #fff;
+}
+
+.admin-drawer__link--active svg {
+  color: #fff;
+}
+
+.admin-drawer__footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #f0e8e2;
+  background: linear-gradient(180deg, rgba(255, 247, 237, 0) 0%, rgba(255, 247, 237, 0.6) 100%);
+  border-radius: 12px;
+  padding: 16px 12px 8px;
+}
+
+.admin-drawer__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.admin-drawer__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e0c0b2;
+}
+
+.admin-drawer__name {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #251913;
+}
+
+.admin-drawer__logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  color: #f26f21;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.admin-drawer__logout:hover {
+  text-decoration: underline;
+}
