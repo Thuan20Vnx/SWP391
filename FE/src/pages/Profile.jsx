@@ -439,6 +439,7 @@ const Profile = ({ showToast }) => {
           setShowCurrentPw(false);
           setShowNewPasswords(false);
           setCurrentPwStatus(null);
+          showToast(data.message || 'Thay đổi mật khẩu thành công!', 'success');
         } else {
           showToast(data.message || 'Thay đổi mật khẩu thất bại!', 'error');
         }
