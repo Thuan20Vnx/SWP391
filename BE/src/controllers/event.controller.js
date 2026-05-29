@@ -16,7 +16,11 @@ const updateEventStatus = async (req, res) => {
 };
 
 const getApprovedEvents = async (req, res) => {
-  const result = await eventService.getApprovedEvents();
+  const userId = req.user?._id;
+  const result = await eventService.getApprovedEvents({
+    category: req.query.category,
+    userId,
+  });
   res.status(200).json({ success: true, ...result });
 };
 
@@ -26,3 +30,4 @@ module.exports = {
   updateEventStatus,
   getApprovedEvents,
 };
+

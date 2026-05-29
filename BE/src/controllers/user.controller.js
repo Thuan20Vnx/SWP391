@@ -1,4 +1,5 @@
 const userService = require('../services/user.service');
+const registrationService = require('../services/registration.service');
 
 const getProfile = async (req, res) => {
   const result = await userService.getProfile(req.authEmail);
@@ -20,9 +21,17 @@ const verifyPassword = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const getMyEvents = async (req, res) => {
+  const result = await registrationService.getMyEvents(req.user._id, {
+    tab: req.query.tab || 'upcoming',
+  });
+  res.status(200).json({ success: true, ...result });
+};
+
 module.exports = {
   getProfile,
   updateProfile,
   changePassword,
   verifyPassword,
+  getMyEvents,
 };

@@ -38,7 +38,7 @@ const googleLogin = async (req, res) => {
   res.status(statusCode).json({ success: true, ...result });
 };
 
-const googleCallback = async (req, res, next) => {
+const googleCallback = async (req, res) => {
   try {
     const { redirectUrl } = await authService.googleCallback(req.query.code);
     res.redirect(redirectUrl);

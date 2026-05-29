@@ -1,132 +1,204 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import EventDiscoveryCard from '../components/EventDiscoveryCard';
+import SiteHeader from '../components/SiteHeader';
+import SiteFooter from '../components/SiteFooter';
+import useUserProfile from '../hooks/useUserProfile';
+import { API_BASE, getAuthHeaders } from '../utils/api';
+import {
+  CATEGORY_FILTERS,
+  FIGMA_SAMPLE_EVENTS,
+  mapApiEventToCard,
+  filterEventsByCategory,
+  filterEventsBySearch,
+} from '../data/eventDiscoveryData';
+
+const PAGE_SIZE = 6;
+const USE_FIGMA_FALLBACK = false;
 
 const Events = ({ showToast }) => {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  const userRole = localStorage.getItem('userRole') || 'guest';
+  const [events, setEvents] = useState(USE_FIGMA_FALLBACK ? FIGMA_SAMPLE_EVENTS : []);
+  const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const { isLoggedIn } = useUserProfile();
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = () => {
-    setLoading(true);
-    fetch('http://localhost:5000/api/events')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setEvents(data.events);
+    fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.events?.length > 0) {
+          setEvents(data.events.map(mapApiEventToCard));
+        } else if (USE_FIGMA_FALLBACK) {
+          setEvents(FIGMA_SAMPLE_EVENTS);
         } else {
-          showToast('Lỗi tải danh sách sự kiện', 'error');
+          setEvents([]);
         }
-        setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        showToast('Không thể kết nối máy chủ', 'error');
-        setLoading(false);
+        if (USE_FIGMA_FALLBACK) setEvents(FIGMA_SAMPLE_EVENTS);
+        showToast?.('Không thể tải danh sách sự kiện', 'error');
+      })
+      .finally(() => setLoading(false));
+  }, [showToast]);
+
+  const filteredEvents = useMemo(() => {
+    let result = filterEventsByCategory(events, activeFilter);
+    result = filterEventsBySearch(result, searchQuery);
+    return result;
+  }, [events, activeFilter, searchQuery]);
+
+  const visibleEvents = filteredEvents.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredEvents.length;
+
+  const handleRegister = async (event) => {
+    if (event.cardState === 'expired' || event.cardState === 'postponed') {
+      showToast('Sự kiện này hiện không thể đăng ký.', 'error');
+      return;
+    }
+
+    if (!isLoggedIn) {
+      showToast('Vui lòng đăng nhập để đăng ký tham gia sự kiện!', 'error');
+      setTimeout(() => navigate('/login'), 1200);
+      return;
+    }
+
+    if (event.cardState === 'registered' || event.registered) {
+      showToast('Mở vé điện tử sự kiện (đang phát triển).', 'success');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/events/${event.id}/register`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
       });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(data.message || 'Không thể đăng ký sự kiện.', 'error');
+        return;
+      }
+
+      const updatedEvent = data.event;
+      setEvents((prev) =>
+        prev.map((ev) =>
+          ev.id === event.id
+            ? mapApiEventToCard({
+                ...updatedEvent,
+                isRegistered: true,
+              })
+            : ev
+        )
+      );
+      showToast(data.message || 'Đăng ký sự kiện thành công!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Không thể kết nối máy chủ. Vui lòng thử lại.', 'error');
+    }
+  };
+
+  const handleDetail = (event) => {
+    showToast(`Xem chi tiết: ${event.title}`, 'success');
   };
 
   return (
-    <div className="profile-container" style={{ minHeight: '100vh', background: 'var(--bg-default)' }}>
-      {/* Re-use Navbar from Profile style */}
-      <nav className="profile-navbar" style={{ padding: '0 5%' }}>
-        <div className="navbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          <span className="brand-f">F-</span>
-          <span className="brand-text">Events</span>
-        </div>
-        <div className="navbar-actions">
-          {isLoggedIn ? (
-            <>
-              <button className="nav-btn" onClick={() => navigate('/profile')}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>Hồ sơ</span>
-              </button>
-              {(userRole === 'student' || userRole === 'staff') && (
-                <button className="primary-button" style={{ height: '36px', padding: '0 16px', fontSize: '0.85rem' }} onClick={() => navigate('/create-event')}>
-                  + Đề xuất Sự Kiện
-                </button>
-              )}
-              {userRole === 'ctsv' && (
-                <button className="primary-button" style={{ height: '36px', padding: '0 16px', fontSize: '0.85rem', background: 'var(--success)' }} onClick={() => navigate('/admin/events')}>
-                  Duyệt Sự Kiện
-                </button>
-              )}
-            </>
-          ) : (
-            <button className="primary-button" onClick={() => navigate('/login')} style={{ height: '36px', padding: '0 16px', fontSize: '0.85rem' }}>
-              Đăng nhập
-            </button>
-          )}
-        </div>
-      </nav>
+    <div className="events-page home-layout">
+      <SiteHeader
+        activeNav="events"
+        searchPlaceholder="Tìm kiếm sự kiện..."
+        searchValue={searchQuery}
+        onSearchChange={(value) => {
+          setSearchQuery(value);
+          setVisibleCount(PAGE_SIZE);
+        }}
+      />
 
-      <main className="profile-main" style={{ marginTop: '80px', padding: '20px 5%' }}>
-        <div className="section-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>Khám phá Sự kiện</h1>
-            <p style={{ color: 'var(--text-muted)' }}>Tham gia các hoạt động sôi nổi tại FPT University</p>
-          </div>
-        </div>
+      <main className="events-page__main">
+        <section className="events-page__hero">
+          <h1>Khám phá sự kiện tại FPT</h1>
+          <p>Tìm kiếm và tham gia những sự kiện sôi động nhất dành cho cộng đồng FPT</p>
+        </section>
+
+        <section className="events-page__filters" aria-label="Lọc theo chủ đề">
+          {CATEGORY_FILTERS.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              className={`events-page__filter-pill ${activeFilter === filter.id ? 'is-active' : ''}`}
+              onClick={() => {
+                setActiveFilter(filter.id);
+                setVisibleCount(PAGE_SIZE);
+              }}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </section>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <span className="btn-spinner" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent', width: '30px', height: '30px', margin: 'auto' }}></span>
+          <div className="events-page__loading">
+            <span className="btn-spinner events-page__spinner" />
           </div>
-        ) : events.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', background: 'var(--surface-default)', borderRadius: '16px', border: '1px solid var(--border-default)' }}>
-            <span style={{ fontSize: '3rem' }}>🎭</span>
-            <h3 style={{ marginTop: '16px', color: 'var(--text-main)' }}>Chưa có sự kiện nào</h3>
-            <p style={{ color: 'var(--text-muted)' }}>Các sự kiện sắp tới sẽ được cập nhật tại đây.</p>
+        ) : visibleEvents.length === 0 ? (
+          <div className="events-page__empty">
+            <p>Không tìm thấy sự kiện phù hợp.</p>
+            <button
+              type="button"
+              className="events-page__reset-btn"
+              onClick={() => {
+                setActiveFilter('all');
+                setSearchQuery('');
+                setVisibleCount(PAGE_SIZE);
+              }}
+            >
+              Xóa bộ lọc
+            </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
-            {events.map(event => (
-              <div key={event._id} className="event-card" style={{ background: 'var(--surface-default)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-default)', transition: 'all 0.3s ease', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                <div style={{ height: '180px', width: '100%', background: '#eee', position: 'relative' }}>
-                  <img src={event.thumbnail} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(255,255,255,0.9)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600, color: 'var(--primary)' }}>
-                    {new Date(event.startDate).toLocaleDateString('vi-VN')}
-                  </div>
-                </div>
-                <div style={{ padding: '20px' }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{event.title}</h3>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '6px' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    <span>{event.location}</span>
-                  </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '16px' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>{event.capacity} người tham dự tối đa</span>
-                  </div>
-
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '16px' }}>
-                    {event.description}
-                  </p>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid var(--border-default)' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      Bởi: <strong style={{ color: 'var(--text-main)' }}>{event.createdBy?.fullname || 'Ẩn danh'}</strong>
-                    </span>
-                    <button className="primary-button" style={{ height: '32px', padding: '0 16px', fontSize: '0.85rem' }}>
-                      Đăng ký
-                    </button>
-                  </div>
-                </div>
-              </div>
+          <section className="events-page__grid">
+            {visibleEvents.map((event) => (
+              <EventDiscoveryCard
+                key={event.id}
+                event={event}
+                onDetail={handleDetail}
+                onPrimaryAction={handleRegister}
+              />
             ))}
+          </section>
+        )}
+
+        {hasMore && !loading && (
+          <div className="events-page__load-more-wrap">
+            <button
+              type="button"
+              className="events-page__load-more"
+              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            >
+              Xem thêm sự kiện
+              <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden="true">
+                <path d="M1 1l5 5 5-5" stroke="currentColor" strokeWidth="2" fill="none" />
+              </svg>
+            </button>
           </div>
         )}
       </main>
+
+      <SiteFooter />
+
+      <button
+        type="button"
+        className="events-page__fab"
+        aria-label="Quà tặng sự kiện"
+        onClick={() => showToast('Tính năng ưu đãi sắp ra mắt!', 'success')}
+      >
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+          <path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.4l3.38 4.6L17 10.83 14.92 8H20v6z" />
+        </svg>
+      </button>
     </div>
   );
 };
