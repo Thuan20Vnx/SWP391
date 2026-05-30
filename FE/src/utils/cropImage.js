@@ -116,3 +116,30 @@ export async function cropBannerPreview(imageSrc, cropState, previewW = 320, pre
   const canvas = drawCropped(image, cropState, previewW, previewH);
   return canvas.toDataURL('image/jpeg', 0.82);
 }
+
+/** Cắt ảnh đại diện vuông 1:1. */
+export async function cropAvatarImage(
+  imageSrc,
+  cropState,
+  outputSize = 512,
+  startQuality = 0.88
+) {
+  const image = await createImage(imageSrc);
+  const canvas = drawCropped(image, cropState, outputSize, outputSize);
+
+  let quality = startQuality;
+  let dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+  while (dataUrl.length > MAX_DATA_URL_LEN && quality > 0.52) {
+    quality -= 0.07;
+    dataUrl = canvas.toDataURL('image/jpeg', quality);
+  }
+
+  return dataUrl;
+}
+
+export async function cropAvatarPreview(imageSrc, cropState, previewSize = 128) {
+  const image = await createImage(imageSrc);
+  const canvas = drawCropped(image, cropState, previewSize, previewSize);
+  return canvas.toDataURL('image/jpeg', 0.82);
+}

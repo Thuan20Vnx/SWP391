@@ -40,12 +40,6 @@ const DEFAULT_TICKETS = [
   { id: 2, name: 'Vé khách mời', priceType: 'free', priceAmount: '', qty: 10, audience: 'Khách ngoài trường' }
 ];
 
-const FORMAT_OPTIONS = [
-  { value: 'campus', label: 'Trực tiếp tại Campus' },
-  { value: 'online', label: 'Trực tuyến (Online)' },
-  { value: 'hybrid', label: 'Kết hợp (Hybrid)' }
-];
-
 const formatTicketPriceLabel = (row) => {
   if (row.priceType === 'free') return 'Miễn phí';
   const amount = Number(String(row.priceAmount).replace(/\D/g, ''));
@@ -410,27 +404,6 @@ const CtsvEventCreate = () => {
         <section className="ctsv-form-section">
           <SectionTitle>Lịch trình &amp; Địa điểm</SectionTitle>
           <div className="ctsv-form-section-body">
-            <Field label="Hình thức tổ chức" required>
-              <div className="ctsv-radio-group" role="radiogroup" aria-label="Hình thức tổ chức">
-                {FORMAT_OPTIONS.map((opt) => (
-                  <label
-                    key={opt.value}
-                    className={`ctsv-radio-card ${form.format === opt.value ? 'is-selected' : ''}`}
-                  >
-                    <input
-                      type="radio"
-                      name="format"
-                      value={opt.value}
-                      checked={form.format === opt.value}
-                      onChange={onChange}
-                      className="ctsv-radio-input-hidden"
-                    />
-                    <span className="ctsv-radio-indicator" aria-hidden />
-                    <span className="ctsv-radio-text">{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-            </Field>
             <div className="ctsv-form-row-2">
               <Field label="Địa điểm" required>
                 <input

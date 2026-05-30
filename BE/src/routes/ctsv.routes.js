@@ -103,9 +103,7 @@ const buildEventFilter = (query) => {
 // GET /api/ctsv/stats
 router.get('/stats', async (req, res) => {
   try {
-    const pendingCount = await Event.countDocuments({
-      status: { $in: ['pending_ctsv', 'pending_icpdp'] }
-    });
+    const pendingPartners = await Partner.countDocuments({ status: 'pending' });
     const liveCount = await Event.countDocuments({ status: 'live' });
     const agg = await Event.aggregate([
       { $group: { _id: null, total: { $sum: '$registeredCount' } } }
@@ -117,11 +115,11 @@ router.get('/stats', async (req, res) => {
     return res.json({
       success: true,
       stats: [
-        { label: 'Sự kiện chờ duyệt', value: String(pendingCount), trend: '+3 tuần này' },
+        { label: 'Đối tác chờ duyệt', value: String(pendingPartners), trend: 'Cần xử lý' },
         { label: 'Sự kiện đang diễn ra', value: String(liveCount), trend: 'Ổn định' },
         { label: 'Sinh viên tham gia', value: participantsLabel, trend: '+8%' }
       ],
-      raw: { pendingCount, liveCount, participants }
+      raw: { pendingPartners, liveCount, participants }
     });
   } catch (error) {
     console.error('ctsv stats:', error);

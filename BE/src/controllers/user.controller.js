@@ -13,6 +13,18 @@ const updateProfile = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const updateAvatar = async (req, res) => {
+  const image = req.body?.picture ?? req.body?.avatar;
+  if (!image) {
+    return res.status(400).json({
+      success: false,
+      message: 'Thiếu dữ liệu ảnh đại diện.',
+    });
+  }
+  const result = await userService.updateUserAvatar(req.authEmail, image);
+  res.status(200).json({ success: true, ...result });
+};
+
 const changePassword = async (req, res) => {
   const result = await userService.changePassword(req.authEmail, req.body);
   res.status(200).json({ success: true, ...result });
@@ -45,6 +57,7 @@ const getEventReviews = async (req, res) => {
 module.exports = {
   getProfile,
   updateProfile,
+  updateAvatar,
   changePassword,
   verifyPassword,
   getMyEvents,

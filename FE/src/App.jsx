@@ -16,6 +16,7 @@ import CtsvPartnerNew from './pages/ctsv/CtsvPartnerNew';
 import CtsvAnnouncementPublish from './pages/ctsv/CtsvAnnouncementPublish';
 import CtsvCalendar from './pages/ctsv/CtsvCalendar';
 import CtsvReports from './pages/ctsv/CtsvReports';
+import CtsvProfile from './pages/ctsv/CtsvProfile';
 
 import Signup from './pages/Signup';
 import Login from './pages/Login';
@@ -84,8 +85,8 @@ function App() {
           <Route path="/" element={<PublicHomeRoute showToast={showToast} />} />
 
           <Route path="/ctsv" element={<CtsvProtectedRoute />}>
-            <Route index element={<CtsvHome showToast={showToast} />} />
             <Route element={<CtsvLayout showToast={showToast} />}>
+              <Route index element={<CtsvHome showToast={showToast} />} />
               <Route path="dashboard" element={<CtsvDashboard />} />
               <Route path="events" element={<CtsvEventList />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
@@ -98,6 +99,7 @@ function App() {
               <Route path="announcements/publish" element={<CtsvAnnouncementPublish />} />
               <Route path="calendar" element={<CtsvCalendar />} />
               <Route path="reports" element={<CtsvReports />} />
+              <Route path="profile" element={<CtsvProfile showToast={showToast} />} />
             </Route>
           </Route>
 
@@ -110,7 +112,11 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                <Profile showToast={showToast} />
+                {isCtsvRole() ? (
+                  <Navigate to="/ctsv/profile" replace />
+                ) : (
+                  <Profile showToast={showToast} />
+                )}
               </ProtectedRoute>
             }
           />
