@@ -18,7 +18,7 @@ const STAT_STYLES = [
 
 const QUICK_ACTIONS = [
   { path: '/ctsv/events', label: 'Publish sự kiện', desc: 'Duyệt & xuất bản', icon: 'publish' },
-  { path: '/ctsv/partners', label: 'Quản lý đối tác', desc: 'Xét duyệt hợp tác', icon: 'partners' },
+  { path: '/ctsv/partners', label: 'Duyệt đơn đối tác', desc: 'Đơn đăng ký từ đối tác', icon: 'partners' },
   { path: '/ctsv/calendar', label: 'Lịch toàn trường', desc: 'Lịch tổng hợp', icon: 'calendar' },
   { path: '/ctsv/announcements/publish', label: 'Thông báo', desc: 'Phát hành chính thức', icon: 'announce' },
   { path: '/ctsv/reports', label: 'Báo cáo sau SK', desc: 'Tổng hợp kết quả', icon: 'reports' }
@@ -102,7 +102,7 @@ const CtsvDashboard = () => {
         </div>
         <div className="ctsv-dash-hero__badge" aria-hidden="true">
           <span className="ctsv-dash-hero__badge-value">{pendingPartnerCount}</span>
-          <span className="ctsv-dash-hero__badge-label">đối tác chờ</span>
+          <span className="ctsv-dash-hero__badge-label">đơn chờ duyệt</span>
         </div>
       </section>
 
@@ -259,7 +259,7 @@ const CtsvDashboard = () => {
                 ))}
               </div>
             ) : pendingPartners.length === 0 ? (
-              <p className="ctsv-dash-side-empty">Không có đối tác chờ duyệt. Tuyệt vời!</p>
+              <p className="ctsv-dash-side-empty">Không có đơn đối tác chờ duyệt. Tuyệt vời!</p>
             ) : (
               <ul className="ctsv-dash-pending-list">
                 {pendingPartners.map((p) => (
@@ -279,7 +279,7 @@ const CtsvDashboard = () => {
               </ul>
             )}
             <Link to="/ctsv/partners" className="ctsv-dash-side-link">
-              Xem tất cả đối tác chờ duyệt →
+              Xem tất cả đơn chờ duyệt →
             </Link>
           </section>
 
@@ -288,7 +288,7 @@ const CtsvDashboard = () => {
             <ul className="ctsv-dash-tips">
               <li>
                 <CtsvNavIcon type="partners" />
-                <span>Rà soát hồ sơ đối tác trước khi ký hợp đồng tài trợ sự kiện.</span>
+                <span>Đối tác gửi đơn qua cổng riêng; CTSV xét duyệt trước khi hợp tác chính thức.</span>
               </li>
               <li>
                 <CtsvNavIcon type="calendar" />

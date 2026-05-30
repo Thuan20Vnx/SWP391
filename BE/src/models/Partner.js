@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const PARTNER_STATUSES = ['pending', 'approved', 'rejected'];
+const PARTNER_STATUSES = ['pending', 'pending_admin', 'approved', 'rejected', 'info_requested'];
 
 const partnerSchema = new mongoose.Schema(
   {
@@ -29,7 +29,11 @@ const partnerSchema = new mongoose.Schema(
       default: 'pending'
     },
     rejectionReason: { type: String, default: '' },
-    approvedByEmail: { type: String, default: '' }
+    supplementReason: { type: String, default: '' },
+    ctsvApprovedByEmail: { type: String, default: '' },
+    ctsvApprovedAt: { type: Date, default: null },
+    approvedByEmail: { type: String, default: '' },
+    adminApprovedAt: { type: Date, default: null }
   },
   { timestamps: true }
 );

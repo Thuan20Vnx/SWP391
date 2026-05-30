@@ -86,6 +86,55 @@ const IMG = {
       console.log('  Proposals seeded.');
     }
 
+    const removed = await Partner.deleteMany({ status: { $nin: ['pending', 'pending_admin', 'approved', 'rejected', 'info_requested'] } });
+    if (removed.deletedCount) {
+      console.log(`  Removed ${removed.deletedCount} partner(s) with invalid status (e.g. active).`);
+    }
+
+    const removedTest = await Partner.deleteMany({
+      $or: [
+        { name: /cursoragent/i },
+        { email: /cursoragent/i },
+        { partnerCode: /cursoragent/i }
+      ]
+    });
+    if (removedTest.deletedCount) {
+      console.log(`  Removed ${removedTest.deletedCount} test partner(s) (cursoragent).`);
+    }
+
+    const sampleCode = 'DEMO-PENDING';
+    const hasSample = await Partner.findOne({ partnerCode: sampleCode });
+    if (!hasSample) {
+      const p = await Partner.create({
+        name: 'Công ty TNHH Thực phẩm Xanh Việt',
+        partnerCode: sampleCode,
+        category: 'F&B — Thực phẩm & Đồ uống',
+        email: 'hop_tac@greenfood.vn',
+        phone: '0903123456',
+        representative: 'Phạm Minh Đức',
+        representativeTitle: 'Trưởng phòng Marketing',
+        proposedEventTitle: 'FPT Green Campus Day 2026',
+        expectedSponsorAmount: 120000000,
+        status: 'pending',
+        benefits: [
+          'Gian hàng sampling sản phẩm organic',
+          'Logo trên banner chính sân khấu',
+          'Quà tặng cho 200 SV tham dự'
+        ],
+        attachments: [
+          { name: 'Profile GreenFood 2026.pdf', url: '#', sizeLabel: '1.8 MB' },
+          { name: 'Đề xuất tài trợ v1.docx', url: '#', sizeLabel: '640 KB' }
+        ]
+      });
+      await Contract.create({
+        partnerId: p._id,
+        title: p.proposedEventTitle,
+        amount: p.expectedSponsorAmount,
+        status: 'pending'
+      });
+      console.log('  Added sample pending partner application.');
+    }
+
     const partnerCount = await Partner.countDocuments();
     if (partnerCount === 0) {
       const demos = [

@@ -83,6 +83,9 @@ export const approveCtsvPartner = (id) =>
 export const rejectCtsvPartner = (id, reason = '') =>
   ctsvFetch(`/partners/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });
 
+export const requestInfoCtsvPartner = (id, reason = '') =>
+  ctsvFetch(`/partners/${id}/request-info`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+
 export const approveCtsvContract = (id) =>
   ctsvFetch(`/contracts/${id}/approve`, { method: 'PATCH', body: '{}' });
 

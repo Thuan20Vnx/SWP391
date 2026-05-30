@@ -29,7 +29,7 @@ const CtsvPortalFooter = () => {
             </li>
             <li>
               <a href="/ctsv/partners" onClick={(e) => { e.preventDefault(); navigate('/ctsv/partners'); }}>
-                Đối tác
+                Duyệt đơn đối tác
               </a>
             </li>
           </ul>

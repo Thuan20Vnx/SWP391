@@ -11,8 +11,10 @@ import {
 
 const PAGE_SIZE = 8;
 const FILTER_OPTIONS = [
-  { value: '', label: 'Tất cả' },
+  { value: '', label: 'Tất cả đơn' },
   { value: 'pending', label: 'Chờ duyệt' },
+  { value: 'info_requested', label: 'Cần bổ sung' },
+  { value: 'pending_admin', label: 'Chờ Admin' },
   { value: 'approved', label: 'Đã duyệt' },
   { value: 'rejected', label: 'Từ chối' }
 ];
@@ -22,7 +24,7 @@ const CtsvPartnerList = () => {
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('pending');
   const [page, setPage] = useState(1);
 
   const load = useCallback(() => {
@@ -32,7 +34,7 @@ const CtsvPartnerList = () => {
     if (search.trim()) params.search = search.trim();
     return fetchCtsvPartners(params)
       .then((d) => setPartners(d.partners || []))
-      .catch(() => showToast?.('Không tải danh sách đối tác.', 'error'))
+      .catch(() => showToast?.('Không tải danh sách đơn đăng ký.', 'error'))
       .finally(() => setLoading(false));
   }, [search, statusFilter, showToast]);
 
@@ -52,18 +54,18 @@ const CtsvPartnerList = () => {
   }, [partners, pageSafe]);
 
   const rangeLabel = useMemo(() => {
-    if (!partners.length) return 'Hiển thị 0–0 trong 0 đối tác';
+    if (!partners.length) return 'Hiển thị 0–0 trong 0 đơn';
     const from = (pageSafe - 1) * PAGE_SIZE + 1;
     const to = Math.min(pageSafe * PAGE_SIZE, partners.length);
-    return `Hiển thị ${from}–${to} trong ${partners.length} đối tác`;
+    return `Hiển thị ${from}–${to} trong ${partners.length} đơn`;
   }, [partners.length, pageSafe]);
 
   return (
     <div className="ctsv-partners-page">
       <header className="ctsv-partners-head">
-        <h1 className="ctsv-partners-title">Quản lý đối tác tài trợ</h1>
+        <h1 className="ctsv-partners-title">Duyệt đơn đăng ký đối tác</h1>
         <p className="ctsv-partners-sub">
-          Quản lý các đề xuất tài trợ, theo dõi trạng thái và thông tin đối tác.
+          Đối tác gửi đơn qua cổng đối tác; CTSV xem hồ sơ, phê duyệt hoặc từ chối tại đây.
         </p>
       </header>
 
@@ -81,8 +83,8 @@ const CtsvPartnerList = () => {
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Tìm đối tác..."
-                aria-label="Tìm đối tác"
+                placeholder="Tìm theo tên, email..."
+                aria-label="Tìm đơn đăng ký"
               />
             </label>
             <div className="ctsv-partners-filter">
@@ -92,24 +94,20 @@ const CtsvPartnerList = () => {
                   setStatusFilter(e.target.value);
                   setPage(1);
                 }}
-                aria-label="Lọc trạng thái"
+                aria-label="Lọc trạng thái đơn"
                 fullWidth={false}
                 options={FILTER_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
               />
             </div>
           </div>
-          <Link to="/ctsv/partners/new" className="ctsv-partners-add-btn">
-            <span aria-hidden>+</span>
-            Thêm đối tác
-          </Link>
         </div>
 
         <div className="ctsv-partners-table-wrap">
           <table className="ctsv-partners-table">
             <thead>
               <tr>
-                <th>Đối tác</th>
-                <th>Chương trình đề xuất</th>
+                <th>Đơn vị gửi</th>
+                <th>Nội dung đề xuất</th>
                 <th className="col-center">Ngày gửi</th>
                 <th className="col-center">Trạng thái</th>
                 <th className="col-center">Thao tác</th>
@@ -126,7 +124,7 @@ const CtsvPartnerList = () => {
               {!loading && slice.length === 0 && (
                 <tr>
                   <td colSpan={5} className="ctsv-partners-empty">
-                    Không có đối tác phù hợp.
+                    Không có đơn đăng ký phù hợp.
                   </td>
                 </tr>
               )}
@@ -159,7 +157,7 @@ const CtsvPartnerList = () => {
                       </td>
                       <td className="col-center">
                         <Link to={`/ctsv/partners/${p._id}`} className="ctsv-partners-detail-btn">
-                          Chi tiết
+                          {['pending', 'info_requested'].includes(p.status) ? 'Xét duyệt' : 'Xem đơn'}
                         </Link>
                       </td>
                     </tr>

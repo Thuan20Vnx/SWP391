@@ -9,6 +9,7 @@ const {
 const Event = require('../models/Event');
 const EventProposal = require('../models/EventProposal');
 const Partner = require('../models/Partner');
+const { PARTNER_STATUSES } = require('../models/Partner');
 const Contract = require('../models/Contract');
 const Announcement = require('../models/Announcement');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
@@ -103,7 +104,9 @@ const buildEventFilter = (query) => {
 // GET /api/ctsv/stats
 router.get('/stats', async (req, res) => {
   try {
-    const pendingPartners = await Partner.countDocuments({ status: 'pending' });
+    const pendingPartners = await Partner.countDocuments({
+      status: { $in: ['pending', 'info_requested'] }
+    });
     const liveCount = await Event.countDocuments({ status: 'live' });
     const agg = await Event.aggregate([
       { $group: { _id: null, total: { $sum: '$registeredCount' } } }
@@ -463,7 +466,7 @@ router.patch('/proposals/:id/request-revision', requireCtsvApprove, async (req, 
 
 router.get('/partners', async (req, res) => {
   try {
-    const filter = {};
+    const filter = { status: { $in: PARTNER_STATUSES } };
     if (req.query.status) filter.status = req.query.status;
     const search = String(req.query.search || '').trim();
     if (search) {
@@ -563,16 +566,30 @@ router.post('/partners', requireCtsvApprove, async (req, res) => {
   }
 });
 
+const CTSV_PARTNER_ACTION_STATUSES = ['pending', 'info_requested'];
+
 router.patch('/partners/:id/approve', requireCtsvApprove, async (req, res) => {
   try {
     const partner = await Partner.findById(req.params.id);
     if (!partner) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
     }
-    partner.status = 'approved';
-    partner.approvedByEmail = req.authEmail;
+    if (!CTSV_PARTNER_ACTION_STATUSES.includes(partner.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn này không ở trạng thái chờ CTSV phê duyệt.'
+      });
+    }
+    partner.status = 'pending_admin';
+    partner.ctsvApprovedByEmail = req.authEmail;
+    partner.ctsvApprovedAt = new Date();
+    partner.rejectionReason = '';
     await partner.save();
-    return res.json({ success: true, partner });
+    return res.json({
+      success: true,
+      partner,
+      message: 'Đã phê duyệt cấp CTSV. Đơn chuyển Admin phê duyệt lần cuối.'
+    });
   } catch (error) {
     console.error('ctsv approve partner:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -581,16 +598,54 @@ router.patch('/partners/:id/approve', requireCtsvApprove, async (req, res) => {
 
 router.patch('/partners/:id/reject', requireCtsvApprove, async (req, res) => {
   try {
+    const reason = String(req.body.reason || '').trim();
+    if (!reason) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập lý do từ chối!' });
+    }
     const partner = await Partner.findById(req.params.id);
     if (!partner) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
     }
+    if (!CTSV_PARTNER_ACTION_STATUSES.includes(partner.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn này không thể từ chối ở trạng thái hiện tại.'
+      });
+    }
     partner.status = 'rejected';
-    partner.rejectionReason = req.body.reason || '';
+    partner.rejectionReason = reason;
+    partner.supplementReason = '';
     await partner.save();
     return res.json({ success: true, partner });
   } catch (error) {
     console.error('ctsv reject partner:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/partners/:id/request-info', requireCtsvApprove, async (req, res) => {
+  try {
+    const reason = String(req.body.reason || '').trim();
+    if (!reason) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập nội dung cần bổ sung!' });
+    }
+    const partner = await Partner.findById(req.params.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
+    }
+    if (!CTSV_PARTNER_ACTION_STATUSES.includes(partner.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn này không thể yêu cầu bổ sung ở trạng thái hiện tại.'
+      });
+    }
+    partner.status = 'info_requested';
+    partner.supplementReason = reason;
+    partner.rejectionReason = '';
+    await partner.save();
+    return res.json({ success: true, partner });
+  } catch (error) {
+    console.error('ctsv partner request-info:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

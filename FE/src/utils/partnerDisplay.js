@@ -1,13 +1,17 @@
 export const PARTNER_STATUS_LABEL = {
-  pending: 'Chờ duyệt đề xuất',
-  approved: 'Đã duyệt đề xuất',
-  rejected: 'Từ chối đề xuất'
+  pending: 'Chờ duyệt',
+  pending_admin: 'Chờ Admin duyệt',
+  approved: 'Đã duyệt',
+  rejected: 'Từ chối',
+  info_requested: 'Cần bổ sung'
 };
 
 export const PARTNER_STATUS_TONE = {
   pending: 'amber',
+  pending_admin: 'blue',
   approved: 'green',
-  rejected: 'red'
+  rejected: 'red',
+  info_requested: 'slate'
 };
 
 export const partnerInitials = (name = '') => {

@@ -30,15 +30,20 @@ const requireRole = (allowedRoles) => async (req, res, next) => {
   }
 };
 
+const ADMIN_ROLES = ['admin'];
+
 const requireCtsvPortal = requireRole(CTSV_PORTAL_ROLES);
 const requireCtsvApprove = requireRole(CTSV_APPROVE_ROLES);
 const requireIcpdpOrCtsv = requireRole(ICPDP_APPROVE_ROLES);
+const requireAdmin = requireRole(ADMIN_ROLES);
 
 module.exports = {
   requireRole,
   requireCtsvPortal,
   requireCtsvApprove,
   requireIcpdpOrCtsv,
+  requireAdmin,
   CTSV_PORTAL_ROLES,
-  CTSV_APPROVE_ROLES
+  CTSV_APPROVE_ROLES,
+  ADMIN_ROLES
 };

@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useOutletContext } from 'react-router-dom';
+import PartnerActionDialog from '../../components/ctsv/PartnerActionDialog';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
   approveCtsvContract,
   approveCtsvPartner,
   fetchCtsvPartner,
-  rejectCtsvPartner
+  rejectCtsvPartner,
+  requestInfoCtsvPartner
 } from '../../services/ctsvApi';
 import { getUserRole } from '../../utils/auth';
 import {
@@ -15,12 +18,16 @@ import {
   partnerInitials
 } from '../../utils/partnerDisplay';
 
+const CTSV_CAN_ACT = ['pending', 'info_requested'];
+
 const CtsvPartnerDetail = () => {
   const { id } = useParams();
   const { showToast } = useOutletContext() || {};
   const [partner, setPartner] = useState(null);
   const [contracts, setContracts] = useState([]);
-  const [reason, setReason] = useState('');
+  const [dialogMode, setDialogMode] = useState(null);
+  const [confirmApprove, setConfirmApprove] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const isCtsv = getUserRole() === 'ctsv';
 
   const load = () =>
@@ -30,8 +37,22 @@ const CtsvPartnerDetail = () => {
     });
 
   useEffect(() => {
-    load().catch(() => showToast?.('Không tải đối tác.', 'error'));
+    load().catch(() => showToast?.('Không tải đơn đăng ký.', 'error'));
   }, [id, showToast]);
+
+  const runAction = async (fn) => {
+    setActionLoading(true);
+    try {
+      await fn();
+      await load();
+    } catch (e) {
+      showToast?.(e.message, 'error');
+    } finally {
+      setActionLoading(false);
+      setDialogMode(null);
+      setConfirmApprove(false);
+    }
+  };
 
   if (!partner) {
     return (
@@ -45,11 +66,12 @@ const CtsvPartnerDetail = () => {
   const mainContract = contracts[0];
   const eventTitle = partner.proposedEventTitle || mainContract?.title || '—';
   const amount = partner.expectedSponsorAmount || mainContract?.amount;
+  const canAct = CTSV_CAN_ACT.includes(partner.status) && isCtsv;
 
   return (
     <div className="ctsv-partner-detail-page">
       <Link to="/ctsv/partners" className="ctsv-partner-detail-back">
-        ← Quay lại danh sách đối tác
+        ← Quay lại danh sách đơn
       </Link>
 
       <header className="ctsv-partner-detail-header">
@@ -76,6 +98,26 @@ const CtsvPartnerDetail = () => {
           </div>
         </div>
       </header>
+
+      {partner.status === 'pending_admin' && (
+        <div className="ctsv-partner-detail-banner ctsv-partner-detail-banner--info">
+          Đơn đã được CTSV phê duyệt
+          {partner.ctsvApprovedByEmail ? ` (${partner.ctsvApprovedByEmail})` : ''}. Đang chờ{' '}
+          <strong>Admin</strong> phê duyệt lần cuối để hoàn tất.
+        </div>
+      )}
+
+      {partner.status === 'rejected' && partner.rejectionReason && (
+        <div className="ctsv-partner-detail-banner ctsv-partner-detail-banner--danger">
+          <strong>Lý do từ chối:</strong> {partner.rejectionReason}
+        </div>
+      )}
+
+      {partner.status === 'info_requested' && partner.supplementReason && (
+        <div className="ctsv-partner-detail-banner ctsv-partner-detail-banner--warn">
+          <strong>Yêu cầu bổ sung:</strong> {partner.supplementReason}
+        </div>
+      )}
 
       <div className="ctsv-partner-detail-bento">
         <section className="ctsv-partner-detail-panel">
@@ -138,7 +180,7 @@ const CtsvPartnerDetail = () => {
                     <span>
                       {c.title} — {formatVnd(c.amount)} ({c.status})
                     </span>
-                    {c.status === 'pending' && isCtsv && (
+                    {c.status === 'pending' && isCtsv && partner.status === 'approved' && (
                       <button
                         type="button"
                         className="ctsv-link-btn"
@@ -163,52 +205,76 @@ const CtsvPartnerDetail = () => {
         </section>
       </div>
 
-      {partner.status === 'pending' && isCtsv && (
+      {canAct && (
         <section className="ctsv-partner-detail-actions">
           <p className="ctsv-partner-detail-actions-note">
-            Hành động của bạn sẽ được ghi nhận vào lịch sử hệ thống.
+            Sau khi CTSV phê duyệt, đơn chuyển sang Admin để xác nhận lần cuối trước khi đối tác chính thức
+            hợp tác.
           </p>
-          <div className="ctsv-partner-detail-actions-row">
-            <textarea
-              className="ctsv-textarea"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Lý do từ chối (nếu từ chối đề xuất)"
-              rows={2}
-            />
+          <div className="ctsv-partner-detail-actions-btns">
             <button
               type="button"
-              className="ctsv-btn-danger"
-              onClick={async () => {
-                try {
-                  await rejectCtsvPartner(id, reason);
-                  showToast?.('Đã từ chối đề xuất.', 'info');
-                  load();
-                } catch (e) {
-                  showToast?.(e.message, 'error');
-                }
-              }}
+              className="ctsv-partner-action-btn ctsv-partner-action-btn--approve"
+              disabled={actionLoading}
+              onClick={() => setConfirmApprove(true)}
             >
-              Từ chối đề xuất
+              Phê duyệt
             </button>
             <button
               type="button"
-              className="ctsv-btn-primary"
-              onClick={async () => {
-                try {
-                  await approveCtsvPartner(id);
-                  showToast?.('Đã phê duyệt đối tác.', 'success');
-                  load();
-                } catch (e) {
-                  showToast?.(e.message, 'error');
-                }
-              }}
+              className="ctsv-partner-action-btn ctsv-partner-action-btn--reject"
+              disabled={actionLoading}
+              onClick={() => setDialogMode('reject')}
             >
-              Phê duyệt đối tác
+              Từ chối
+            </button>
+            <button
+              type="button"
+              className="ctsv-partner-action-btn ctsv-partner-action-btn--supplement"
+              disabled={actionLoading}
+              onClick={() => setDialogMode('supplement')}
+            >
+              Bổ sung thông tin
             </button>
           </div>
         </section>
       )}
+
+      <PartnerActionDialog
+        open={Boolean(dialogMode)}
+        mode={dialogMode}
+        loading={actionLoading}
+        onCancel={() => !actionLoading && setDialogMode(null)}
+        onConfirm={(reason) => {
+          if (dialogMode === 'reject') {
+            runAction(async () => {
+              await rejectCtsvPartner(id, reason);
+              showToast?.('Đã từ chối đơn đăng ký.', 'info');
+            });
+          } else if (dialogMode === 'supplement') {
+            runAction(async () => {
+              await requestInfoCtsvPartner(id, reason);
+              showToast?.('Đã gửi yêu cầu bổ sung thông tin.', 'success');
+            });
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmApprove}
+        title="Phê duyệt đơn đăng ký đối tác"
+        message="Đơn sẽ được chuyển sang Admin để phê duyệt lần cuối. Chỉ khi Admin xác nhận, đối tác mới được coi là đã duyệt thành công."
+        confirmLabel="Gửi lên Admin"
+        cancelLabel="Hủy"
+        loading={actionLoading}
+        onCancel={() => !actionLoading && setConfirmApprove(false)}
+        onConfirm={() =>
+          runAction(async () => {
+            const res = await approveCtsvPartner(id);
+            showToast?.(res.message || 'Đã phê duyệt — chờ Admin xác nhận.', 'success');
+          })
+        }
+      />
     </div>
   );
 };

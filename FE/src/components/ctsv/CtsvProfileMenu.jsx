@@ -69,7 +69,7 @@ const CtsvProfileMenu = ({
           />
           <NavItem
             active={activeItem === 'partners'}
-            label="Quản lý đối tác"
+            label="Duyệt đơn đối tác"
             icon={
               <Icon>
                 <path d="M3 21h18" />

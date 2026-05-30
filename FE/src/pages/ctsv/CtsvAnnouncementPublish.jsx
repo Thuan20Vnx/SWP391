@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
+import CtsvActionIcon from '../../components/ctsv/CtsvActionIcon';
 import AppSelect from '../../components/ui/AppSelect';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
@@ -477,9 +478,11 @@ const CtsvAnnouncementPublish = () => {
                     {evId && (
                       <Link
                         to={`/ctsv/events/${evId}`}
-                        className="ctsv-announce-history-link"
+                        className="ctsv-announce-history-btn ctsv-announce-history-btn--event"
+                        title="Xem sự kiện"
+                        aria-label="Xem sự kiện"
                       >
-                        Sự kiện
+                        <CtsvActionIcon type="event" />
                       </Link>
                     )}
                     <button
@@ -487,16 +490,20 @@ const CtsvAnnouncementPublish = () => {
                       className="ctsv-announce-history-btn ctsv-announce-history-btn--hide"
                       onClick={() => openListConfirm('hide', a)}
                       disabled={actionLoading || submitting}
+                      title="Ẩn thông báo"
+                      aria-label="Ẩn thông báo"
                     >
-                      Ẩn
+                      <CtsvActionIcon type="hide" />
                     </button>
                     <button
                       type="button"
                       className="ctsv-announce-history-btn ctsv-announce-history-btn--delete"
                       onClick={() => openListConfirm('delete', a)}
                       disabled={actionLoading || submitting}
+                      title="Xóa thông báo"
+                      aria-label="Xóa thông báo"
                     >
-                      Xóa
+                      <CtsvActionIcon type="delete" />
                     </button>
                   </div>
                 </li>
