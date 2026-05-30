@@ -1,6 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import AppSelect from '../components/ui/AppSelect';
 import { fetchCtsvEvents, fetchCtsvStats, MOCK_EVENTS, MOCK_STATS } from '../services/ctsvApi';
+
+const HOME_TIME_FILTERS = [
+  { value: 'Tất cả', label: 'Tất cả thời gian' },
+  { value: 'Hôm nay', label: 'Hôm nay' },
+  { value: 'Tuần này', label: 'Tuần này' }
+];
+
+const HOME_CATEGORY_FILTERS = [
+  { value: 'Tất cả', label: 'Tất cả chủ đề' },
+  { value: 'Âm nhạc', label: 'Âm nhạc' },
+  { value: 'Workshop', label: 'Workshop' },
+  { value: 'Công nghệ', label: 'Công nghệ' },
+  { value: 'Kết nối', label: 'Kết nối' }
+];
 import { isPendingApproval, statusClass } from '../utils/eventStatus';
 
 const CtsvHome = ({ showToast }) => {
@@ -153,16 +168,13 @@ const CtsvHome = ({ showToast }) => {
               <label htmlFor="ctsv-time-select" className="filter-label">
                 Thời gian
               </label>
-              <select
+              <AppSelect
                 id="ctsv-time-select"
                 value={timeFilter}
                 onChange={(e) => setTimeFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="Tất cả">Tất cả thời gian</option>
-                <option value="Hôm nay">Hôm nay</option>
-                <option value="Tuần này">Tuần này</option>
-              </select>
+                variant="filter"
+                options={HOME_TIME_FILTERS}
+              />
             </div>
           </div>
           <div className="filter-divider-line" />
@@ -171,18 +183,13 @@ const CtsvHome = ({ showToast }) => {
               <label htmlFor="ctsv-category-select" className="filter-label">
                 Chủ đề
               </label>
-              <select
+              <AppSelect
                 id="ctsv-category-select"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="Tất cả">Tất cả chủ đề</option>
-                <option value="Âm nhạc">Âm nhạc</option>
-                <option value="Workshop">Workshop</option>
-                <option value="Công nghệ">Công nghệ</option>
-                <option value="Kết nối">Kết nối</option>
-              </select>
+                variant="filter"
+                options={HOME_CATEGORY_FILTERS}
+              />
             </div>
           </div>
           <button type="button" className="filter-submit-btn" onClick={handleFilterSubmit}>

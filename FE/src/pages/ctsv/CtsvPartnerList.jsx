@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
+import AppSelect from '../../components/ui/AppSelect';
 import { fetchCtsvPartners } from '../../services/ctsvApi';
 import {
   PARTNER_STATUS_LABEL,
@@ -85,25 +86,16 @@ const CtsvPartnerList = () => {
               />
             </label>
             <div className="ctsv-partners-filter">
-              <select
+              <AppSelect
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setPage(1);
                 }}
                 aria-label="Lọc trạng thái"
-              >
-                {FILTER_OPTIONS.map((o) => (
-                  <option key={o.value || 'all'} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-              <span className="ctsv-partners-filter-chevron" aria-hidden>
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="currentColor">
-                  <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                </svg>
-              </span>
+                fullWidth={false}
+                options={FILTER_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+              />
             </div>
           </div>
           <Link to="/ctsv/partners/new" className="ctsv-partners-add-btn">

@@ -12094,4 +12094,224 @@ body {
   }
 }
 
+/* ── AppSelect — dropdown toàn hệ thống ── */
+.app-select {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.app-select--full {
+  width: 100%;
+}
+
+.app-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.app-select__trigger:hover:not(:disabled) {
+  border-color: #fdba74;
+  background: #fff;
+}
+
+.app-select.is-open .app-select__trigger,
+.app-select__trigger:focus-visible {
+  outline: none;
+  border-color: #f97316;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.14);
+}
+
+.app-select.is-disabled .app-select__trigger {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.app-select__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-select__value.is-placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.app-select__chevron {
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: transform 0.2s ease, color 0.15s;
+}
+
+.app-select.is-open .app-select__chevron {
+  transform: rotate(180deg);
+  color: #ea580c;
+}
+
+.app-select__menu {
+  position: absolute;
+  z-index: 1200;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  max-height: 280px;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(249, 115, 22, 0.18);
+  background: #ffffff;
+  box-shadow:
+    0 4px 6px -1px rgba(15, 23, 42, 0.06),
+    0 16px 32px -4px rgba(249, 115, 22, 0.12);
+  animation: appSelectMenuIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes appSelectMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.app-select__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.app-select__option:hover {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.app-select__option.is-selected {
+  background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 100%);
+  color: #ea580c;
+  font-weight: 600;
+}
+
+.app-select__option-label {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.app-select__check {
+  flex-shrink: 0;
+  color: #ea580c;
+}
+
+/* Trong form CTSV / announce */
+.ctsv-announce-field .app-select,
+.ctsv-form .app-select,
+.ctsv-partner-form-grid .app-select {
+  margin-top: 0;
+}
+
+.ctsv-filter-row .app-select {
+  min-width: 160px;
+  width: auto;
+}
+
+.ctsv-filter-row .app-select--full {
+  width: auto;
+}
+
+.ctsv-partners-filter .app-select {
+  min-width: 120px;
+}
+
+.ctsv-partners-filter .app-select--full {
+  width: auto;
+}
+
+/* Filter bar trang chủ */
+.app-select--filter {
+  width: 100%;
+}
+
+.app-select--filter .app-select__trigger {
+  min-height: auto;
+  padding: 2px 24px 2px 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.app-select--filter .app-select__trigger:hover:not(:disabled),
+.app-select--filter.is-open .app-select__trigger {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.app-select--filter .app-select__menu {
+  min-width: 200px;
+  right: auto;
+}
+
+/* Bảng vé — gọn */
+.app-select--table .app-select__trigger {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+  border-radius: 8px;
+}
+
+.app-select--table .app-select__menu {
+  min-width: 180px;
+}
+
+/* Settings */
+.settings-select-field .app-select {
+  margin-top: 6px;
+}
+
+/* Tương thích class cũ */
+.ctsv-select.app-select,
+.filter-select.app-select {
+  margin-top: 0;
+}
+
 

@@ -1,3 +1,4 @@
+import AppSelect from '../../ui/AppSelect';
 import SettingsToggle from '../SettingsToggle';
 import { SettingsCard, SettingsSectionHeader } from '../SettingsLayout';
 import { SECTION_META } from '../settingsConfig';
@@ -24,17 +25,12 @@ const AppearanceSection = ({ settings, updateSetting }) => (
       <SettingsCard title="Ngôn ngữ hiển thị">
         <div className="profile-input-group settings-select-field">
           <label htmlFor="settings-language">Ngôn ngữ</label>
-          <select
+          <AppSelect
             id="settings-language"
             value={settings.language}
             onChange={(e) => updateSetting('language', e.target.value)}
-          >
-            {LANGUAGES.map(({ value, label }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            options={LANGUAGES}
+          />
         </div>
       </SettingsCard>
     </div>

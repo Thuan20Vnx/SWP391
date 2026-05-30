@@ -1,7 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
+import AppSelect from '../../components/ui/AppSelect';
 import { fetchCtsvEvents, MOCK_EVENTS } from '../../services/ctsvApi';
+
+const TIME_FILTER_OPTIONS = [
+  { value: 'Tất cả', label: 'Tất cả thời gian' },
+  { value: 'Hôm nay', label: 'Hôm nay' },
+  { value: 'Tuần này', label: 'Tuần này' }
+];
+
+const CATEGORY_FILTER_OPTIONS = [
+  { value: 'Tất cả', label: 'Tất cả chủ đề' },
+  { value: 'Âm nhạc', label: 'Âm nhạc' },
+  { value: 'Workshop', label: 'Workshop' },
+  { value: 'Công nghệ', label: 'Công nghệ' },
+  { value: 'Kết nối', label: 'Kết nối' }
+];
 import { isPendingApproval, statusClass } from '../../utils/eventStatus';
 
 const CtsvEventList = () => {
@@ -53,18 +68,18 @@ const CtsvEventList = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="ctsv-input"
         />
-        <select value={timeFilter} onChange={(e) => setTimeFilter(e.target.value)} className="ctsv-select">
-          <option value="Tất cả">Tất cả thời gian</option>
-          <option value="Hôm nay">Hôm nay</option>
-          <option value="Tuần này">Tuần này</option>
-        </select>
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="ctsv-select">
-          <option value="Tất cả">Tất cả chủ đề</option>
-          <option value="Âm nhạc">Âm nhạc</option>
-          <option value="Workshop">Workshop</option>
-          <option value="Công nghệ">Công nghệ</option>
-          <option value="Kết nối">Kết nối</option>
-        </select>
+        <AppSelect
+          value={timeFilter}
+          onChange={(e) => setTimeFilter(e.target.value)}
+          options={TIME_FILTER_OPTIONS}
+          fullWidth={false}
+        />
+        <AppSelect
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          options={CATEGORY_FILTER_OPTIONS}
+          fullWidth={false}
+        />
         <button type="submit" className="ctsv-btn-primary">
           Lọc kết quả
         </button>

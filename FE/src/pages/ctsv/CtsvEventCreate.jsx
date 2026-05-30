@@ -1,7 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import BannerCropModal from '../../components/ctsv/BannerCropModal';
+import AppSelect from '../../components/ui/AppSelect';
 import { createCtsvEvent } from '../../services/ctsvApi';
+
+const TICKET_AUDIENCE_OPTIONS = ['SV FPT', 'Khách ngoài trường', 'Tất cả'];
 
 const BANNER_MAX_BYTES = 5 * 1024 * 1024;
 const BANNER_ACCEPT = 'image/jpeg,image/png,image/webp';
@@ -347,22 +350,20 @@ const CtsvEventCreate = () => {
             </Field>
             <div className="ctsv-form-row-2">
               <Field label="Loại sự kiện" required>
-                <select name="eventType" value={form.eventType} onChange={onChange} className="ctsv-select">
-                  {EVENT_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
+                <AppSelect
+                  name="eventType"
+                  value={form.eventType}
+                  onChange={onChange}
+                  options={EVENT_TYPES.map((t) => ({ value: t, label: t }))}
+                />
               </Field>
               <Field label="Danh mục" required>
-                <select name="category" value={form.category} onChange={onChange} className="ctsv-select">
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                <AppSelect
+                  name="category"
+                  value={form.category}
+                  onChange={onChange}
+                  options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                />
               </Field>
             </div>
             <div className="ctsv-field">
@@ -494,15 +495,12 @@ const CtsvEventCreate = () => {
                           />
                         </td>
                         <td>
-                          <select
+                          <AppSelect
                             value={row.audience}
                             onChange={(e) => updateTicket(row.id, 'audience', e.target.value)}
-                            className="ctsv-select ctsv-input-table"
-                          >
-                            <option>SV FPT</option>
-                            <option>Khách ngoài trường</option>
-                            <option>Tất cả</option>
-                          </select>
+                            variant="table"
+                            options={TICKET_AUDIENCE_OPTIONS}
+                          />
                         </td>
                         <td>
                           <button

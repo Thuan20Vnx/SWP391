@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
+import AppSelect from '../../components/ui/AppSelect';
 import { fetchCtsvAnnouncements, fetchCtsvEvents, publishCtsvAnnouncement } from '../../services/ctsvApi';
 import { formatPartnerDate } from '../../utils/partnerDisplay';
 
@@ -149,24 +150,19 @@ const CtsvAnnouncementPublish = () => {
 
             <label className="ctsv-announce-field">
               <span className="ctsv-announce-label">Liên kết sự kiện</span>
-              <div className="ctsv-announce-select-wrap">
-                <select
-                  className="ctsv-announce-input ctsv-announce-select"
-                  value={form.eventId}
-                  onChange={(e) => setForm((f) => ({ ...f, eventId: e.target.value }))}
-                  disabled={submitting}
-                >
-                  <option value="">— Không chọn sự kiện —</option>
-                  {events.map((ev) => {
-                    const id = ev.id || ev._id;
-                    return (
-                      <option key={id} value={id}>
-                        {ev.title}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
+              <AppSelect
+                value={form.eventId}
+                onChange={(e) => setForm((f) => ({ ...f, eventId: e.target.value }))}
+                placeholder="— Không chọn sự kiện —"
+                disabled={submitting}
+                options={[
+                  { value: '', label: '— Không chọn sự kiện —' },
+                  ...events.map((ev) => ({
+                    value: ev.id || ev._id,
+                    label: ev.title
+                  }))
+                ]}
+              />
               {selectedEventTitle && (
                 <span className="ctsv-announce-hint">
                   Gắn với: <strong>{selectedEventTitle}</strong>

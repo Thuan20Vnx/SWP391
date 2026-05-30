@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
+import AppSelect from '../../components/ui/AppSelect';
 import { createCtsvPartner } from '../../services/ctsvApi';
 
 const CATEGORY_OPTIONS = [
@@ -75,14 +76,16 @@ const CtsvPartnerNew = () => {
           </label>
           <label>
             Lĩnh vực hoạt động
-            <select name="category" value={form.category} onChange={onChange} className="ctsv-input">
-              <option value="">Chọn lĩnh vực</option>
-              {CATEGORY_OPTIONS.filter(Boolean).map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <AppSelect
+              name="category"
+              value={form.category}
+              onChange={onChange}
+              placeholder="Chọn lĩnh vực"
+              options={[
+                { value: '', label: 'Chọn lĩnh vực' },
+                ...CATEGORY_OPTIONS.filter(Boolean).map((c) => ({ value: c, label: c }))
+              ]}
+            />
           </label>
           <label className="span-2">
             Người đại diện *

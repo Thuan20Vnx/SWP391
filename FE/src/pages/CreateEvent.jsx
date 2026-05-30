@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AppSelect from '../components/ui/AppSelect';
 import { EVENT_VENUES } from '../constants/eventVenues';
 
 const CreateEvent = ({ showToast }) => {
@@ -114,27 +115,16 @@ const CreateEvent = ({ showToast }) => {
 
           <div className="input-group">
             <div className="input-wrapper">
-              <select
+              <AppSelect
                 id="location"
-                required
                 value={formData.location}
                 onChange={handleInputChange}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border-default)',
-                  outline: 'none',
-                  background: 'var(--bg-input)',
-                  color: 'var(--text-main)',
-                  fontSize: '1rem',
-                }}
-              >
-                <option value="" disabled>Chọn địa điểm</option>
-                {EVENT_VENUES.map((venue) => (
-                  <option key={venue} value={venue}>{venue}</option>
-                ))}
-              </select>
+                placeholder="Chọn địa điểm"
+                options={[
+                  { value: '', label: 'Chọn địa điểm' },
+                  ...EVENT_VENUES.map((venue) => ({ value: venue, label: venue }))
+                ]}
+              />
               <label htmlFor="location" style={{ transform: 'translateY(-50%) scale(0.8)', top: '0', background: 'var(--bg-input)' }}>
                 Địa điểm tổ chức
               </label>
