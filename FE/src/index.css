@@ -9729,6 +9729,7 @@ body {
 
 .ctsv-ticket-table-wrap {
   overflow-x: auto;
+  overflow-y: visible;
   border: 1px solid #e8dfd8;
   border-radius: 8px;
   margin-top: 4px;
@@ -12330,11 +12331,6 @@ body {
 
 .ctsv-ticket-table td .app-select {
   min-width: 160px;
-}
-
-.ctsv-ticket-table-wrap {
-  overflow-x: auto;
-  overflow-y: visible;
 }
 
 /* Settings */
