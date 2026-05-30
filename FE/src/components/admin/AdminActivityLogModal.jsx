@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ADMIN_ACTIVITY_LOGS } from '../../data/adminDashboardData';
 import AdminFilterDropdown from './AdminFilterDropdown';
 
 const TONE_META = {
@@ -15,12 +14,9 @@ const TYPE_FILTERS = [
   { key: 'default', label: 'Hệ thống' },
 ];
 
-const getLogDate = (time) => {
-  const parts = String(time || '').split(', ');
-  return parts.length > 1 ? parts[parts.length - 1] : '';
-};
+const getLogDate = (log) => log.dateKey || '';
 
-const AdminActivityLogModal = ({ open, onClose }) => {
+const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
@@ -28,13 +24,13 @@ const AdminActivityLogModal = ({ open, onClose }) => {
   const [openMenu, setOpenMenu] = useState(null);
 
   const dateOptions = useMemo(() => {
-    const dates = [...new Set(ADMIN_ACTIVITY_LOGS.map((log) => getLogDate(log.time)).filter(Boolean))];
+    const dates = [...new Set(logs.map((log) => getLogDate(log)).filter(Boolean))];
     return dates.sort((a, b) => b.localeCompare(a));
-  }, []);
+  }, [logs]);
 
   const actorOptions = useMemo(() => {
-    return [...new Set(ADMIN_ACTIVITY_LOGS.map((log) => log.actor))].sort();
-  }, []);
+    return [...new Set(logs.map((log) => log.actor))].sort();
+  }, [logs]);
 
   const dateSelectOptions = useMemo(
     () => [
@@ -66,9 +62,9 @@ const AdminActivityLogModal = ({ open, onClose }) => {
 
   const filteredLogs = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return ADMIN_ACTIVITY_LOGS.filter((log) => {
+    return logs.filter((log) => {
       if (typeFilter !== 'all' && log.tone !== typeFilter) return false;
-      if (dateFilter !== 'all' && getLogDate(log.time) !== dateFilter) return false;
+      if (dateFilter !== 'all' && getLogDate(log) !== dateFilter) return false;
       if (actorFilter !== 'all' && log.actor !== actorFilter) return false;
       if (!q) return true;
       const haystack = [
@@ -81,7 +77,7 @@ const AdminActivityLogModal = ({ open, onClose }) => {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [search, typeFilter, dateFilter, actorFilter]);
+  }, [logs, search, typeFilter, dateFilter, actorFilter]);
 
   const hasActiveFilters =
     search.trim() !== '' || typeFilter !== 'all' || dateFilter !== 'all' || actorFilter !== 'all';
@@ -133,7 +129,7 @@ const AdminActivityLogModal = ({ open, onClose }) => {
           <div>
             <h2 id="admin-log-modal-title">Nhật ký hoạt động hệ thống</h2>
             <p>
-              Hiển thị {filteredLogs.length}/{ADMIN_ACTIVITY_LOGS.length} bản ghi
+              Hiển thị {filteredLogs.length}/{logs.length} bản ghi
             </p>
           </div>
           <button type="button" className="admin-log-modal__close" onClick={onClose} aria-label="Đóng">

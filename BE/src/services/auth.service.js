@@ -5,12 +5,11 @@ const { signToken } = require('../utils/jwt');
 const AppError = require('../utils/AppError');
 const {
   pendingUsers,
-  pendingResets,
   OTP_TTL_MS,
   generateOtp,
   isExpired,
 } = require('../utils/otpStore');
-const { sendOtpEmail, sendResetEmail } = require('./email.service');
+const { sendOtpEmail } = require('./email.service');
 const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
@@ -61,6 +60,10 @@ const login = async ({ email, password }) => {
 
   if (!user) {
     throw new AppError('Tài khoản hoặc mật khẩu không chính xác. Vui lòng thử lại!', 401);
+  }
+
+  if (user.isActive === false) {
+    throw new AppError('Tài khoản chưa được kích hoạt. Vui lòng liên hệ quản trị viên!', 403);
   }
 
   if (!user.passwordHash) {
@@ -187,71 +190,6 @@ const resendOtp = async ({ email }) => {
   await sendOtpEmail(pendingUser.email, pendingUser.fullname, newOtpCode);
 
   return { message: 'Mã OTP mới đã được gửi lại vào email của bạn!' };
-};
-
-const forgotPassword = async ({ contact }) => {
-  if (!contact) throw new AppError('Vui lòng điền Email hoặc Số điện thoại!', 400);
-
-  const contactVal = contact.trim().toLowerCase();
-  const user = await User.findOne({
-    $or: [{ email: contactVal }, { phone: contactVal }],
-  });
-
-  if (!user) {
-    throw new AppError('Email hoặc Số điện thoại không tồn tại trên hệ thống!', 404);
-  }
-
-  const otpCode = generateOtp();
-  const emailKey = user.email.toLowerCase();
-
-  pendingResets.set(emailKey, {
-    email: user.email,
-    otp: otpCode,
-    expiresAt: Date.now() + OTP_TTL_MS,
-  });
-
-  await sendResetEmail(user.email, user.fullname, otpCode);
-
-  return {
-    message: 'Mã OTP đã được gửi thành công!',
-    isPhone: /^[0-9]+$/.test(contactVal),
-    email: user.email,
-  };
-};
-
-const resetPassword = async ({ email, otp, newPassword }) => {
-  if (!email || !otp || !newPassword) {
-    throw new AppError('Vui lòng điền đầy đủ các thông tin bắt buộc!', 400);
-  }
-
-  const emailKey = email.trim().toLowerCase();
-  const pendingReset = pendingResets.get(emailKey);
-
-  if (!pendingReset) {
-    throw new AppError('Không tìm thấy yêu cầu đặt lại mật khẩu hoặc mã OTP đã hết hạn!', 400);
-  }
-
-  if (isExpired(pendingReset)) {
-    pendingResets.delete(emailKey);
-    throw new AppError('Mã OTP đã hết hạn! Vui lòng thực hiện lại từ trang Quên mật khẩu.', 400);
-  }
-
-  if (pendingReset.otp !== otp.trim()) {
-    throw new AppError('Mã xác minh OTP không chính xác. Vui lòng kiểm tra lại!', 400);
-  }
-
-  const user = await User.findOne({ email: emailKey });
-
-  if (!user) {
-    pendingResets.delete(emailKey);
-    throw new AppError('Không tìm thấy người dùng trên hệ thống!', 404);
-  }
-
-  user.passwordHash = await bcrypt.hash(newPassword, 10);
-  await user.save();
-  pendingResets.delete(emailKey);
-
-  return { message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.' };
 };
 
 const googleLogin = async ({ token, email, name, isMock, picture }) => {
@@ -459,8 +397,6 @@ module.exports = {
   signup,
   verifyOtp,
   resendOtp,
-  forgotPassword,
-  resetPassword,
   googleLogin,
   googleCallback,
   getGoogleCalendarAuthUrl,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import Home from './pages/Home';
@@ -19,8 +19,6 @@ import CtsvReports from './pages/ctsv/CtsvReports';
 
 import Signup from './pages/Signup';
 import Login from './pages/Login';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Events from './pages/Events';
@@ -32,6 +30,11 @@ import AdminLayout from './layouts/AdminLayout';
 import AdminMonitoringDashboard from './pages/AdminMonitoringDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminPlaceholder from './pages/admin/AdminPlaceholder';
+import AdminSystemControl from './pages/admin/AdminSystemControl';
+import AdminDataMaintenance from './pages/admin/AdminDataMaintenance';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminPartners from './pages/admin/AdminPartners';
+import AdminAccountsControl from './pages/admin/AdminAccountsControl';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
 import Schedule from './pages/Schedule';
@@ -80,14 +83,14 @@ const AdminAreaGuard = () => {
 function App() {
   const [toasts, setToasts] = useState([]);
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     const id = Date.now() + Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
-  };
+  }, []);
 
-  const removeToast = (id) => {
+  const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
   return (
     <Router>
@@ -116,9 +119,6 @@ function App() {
 
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/login" element={<Login showToast={showToast} />} />
-          <Route path="/forgot" element={<ForgotPassword showToast={showToast} />} />
-          <Route path="/reset-password" element={<ResetPassword showToast={showToast} />} />
-
           <Route
             path="/profile"
             element={
@@ -152,42 +152,11 @@ function App() {
             <Route element={<AdminLayout showToast={showToast} />}>
               <Route index element={<AdminMonitoringDashboard />} />
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
-              <Route
-                path="accounts"
-                element={
-                  <AdminPlaceholder
-                    title="Kiểm soát tài khoản"
-                    description="Quản lý tài khoản người dùng, phân quyền và whitelist."
-                  />
-                }
-              />
-              <Route
-                path="system"
-                element={
-                  <AdminPlaceholder
-                    title="Cấu hình hệ thống"
-                    description="Thiết lập email, payment gateway và thông số hệ thống."
-                  />
-                }
-              />
-              <Route
-                path="data"
-                element={
-                  <AdminPlaceholder
-                    title="Duy trì dữ liệu lõi"
-                    description="Sao lưu, khôi phục và đồng bộ dữ liệu lõi."
-                  />
-                }
-              />
-              <Route
-                path="analytics"
-                element={
-                  <AdminPlaceholder
-                    title="Đánh giá & Phân tích"
-                    description="Báo cáo hiệu suất và phân tích vận hành."
-                  />
-                }
-              />
+              <Route path="accounts" element={<AdminAccountsControl />} />
+              <Route path="system" element={<AdminSystemControl />} />
+              <Route path="data" element={<AdminDataMaintenance />} />
+              <Route path="partners" element={<AdminPartners />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
             </Route>
           </Route>
           <Route path="/dashboard" element={<Navigate to="/profile" replace />} />

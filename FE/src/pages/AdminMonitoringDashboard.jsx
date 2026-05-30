@@ -1,26 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AdminActivityLogModal from '../components/admin/AdminActivityLogModal';
 import AdminMetricDetailModal from '../components/admin/AdminMetricDetailModal';
+import { ADMIN_ACTIVITY_PREVIEW_COUNT } from '../data/adminDashboardData';
+import useAdminDashboardLiveData from '../hooks/useAdminDashboardLiveData';
 import { getUserRole, isAdminRole } from '../utils/auth';
-import {
-  ADMIN_ACTIVITY_LOGS,
-  ADMIN_ACTIVITY_PREVIEW_COUNT,
-  ADMIN_CHART_SUMMARY,
-  ADMIN_MONTHLY_PERFORMANCE,
-  ADMIN_REVENUE_OVERVIEW,
-  ADMIN_SYSTEM_OVERALL,
-  ADMIN_SYSTEM_SERVICES,
-  ADMIN_TRAFFIC_OVERVIEW,
-  ADMIN_TRAFFIC_SPARKLINE,
-} from '../data/adminDashboardData';
+import { formatAdminDateTime } from '../utils/adminLiveTime';
 import '../styles/admin-dashboard.css';
-
-const maxSpark = Math.max(...ADMIN_TRAFFIC_SPARKLINE);
-const maxBar = Math.max(...ADMIN_MONTHLY_PERFORMANCE.map((m) => m.value));
-const peakMonthIndex = ADMIN_MONTHLY_PERFORMANCE.findIndex(
-  (m) => m.value === ADMIN_CHART_SUMMARY.peak.value,
-);
 
 const StatIconTraffic = () => (
   <svg className="admin-stat-card__icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2">
@@ -48,7 +34,27 @@ const AdminMonitoringDashboard = () => {
   const role = getUserRole();
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [detailModal, setDetailModal] = useState(null);
-  const previewLogs = ADMIN_ACTIVITY_LOGS.slice(0, ADMIN_ACTIVITY_PREVIEW_COUNT);
+  const live = useAdminDashboardLiveData();
+  const {
+    activityLogs,
+    trafficSparkline,
+    trafficOverview,
+    revenueOverview,
+    systemOverall,
+    systemServices,
+    monthlyPerformance,
+    chartSummary,
+    peakMonthIndex,
+    metricDetailMap,
+  } = live;
+
+  const previewLogs = activityLogs.slice(0, ADMIN_ACTIVITY_PREVIEW_COUNT);
+  const maxSpark = useMemo(() => Math.max(...trafficSparkline), [trafficSparkline]);
+  const maxBar = useMemo(
+    () => Math.max(...monthlyPerformance.map((m) => m.value)),
+    [monthlyPerformance],
+  );
+  const clockLabel = formatAdminDateTime(live.now);
 
   const openDetail = (variant) => setDetailModal(variant);
   const closeDetail = () => setDetailModal(null);
@@ -75,7 +81,12 @@ const AdminMonitoringDashboard = () => {
     <main className="admin-main">
       <div className="admin-dashboard-grid">
         <header className="admin-page-header">
-          <h1 className="admin-main__title">Dashboard Giám sát</h1>
+          <div>
+            <h1 className="admin-main__title">Dashboard Giám sát</h1>
+            <p className="admin-page-header__clock" aria-live="polite">
+              Cập nhật: {clockLabel}
+            </p>
+          </div>
         </header>
 
         <section className="admin-stats-grid" aria-label="Thống kê nhanh">
@@ -97,11 +108,11 @@ const AdminMonitoringDashboard = () => {
             <div className="admin-metric-hero">
               <div className="admin-metric-hero__main">
                 <span className="admin-stat-card__value">
-                  {ADMIN_TRAFFIC_OVERVIEW.active.toLocaleString('vi-VN')}
+                  {trafficOverview.active.toLocaleString('vi-VN')}
                 </span>
                 <span className="admin-live-pill">
                   <span className="admin-live-pill__dot" aria-hidden="true" />
-                  {ADMIN_TRAFFIC_OVERVIEW.live.pill}
+                  {trafficOverview.live.pill}
                 </span>
               </div>
               <div className="admin-traffic-meta">
@@ -113,22 +124,22 @@ const AdminMonitoringDashboard = () => {
                     </svg>
                   </span>
                   <div className="admin-traffic-meta__text">
-                    <span className="admin-traffic-meta__title">{ADMIN_TRAFFIC_OVERVIEW.live.title}</span>
-                    <span className="admin-traffic-meta__hint">{ADMIN_TRAFFIC_OVERVIEW.live.hint}</span>
+                    <span className="admin-traffic-meta__title">{trafficOverview.live.title}</span>
+                    <span className="admin-traffic-meta__hint">{trafficOverview.live.hint}</span>
                   </div>
                 </div>
                 <div className="admin-traffic-meta__divider" aria-hidden="true" />
                 <div className="admin-traffic-meta__compare">
-                  <span className="admin-traffic-meta__compare-label">{ADMIN_TRAFFIC_OVERVIEW.compare.label}</span>
+                  <span className="admin-traffic-meta__compare-label">{trafficOverview.compare.label}</span>
                   <span className="admin-traffic-meta__compare-trend admin-traffic-meta__compare-trend--up">
-                    <span aria-hidden="true">↑</span> {ADMIN_TRAFFIC_OVERVIEW.compare.trend}
+                    <span aria-hidden="true">↑</span> {trafficOverview.compare.trend}
                   </span>
-                  <span className="admin-traffic-meta__compare-ref">{ADMIN_TRAFFIC_OVERVIEW.compare.reference}</span>
+                  <span className="admin-traffic-meta__compare-ref">{trafficOverview.compare.reference}</span>
                 </div>
               </div>
             </div>
             <ul className="admin-mini-metrics">
-              {ADMIN_TRAFFIC_OVERVIEW.metrics.map((m) => (
+              {trafficOverview.metrics.map((m) => (
                 <li key={m.id} className="admin-mini-metrics__item">
                   <span className="admin-mini-metrics__label">{m.label}</span>
                   <span className="admin-mini-metrics__value">{m.value}</span>
@@ -137,13 +148,13 @@ const AdminMonitoringDashboard = () => {
             </ul>
             <div className="admin-sparkline-block">
               <div className="admin-sparkline-block__head">
-                <span>{ADMIN_TRAFFIC_OVERVIEW.sparklineCaption}</span>
+                <span>{trafficOverview.sparklineCaption}</span>
                 <span className="admin-sparkline-block__peak">
-                  Đỉnh {ADMIN_TRAFFIC_OVERVIEW.peak.value.toLocaleString('vi-VN')} · {ADMIN_TRAFFIC_OVERVIEW.peak.time}
+                  Đỉnh {trafficOverview.peak.value.toLocaleString('vi-VN')} · {trafficOverview.peak.time}
                 </span>
               </div>
               <div className="admin-stat-card__sparkline" aria-hidden="true">
-                {ADMIN_TRAFFIC_SPARKLINE.map((h, i) => (
+                {trafficSparkline.map((h, i) => (
                   <span
                     key={i}
                     className={h === maxSpark ? 'admin-sparkline-bar--peak' : undefined}
@@ -152,7 +163,7 @@ const AdminMonitoringDashboard = () => {
                 ))}
               </div>
               <div className="admin-channel-bars" aria-label="Phân bổ thiết bị">
-                {ADMIN_TRAFFIC_OVERVIEW.channels.map((ch) => (
+                {trafficOverview.channels.map((ch) => (
                   <div key={ch.id} className="admin-channel-bars__row">
                     <span className="admin-channel-bars__label">{ch.label}</span>
                     <div className="admin-channel-bars__track">
@@ -182,25 +193,25 @@ const AdminMonitoringDashboard = () => {
             </div>
             <div className="admin-metric-hero">
               <p className="admin-stat-card__value admin-stat-card__value--primary">
-                {ADMIN_REVENUE_OVERVIEW.total} {ADMIN_REVENUE_OVERVIEW.currency}
+                {revenueOverview.total} {revenueOverview.currency}
               </p>
               <p className="admin-stat-card__trend admin-stat-card__trend--inline">
-                <span aria-hidden="true">↑</span> {ADMIN_REVENUE_OVERVIEW.trend} {ADMIN_REVENUE_OVERVIEW.trendCaption}
+                <span aria-hidden="true">↑</span> {revenueOverview.trend} {revenueOverview.trendCaption}
               </p>
-              <p className="admin-metric-hero__sub">Tháng trước: {ADMIN_REVENUE_OVERVIEW.previousMonth}</p>
+              <p className="admin-metric-hero__sub">Tháng trước: {revenueOverview.previousMonth}</p>
             </div>
             <div className="admin-goal-progress">
               <div className="admin-goal-progress__head">
-                <span>{ADMIN_REVENUE_OVERVIEW.goal.label}</span>
-                <span className="admin-goal-progress__pct">{ADMIN_REVENUE_OVERVIEW.goal.percent}%</span>
+                <span>{revenueOverview.goal.label}</span>
+                <span className="admin-goal-progress__pct">{revenueOverview.goal.percent}%</span>
               </div>
               <div className="admin-goal-progress__track">
-                <span className="admin-goal-progress__fill" style={{ width: `${ADMIN_REVENUE_OVERVIEW.goal.percent}%` }} />
+                <span className="admin-goal-progress__fill" style={{ width: `${revenueOverview.goal.percent}%` }} />
               </div>
-              <p className="admin-goal-progress__target">Mục tiêu: {ADMIN_REVENUE_OVERVIEW.goal.target}</p>
+              <p className="admin-goal-progress__target">Mục tiêu: {revenueOverview.goal.target}</p>
             </div>
             <ul className="admin-mini-metrics">
-              {ADMIN_REVENUE_OVERVIEW.metrics.map((m) => (
+              {revenueOverview.metrics.map((m) => (
                 <li key={m.id} className="admin-mini-metrics__item">
                   <span className="admin-mini-metrics__label">{m.label}</span>
                   <span className="admin-mini-metrics__value">{m.value}</span>
@@ -208,7 +219,7 @@ const AdminMonitoringDashboard = () => {
               ))}
             </ul>
             <ul className="admin-revenue-breakdown">
-              {ADMIN_REVENUE_OVERVIEW.breakdown.map((row) => (
+              {revenueOverview.breakdown.map((row) => (
                 <li key={row.id} className="admin-revenue-breakdown__item">
                   <div className="admin-revenue-breakdown__top">
                     <span>{row.label}</span>
@@ -234,15 +245,15 @@ const AdminMonitoringDashboard = () => {
                 </div>
                 <div className="admin-system-panel__summary">
                   <span className="admin-system-panel__caption">Trạng thái tổng</span>
-                  <span className="admin-status-badge">{ADMIN_SYSTEM_OVERALL.label}</span>
+                  <span className="admin-status-badge">{systemOverall.label}</span>
                 </div>
                 <div className="admin-system-panel__uptime">
-                  <span className="admin-system-panel__uptime-value">{ADMIN_SYSTEM_OVERALL.uptime}</span>
-                  <span className="admin-system-panel__uptime-caption">{ADMIN_SYSTEM_OVERALL.uptimeCaption}</span>
+                  <span className="admin-system-panel__uptime-value">{systemOverall.uptime}</span>
+                  <span className="admin-system-panel__uptime-caption">{systemOverall.uptimeCaption}</span>
                 </div>
               </div>
               <ul className="admin-system-services">
-                {ADMIN_SYSTEM_SERVICES.map((service) => (
+                {systemServices.map((service) => (
                   <li key={service.id} className="admin-system-services__item">
                     <span
                       className={`admin-system-services__dot admin-system-services__dot--${service.status}`}
@@ -260,7 +271,7 @@ const AdminMonitoringDashboard = () => {
                   </li>
                 ))}
               </ul>
-              <p className="admin-system-panel__foot">{ADMIN_SYSTEM_OVERALL.lastCheck}</p>
+              <p className="admin-system-panel__foot">{systemOverall.lastCheck}</p>
             </div>
           </article>
         </section>
@@ -278,23 +289,25 @@ const AdminMonitoringDashboard = () => {
               <span className="admin-panel__detail-hint">Nhấn để xem bảng chi tiết</span>
               <div>
                 <h2 className="admin-panel__title admin-panel__title--flush">Hiệu suất vận hành hệ thống theo tháng</h2>
-                <p className="admin-chart-header__sub">{ADMIN_CHART_SUMMARY.period} · Chỉ số hiệu suất (%)</p>
+                <p className="admin-chart-header__sub">
+                  {chartSummary.period} · Chỉ số hiệu suất (%) · {clockLabel}
+                </p>
               </div>
               <div className="admin-chart-kpis" aria-label="Tóm tắt biểu đồ">
                 <div className="admin-chart-kpis__item">
                   <span className="admin-chart-kpis__label">Trung bình</span>
-                  <span className="admin-chart-kpis__value">{ADMIN_CHART_SUMMARY.avg}%</span>
+                  <span className="admin-chart-kpis__value">{chartSummary.avg}%</span>
                 </div>
                 <div className="admin-chart-kpis__item admin-chart-kpis__item--peak">
                   <span className="admin-chart-kpis__label">Cao nhất</span>
                   <span className="admin-chart-kpis__value">
-                    {ADMIN_CHART_SUMMARY.peak.label} · {ADMIN_CHART_SUMMARY.peak.value}%
+                    {chartSummary.peak.label} · {chartSummary.peak.value}%
                   </span>
                 </div>
                 <div className="admin-chart-kpis__item admin-chart-kpis__item--growth">
                   <span className="admin-chart-kpis__label">Tăng trưởng</span>
-                  <span className="admin-chart-kpis__value">{ADMIN_CHART_SUMMARY.growth}</span>
-                  <span className="admin-chart-kpis__hint">{ADMIN_CHART_SUMMARY.growthCaption}</span>
+                  <span className="admin-chart-kpis__value">{chartSummary.growth}</span>
+                  <span className="admin-chart-kpis__hint">{chartSummary.growthCaption}</span>
                 </div>
               </div>
             </div>
@@ -313,7 +326,7 @@ const AdminMonitoringDashboard = () => {
                   <span>0</span>
                 </div>
                 <div className="admin-bar-chart__bars">
-                  {ADMIN_MONTHLY_PERFORMANCE.map((item, index) => (
+                  {monthlyPerformance.map((item, index) => (
                     <div
                       key={item.label}
                       className={`admin-bar-chart__col${index === peakMonthIndex ? ' admin-bar-chart__col--peak' : ''}`}
@@ -337,7 +350,7 @@ const AdminMonitoringDashboard = () => {
                 </span>
                 <span className="admin-chart-legend__item">
                   <span className="admin-chart-legend__swatch admin-chart-legend__swatch--peak" />
-                  Tháng cao nhất ({ADMIN_CHART_SUMMARY.peak.label})
+                  Tháng cao nhất ({chartSummary.peak.label})
                 </span>
               </div>
             </div>
@@ -379,12 +392,14 @@ const AdminMonitoringDashboard = () => {
       <AdminActivityLogModal
         open={activityModalOpen}
         onClose={() => setActivityModalOpen(false)}
+        logs={activityLogs}
       />
 
       <AdminMetricDetailModal
         variant={detailModal}
         open={Boolean(detailModal)}
         onClose={closeDetail}
+        detailMap={metricDetailMap}
       />
     </main>
   );

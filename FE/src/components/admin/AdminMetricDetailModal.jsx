@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { ADMIN_METRIC_DETAIL_MAP } from '../../data/adminDashboardData';
 
 const STATUS_BADGE = {
   active: 'admin-log-badge admin-log-badge--primary',
@@ -12,8 +11,8 @@ const DELTA_BADGE = {
   down: 'admin-detail-delta admin-detail-delta--down',
 };
 
-const AdminMetricDetailModal = ({ variant, open, onClose }) => {
-  const config = variant ? ADMIN_METRIC_DETAIL_MAP[variant] : null;
+const AdminMetricDetailModal = ({ variant, open, onClose, detailMap = {} }) => {
+  const config = variant ? detailMap[variant] : null;
 
   useEffect(() => {
     if (!open) return undefined;

@@ -48,6 +48,14 @@ export const AdminMenuIcon = ({ type }) => {
           <path d="M4 19V5M10 19V9M16 19v-6M22 19H2" />
         </svg>
       );
+    case 'partners':
+      return (
+        <svg {...iconProps}>
+          <path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z" />
+          <rect x="8" y="6" width="8" height="13" rx="1.5" />
+          <path d="M11 12l2 2 4-4.5" />
+        </svg>
+      );
     case 'events':
       return (
         <svg {...iconProps}>

@@ -10,8 +10,9 @@ import '../../styles/admin-menu.css';
 const MENU_ITEMS = [
   { key: 'dashboard', label: 'Dashboard', to: '/admin', icon: 'dashboard', end: true },
   { key: 'accounts', label: 'Kiểm soát tài khoản', to: '/admin/accounts', icon: 'accounts' },
-  { key: 'system', label: 'Cấu hình hệ thống', to: '/admin/system', icon: 'system' },
-  { key: 'data', label: 'Duy trì dữ liệu lõi', to: '/admin/data', icon: 'data' },
+  { key: 'system', label: 'Kiểm soát hệ thống', to: '/admin/system', icon: 'system' },
+  { key: 'data', label: 'Quản lý cơ sở & danh mục', to: '/admin/data', icon: 'data' },
+  { key: 'partners', label: 'Đối tác', to: '/admin/partners', icon: 'partners' },
   { key: 'analytics', label: 'Đánh giá & Phân tích', to: '/admin/analytics', icon: 'analytics' },
   { key: 'events', label: 'Duyệt đề xuất sự kiện', to: '/admin/events', icon: 'events' },
 ];
