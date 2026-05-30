@@ -10,7 +10,7 @@ import { logoutWithConfirm } from '../utils/logout';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import { cacheUserProfile } from '../hooks/useUserProfile';
 import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileApi';
-import { normalizeRole } from '../utils/auth';
+import { isCtsvRole, normalizeRole } from '../utils/auth';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
 
 const Profile = ({ showToast, embedded = false }) => {
@@ -142,6 +142,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
   const displayAvatar = avatar || defaultAvatar;
   const profilePageTitle = 'Thông tin cá nhân';
+  const isCtsvEmbedded = embedded && isCtsvRole(userRole);
 
   const handleNavigateProfile = (e) => {
     e.preventDefault();
@@ -339,7 +340,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
   const profileContent = (
     <div className={`dashboard-content-wrapper${embedded ? ' ctsv-profile-content' : ''}`}>
-      <div className="profile-grid">
+      <div className={`profile-grid${embedded ? ' ctsv-profile-grid' : ''}`}>
         {profileLoading ? (
           <div className="profile-page-loading" aria-busy="true" aria-label="Đang tải hồ sơ">
             <div className="profile-skeleton profile-skeleton--avatar-lg" />
@@ -350,7 +351,7 @@ const Profile = ({ showToast, embedded = false }) => {
         <>
         {/* Left Column (Avatar & Clubs) */}
         <div className="profile-left-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="profile-card avatar-card">
+          <div className={`profile-card avatar-card${embedded ? ' ctsv-profile-avatar-card' : ''}`}>
             <div className="avatar-card-content">
               <div className="profile-avatar-container">
                 <img className="large-profile-avatar" id="profile-avatar-img" src={displayAvatar} alt="Avatar lớn" />
@@ -400,8 +401,15 @@ const Profile = ({ showToast, embedded = false }) => {
         </div>
 
         <div className="profile-right-column" ref={profileSectionRef}>
-          <form id="profile-edit-form" onSubmit={handleProfileSubmit} className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>Thông tin cá nhân & Sở thích</h2>
+          <form
+            id="profile-edit-form"
+            onSubmit={handleProfileSubmit}
+            className={`profile-card${embedded ? ' ctsv-profile-form-card' : ''}`}
+            style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+          >
+            <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>
+              {isCtsvEmbedded ? 'Thông tin liên hệ & chuyên môn' : 'Thông tin cá nhân & Sở thích'}
+            </h2>
 
                   <div className="profile-form-grid">
                     <div className="profile-input-group">
@@ -463,7 +471,7 @@ const Profile = ({ showToast, embedded = false }) => {
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                  <div className={`profile-extra-section${embedded ? ' ctsv-profile-extra' : ''}`}>
                     <div className="profile-input-group profile-form-grid-full">
                       <label htmlFor="user-orientation">Định hướng chuyên môn</label>
                       <textarea
@@ -475,12 +483,16 @@ const Profile = ({ showToast, embedded = false }) => {
                       ></textarea>
                     </div>
 
-                    <div className="interest-section">
+                    <div className={`interest-section${embedded ? ' ctsv-profile-interests' : ''}`}>
                       <div className="interest-title-wrapper">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                         </svg>
-                        <span>AI Recommend: Sở thích sự kiện</span>
+                        <span>
+                          {isCtsvEmbedded
+                            ? 'Lĩnh vực sự kiện quan tâm'
+                            : 'AI Recommend: Sở thích sự kiện'}
+                        </span>
                       </div>
 
                       <div className="interest-tag-list">
@@ -588,6 +600,7 @@ const Profile = ({ showToast, embedded = false }) => {
                       </div>
                     </div>
 
+                    <div className={`profile-form-actions${embedded ? ' ctsv-profile-actions' : ''}`}>
                     {!isEditing ? (
                       <button
                         type="button"
@@ -660,6 +673,7 @@ const Profile = ({ showToast, embedded = false }) => {
                         </button>
                       </div>
                     )}
+                    </div>
                   </div>
           </form>
         </div>
@@ -687,12 +701,22 @@ const Profile = ({ showToast, embedded = false }) => {
     return (
       <>
         <div className="ctsv-page ctsv-profile-page">
-          <div className="ctsv-page-header">
-            <div>
+          <header className="ctsv-profile-hero">
+            <div className="ctsv-profile-hero-text">
+              <span className="ctsv-profile-eyebrow">Hồ sơ cán bộ</span>
               <h1>{profilePageTitle}</h1>
               <p>Quản lý thông tin cá nhân và liên hệ của cán bộ CTSV.</p>
             </div>
-          </div>
+            {!profileLoading && (
+              <div className="ctsv-profile-hero-user">
+                <img src={displayAvatar} alt="" className="ctsv-profile-hero-avatar" />
+                <div>
+                  <strong>{profileData.fullname || 'Cán bộ CTSV'}</strong>
+                  <span>{getRoleLabel(userRole)}</span>
+                </div>
+              </div>
+            )}
+          </header>
           {profileContent}
         </div>
         {avatarCropModal}
