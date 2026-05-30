@@ -38,6 +38,10 @@ const eventSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
+  category: {
+    type: String,
+    default: 'Workshop'
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -46,6 +50,18 @@ const eventSchema = new mongoose.Schema({
   rejectionReason: {
     type: String,
     default: ''
+  },
+  reach: {
+    type: Number,
+    default: 0
+  },
+  rating: {
+    type: Number,
+    default: 0
+  },
+  ratingCount: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

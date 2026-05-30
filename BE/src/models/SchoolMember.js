@@ -10,7 +10,7 @@ const schoolMemberSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['student', 'staff', 'ctsv'],
+    enum: ['student', 'staff', 'ctsv', 'club_manager'],
     required: true
   },
   studentId: {

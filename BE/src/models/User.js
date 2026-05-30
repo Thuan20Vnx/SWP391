@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
 const SchoolMember = require('./SchoolMember');
-const {
-  normalizeStudentId,
-  deriveCourseFromStudentId,
-} = require('../utils/studentId');
 
 const userSchema = new mongoose.Schema({
   fullname: {
@@ -31,7 +27,7 @@ const userSchema = new mongoose.Schema({
   // ======= NEW: Role & Student ID for FPT recognition =======
   role: {
     type: String,
-    enum: ['student', 'staff', 'guest', 'ctsv'],
+    enum: ['student', 'staff', 'guest', 'ctsv', 'club_manager'],
     default: 'guest'
   },
   studentId: {
@@ -96,158 +92,18 @@ userSchema.statics.detectRole = async function (email) {
     });
     
     if (member) {
-      const role = member.role ? member.role.toLowerCase() : 'guest';
-      const studentId = normalizeStudentId(member.studentId || '');
-      const course = role === 'student' ? deriveCourseFromStudentId(studentId) : null;
-      return { role, studentId, course };
+      return { 
+        role: member.role ? member.role.toLowerCase() : 'guest', 
+        studentId: member.studentId || '' 
+      };
     }
   } catch (error) {
     console.error('Lỗi khi tra cứu SchoolMember:', error);
   }
 
   // Not in whitelist -> guest
-  return { role: 'guest', studentId: '', course: null };
+  return { role: 'guest', studentId: '' };
 };
-
-// Apply whitelist identity + derive course from MSSV (studentId)
-userSchema.statics.applySchoolMemberData = function (user, { role, studentId, course }) {
-  if (role) user.role = role;
-  if (studentId) {
-    user.studentId = normalizeStudentId(studentId);
-    if (user.role === 'student') {
-      const derivedCourse = deriveCourseFromStudentId(user.studentId);
-      if (derivedCourse) user.course = derivedCourse;
-    }
-  } else if (course && user.role === 'student') {
-    user.course = course;
-  }
-  return user;
-};
-
-userSchema.statics.syncCourseFromStudentId = function (user) {
-  if (!user.studentId) return false;
-
-  let changed = false;
-  const normalized = normalizeStudentId(user.studentId);
-  if (user.studentId !== normalized) {
-    user.studentId = normalized;
-    changed = true;
-  }
-
-  if (user.role !== 'student') return changed;
-
-  const derived = deriveCourseFromStudentId(normalized);
-  if (derived && user.course !== derived) {
-    user.course = derived;
-    changed = true;
-  }
-  return changed;
-};
-
-userSchema.statics.hasCustomAvatar = function (user) {
-  const isCustom = (value) => typeof value === 'string' && value.startsWith('data:image/');
-  return isCustom(user?.picture) || isCustom(user?.avatar);
-};
-
-// Ghi thẳng course/MSSV xuống MongoDB (không phụ thuộc isModified/save hook)
-userSchema.statics.syncAndPersistUserProfile = async function (user, extraSet = {}) {
-  if (!user) return user;
-
-  await this.ensureProfileSynced(user);
-
-  const $set = { ...extraSet };
-  const modifiedPaths = user.modifiedPaths();
-
-  for (const path of modifiedPaths) {
-    $set[path] = user.get(path);
-  }
-
-  if (user.studentId) {
-    const normalized = normalizeStudentId(user.studentId);
-    const derived = deriveCourseFromStudentId(normalized);
-    user.studentId = normalized;
-    $set.studentId = normalized;
-    if (derived) {
-      user.course = derived;
-      $set.course = derived;
-    }
-  }
-
-  if (Object.keys($set).length > 0) {
-    await this.updateOne({ _id: user._id }, { $set });
-    Object.assign(user, $set);
-  }
-
-  return user;
-};
-
-userSchema.statics.syncAllStudentCourses = async function () {
-  const users = await this.find({
-    studentId: { $exists: true, $nin: ['', null] },
-  });
-
-  let updated = 0;
-  for (const user of users) {
-    const normalized = normalizeStudentId(user.studentId);
-    const derived = deriveCourseFromStudentId(normalized);
-    if (!derived) continue;
-    if (user.course === derived && user.studentId === normalized) continue;
-
-    await this.updateOne(
-      { _id: user._id },
-      { $set: { course: derived, studentId: normalized } }
-    );
-    updated++;
-  }
-
-  if (updated > 0) {
-    console.log(`Đã đồng bộ khóa học cho ${updated} tài khoản từ MSSV.`);
-  }
-};
-
-// Sync role/MSSV from whitelist + derive course from studentId
-userSchema.statics.ensureProfileSynced = async function (user) {
-  const detected = await this.detectRole(user.email);
-  let changed = false;
-
-  if ((!user.role || user.role === 'guest') && detected.role !== 'guest') {
-    this.applySchoolMemberData(user, detected);
-    return true;
-  }
-
-  if (detected.role === 'student' && detected.studentId) {
-    const fromWhitelist = normalizeStudentId(detected.studentId);
-    if (user.role !== 'student') {
-      user.role = 'student';
-      changed = true;
-    }
-    if (user.studentId !== fromWhitelist) {
-      user.studentId = fromWhitelist;
-      changed = true;
-    }
-  }
-
-  if (this.syncCourseFromStudentId(user)) {
-    changed = true;
-  }
-
-  return changed;
-};
-
-userSchema.pre('save', function () {
-  if (this.studentId) {
-    this.studentId = normalizeStudentId(this.studentId);
-  }
-  if (this.role === 'student' && this.studentId) {
-    const derived = deriveCourseFromStudentId(this.studentId);
-    if (derived) {
-      this.course = derived;
-    }
-  }
-});
-
-userSchema.statics.normalizeStudentId = normalizeStudentId;
-userSchema.statics.deriveCourseFromStudentId = deriveCourseFromStudentId;
 
 // ============================================================
 // Static: Sanitize user object before sending to frontend
