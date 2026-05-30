@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
 import { fetchCtsvEvents, fetchCtsvStats, MOCK_EVENTS, MOCK_STATS } from '../services/ctsvApi';
+import { getCtsvEventAccess, isCtsvManagedEvent, isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
+import { statusClass } from '../utils/eventStatus';
 
 const HOME_TIME_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -16,7 +18,49 @@ const HOME_CATEGORY_FILTERS = [
   { value: 'Công nghệ', label: 'Công nghệ' },
   { value: 'Kết nối', label: 'Kết nối' }
 ];
-import { isPendingApproval, statusClass } from '../utils/eventStatus';
+
+const LIVE_OVERVIEW_LIMIT = 8;
+
+const CtsvEventCard = ({ ev, onOpen }) => {
+  const access = getCtsvEventAccess(ev);
+  return (
+    <article className="event-card-item">
+      <div className="event-card-image-wrapper">
+        <img src={ev.image} alt={ev.title} className="event-card-img" />
+        <span className="event-card-category-badge">{ev.category}</span>
+      </div>
+      <div className="event-card-body">
+        <h3 className="event-card-title">{ev.title}</h3>
+        <div className="event-card-details">
+          <div className="detail-row">
+            <span>
+              {ev.date} • {ev.time}
+            </span>
+          </div>
+          <div className="detail-row">
+            <span className="location-text">{ev.location}</span>
+          </div>
+        </div>
+        <div className="event-card-divider" />
+        <div className="event-card-footer">
+          <div className="ticket-info">
+            <span className="ticket-remain-text">
+              Còn: {ev.remainingTickets}/{ev.totalTickets}
+            </span>
+            <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
+          </div>
+          <button
+            type="button"
+            className={`btn-card-register ${access.buttonClass}`}
+            onClick={() => onOpen(ev)}
+          >
+            {access.label}
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+};
 
 const CtsvHome = ({ showToast }) => {
   const navigate = useNavigate();
@@ -111,9 +155,35 @@ const CtsvHome = ({ showToast }) => {
     return () => outlet.registerHeaderSearchSubmit?.(null);
   }, [outlet, handleFilterSubmit]);
 
-  const handleManage = (ev) => {
+  const liveOverviewEvents = useMemo(
+    () => events.filter(isEventLiveOrOngoing).slice(0, LIVE_OVERVIEW_LIMIT),
+    [events]
+  );
+
+  const managedEvents = useMemo(
+    () => filteredEvents.filter(isCtsvManagedEvent),
+    [filteredEvents]
+  );
+
+  const handleOpenEvent = (ev) => {
     navigate(`/ctsv/events/${ev.id}`);
   };
+
+  const sectionLink = (path, label) => (
+    <a
+      href={path}
+      className="see-all-link"
+      onClick={(e) => {
+        e.preventDefault();
+        navigate(path);
+      }}
+    >
+      <span>{label}</span>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor" />
+      </svg>
+    </a>
+  );
 
   return (
     <>
@@ -198,61 +268,59 @@ const CtsvHome = ({ showToast }) => {
         </div>
       </section>
 
-      <main className="recommended-section">
+      <main className="recommended-section ctsv-home-live-section">
+        <div className="recommended-header-row">
+          <div className="recommended-title-container">
+            <h2>Tất cả sự kiện đang diễn ra</h2>
+            <p className="ctsv-home-section-desc">
+              Tổng quan sự kiện đang mở đăng ký hoặc đang diễn ra trên toàn hệ thống (CLB, trường, đối tác).
+            </p>
+          </div>
+          {sectionLink('/ctsv/events', 'Xem tất cả')}
+        </div>
+
+        {liveOverviewEvents.length === 0 ? (
+          <div className="ctsv-home-section-empty">
+            <p>Hiện không có sự kiện nào đang diễn ra hoặc mở đăng ký.</p>
+          </div>
+        ) : (
+          <div className="event-grid-cards">
+            {liveOverviewEvents.map((ev) => (
+              <CtsvEventCard key={`live-${ev.id}`} ev={ev} onOpen={handleOpenEvent} />
+            ))}
+          </div>
+        )}
+      </main>
+
+      <main className="recommended-section ctsv-home-managed-section">
         <div className="recommended-header-row">
           <div className="recommended-title-container">
             <h2>Sự kiện đang quản lý</h2>
+            <p className="ctsv-home-section-desc">
+              Sự kiện cấp trường do CTSV tạo và phê duyệt — bạn có thể quản lý trực tiếp.
+            </p>
           </div>
-          <a
-            href="/ctsv/events"
-            className="see-all-link"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/ctsv/events');
-            }}
-          >
-            <span>Xem tất cả</span>
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor" />
-            </svg>
-          </a>
+          {sectionLink('/ctsv/events', 'Quản lý sự kiện')}
         </div>
 
-        <div className="event-grid-cards">
-          {filteredEvents.map((ev) => (
-            <article key={ev.id} className="event-card-item">
-              <div className="event-card-image-wrapper">
-                <img src={ev.image} alt={ev.title} className="event-card-img" />
-                <span className="event-card-category-badge">{ev.category}</span>
-              </div>
-              <div className="event-card-body">
-                <h3 className="event-card-title">{ev.title}</h3>
-                <div className="event-card-details">
-                  <div className="detail-row">
-                    <span>
-                      {ev.date} • {ev.time}
-                    </span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="location-text">{ev.location}</span>
-                  </div>
-                </div>
-                <div className="event-card-divider" />
-                <div className="event-card-footer">
-                  <div className="ticket-info">
-                    <span className="ticket-remain-text">
-                      Còn: {ev.remainingTickets}/{ev.totalTickets}
-                    </span>
-                    <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
-                  </div>
-                  <button type="button" className="btn-card-register btn-card-manage" onClick={() => handleManage(ev)}>
-                    {isPendingApproval(ev) ? 'Phê duyệt' : 'Quản lý'}
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+        {managedEvents.length === 0 ? (
+          <div className="ctsv-home-section-empty">
+            <p>Chưa có sự kiện cấp trường nào phù hợp bộ lọc.</p>
+            <button
+              type="button"
+              className="filter-submit-btn"
+              onClick={() => navigate('/ctsv/events/create')}
+            >
+              Tạo sự kiện trường
+            </button>
+          </div>
+        ) : (
+          <div className="event-grid-cards">
+            {managedEvents.map((ev) => (
+              <CtsvEventCard key={ev.id} ev={ev} onOpen={handleOpenEvent} />
+            ))}
+          </div>
+        )}
       </main>
     </>
   );

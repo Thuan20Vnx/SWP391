@@ -3,7 +3,6 @@ import { Link, useParams, useOutletContext } from 'react-router-dom';
 import PartnerActionDialog from '../../components/ctsv/PartnerActionDialog';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
-  approveCtsvContract,
   approveCtsvPartner,
   fetchCtsvPartner,
   rejectCtsvPartner,
@@ -12,6 +11,7 @@ import {
 import { getUserRole } from '../../utils/auth';
 import {
   PARTNER_STATUS_LABEL,
+  PARTNER_STATUS_LABEL_DETAIL,
   PARTNER_STATUS_TONE,
   formatPartnerDate,
   formatVnd,
@@ -19,6 +19,21 @@ import {
 } from '../../utils/partnerDisplay';
 
 const CTSV_CAN_ACT = ['pending', 'info_requested'];
+
+const PanelIcon = ({ children }) => (
+  <span className="ctsv-pd-panel-icon" aria-hidden>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  </span>
+);
+
+const FileIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+  </svg>
+);
 
 const CtsvPartnerDetail = () => {
   const { id } = useParams();
@@ -56,113 +71,162 @@ const CtsvPartnerDetail = () => {
 
   if (!partner) {
     return (
-      <div className="ctsv-partner-detail-page">
+      <div className="ctsv-pd-page">
         <p className="ctsv-muted">Đang tải...</p>
       </div>
     );
   }
 
   const tone = PARTNER_STATUS_TONE[partner.status] || 'slate';
+  const statusLabel =
+    PARTNER_STATUS_LABEL_DETAIL[partner.status] || PARTNER_STATUS_LABEL[partner.status] || partner.status;
   const mainContract = contracts[0];
   const eventTitle = partner.proposedEventTitle || mainContract?.title || '—';
   const amount = partner.expectedSponsorAmount || mainContract?.amount;
   const canAct = CTSV_CAN_ACT.includes(partner.status) && isCtsv;
+  const repRole = partner.representativeTitle
+    ? `Đại diện liên hệ (${partner.representativeTitle})`
+    : 'Đại diện liên hệ';
+  const contactLine = [partner.email, partner.phone].filter(Boolean).join(' • ');
+
+  const attachmentItems = [
+    ...(partner.attachments || []).map((f, i) => ({ key: `att-${i}`, ...f })),
+    ...contracts.map((c) => ({
+      key: c._id,
+      name: c.title || 'Hợp đồng tài trợ',
+      sizeLabel: formatVnd(c.amount),
+      url: '#',
+      isContract: true
+    }))
+  ];
 
   return (
-    <div className="ctsv-partner-detail-page">
-      <Link to="/ctsv/partners" className="ctsv-partner-detail-back">
-        ← Quay lại danh sách đơn
+    <div className="ctsv-pd-page">
+      <Link to="/ctsv/partners" className="ctsv-pd-back">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Quay lại danh sách đối tác
       </Link>
 
-      <header className="ctsv-partner-detail-header">
-        <div>
-          <div className="ctsv-partner-detail-title-row">
+      <header className="ctsv-pd-header">
+        <div className="ctsv-pd-header-main">
+          <div className="ctsv-pd-title-row">
             <h1>{partner.name}</h1>
-            <span className={`ctsv-partners-badge ctsv-partners-badge--${tone}`}>
-              {PARTNER_STATUS_LABEL[partner.status] || partner.status}
+            <span className={`ctsv-pd-status ctsv-pd-status--${tone}`}>
+              <svg width="11" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <circle cx="12" cy="12" r="5" />
+              </svg>
+              {statusLabel}
             </span>
           </div>
-          {partner.category && (
-            <p className="ctsv-partner-detail-category">Lĩnh vực: {partner.category}</p>
-          )}
+          {partner.category && <p className="ctsv-pd-category">Lĩnh vực: {partner.category}</p>}
+          <p className="ctsv-pd-meta">Ngày gửi đề xuất: {formatPartnerDate(partner.createdAt)}</p>
         </div>
-        <div className="ctsv-partner-detail-contact">
-          <span className="ctsv-partners-avatar">{partnerInitials(partner.name)}</span>
+
+        <div className="ctsv-pd-contact-card">
+          <span className="ctsv-pd-avatar">{partnerInitials(partner.name)}</span>
           <div>
             <strong>{partner.representative || '—'}</strong>
-            <span>{partner.representativeTitle || 'Đại diện liên hệ'}</span>
-            <span>
-              {partner.email}
-              {partner.phone ? ` • ${partner.phone}` : ''}
-            </span>
+            <span>{repRole}</span>
+            <span>{contactLine || '—'}</span>
           </div>
         </div>
       </header>
 
       {partner.status === 'pending_admin' && (
-        <div className="ctsv-partner-detail-banner ctsv-partner-detail-banner--info">
+        <div className="ctsv-pd-banner ctsv-pd-banner--info">
           Đơn đã được CTSV phê duyệt
           {partner.ctsvApprovedByEmail ? ` (${partner.ctsvApprovedByEmail})` : ''}. Đang chờ{' '}
-          <strong>Admin</strong> phê duyệt lần cuối để hoàn tất.
+          <strong>Admin</strong> phê duyệt lần cuối.
         </div>
       )}
-
       {partner.status === 'rejected' && partner.rejectionReason && (
-        <div className="ctsv-partner-detail-banner ctsv-partner-detail-banner--danger">
+        <div className="ctsv-pd-banner ctsv-pd-banner--danger">
           <strong>Lý do từ chối:</strong> {partner.rejectionReason}
         </div>
       )}
-
       {partner.status === 'info_requested' && partner.supplementReason && (
-        <div className="ctsv-partner-detail-banner ctsv-partner-detail-banner--warn">
+        <div className="ctsv-pd-banner ctsv-pd-banner--warn">
           <strong>Yêu cầu bổ sung:</strong> {partner.supplementReason}
         </div>
       )}
 
-      <div className="ctsv-partner-detail-bento">
-        <section className="ctsv-partner-detail-panel">
-          <h2>Thông tin chương trình đề xuất</h2>
-          <div className="ctsv-partner-detail-field">
-            <label>Tên sự kiện / chương trình</label>
-            <p>{eventTitle}</p>
+      <div className="ctsv-pd-bento">
+        <section className="ctsv-pd-panel ctsv-pd-panel--wide">
+          <h2 className="ctsv-pd-panel-title">
+            <PanelIcon>
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <path d="M16 2v4M8 2v4M3 10h18" />
+            </PanelIcon>
+            Thông tin chương trình đề xuất
+          </h2>
+
+          <div className="ctsv-pd-field">
+            <span className="ctsv-pd-field-label">Tên sự kiện</span>
+            <p className="ctsv-pd-field-value">{eventTitle}</p>
           </div>
-          <div className="ctsv-partner-detail-metrics">
-            <div className="ctsv-partner-detail-metric">
-              <h3>Giá trị tài trợ dự kiến</h3>
-              <p>{formatVnd(amount)}</p>
+
+          <div className="ctsv-pd-duo">
+            <div className="ctsv-pd-stat">
+              <span className="ctsv-pd-stat-label">
+                <svg width="16" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+                  <line x1="12" y1="1" x2="12" y2="23" />
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+                Giá trị tài trợ dự kiến
+              </span>
+              <p className="ctsv-pd-stat-value">{formatVnd(amount)}</p>
             </div>
-            <div className="ctsv-partner-detail-metric">
-              <h3>Ngày gửi đề xuất</h3>
-              <p style={{ color: '#0f172a', fontSize: '1rem' }}>{formatPartnerDate(partner.createdAt)}</p>
+
+            <div className="ctsv-pd-stat">
+              <span className="ctsv-pd-stat-label">
+                <svg width="15" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                Quyền lợi đối tác yêu cầu
+              </span>
+              {partner.benefits?.length ? (
+                <ul className="ctsv-pd-benefits">
+                  {partner.benefits.map((b, i) => (
+                    <li key={i}>{b}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="ctsv-pd-stat-muted">—</p>
+              )}
             </div>
           </div>
-          {partner.benefits?.length > 0 && (
-            <div className="ctsv-partner-detail-field">
-              <label>Quyền lợi đối tác yêu cầu</label>
-              <ul className="ctsv-partner-detail-benefits">
-                {partner.benefits.map((b, i) => (
-                  <li key={i}>{b}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {partner.description && (
-            <div className="ctsv-partner-detail-field">
-              <label>Ghi chú</label>
-              <p style={{ fontWeight: 500 }}>{partner.description}</p>
-            </div>
-          )}
         </section>
 
-        <section className="ctsv-partner-detail-panel">
-          <h2>Tệp đính kèm</h2>
-          {partner.attachments?.length ? (
-            <ul className="ctsv-partner-detail-files">
-              {partner.attachments.map((f, i) => (
-                <li key={i}>
-                  <a href={f.url || '#'} target="_blank" rel="noreferrer">
-                    <span>{f.name}</span>
-                    <span className="ctsv-muted">{f.sizeLabel}</span>
+        <section className="ctsv-pd-panel">
+          <h2 className="ctsv-pd-panel-title">
+            <PanelIcon>
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </PanelIcon>
+            Tệp đính kèm
+          </h2>
+
+          {attachmentItems.length ? (
+            <ul className="ctsv-pd-files">
+              {attachmentItems.map((f) => (
+                <li key={f.key}>
+                  <a href={f.url || '#'} className="ctsv-pd-file" target="_blank" rel="noreferrer">
+                    <span className="ctsv-pd-file-icon">
+                      <FileIcon />
+                    </span>
+                    <span className="ctsv-pd-file-body">
+                      <span className="ctsv-pd-file-name">{f.name}</span>
+                      <span className="ctsv-pd-file-size">{f.sizeLabel || (f.isContract ? 'Hợp đồng' : '—')}</span>
+                    </span>
+                    <span className="ctsv-pd-file-arrow" aria-hidden>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                    </span>
                   </a>
                 </li>
               ))}
@@ -170,71 +234,58 @@ const CtsvPartnerDetail = () => {
           ) : (
             <p className="ctsv-muted">Chưa có tệp đính kèm.</p>
           )}
-
-          {contracts.length > 0 && (
-            <>
-              <h2 style={{ marginTop: 24 }}>Hợp đồng</h2>
-              <ul className="ctsv-partner-detail-files">
-                {contracts.map((c) => (
-                  <li key={c._id}>
-                    <span>
-                      {c.title} — {formatVnd(c.amount)} ({c.status})
-                    </span>
-                    {c.status === 'pending' && isCtsv && partner.status === 'approved' && (
-                      <button
-                        type="button"
-                        className="ctsv-link-btn"
-                        onClick={async () => {
-                          try {
-                            await approveCtsvContract(c._id);
-                            showToast?.('Đã phê duyệt hợp đồng.', 'success');
-                            load();
-                          } catch (e) {
-                            showToast?.(e.message, 'error');
-                          }
-                        }}
-                      >
-                        Phê duyệt HĐ
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
         </section>
       </div>
 
       {canAct && (
-        <section className="ctsv-partner-detail-actions">
-          <p className="ctsv-partner-detail-actions-note">
-            Sau khi CTSV phê duyệt, đơn chuyển sang Admin để xác nhận lần cuối trước khi đối tác chính thức
-            hợp tác.
-          </p>
-          <div className="ctsv-partner-detail-actions-btns">
+        <section className="ctsv-pd-action-bar">
+          <div className="ctsv-pd-action-note">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <p>Hành động của bạn sẽ được ghi nhận vào lịch sử hệ thống.</p>
+          </div>
+
+          <div className="ctsv-pd-action-btns">
+            <div className="ctsv-pd-action-row">
+              <button
+                type="button"
+                className="ctsv-pd-btn ctsv-pd-btn--outline"
+                disabled={actionLoading}
+                onClick={() => setDialogMode('supplement')}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Bổ sung thông tin
+              </button>
+              <button
+                type="button"
+                className="ctsv-pd-btn ctsv-pd-btn--danger-outline"
+                disabled={actionLoading}
+                onClick={() => setDialogMode('reject')}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+                Từ chối
+              </button>
+            </div>
             <button
               type="button"
-              className="ctsv-partner-action-btn ctsv-partner-action-btn--approve"
+              className="ctsv-pd-btn ctsv-pd-btn--primary"
               disabled={actionLoading}
               onClick={() => setConfirmApprove(true)}
             >
-              Phê duyệt
-            </button>
-            <button
-              type="button"
-              className="ctsv-partner-action-btn ctsv-partner-action-btn--reject"
-              disabled={actionLoading}
-              onClick={() => setDialogMode('reject')}
-            >
-              Từ chối
-            </button>
-            <button
-              type="button"
-              className="ctsv-partner-action-btn ctsv-partner-action-btn--supplement"
-              disabled={actionLoading}
-              onClick={() => setDialogMode('supplement')}
-            >
-              Bổ sung thông tin
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Phê duyệt đối tác
             </button>
           </div>
         </section>
@@ -262,8 +313,8 @@ const CtsvPartnerDetail = () => {
 
       <ConfirmDialog
         open={confirmApprove}
-        title="Phê duyệt đơn đăng ký đối tác"
-        message="Đơn sẽ được chuyển sang Admin để phê duyệt lần cuối. Chỉ khi Admin xác nhận, đối tác mới được coi là đã duyệt thành công."
+        title="Phê duyệt đối tác"
+        message="Đơn sẽ chuyển sang Admin để phê duyệt lần cuối. Chỉ khi Admin xác nhận, đối tác mới được coi là đã duyệt thành công."
         confirmLabel="Gửi lên Admin"
         cancelLabel="Hủy"
         loading={actionLoading}

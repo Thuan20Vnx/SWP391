@@ -8,6 +8,7 @@ import {
   revisionCtsvEvent
 } from '../../services/ctsvApi';
 import { getUserRole } from '../../utils/auth';
+import { getCtsvEventAccess } from '../../utils/ctsvEventAccess';
 import { statusClass } from '../../utils/eventStatus';
 
 const CtsvEventDetail = () => {
@@ -81,7 +82,9 @@ const CtsvEventDetail = () => {
 
   if (!event) return <div className="ctsv-page"><p className="ctsv-muted">Đang tải...</p></div>;
 
-  const canApprove = ['pending_ctsv', 'pending_icpdp', 'revision'].includes(event.statusKey);
+  const access = getCtsvEventAccess(event);
+  const canApprove =
+    access.canManage && ['pending_ctsv', 'pending_icpdp', 'revision'].includes(event.statusKey);
 
   return (
     <div className="ctsv-page ctsv-detail-page">
@@ -113,6 +116,13 @@ const CtsvEventDetail = () => {
         ))}
       </div>
 
+      {!access.canManage && (
+        <div className="ctsv-pd-banner ctsv-pd-banner--info" style={{ marginBottom: 0 }}>
+          Sự kiện do CLB hoặc đối tác tổ chức — bạn chỉ xem thông tin, không chỉnh sửa hay phê duyệt tại
+          đây.
+        </div>
+      )}
+
       {activeTab === 'info' && (
         <div className="ctsv-panel">
           <p>{event.description || 'Chưa có mô tả chi tiết.'}</p>
@@ -120,7 +130,14 @@ const CtsvEventDetail = () => {
             <li>
               Vé: {event.remainingTickets}/{event.totalTickets} còn lại
             </li>
-            <li>Nguồn: {event.source || '—'}</li>
+            <li>
+              Nguồn:{' '}
+              {event.source === 'school'
+                ? 'Cấp trường (CTSV quản lý)'
+                : event.source === 'partner'
+                  ? 'Đối tác'
+                  : 'Câu lạc bộ / hệ thống'}
+            </li>
             {event.ctsvNote && <li>Ghi chú CTSV: {event.ctsvNote}</li>}
           </ul>
         </div>
@@ -142,35 +159,37 @@ const CtsvEventDetail = () => {
         </div>
       )}
 
-      <div className="ctsv-action-panel">
-        <textarea
-          className="ctsv-textarea"
-          placeholder="Ghi chú / lý do (bắt buộc khi từ chối)"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          rows={3}
-        />
-        <div className="ctsv-action-buttons">
-          {canApprove && isCtsvOnly && (
-            <>
-              <button type="button" className="ctsv-btn-primary" onClick={handleApprove}>
-                Phê duyệt
+      {access.canManage && (
+        <div className="ctsv-action-panel">
+          <textarea
+            className="ctsv-textarea"
+            placeholder="Ghi chú / lý do (bắt buộc khi từ chối)"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+          />
+          <div className="ctsv-action-buttons">
+            {canApprove && isCtsvOnly && (
+              <>
+                <button type="button" className="ctsv-btn-primary" onClick={handleApprove}>
+                  Phê duyệt
+                </button>
+                <button type="button" className="ctsv-btn-danger" onClick={handleReject}>
+                  Từ chối
+                </button>
+                <button type="button" className="ctsv-btn-secondary" onClick={handleRevision}>
+                  Yêu cầu chỉnh sửa
+                </button>
+              </>
+            )}
+            {event.statusKey === 'approved' && (
+              <button type="button" className="ctsv-btn-primary" onClick={handlePublish}>
+                Publish sự kiện
               </button>
-              <button type="button" className="ctsv-btn-danger" onClick={handleReject}>
-                Từ chối
-              </button>
-              <button type="button" className="ctsv-btn-secondary" onClick={handleRevision}>
-                Yêu cầu chỉnh sửa
-              </button>
-            </>
-          )}
-          {event.statusKey === 'approved' && (
-            <button type="button" className="ctsv-btn-primary" onClick={handlePublish}>
-              Publish sự kiện
-            </button>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -1,22 +1,20 @@
-const DRAFT_PREFIX = 'ctsv-announcement-draft';
+const DRAFT_PREFIX = 'ctsv-school-event-draft';
 
 const draftKey = () => {
   const email = localStorage.getItem('userEmail') || 'default';
   return `${DRAFT_PREFIX}:${email}`;
 };
 
-export const loadAnnouncementDraft = () => {
+export const loadSchoolEventDraft = () => {
   try {
     const raw = localStorage.getItem(draftKey());
     if (!raw) return null;
     const data = JSON.parse(raw);
     if (!data || typeof data !== 'object') return null;
     return {
-      title: String(data.title || ''),
-      content: String(data.content || ''),
-      eventId: String(data.eventId || ''),
-      image: String(data.image || ''),
-      imageFileName: String(data.imageFileName || ''),
+      form: data.form || null,
+      tickets: Array.isArray(data.tickets) ? data.tickets : null,
+      bannerFileName: String(data.bannerFileName || ''),
       savedAt: data.savedAt || null
     };
   } catch {
@@ -24,32 +22,30 @@ export const loadAnnouncementDraft = () => {
   }
 };
 
-export const saveAnnouncementDraft = (form) => {
-  const payload = {
-    title: form.title ?? '',
-    content: form.content ?? '',
-    eventId: form.eventId ?? '',
-    image: form.image ?? '',
-    imageFileName: form.imageFileName ?? '',
+export const saveSchoolEventDraft = (payload) => {
+  const data = {
+    form: payload.form ?? {},
+    tickets: payload.tickets ?? [],
+    bannerFileName: payload.bannerFileName ?? '',
     savedAt: Date.now()
   };
   try {
-    localStorage.setItem(draftKey(), JSON.stringify(payload));
-    return payload.savedAt;
+    localStorage.setItem(draftKey(), JSON.stringify(data));
+    return data.savedAt;
   } catch {
     try {
       localStorage.setItem(
         draftKey(),
-        JSON.stringify({ ...payload, image: '', imageFileName: '' })
+        JSON.stringify({ ...data, form: { ...data.form, image: '' }, bannerFileName: '' })
       );
     } catch {
       return null;
     }
-    return payload.savedAt;
+    return data.savedAt;
   }
 };
 
-export const clearAnnouncementDraft = () => {
+export const clearSchoolEventDraft = () => {
   try {
     localStorage.removeItem(draftKey());
   } catch {

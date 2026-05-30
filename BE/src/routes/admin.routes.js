@@ -4,6 +4,7 @@ const authMiddleware = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/requireRole');
 const Partner = require('../models/Partner');
 const Contract = require('../models/Contract');
+const { ensurePartnerEvent } = require('../utils/announcementEvents');
 
 router.use(authMiddleware);
 router.use(requireAdmin);
@@ -41,6 +42,7 @@ router.patch('/partners/:id/approve', async (req, res) => {
       { partnerId: partner._id, status: 'pending' },
       { status: 'approved', approvedByEmail: req.authEmail }
     );
+    await ensurePartnerEvent(partner);
     return res.json({ success: true, partner, message: 'Đã phê duyệt đối tác thành công.' });
   } catch (error) {
     console.error('admin approve partner:', error);

@@ -17,7 +17,8 @@ const CATEGORY_FILTER_OPTIONS = [
   { value: 'Công nghệ', label: 'Công nghệ' },
   { value: 'Kết nối', label: 'Kết nối' }
 ];
-import { isPendingApproval, statusClass } from '../../utils/eventStatus';
+import { getCtsvEventAccess } from '../../utils/ctsvEventAccess';
+import { statusClass } from '../../utils/eventStatus';
 
 const CtsvEventList = () => {
   const { showToast } = useOutletContext() || {};
@@ -53,7 +54,9 @@ const CtsvEventList = () => {
       <div className="ctsv-page-header">
         <div>
           <h1>Tìm kiếm &amp; Duyệt sự kiện</h1>
-          <p>Quản lý và phê duyệt sự kiện trong hệ thống F-Events.</p>
+          <p>
+            Phê duyệt sự kiện cấp trường; các sự kiện CLB/đối tác chỉ xem thông tin.
+          </p>
         </div>
         <Link to="/ctsv/events/create" className="ctsv-btn-primary">
           Tạo sự kiện cấp trường
@@ -89,7 +92,9 @@ const CtsvEventList = () => {
         <p className="ctsv-muted">Đang tải...</p>
       ) : (
         <div className="event-grid-cards">
-          {events.map((ev) => (
+          {events.map((ev) => {
+            const access = getCtsvEventAccess(ev);
+            return (
             <article key={ev.id} className="event-card-item">
               <div className="event-card-image-wrapper">
                 <img src={ev.image} alt={ev.title} className="event-card-img" />
@@ -117,14 +122,15 @@ const CtsvEventList = () => {
                   </div>
                   <Link
                     to={`/ctsv/events/${ev.id}`}
-                    className="btn-card-register btn-card-manage"
+                    className={`btn-card-register ${access.buttonClass}`}
                   >
-                    {isPendingApproval(ev) ? 'Phê duyệt' : 'Quản lý'}
+                    {access.label}
                   </Link>
                 </div>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

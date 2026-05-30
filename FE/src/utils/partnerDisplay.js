@@ -6,6 +6,15 @@ export const PARTNER_STATUS_LABEL = {
   info_requested: 'Cần bổ sung'
 };
 
+/** Nhãn trên màn chi tiết — khớp Figma */
+export const PARTNER_STATUS_LABEL_DETAIL = {
+  pending: 'Chờ duyệt đề xuất',
+  pending_admin: 'Chờ Admin duyệt',
+  approved: 'Đã duyệt đề xuất',
+  rejected: 'Từ chối đề xuất',
+  info_requested: 'Cần bổ sung hồ sơ'
+};
+
 export const PARTNER_STATUS_TONE = {
   pending: 'amber',
   pending_admin: 'blue',

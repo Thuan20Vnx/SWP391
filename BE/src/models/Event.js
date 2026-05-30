@@ -147,6 +147,11 @@ const eventSchema = new mongoose.Schema(
       enum: ['club', 'school', 'partner'],
       default: 'club'
     },
+    partnerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Partner',
+      default: null
+    },
     proposalId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'EventProposal',

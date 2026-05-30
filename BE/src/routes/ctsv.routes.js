@@ -13,6 +13,10 @@ const { PARTNER_STATUSES } = require('../models/Partner');
 const Contract = require('../models/Contract');
 const Announcement = require('../models/Announcement');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
+const {
+  findLinkableAnnouncementEvents,
+  isEventLinkableForAnnouncement
+} = require('../utils/announcementEvents');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -133,6 +137,14 @@ router.get('/stats', async (req, res) => {
 // GET /api/ctsv/events
 router.get('/events', async (req, res) => {
   try {
+    if (req.query.forAnnouncement === '1' || req.query.forAnnouncement === 'true') {
+      const events = await findLinkableAnnouncementEvents();
+      return res.json({
+        success: true,
+        events: events.map(formatEvent)
+      });
+    }
+
     const filter = buildEventFilter(req.query);
     const events = await Event.find(filter).sort({ startDate: 1 }).limit(100);
     return res.json({
@@ -673,8 +685,13 @@ router.get('/announcements', async (req, res) => {
     const list = await Announcement.find()
       .sort({ publishedAt: -1 })
       .limit(50)
-      .populate('eventId', 'title');
-    return res.json({ success: true, announcements: list });
+      .populate('eventId', 'title')
+      .lean();
+    const announcements = list.map((doc) => ({
+      ...doc,
+      id: doc._id?.toString?.() || String(doc._id)
+    }));
+    return res.json({ success: true, announcements });
   } catch (error) {
     console.error('ctsv announcements:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -683,17 +700,35 @@ router.get('/announcements', async (req, res) => {
 
 router.post('/announcements', requireCtsvApprove, async (req, res) => {
   try {
-    const { title, content, eventId } = req.body;
+    const { title, content, eventId, image, imageFileName } = req.body;
     if (!title?.trim()) {
       return res.status(400).json({ success: false, message: 'Tiêu đề thông báo là bắt buộc!' });
     }
     if (!content?.trim()) {
       return res.status(400).json({ success: false, message: 'Nội dung thông báo là bắt buộc!' });
     }
+    if (image && image.length > MAX_IMAGE_DATA_LEN) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ảnh minh họa quá lớn. Vui lòng cắt lại hoặc chọn ảnh nhỏ hơn.'
+      });
+    }
+    if (eventId) {
+      const linkable = await isEventLinkableForAnnouncement(eventId);
+      if (!linkable) {
+        return res.status(400).json({
+          success: false,
+          message:
+            'Chỉ được gắn sự kiện cấp trường (CTSV) hoặc sự kiện đối tác đã được CTSV và Admin phê duyệt.'
+        });
+      }
+    }
     const announcement = await Announcement.create({
       title: title.trim(),
       content: content.trim(),
       eventId: eventId || null,
+      image: image || '',
+      imageFileName: imageFileName?.trim() || '',
       publishedByEmail: req.authEmail,
       publishedAt: new Date(),
       isPublished: true,
@@ -721,7 +756,7 @@ router.patch('/announcements/:id/hide', requireCtsvApprove, async (req, res) => 
   }
 });
 
-router.delete('/announcements/:id', requireCtsvApprove, async (req, res) => {
+const deleteAnnouncementHandler = async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndDelete(req.params.id);
     if (!announcement) {
@@ -732,6 +767,9 @@ router.delete('/announcements/:id', requireCtsvApprove, async (req, res) => {
     console.error('ctsv delete announcement:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
-});
+};
+
+router.delete('/announcements/:id', requireCtsvApprove, deleteAnnouncementHandler);
+router.post('/announcements/:id/delete', requireCtsvApprove, deleteAnnouncementHandler);
 
 module.exports = router;

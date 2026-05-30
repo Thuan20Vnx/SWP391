@@ -91,20 +91,32 @@ export const approveCtsvContract = (id) =>
 
 export const fetchCtsvAnnouncements = () => ctsvFetch('/announcements');
 
+/** Sự kiện cấp trường + đối tác đã duyệt (loại CLB / ICPDP). */
+export const fetchCtsvAnnouncementLinkableEvents = () =>
+  ctsvFetch('/events?forAnnouncement=1');
+
 export const publishCtsvAnnouncement = (body) =>
   ctsvFetch('/announcements', { method: 'POST', body: JSON.stringify(body) });
 
-export const hideCtsvAnnouncement = (id) =>
-  ctsvFetch(`/announcements/${id}/hide`, { method: 'PATCH', body: '{}' });
+export const hideCtsvAnnouncement = (id) => {
+  const safeId = encodeURIComponent(String(id || '').trim());
+  return ctsvFetch(`/announcements/${safeId}/hide`, { method: 'PATCH', body: '{}' });
+};
 
-export const deleteCtsvAnnouncement = (id) =>
-  ctsvFetch(`/announcements/${id}`, { method: 'DELETE' });
+export const deleteCtsvAnnouncement = (id) => {
+  const safeId = encodeURIComponent(String(id || '').trim());
+  if (!safeId || safeId === 'undefined' || safeId === 'null') {
+    return Promise.reject(new Error('Không xác định được thông báo.'));
+  }
+  return ctsvFetch(`/announcements/${safeId}/delete`, { method: 'POST', body: '{}' });
+};
 
 export const MOCK_EVENTS = [
   {
     id: 'ev-1',
     title: 'Đêm nhạc F-Fest: Giai điệu mùa hè',
     category: 'Âm nhạc',
+    source: 'school',
     date: '20/05/2026',
     time: '19:00',
     location: 'FPT Plaza 2, Đà Nẵng',
@@ -118,6 +130,7 @@ export const MOCK_EVENTS = [
     id: 'ev-2',
     title: 'Làm chủ Prompt Engineering với AI',
     category: 'Workshop',
+    source: 'club',
     date: '22/05/2026',
     time: '14:00',
     location: 'Hội trường A, FPT Tower',
@@ -131,6 +144,7 @@ export const MOCK_EVENTS = [
     id: 'ev-3',
     title: 'Hackathon 2026: Innovate for Green',
     category: 'Công nghệ',
+    source: 'club',
     date: '25/05/2026',
     time: '08:00',
     location: 'FPT Software Đà Nẵng',
@@ -144,6 +158,7 @@ export const MOCK_EVENTS = [
     id: 'ev-4',
     title: 'Career Fair: Kết nối doanh nghiệp',
     category: 'Kết nối',
+    source: 'school',
     date: '28/05/2026',
     time: '09:00',
     location: 'Sân bóng FPTU',
