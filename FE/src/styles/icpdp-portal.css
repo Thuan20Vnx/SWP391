@@ -1,0 +1,387 @@
+/* ═══════════════════════════════════════════════════════
+   IC-PDP Portal — Override / Extension styles
+   Kế thừa toàn bộ CSS class ctsv-* (index.css), chỉ override
+   accent color và một số element branding cho ICPDP.
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Accent color tokens ── */
+.icpdp-app-shell {
+  --icpdp-accent: #6366f1;
+  --icpdp-accent-light: #818cf8;
+  --icpdp-accent-dark: #4f46e5;
+  --icpdp-accent-bg: rgba(99, 102, 241, 0.08);
+  --icpdp-accent-bg-strong: rgba(99, 102, 241, 0.15);
+  --icpdp-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+  --icpdp-gradient-soft: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%);
+}
+
+/* ── Sidebar accent override ── */
+.icpdp-sidebar .ctsv-nav-link.active,
+.icpdp-sidebar .icpdp-nav-link.active {
+  background: var(--icpdp-accent-bg-strong);
+  color: var(--icpdp-accent);
+  border-left-color: var(--icpdp-accent);
+}
+
+.icpdp-sidebar .ctsv-nav-link:hover {
+  background: var(--icpdp-accent-bg);
+}
+
+.icpdp-sidebar-logout:hover {
+  color: var(--icpdp-accent);
+}
+
+.icpdp-sidebar-header::after {
+  content: 'IC-PDP Portal';
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--icpdp-accent-light);
+  margin-top: 4px;
+  padding: 0 20px;
+  opacity: 0.8;
+}
+
+/* ── Header pill override ── */
+.icpdp-pill.nav-link-ctsv-pill {
+  background: var(--icpdp-accent);
+  color: #fff;
+}
+.icpdp-pill.nav-link-ctsv-pill:hover {
+  background: var(--icpdp-accent-dark);
+}
+.icpdp-pill.nav-link-ctsv-pill.is-current {
+  background: var(--icpdp-accent-dark);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+/* ── Hero / Dashboard accent ── */
+.icpdp-app-shell .ctsv-dash-hero {
+  background: var(--icpdp-gradient);
+}
+
+.icpdp-app-shell .ctsv-dash-btn--primary,
+.icpdp-app-shell .ctsv-btn-primary {
+  background: var(--icpdp-accent);
+  border-color: var(--icpdp-accent);
+}
+.icpdp-app-shell .ctsv-dash-btn--primary:hover,
+.icpdp-app-shell .ctsv-btn-primary:hover {
+  background: var(--icpdp-accent-dark);
+  border-color: var(--icpdp-accent-dark);
+}
+
+.icpdp-app-shell .ctsv-dash-create-card:hover {
+  border-color: var(--icpdp-accent);
+}
+
+.icpdp-app-shell .ctsv-dash-quick-icon {
+  color: var(--icpdp-accent);
+}
+
+.icpdp-app-shell .ctsv-dash-stat-icon--amber,
+.icpdp-app-shell .ctsv-dash-stat-icon--green,
+.icpdp-app-shell .ctsv-dash-stat-icon--orange {
+  background: var(--icpdp-accent-bg);
+  color: var(--icpdp-accent);
+}
+
+/* ── Events hero accent ── */
+.icpdp-app-shell .ctsv-events-hero {
+  border-left-color: var(--icpdp-accent);
+}
+
+.icpdp-app-shell .ctsv-events-hero-cta {
+  background: var(--icpdp-accent);
+  border-color: var(--icpdp-accent);
+}
+.icpdp-app-shell .ctsv-events-hero-cta:hover {
+  background: var(--icpdp-accent-dark);
+}
+
+.icpdp-app-shell .ctsv-events-filter-btn {
+  background: var(--icpdp-accent);
+}
+.icpdp-app-shell .ctsv-events-filter-btn:hover {
+  background: var(--icpdp-accent-dark);
+}
+
+/* ── Proposal card specific ── */
+.icpdp-proposal-card {
+  border-radius: 14px;
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  background: #fff;
+  padding: 20px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  cursor: pointer;
+}
+.icpdp-proposal-card:hover {
+  border-color: var(--icpdp-accent-light);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1);
+  transform: translateY(-2px);
+}
+
+.icpdp-proposal-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.icpdp-proposal-card__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.icpdp-proposal-card__club {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+.icpdp-proposal-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 8px;
+}
+.icpdp-proposal-card__meta svg {
+  vertical-align: -2px;
+  margin-right: 3px;
+  opacity: 0.6;
+}
+
+.icpdp-proposal-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.icpdp-proposal-card__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 18px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  text-decoration: none;
+}
+.icpdp-proposal-card__action--primary {
+  background: var(--icpdp-accent);
+  color: #fff;
+}
+.icpdp-proposal-card__action--primary:hover {
+  background: var(--icpdp-accent-dark);
+  transform: translateY(-1px);
+}
+.icpdp-proposal-card__action--ghost {
+  background: var(--icpdp-accent-bg);
+  color: var(--icpdp-accent);
+}
+.icpdp-proposal-card__action--ghost:hover {
+  background: var(--icpdp-accent-bg-strong);
+}
+
+/* ── Proposal grid ── */
+.icpdp-proposals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 18px;
+}
+@media (max-width: 640px) {
+  .icpdp-proposals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Filter bar for proposals ── */
+.icpdp-proposals-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.icpdp-proposals-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 14px;
+  transition: border-color 0.2s;
+}
+.icpdp-proposals-search:focus-within {
+  border-color: var(--icpdp-accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+.icpdp-proposals-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.88rem;
+  flex: 1;
+}
+
+.icpdp-status-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.icpdp-status-chip {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.icpdp-status-chip:hover {
+  border-color: var(--icpdp-accent-light);
+  color: var(--icpdp-accent);
+}
+.icpdp-status-chip.is-active {
+  background: var(--icpdp-accent);
+  border-color: var(--icpdp-accent);
+  color: #fff;
+}
+
+/* ── Detail page actions panel ── */
+.icpdp-action-panel {
+  background: var(--icpdp-accent-bg);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 20px;
+}
+.icpdp-action-panel h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--icpdp-accent-dark);
+  margin: 0 0 12px;
+}
+
+/* ── View-only banner ── */
+.icpdp-view-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--icpdp-accent-bg);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  color: var(--icpdp-accent-dark);
+}
+.icpdp-view-banner svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* ── Role label in header ── */
+.icpdp-role-label {
+  color: var(--icpdp-accent) !important;
+}
+
+/* ── Footer accent ── */
+.icpdp-portal-footer .footer-links-col a:hover {
+  color: var(--icpdp-accent);
+}
+
+/* ── Hero slider override for ICPDP home ── */
+.icpdp-app-shell .hero-cta-btn {
+  background: var(--icpdp-accent);
+}
+.icpdp-app-shell .hero-cta-btn:hover {
+  background: var(--icpdp-accent-dark);
+}
+.icpdp-app-shell .hero-tag-badge {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* ── Calendar overrides ── */
+.icpdp-app-shell .ctsv-cal-filter-chip.is-active {
+  background: var(--icpdp-accent);
+  border-color: var(--icpdp-accent);
+}
+
+/* ── Reports overrides ── */
+.icpdp-app-shell .ctsv-reports-phase-chip.is-active {
+  background: var(--icpdp-accent);
+  border-color: var(--icpdp-accent);
+}
+.icpdp-app-shell .ctsv-reports-fill-progress {
+  background: var(--icpdp-accent);
+}
+
+/* ── Link accent ── */
+.icpdp-app-shell .ctsv-link-btn,
+.icpdp-app-shell .ctsv-dash-link,
+.icpdp-app-shell .ctsv-dash-side-link {
+  color: var(--icpdp-accent);
+}
+
+/* ── Dash stat card link hover ── */
+.icpdp-app-shell .ctsv-dash-stat-card:hover {
+  border-color: var(--icpdp-accent-light);
+}
+
+/* ── Panel accent ── */
+.icpdp-app-shell .ctsv-dash-panel--accent {
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.icpdp-app-shell .ctsv-dash-pill-count {
+  background: var(--icpdp-accent);
+}
+
+/* ── Dark theme support ── */
+[data-theme="dark"] .icpdp-proposal-card {
+  background: #1e293b;
+  border-color: rgba(99, 102, 241, 0.2);
+}
+[data-theme="dark"] .icpdp-proposal-card:hover {
+  border-color: var(--icpdp-accent);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+}
+[data-theme="dark"] .icpdp-proposal-card__title {
+  color: #e2e8f0;
+}
+[data-theme="dark"] .icpdp-proposal-card__footer {
+  border-top-color: #334155;
+}
+[data-theme="dark"] .icpdp-proposals-search {
+  background: #1e293b;
+  border-color: #334155;
+}
+[data-theme="dark"] .icpdp-action-panel {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+[data-theme="dark"] .icpdp-view-banner {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.2);
+}
