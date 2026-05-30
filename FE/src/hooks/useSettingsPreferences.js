@@ -26,6 +26,7 @@ export const saveSettings = (settings) => {
 
 export const applyDarkMode = (enabled) => {
   document.documentElement.classList.toggle('dark', enabled);
+  document.body.classList.toggle('dark', enabled);
 };
 
 export const initThemeFromStorage = () => {

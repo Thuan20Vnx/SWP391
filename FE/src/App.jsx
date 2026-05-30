@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useCallback, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+
 import Home from './pages/Home';
 import CtsvHome from './pages/CtsvHome';
 import CtsvLayout from './layouts/CtsvLayout';
@@ -28,27 +29,38 @@ import IcpdpReports from './pages/icpdp/IcpdpReports';
 import IcpdpProfile from './pages/icpdp/IcpdpProfile';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
+import Clubs from './pages/Clubs';
+import ClubDetail from './pages/ClubDetail';
 import CreateEvent from './pages/CreateEvent';
+import AdminLayout from './layouts/AdminLayout';
+import AdminMonitoringDashboard from './pages/AdminMonitoringDashboard';
 import AdminDashboard from './pages/AdminDashboard';
-import StudentDashboard from './pages/StudentDashboard';
+import AdminPartnerApprovals from './pages/admin/AdminPartnerApprovals';
+import AdminSystemControl from './pages/admin/AdminSystemControl';
+import AdminDataMaintenance from './pages/admin/AdminDataMaintenance';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminPartners from './pages/admin/AdminPartners';
+import AdminAccountsControl from './pages/admin/AdminAccountsControl';
+import AdminSchoolEventApprovals from './pages/admin/AdminSchoolEventApprovals';
 import MyEvents from './pages/MyEvents';
+import MyClubs from './pages/MyClubs';
 import Schedule from './pages/Schedule';
 import EventReviews from './pages/EventReviews';
 import Announcements from './pages/Announcements';
 import AnnouncementDetail from './pages/AnnouncementDetail';
 import StaticPage from './pages/StaticPage';
+
 import { ToastContainer } from './components/Toast';
+import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole } from './utils/auth';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import './index.css';
 
 initThemeFromStorage();
 
-// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   return isLoggedIn ? children : <Navigate to="/login" replace />;
@@ -86,21 +98,23 @@ const AdminAreaGuard = () => {
   if (isCtsvRole() && pathname.startsWith('/admin/events')) return <Outlet />;
   return <Navigate to="/" replace />;
 };
+
 function App() {
   const [toasts, setToasts] = useState([]);
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     const id = Date.now() + Math.random().toString(36).substring(2, 9);
-    setToasts(prev => [...prev, { id, message, type }]);
-  };
+    setToasts((prev) => [...prev, { id, message, type }]);
+  }, []);
 
-  const removeToast = (id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  };
+  const removeToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   return (
     <Router>
       <div className="app-root">
+        <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
         <Routes>
           <Route path="/" element={<PublicHomeRoute showToast={showToast} />} />
 
@@ -138,20 +152,18 @@ function App() {
           </Route>
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/login" element={<Login showToast={showToast} />} />
-          <Route path="/forgot" element={<ForgotPassword showToast={showToast} />} />
-          <Route path="/reset-password" element={<ResetPassword showToast={showToast} />} />
-
-          
-          {/* Protected Profile Route */}
-          <Route 
-            path="/profile" 
+          <Route
+            path="/profile"
             element={
               <ProtectedRoute>
-                <Profile showToast={showToast} />
+                {isCtsvRole() ? (
+                  <Navigate to="/ctsv/profile" replace />
+                ) : (
+                  <Profile showToast={showToast} />
+                )}
               </ProtectedRoute>
-            } 
+            }
           />
-
           <Route
             path="/settings"
             element={
@@ -161,38 +173,45 @@ function App() {
             }
           />
 
-          {/* Event Routes */}
           <Route path="/events" element={<Events showToast={showToast} />} />
-          <Route 
-            path="/create-event" 
+          <Route path="/events/:eventId" element={<EventDetail showToast={showToast} />} />
+          <Route path="/clubs" element={<Clubs showToast={showToast} />} />
+          <Route path="/clubs/:clubId" element={<ClubDetail showToast={showToast} />} />
+          <Route
+            path="/create-event"
             element={
               <ProtectedRoute>
                 <CreateEvent showToast={showToast} />
               </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/events" 
-            element={
-              <ProtectedRoute>
-                <AdminDashboard showToast={showToast} />
-              </ProtectedRoute>
-            } 
-          />
-
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <StudentDashboard showToast={showToast} />
-              </ProtectedRoute>
             }
           />
+          <Route path="/admin" element={<AdminAreaGuard />}>
+            <Route element={<AdminLayout showToast={showToast} />}>
+              <Route index element={<AdminMonitoringDashboard />} />
+              <Route path="events" element={<AdminDashboard showToast={showToast} />} />
+              <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />
+              <Route path="accounts" element={<AdminAccountsControl />} />
+              <Route path="system" element={<AdminSystemControl />} />
+              <Route path="data" element={<AdminDataMaintenance />} />
+              <Route path="partners" element={<AdminPartners />} />
+              <Route path="partners/approvals" element={<AdminPartnerApprovals showToast={showToast} />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+            </Route>
+          </Route>
+          <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
           <Route
             path="/my-events"
             element={
               <ProtectedRoute>
                 <MyEvents showToast={showToast} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-clubs"
+            element={
+              <ProtectedRoute>
+                <MyClubs showToast={showToast} />
               </ProtectedRoute>
             }
           />
@@ -234,12 +253,8 @@ function App() {
           <Route path="/support" element={<StaticPage pageKey="support" />} />
           <Route path="/contact" element={<StaticPage pageKey="contact" />} />
 
-          {/* Catch-all redirects to signup */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to={getHomePathForRole(getUserRole())} replace />} />
         </Routes>
-
-        {/* Global Toast Notifications */}
-        <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
       </div>
     </Router>
   );

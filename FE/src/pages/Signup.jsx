@@ -1,6 +1,21 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import fptLogo from '../assets/fpt_logo.png';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
+import { API_BASE } from '../utils/api';
+import { startGoogleLogin } from '../utils/googleAuth';
+import OtpInput from '../components/OtpInput';
+import {
+  saveSignupOtpSession,
+  readSignupOtpSession,
+  clearSignupOtpSession,
+  refreshSignupOtpSession,
+  setSignupOtpLock,
+  updateSignupOtpAttempts,
+  getSignupOtpLockRemaining,
+  clearSignupOtpLock,
+} from '../utils/signupOtpSession';
+
+const MAX_OTP_ATTEMPTS = 5;
 
 const patterns = {
   fullname: /^[\p{L}\s]{5,50}$/u,
@@ -11,6 +26,7 @@ const patterns = {
 
 const Signup = ({ showToast }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     fullname: '',
@@ -27,6 +43,7 @@ const Signup = ({ showToast }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleAccountError, setGoogleAccountError] = useState('');
 
   // OTP related states
   const [showOtpStep, setShowOtpStep] = useState(false);
@@ -34,10 +51,102 @@ const Signup = ({ showToast }) => {
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState(false);
   const [otpErrorMsg, setOtpErrorMsg] = useState('');
+  const [remainingAttempts, setRemainingAttempts] = useState(MAX_OTP_ATTEMPTS);
+  const [otpLocked, setOtpLocked] = useState(false);
+  const [lockCountdown, setLockCountdown] = useState(0);
   const [countdown, setCountdown] = useState(60);
   const [isOtpCounting, setIsOtpCounting] = useState(false);
 
-  React.useEffect(() => {
+  const applyOtpLock = (retryAfterSeconds) => {
+    const seconds = Math.max(0, Number(retryAfterSeconds) || 120);
+    setSignupOtpLock(seconds, 0);
+    setOtpLocked(true);
+    setLockCountdown(seconds);
+    setOtpCode('');
+    setOtpError(false);
+    setOtpErrorMsg('');
+  };
+
+  const enterOtpStep = ({ email, fullname, phone }) => {
+    saveSignupOtpSession({ email, fullname, phone });
+    setFormData((prev) => ({ ...prev, email, fullname, phone }));
+    setShowOtpStep(true);
+    setCountdown(60);
+    setIsOtpCounting(true);
+    setOtpCode('');
+    setOtpError(false);
+    setRemainingAttempts(MAX_OTP_ATTEMPTS);
+    setSearchParams({ step: 'otp' }, { replace: true });
+  };
+
+  const exitOtpStep = () => {
+    clearSignupOtpSession();
+    setShowOtpStep(false);
+    setOtpCode('');
+    setOtpError(false);
+    setOtpLocked(false);
+    setLockCountdown(0);
+    setRemainingAttempts(MAX_OTP_ATTEMPTS);
+    setSearchParams({}, { replace: true });
+  };
+
+  useEffect(() => {
+    const session = readSignupOtpSession();
+
+    if (!session) {
+      if (searchParams.get('step') === 'otp') {
+        setSearchParams({}, { replace: true });
+      }
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      email: session.email,
+      fullname: session.fullname,
+      phone: session.phone,
+    }));
+    setShowOtpStep(true);
+    setCountdown(0);
+    setIsOtpCounting(false);
+    setRemainingAttempts(session.remainingAttempts ?? MAX_OTP_ATTEMPTS);
+
+    const lockRemaining = getSignupOtpLockRemaining();
+    if (lockRemaining > 0) {
+      setOtpLocked(true);
+      setLockCountdown(lockRemaining);
+      setOtpError(false);
+      setOtpErrorMsg('');
+    }
+
+    if (searchParams.get('step') !== 'otp') {
+      setSearchParams({ step: 'otp' }, { replace: true });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!otpLocked) return undefined;
+
+    const tick = () => {
+      const remaining = getSignupOtpLockRemaining();
+      if (remaining <= 0) {
+        clearSignupOtpLock();
+        setOtpLocked(false);
+        setLockCountdown(0);
+        setOtpError(false);
+        setOtpErrorMsg('');
+        setRemainingAttempts(MAX_OTP_ATTEMPTS);
+        return;
+      }
+      setLockCountdown(remaining);
+    };
+
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [otpLocked]);
+
+  useEffect(() => {
     let timer;
     if (isOtpCounting && countdown > 0) {
       timer = setInterval(() => {
@@ -101,6 +210,7 @@ const Signup = ({ showToast }) => {
   const handleEmailChange = (e) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, email: value }));
+    setGoogleAccountError('');
 
     const isValid = patterns.email.test(value.trim());
 
@@ -141,13 +251,12 @@ const Signup = ({ showToast }) => {
       if (!isConfirmValid) triggerShake('confirmPassword');
       if (!isTermsValid) triggerShake('terms');
 
-      showToast('Vui lòng kiểm tra lại các trường thông tin lỗi!', 'error');
       return;
     }
 
     setLoading(true);
 
-    fetch('http://localhost:5000/api/auth/signup', {
+    fetch(`${API_BASE}/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -161,25 +270,68 @@ const Signup = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200 && data.status === 'OTP_SENT') {
-          setShowOtpStep(true);
-          setCountdown(60);
-          setIsOtpCounting(true);
-          setOtpCode('');
-          setOtpError(false);
+          setGoogleAccountError('');
+          enterOtpStep({
+            email: formData.email.trim(),
+            fullname: formData.fullname.trim(),
+            phone: formData.phone.trim(),
+          });
+        } else if (status === 409 && data.code === 'GOOGLE_ACCOUNT') {
+          setGoogleAccountError(data.message || 'Email đã được đăng ký bằng Google.');
+          setErrors(prev => ({ ...prev, email: true }));
+          triggerShake('email');
         } else {
-          showToast(data.message || 'Đăng ký thất bại!', 'error');
+          setGoogleAccountError(data.message || 'Đăng ký thất bại!');
+          setErrors((prev) => ({ ...prev, email: true }));
         }
       })
-      .catch(err => {
+      .catch(() => {
         setLoading(false);
-        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
       });
   };
 
-  const handleOtpSubmit = (e) => {
-    e.preventDefault();
+  const handleOtpFailure = (status, data) => {
+    if (status === 423 || data.code === 'OTP_LOCKED') {
+      applyOtpLock(data.retryAfterSeconds || 120);
+      setOtpCode('');
+      return;
+    }
 
-    if (otpCode.length !== 6) {
+    setOtpError(true);
+    setOtpErrorMsg(data.message || 'Mã xác minh không chính xác!');
+    setOtpCode('');
+
+    if (typeof data.remainingAttempts === 'number') {
+      setRemainingAttempts(data.remainingAttempts);
+      updateSignupOtpAttempts(data.remainingAttempts);
+      if (data.remainingAttempts <= 0) {
+        applyOtpLock(120);
+      }
+      return;
+    }
+
+    setRemainingAttempts((prev) => {
+      const next = Math.max(0, prev - 1);
+      updateSignupOtpAttempts(next);
+      if (next <= 0) {
+        applyOtpLock(120);
+      } else {
+        setOtpErrorMsg(`Mã OTP không chính xác. Còn ${next}/${MAX_OTP_ATTEMPTS} lần thử.`);
+      }
+      return next;
+    });
+  };
+
+  const submitOtpVerification = (codeOverride) => {
+    const code = (codeOverride ?? otpCode).trim();
+
+    if (otpLocked) {
+      return;
+    }
+
+    if (otpLoading) return;
+
+    if (code.length !== 6) {
       setOtpError(true);
       setOtpErrorMsg('Mã OTP phải có đúng 6 chữ số!');
       return;
@@ -187,78 +339,91 @@ const Signup = ({ showToast }) => {
 
     setOtpLoading(true);
 
-    fetch('http://localhost:5000/api/auth/verify-otp', {
+    fetch(`${API_BASE}/api/auth/verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: formData.email,
-        otp: otpCode
-      })
+        otp: code,
+      }),
     })
-      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then((res) => res.json().then((data) => ({ status: res.status, data })))
       .then(({ status, data }) => {
         setOtpLoading(false);
         if (status === 201) {
+          clearSignupOtpSession();
           setFormData({
             fullname: '',
             email: '',
             phone: '',
             password: '',
             confirmPassword: '',
-            terms: false
+            terms: false,
           });
           setErrors({});
           setValidFields({});
           setOtpCode('');
           setOtpError(false);
           setShowOtpStep(false);
+          setOtpLocked(false);
+          setLockCountdown(0);
           navigate('/login');
         } else {
-          setOtpError(true);
-          setOtpErrorMsg(data.message || 'Mã xác minh không chính xác!');
-          showToast(data.message || 'Xác minh OTP thất bại!', 'error');
+          handleOtpFailure(status, data);
         }
       })
-      .catch(err => {
+      .catch(() => {
         setOtpLoading(false);
-        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
+        setOtpError(true);
+        setOtpErrorMsg('Không thể kết nối máy chủ. Vui lòng thử lại.');
       });
   };
 
+  const handleOtpSubmit = (e) => {
+    e.preventDefault();
+    submitOtpVerification();
+  };
+
   const handleResendOtp = () => {
+    if (otpLocked) {
+      return;
+    }
+
     setCountdown(60);
     setIsOtpCounting(true);
     setOtpCode('');
     setOtpError(false);
 
-    fetch('http://localhost:5000/api/auth/resend-otp', {
+    fetch(`${API_BASE}/api/auth/resend-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: formData.email })
     })
       .then(res => res.json().then(data => ({ status: res.status, data })))
       .then(({ status, data }) => {
-        if (status !== 200) {
-          showToast(data.message || 'Gửi lại mã thất bại!', 'error');
+        if (status === 200) {
+          refreshSignupOtpSession({
+            email: formData.email.trim(),
+            fullname: formData.fullname.trim(),
+            phone: formData.phone.trim(),
+          });
+        } else if (status === 423 || data.code === 'OTP_LOCKED') {
+          applyOtpLock(data.retryAfterSeconds || 120);
+        } else {
+          setOtpError(true);
+          setOtpErrorMsg(data.message || 'Gửi lại mã thất bại!');
         }
       })
-      .catch(err => {
-        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
+      .catch(() => {
+        setOtpError(true);
+        setOtpErrorMsg('Không thể kết nối máy chủ. Vui lòng thử lại.');
       });
   };
 
 
   const handleSsoClick = () => {};
 
-  const loginWithGoogle = () => {
-    const params = new URLSearchParams({
-      client_id: "462966212822-ohmu33pmrp4dcpuq3hm00tnvuac4jqa9.apps.googleusercontent.com",
-      redirect_uri: "http://localhost:5000/api/auth/google/callback",
-      response_type: "code",
-      scope: "openid email profile",
-    });
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
-  };
+  const loginWithGoogle = () => startGoogleLogin();
 
   const getGroupClass = (name) => {
     return `input-group ${errors[name] ? 'invalid' : ''} ${validFields[name] ? 'valid' : ''} ${shakeFields[name] ? 'shake' : ''}`;
@@ -280,13 +445,22 @@ const Signup = ({ showToast }) => {
 
       {/* Right Column: Signup Form (60%) */}
       <section className="form-column" aria-label="Biểu mẫu đăng ký tài khoản">
+        <div className="auth-form-shell">
+          <Link to="/" className="auth-page-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>Quay lại trang chủ</span>
+          </Link>
+
         <div className="form-container">
           {showOtpStep ? (
             <>
               {/* Logo F-Events */}
               <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
                 <img
-                  src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+                  src={FE_LOGO}
                   alt="F-Events Logo"
                   style={{ width: '115px', height: '64px', objectFit: 'contain' }}
                 />
@@ -300,46 +474,64 @@ const Signup = ({ showToast }) => {
                 </p>
               </header>
 
+              {otpLocked && (
+                <div
+                  role="alert"
+                  style={{
+                    marginBottom: '12px',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    background: '#fef2f2',
+                    border: '2px solid #fca5a5',
+                    color: '#991b1b',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div style={{ fontSize: '15px', fontWeight: 700, marginBottom: '8px' }}>
+                    OTP tạm thời bị khóa
+                  </div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, lineHeight: 1, marginBottom: '6px' }}>
+                    {Math.floor(lockCountdown / 60)}:{String(lockCountdown % 60).padStart(2, '0')}
+                  </div>
+                  <div style={{ fontSize: '13px' }}>
+                    Thử lại sau khi hết thời gian đếm ngược
+                  </div>
+                </div>
+              )}
+
               {/* OTP Form */}
               <form id="otp-form" onSubmit={handleOtpSubmit} noValidate>
-                <div className={`input-group ${otpError ? 'invalid' : ''} ${otpCode.length === 6 ? 'valid' : ''}`}>
-                  <div className="input-wrapper">
-                    <span className="input-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                      </svg>
-                    </span>
-                    <input
-                      type="text"
-                      id="otpCode"
-                      placeholder=" "
-                      required
-                      maxLength={6}
-                      value={otpCode}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9]/g, '');
-                        setOtpCode(val);
-                        if (val.length === 6) {
-                          setOtpError(false);
-                        }
-                      }}
-                    />
-                    <label htmlFor="otpCode">Mã xác minh OTP</label>
-                  </div>
-                  {otpError && <span className="error-message" style={{ display: 'block' }}>{otpErrorMsg}</span>}
-                </div>
+                <label className="otp-input__label" htmlFor="signup-otp-0">
+                  Mã xác minh OTP (6 số)
+                </label>
+                <OtpInput
+                  idPrefix="signup-otp"
+                  value={otpCode}
+                  disabled={otpLocked || otpLoading}
+                  invalid={otpError}
+                  valid={otpCode.length === 6 && !otpError && !otpLoading}
+                  autoFocus
+                  onChange={(val) => {
+                    setOtpCode(val);
+                    if (val.length === 6) setOtpError(false);
+                  }}
+                  onComplete={(code) => submitOtpVerification(code)}
+                />
+                {otpLoading && (
+                  <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#64748b', marginTop: '8px' }}>
+                    Đang xác minh OTP...
+                  </p>
+                )}
+                {otpError && !otpLocked && (
+                  <span className="otp-input__error">{otpErrorMsg}</span>
+                )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', marginBottom: '24px', fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', marginBottom: '8px', fontSize: '0.9rem' }}>
                   <button
                     type="button"
                     className="accent-link"
                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit' }}
-                    onClick={() => {
-                      setShowOtpStep(false);
-                      setOtpCode('');
-                      setOtpError(false);
-                    }}
+                    onClick={exitOtpStep}
                   >
                     Thay đổi email
                   </button>
@@ -350,21 +542,14 @@ const Signup = ({ showToast }) => {
                     <button
                       type="button"
                       className="accent-link"
-                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: otpLocked ? 'not-allowed' : 'pointer', fontWeight: 600, fontFamily: 'inherit', opacity: otpLocked ? 0.5 : 1 }}
                       onClick={handleResendOtp}
+                      disabled={otpLocked}
                     >
                       Gửi lại mã
                     </button>
                   )}
                 </div>
-
-                <button type="submit" id="verify-btn" className="primary-button" disabled={otpLoading || otpCode.length !== 6}>
-                  {otpLoading ? (
-                    <span className="btn-spinner"></span>
-                  ) : (
-                    <span className="btn-text">Xác minh & Đăng ký</span>
-                  )}
-                </button>
               </form>
             </>
           ) : (
@@ -372,7 +557,7 @@ const Signup = ({ showToast }) => {
               {/* Logo F-Events */}
               <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
                 <img
-                  src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+                  src={FE_LOGO}
                   alt="F-Events Logo"
                   style={{ width: '115px', height: '64px', objectFit: 'contain' }}
                 />
@@ -430,7 +615,16 @@ const Signup = ({ showToast }) => {
                     />
                     <label htmlFor="email">Email</label>
                   </div>
-                  <span className="error-message" id="error-email">Vui lòng nhập email hợp lệ (ví dụ: student@fpt.edu.vn)</span>
+                  <span className="error-message" id="error-email">
+                    {googleAccountError || 'Vui lòng nhập email hợp lệ (ví dụ: student@fpt.edu.vn)'}
+                  </span>
+                  {googleAccountError && (
+                    <p style={{ margin: '8px 0 0', fontSize: '13px' }}>
+                      <Link to="/login" className="accent-link" style={{ fontWeight: 700 }}>
+                        Đăng nhập bằng Google
+                      </Link>
+                    </p>
+                  )}
                 </div>
 
                 {/* Phone Number Field */}
@@ -589,6 +783,7 @@ const Signup = ({ showToast }) => {
               </footer>
             </>
           )}
+        </div>
         </div>
       </section>
 

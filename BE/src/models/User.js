@@ -1,9 +1,10 @@
-const mongoose = require('mongoose');
-const SchoolMember = require('./SchoolMember');
+﻿const mongoose = require('mongoose');
+require('./SchoolMember');
 const {
   normalizeStudentId,
   deriveCourseFromStudentId,
 } = require('../utils/studentId');
+const { resolveUserRole, normalizeRole } = require('../utils/role');
 
 const userSchema = new mongoose.Schema({
   fullname: {
@@ -31,7 +32,7 @@ const userSchema = new mongoose.Schema({
   // ======= NEW: Role & Student ID for FPT recognition =======
   role: {
     type: String,
-    enum: ['student', 'staff', 'guest', 'ctsv'],
+    enum: ['student', 'staff', 'guest', 'ctsv', 'partner', 'admin', 'icpdp', 'club_manager'],
     default: 'guest'
   },
   studentId: {
@@ -68,6 +69,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  googleCalendarRefreshToken: {
+    type: String,
+    default: null,
+    select: false,
+  },
   authProvider: {
     type: String,
     default: 'local'
@@ -75,7 +81,11 @@ const userSchema = new mongoose.Schema({
   courseChanged: {
     type: Boolean,
     default: false
-  }
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 }, {
   timestamps: true
 });
@@ -87,12 +97,12 @@ userSchema.statics.detectRole = async function (email) {
   if (!email) return { role: 'guest', studentId: '' };
 
   const normalizedEmail = email.trim().toLowerCase();
-  
+  const escapedEmail = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   try {
     const SchoolMember = mongoose.model('SchoolMember');
-    // Use regex for case-insensitive search in case Admin typed capital letters in Compass
-    const member = await SchoolMember.findOne({ 
-      email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') } 
+    const member = await SchoolMember.findOne({
+      email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') },
     });
     
     if (member) {
@@ -102,7 +112,7 @@ userSchema.statics.detectRole = async function (email) {
       return { role, studentId, course };
     }
   } catch (error) {
-    console.error('Lỗi khi tra cứu SchoolMember:', error);
+    console.error('Lß╗ùi khi tra cß╗⌐u SchoolMember:', error);
   }
 
   // Not in whitelist -> guest
@@ -149,7 +159,13 @@ userSchema.statics.hasCustomAvatar = function (user) {
   return isCustom(user?.picture) || isCustom(user?.avatar);
 };
 
-// Ghi thẳng course/MSSV xuống MongoDB (không phụ thuộc isModified/save hook)
+userSchema.statics.isGoogleOnlyAccount = function (user) {
+  if (!user) return false;
+  if (String(user.authProvider || '').toLowerCase() === 'google') return true;
+  return !user.passwordHash;
+};
+
+// Ghi thß║│ng course/MSSV xuß╗æng MongoDB (kh├┤ng phß╗Ñ thuß╗Öc isModified/save hook)
 userSchema.statics.syncAndPersistUserProfile = async function (user, extraSet = {}) {
   if (!user) return user;
 
@@ -201,14 +217,31 @@ userSchema.statics.syncAllStudentCourses = async function () {
   }
 
   if (updated > 0) {
-    console.log(`Đã đồng bộ khóa học cho ${updated} tài khoản từ MSSV.`);
+    console.log(`─É├ú ─æß╗ông bß╗Ö kh├│a hß╗ìc cho ${updated} t├ái khoß║ún tß╗½ MSSV.`);
   }
 };
+
+const PROTECTED_ROLES = new Set([
+  'admin',
+  'ctsv',
+  'partner',
+  'icpdp',
+  'club_manager',
+  'staff',
+]);
 
 // Sync role/MSSV from whitelist + derive course from studentId
 userSchema.statics.ensureProfileSynced = async function (user) {
   const detected = await this.detectRole(user.email);
   let changed = false;
+  const currentRole = normalizeRole(user.role);
+
+  if (PROTECTED_ROLES.has(currentRole)) {
+    if (this.syncCourseFromStudentId(user)) {
+      return true;
+    }
+    return false;
+  }
 
   if ((!user.role || user.role === 'guest') && detected.role !== 'guest') {
     this.applySchoolMemberData(user, detected);
@@ -234,7 +267,19 @@ userSchema.statics.ensureProfileSynced = async function (user) {
   return changed;
 };
 
+userSchema.pre('validate', function () {
+  if (this.phone === '') {
+    this.phone = undefined;
+  }
+  // Enum chỉ nhận lowercase (ctsv); DB cũ có thể lưu "CTSV"
+  this.role = normalizeRole(this.role || resolveUserRole(this));
+});
+
 userSchema.pre('save', function () {
+  if (this.phone === '') {
+    this.phone = undefined;
+  }
+  this.role = normalizeRole(this.role || resolveUserRole(this));
   if (this.studentId) {
     this.studentId = normalizeStudentId(this.studentId);
   }
@@ -246,9 +291,6 @@ userSchema.pre('save', function () {
   }
 });
 
-userSchema.statics.normalizeStudentId = normalizeStudentId;
-userSchema.statics.deriveCourseFromStudentId = deriveCourseFromStudentId;
-
 // ============================================================
 // Static: Sanitize user object before sending to frontend
 // ============================================================
@@ -259,7 +301,9 @@ userSchema.statics.sanitizeUser = function (user) {
   delete obj.password;
   delete obj.otp;
   delete obj.resetOtp;
+  delete obj.googleCalendarRefreshToken;
   delete obj.__v;
+  obj.role = resolveUserRole(obj);
   return obj;
 };
 

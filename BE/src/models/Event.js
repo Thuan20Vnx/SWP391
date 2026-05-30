@@ -1,55 +1,229 @@
 const mongoose = require('mongoose');
+const { EVENT_CAMPUS, EVENT_VENUES } = require('../constants/eventVenues');
+const { EVENT_CATEGORIES } = require('../constants/eventCategories');
+const { syncPrimarySpeakerFields } = require('../constants/eventSpeaker');
+const { EVENT_STATUSES } = require('../constants/eventWorkflow');
 
-const eventSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 200
+const ticketTypeSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: '' },
+    priceType: { type: String, enum: ['free', 'paid'], default: 'free' },
+    priceAmount: { type: Number, default: 0 },
+    qty: { type: Number, default: 0 },
+    audience: { type: String, default: 'SV FPT' }
   },
-  description: {
-    type: String,
-    required: true
+  { _id: false }
+);
+
+const speakerSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: '' },
+    role: { type: String, default: '' },
+    avatar: { type: String, default: '' }
   },
-  thumbnail: {
-    type: String,
-    default: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80'
+  { _id: false }
+);
+
+const eventSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200
+    },
+    description: {
+      type: String,
+      default: ''
+    },
+    thumbnail: {
+      type: String,
+      default:
+        'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80'
+    },
+    image: { type: String, default: '' },
+    bannerFileName: { type: String, default: '' },
+    category: {
+      type: String,
+      enum: EVENT_CATEGORIES,
+      default: 'Công nghệ'
+    },
+    startDate: {
+      type: Date,
+      required: true
+    },
+    endDate: {
+      type: Date
+    },
+    campus: {
+      type: String,
+      enum: [EVENT_CAMPUS],
+      default: EVENT_CAMPUS
+    },
+    location: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    capacity: {
+      type: Number,
+      default: 100,
+      min: 0
+    },
+    totalTickets: {
+      type: Number,
+      min: 0
+    },
+    registeredCount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    status: {
+      type: String,
+      enum: EVENT_STATUSES,
+      default: 'pending'
+    },
+    eventState: {
+      type: String,
+      enum: ['active', 'expired', 'postponed'],
+      default: 'active'
+    },
+    postponeReason: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    postponeIsWeather: {
+      type: Boolean,
+      default: false
+    },
+    statusBeforeModeration: {
+      type: String,
+      default: ''
+    },
+    moderationReason: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    moderationRequestedByEmail: { type: String, default: '' },
+    moderationRequestedAt: { type: Date, default: null },
+    /** Admin đã duyệt yêu cầu chỉnh sửa — CTSV mới được mở form (một lần / đến khi lưu) */
+    ctsvEditUnlocked: {
+      type: Boolean,
+      default: false
+    },
+    isHidden: {
+      type: Boolean,
+      default: false
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    createdByEmail: { type: String, default: '' },
+    approvedByEmail: { type: String, default: '' },
+    ctsvSubmittedByEmail: { type: String, default: '' },
+    ctsvSubmittedAt: { type: Date, default: null },
+    adminApprovedByEmail: { type: String, default: '' },
+    adminApprovedAt: { type: Date, default: null },
+    rejectionReason: { type: String, default: '' },
+    ctsvNote: { type: String, default: '' },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    ticketPrice: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    eventType: { type: String, default: '' },
+    duration: { type: String, default: '' },
+    format: {
+      type: String,
+      enum: ['campus', 'online', 'hybrid'],
+      default: 'campus'
+    },
+    speaker: { type: String, default: '' },
+    speakerRole: { type: String, default: '' },
+    speakerAvatar: { type: String, default: '' },
+    speakers: { type: [speakerSchema], default: [] },
+    agenda: { type: String, default: '' },
+    expectedAttendees: { type: Number, default: 50 },
+    ticketTypes: { type: [ticketTypeSchema], default: [] },
+    source: {
+      type: String,
+      enum: ['club', 'school', 'partner'],
+      default: 'club'
+    },
+    partnerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Partner',
+      default: null
+    },
+    proposalId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'EventProposal',
+      default: null
+    },
+    expectedRevenue: { type: Number, default: 0 }
   },
-  startDate: {
-    type: Date,
-    required: true
-  },
-  endDate: {
-    type: Date,
-    required: true
-  },
-  location: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  capacity: {
-    type: Number,
-    required: true,
-    min: 1
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending'
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  rejectionReason: {
-    type: String,
-    default: ''
-  }
-}, {
-  timestamps: true
+  { timestamps: true }
+);
+
+eventSchema.index({ status: 1, startDate: 1 });
+eventSchema.index({ category: 1, status: 1 });
+
+eventSchema.virtual('fillPercent').get(function () {
+  const cap = this.capacity || this.totalTickets || 0;
+  if (!cap) return 0;
+  return Math.min(100, Math.round((this.registeredCount / cap) * 100));
 });
+
+eventSchema.virtual('remainingTickets').get(function () {
+  const cap = this.capacity || this.totalTickets || 0;
+  return Math.max(0, cap - (this.registeredCount || 0));
+});
+
+eventSchema.pre('save', function () {
+  if (!this.capacity && this.totalTickets) {
+    this.capacity = this.totalTickets;
+  }
+  if (!this.totalTickets && this.capacity) {
+    this.totalTickets = this.capacity;
+  }
+  if (!this.thumbnail && this.image) {
+    this.thumbnail = this.image;
+  }
+  if (!this.image && this.thumbnail) {
+    this.image = this.thumbnail;
+  }
+  const cap = this.capacity || 100;
+  if (this.registeredCount > cap) {
+    this.registeredCount = cap;
+  }
+  if (this.eventState !== 'postponed' && this.endDate && this.endDate < new Date()) {
+    this.eventState = 'expired';
+  }
+  syncPrimarySpeakerFields(this);
+});
+
+eventSchema.set('toJSON', { virtuals: true });
+eventSchema.set('toObject', { virtuals: true });
+
+eventSchema.statics.CATEGORIES = EVENT_CATEGORIES;
+eventSchema.statics.CAMPUS = EVENT_CAMPUS;
+eventSchema.statics.VENUES = EVENT_VENUES;
+eventSchema.statics.EVENT_STATUSES = EVENT_STATUSES;
 
 const Event = mongoose.model('Event', eventSchema);
 

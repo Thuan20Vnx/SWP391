@@ -19,16 +19,6 @@ const pendingResets = new Map();
 // ============================================================
 const sanitizeUser = (user) => User.sanitizeUser(user);
 
-const buildGoogleLoginUpdate = (user, { googleId, googlePicture }) => {
-  const update = { authProvider: 'google' };
-  if (googleId) update.googleId = googleId;
-  if (googlePicture && !User.hasCustomAvatar(user)) {
-    update.picture = googlePicture;
-    update.avatar = googlePicture;
-  }
-  return update;
-};
-
 // ============================================================
 // Helper: Get Nodemailer Transporter (Gmail or Ethereal)
 // ============================================================
@@ -256,7 +246,15 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (isMatch) {
-      await User.syncAndPersistUserProfile(user);
+      // Auto-detect role for existing users who don't have role yet
+      if (!user.role || user.role === 'guest') {
+        const detected = await User.detectRole(user.email);
+        if (detected.role !== 'guest') {
+          user.role = detected.role;
+          user.studentId = detected.studentId;
+          await user.save();
+        }
+      }
 
       return res.status(200).json({
         success: true,
@@ -393,17 +391,18 @@ router.post('/verify-otp', async (req, res) => {
     }
 
     // Auto-detect role & studentId from email
-    const { role, studentId, course } = await User.detectRole(pendingUser.email);
+    const { role, studentId } = await User.detectRole(pendingUser.email);
 
+    // Create user in MongoDB with hashed password
     const newUser = await User.create({
       fullname: pendingUser.fullname,
       email: pendingUser.email.trim().toLowerCase(),
       phone: pendingUser.phone,
-      passwordHash: pendingUser.passwordHash,
+      passwordHash: pendingUser.passwordHash, // Already bcrypt hashed
       authProvider: 'local',
-      role,
-      studentId,
-      course: course || 'K18',
+      role: role,
+      studentId: studentId,
+      course: 'K18',
       campus: 'FPT University Da Nang',
       orientation: '',
       interests: []
@@ -624,11 +623,26 @@ router.post('/google', async (req, res) => {
     let user = await User.findOne({ email: googleEmail.toLowerCase() });
 
     if (user) {
-      await User.syncAndPersistUserProfile(user, buildGoogleLoginUpdate(user, {
-        googleId,
-        googlePicture,
-      }));
-      user = await User.findOne({ email: googleEmail.toLowerCase() });
+      // Auto-detect role for existing users who don't have role yet
+      let needSave = false;
+      if (!user.role || user.role === 'guest') {
+        const detected = await User.detectRole(user.email);
+        if (detected.role !== 'guest') {
+          user.role = detected.role;
+          user.studentId = detected.studentId;
+          needSave = true;
+        }
+      }
+      // User exists, update picture and googleId if available
+      if (googleId && user.googleId !== googleId) {
+        user.googleId = googleId;
+        needSave = true;
+      }
+      if (googlePicture && user.picture !== googlePicture) {
+        user.picture = googlePicture;
+        needSave = true;
+      }
+      if (needSave) await user.save();
       return res.status(200).json({
         success: true,
         message: 'Đăng nhập bằng Google thành công!',
@@ -637,16 +651,16 @@ router.post('/google', async (req, res) => {
       });
     } else {
       // Auto-detect role & studentId from Google email
-      const { role, studentId, course } = await User.detectRole(googleEmail);
+      const { role, studentId } = await User.detectRole(googleEmail);
       const newUser = await User.create({
         fullname: googleName,
         email: googleEmail.toLowerCase(),
         passwordHash: null,
         googleId: googleId || null,
         authProvider: 'google',
-        role,
-        studentId,
-        course: course || 'K18',
+        role: role,
+        studentId: studentId,
+        course: 'K18',
         campus: 'FPT University Da Nang',
         orientation: '',
         interests: [],
@@ -690,10 +704,14 @@ router.get('/google/callback', async (req, res) => {
   try {
     if (!clientSecret || clientSecret === 'mock') {
       console.log('[MOCK CALLBACK] Client Secret is not set. Simulating login...');
-      email = 'kxnhan1507@gmail.com';
-      name = 'Nhân Khưu Xuân';
+      // Dùng email từ query param nếu có (để test với nhiều user khác nhau)
+      // Ví dụ: /api/auth/google/callback?code=xxx&mock_email=tuan07375@gmail.com
+      const mockEmail = req.query.mock_email || process.env.MOCK_GOOGLE_EMAIL || 'kxnhan1507@gmail.com';
+      const mockName = req.query.mock_name || process.env.MOCK_GOOGLE_NAME || 'Nhân Khưu Xuân';
+      email = mockEmail.trim().toLowerCase();
+      name = mockName.trim();
       picture = '';
-      googleId = 'mock-kxnhan1507';
+      googleId = `mock-${email}`;
     } else {
       const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
       const { tokens } = await oauth2Client.getToken(code);
@@ -713,14 +731,12 @@ router.get('/google/callback', async (req, res) => {
     let user = await User.findOne({ email: email.toLowerCase() });
 
     if (user) {
-      await User.syncAndPersistUserProfile(user, buildGoogleLoginUpdate(user, {
-        googleId,
-        googlePicture: picture,
-      }));
-      user = await User.findOne({ email: email.toLowerCase() });
+      if (googleId) user.googleId = googleId;
+      if (picture) user.picture = picture;
+      if (googleId || picture) await user.save();
     } else {
       // Auto-detect role & studentId from callback email
-      const { role: detectedRole, studentId: detectedStudentId, course: detectedCourse } = await User.detectRole(email);
+      const { role: detectedRole, studentId: detectedStudentId } = await User.detectRole(email);
 
       user = await User.create({
         fullname: name,
@@ -730,7 +746,7 @@ router.get('/google/callback', async (req, res) => {
         authProvider: 'google',
         role: detectedRole,
         studentId: detectedStudentId,
-        course: detectedCourse || 'K18',
+        course: 'K18',
         campus: 'FPT University Da Nang',
         orientation: '',
         interests: [],
@@ -744,7 +760,7 @@ router.get('/google/callback', async (req, res) => {
     );
 
   } catch (error) {
-    console.error('Lỗi khi xử lý callback đăng nhập Google:', error.message);
+    console.error('Lỗi khi xử lý callback đăng nhập Google:', error);
     return res.redirect(`http://localhost:5173/login?auth_status=error&message=${encodeURIComponent('Xác thực tài khoản Google thất bại. Vui lòng thử lại!')}`);
   }
 });

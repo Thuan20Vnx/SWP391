@@ -10,7 +10,7 @@ export const todayTimeline = [
     time: '08:00',
     date: '28/05/2026',
     title: 'Workshop Lập trình Nhúng với ESP32-C6 & AI Camera',
-    location: 'Phòng Lab 402 Gamma',
+    location: 'Tầng 4 tòa Beta',
     status: 'SẮP DIỄN RA',
     statusTone: 'primary',
   },
@@ -19,7 +19,7 @@ export const todayTimeline = [
     time: '14:00',
     date: '28/05/2026',
     title: 'Seminar Prompt Engineering với Generative AI',
-    location: 'Hội trường A - FPT Tower',
+    location: 'Sảnh tòa Gamma',
     status: 'ĐANG DIỄN RA',
     statusTone: 'success',
   },
@@ -48,7 +48,7 @@ export const myEvents = {
       id: 'me-1',
       title: 'Workshop Lập trình Nhúng với ESP32-C6 & AI Camera',
       date: '28/05/2026 • 08:00',
-      location: 'Phòng Lab 402 Gamma',
+      location: 'Tầng 4 tòa Beta',
       status: 'Đã xác nhận',
       image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=240&fit=crop',
     },
@@ -56,7 +56,7 @@ export const myEvents = {
       id: 'me-2',
       title: 'Lễ hội Tsubasa Matsuri',
       date: '24/10/2026 • 18:00',
-      location: 'Sân FPT University Da Nang',
+      location: 'Sảnh tòa Beta',
       status: 'Chờ check-in',
       image: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=400&h=240&fit=crop',
     },
@@ -66,7 +66,7 @@ export const myEvents = {
       id: 'me-3',
       title: 'F-Shark Pitching Day 2025',
       date: '12/03/2026 • 13:30',
-      location: 'Innovation Hub',
+      location: 'Tầng 5 tòa Alpha',
       status: 'Đã tham gia',
       image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&h=240&fit=crop',
     },
@@ -76,7 +76,7 @@ export const myEvents = {
       id: 'me-4',
       title: 'Omatsuri Mambo Night',
       date: '05/04/2026 • 19:00',
-      location: 'Hội trường B',
+      location: 'Sảnh tòa Beta',
       status: 'Đã hủy',
       image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&h=240&fit=crop',
     },
@@ -121,7 +121,7 @@ export const announcements = [
   {
     id: 'ann-1',
     title: 'Thay đổi phòng tổ chức Workshop ESP32-C6',
-    excerpt: 'Workshop sẽ chuyển từ Lab 301 sang Lab 402 Gamma do bảo trì thiết bị.',
+    excerpt: 'Workshop sẽ chuyển từ Tầng 4 tòa Beta sang Sảnh tòa Gamma do bảo trì thiết bị.',
     sender: 'CTSV',
     time: '2 giờ trước',
     unread: true,
@@ -167,7 +167,7 @@ Phòng CTSV trân trọng thông báo mở cổng đăng ký tham dự sự ki�
 
 **Thời gian đăng ký:** 08:00, 01/06/2026 – 23:59, 10/06/2026
 **Thời gian sự kiện:** 19:00 – 22:00, 20/06/2026
-**Địa điểm:** Hội trường B, FPT University Da Nang
+**Địa điểm:** Sảnh tòa Beta
 
 Sinh viên vui lòng đăng ký qua nền tảng F-Events và mang theo vé điện tử (QR) khi tham dự. Số lượng có hạn — ưu tiên đăng ký sớm.
 

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AppSelect from '../components/ui/AppSelect';
+import { EVENT_VENUES } from '../constants/eventVenues';
 
 const CreateEvent = ({ showToast }) => {
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ const CreateEvent = ({ showToast }) => {
       .then(data => {
         setLoading(false);
         if (data.success) {
+          showToast(data.message, 'success');
           navigate('/events');
         } else {
           showToast(data.message || 'Lỗi khi tạo sự kiện', 'error');
@@ -105,10 +108,27 @@ const CreateEvent = ({ showToast }) => {
             </div>
           </div>
 
+          <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              Sự kiện chỉ được tổ chức trong khuôn viên trường.
+            </p>
+          </div>
+
           <div className="input-group">
             <div className="input-wrapper">
-              <input type="text" id="location" placeholder=" " required value={formData.location} onChange={handleInputChange} />
-              <label htmlFor="location">Địa điểm tổ chức</label>
+              <AppSelect
+                id="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                placeholder="Chọn địa điểm"
+                options={[
+                  { value: '', label: 'Chọn địa điểm' },
+                  ...EVENT_VENUES.map((venue) => ({ value: venue, label: venue }))
+                ]}
+              />
+              <label htmlFor="location" style={{ transform: 'translateY(-50%) scale(0.8)', top: '0', background: 'var(--bg-input)' }}>
+                Địa điểm tổ chức
+              </label>
             </div>
           </div>
 
