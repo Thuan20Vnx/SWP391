@@ -632,9 +632,12 @@ router.post('/announcements', requireCtsvApprove, async (req, res) => {
     if (!title?.trim()) {
       return res.status(400).json({ success: false, message: 'Tiêu đề thông báo là bắt buộc!' });
     }
+    if (!content?.trim()) {
+      return res.status(400).json({ success: false, message: 'Nội dung thông báo là bắt buộc!' });
+    }
     const announcement = await Announcement.create({
       title: title.trim(),
-      content: content || '',
+      content: content.trim(),
       eventId: eventId || null,
       publishedByEmail: req.authEmail,
       publishedAt: new Date(),

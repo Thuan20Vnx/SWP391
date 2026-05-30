@@ -1,8 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import AppSelect from '../../components/ui/AppSelect';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { fetchCtsvAnnouncements, fetchCtsvEvents, publishCtsvAnnouncement } from '../../services/ctsvApi';
+import {
+  clearAnnouncementDraft,
+  formatDraftSavedLabel,
+  loadAnnouncementDraft,
+  saveAnnouncementDraft
+} from '../../utils/announcementDraft';
 import { formatPartnerDate } from '../../utils/partnerDisplay';
+
+const AUTOSAVE_MS = 800;
+const EMPTY_FORM = { title: '', content: '', eventId: '' };
 
 const formatDateTime = (value) => {
   if (!value) return '—';
@@ -25,7 +35,6 @@ const excerpt = (text, max = 120) => {
   return t.length <= max ? t : `${t.slice(0, max)}…`;
 };
 
-/** Thứ Hai 00:00 (giờ local) của tuần hiện tại */
 const getStartOfWeek = () => {
   const now = new Date();
   const day = now.getDay();
@@ -47,7 +56,11 @@ const CtsvAnnouncementPublish = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ title: '', content: '', eventId: '' });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [draftSavedAt, setDraftSavedAt] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const draftReadyRef = useRef(false);
+  const autosaveTimerRef = useRef(null);
 
   const eventTitleById = useMemo(() => {
     const map = {};
@@ -78,6 +91,41 @@ const CtsvAnnouncementPublish = () => {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    const draft = loadAnnouncementDraft();
+    if (draft && (draft.title || draft.content || draft.eventId)) {
+      setForm({
+        title: draft.title,
+        content: draft.content,
+        eventId: draft.eventId
+      });
+      setDraftSavedAt(draft.savedAt);
+      showToast?.('Đã khôi phục bản nháp đã lưu.', 'info');
+    }
+    draftReadyRef.current = true;
+  }, [showToast]);
+
+  useEffect(() => {
+    if (!draftReadyRef.current) return undefined;
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => {
+      const at = saveAnnouncementDraft(form);
+      if (at) setDraftSavedAt(at);
+    }, AUTOSAVE_MS);
+    return () => {
+      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    };
+  }, [form]);
+
+  useEffect(() => {
+    const flush = () => {
+      const at = saveAnnouncementDraft(form);
+      if (at) setDraftSavedAt(at);
+    };
+    window.addEventListener('beforeunload', flush);
+    return () => window.removeEventListener('beforeunload', flush);
+  }, [form]);
+
   const historyThisWeek = useMemo(
     () => history.filter((a) => isPublishedThisWeek(a.publishedAt)),
     [history]
@@ -85,11 +133,23 @@ const CtsvAnnouncementPublish = () => {
 
   const selectedEventTitle = form.eventId ? eventTitleById[form.eventId] : null;
   const contentLength = form.content.length;
+  const canPublish = form.title.trim() && form.content.trim();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const validateForm = () => {
     if (!form.title.trim()) {
       showToast?.('Nhập tiêu đề thông báo.', 'error');
+      return false;
+    }
+    if (!form.content.trim()) {
+      showToast?.('Nhập nội dung thông báo.', 'error');
+      return false;
+    }
+    return true;
+  };
+
+  const doPublish = async () => {
+    if (!validateForm()) {
+      setConfirmAction(null);
       return;
     }
     setSubmitting(true);
@@ -100,18 +160,66 @@ const CtsvAnnouncementPublish = () => {
         eventId: form.eventId || undefined
       });
       showToast?.('Đã phát hành thông báo chính thức!', 'success');
-      setForm({ title: '', content: '', eventId: '' });
+      setForm(EMPTY_FORM);
+      clearAnnouncementDraft();
+      setDraftSavedAt(null);
       const d = await fetchCtsvAnnouncements();
       setHistory(d.announcements || []);
     } catch (err) {
       showToast?.(err.message, 'error');
     } finally {
       setSubmitting(false);
+      setConfirmAction(null);
     }
   };
 
+  const doClearDraft = () => {
+    setForm(EMPTY_FORM);
+    clearAnnouncementDraft();
+    setDraftSavedAt(null);
+    showToast?.('Đã xóa bản nháp.', 'info');
+    setConfirmAction(null);
+  };
+
+  const handlePublishClick = (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setConfirmAction('publish');
+  };
+
+  const handleClearDraftClick = () => {
+    if (!form.title && !form.content && !form.eventId) {
+      showToast?.('Không có nội dung nháp để xóa.', 'info');
+      return;
+    }
+    setConfirmAction('clear');
+  };
+
+  const draftLabel = formatDraftSavedLabel(draftSavedAt);
+
   return (
     <div className="ctsv-announce-page">
+      <ConfirmDialog
+        open={confirmAction === 'publish'}
+        title="Phát hành thông báo?"
+        message="Thông báo sẽ được gửi chính thức đến sinh viên và CLB. Bạn có chắc muốn phát hành?"
+        confirmLabel="Phát hành"
+        cancelLabel="Quay lại"
+        onConfirm={doPublish}
+        onCancel={() => !submitting && setConfirmAction(null)}
+        loading={submitting}
+      />
+      <ConfirmDialog
+        open={confirmAction === 'clear'}
+        title="Xóa bản nháp?"
+        message="Toàn bộ tiêu đề, nội dung và liên kết sự kiện trong form sẽ bị xóa. Hành động này không thể hoàn tác."
+        confirmLabel="Xóa nháp"
+        cancelLabel="Giữ lại"
+        onConfirm={doClearDraft}
+        onCancel={() => setConfirmAction(null)}
+        danger
+      />
+
       <header className="ctsv-announce-hero">
         <div className="ctsv-announce-hero-text">
           <span className="ctsv-announce-eyebrow">Truyền thông CTSV</span>
@@ -131,9 +239,14 @@ const CtsvAnnouncementPublish = () => {
           <div className="ctsv-announce-card-head">
             <h2>Soạn thông báo mới</h2>
             <p>Điền đầy đủ tiêu đề và nội dung trước khi gửi đến cộng đồng.</p>
+            {draftLabel && (
+              <p className="ctsv-announce-draft-status" aria-live="polite">
+                Bản nháp tự động lưu lúc {draftLabel}
+              </p>
+            )}
           </div>
 
-          <form className="ctsv-announce-form" onSubmit={handleSubmit}>
+          <form className="ctsv-announce-form" onSubmit={handlePublishClick}>
             <label className="ctsv-announce-field">
               <span className="ctsv-announce-label">
                 Tiêu đề <em>*</em>
@@ -145,6 +258,7 @@ const CtsvAnnouncementPublish = () => {
                 placeholder="VD: Mở đăng ký FPT Music Night 2026"
                 maxLength={200}
                 disabled={submitting}
+                required
               />
             </label>
 
@@ -171,7 +285,9 @@ const CtsvAnnouncementPublish = () => {
             </label>
 
             <label className="ctsv-announce-field">
-              <span className="ctsv-announce-label">Nội dung</span>
+              <span className="ctsv-announce-label">
+                Nội dung <em>*</em>
+              </span>
               <textarea
                 className="ctsv-announce-textarea"
                 rows={8}
@@ -179,6 +295,7 @@ const CtsvAnnouncementPublish = () => {
                 onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
                 placeholder="Mô tả thời gian, địa điểm, cách đăng ký và lưu ý quan trọng..."
                 disabled={submitting}
+                required
               />
               <span className="ctsv-announce-char">{contentLength} ký tự</span>
             </label>
@@ -187,7 +304,7 @@ const CtsvAnnouncementPublish = () => {
               <button
                 type="submit"
                 className="ctsv-announce-submit"
-                disabled={submitting || !form.title.trim()}
+                disabled={submitting || !canPublish}
               >
                 {submitting ? 'Đang phát hành…' : 'Phát hành thông báo'}
               </button>
@@ -195,7 +312,7 @@ const CtsvAnnouncementPublish = () => {
                 type="button"
                 className="ctsv-announce-reset"
                 disabled={submitting}
-                onClick={() => setForm({ title: '', content: '', eventId: '' })}
+                onClick={handleClearDraftClick}
               >
                 Xóa nháp
               </button>
@@ -230,9 +347,7 @@ const CtsvAnnouncementPublish = () => {
       <section className="ctsv-announce-history-card">
         <div className="ctsv-announce-card-head">
           <h2>Đã phát hành trong tuần này</h2>
-          <p>
-            {historyThisWeek.length} thông báo từ thứ Hai đến hôm nay
-          </p>
+          <p>{historyThisWeek.length} thông báo từ thứ Hai đến hôm nay</p>
         </div>
 
         {loading ? (

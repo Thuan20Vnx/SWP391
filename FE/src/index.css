@@ -11975,6 +11975,90 @@ body {
   color: #64748b;
 }
 
+.ctsv-announce-draft-status {
+  margin: 8px 0 0 !important;
+  font-size: 0.8125rem !important;
+  color: #16a34a !important;
+  font-weight: 600;
+}
+
+/* Confirm dialog — dùng chung */
+.app-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+}
+
+.app-confirm-dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+}
+
+.app-confirm-title {
+  margin: 0 0 10px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.app-confirm-message {
+  margin: 0 0 20px;
+  font-size: 0.9375rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.app-confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.app-confirm-cancel {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.app-confirm-ok {
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
+}
+
+.app-confirm-ok--danger {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.app-confirm-cancel:disabled,
+.app-confirm-ok:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .ctsv-announce-form {
   padding: 20px 28px 28px;
   display: flex;
