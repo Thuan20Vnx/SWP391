@@ -56,6 +56,8 @@ const AdminDashboard = ({ showToast }) => {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
+          showToast(data.message, 'success');
+          // Remove the processed event from the list
           setEvents(prev => prev.filter(e => e._id !== eventId));
         } else {
           showToast(data.message || 'Lỗi xử lý', 'error');
