@@ -157,12 +157,10 @@ router.get('/events', async (req, res) => {
   }
 });
 
-// GET /api/ctsv/events/calendar
+// GET /api/ctsv/events/calendar — toàn bộ sự kiện (mọi trạng thái, mọi nguồn)
 router.get('/events/calendar', async (req, res) => {
   try {
-    const events = await Event.find({
-      status: { $in: ['approved', 'live', 'pending_ctsv', 'pending_icpdp'] }
-    }).sort({ startDate: 1 });
+    const events = await Event.find({}).sort({ startDate: 1 });
     return res.json({
       success: true,
       events: events.map(formatEvent)
@@ -327,22 +325,48 @@ router.patch('/events/:id/publish', requireCtsvApprove, async (req, res) => {
   }
 });
 
-// GET /api/ctsv/reports — báo cáo sau sự kiện (ended)
+// GET /api/ctsv/reports — báo cáo sau / đang diễn ra (live, ended, đã qua ngày, eventState expired)
 router.get('/reports', async (req, res) => {
   try {
-    const events = await Event.find({ status: { $in: ['ended', 'live'] } })
-      .sort({ updatedAt: -1 })
-      .limit(50);
-    return res.json({
-      success: true,
-      reports: events.map((e) => ({
+    const now = new Date();
+    const excludedStatuses = [
+      'draft',
+      'rejected',
+      'pending',
+      'pending_ctsv',
+      'pending_icpdp',
+      'revision'
+    ];
+    const events = await Event.find({
+      status: { $nin: excludedStatuses },
+      $or: [
+        { status: { $in: ['live', 'ended'] } },
+        { eventState: 'expired' },
+        { endDate: { $lte: now } },
+        { endDate: null, startDate: { $lte: now } },
+        { endDate: { $exists: false }, startDate: { $lte: now } }
+      ]
+    })
+      .sort({ startDate: -1 })
+      .limit(100);
+
+    const reports = events.map((e) => {
+      const cap = e.capacity || e.totalTickets || 0;
+      const registered = e.registeredCount || 0;
+      let reportPhase = 'completed';
+      if (e.status === 'live') reportPhase = 'live';
+      else if (e.status === 'ended' || e.eventState === 'expired') reportPhase = 'ended';
+
+      return {
         ...formatEvent(e),
-        attendanceRate:
-          e.totalTickets > 0
-            ? Math.round((e.registeredCount / e.totalTickets) * 100)
-            : 0
-      }))
+        registeredCount: registered,
+        totalTickets: cap,
+        attendanceRate: cap > 0 ? Math.round((registered / cap) * 100) : 0,
+        reportPhase
+      };
     });
+
+    return res.json({ success: true, reports });
   } catch (error) {
     console.error('ctsv reports:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });

@@ -175,3 +175,51 @@ export const MOCK_STATS = [
   { label: 'Sự kiện đang diễn ra', value: '5', trend: 'Ổn định' },
   { label: 'Sinh viên tham gia', value: '1.2K', trend: '+8%' }
 ];
+
+export const MOCK_REPORTS = [
+  {
+    id: 'ev-report-1',
+    title: 'FPT Techday 2024: Kiến tạo tương lai số',
+    category: 'Công nghệ',
+    source: 'school',
+    date: '25/10/2024',
+    time: '08:00',
+    location: 'Sảnh tòa Gamma',
+    registeredCount: 180,
+    totalTickets: 200,
+    attendanceRate: 90,
+    status: 'MỞ ĐĂNG KÝ',
+    statusKey: 'approved',
+    reportPhase: 'ended'
+  },
+  {
+    id: 'ev-report-2',
+    title: 'Workshop: Kỹ năng tranh biện (Debate)',
+    category: 'Học thuật',
+    source: 'club',
+    date: '10/05/2024',
+    time: '14:00',
+    location: 'Tầng 5 tòa Alpha',
+    registeredCount: 50,
+    totalTickets: 50,
+    attendanceRate: 100,
+    status: 'MỞ ĐĂNG KÝ',
+    statusKey: 'approved',
+    reportPhase: 'ended'
+  },
+  {
+    id: 'ev-report-3',
+    title: 'Hackathon 2026: Innovate for Green',
+    category: 'Công nghệ',
+    source: 'club',
+    date: '25/05/2026',
+    time: '08:00',
+    location: 'FPT Software Đà Nẵng',
+    registeredCount: 30,
+    totalTickets: 150,
+    attendanceRate: 20,
+    status: 'ĐANG DIỄN RA',
+    statusKey: 'live',
+    reportPhase: 'live'
+  }
+];

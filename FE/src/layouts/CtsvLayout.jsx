@@ -52,10 +52,6 @@ const CtsvLayout = ({ showToast }) => {
 
 
 
-  const isHome = location.pathname === '/ctsv';
-
-
-
   const loadCtsvUserProfile = useCallback(() => {
     if (!isCtsvRole()) {
       navigate('/', { replace: true });
@@ -191,7 +187,7 @@ const CtsvLayout = ({ showToast }) => {
 
             sidebarOpen={sidebarOpen}
 
-            showSearch={isHome}
+            showSearch
 
             searchQuery={headerSearch}
 
