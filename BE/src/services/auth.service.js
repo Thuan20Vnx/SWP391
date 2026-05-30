@@ -7,9 +7,19 @@ const {
   pendingUsers,
   pendingResets,
   OTP_TTL_MS,
+  MAX_OTP_ATTEMPTS,
+  OTP_SIGNUP_LOCK_MS,
   generateOtp,
   isExpired,
+  createPendingResetEntry,
+  createPendingSignupEntry,
+  recordFailedOtpAttempt,
+  getRemainingOtpAttempts,
+  isEntryOtpLocked,
+  getLockRemainingSeconds,
+  throwOtpLockedError,
 } = require('../utils/otpStore');
+const { validatePasswordPolicy } = require('../utils/passwordPolicy');
 const { sendOtpEmail, sendResetEmail } = require('./email.service');
 const {
   GOOGLE_CLIENT_ID,
@@ -21,6 +31,12 @@ const {
 const { verifyToken } = require('../utils/jwt');
 
 const sanitizeUser = (user) => User.sanitizeUser(user);
+
+const throwGoogleAccountError = (message, statusCode = 403) => {
+  const err = new AppError(message, statusCode);
+  err.extra = { code: 'GOOGLE_ACCOUNT' };
+  throw err;
+};
 
 const buildGoogleLoginUpdate = (user, { googleId, googlePicture }) => {
   const update = { authProvider: 'google' };
@@ -89,26 +105,42 @@ const signup = async ({ fullname, email, phone, password }) => {
   if (!password) throw new AppError('Mật khẩu không được để trống!', 400);
 
   const emailKey = email.trim().toLowerCase();
+  const existingUser = await User.findOne({ email: emailKey });
 
-  if (await User.findOne({ email: emailKey })) {
+  if (existingUser) {
+    if (User.isGoogleOnlyAccount(existingUser)) {
+      throwGoogleAccountError(
+        'Email này đã được đăng ký bằng Google. Vui lòng đăng nhập bằng Google!',
+        409
+      );
+    }
     throw new AppError('Email đã được đăng ký trên hệ thống!', 400);
   }
 
-  if (phone.trim() && await User.findOne({ phone: phone.trim() })) {
-    throw new AppError('Số điện thoại đã được đăng ký trên hệ thống!', 400);
+  if (phone.trim()) {
+    const phoneUser = await User.findOne({ phone: phone.trim() });
+    if (phoneUser) {
+      if (User.isGoogleOnlyAccount(phoneUser)) {
+        throwGoogleAccountError(
+          'Số điện thoại này thuộc tài khoản Google. Vui lòng đăng nhập bằng Google!',
+          409
+        );
+      }
+      throw new AppError('Số điện thoại đã được đăng ký trên hệ thống!', 400);
+    }
   }
 
   const otpCode = generateOtp();
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  pendingUsers.set(emailKey, {
+  pendingUsers.set(emailKey, createPendingSignupEntry({
     fullname: fullname.trim(),
     email: email.trim(),
     phone: phone.trim(),
     passwordHash: hashedPassword,
     otp: otpCode,
     expiresAt: Date.now() + OTP_TTL_MS,
-  });
+  }));
 
   await sendOtpEmail(email.trim(), fullname.trim(), otpCode);
 
@@ -135,8 +167,26 @@ const verifyOtp = async ({ email, otp }) => {
     throw new AppError('Mã OTP đã hết hạn! Vui lòng đăng ký lại.', 400);
   }
 
+  if (isEntryOtpLocked(pendingUser)) {
+    pendingUsers.set(emailKey, pendingUser);
+    throwOtpLockedError(pendingUser, 'signup');
+  }
+
   if (pendingUser.otp !== otp.trim()) {
-    throw new AppError('Mã xác minh OTP không chính xác. Vui lòng kiểm tra lại!', 400);
+    recordFailedOtpAttempt(pendingUser, { lockDurationMs: OTP_SIGNUP_LOCK_MS });
+    pendingUsers.set(emailKey, pendingUser);
+
+    if (isEntryOtpLocked(pendingUser)) {
+      throwOtpLockedError(pendingUser, 'signup');
+    }
+
+    const remaining = getRemainingOtpAttempts(pendingUser);
+    const err = new AppError(
+      `Mã xác minh OTP không chính xác. Bạn còn ${remaining} lần thử.`,
+      400
+    );
+    err.extra = { code: 'OTP_INVALID', remainingAttempts: remaining };
+    throw err;
   }
 
   if (await User.findOne({ email: emailKey })) {
@@ -179,6 +229,10 @@ const resendOtp = async ({ email }) => {
     throw new AppError('Không tìm thấy yêu cầu đăng ký tương ứng cho email này!', 400);
   }
 
+  if (isEntryOtpLocked(pendingUser)) {
+    throwOtpLockedError(pendingUser, 'signup');
+  }
+
   const newOtpCode = generateOtp();
   pendingUser.otp = newOtpCode;
   pendingUser.expiresAt = Date.now() + OTP_TTL_MS;
@@ -201,14 +255,20 @@ const forgotPassword = async ({ contact }) => {
     throw new AppError('Email hoặc Số điện thoại không tồn tại trên hệ thống!', 404);
   }
 
+  if (User.isGoogleOnlyAccount(user)) {
+    throwGoogleAccountError(
+      'Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu. Vui lòng đăng nhập bằng Google!'
+    );
+  }
+
   const otpCode = generateOtp();
   const emailKey = user.email.toLowerCase();
 
-  pendingResets.set(emailKey, {
+  pendingResets.set(emailKey, createPendingResetEntry({
     email: user.email,
     otp: otpCode,
     expiresAt: Date.now() + OTP_TTL_MS,
-  });
+  }));
 
   await sendResetEmail(user.email, user.fullname, otpCode);
 
@@ -224,11 +284,24 @@ const resetPassword = async ({ email, otp, newPassword }) => {
     throw new AppError('Vui lòng điền đầy đủ các thông tin bắt buộc!', 400);
   }
 
+  const passwordCheck = validatePasswordPolicy(newPassword);
+  if (!passwordCheck.valid) {
+    throw new AppError(passwordCheck.message, 400);
+  }
+
   const emailKey = email.trim().toLowerCase();
   const pendingReset = pendingResets.get(emailKey);
 
   if (!pendingReset) {
     throw new AppError('Không tìm thấy yêu cầu đặt lại mật khẩu hoặc mã OTP đã hết hạn!', 400);
+  }
+
+  if (pendingReset.locked) {
+    pendingResets.delete(emailKey);
+    throw new AppError(
+      `Bạn đã nhập sai OTP quá ${MAX_OTP_ATTEMPTS} lần. Vui lòng quay lại trang Quên mật khẩu để nhận mã mới.`,
+      423
+    );
   }
 
   if (isExpired(pendingReset)) {
@@ -237,7 +310,22 @@ const resetPassword = async ({ email, otp, newPassword }) => {
   }
 
   if (pendingReset.otp !== otp.trim()) {
-    throw new AppError('Mã xác minh OTP không chính xác. Vui lòng kiểm tra lại!', 400);
+    recordFailedOtpAttempt(pendingReset);
+
+    if (pendingReset.locked) {
+      pendingResets.delete(emailKey);
+      throw new AppError(
+        `Bạn đã nhập sai OTP quá ${MAX_OTP_ATTEMPTS} lần. Vui lòng quay lại trang Quên mật khẩu để nhận mã mới.`,
+        423
+      );
+    }
+
+    pendingResets.set(emailKey, pendingReset);
+    const remaining = getRemainingOtpAttempts(pendingReset);
+    throw new AppError(
+      `Mã xác minh OTP không chính xác. Bạn còn ${remaining} lần thử.`,
+      400
+    );
   }
 
   const user = await User.findOne({ email: emailKey });
@@ -245,6 +333,13 @@ const resetPassword = async ({ email, otp, newPassword }) => {
   if (!user) {
     pendingResets.delete(emailKey);
     throw new AppError('Không tìm thấy người dùng trên hệ thống!', 404);
+  }
+
+  if (User.isGoogleOnlyAccount(user)) {
+    pendingResets.delete(emailKey);
+    throwGoogleAccountError(
+      'Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu. Vui lòng đăng nhập bằng Google!'
+    );
   }
 
   user.passwordHash = await bcrypt.hash(newPassword, 10);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { API_BASE } from '../utils/api';
 
 const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -12,6 +13,8 @@ const ForgotPassword = ({ showToast }) => {
   const [validFields, setValidFields] = useState(false);
   const [shakeFields, setShakeFields] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleBlocked, setGoogleBlocked] = useState(false);
+  const [googleBlockedMsg, setGoogleBlockedMsg] = useState('');
   
   const [countdown, setCountdown] = useState(0);
   const [isCounting, setIsCounting] = useState(false);
@@ -50,6 +53,8 @@ const ForgotPassword = ({ showToast }) => {
   const handleInputChange = (e) => {
     const value = e.target.value;
     setContact(value);
+    setGoogleBlocked(false);
+    setGoogleBlockedMsg('');
     validateContact(value);
   };
 
@@ -69,7 +74,7 @@ const ForgotPassword = ({ showToast }) => {
 
     setLoading(true);
 
-    fetch('http://localhost:5000/api/auth/forgot-password', {
+    fetch(`${API_BASE}/api/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contact: contact })
@@ -78,8 +83,14 @@ const ForgotPassword = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
+          setGoogleBlocked(false);
           setCountdown(60);
           setIsCounting(true);
+        } else if (status === 403 && data.code === 'GOOGLE_ACCOUNT') {
+          setGoogleBlocked(true);
+          setGoogleBlockedMsg(data.message || 'Tài khoản này đăng nhập bằng Google.');
+          setErrors(true);
+          showToast(data.message, 'error');
         } else {
           showToast(data.message || 'Gửi mã xác nhận thất bại!', 'error');
         }
@@ -121,8 +132,19 @@ const ForgotPassword = ({ showToast }) => {
               </svg>
             </div>
             <h1>Khôi phục mật khẩu</h1>
-            <p>Đừng lo lắng! Vui lòng nhập Email hoặc Số điện thoại bạn đã dùng để đăng ký. Chúng tôi sẽ gửi mã xác nhận (OTP) để giúp bạn đặt lại mật khẩu.</p>
+            <p>Đừng lo lắng! Vui lòng nhập Email hoặc Số điện thoại bạn đã dùng để đăng ký tài khoản <strong>email/mật khẩu</strong>. Tài khoản đăng nhập Google không hỗ trợ đặt lại mật khẩu tại đây.</p>
           </header>
+
+          {googleBlocked && (
+            <div style={{ marginBottom: '12px', padding: '12px 14px', borderRadius: '10px', background: '#fff7ed', border: '1px solid #fdba74', color: '#9a3412', fontSize: '14px', lineHeight: 1.5 }}>
+              {googleBlockedMsg}
+              <div style={{ marginTop: '8px' }}>
+                <Link to="/login" className="accent-link" style={{ fontWeight: 700 }}>
+                  Quay lại đăng nhập bằng Google
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Form */}
           <form id="forgot-form" onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -156,7 +178,7 @@ const ForgotPassword = ({ showToast }) => {
               id="forgot-btn" 
               className={`primary-button ${isCounting ? 'btn-countdown' : ''}`}
               style={{ height: '46px' }}
-              disabled={loading || isCounting}
+              disabled={loading || isCounting || googleBlocked}
             >
               {loading ? (
                 <span className="btn-spinner"></span>

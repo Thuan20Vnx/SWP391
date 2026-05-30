@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { startGoogleLogin } from '../utils/googleAuth';
 import { cacheUserProfile } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import { resolveUserAvatar } from '../utils/image';
@@ -209,15 +210,7 @@ const Login = ({ showToast }) => {
 
   const handleSsoClick = () => {};
 
-  const loginWithGoogle = () => {
-    const params = new URLSearchParams({
-      client_id: "462966212822-ohmu33pmrp4dcpuq3hm00tnvuac4jqa9.apps.googleusercontent.com",
-      redirect_uri: "http://localhost:5000/api/auth/google/callback",
-      response_type: "code",
-      scope: "openid email profile",
-    });
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
-  };
+  const loginWithGoogle = () => startGoogleLogin();
 
   const getGroupClass = (name) => {
     return `input-group ${errors[name] ? 'invalid' : ''} ${validFields[name] ? 'valid' : ''} ${shakeFields[name] ? 'shake' : ''}`;

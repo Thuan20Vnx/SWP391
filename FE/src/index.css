@@ -10034,4 +10034,73 @@ body {
   }
 }
 
+/* OTP 6-box input */
+.otp-input {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.otp-input__box {
+  width: 46px;
+  height: 52px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  color: #1e293b;
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.otp-input__box:focus {
+  border-color: var(--primary, #f26f21);
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.15);
+}
+
+.otp-input.is-valid .otp-input__box {
+  border-color: #22c55e;
+}
+
+.otp-input.is-invalid .otp-input__box {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.otp-input.is-disabled .otp-input__box {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.otp-input__label {
+  display: block;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.otp-input__error {
+  display: block;
+  text-align: center;
+  margin-top: 8px;
+  color: #ef4444;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .otp-input {
+    gap: 8px;
+  }
+
+  .otp-input__box {
+    width: 42px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
+}
 

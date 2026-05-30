@@ -155,6 +155,12 @@ userSchema.statics.hasCustomAvatar = function (user) {
   return isCustom(user?.picture) || isCustom(user?.avatar);
 };
 
+userSchema.statics.isGoogleOnlyAccount = function (user) {
+  if (!user) return false;
+  if (String(user.authProvider || '').toLowerCase() === 'google') return true;
+  return !user.passwordHash;
+};
+
 // Ghi thß║│ng course/MSSV xuß╗æng MongoDB (kh├┤ng phß╗Ñ thuß╗Öc isModified/save hook)
 userSchema.statics.syncAndPersistUserProfile = async function (user, extraSet = {}) {
   if (!user) return user;
