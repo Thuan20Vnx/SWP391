@@ -13,10 +13,19 @@ const { PARTNER_STATUSES } = require('../models/Partner');
 const Contract = require('../models/Contract');
 const Announcement = require('../models/Announcement');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
+const { normalizeSpeakers } = require('../constants/eventSpeaker');
+const { normalizeEventCategory } = require('../constants/eventCategories');
+const {
+  buildSchoolEventSubmitMeta,
+  canCtsvEditSchoolEvent,
+  shouldResubmitSchoolEventForAdmin,
+  SCHOOL_EVENT_SUBMIT_STATUS
+} = require('../constants/eventWorkflow');
 const {
   findLinkableAnnouncementEvents,
   isEventLinkableForAnnouncement
 } = require('../utils/announcementEvents');
+const { requestModeration } = require('../services/eventModeration.service');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -45,7 +54,7 @@ const pickSchoolEventFields = (body) => {
     eventType,
     duration,
     format,
-    speaker,
+    speakers,
     agenda,
     expectedAttendees,
     ticketTypes
@@ -57,10 +66,21 @@ const pickSchoolEventFields = (body) => {
     throw err;
   }
 
+  const normalizedSpeakers = normalizeSpeakers(speakers);
+  for (const sp of normalizedSpeakers) {
+    if (sp.avatar && sp.avatar.length > MAX_IMAGE_DATA_LEN) {
+      const err = new Error('SPEAKER_AVATAR_TOO_LARGE');
+      err.code = 'SPEAKER_AVATAR_TOO_LARGE';
+      throw err;
+    }
+  }
+
+  const primarySpeaker = normalizedSpeakers[0];
+
   return {
     title: title?.trim(),
     description: description || '',
-    category: category || 'Khác',
+    category: normalizeEventCategory(category),
     startDate,
     endDate,
     location: location || '',
@@ -71,7 +91,10 @@ const pickSchoolEventFields = (body) => {
     eventType: eventType || '',
     duration: duration || '',
     format: ['campus', 'online', 'hybrid'].includes(format) ? format : 'campus',
-    speaker: speaker || '',
+    speakers: normalizedSpeakers,
+    speaker: primarySpeaker?.name || '',
+    speakerRole: primarySpeaker?.role || '',
+    speakerAvatar: primarySpeaker?.avatar || '',
     agenda: agenda || '',
     expectedAttendees: Number(expectedAttendees) || 0,
     ticketTypes: normalizeTicketTypes(ticketTypes)
@@ -198,18 +221,34 @@ router.post('/events', requireCtsvApprove, async (req, res) => {
       ...data,
       startDate: new Date(data.startDate),
       endDate: data.endDate ? new Date(data.endDate) : undefined,
-      status: 'approved',
       source: 'school',
       createdByEmail: req.authEmail,
-      approvedByEmail: req.authEmail
+      ...buildSchoolEventSubmitMeta(req.authEmail)
     });
 
-    return res.status(201).json({ success: true, event: formatEvent(event) });
+    return res.status(201).json({
+      success: true,
+      event: formatEvent(event),
+      message: 'Đã gửi đơn tổ chức sự kiện. Chờ Admin phê duyệt.'
+    });
   } catch (error) {
     if (error.code === 'IMAGE_TOO_LARGE') {
       return res.status(400).json({
         success: false,
         message: 'Ảnh bìa quá lớn. Vui lòng cắt lại hoặc chọn ảnh nhỏ hơn.'
+      });
+    }
+    if (error.code === 'SPEAKER_AVATAR_TOO_LARGE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Ảnh đại diện diễn giả quá lớn. Vui lòng cắt lại hoặc chọn ảnh nhỏ hơn.'
+      });
+    }
+    if (error.name === 'ValidationError') {
+      const first = Object.values(error.errors || {})[0];
+      return res.status(400).json({
+        success: false,
+        message: first?.message || 'Dữ liệu sự kiện không hợp lệ.'
       });
     }
     console.error('ctsv create event:', error);
@@ -230,14 +269,34 @@ router.put('/events/:id', requireCtsvApprove, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Tiêu đề và ngày bắt đầu là bắt buộc!' });
     }
 
+    if (event.source !== 'school') {
+      return res.status(403).json({ success: false, message: 'Chỉ cập nhật sự kiện cấp trường!' });
+    }
+
+    if (!canCtsvEditSchoolEvent(event)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cần Admin phê duyệt yêu cầu chỉnh sửa trước khi mở form.'
+      });
+    }
+
     Object.assign(event, {
       ...data,
       startDate: new Date(data.startDate),
       endDate: data.endDate ? new Date(data.endDate) : event.endDate
     });
+    if (shouldResubmitSchoolEventForAdmin(event)) {
+      Object.assign(event, buildSchoolEventSubmitMeta(req.authEmail));
+      event.rejectionReason = '';
+    }
+    event.ctsvEditUnlocked = false;
     await event.save();
 
-    return res.json({ success: true, event: formatEvent(event) });
+    return res.json({
+      success: true,
+      event: formatEvent(event),
+      message: 'Đã cập nhật và gửi lại Admin phê duyệt.'
+    });
   } catch (error) {
     if (error.code === 'IMAGE_TOO_LARGE') {
       return res.status(400).json({
@@ -256,6 +315,12 @@ router.patch('/events/:id/approve', requireCtsvApprove, async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
+    }
+    if (event.source === 'school') {
+      return res.status(400).json({
+        success: false,
+        message: 'Sự kiện cấp trường cần Admin phê duyệt trước khi mở đăng ký.'
+      });
     }
     if (!['pending_ctsv', 'pending_icpdp', 'revision'].includes(event.status)) {
       return res.status(400).json({ success: false, message: 'Sự kiện không ở trạng thái chờ duyệt!' });
@@ -313,14 +378,43 @@ router.patch('/events/:id/publish', requireCtsvApprove, async (req, res) => {
     if (!event) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
     }
+    if (event.source !== 'school') {
+      return res.status(400).json({ success: false, message: 'Chỉ publish sự kiện cấp trường!' });
+    }
     if (event.status !== 'approved') {
-      return res.status(400).json({ success: false, message: 'Chỉ publish sự kiện đã được duyệt!' });
+      return res.status(400).json({
+        success: false,
+        message: 'Chỉ publish sự kiện đã được Admin phê duyệt!'
+      });
     }
     event.status = 'live';
     await event.save();
     return res.json({ success: true, event: formatEvent(event) });
   } catch (error) {
     console.error('ctsv publish event:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// PATCH /api/ctsv/events/:id/moderation — hủy / hoãn / ẩn (hoãn thời tiết: không cần Admin)
+router.patch('/events/:id/moderation', requireCtsvApprove, async (req, res) => {
+  try {
+    const { action, reason, isWeatherPostpone } = req.body || {};
+    const result = await requestModeration(
+      req.params.id,
+      { action, reason, isWeatherPostpone: isWeatherPostpone === true },
+      req.authEmail
+    );
+    return res.json({
+      success: true,
+      event: formatEvent(result.event),
+      message: result.message
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('ctsv event moderation:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
@@ -335,6 +429,7 @@ router.get('/reports', async (req, res) => {
       'pending',
       'pending_ctsv',
       'pending_icpdp',
+      'pending_admin',
       'revision'
     ];
     const events = await Event.find({

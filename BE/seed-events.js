@@ -8,6 +8,7 @@ const connectDB = require('./src/config/db');
 const Event = require('./src/models/Event');
 const User = require('./src/models/User');
 const eventSeedData = require('./src/data/eventSeedData');
+const { syncPrimarySpeakerFields } = require('./src/constants/eventSpeaker');
 
 const DEPRECATED_EVENT_TITLES = [
   'F-Fest 2026: Giai điệu mùa hè',
@@ -42,10 +43,11 @@ const seedEvents = async () => {
     console.log(`Đã xóa ${removedLegacy.deletedCount} sự kiện legacy (nếu có).`);
     await Event.deleteMany({ title: { $in: DEPRECATED_EVENT_TITLES } });
 
-    const eventsWithCreator = eventSeedData.map((event) => ({
-      ...event,
-      createdBy: creator._id
-    }));
+    const eventsWithCreator = eventSeedData.map((event) => {
+      const doc = { ...event, createdBy: creator._id };
+      syncPrimarySpeakerFields(doc);
+      return doc;
+    });
 
     const inserted = await Event.insertMany(eventsWithCreator);
 

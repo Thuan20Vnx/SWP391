@@ -4,6 +4,7 @@ export const isPendingApproval = (ev) => {
   return (
     key === 'pending_ctsv' ||
     key === 'pending_icpdp' ||
+    key === 'pending_admin' ||
     label.includes('CHỜ') ||
     label.includes('PENDING')
   );
@@ -13,7 +14,7 @@ export const statusClass = (status, statusKey) => {
   const key = statusKey || '';
   const label = (status || '').toUpperCase();
   if (key === 'rejected' || label.includes('TỪ CHỐI')) return 'status-danger';
-  if (key === 'pending_ctsv' || key === 'pending_icpdp' || label.includes('CHỜ') || label.includes('PENDING')) {
+  if (key === 'pending_ctsv' || key === 'pending_icpdp' || key === 'pending_admin' || label.includes('CHỜ') || label.includes('PENDING')) {
     return 'status-warning';
   }
   if (key === 'live' || label.includes('ĐANG')) return 'status-success';

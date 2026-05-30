@@ -1,30 +1,8 @@
 const mongoose = require('mongoose');
 const { EVENT_CAMPUS, EVENT_VENUES } = require('../constants/eventVenues');
-
-const EVENT_CATEGORIES = [
-  'Công nghệ',
-  'Văn hóa',
-  'Kinh tế',
-  'Học thuật',
-  'Nghệ thuật',
-  'Âm nhạc',
-  'Workshop',
-  'Thể thao',
-  'Kết nối',
-  'Khác'
-];
-
-const EVENT_STATUSES = [
-  'pending',
-  'approved',
-  'rejected',
-  'draft',
-  'pending_icpdp',
-  'pending_ctsv',
-  'revision',
-  'live',
-  'ended'
-];
+const { EVENT_CATEGORIES } = require('../constants/eventCategories');
+const { syncPrimarySpeakerFields } = require('../constants/eventSpeaker');
+const { EVENT_STATUSES } = require('../constants/eventWorkflow');
 
 const ticketTypeSchema = new mongoose.Schema(
   {
@@ -33,6 +11,15 @@ const ticketTypeSchema = new mongoose.Schema(
     priceAmount: { type: Number, default: 0 },
     qty: { type: Number, default: 0 },
     audience: { type: String, default: 'SV FPT' }
+  },
+  { _id: false }
+);
+
+const speakerSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: '' },
+    role: { type: String, default: '' },
+    avatar: { type: String, default: '' }
   },
   { _id: false }
 );
@@ -107,12 +94,40 @@ const eventSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
+    postponeIsWeather: {
+      type: Boolean,
+      default: false
+    },
+    statusBeforeModeration: {
+      type: String,
+      default: ''
+    },
+    moderationReason: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    moderationRequestedByEmail: { type: String, default: '' },
+    moderationRequestedAt: { type: Date, default: null },
+    /** Admin đã duyệt yêu cầu chỉnh sửa — CTSV mới được mở form (một lần / đến khi lưu) */
+    ctsvEditUnlocked: {
+      type: Boolean,
+      default: false
+    },
+    isHidden: {
+      type: Boolean,
+      default: false
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
     createdByEmail: { type: String, default: '' },
     approvedByEmail: { type: String, default: '' },
+    ctsvSubmittedByEmail: { type: String, default: '' },
+    ctsvSubmittedAt: { type: Date, default: null },
+    adminApprovedByEmail: { type: String, default: '' },
+    adminApprovedAt: { type: Date, default: null },
     rejectionReason: { type: String, default: '' },
     ctsvNote: { type: String, default: '' },
     averageRating: {
@@ -139,6 +154,9 @@ const eventSchema = new mongoose.Schema(
       default: 'campus'
     },
     speaker: { type: String, default: '' },
+    speakerRole: { type: String, default: '' },
+    speakerAvatar: { type: String, default: '' },
+    speakers: { type: [speakerSchema], default: [] },
     agenda: { type: String, default: '' },
     expectedAttendees: { type: Number, default: 50 },
     ticketTypes: { type: [ticketTypeSchema], default: [] },
@@ -196,6 +214,7 @@ eventSchema.pre('save', function () {
   if (this.eventState !== 'postponed' && this.endDate && this.endDate < new Date()) {
     this.eventState = 'expired';
   }
+  syncPrimarySpeakerFields(this);
 });
 
 eventSchema.set('toJSON', { virtuals: true });

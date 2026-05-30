@@ -1,4 +1,5 @@
 import { formatVnd } from '../utils/ticketPricing';
+import { resolveEventDisplayImage } from '../utils/eventDisplay';
 
 const formatEventDate = (dateInput) => {
   const date = new Date(dateInput);
@@ -202,7 +203,10 @@ export const mapApiEventToCard = (event) => {
   return {
     id: event._id,
     title: event.title,
-    thumbnail: event.thumbnail || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
+    thumbnail: resolveEventDisplayImage(
+      event,
+      'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80'
+    ),
     category,
     dateLabel: eventState === 'postponed'
       ? 'TBA (Sẽ thông báo sau)'
@@ -253,7 +257,7 @@ export const mapApiEventToHomeCard = (event) => {
     remainingTickets,
     totalTickets,
     status,
-    image: event.thumbnail,
+    image: resolveEventDisplayImage(event),
     registered: isRegistered,
     eventState: event.eventState || 'active',
     listPrice: event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0),

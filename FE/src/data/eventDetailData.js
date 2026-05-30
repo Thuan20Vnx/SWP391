@@ -1,25 +1,17 @@
 import { getCategoryColor, getFillPercent } from './eventDiscoveryData';
 import { formatVnd } from '../utils/ticketPricing';
+import { resolveEventSpeakers } from '../constants/eventSpeaker';
+import { resolveEventDisplayImage } from '../utils/eventDisplay';
+const DEFAULT_HERO_IMAGE =
+  'https://images.unsplash.com/photo-1517694712202-14dd9538aa65?auto=format&fit=crop&w=1600&q=80';
 
-const SPEAKER_AVATARS = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80',
-];
-
-const DEFAULT_SPEAKERS = [
-  {
-    name: 'Nguyễn Văn An',
-    role: 'AI Engineer @ FPT Software',
-    quote: 'Khám phá sức mạnh của Python trong việc thay đổi cách chúng ta tương tác với thế giới thực.',
-    avatar: SPEAKER_AVATARS[0],
-  },
-  {
-    name: 'Trần Thị Bình',
-    role: 'IoT Specialist',
-    quote: 'Tương lai của công nghệ nằm ở sự kết hợp giữa phần cứng thông minh và trí tuệ nhân tạo.',
-    avatar: SPEAKER_AVATARS[1],
-  },
-];
+const mapSpeakersForDetail = (event) =>
+  resolveEventSpeakers(event).map((speaker) => ({
+    name: speaker.name,
+    role: speaker.role,
+    avatar: speaker.avatar || '',
+    quote: speaker.quote || '',
+  }));
 
 const CATEGORY_SECONDARY_TAG = {
   'Công nghệ': 'AI & PYTHON',
@@ -38,7 +30,8 @@ const DEFAULT_LEARNING = [
   'Kết nối, trao đổi và học hỏi từ diễn giả cùng cộng đồng sinh viên.',
 ];
 
-const DEFAULT_ORGANIZER = {
+const CLUB_ORGANIZER = {
+  kind: 'club',
   name: 'F-Soft Club',
   slug: 'f-soft-club',
   logo: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=200&q=80',
@@ -46,6 +39,33 @@ const DEFAULT_ORGANIZER = {
   eventsHeld: 45,
   description:
     'Cộng đồng sinh viên đam mê công nghệ tại FPT University. Chúng tôi thường xuyên tổ chức các buổi workshop, hackathon và chia sẻ kiến thức chuyên môn về phần mềm.',
+};
+
+const SCHOOL_ORGANIZER = {
+  kind: 'school',
+  name: 'Phòng Công tác Sinh viên',
+  slug: null,
+  logo: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=200&q=80',
+  memberCount: null,
+  eventsHeld: null,
+  description:
+    'Sự kiện cấp trường do Phòng Công tác Sinh viên (CTSV) FPT University tổ chức, phục vụ toàn thể sinh viên.',
+};
+
+const resolveEventOrganizer = (event) => {
+  if (event?.source === 'school') return SCHOOL_ORGANIZER;
+  if (event?.source === 'partner') {
+    return {
+      kind: 'partner',
+      name: 'Đối tác FPT',
+      slug: null,
+      logo: CLUB_ORGANIZER.logo,
+      memberCount: null,
+      eventsHeld: null,
+      description: 'Sự kiện hợp tác cùng đối tác, được CTSV và Admin phê duyệt.'
+    };
+  }
+  return CLUB_ORGANIZER;
 };
 
 const formatShortDate = (dateInput) => {
@@ -166,9 +186,7 @@ export const mapApiEventToDetail = (event) => {
   return {
     id: event._id,
     title: event.title,
-    thumbnail:
-      event.thumbnail ||
-      'https://images.unsplash.com/photo-1517694712202-14dd9538aa65?auto=format&fit=crop&w=1600&q=80',
+    thumbnail: resolveEventDisplayImage(event, DEFAULT_HERO_IMAGE),
     category: event.category || 'Sự kiện',
     categoryColor: getCategoryColor(event.category),
     secondaryTag:
@@ -183,8 +201,9 @@ export const mapApiEventToDetail = (event) => {
     descriptionParagraphs: splitDescription(event.description),
     learningOutcomes: DEFAULT_LEARNING,
     agenda: buildAgenda(event.startDate, event.endDate, event.title),
-    speakers: DEFAULT_SPEAKERS,
-    organizer: DEFAULT_ORGANIZER,
+    speakers: mapSpeakersForDetail(event),
+    source: event.source || 'club',
+    organizer: resolveEventOrganizer(event),
     capacity,
     registeredCount,
     fillPercent,

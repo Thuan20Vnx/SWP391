@@ -35,6 +35,7 @@ import AdminDataMaintenance from './pages/admin/AdminDataMaintenance';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminPartners from './pages/admin/AdminPartners';
 import AdminAccountsControl from './pages/admin/AdminAccountsControl';
+import AdminSchoolEventApprovals from './pages/admin/AdminSchoolEventApprovals';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
 import Schedule from './pages/Schedule';
@@ -105,6 +106,7 @@ function App() {
               <Route path="dashboard" element={<CtsvDashboard />} />
               <Route path="events" element={<CtsvEventList />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
+              <Route path="events/:id/edit" element={<CtsvEventCreate />} />
               <Route path="events/:id" element={<CtsvEventDetail />} />
               <Route path="proposals" element={<CtsvProposalList />} />
               <Route path="proposals/:id" element={<CtsvProposalDetail />} />
@@ -156,6 +158,7 @@ function App() {
             <Route element={<AdminLayout showToast={showToast} />}>
               <Route index element={<AdminMonitoringDashboard />} />
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
+              <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />
               <Route path="accounts" element={<AdminAccountsControl />} />
               <Route path="system" element={<AdminSystemControl />} />
               <Route path="data" element={<AdminDataMaintenance />} />

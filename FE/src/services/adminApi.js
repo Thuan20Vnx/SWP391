@@ -84,3 +84,23 @@ export const deleteAdminAccount = async (id) => {
   });
   return parseJson(res);
 };
+
+export const fetchAdminSchoolEvents = (status = 'pending_admin') =>
+  adminFetch(`/school-events?status=${encodeURIComponent(status)}`);
+
+export const approveAdminSchoolEvent = (id) =>
+  adminFetch(`/school-events/${id}/approve`, { method: 'PATCH', body: '{}' });
+
+export const rejectAdminSchoolEvent = (id, reason = '') =>
+  adminFetch(`/school-events/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+
+export const fetchAdminModerationRequests = () => adminFetch('/school-events/moderation');
+
+export const approveAdminModeration = (id) =>
+  adminFetch(`/school-events/${id}/moderation/approve`, { method: 'PATCH', body: '{}' });
+
+export const rejectAdminModeration = (id, reason = '') =>
+  adminFetch(`/school-events/${id}/moderation/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason })
+  });

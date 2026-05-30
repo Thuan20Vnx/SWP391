@@ -1,6 +1,7 @@
 const Event = require('../models/Event');
 const AppError = require('../utils/AppError');
 const { isValidEventVenue } = require('../constants/eventVenues');
+const { SCHOOL_EVENT_PUBLIC_STATUSES } = require('../constants/eventWorkflow');
 const { getRegisteredEventIds } = require('./registration.service');
 const { enrichEventWithPricing } = require('../constants/eventPricing');
 
@@ -83,7 +84,10 @@ const updateEventStatus = async (eventId, { status, rejectionReason }) => {
 };
 
 const getApprovedEvents = async ({ category, user } = {}) => {
-  const query = { status: 'approved' };
+  const query = {
+    status: { $in: SCHOOL_EVENT_PUBLIC_STATUSES },
+    isHidden: { $ne: true }
+  };
   if (category && category !== 'all') {
     query.category = category;
   }
@@ -108,7 +112,11 @@ const getApprovedEvents = async ({ category, user } = {}) => {
 };
 
 const getEventById = async (eventId, { user } = {}) => {
-  const event = await Event.findOne({ _id: eventId, status: 'approved' })
+  const event = await Event.findOne({
+    _id: eventId,
+    status: { $in: SCHOOL_EVENT_PUBLIC_STATUSES },
+    isHidden: { $ne: true }
+  })
     .populate('createdBy', 'fullname email');
 
   if (!event) {

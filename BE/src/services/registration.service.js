@@ -8,6 +8,7 @@ const {
   formatVnd,
   enrichEventWithPricing,
 } = require('../constants/eventPricing');
+const { isEventPubliclyVisible } = require('../constants/eventWorkflow');
 const {
   syncEventToGoogleCalendar,
   removeEventFromGoogleCalendar,
@@ -51,8 +52,8 @@ const assertEventRegisterable = (event) => {
   if (!event) {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
-  if (event.status !== 'approved') {
-    throw new AppError('Sự kiện chưa được phê duyệt.', 400);
+  if (!isEventPubliclyVisible(event)) {
+    throw new AppError('Sự kiện chưa được mở đăng ký.', 400);
   }
   if (event.eventState === 'expired') {
     throw new AppError('Sự kiện đã hết hạn đăng ký.', 400);
