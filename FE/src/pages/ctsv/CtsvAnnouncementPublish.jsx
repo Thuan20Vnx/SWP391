@@ -24,6 +24,22 @@ const excerpt = (text, max = 120) => {
   return t.length <= max ? t : `${t.slice(0, max)}…`;
 };
 
+/** Thứ Hai 00:00 (giờ local) của tuần hiện tại */
+const getStartOfWeek = () => {
+  const now = new Date();
+  const day = now.getDay();
+  const daysFromMonday = day === 0 ? 6 : day - 1;
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - daysFromMonday);
+  return start;
+};
+
+const isPublishedThisWeek = (publishedAt) => {
+  if (!publishedAt) return false;
+  return new Date(publishedAt) >= getStartOfWeek();
+};
+
 const CtsvAnnouncementPublish = () => {
   const { showToast } = useOutletContext() || {};
   const [events, setEvents] = useState([]);
@@ -60,6 +76,11 @@ const CtsvAnnouncementPublish = () => {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const historyThisWeek = useMemo(
+    () => history.filter((a) => isPublishedThisWeek(a.publishedAt)),
+    [history]
+  );
 
   const selectedEventTitle = form.eventId ? eventTitleById[form.eventId] : null;
   const contentLength = form.content.length;
@@ -99,8 +120,8 @@ const CtsvAnnouncementPublish = () => {
           </p>
         </div>
         <div className="ctsv-announce-hero-stat" aria-hidden={loading}>
-          <span className="ctsv-announce-hero-stat-num">{history.length}</span>
-          <span className="ctsv-announce-hero-stat-label">Đã phát hành</span>
+          <span className="ctsv-announce-hero-stat-num">{historyThisWeek.length}</span>
+          <span className="ctsv-announce-hero-stat-label">Đã phát hành trong tuần này</span>
         </div>
       </header>
 
@@ -212,13 +233,15 @@ const CtsvAnnouncementPublish = () => {
 
       <section className="ctsv-announce-history-card">
         <div className="ctsv-announce-card-head">
-          <h2>Đã phát hành</h2>
-          <p>{history.length} thông báo chính thức trên hệ thống</p>
+          <h2>Đã phát hành trong tuần này</h2>
+          <p>
+            {historyThisWeek.length} thông báo từ thứ Hai đến hôm nay
+          </p>
         </div>
 
         {loading ? (
           <p className="ctsv-announce-empty">Đang tải danh sách…</p>
-        ) : history.length === 0 ? (
+        ) : historyThisWeek.length === 0 ? (
           <div className="ctsv-announce-empty-state">
             <span className="ctsv-announce-empty-icon" aria-hidden>
               <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -226,11 +249,11 @@ const CtsvAnnouncementPublish = () => {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
             </span>
-            <p>Chưa có thông báo nào được phát hành.</p>
+            <p>Chưa có thông báo nào được phát hành trong tuần này.</p>
           </div>
         ) : (
           <ul className="ctsv-announce-history-list">
-            {history.map((a) => {
+            {historyThisWeek.map((a) => {
               const evId = a.eventId?._id || a.eventId;
               const linkedTitle =
                 a.eventId?.title || (evId && eventTitleById[evId]) || null;

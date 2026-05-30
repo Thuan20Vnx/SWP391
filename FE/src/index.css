@@ -11722,9 +11722,13 @@ body {
 }
 
 .ctsv-announce-hero-stat-label {
-  font-size: 0.75rem;
+  display: block;
+  max-width: 140px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.35;
   color: #94a3b8;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .ctsv-announce-layout {
