@@ -1,0 +1,107 @@
+/* premium-ui.css - Global Premium Enhancements */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif !important;
+  --premium-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --premium-shadow-md: 0 10px 30px -5px rgba(242, 111, 33, 0.08);
+  --premium-shadow-hover: 0 20px 40px -10px rgba(242, 111, 33, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.4);
+}
+
+body {
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #fcfcfc;
+}
+
+/* Glassmorphism Header */
+.ctsv-portal-header, .icpdp-header, .portal-header {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid rgba(242, 111, 33, 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02) !important;
+}
+
+/* Premium Button Interactions */
+button, .ctsv-btn-primary, .ctsv-dash-btn--primary, .icpdp-proposal-card__action {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+.ctsv-btn-primary:active, .ctsv-dash-btn--primary:active {
+  transform: scale(0.97) translateY(1px) !important;
+}
+.ctsv-btn-primary:hover, .ctsv-dash-btn--primary:hover {
+  box-shadow: 0 8px 25px -5px rgba(242, 111, 33, 0.4) !important;
+  transform: translateY(-2px);
+}
+
+/* Card Hover Effects */
+.ctsv-dash-stat-card, .ctsv-dash-quick-card, .ctsv-dash-create-card, .icpdp-proposal-card, .ctsv-events-card, .ctsv-reports-summary-card, .ctsv-panel {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--premium-shadow-sm) !important;
+  border: 1px solid rgba(242, 111, 33, 0.08) !important;
+  background: #ffffff !important;
+}
+
+.ctsv-dash-stat-card:hover, .ctsv-dash-quick-card:hover, .ctsv-dash-create-card:hover, .icpdp-proposal-card:hover, .ctsv-events-card:hover {
+  transform: translateY(-4px) scale(1.01) !important;
+  box-shadow: var(--premium-shadow-hover) !important;
+  border-color: rgba(242, 111, 33, 0.3) !important;
+}
+
+/* Inputs and Selects Focus Polish */
+input, select, textarea, .app-select-trigger, .ctsv-events-search {
+  transition: all 0.3s ease !important;
+  border-radius: 12px !important;
+}
+input:focus, select:focus, textarea:focus, .app-select-trigger:focus, .ctsv-events-search:focus-within {
+  box-shadow: 0 0 0 4px rgba(242, 111, 33, 0.12) !important;
+  border-color: var(--primary) !important;
+  transform: translateY(-1px);
+}
+
+/* Scrollbar styling for a cleaner look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(242, 111, 33, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(242, 111, 33, 0.5);
+}
+
+/* Modern Typography tweaks */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+  font-weight: 700 !important;
+}
+
+.ctsv-dash-hero__title {
+  background: linear-gradient(135deg, #f26f21 0%, #ff9800 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+/* Badge/Pill Polish */
+.status-pill {
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+/* Layout padding enhancement */
+.ctsv-dashboard, .ctsv-events-page, .ctsv-reports-page, .ctsv-page {
+  padding-top: 32px !important;
+  padding-bottom: 60px !important;
+}

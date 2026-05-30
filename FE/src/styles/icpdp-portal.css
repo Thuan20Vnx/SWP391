@@ -6,29 +6,33 @@
 
 /* ── Accent color tokens ── */
 .icpdp-app-shell {
-  --icpdp-accent: #6366f1;
-  --icpdp-accent-light: #818cf8;
-  --icpdp-accent-dark: #4f46e5;
-  --icpdp-accent-bg: rgba(99, 102, 241, 0.08);
-  --icpdp-accent-bg-strong: rgba(99, 102, 241, 0.15);
-  --icpdp-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-  --icpdp-gradient-soft: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%);
+  --icpdp-accent: #f26f21;
+  --icpdp-accent-light: #f89e6c;
+  --icpdp-accent-dark: #d95e17;
+  --icpdp-accent-bg: rgba(242, 111, 33, 0.08);
+  --icpdp-accent-bg-strong: rgba(242, 111, 33, 0.15);
+  --icpdp-gradient: linear-gradient(135deg, #f26f21 0%, #ff9800 100%);
+  --icpdp-gradient-soft: linear-gradient(135deg, rgba(242, 111, 33, 0.12) 0%, rgba(255, 152, 0, 0.08) 100%);
 }
 
 /* ── Sidebar accent override ── */
 .icpdp-sidebar .ctsv-nav-link.active,
 .icpdp-sidebar .icpdp-nav-link.active {
-  background: var(--icpdp-accent-bg-strong);
-  color: var(--icpdp-accent);
-  border-left-color: var(--icpdp-accent);
+  background: var(--icpdp-accent-bg-strong) !important;
+  color: var(--icpdp-accent) !important;
+  border-left-color: var(--icpdp-accent) !important;
+}
+.icpdp-sidebar .ctsv-nav-link.active .ctsv-nav-icon,
+.icpdp-sidebar .icpdp-nav-link.active .ctsv-nav-icon {
+  color: var(--icpdp-accent) !important;
 }
 
 .icpdp-sidebar .ctsv-nav-link:hover {
-  background: var(--icpdp-accent-bg);
+  background: var(--icpdp-accent-bg) !important;
 }
 
 .icpdp-sidebar-logout:hover {
-  color: var(--icpdp-accent);
+  color: var(--icpdp-accent) !important;
 }
 
 .icpdp-sidebar-header::after {
@@ -44,25 +48,33 @@
   opacity: 0.8;
 }
 
+/* ── Hamburger override ── */
+.icpdp-app-shell .ctsv-portal-hamburger:hover {
+  border-color: var(--icpdp-accent) !important;
+  color: var(--icpdp-accent) !important;
+  background: var(--icpdp-accent-bg) !important;
+}
+
 /* ── Header pill override ── */
 .icpdp-pill.nav-link-ctsv-pill {
-  background: var(--icpdp-accent);
-  color: #fff;
+  background: var(--icpdp-accent) !important;
+  color: #fff !important;
+  border-color: var(--icpdp-accent) !important;
 }
 .icpdp-pill.nav-link-ctsv-pill:hover {
-  background: var(--icpdp-accent-dark);
+  background: var(--icpdp-accent-dark) !important;
+  border-color: var(--icpdp-accent-dark) !important;
+  color: #fff !important;
 }
 .icpdp-pill.nav-link-ctsv-pill.is-current {
-  background: var(--icpdp-accent-dark);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  background: var(--icpdp-accent-dark) !important;
+  border-color: var(--icpdp-accent-dark) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.25) !important;
 }
 
 /* ── Hero / Dashboard accent ── */
-.icpdp-app-shell .ctsv-dash-hero {
-  background: var(--icpdp-gradient);
-}
-
-.icpdp-app-shell .ctsv-dash-btn--primary,
+/* Removed solid gradient override so the hero uses the clean default background, making orange buttons visible */.icpdp-app-shell .ctsv-dash-btn--primary,
 .icpdp-app-shell .ctsv-btn-primary {
   background: var(--icpdp-accent);
   border-color: var(--icpdp-accent);
@@ -111,7 +123,7 @@
 /* ── Proposal card specific ── */
 .icpdp-proposal-card {
   border-radius: 14px;
-  border: 1px solid rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(242, 111, 33, 0.12);
   background: #fff;
   padding: 20px;
   transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
@@ -119,7 +131,7 @@
 }
 .icpdp-proposal-card:hover {
   border-color: var(--icpdp-accent-light);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 8px 24px rgba(242, 111, 33, 0.1);
   transform: translateY(-2px);
 }
 
@@ -232,7 +244,7 @@
 }
 .icpdp-proposals-search:focus-within {
   border-color: var(--icpdp-accent);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.1);
 }
 .icpdp-proposals-search input {
   border: none;
@@ -269,8 +281,9 @@
 
 /* ── Detail page actions panel ── */
 .icpdp-action-panel {
-  background: var(--icpdp-accent-bg);
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: #fff;
+  border: 1px solid rgba(242, 111, 33, 0.2);
+  box-shadow: 0 4px 20px rgba(242, 111, 33, 0.05);
   border-radius: 14px;
   padding: 20px;
   margin-top: 20px;
@@ -289,7 +302,7 @@
   gap: 10px;
   padding: 12px 18px;
   background: var(--icpdp-accent-bg);
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(242, 111, 33, 0.15);
   border-radius: 10px;
   margin-bottom: 16px;
   font-size: 0.85rem;
@@ -318,8 +331,8 @@
   background: var(--icpdp-accent-dark);
 }
 .icpdp-app-shell .hero-tag-badge {
-  background: rgba(99, 102, 241, 0.25);
-  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(242, 111, 33, 0.25);
+  border-color: rgba(242, 111, 33, 0.4);
 }
 
 /* ── Calendar overrides ── */
@@ -351,7 +364,7 @@
 
 /* ── Panel accent ── */
 .icpdp-app-shell .ctsv-dash-panel--accent {
-  border-color: rgba(99, 102, 241, 0.2);
+  border-color: rgba(242, 111, 33, 0.2);
 }
 
 .icpdp-app-shell .ctsv-dash-pill-count {
@@ -361,11 +374,11 @@
 /* ── Dark theme support ── */
 [data-theme="dark"] .icpdp-proposal-card {
   background: #1e293b;
-  border-color: rgba(99, 102, 241, 0.2);
+  border-color: rgba(242, 111, 33, 0.2);
 }
 [data-theme="dark"] .icpdp-proposal-card:hover {
   border-color: var(--icpdp-accent);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 8px 24px rgba(242, 111, 33, 0.15);
 }
 [data-theme="dark"] .icpdp-proposal-card__title {
   color: #e2e8f0;
@@ -378,10 +391,10 @@
   border-color: #334155;
 }
 [data-theme="dark"] .icpdp-action-panel {
-  background: rgba(99, 102, 241, 0.08);
-  border-color: rgba(99, 102, 241, 0.2);
+  background: rgba(242, 111, 33, 0.08);
+  border-color: rgba(242, 111, 33, 0.2);
 }
 [data-theme="dark"] .icpdp-view-banner {
-  background: rgba(99, 102, 241, 0.1);
-  border-color: rgba(99, 102, 241, 0.2);
+  background: rgba(242, 111, 33, 0.1);
+  border-color: rgba(242, 111, 33, 0.2);
 }

@@ -8,7 +8,13 @@ const { CLIENT_ORIGIN } = require('./config/env');
 const app = express();
 
 const corsOptions = {
-  origin: CLIENT_ORIGIN,
+  origin: function (origin, callback) {
+    if (!origin || origin.startsWith('http://localhost:')) {
+      callback(null, true);
+    } else {
+      callback(null, CLIENT_ORIGIN);
+    }
+  },
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 200,

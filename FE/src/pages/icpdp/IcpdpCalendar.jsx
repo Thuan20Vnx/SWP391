@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { fetchIcpdpCalendar } from '../../services/icpdpApi';
+import { fetchIcpdpCalendar, ICPDP_MOCK_EVENTS } from '../../services/icpdpApi';
 import {
   WEEKDAYS_VI,
   buildMonthCells,
@@ -33,8 +33,8 @@ const IcpdpCalendar = () => {
     fetchIcpdpCalendar()
       .then((d) => setRawEvents((d.events || []).map(mapCtsvCalendarEvent).filter((e) => e.date)))
       .catch(() => {
-        setRawEvents([]);
-        showToast?.('Không tải được lịch sự kiện.', 'error');
+        setRawEvents(ICPDP_MOCK_EVENTS.map(mapCtsvCalendarEvent).filter((e) => e.date));
+        showToast?.('Dùng dữ liệu demo.', 'info');
       })
       .finally(() => setLoading(false));
   }, [showToast]);

@@ -284,7 +284,7 @@ const IcpdpDashboard = () => {
             <ul className="ctsv-dash-tips">
               <li>
                 <CtsvNavIcon type="publish" />
-                <span>CLB gửi đề xuất → IC-PDP duyệt nội bộ → CTSV phê duyệt cuối cùng.</span>
+                <span>CLB gửi đề xuất → IC-PDP duyệt nội bộ → Admin phê duyệt cuối cùng.</span>
               </li>
               <li>
                 <CtsvNavIcon type="calendar" />

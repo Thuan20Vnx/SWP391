@@ -36,7 +36,7 @@ const IcpdpProposalDetail = () => {
     setSubmitting(true);
     try {
       await icpdpApproveProposal(id, note);
-      showToast?.('Đã duyệt nội bộ — đề xuất chuyển sang CTSV phê duyệt!', 'success');
+      showToast?.('Đã duyệt nội bộ — đề xuất chuyển sang Admin phê duyệt!', 'success');
       refresh();
     } catch (e) {
       showToast?.(e.message, 'error');
@@ -61,7 +61,7 @@ const IcpdpProposalDetail = () => {
       <div className="ctsv-panel">
         <p>{proposal.description || 'Không có mô tả.'}</p>
         <p>Số vé dự kiến: {proposal.totalTickets}</p>
-        {proposal.ctsvNote && <p>Ghi chú CTSV: {proposal.ctsvNote}</p>}
+        {proposal.ctsvNote && <p>Ghi chú Admin: {proposal.ctsvNote}</p>}
         {proposal.icpdpNote && <p>Ghi chú IC-PDP: {proposal.icpdpNote}</p>}
         {proposal.rejectionReason && (
           <p style={{ color: '#ef4444' }}>Lý do từ chối: {proposal.rejectionReason}</p>
@@ -72,8 +72,8 @@ const IcpdpProposalDetail = () => {
         <div className="icpdp-action-panel">
           <h3>Duyệt nội bộ IC-PDP</h3>
           <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 12 }}>
-            Sau khi bạn duyệt, đề xuất sẽ chuyển sang trạng thái <strong>Chờ CTSV duyệt</strong>.
-            CTSV sẽ phê duyệt cuối cùng và tạo sự kiện chính thức.
+            Sau khi bạn duyệt, đề xuất sẽ chuyển sang trạng thái <strong>Chờ Admin duyệt</strong>.
+            Admin sẽ phê duyệt cuối cùng và tạo sự kiện chính thức.
           </p>
           <textarea
             className="ctsv-textarea"
@@ -89,7 +89,7 @@ const IcpdpProposalDetail = () => {
               onClick={handleApprove}
               disabled={submitting}
             >
-              {submitting ? 'Đang xử lý…' : 'Duyệt nội bộ → Chuyển CTSV'}
+              {submitting ? 'Đang xử lý…' : 'Duyệt nội bộ → Chuyển Admin'}
             </button>
           </div>
         </div>
@@ -101,7 +101,7 @@ const IcpdpProposalDetail = () => {
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          <p>Đề xuất đã được IC-PDP duyệt nội bộ và đang chờ CTSV phê duyệt cuối cùng.</p>
+          <p>Đề xuất đã được IC-PDP duyệt nội bộ và đang chờ Admin phê duyệt cuối cùng.</p>
         </div>
       )}
 
@@ -111,7 +111,7 @@ const IcpdpProposalDetail = () => {
             <circle cx="12" cy="12" r="10" />
             <polyline points="8 12 11 15 16 9" />
           </svg>
-          <p>Đề xuất đã được CTSV phê duyệt. Sự kiện đã được tạo chính thức.</p>
+          <p>Đề xuất đã được Admin phê duyệt. Sự kiện đã được tạo chính thức.</p>
         </div>
       )}
 
