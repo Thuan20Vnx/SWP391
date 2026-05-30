@@ -707,15 +707,6 @@ const Profile = ({ showToast, embedded = false }) => {
               <h1>{profilePageTitle}</h1>
               <p>Quản lý thông tin cá nhân và liên hệ của cán bộ CTSV.</p>
             </div>
-            {!profileLoading && (
-              <div className="ctsv-profile-hero-user">
-                <img src={displayAvatar} alt="" className="ctsv-profile-hero-avatar" />
-                <div>
-                  <strong>{profileData.fullname || 'Cán bộ CTSV'}</strong>
-                  <span>{getRoleLabel(userRole)}</span>
-                </div>
-              </div>
-            )}
           </header>
           {profileContent}
         </div>
