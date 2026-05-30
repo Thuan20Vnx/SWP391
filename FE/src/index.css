@@ -12291,16 +12291,50 @@ body {
   right: auto;
 }
 
-/* Bảng vé — gọn */
+/* Bảng vé — gọn, menu portal xổ xuống ngoài overflow bảng */
+.app-select--table {
+  min-width: 168px;
+}
+
 .app-select--table .app-select__trigger {
-  min-height: 36px;
-  padding: 6px 10px;
+  min-height: 38px;
+  padding: 8px 12px;
   font-size: 0.8125rem;
   border-radius: 8px;
 }
 
-.app-select--table .app-select__menu {
-  min-width: 180px;
+.app-select--table .app-select__value {
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.app-select__menu--portal {
+  position: fixed;
+  right: auto;
+  max-height: min(320px, calc(100vh - 24px));
+}
+
+.app-select--table .app-select__menu,
+.app-select__menu--portal.app-select__menu {
+  min-width: 220px;
+  padding: 8px;
+}
+
+.app-select--table .app-select__option,
+.app-select__menu--portal .app-select__option {
+  padding: 12px 14px;
+  font-size: 0.875rem;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.ctsv-ticket-table td .app-select {
+  min-width: 160px;
+}
+
+.ctsv-ticket-table-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 /* Settings */
