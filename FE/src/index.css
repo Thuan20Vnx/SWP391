@@ -11669,9 +11669,12 @@ body {
   flex-wrap: wrap;
   padding: 28px 32px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 55%, #475569 100%);
-  color: #fff;
-  box-shadow: 0 12px 32px rgba(30, 41, 59, 0.16);
+  background: linear-gradient(135deg, #ffffff 0%, #fffbf8 42%, #fff7ed 100%);
+  border: 1px solid rgba(249, 115, 22, 0.14);
+  color: #0f172a;
+  box-shadow:
+    0 1px 2px rgba(249, 115, 22, 0.06),
+    0 8px 24px rgba(249, 115, 22, 0.08);
 }
 
 .ctsv-announce-eyebrow {
@@ -11680,7 +11683,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #fdba74;
+  color: #ea580c;
   margin-bottom: 8px;
 }
 
@@ -11689,12 +11692,13 @@ body {
   font-size: 1.625rem;
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: #0f172a;
 }
 
 .ctsv-announce-hero p {
   margin: 0;
   font-size: 0.9375rem;
-  color: rgba(255, 255, 255, 0.82);
+  color: #64748b;
   line-height: 1.5;
   max-width: 520px;
 }
@@ -11703,8 +11707,9 @@ body {
   text-align: center;
   padding: 16px 24px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  border: 1px solid rgba(249, 115, 22, 0.22);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.06);
   min-width: 120px;
 }
 
@@ -11713,11 +11718,12 @@ body {
   font-size: 2rem;
   font-weight: 800;
   line-height: 1;
+  color: #ea580c;
 }
 
 .ctsv-announce-hero-stat-label {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: #94a3b8;
   margin-top: 4px;
 }
 
