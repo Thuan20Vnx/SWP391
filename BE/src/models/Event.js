@@ -109,6 +109,11 @@ const eventSchema = new mongoose.Schema(
     },
     moderationRequestedByEmail: { type: String, default: '' },
     moderationRequestedAt: { type: Date, default: null },
+    /** Admin đã duyệt yêu cầu chỉnh sửa — CTSV mới được mở form (một lần / đến khi lưu) */
+    ctsvEditUnlocked: {
+      type: Boolean,
+      default: false
+    },
     isHidden: {
       type: Boolean,
       default: false

@@ -24,10 +24,13 @@ export const isEventPubliclyVisible = (eventOrStatus) => {
   return SCHOOL_EVENT_PUBLIC_STATUSES.includes(status);
 };
 
-export const SCHOOL_EVENT_EDITABLE_STATUSES = [
+/** Trạng thái có thể gửi yêu cầu chỉnh sửa (đồng bộ BE) */
+export const SCHOOL_EVENT_EDIT_REQUEST_STATUSES = [
   SCHOOL_EVENT_SUBMIT_STATUS,
   'rejected',
-  SCHOOL_EVENT_APPROVED_STATUS
+  SCHOOL_EVENT_APPROVED_STATUS,
+  'live',
+  'ended'
 ];
 
 export const SCHOOL_EVENT_STATUS_LABELS = {
@@ -48,8 +51,7 @@ export const canCtsvPublishSchoolEvent = (event) =>
   event?.source === 'school' && event?.statusKey === SCHOOL_EVENT_APPROVED_STATUS;
 
 export const canCtsvEditSchoolEvent = (event) =>
-  event?.source === 'school' &&
-  SCHOOL_EVENT_EDITABLE_STATUSES.includes(event?.statusKey);
+  event?.source === 'school' && event?.ctsvEditUnlocked === true;
 
 export const isSchoolEventPendingAdmin = (event) =>
   event?.source === 'school' && event?.statusKey === SCHOOL_EVENT_SUBMIT_STATUS;

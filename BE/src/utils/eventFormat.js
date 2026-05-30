@@ -57,6 +57,7 @@ const formatEvent = (doc) => {
     moderationRequestedByEmail: o.moderationRequestedByEmail || '',
     moderationRequestedAt: o.moderationRequestedAt || null,
     moderationAction: getModerationActionFromStatus(o.status),
+    ctsvEditUnlocked: o.ctsvEditUnlocked === true,
     isHidden: o.isHidden === true,
     speaker: primarySpeaker?.name || '',
     speakerRole: primarySpeaker?.role || '',

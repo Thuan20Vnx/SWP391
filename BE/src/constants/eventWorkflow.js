@@ -46,11 +46,13 @@ const isEventPubliclyVisible = (eventOrStatus) => {
   return SCHOOL_EVENT_PUBLIC_STATUSES.includes(status);
 };
 
-/** Trạng thái CTSV được sửa và gửi lại Admin trước khi publish */
-const SCHOOL_EVENT_EDITABLE_STATUSES = [
+/** Trạng thái có thể gửi yêu cầu chỉnh sửa (Admin duyệt trước khi mở form) */
+const SCHOOL_EVENT_EDIT_REQUEST_STATUSES = [
   SCHOOL_EVENT_SUBMIT_STATUS,
   'rejected',
-  SCHOOL_EVENT_APPROVED_STATUS
+  SCHOOL_EVENT_APPROVED_STATUS,
+  'live',
+  'ended'
 ];
 
 const STATUS_LABELS = {
@@ -79,8 +81,7 @@ const canCtsvPublishSchoolEvent = (event) =>
   event?.source === 'school' && event?.status === SCHOOL_EVENT_APPROVED_STATUS;
 
 const canCtsvEditSchoolEvent = (event) =>
-  event?.source === 'school' &&
-  SCHOOL_EVENT_EDITABLE_STATUSES.includes(event?.status);
+  event?.source === 'school' && event?.ctsvEditUnlocked === true;
 
 const shouldResubmitSchoolEventForAdmin = (event) => canCtsvEditSchoolEvent(event);
 
@@ -107,7 +108,7 @@ module.exports = {
   SCHOOL_EVENT_PUBLIC_STATUSES,
   NON_PUBLIC_STATUSES,
   isEventPubliclyVisible,
-  SCHOOL_EVENT_EDITABLE_STATUSES,
+  SCHOOL_EVENT_EDIT_REQUEST_STATUSES,
   STATUS_LABELS,
   canAdminApproveSchoolEvent,
   canCtsvPublishSchoolEvent,

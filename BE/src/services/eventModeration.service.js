@@ -53,6 +53,7 @@ const requestModeration = async (eventId, { action, reason, isWeatherPostpone },
   event.moderationRequestedByEmail = authEmail || '';
   event.moderationRequestedAt = new Date();
   event.postponeIsWeather = false;
+  event.ctsvEditUnlocked = false;
 
   if (action === 'postpone') {
     event.postponeReason = trimmedReason;
@@ -90,10 +91,8 @@ const approveModeration = async (eventId, authEmail) => {
     event.eventState = 'postponed';
     event.postponeIsWeather = false;
   } else if (action === 'edit') {
-    event.status = 'approved';
-    event.eventState = 'active';
-    event.postponeReason = '';
-    event.postponeIsWeather = false;
+    event.status = previous;
+    event.ctsvEditUnlocked = true;
   }
 
   event.statusBeforeModeration = '';
@@ -130,9 +129,12 @@ const rejectModeration = async (eventId, reason, authEmail) => {
   event.rejectionReason = trimmedReason;
   event.adminApprovedByEmail = authEmail || '';
 
-  if (action === 'postpone' || action === 'edit') {
+  if (action === 'postpone') {
     event.postponeReason = '';
     event.eventState = 'active';
+  }
+  if (action === 'edit') {
+    event.ctsvEditUnlocked = false;
   }
 
   await event.save();

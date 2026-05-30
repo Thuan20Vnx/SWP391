@@ -18,7 +18,7 @@ export const MODERATION_ACTION_LABELS = {
   edit: 'Chỉnh sửa sự kiện'
 };
 
-export const CTSV_MODERATABLE_STATUSES = ['pending_admin', 'approved', 'live', 'ended'];
+export const CTSV_MODERATABLE_STATUSES = ['pending_admin', 'approved', 'live', 'ended', 'rejected'];
 
 export const canCtsvRequestModeration = (event) =>
   event?.source === 'school' &&

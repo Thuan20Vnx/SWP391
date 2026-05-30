@@ -218,17 +218,14 @@ const CtsvEventDetail = () => {
     access.canManage && ['pending_ctsv', 'pending_icpdp', 'revision'].includes(event.statusKey);
   const showPartnerActions = canApprove && isCtsvOnly;
   const showPublish = canCtsvPublishSchoolEvent(event);
-  const showEditSchoolEvent = access.canManage && canCtsvEditSchoolEvent(event);
+  const canEditSchoolEvent = canCtsvEditSchoolEvent(event);
   const moderationPending = isModerationPending(event);
-  const needsEditApprovalRequest = ['live', 'ended'].includes(event.statusKey);
   const showSchoolModeration =
     access.canManage && event.source === 'school' && canCtsvRequestModeration(event);
-  const showCtsvActions =
-    access.canManage &&
-    (showPartnerActions || showPublish || (showEditSchoolEvent && !needsEditApprovalRequest));
-  const showRequestEditBtn = showSchoolModeration && needsEditApprovalRequest;
+  const showCtsvActions = access.canManage && (showPartnerActions || showPublish);
+  const showRequestEditBtn = showSchoolModeration && !canEditSchoolEvent;
   const showOpenEditFormLink =
-    access.canManage && event.source === 'school' && canCtsvEditSchoolEvent(event) && !moderationPending;
+    access.canManage && event.source === 'school' && canEditSchoolEvent && !moderationPending;
 
   return (
     <div className="ctsv-ed-page">
@@ -512,11 +509,11 @@ const CtsvEventDetail = () => {
         <section className="ctsv-ed-actions ctsv-ed-moderation">
           <h2 className="ctsv-ed-panel-title">Quản lý sự kiện này</h2>
           <p className="ctsv-ed-moderation-hint">
-            Trước và sau publish đều được. Hủy, ẩn và chỉnh sửa (khi đã publish) cần Admin duyệt. Hoãn do thời tiết áp dụng ngay.
+            Trước và sau publish đều được. Hủy, ẩn và chỉnh sửa (mọi trạng thái) cần Admin duyệt. Hoãn do thời tiết áp dụng ngay.
           </p>
           {showOpenEditFormLink && (
             <div className="ctsv-ed-moderation-edit-ready">
-              <p>Admin đã cho phép chỉnh sửa hoặc sự kiện đang ở trạng thái có thể sửa trực tiếp.</p>
+              <p>Admin đã phê duyệt yêu cầu chỉnh sửa. Mở form, cập nhật và gửi lại Admin.</p>
               <Link to={`/ctsv/events/${id}/edit`} className="ctsv-btn-primary">
                 Mở form chỉnh sửa
               </Link>
@@ -569,11 +566,6 @@ const CtsvEventDetail = () => {
             />
           )}
           <div className="ctsv-action-buttons">
-            {showEditSchoolEvent && (
-              <Link to={`/ctsv/events/${id}/edit`} className="ctsv-btn-secondary">
-                Chỉnh sửa & gửi lại Admin
-              </Link>
-            )}
             {showPartnerActions && (
               <>
                 <button type="button" className="ctsv-btn-primary" onClick={handleApprove}>

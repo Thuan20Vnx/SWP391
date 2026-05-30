@@ -276,7 +276,7 @@ router.put('/events/:id', requireCtsvApprove, async (req, res) => {
     if (!canCtsvEditSchoolEvent(event)) {
       return res.status(400).json({
         success: false,
-        message: 'Chỉ sửa được sự kiện chưa publish (chờ Admin duyệt, bị từ chối hoặc đã duyệt nhưng chưa publish).'
+        message: 'Cần Admin phê duyệt yêu cầu chỉnh sửa trước khi mở form.'
       });
     }
 
@@ -289,6 +289,7 @@ router.put('/events/:id', requireCtsvApprove, async (req, res) => {
       Object.assign(event, buildSchoolEventSubmitMeta(req.authEmail));
       event.rejectionReason = '';
     }
+    event.ctsvEditUnlocked = false;
     await event.save();
 
     return res.json({

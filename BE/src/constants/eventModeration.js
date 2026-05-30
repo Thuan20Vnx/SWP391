@@ -26,7 +26,7 @@ const MODERATION_ACTION_LABELS = {
 };
 
 /** Trạng thái CTSV được gửi yêu cầu điều phối (trước & sau publish) */
-const CTSV_MODERATABLE_STATUSES = ['pending_admin', 'approved', 'live', 'ended'];
+const CTSV_MODERATABLE_STATUSES = ['pending_admin', 'approved', 'live', 'ended', 'rejected'];
 
 const canCtsvRequestModeration = (event) =>
   event?.source === 'school' &&
