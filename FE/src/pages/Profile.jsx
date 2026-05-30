@@ -1,22 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import defaultAvatar from '../constants/defaultAvatar';
+import defaultAvatar from '../assets/profile_avatar.png';
+import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
-import { formatMssv } from '../utils/studentId';
-import { compressImageFile, resolveUserAvatar } from '../utils/image';
-import { getPasswordStrength } from '../utils/password';
-import { getRoleLabel } from '../utils/role';
 
 const Profile = ({ showToast }) => {
   const navigate = useNavigate();
 
   // Profile data from backend
-  const [profileLoading, setProfileLoading] = useState(true);
   const [profileData, setProfileData] = useState({
-    fullname: '',
-    course: '',
-    campus: '',
-    email: localStorage.getItem('userEmail') || '',
+    fullname: 'Trần Xuân Thuận',
+    course: 'K18',
+    campus: 'FPT University Da Nang',
+    email: localStorage.getItem('userEmail') || 'thuantx.k19@fpt.edu.vn',
     phone: ''
   });
 
@@ -29,32 +25,22 @@ const Profile = ({ showToast }) => {
 
   // Responsive Sidebar State
   const [sidebarActive, setSidebarActive] = useState(false);
-  const [activeMenu, setActiveMenu] = useState('profile');
-  const [authProvider, setAuthProvider] = useState('local');
-
-  const profileSectionRef = useRef(null);
-  const passwordSectionRef = useRef(null);
 
   // Edit profile mode state
   const [isEditing, setIsEditing] = useState(false);
   const [backupData, setBackupData] = useState(null);
 
   // Avatar Upload State
-  const [avatar, setAvatar] = useState('');
-  const [avatarSaving, setAvatarSaving] = useState(false);
+  const [avatar, setAvatar] = useState(defaultAvatar);
 
   // Form Orientation State
-  const [orientation, setOrientation] = useState('');
+  const [orientation, setOrientation] = useState('Back-end Development, Internet of Things (IoT)');
   const [saveLoading, setSaveLoading] = useState(false);
 
   // Load profile from Backend on mount
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    if (!token) {
-      setProfileLoading(false);
-      navigate('/login');
-      return;
-    }
+    if (!token) return;
 
     fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
       .then(res => {
@@ -74,14 +60,17 @@ const Profile = ({ showToast }) => {
           phone: u.phone || ''
         });
         setCourseChanged(u.courseChanged || false);
-        setAvatar(resolveUserAvatar(u, ''));
+        if (u.avatar) {
+          setAvatar(u.avatar);
+        } else if (u.picture) {
+          setAvatar(u.picture);
+        }
         if (u.orientation !== undefined) {
           setOrientation(u.orientation);
         }
         // Load role & studentId
         if (u.role) setUserRole(u.role);
-        if (u.studentId) setStudentId(formatMssv(u.studentId));
-        if (u.authProvider) setAuthProvider(u.authProvider);
+        if (u.studentId) setStudentId(u.studentId);
 
         // Populate interests checklist state
         if (u.interests) {
@@ -106,16 +95,15 @@ const Profile = ({ showToast }) => {
       .catch(err => {
         console.error(err);
         showToast('Không thể tải dữ liệu hồ sơ cá nhân từ Backend!', 'error');
-      })
-      .finally(() => setProfileLoading(false));
-  }, [navigate, showToast]);
+      });
+  }, []);
 
   // Interests Checklist State
   const [interests, setInterests] = useState({
-    hardware: false,
-    ai: false,
-    japan: false,
-    charity: false,
+    hardware: true,
+    ai: true,
+    japan: true,
+    charity: true,
     sports: false,
     music: false
   });
@@ -128,173 +116,60 @@ const Profile = ({ showToast }) => {
   });
   const [pwLoading, setPwLoading] = useState(false);
   const [showCurrentPw, setShowCurrentPw] = useState(false);
-  const [showNewPasswords, setShowNewPasswords] = useState(false);
-  const [currentPwStatus, setCurrentPwStatus] = useState(null);
-  const verifyPasswordRequestRef = useRef(0);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+
+  // Search Input State
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Handle Sidebar Menu item click
-  const handleFeatureNotImplemented = (e) => {
+  const handleFeatureNotImplemented = (e, label) => {
     e.preventDefault();
-    showToast('Tính năng đang được phát triển.', 'info');
+    showToast(`Tính năng "${label}" đang được phát triển và liên kết hệ thống!`, 'info');
   };
 
-  const handleSidebarNavigate = (path) => (e) => {
-    e.preventDefault();
-    setSidebarActive(false);
-    navigate(path);
-  };
-
+  // Handle Quick Scan click
   const handleScanClick = () => {
-    showToast('Tính năng quét QR check-in đang được phát triển.', 'info');
+    showToast('Đang khởi động trình quét camera... Vui lòng chuẩn bị QR code sự kiện.', 'info');
   };
 
+  // Handle Notification Bell click
   const handleNotificationClick = () => {
-    navigate('/announcements');
+    showToast('Không có thông báo mới nào dành cho bạn.', 'info');
   };
 
-  const canChangePassword = authProvider !== 'google';
-  const displayAvatar = avatar || defaultAvatar;
-  const profilePageTitle = activeMenu === 'change-password' ? 'Thay đổi mật khẩu' : 'Thông tin cá nhân';
-  const passwordStrength = getPasswordStrength(pwForm.newPassword);
-  const confirmPasswordMatch =
-    pwForm.confirmPassword.length > 0
-      ? pwForm.newPassword === pwForm.confirmPassword
-      : null;
-
-  const verifyCurrentPassword = (password) => {
-    if (!password) {
-      setCurrentPwStatus(null);
-      return;
-    }
-
-    const requestId = ++verifyPasswordRequestRef.current;
-    setCurrentPwStatus('checking');
-
-    fetch(`${API_BASE}/api/user/verify-password`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ password })
-    })
-      .then((res) => res.json().then((data) => ({ status: res.status, data })))
-      .then(({ status, data }) => {
-        if (requestId !== verifyPasswordRequestRef.current) return;
-        if (status === 200 && data.valid) {
-          setCurrentPwStatus('valid');
-        } else {
-          setCurrentPwStatus('invalid');
-        }
-      })
-      .catch(() => {
-        if (requestId !== verifyPasswordRequestRef.current) return;
-        setCurrentPwStatus('invalid');
-      });
-  };
-
-  const handleCurrentPasswordChange = (value) => {
-    setPwForm((prev) => ({ ...prev, currentPassword: value }));
-    setCurrentPwStatus(null);
-  };
-
-  const handleCurrentPasswordBlur = (e) => {
-    verifyCurrentPassword(e.target.value);
-  };
-
-  const handleNewPasswordFocus = () => {
-    if (pwForm.currentPassword && currentPwStatus !== 'valid') {
-      verifyCurrentPassword(pwForm.currentPassword);
+  // Handle Search Submit on Enter keypress
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      const query = searchQuery.trim();
+      if (query) {
+        showToast(`Đang tìm kiếm thông báo cho từ khóa: "${query}"...`, 'info');
+        setSearchQuery('');
+      } else {
+        showToast('Vui lòng nhập từ khóa tìm kiếm!', 'error');
+      }
     }
   };
 
-  const toggleNewPasswordVisibility = () => {
-    setShowNewPasswords((prev) => !prev);
-  };
-
-  const renderPasswordToggle = (visible, onToggle) => (
-    <button
-      type="button"
-      className="profile-toggle-password"
-      onClick={onToggle}
-      aria-label={visible ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
-    >
-      <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        {visible ? (
-          <>
-            <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
-          </>
-        ) : (
-          <>
-            <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-            <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
-          </>
-        )}
-      </svg>
-    </button>
-  );
-
-  const handleNavigateProfile = (e) => {
-    e.preventDefault();
-    setActiveMenu('profile');
-    setSidebarActive(false);
-    setIsEditing(false);
-    profileSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const handleNavigateChangePassword = (e) => {
-    e.preventDefault();
-    setActiveMenu('change-password');
-    setSidebarActive(false);
-    setIsEditing(false);
-    passwordSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const saveAvatarToBackend = (imageData) => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      showToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!', 'error');
-      return;
-    }
-
-    setAvatarSaving(true);
-    fetch(`${API_BASE}/api/user/profile`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ picture: imageData, avatar: imageData })
-    })
-      .then(res => res.json().then(data => ({ status: res.status, data })))
-      .then(({ status, data }) => {
-        if (status !== 200) {
-          showToast(data.message || 'Lưu ảnh đại diện thất bại!', 'error');
-        }
-      })
-      .catch(() => {
-        showToast('Không thể kết nối đến máy chủ để lưu ảnh đại diện!', 'error');
-      })
-      .finally(() => setAvatarSaving(false));
-  };
-
-  // Handle Avatar Change — auto-save to backend immediately
-  const handleAvatarChange = async (e) => {
+  // Handle Avatar Change
+  const handleAvatarChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Vui lòng chỉ tải lên tệp ảnh!', 'error');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        showToast('Kích thước ảnh tối đa là 5MB!', 'error');
+        return;
+      }
 
-    if (!file.type.startsWith('image/')) {
-      showToast('Vui lòng chỉ tải lên tệp ảnh!', 'error');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('Kích thước ảnh tối đa là 5MB!', 'error');
-      return;
-    }
-
-    try {
-      const newAvatarData = await compressImageFile(file);
-      setAvatar(newAvatarData);
-      saveAvatarToBackend(newAvatarData);
-    } catch {
-      showToast('Không thể xử lý ảnh. Vui lòng thử ảnh khác!', 'error');
-    } finally {
-      e.target.value = '';
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setAvatar(event.target.result);
+        showToast('Thay đổi ảnh đại diện tạm thời thành công!', 'success');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -302,11 +177,16 @@ const Profile = ({ showToast }) => {
   const handleInterestChange = (e, key, label) => {
     const checked = e.target.checked;
     setInterests(prev => ({ ...prev, [key]: checked }));
+    if (checked) {
+      showToast(`Đã thêm sở thích: ${label}`, 'info');
+    } else {
+      showToast(`Đã bỏ sở thích: ${label}`, 'info');
+    }
   };  // Handle Profile Info Save
   const handleProfileSubmit = (e) => {
     e.preventDefault();
 
-    if (userRole !== 'student' && !profileData.fullname.trim()) {
+    if (!profileData.fullname.trim()) {
       showToast('Vui lòng nhập họ và tên!', 'error');
       return;
     }
@@ -335,18 +215,19 @@ const Profile = ({ showToast }) => {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        ...(userRole !== 'student' ? { fullname: profileData.fullname.trim() } : {}),
+        fullname: profileData.fullname.trim(),
         phone: profileData.phone.trim(),
+        course: profileData.course,
         orientation: orientation.trim(),
         interests: activeInterests,
-        picture: avatar || displayAvatar,
-        avatar: avatar || displayAvatar
+        picture: avatar
       })
     })
       .then(res => res.json().then(data => ({ status: res.status, data })))
       .then(({ status, data }) => {
         setSaveLoading(false);
         if (status === 200) {
+          showToast('Cập nhật hồ sơ thành công! AI đang tối ưu hóa đề xuất sự kiện cho bạn.', 'success');
           setIsEditing(false);
           if (data.user) {
             setProfileData({
@@ -357,8 +238,8 @@ const Profile = ({ showToast }) => {
               phone: data.user.phone || ''
             });
             setCourseChanged(data.user.courseChanged || false);
-            if (data.user.picture || data.user.avatar) {
-              setAvatar(resolveUserAvatar(data.user, ''));
+            if (data.user.picture) {
+              setAvatar(data.user.picture);
             }
           }
         } else {
@@ -378,22 +259,6 @@ const Profile = ({ showToast }) => {
 
     if (!currentPassword) {
       showToast('Vui lòng nhập mật khẩu hiện tại!', 'error');
-      return;
-    }
-
-    if (currentPwStatus === 'invalid') {
-      showToast('Mật khẩu hiện tại không chính xác!', 'error');
-      return;
-    }
-
-    if (currentPwStatus === 'checking') {
-      showToast('Đang kiểm tra mật khẩu hiện tại, vui lòng đợi!', 'error');
-      return;
-    }
-
-    if (currentPwStatus !== 'valid') {
-      verifyCurrentPassword(currentPassword);
-      showToast('Đang xác minh mật khẩu hiện tại, vui lòng thử lại!', 'error');
       return;
     }
 
@@ -431,15 +296,15 @@ const Profile = ({ showToast }) => {
       .then(({ status, data }) => {
         setPwLoading(false);
         if (status === 200) {
+          showToast('Thay đổi mật khẩu thành công!', 'success');
           setPwForm({
             currentPassword: '',
             newPassword: '',
             confirmPassword: ''
           });
           setShowCurrentPw(false);
-          setShowNewPasswords(false);
-          setCurrentPwStatus(null);
-          showToast(data.message || 'Thay đổi mật khẩu thành công!', 'success');
+          setShowNewPw(false);
+          setShowConfirmPw(false);
         } else {
           showToast(data.message || 'Thay đổi mật khẩu thất bại!', 'error');
         }
@@ -475,12 +340,161 @@ const Profile = ({ showToast }) => {
     localStorage.removeItem('loginMethod');
     localStorage.removeItem('userRole');
     localStorage.removeItem('authToken');
+    showToast('Đã đăng xuất tài khoản thành công.', 'info');
     navigate('/login');
   };
 
+  const loginMethod = localStorage.getItem('loginMethod');
+
   // ============================================================
-  // Render
+  // RoleBadge Component — Visual badge for student/staff/guest
   // ============================================================
+  const RoleBadge = ({ role, size = 'sm' }) => {
+    const config = {
+      student: {
+        label: 'Sinh viên FPT',
+        className: 'role-badge--student',
+        icon: (
+          <svg width={size === 'lg' ? 16 : 12} height={size === 'lg' ? 16 : 12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        )
+      },
+      staff: {
+        label: 'Cán bộ FPT',
+        className: 'role-badge--staff',
+        icon: (
+          <svg width={size === 'lg' ? 16 : 12} height={size === 'lg' ? 16 : 12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        )
+      },
+      ctsv: {
+        label: 'Phòng CTSV',
+        className: 'role-badge--staff', // Using staff style for now, can change later
+        icon: (
+          <svg width={size === 'lg' ? 16 : 12} height={size === 'lg' ? 16 : 12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        )
+      },
+      club_manager: {
+        label: 'Quản lý CLB',
+        className: 'role-badge--staff',
+        icon: (
+          <svg width={size === 'lg' ? 16 : 12} height={size === 'lg' ? 16 : 12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        )
+      },
+      guest: {
+        label: 'Khách',
+        className: 'role-badge--guest',
+        icon: (
+          <svg width={size === 'lg' ? 16 : 12} height={size === 'lg' ? 16 : 12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        )
+      }
+    };
+
+    const c = config[role] || config.guest;
+    return (
+      <span className={`role-badge ${c.className} ${size === 'lg' ? 'role-badge--lg' : ''}`}>
+        {c.icon}
+        <span>{c.label}</span>
+      </span>
+    );
+  };
+
+  // ============================================================
+  // RoleInfoSection — Detailed role info card in profile
+  // ============================================================
+  const RoleInfoSection = ({ role, studentIdVal }) => {
+    const roleConfig = {
+      student: {
+        title: '🎓 Sinh viên FPT University',
+        subtitle: studentIdVal ? `Mã sinh viên: ${studentIdVal}` : 'Đã xác thực bằng email sinh viên FPT',
+        sectionClass: '',
+        iconClass: 'role-info-icon--student',
+        icon: (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        )
+      },
+      staff: {
+        title: '👨‍🏫 Cán bộ / Giảng viên FPT',
+        subtitle: 'Đã xác thực bằng email nội bộ FPT',
+        sectionClass: 'role-info-section--staff',
+        iconClass: 'role-info-icon--staff',
+        icon: (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        )
+      },
+      ctsv: {
+        title: '🛡️ Phòng Công Tác Sinh Viên',
+        subtitle: 'Đã xác thực quyền Quản trị CTSV',
+        sectionClass: 'role-info-section--staff',
+        iconClass: 'role-info-icon--staff',
+        icon: (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        )
+      },
+      club_manager: {
+        title: '🏆 Quản lý Câu lạc bộ',
+        subtitle: 'Đã được cấp quyền quản lý câu lạc bộ trong hệ thống FPT',
+        sectionClass: 'role-info-section--staff',
+        iconClass: 'role-info-icon--staff',
+        icon: (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        )
+      },
+      guest: {
+        title: '👤 Tài khoản Khách',
+        subtitle: 'Sử dụng email ngoài hệ thống FPT. Một số tính năng có thể bị giới hạn.',
+        sectionClass: 'role-info-section--guest',
+        iconClass: 'role-info-icon--guest',
+        icon: (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        )
+      }
+    };
+
+    const rc = roleConfig[role] || roleConfig.guest;
+
+    return (
+      <div className={`role-info-section ${rc.sectionClass}`}>
+        <div className={`role-info-icon ${rc.iconClass}`}>
+          {rc.icon}
+        </div>
+        <div className="role-info-details">
+          <span className="role-info-title">{rc.title}</span>
+          <span className="role-info-subtitle">{rc.subtitle}</span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="dashboard-body">
@@ -501,7 +515,7 @@ const Profile = ({ showToast }) => {
             onClick={() => navigate('/')}
           >
             <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+              src={fptLogo}
               alt="FEvents Logo"
               style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
             />
@@ -509,56 +523,47 @@ const Profile = ({ showToast }) => {
 
           {/* User Profile Card */}
           <a href="#" className="sidebar-user-card" onClick={(e) => e.preventDefault()}>
-            {profileLoading ? (
-              <div className="sidebar-avatar profile-skeleton profile-skeleton--avatar" aria-hidden="true" />
-            ) : (
-              <img className="sidebar-avatar" src={displayAvatar} alt="User Avatar" />
-            )}
+            <img className="sidebar-avatar" src={avatar} alt="User Avatar" />
             <div className="sidebar-user-info">
-              {profileLoading ? (
-                <span className="profile-skeleton profile-skeleton--name" />
-              ) : (
-                <>
-                  <span className="sidebar-user-name">{profileData.fullname}</span>
-                  {userRole?.toLowerCase() !== 'student' && (
-                    <span className="sidebar-user-role">{getRoleLabel(userRole)}</span>
-                  )}
-                </>
-              )}
+              <span className="sidebar-user-name">{profileData.fullname}</span>
+              <span className="sidebar-user-role">
+                {userRole === 'student' ? `Sinh viên ${profileData.course}` : userRole === 'staff' ? 'Cán bộ FPT' : userRole === 'ctsv' ? 'Phòng CTSV' : userRole === 'club_manager' ? 'Quản lý CLB' : 'Khách'}
+              </span>
+              <div className="sidebar-role-badge">
+                <RoleBadge role={userRole} />
+              </div>
             </div>
           </a>
 
           {/* Menu Navigation */}
           <nav className="sidebar-menu">
+            {/* Section 1 */}
             <div className="menu-section">
-              <a href="#" className={`menu-item ${activeMenu === 'profile' ? 'active' : ''}`} onClick={handleNavigateProfile}>
+              <a href="#" className="menu-item active" onClick={(e) => e.preventDefault()}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
-                  <span>Thông tin cá nhân</span>
+                  <span>Hồ sơ cá nhân</span>
                 </div>
               </a>
-              <a
-                href="#change-password-section"
-                className={`menu-item ${activeMenu === 'change-password' ? 'active' : ''}`}
-                onClick={handleNavigateChangePassword}
-              >
+              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Đăng nhập SSO')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
-                  <span>Thay đổi mật khẩu</span>
+                  <span>Đăng nhập SSO</span>
                 </div>
+                <span className="status-dot"></span>
               </a>
             </div>
 
             {/* Section 2 */}
             <div className="menu-section">
               <span className="menu-header">Sự kiện</span>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/events')}>
+              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Tìm kiếm & Duyệt sự kiện')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -567,7 +572,7 @@ const Profile = ({ showToast }) => {
                   <span>Tìm kiếm & Duyệt sự kiện</span>
                 </div>
               </a>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/my-events')}>
+              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Sự kiện của tôi')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -575,7 +580,7 @@ const Profile = ({ showToast }) => {
                   <span>Sự kiện của tôi</span>
                 </div>
               </a>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/schedule')}>
+              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Quản lý lịch trình')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -602,7 +607,7 @@ const Profile = ({ showToast }) => {
             {/* Section 3 */}
             <div className="menu-section">
               <span className="menu-header">Tiện ích</span>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/event-reviews')}>
+              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Đánh giá sự kiện')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -610,7 +615,7 @@ const Profile = ({ showToast }) => {
                   <span>Đánh giá sự kiện</span>
                 </div>
               </a>
-              <a href="#" className="menu-item" onClick={handleSidebarNavigate('/announcements')}>
+              <a href="#" className="menu-item" onClick={(e) => handleFeatureNotImplemented(e, 'Thông báo')}>
                 <div className="menu-item-content">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -657,11 +662,28 @@ const Profile = ({ showToast }) => {
               <div className="breadcrumbs">
                 <Link to="/">Trang chủ</Link>
                 <span style={{ color: '#cbd5e1' }}>/</span>
-                <span className="current">{profilePageTitle}</span>
+                <a href="#" onClick={(e) => e.preventDefault()}>Hồ sơ</a>
+                <span style={{ color: '#cbd5e1' }}>/</span>
+                <span className="current">Hồ sơ cá nhân</span>
               </div>
             </div>
 
             <div className="navbar-right">
+              {/* Search Wrapper */}
+              <div className="search-wrapper">
+                <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm thông báo..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
+                />
+              </div>
+
               {/* Notification Bell */}
               <button className="btn-icon-nav" aria-label="Xem thông báo" onClick={handleNotificationClick}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -672,22 +694,12 @@ const Profile = ({ showToast }) => {
 
               {/* User Dropdown Menu link */}
               <a href="#" className="navbar-user-menu" onClick={(e) => e.preventDefault()}>
-                {profileLoading ? (
-                  <div className="navbar-user-avatar profile-skeleton profile-skeleton--avatar" aria-hidden="true" />
-                ) : (
-                  <img className="navbar-user-avatar" src={displayAvatar} alt="User Profile" />
-                )}
+                <img className="navbar-user-avatar" src={avatar} alt="User Profile" />
                 <div className="navbar-user-details">
-                  {profileLoading ? (
-                    <span className="profile-skeleton profile-skeleton--name" />
-                  ) : (
-                    <>
-                      <span className="navbar-user-name">{profileData.fullname}</span>
-                      {userRole?.toLowerCase() !== 'student' && (
-                        <span className="navbar-user-role">{getRoleLabel(userRole)}</span>
-                      )}
-                    </>
-                  )}
+                  <span className="navbar-user-name">{profileData.fullname}</span>
+                  <span className="navbar-user-role">
+                    {userRole === 'student' ? `Sinh viên ${profileData.course}` : userRole === 'staff' ? 'Cán bộ FPT' : userRole === 'ctsv' ? 'Phòng CTSV' : userRole === 'club_manager' ? 'Quản lý CLB' : 'Khách'}
+                  </span>
                 </div>
               </a>
             </div>
@@ -695,30 +707,21 @@ const Profile = ({ showToast }) => {
 
           {/* Dashboard Scrollable Body */}
           <div className="dashboard-content-wrapper">
-            {activeMenu === 'change-password' && (
-              <div className="page-header">
-                <h1>Thay đổi mật khẩu</h1>
-                <p>Cập nhật mật khẩu đăng nhập tài khoản của bạn.</p>
-              </div>
-            )}
+            {/* Page Header */}
+            <div className="page-header">
+              <h1>Hồ sơ cá nhân</h1>
+              <p>Quản lý và cập nhật thông tin cá nhân của bạn để nhận các đề xuất sự kiện phù hợp từ AI.</p>
+            </div>
 
             {/* Layout Grid */}
             <div className="profile-grid">
-              {profileLoading ? (
-                <div className="profile-page-loading" aria-busy="true" aria-label="Đang tải hồ sơ">
-                  <div className="profile-skeleton profile-skeleton--avatar-lg" />
-                  <div className="profile-skeleton profile-skeleton--block" />
-                  <div className="profile-skeleton profile-skeleton--block profile-skeleton--block-short" />
-                </div>
-              ) : (
-              <>
               {/* Left Column (Avatar & Clubs) */}
               <div className="profile-left-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Avatar card */}
                 <div className="profile-card avatar-card">
                   <div className="avatar-card-content">
                     <div className="profile-avatar-container">
-                      <img className="large-profile-avatar" id="profile-avatar-img" src={displayAvatar} alt="Avatar lớn" />
+                      <img className="large-profile-avatar" id="profile-avatar-img" src={avatar} alt="Avatar lớn" />
                       <label htmlFor="avatar-upload-input" className="btn-avatar-edit-pencil" title="Thay đổi ảnh đại diện">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -736,10 +739,9 @@ const Profile = ({ showToast }) => {
                     <button
                       type="button"
                       className="btn-upload-avatar"
-                      disabled={avatarSaving}
                       onClick={() => document.getElementById('avatar-upload-input').click()}
                     >
-                      {avatarSaving ? 'Đang lưu...' : 'Thay đổi ảnh đại diện'}
+                      Thay đổi ảnh đại diện
                     </button>
                   </div>
                 </div>
@@ -764,72 +766,126 @@ const Profile = ({ showToast }) => {
               </div>
 
               {/* Right Column (Form Details) */}
-              <div className="profile-right-column" ref={profileSectionRef}>
-                {activeMenu === 'profile' && (
+              <div className="profile-right-column">
                 <form id="profile-edit-form" onSubmit={handleProfileSubmit} className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>Thông tin cá nhân & Sở thích</h2>
+                  {/* SSO details card */}
+                  <div>
+                    <div className="profile-card-header">
+                      <h2 className="profile-card-title">Thông tin định danh SSO</h2>
+                      <div className="card-status-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <span>ĐÃ XÁC THỰC</span>
+                      </div>
+                    </div>
 
-                  <div className="profile-form-grid">
-                    <div className="profile-input-group">
-                      <label htmlFor="profile-name">Họ và tên</label>
-                      <input
-                        type="text"
-                        id="profile-name"
-                        value={profileData.fullname}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, fullname: e.target.value }))}
-                        required
-                        readOnly={userRole === 'student'}
-                        disabled={userRole !== 'student' && !isEditing}
-                      />
-                    </div>
-                    {userRole === 'student' && (
+                    {/* Role Info Section */}
+                    <RoleInfoSection role={userRole} studentIdVal={studentId} />
+
+                    <div className="profile-form-grid">
                       <div className="profile-input-group">
-                        <label htmlFor="profile-student-id">MSSV</label>
+                        <label htmlFor="sso-name">Họ và tên</label>
                         <input
                           type="text"
-                          id="profile-student-id"
-                          value={studentId || '—'}
-                          readOnly
-                          placeholder="Chưa có MSSV"
-                          title="MSSV định dạng DSxxxxxx hoặc DExxxxxx"
+                          id="sso-name"
+                          value={profileData.fullname}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, fullname: e.target.value }))}
+                          required
+                          disabled={!isEditing}
                         />
                       </div>
-                    )}
-                    {userRole === 'student' && (
                       <div className="profile-input-group">
-                        <label htmlFor="profile-course">Khóa học</label>
+                        <label htmlFor="sso-course">Khóa học</label>
+                        {courseChanged ? (
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="text"
+                              id="sso-course"
+                              value={profileData.course}
+                              readOnly
+                              style={{ paddingRight: '120px' }}
+                            />
+                            <span style={{
+                              position: 'absolute',
+                              right: '12px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              fontSize: '0.75rem',
+                              color: '#ef4444',
+                              fontWeight: '600',
+                              backgroundColor: '#fee2e2',
+                              padding: '2px 8px',
+                              borderRadius: '4px'
+                            }}>
+                              Đã khóa (đổi 1 lần)
+                            </span>
+                          </div>
+                        ) : (
+                          <select
+                            id="sso-course"
+                            value={profileData.course}
+                            onChange={(e) => setProfileData(prev => ({ ...prev, course: e.target.value }))}
+                            disabled={!isEditing}
+                            style={{
+                              width: '100%',
+                              height: '48px',
+                              padding: '12px 16px',
+                              fontSize: '0.9rem',
+                              fontFamily: 'inherit',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '8px',
+                              outline: 'none',
+                              backgroundColor: 'var(--bg-card)',
+                              color: 'var(--text-main)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="K15">Khóa 15 (K15)</option>
+                            <option value="K16">Khóa 16 (K16)</option>
+                            <option value="K17">Khóa 17 (K17)</option>
+                            <option value="K18">Khóa 18 (K18)</option>
+                            <option value="K19">Khóa 19 (K19)</option>
+                            <option value="K20">Khóa 20 (K20)</option>
+                          </select>
+                        )}
+                      </div>
+                      <div className="profile-input-group">
+                        <label htmlFor="sso-email">Email sinh viên</label>
+                        <input type="email" id="sso-email" value={profileData.email} readOnly />
+                      </div>
+                      <div className="profile-input-group">
+                        <label htmlFor="user-phone">Số điện thoại</label>
                         <input
-                          type="text"
-                          id="profile-course"
-                          value={profileData.course}
-                          readOnly
+                          type="tel"
+                          id="user-phone"
+                          placeholder="Nhập số điện thoại..."
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                          disabled={!isEditing}
                         />
                       </div>
-                    )}
-                    <div className="profile-input-group">
-                      <label htmlFor="profile-email">Email</label>
-                      <input type="email" id="profile-email" value={profileData.email} readOnly />
-                    </div>
-                    <div className="profile-input-group">
-                      <label htmlFor="user-phone">Số điện thoại</label>
-                      <input
-                        type="tel"
-                        id="user-phone"
-                        placeholder="Nhập số điện thoại..."
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    {userRole === 'student' && (
+                      {studentId && (
+                        <div className="profile-input-group">
+                          <label htmlFor="student-id">Mã sinh viên</label>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input type="text" id="student-id" value={studentId} readOnly />
+                            <RoleBadge role={userRole} size="lg" />
+                          </div>
+                        </div>
+                      )}
                       <div className="profile-input-group profile-form-grid-full">
-                        <label htmlFor="profile-campus">Cơ sở đào tạo</label>
-                        <input type="text" id="profile-campus" value={profileData.campus} readOnly />
+                        <label htmlFor="sso-campus">Cơ sở đào tạo</label>
+                        <input type="text" id="sso-campus" value={profileData.campus} readOnly />
                       </div>
-                    )}
+                    </div>
                   </div>
 
+                  {/* Editable details card */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                    <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>Thông tin cá nhân & Sở thích</h2>
+
                     <div className="profile-input-group profile-form-grid-full">
                       <label htmlFor="user-orientation">Định hướng chuyên môn</label>
                       <textarea
@@ -1029,116 +1085,114 @@ const Profile = ({ showToast }) => {
                     )}
                   </div>
                 </form>
-                )}
 
-                {activeMenu === 'change-password' && (
-                <div
-                  id="change-password-section"
-                  ref={passwordSectionRef}
-                  className="profile-card profile-card--password profile-card--highlight"
-                >
-                  <h2 className="profile-card-title">Thay đổi mật khẩu</h2>
-
-                  {!canChangePassword ? (
-                    <p className="profile-password-notice">
-                      Tài khoản đăng nhập Google không hỗ trợ đổi mật khẩu tại đây. Vui lòng quản lý mật khẩu qua tài khoản Google của bạn.
-                    </p>
-                  ) : (
+                {/* Change Password Card */}
+                {loginMethod !== 'google' && (
+                  <div className="profile-card" style={{ marginTop: '24px' }}>
                     <form id="change-password-form" onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      <h2 className="profile-card-title">Thay đổi mật khẩu</h2>
+
                       <div className="profile-form-grid">
                         <div className="profile-input-group profile-form-grid-full">
                           <label htmlFor="current-password">Mật khẩu hiện tại</label>
                           <div className="profile-password-wrapper">
                             <input
-                              type={showCurrentPw ? 'text' : 'password'}
+                              type={showCurrentPw ? "text" : "password"}
                               id="current-password"
                               placeholder="Nhập mật khẩu hiện tại"
                               required
                               value={pwForm.currentPassword}
-                              onChange={(e) => handleCurrentPasswordChange(e.target.value)}
-                              onBlur={handleCurrentPasswordBlur}
-                              className={
-                                currentPwStatus === 'valid'
-                                  ? 'is-valid'
-                                  : currentPwStatus === 'invalid'
-                                    ? 'is-invalid'
-                                    : ''
-                              }
+                              onChange={(e) => setPwForm(prev => ({ ...prev, currentPassword: e.target.value }))}
                             />
-                            {renderPasswordToggle(showCurrentPw, () => setShowCurrentPw(!showCurrentPw))}
+                            <button
+                              type="button"
+                              className="profile-toggle-password"
+                              onClick={() => setShowCurrentPw(!showCurrentPw)}
+                              aria-label={showCurrentPw ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
+                            >
+                              <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                {showCurrentPw ? (
+                                  <>
+                                    <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
+                                  </>
+                                ) : (
+                                  <>
+                                    <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
+                                  </>
+                                )}
+                              </svg>
+                            </button>
                           </div>
-                          {currentPwStatus === 'checking' && (
-                            <p className="profile-password-feedback profile-password-feedback--checking">Đang kiểm tra...</p>
-                          )}
-                          {currentPwStatus === 'valid' && (
-                            <p className="profile-password-feedback profile-password-feedback--valid">Khớp</p>
-                          )}
-                          {currentPwStatus === 'invalid' && (
-                            <p className="profile-password-feedback profile-password-feedback--invalid">Không khớp</p>
-                          )}
                         </div>
 
                         <div className="profile-input-group">
                           <label htmlFor="new-password">Mật khẩu mới</label>
                           <div className="profile-password-wrapper">
                             <input
-                              type={showNewPasswords ? 'text' : 'password'}
+                              type={showNewPw ? "text" : "password"}
                               id="new-password"
                               placeholder="Nhập mật khẩu mới"
                               required
                               value={pwForm.newPassword}
-                              onChange={(e) => setPwForm((prev) => ({ ...prev, newPassword: e.target.value }))}
-                              onFocus={handleNewPasswordFocus}
+                              onChange={(e) => setPwForm(prev => ({ ...prev, newPassword: e.target.value }))}
                             />
-                            {renderPasswordToggle(showNewPasswords, toggleNewPasswordVisibility)}
+                            <button
+                              type="button"
+                              className="profile-toggle-password"
+                              onClick={() => setShowNewPw(!showNewPw)}
+                              aria-label={showNewPw ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
+                            >
+                              <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                {showNewPw ? (
+                                  <>
+                                    <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
+                                  </>
+                                ) : (
+                                  <>
+                                    <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
+                                  </>
+                                )}
+                              </svg>
+                            </button>
                           </div>
-                          {pwForm.newPassword && (
-                            <div className="profile-password-strength">
-                              <div className="profile-password-strength__bars">
-                                {[1, 2, 3, 4].map((bar) => (
-                                  <span
-                                    key={bar}
-                                    className={`profile-password-strength__bar ${
-                                      bar <= passwordStrength.bars
-                                        ? `profile-password-strength__bar--${passwordStrength.level}`
-                                        : ''
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                              <span className={`profile-password-strength__label profile-password-strength__label--${passwordStrength.level}`}>
-                                {passwordStrength.label}
-                              </span>
-                            </div>
-                          )}
                         </div>
 
                         <div className="profile-input-group">
                           <label htmlFor="confirm-password">Xác nhận mật khẩu mới</label>
                           <div className="profile-password-wrapper">
                             <input
-                              type={showNewPasswords ? 'text' : 'password'}
+                              type={showConfirmPw ? "text" : "password"}
                               id="confirm-password"
                               placeholder="Xác nhận mật khẩu mới"
                               required
                               value={pwForm.confirmPassword}
-                              onChange={(e) => setPwForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                              className={
-                                confirmPasswordMatch === true
-                                  ? 'is-valid'
-                                  : confirmPasswordMatch === false
-                                    ? 'is-invalid'
-                                    : ''
-                              }
+                              onChange={(e) => setPwForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                             />
-                            {renderPasswordToggle(showNewPasswords, toggleNewPasswordVisibility)}
+                            <button
+                              type="button"
+                              className="profile-toggle-password"
+                              onClick={() => setShowConfirmPw(!showConfirmPw)}
+                              aria-label={showConfirmPw ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
+                            >
+                              <svg className="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                {showConfirmPw ? (
+                                  <>
+                                    <path className="eye-on-path" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle className="eye-on-circle" cx="12" cy="12" r="3"></circle>
+                                  </>
+                                ) : (
+                                  <>
+                                    <path className="eye-off-path" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line className="eye-off-line" x1="1" y1="1" x2="23" y2="23"></line>
+                                  </>
+                                )}
+                              </svg>
+                            </button>
                           </div>
-                          {confirmPasswordMatch === true && (
-                            <p className="profile-password-feedback profile-password-feedback--valid">Khớp</p>
-                          )}
-                          {confirmPasswordMatch === false && (
-                            <p className="profile-password-feedback profile-password-feedback--invalid">Không khớp</p>
-                          )}
                         </div>
                       </div>
 
@@ -1156,12 +1210,9 @@ const Profile = ({ showToast }) => {
                         )}
                       </button>
                     </form>
-                  )}
-                </div>
+                  </div>
                 )}
               </div>
-              </>
-              )}
             </div>
           </div>
 
@@ -1172,7 +1223,7 @@ const Profile = ({ showToast }) => {
                 <div className="footer-info">
                   <a href="#" className="footer-logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
                     <img
-                      src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+                      src={fptLogo}
                       alt="FEvents Logo"
                       style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
                     />
@@ -1183,20 +1234,20 @@ const Profile = ({ showToast }) => {
                 <div className="footer-column">
                   <h3>Khám phá</h3>
                   <ul className="footer-links">
-                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Sự kiện sắp tới</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Câu lạc bộ nổi bật</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/announcements')}>Tin tức công nghệ</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/my-events')}>Thư viện hình ảnh</a></li>
+                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Sự kiện sắp tới')}>Sự kiện sắp tới</a></li>
+                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Câu lạc bộ nổi bật')}>Câu lạc bộ nổi bật</a></li>
+                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Tin tức công nghệ')}>Tin tức công nghệ</a></li>
+                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Thư viện hình ảnh')}>Thư viện hình ảnh</a></li>
                   </ul>
                 </div>
 
                 <div className="footer-column">
                   <h3>Hỗ trợ</h3>
                   <ul className="footer-links">
-                    <li><a href="#" onClick={handleSidebarNavigate('/support')}>Trung tâm hỗ trợ</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/contact')}>Liên hệ chúng tôi</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/terms')}>Điều khoản dịch vụ</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/privacy')}>Chính sách bảo mật</a></li>
+                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Trung tâm hỗ trợ')}>Trung tâm hỗ trợ</a></li>
+                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Liên hệ chúng tôi')}>Liên hệ chúng tôi</a></li>
+                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Điều khoản dịch vụ')}>Điều khoản dịch vụ</a></li>
+                    <li><a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Chính sách bảo mật')}>Chính sách bảo mật</a></li>
                   </ul>
                 </div>
 

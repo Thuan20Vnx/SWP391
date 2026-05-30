@@ -91,6 +91,7 @@ const ForgotPassword = ({ showToast }) => {
           }
           setCountdown(60);
           setIsCounting(true);
+          showToast('Yêu cầu gửi mã xác nhận thành công!', 'success');
         } else {
           showToast(data.message || 'Gửi mã xác nhận thất bại!', 'error');
         }

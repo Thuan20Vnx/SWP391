@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import fptLogo from '../assets/fpt_logo.png';
-import { API_BASE, getAuthHeaders } from '../utils/api';
+import { API_BASE } from '../utils/api';
 
 const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 };
-
-const REMEMBER_EMAIL_KEY = 'rememberedLoginEmail';
 
 const Login = ({ showToast }) => {
   const navigate = useNavigate();
@@ -21,7 +19,6 @@ const Login = ({ showToast }) => {
   const [validFields, setValidFields] = useState({});
   const [shakeFields, setShakeFields] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
@@ -38,18 +35,6 @@ const Login = ({ showToast }) => {
   }, [showAlert]);
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
-    if (!savedEmail) return;
-
-    setFormData((prev) => ({ ...prev, email: savedEmail }));
-    setRememberMe(true);
-    setValidFields((prev) => ({
-      ...prev,
-      email: patterns.email.test(savedEmail.trim()),
-    }));
-  }, []);
-
-  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const authStatus = params.get('auth_status');
     if (authStatus === 'success') {
@@ -57,12 +42,14 @@ const Login = ({ showToast }) => {
       const name = params.get('name');
       const token = params.get('token');
 
+      showToast(`Đăng nhập Google thành công! Chào mừng ${name}.`, 'success');
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('userEmail', email);
       localStorage.setItem('loginMethod', 'google');
       if (token) localStorage.setItem('authToken', token);
 
-      fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
+      // Fetch profile to get role
+      fetch(`http://localhost:5000/api/user/profile?email=${email}`)
         .then(r => r.json())
         .then(d => {
           if (d.success && d.user) {
@@ -168,19 +155,23 @@ const Login = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
+          // Save role to localStorage
           const userRole = data.user?.role || 'guest';
           localStorage.setItem('userRole', userRole);
+
+          // Role-specific welcome message
+          const roleMessages = {
+            student: 'Chào mừng sinh viên FPT quay trở lại! 🎓',
+            staff: 'Chào mừng cán bộ FPT! 👨‍🏫',
+            ctsv: 'Chào mừng Phòng Công Tác Sinh Viên! 🛡️',
+            guest: 'Chào mừng bạn đến với F-Events! 👋'
+          };
+          showToast(roleMessages[userRole] || roleMessages.guest, 'success');
 
           localStorage.setItem('isLoggedIn', 'true');
           localStorage.setItem('userEmail', formData.email);
           localStorage.setItem('loginMethod', 'local');
           if (data.token) localStorage.setItem('authToken', data.token);
-
-          if (rememberMe) {
-            localStorage.setItem(REMEMBER_EMAIL_KEY, formData.email.trim().toLowerCase());
-          } else {
-            localStorage.removeItem(REMEMBER_EMAIL_KEY);
-          }
 
           navigate('/');
         } else {
@@ -202,7 +193,9 @@ const Login = ({ showToast }) => {
       });
   };
 
-  const handleSsoClick = () => {};
+  const handleSsoClick = (provider) => {
+    showToast(`Đang kết nối tài khoản ${provider}...`, 'success');
+  };
 
   const loginWithGoogle = () => {
     const params = new URLSearchParams({
@@ -252,7 +245,7 @@ const Login = ({ showToast }) => {
           {/* Logo F-Events */}
           <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
             <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+              src={fptLogo}
               alt="F-Events Logo"
               style={{ width: '115px', height: '64px', objectFit: 'contain' }}
             />
@@ -370,21 +363,9 @@ const Login = ({ showToast }) => {
               <span className="error-message" id="error-password">Mật khẩu phải từ 8 ký tự trở lên</span>
             </div>
 
-            {/* Remember me & Forgot password */}
-            <div className="login-options-row">
-              <label className="checkbox-container login-remember-me" htmlFor="remember-me">
-                <input
-                  type="checkbox"
-                  id="remember-me"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <span className="checkbox-checkmark"></span>
-                <span className="checkbox-label">Ghi nhớ tài khoản</span>
-              </label>
-              <Link to="/forgot" id="forgot-link" className="accent-link" style={{ color: 'var(--primary)', fontWeight: '600' }}>
-                Quên mật khẩu?
-              </Link>
+            {/* Forgot Password Link */}
+            <div className="forgot-password-container" style={{ marginTop: '-8px' }}>
+              <Link to="/forgot" id="forgot-link" className="accent-link" style={{ color: 'var(--primary)', fontWeight: '600' }}>Quên mật khẩu?</Link>
             </div>
 
             {/* Submit Button */}

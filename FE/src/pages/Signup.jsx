@@ -161,6 +161,7 @@ const Signup = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200 && data.status === 'OTP_SENT') {
+          showToast(data.message || 'Mã OTP đã được gửi đến email của bạn!', 'success');
           setShowOtpStep(true);
           setCountdown(60);
           setIsOtpCounting(true);
@@ -199,6 +200,7 @@ const Signup = ({ showToast }) => {
       .then(({ status, data }) => {
         setOtpLoading(false);
         if (status === 201) {
+          showToast(`Đăng ký thành công! Chào mừng ${formData.fullname.trim()} gia nhập FPT Students Community.`, 'success');
           setFormData({
             fullname: '',
             email: '',
@@ -238,7 +240,9 @@ const Signup = ({ showToast }) => {
     })
       .then(res => res.json().then(data => ({ status: res.status, data })))
       .then(({ status, data }) => {
-        if (status !== 200) {
+        if (status === 200) {
+          showToast('Đã gửi lại mã OTP mới. Vui lòng kiểm tra email của bạn!', 'success');
+        } else {
           showToast(data.message || 'Gửi lại mã thất bại!', 'error');
         }
       })
@@ -248,7 +252,9 @@ const Signup = ({ showToast }) => {
   };
 
 
-  const handleSsoClick = () => {};
+  const handleSsoClick = (provider) => {
+    showToast(`Đang kết nối tài khoản ${provider}...`, 'success');
+  };
 
   const loginWithGoogle = () => {
     const params = new URLSearchParams({
@@ -286,7 +292,7 @@ const Signup = ({ showToast }) => {
               {/* Logo F-Events */}
               <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
                 <img
-                  src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+                  src={fptLogo}
                   alt="F-Events Logo"
                   style={{ width: '115px', height: '64px', objectFit: 'contain' }}
                 />
@@ -372,7 +378,7 @@ const Signup = ({ showToast }) => {
               {/* Logo F-Events */}
               <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
                 <img
-                  src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+                  src={fptLogo}
                   alt="F-Events Logo"
                   style={{ width: '115px', height: '64px', objectFit: 'contain' }}
                 />

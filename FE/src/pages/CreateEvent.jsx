@@ -41,6 +41,7 @@ const CreateEvent = ({ showToast }) => {
       .then(data => {
         setLoading(false);
         if (data.success) {
+          showToast(data.message, 'success');
           navigate('/events');
         } else {
           showToast(data.message || 'Lỗi khi tạo sự kiện', 'error');

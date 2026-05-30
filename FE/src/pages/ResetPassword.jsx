@@ -30,6 +30,10 @@ const ResetPassword = ({ showToast }) => {
     
     if (emailParam) setEmail(decodeURIComponent(emailParam));
     if (otpParam) setOtp(otpParam);
+    
+    if (otpParam && emailParam) {
+      showToast('Đã tự động điền Email và mã xác nhận OTP từ liên kết!', 'success');
+    }
   }, []);
 
   const validateFields = () => {
@@ -84,7 +88,10 @@ const ResetPassword = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
-          navigate('/login');
+          showToast('Đặt lại mật khẩu thành công! Hãy đăng nhập lại.', 'success');
+          setTimeout(() => {
+            navigate('/login');
+          }, 1500);
         } else {
           showToast(data.message || 'Mã OTP không hợp lệ hoặc đã hết hạn!', 'error');
         }
