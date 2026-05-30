@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
-<<<<<<< Updated upstream
-=======
 import CtsvHome from './pages/CtsvHome';
 import CtsvLayout from './layouts/CtsvLayout';
 import CtsvDashboard from './pages/ctsv/CtsvDashboard';
@@ -28,8 +26,6 @@ import IcpdpEventDetail from './pages/icpdp/IcpdpEventDetail';
 import IcpdpCalendar from './pages/icpdp/IcpdpCalendar';
 import IcpdpReports from './pages/icpdp/IcpdpReports';
 import IcpdpProfile from './pages/icpdp/IcpdpProfile';
-
->>>>>>> Stashed changes
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
@@ -58,8 +54,6 @@ const ProtectedRoute = ({ children }) => {
   return isLoggedIn ? children : <Navigate to="/login" replace />;
 };
 
-<<<<<<< Updated upstream
-=======
 const CtsvProtectedRoute = () => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (!isLoggedIn) return <Navigate to="/login" replace />;
@@ -92,8 +86,6 @@ const AdminAreaGuard = () => {
   if (isCtsvRole() && pathname.startsWith('/admin/events')) return <Outlet />;
   return <Navigate to="/" replace />;
 };
-
->>>>>>> Stashed changes
 function App() {
   const [toasts, setToasts] = useState([]);
 
@@ -110,10 +102,6 @@ function App() {
     <Router>
       <div className="app-root">
         <Routes>
-<<<<<<< Updated upstream
-          {/* Default route is the beautiful new Home Page */}
-          <Route path="/" element={<Home showToast={showToast} />} />
-=======
           <Route path="/" element={<PublicHomeRoute showToast={showToast} />} />
 
           <Route path="/ctsv" element={<CtsvProtectedRoute />}>
@@ -148,8 +136,6 @@ function App() {
               <Route path="profile" element={<IcpdpProfile showToast={showToast} />} />
             </Route>
           </Route>
-
->>>>>>> Stashed changes
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/login" element={<Login showToast={showToast} />} />
           <Route path="/forgot" element={<ForgotPassword showToast={showToast} />} />
