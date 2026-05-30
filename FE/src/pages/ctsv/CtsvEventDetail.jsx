@@ -5,13 +5,20 @@ import {
   fetchCtsvEvent,
   publishCtsvEvent,
   rejectCtsvEvent,
-  revisionCtsvEvent
+  revisionCtsvEvent,
+  requestCtsvEventModeration
 } from '../../services/ctsvApi';
 import { getUserRole } from '../../utils/auth';
 import { getCtsvEventAccess } from '../../utils/ctsvEventAccess';
 import { statusClass } from '../../utils/eventStatus';
 import { resolveEventSpeakers } from '../../constants/eventSpeaker';
 import { isSchoolEventPendingAdmin, canCtsvPublishSchoolEvent, canCtsvEditSchoolEvent } from '../../constants/eventWorkflow';
+import {
+  canCtsvRequestModeration,
+  isModerationPending,
+  MODERATION_ACTION_LABELS
+} from '../../constants/eventModeration';
+import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 
 const SOURCE_META = {
   school: { label: 'Cấp trường', tone: 'school' },
@@ -50,6 +57,8 @@ const CtsvEventDetail = () => {
   const { showToast } = useOutletContext() || {};
   const [event, setEvent] = useState(null);
   const [note, setNote] = useState('');
+  const [moderationReason, setModerationReason] = useState('');
+  const [weatherPostpone, setWeatherPostpone] = useState(false);
   const [activeTab, setActiveTab] = useState('info');
   const isCtsvOnly = getUserRole() === 'ctsv';
 
@@ -122,6 +131,66 @@ const CtsvEventDetail = () => {
     }
   };
 
+  const confirmModeration = (action) => {
+    const reasonPreview = moderationReason.trim();
+    if (!reasonPreview) {
+      showToast?.('Vui lòng nhập lý do trước khi xác nhận.', 'error');
+      return false;
+    }
+
+    if (action === 'cancel') {
+      return window.confirm(
+        `Bạn có chắc muốn gửi yêu cầu HỦY sự kiện "${event.title}"?\n\nLý do: ${reasonPreview}\n\nYêu cầu cần Admin phê duyệt trước khi có hiệu lực.`
+      );
+    }
+
+    if (action === 'hide') {
+      return window.confirm(
+        `Bạn có chắc muốn gửi yêu cầu ẨN sự kiện "${event.title}"?\n\nLý do: ${reasonPreview}\n\nSau khi Admin duyệt, sự kiện sẽ không hiển thị trên cổng sinh viên.`
+      );
+    }
+
+    if (action === 'postpone' && weatherPostpone) {
+      return window.confirm(
+        `Bạn có chắc muốn HOÃN sự kiện "${event.title}" do thời tiết?\n\nLý do: ${reasonPreview}\n\nSự kiện sẽ được hoãn ngay, không cần Admin duyệt.`
+      );
+    }
+
+    if (action === 'postpone') {
+      return window.confirm(
+        `Bạn có chắc muốn gửi yêu cầu HOÃN sự kiện "${event.title}"?\n\nLý do: ${reasonPreview}\n\nYêu cầu cần Admin phê duyệt trước khi sự kiện chuyển sang trạng thái hoãn.`
+      );
+    }
+
+    return false;
+  };
+
+  const handleModeration = async (action) => {
+    if (!confirmModeration(action)) return;
+
+    try {
+      const data = await requestCtsvEventModeration(id, {
+        action,
+        reason: moderationReason.trim(),
+        isWeatherPostpone: action === 'postpone' && weatherPostpone
+      });
+      showToast?.(data.message || 'Đã gửi yêu cầu.', 'success');
+      setModerationReason('');
+      setWeatherPostpone(false);
+      refresh();
+    } catch (e) {
+      showToast?.(e.message, 'error');
+    }
+  };
+
+  const formatLabel = (value) => {
+    if (!value) return '—';
+    if (value === 'campus') return 'Tại campus';
+    if (value === 'online') return 'Trực tuyến';
+    if (value === 'hybrid') return 'Kết hợp';
+    return value;
+  };
+
   if (!event || !stats) {
     return (
       <div className="ctsv-ed-page">
@@ -145,6 +214,9 @@ const CtsvEventDetail = () => {
   const showPublish = canCtsvPublishSchoolEvent(event);
   const showEditSchoolEvent = access.canManage && canCtsvEditSchoolEvent(event);
   const showCtsvActions = access.canManage && (showPartnerActions || showPublish || showEditSchoolEvent);
+  const showSchoolModeration =
+    access.canManage && event.source === 'school' && canCtsvRequestModeration(event);
+  const moderationPending = isModerationPending(event);
 
   return (
     <div className="ctsv-ed-page">
@@ -295,9 +367,29 @@ const CtsvEventDetail = () => {
                 <strong>{source.label}</strong>
               </div>
               <div className="ctsv-ed-info-card">
-                <span className="ctsv-ed-info-label">Loại sự kiện</span>
-                <strong>{event.eventType || event.category || '—'}</strong>
+                <span className="ctsv-ed-info-label">Danh mục</span>
+                <strong>{getCategoryDisplayLabel(event.category)}</strong>
               </div>
+              <div className="ctsv-ed-info-card">
+                <span className="ctsv-ed-info-label">Loại sự kiện</span>
+                <strong>{event.eventType || '—'}</strong>
+              </div>
+              <div className="ctsv-ed-info-card">
+                <span className="ctsv-ed-info-label">Hình thức</span>
+                <strong>{formatLabel(event.format)}</strong>
+              </div>
+              {event.campus && (
+                <div className="ctsv-ed-info-card">
+                  <span className="ctsv-ed-info-label">Campus</span>
+                  <strong>{event.campus}</strong>
+                </div>
+              )}
+              {event.duration && (
+                <div className="ctsv-ed-info-card">
+                  <span className="ctsv-ed-info-label">Thời lượng</span>
+                  <strong>{event.duration}</strong>
+                </div>
+              )}
               {event.expectedAttendees > 0 && (
                 <div className="ctsv-ed-info-card">
                   <span className="ctsv-ed-info-label">Dự kiến tham dự</span>
@@ -324,6 +416,12 @@ const CtsvEventDetail = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+              {event.agenda?.trim() && (
+                <div className="ctsv-ed-info-card ctsv-ed-info-card--wide">
+                  <span className="ctsv-ed-info-label">Chương trình / Agenda</span>
+                  <strong className="ctsv-ed-info-multiline">{event.agenda}</strong>
                 </div>
               )}
               {event.ctsvNote && (
@@ -379,6 +477,59 @@ const CtsvEventDetail = () => {
         )}
 
       </div>
+
+      {moderationPending && event.moderationReason && (
+        <div className="ctsv-ed-banner ctsv-ed-banner--info" role="status">
+          <p>
+            Đang chờ Admin phê duyệt yêu cầu{' '}
+            <strong>{MODERATION_ACTION_LABELS[event.moderationAction] || 'điều phối'}</strong>:{' '}
+            {event.moderationReason}
+          </p>
+        </div>
+      )}
+
+      {event.eventState === 'postponed' && event.postponeReason && (
+        <div className="ctsv-ed-banner ctsv-ed-banner--info" role="status">
+          <p>
+            Sự kiện đang hoãn{event.postponeIsWeather ? ' (thời tiết)' : ''}: {event.postponeReason}
+          </p>
+        </div>
+      )}
+
+      {showSchoolModeration && (
+        <section className="ctsv-ed-actions ctsv-ed-moderation">
+          <h2 className="ctsv-ed-panel-title">Hủy / Hoãn / Ẩn sự kiện</h2>
+          <p className="ctsv-ed-moderation-hint">
+            Trước và sau publish đều được. Hủy và ẩn cần Admin duyệt. Hoãn do thời tiết áp dụng ngay, không cần Admin.
+          </p>
+          <textarea
+            className="ctsv-textarea ctsv-ed-note"
+            placeholder="Lý do hủy / hoãn / ẩn..."
+            value={moderationReason}
+            onChange={(e) => setModerationReason(e.target.value)}
+            rows={3}
+          />
+          <label className="ctsv-ed-weather-check">
+            <input
+              type="checkbox"
+              checked={weatherPostpone}
+              onChange={(e) => setWeatherPostpone(e.target.checked)}
+            />
+            Hoãn do thời tiết (không cần Admin duyệt)
+          </label>
+          <div className="ctsv-action-buttons">
+            <button type="button" className="ctsv-btn-danger" onClick={() => handleModeration('cancel')}>
+              Yêu cầu hủy
+            </button>
+            <button type="button" className="ctsv-btn-secondary" onClick={() => handleModeration('postpone')}>
+              {weatherPostpone ? 'Hoãn (thời tiết)' : 'Yêu cầu hoãn'}
+            </button>
+            <button type="button" className="ctsv-btn-secondary" onClick={() => handleModeration('hide')}>
+              Yêu cầu ẩn
+            </button>
+          </div>
+        </section>
+      )}
 
       {showCtsvActions && (
         <section className="ctsv-ed-actions">

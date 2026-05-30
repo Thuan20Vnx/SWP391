@@ -47,6 +47,12 @@ export const revisionCtsvEvent = (id, note = '') =>
 export const publishCtsvEvent = (id) =>
   ctsvFetch(`/events/${id}/publish`, { method: 'PATCH', body: '{}' });
 
+export const requestCtsvEventModeration = (id, { action, reason, isWeatherPostpone = false }) =>
+  ctsvFetch(`/events/${id}/moderation`, {
+    method: 'PATCH',
+    body: JSON.stringify({ action, reason, isWeatherPostpone })
+  });
+
 export const fetchCtsvCalendar = () => ctsvFetch('/events/calendar');
 
 export const fetchCtsvReports = () => ctsvFetch('/reports');

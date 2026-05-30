@@ -5,6 +5,24 @@
 export const SCHOOL_EVENT_SUBMIT_STATUS = 'pending_admin';
 export const SCHOOL_EVENT_APPROVED_STATUS = 'approved';
 
+/** Đồng bộ BE — sự kiện hiển thị trên cổng sinh viên */
+export const SCHOOL_EVENT_PUBLIC_STATUSES = ['approved', 'live'];
+
+const NON_PUBLIC_STATUSES = [
+  'cancelled',
+  'hidden',
+  'pending_cancel',
+  'pending_hide',
+  'pending_postpone'
+];
+
+export const isEventPubliclyVisible = (eventOrStatus) => {
+  const status = typeof eventOrStatus === 'string' ? eventOrStatus : eventOrStatus?.status;
+  const isHidden = typeof eventOrStatus === 'object' && eventOrStatus?.isHidden === true;
+  if (isHidden || NON_PUBLIC_STATUSES.includes(status)) return false;
+  return SCHOOL_EVENT_PUBLIC_STATUSES.includes(status);
+};
+
 export const SCHOOL_EVENT_EDITABLE_STATUSES = [
   SCHOOL_EVENT_SUBMIT_STATUS,
   'rejected',
@@ -16,7 +34,12 @@ export const SCHOOL_EVENT_STATUS_LABELS = {
   approved: 'Mở đăng ký',
   rejected: 'Từ chối',
   live: 'Đang diễn ra',
-  ended: 'Đã kết thúc'
+  ended: 'Đã kết thúc',
+  pending_cancel: 'Chờ Admin — Hủy',
+  pending_hide: 'Chờ Admin — Ẩn',
+  pending_postpone: 'Chờ Admin — Hoãn',
+  cancelled: 'Đã hủy',
+  hidden: 'Đã ẩn'
 };
 
 export const canCtsvPublishSchoolEvent = (event) =>

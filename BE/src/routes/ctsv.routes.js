@@ -25,6 +25,7 @@ const {
   findLinkableAnnouncementEvents,
   isEventLinkableForAnnouncement
 } = require('../utils/announcementEvents');
+const { requestModeration } = require('../services/eventModeration.service');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -390,6 +391,29 @@ router.patch('/events/:id/publish', requireCtsvApprove, async (req, res) => {
     return res.json({ success: true, event: formatEvent(event) });
   } catch (error) {
     console.error('ctsv publish event:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// PATCH /api/ctsv/events/:id/moderation — hủy / hoãn / ẩn (hoãn thời tiết: không cần Admin)
+router.patch('/events/:id/moderation', requireCtsvApprove, async (req, res) => {
+  try {
+    const { action, reason, isWeatherPostpone } = req.body || {};
+    const result = await requestModeration(
+      req.params.id,
+      { action, reason, isWeatherPostpone: isWeatherPostpone === true },
+      req.authEmail
+    );
+    return res.json({
+      success: true,
+      event: formatEvent(result.event),
+      message: result.message
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('ctsv event moderation:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

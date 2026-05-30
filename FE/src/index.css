@@ -7983,14 +7983,20 @@ body {
   position: relative;
   border-radius: 16px;
   overflow: hidden;
-  min-height: 528px;
-  margin-bottom: 48px;
+  margin-bottom: 0;
+  aspect-ratio: 2.35 / 1;
+  min-height: 300px;
+  max-height: min(400px, 42vh);
+  grid-area: hero;
 }
 
 .event-detail-page__hero-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 528px;
+  height: 100%;
   object-fit: cover;
+  object-position: center center;
   display: block;
 }
 
@@ -8000,11 +8006,11 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 48px;
+  padding: 20px 24px;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.8) 0%,
-    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.35) 55%,
     rgba(0, 0, 0, 0) 100%
   );
   color: #fff;
@@ -8013,8 +8019,8 @@ body {
 .event-detail-page__hero-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .event-detail-page__tag {
@@ -8041,18 +8047,18 @@ body {
 }
 
 .event-detail-page__hero-overlay h1 {
-  margin: 0 0 24px;
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 400;
-  line-height: 1.12;
+  margin: 0 0 12px;
+  font-size: clamp(1.35rem, 2.5vw, 2rem);
+  font-weight: 600;
+  line-height: 1.2;
   max-width: 900px;
 }
 
 .event-detail-page__hero-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
-  font-size: 16px;
+  gap: 12px 20px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -8065,14 +8071,19 @@ body {
 .event-detail-page__grid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-  gap: 48px;
+  grid-template-areas:
+    "hero sidebar"
+    "content sidebar";
+  gap: 36px 48px;
   align-items: start;
 }
 
 .event-detail-page__content {
+  grid-area: content;
   display: flex;
   flex-direction: column;
   gap: 48px;
+  min-width: 0;
 }
 
 .event-detail-page__section h2,
@@ -8219,11 +8230,23 @@ body {
   margin-bottom: 16px;
 }
 
-.event-detail-page__speaker-head img {
+.event-detail-page__speaker-head img,
+.event-detail-page__speaker-avatar-placeholder {
   width: 80px;
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.event-detail-page__speaker-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffe8d9;
+  color: #f26f21;
+  font-size: 28px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .event-detail-page__speaker-head h4 {
@@ -8304,6 +8327,17 @@ body {
   color: #212121;
 }
 
+.event-detail-page__organizer-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: rgba(242, 111, 33, 0.12);
+  color: #f26f21;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .event-detail-page__organizer-body > p {
   margin: 0;
   max-width: 672px;
@@ -8349,6 +8383,8 @@ body {
 
 .event-detail-page__sidebar {
   position: relative;
+  grid-area: sidebar;
+  align-self: start;
 }
 
 .event-detail-page__register-card {
@@ -8545,6 +8581,11 @@ body {
 @media (max-width: 1024px) {
   .event-detail-page__grid {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "hero"
+      "sidebar"
+      "content";
+    gap: 28px;
   }
 
   .event-detail-page__register-card {
@@ -8565,10 +8606,11 @@ body {
     padding: 24px;
   }
 
-  .event-detail-page__hero,
-  .event-detail-page__hero-img {
-    min-height: 360px;
-    height: 360px;
+  .event-detail-page__hero {
+    aspect-ratio: 16 / 10;
+    min-height: 240px;
+    max-height: 300px;
+    margin-bottom: 28px;
   }
 
   .event-detail-page__organizer {
@@ -9768,6 +9810,34 @@ body {
 
 .ctsv-ed-info-card--wide {
   grid-column: 1 / -1;
+}
+
+.ctsv-ed-info-multiline {
+  display: block;
+  white-space: pre-wrap;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.ctsv-ed-moderation-hint {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #616161;
+  line-height: 1.5;
+}
+
+.ctsv-ed-weather-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #424242;
+  cursor: pointer;
+}
+
+.ctsv-ed-moderation .ctsv-action-buttons {
+  flex-wrap: wrap;
 }
 
 .ctsv-ed-info-label {

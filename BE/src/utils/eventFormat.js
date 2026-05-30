@@ -1,5 +1,6 @@
 const { resolveEventSpeakers } = require('../constants/eventSpeaker');
 const { STATUS_LABELS } = require('../constants/eventWorkflow');
+const { getModerationActionFromStatus } = require('../constants/eventModeration');
 
 const formatDate = (d) => {
   if (!d) return '';
@@ -42,11 +43,21 @@ const formatEvent = (doc) => {
     status: STATUS_LABELS[o.status] || o.status,
     statusKey: o.status,
     image: o.image || o.thumbnail || '',
-    thumbnail: o.thumbnail || o.image || '',
+    thumbnail: o.image || o.thumbnail || '',
     bannerFileName: o.bannerFileName || '',
     eventType: o.eventType || '',
     duration: o.duration || '',
     format: o.format || 'campus',
+    campus: o.campus || '',
+    eventState: o.eventState || 'active',
+    postponeReason: o.postponeReason || '',
+    postponeIsWeather: o.postponeIsWeather === true,
+    statusBeforeModeration: o.statusBeforeModeration || '',
+    moderationReason: o.moderationReason || '',
+    moderationRequestedByEmail: o.moderationRequestedByEmail || '',
+    moderationRequestedAt: o.moderationRequestedAt || null,
+    moderationAction: getModerationActionFromStatus(o.status),
+    isHidden: o.isHidden === true,
     speaker: primarySpeaker?.name || '',
     speakerRole: primarySpeaker?.role || '',
     speakerAvatar: primarySpeaker?.avatar || '',

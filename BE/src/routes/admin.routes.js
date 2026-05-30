@@ -12,6 +12,8 @@ const {
   canAdminApproveSchoolEvent,
   SCHOOL_EVENT_SUBMIT_STATUS
 } = require('../constants/eventWorkflow');
+const { MODERATION_PENDING_STATUSES } = require('../constants/eventModeration');
+const { approveModeration, rejectModeration } = require('../services/eventModeration.service');
 
 router.use(authMiddleware);
 router.use(requireAdmin);
@@ -120,6 +122,58 @@ router.patch('/school-events/:id/approve', async (req, res) => {
     });
   } catch (error) {
     console.error('admin approve school event:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/school-events/moderation', async (req, res) => {
+  try {
+    const events = await Event.find({
+      source: 'school',
+      status: { $in: MODERATION_PENDING_STATUSES }
+    })
+      .sort({ moderationRequestedAt: -1, updatedAt: -1 })
+      .lean();
+    return res.json({
+      success: true,
+      events: events.map((ev) => formatEvent(ev))
+    });
+  } catch (error) {
+    console.error('admin moderation list:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/school-events/:id/moderation/approve', async (req, res) => {
+  try {
+    const result = await approveModeration(req.params.id, req.authEmail);
+    return res.json({
+      success: true,
+      event: formatEvent(result.event),
+      message: result.message
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('admin moderation approve:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/school-events/:id/moderation/reject', async (req, res) => {
+  try {
+    const result = await rejectModeration(req.params.id, req.body?.reason, req.authEmail);
+    return res.json({
+      success: true,
+      event: formatEvent(result.event),
+      message: result.message
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('admin moderation reject:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

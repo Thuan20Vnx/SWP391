@@ -94,6 +94,25 @@ const eventSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
+    postponeIsWeather: {
+      type: Boolean,
+      default: false
+    },
+    statusBeforeModeration: {
+      type: String,
+      default: ''
+    },
+    moderationReason: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    moderationRequestedByEmail: { type: String, default: '' },
+    moderationRequestedAt: { type: Date, default: null },
+    isHidden: {
+      type: Boolean,
+      default: false
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'

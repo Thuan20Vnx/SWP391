@@ -182,30 +182,30 @@ const EventDetail = ({ showToast }) => {
       <SiteHeader activeNav="events" searchPlaceholder="Tìm kiếm sự kiện..." />
 
       <main className="event-detail-page__main">
-        <section className="event-detail-page__hero">
-          <img src={event.thumbnail} alt="" className="event-detail-page__hero-img" />
-          <div className="event-detail-page__hero-overlay">
-            <div className="event-detail-page__hero-tags">
-              <span
-                className="event-detail-page__tag event-detail-page__tag--primary"
-                style={{ backgroundColor: event.categoryColor }}
-              >
-                {event.category.toUpperCase()}
-              </span>
-              <span className="event-detail-page__tag event-detail-page__tag--secondary">
-                {event.secondaryTag}
-              </span>
-            </div>
-            <h1>{event.title}</h1>
-            <div className="event-detail-page__hero-meta">
-              <span><CalendarIcon /> {event.dateShort}</span>
-              <span><ClockIcon /> {event.timeRange}</span>
-              <span><LocationIcon /> {event.location}</span>
-            </div>
-          </div>
-        </section>
-
         <div className="event-detail-page__grid">
+          <section className="event-detail-page__hero">
+            <img src={event.thumbnail} alt="" className="event-detail-page__hero-img" />
+            <div className="event-detail-page__hero-overlay">
+              <div className="event-detail-page__hero-tags">
+                <span
+                  className="event-detail-page__tag event-detail-page__tag--primary"
+                  style={{ backgroundColor: event.categoryColor }}
+                >
+                  {event.category.toUpperCase()}
+                </span>
+                <span className="event-detail-page__tag event-detail-page__tag--secondary">
+                  {event.secondaryTag}
+                </span>
+              </div>
+              <h1>{event.title}</h1>
+              <div className="event-detail-page__hero-meta">
+                <span><CalendarIcon /> {event.dateShort}</span>
+                <span><ClockIcon /> {event.timeRange}</span>
+                <span><LocationIcon /> {event.location}</span>
+              </div>
+            </div>
+          </section>
+
           <div className="event-detail-page__content">
             <section className="event-detail-page__section">
               <div className="event-detail-page__section-title">
@@ -248,23 +248,33 @@ const EventDetail = ({ showToast }) => {
               </div>
             </section>
 
-            <section className="event-detail-page__section">
-              <h2>Diễn giả đồng hành</h2>
-              <div className="event-detail-page__speakers">
-                {event.speakers.map((speaker) => (
-                  <article key={speaker.name} className="event-detail-page__speaker-card">
-                    <div className="event-detail-page__speaker-head">
-                      <img src={speaker.avatar} alt="" />
-                      <div>
-                        <h4>{speaker.name}</h4>
-                        <span>{speaker.role}</span>
+            {event.speakers?.length > 0 && (
+              <section className="event-detail-page__section">
+                <h2>Diễn giả đồng hành</h2>
+                <div className="event-detail-page__speakers">
+                  {event.speakers.map((speaker) => (
+                    <article key={`${speaker.name}-${speaker.role}`} className="event-detail-page__speaker-card">
+                      <div className="event-detail-page__speaker-head">
+                        {speaker.avatar ? (
+                          <img src={speaker.avatar} alt="" />
+                        ) : (
+                          <div className="event-detail-page__speaker-avatar-placeholder" aria-hidden="true">
+                            {speaker.name?.charAt(0) || '?'}
+                          </div>
+                        )}
+                        <div>
+                          <h4>{speaker.name}</h4>
+                          {speaker.role ? <span>{speaker.role}</span> : null}
+                        </div>
                       </div>
-                    </div>
-                    <p className="event-detail-page__speaker-quote">&ldquo;{speaker.quote}&rdquo;</p>
-                  </article>
-                ))}
-              </div>
-            </section>
+                      {speaker.quote ? (
+                        <p className="event-detail-page__speaker-quote">&ldquo;{speaker.quote}&rdquo;</p>
+                      ) : null}
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="event-detail-page__organizer">
               <div className="event-detail-page__organizer-logo">
@@ -273,28 +283,35 @@ const EventDetail = ({ showToast }) => {
               <div className="event-detail-page__organizer-body">
                 <div className="event-detail-page__organizer-top">
                   <h3>{event.organizer.name}</h3>
-                  <div className="event-detail-page__organizer-stats">
-                    <span><strong>{event.organizer.memberCount}+</strong> Thành viên</span>
-                    <span><strong>{event.organizer.eventsHeld}</strong> Sự kiện</span>
-                  </div>
+                  {event.organizer.kind === 'club' && (
+                    <div className="event-detail-page__organizer-stats">
+                      <span><strong>{event.organizer.memberCount}+</strong> Thành viên</span>
+                      <span><strong>{event.organizer.eventsHeld}</strong> Sự kiện</span>
+                    </div>
+                  )}
+                  {event.organizer.kind === 'school' && (
+                    <span className="event-detail-page__organizer-badge">Cấp trường · CTSV</span>
+                  )}
                 </div>
                 <p>{event.organizer.description}</p>
-                <div className="event-detail-page__organizer-actions">
-                  <button
-                    type="button"
-                    className="event-detail-page__btn event-detail-page__btn--primary"
-                    onClick={() => navigate(`/clubs/${event.organizer.slug}`)}
-                  >
-                    Khám phá câu lạc bộ
-                  </button>
-                  <button
-                    type="button"
-                    className="event-detail-page__btn event-detail-page__btn--text"
-                    onClick={() => navigate('/events')}
-                  >
-                    Xem thêm sự kiện từ CLB
-                  </button>
-                </div>
+                {event.organizer.kind === 'club' && event.organizer.slug && (
+                  <div className="event-detail-page__organizer-actions">
+                    <button
+                      type="button"
+                      className="event-detail-page__btn event-detail-page__btn--primary"
+                      onClick={() => navigate(`/clubs/${event.organizer.slug}`)}
+                    >
+                      Khám phá câu lạc bộ
+                    </button>
+                    <button
+                      type="button"
+                      className="event-detail-page__btn event-detail-page__btn--text"
+                      onClick={() => navigate('/events')}
+                    >
+                      Xem thêm sự kiện từ CLB
+                    </button>
+                  </div>
+                )}
               </div>
             </section>
           </div>

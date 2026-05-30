@@ -31,3 +31,14 @@ export const approveAdminSchoolEvent = (id) =>
 
 export const rejectAdminSchoolEvent = (id, reason = '') =>
   adminFetch(`/school-events/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+
+export const fetchAdminModerationRequests = () => adminFetch('/school-events/moderation');
+
+export const approveAdminModeration = (id) =>
+  adminFetch(`/school-events/${id}/moderation/approve`, { method: 'PATCH', body: '{}' });
+
+export const rejectAdminModeration = (id, reason = '') =>
+  adminFetch(`/school-events/${id}/moderation/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason })
+  });

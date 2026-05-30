@@ -30,6 +30,13 @@ const CATEGORY_FORM_ALIASES = {
   Công: 'Công nghệ'
 };
 
+export const getCategoryDisplayLabel = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '—';
+  const match = CTSV_CATEGORY_OPTIONS.find((opt) => opt.value === raw);
+  return match?.label || raw;
+};
+
 export const normalizeEventCategory = (input) => {
   const raw = String(input ?? '').trim();
   if (!raw) return 'Khác';

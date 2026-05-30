@@ -12,7 +12,12 @@ const EVENT_STATUSES = [
   'pending_admin',
   'revision',
   'live',
-  'ended'
+  'ended',
+  'pending_cancel',
+  'pending_hide',
+  'pending_postpone',
+  'cancelled',
+  'hidden'
 ];
 
 /** CTSV gửi đơn tổ chức sự kiện cấp trường → chờ Admin */
@@ -22,6 +27,22 @@ const SCHOOL_EVENT_SUBMIT_STATUS = 'pending_admin';
 const SCHOOL_EVENT_APPROVED_STATUS = 'approved';
 
 const SCHOOL_EVENT_PUBLIC_STATUSES = ['approved', 'live'];
+
+const NON_PUBLIC_STATUSES = [
+  'cancelled',
+  'hidden',
+  'pending_cancel',
+  'pending_hide',
+  'pending_postpone'
+];
+
+/** Sự kiện hiển thị / đăng ký trên cổng sinh viên */
+const isEventPubliclyVisible = (eventOrStatus) => {
+  const status = typeof eventOrStatus === 'string' ? eventOrStatus : eventOrStatus?.status;
+  const isHidden = typeof eventOrStatus === 'object' && eventOrStatus?.isHidden === true;
+  if (isHidden || NON_PUBLIC_STATUSES.includes(status)) return false;
+  return SCHOOL_EVENT_PUBLIC_STATUSES.includes(status);
+};
 
 /** Trạng thái CTSV được sửa và gửi lại Admin trước khi publish */
 const SCHOOL_EVENT_EDITABLE_STATUSES = [
@@ -40,7 +61,12 @@ const STATUS_LABELS = {
   pending_admin: 'CHỜ ADMIN DUYỆT',
   revision: 'CẦN CHỈNH SỬA',
   live: 'ĐANG DIỄN RA',
-  ended: 'ĐÃ KẾT THÚC'
+  ended: 'ĐÃ KẾT THÚC',
+  pending_cancel: 'CHỜ ADMIN — HỦY',
+  pending_hide: 'CHỜ ADMIN — ẨN',
+  pending_postpone: 'CHỜ ADMIN — HOÃN',
+  cancelled: 'ĐÃ HỦY',
+  hidden: 'ĐÃ ẨN'
 };
 
 const canAdminApproveSchoolEvent = (event) =>
@@ -76,6 +102,8 @@ module.exports = {
   SCHOOL_EVENT_SUBMIT_STATUS,
   SCHOOL_EVENT_APPROVED_STATUS,
   SCHOOL_EVENT_PUBLIC_STATUSES,
+  NON_PUBLIC_STATUSES,
+  isEventPubliclyVisible,
   SCHOOL_EVENT_EDITABLE_STATUSES,
   STATUS_LABELS,
   canAdminApproveSchoolEvent,
