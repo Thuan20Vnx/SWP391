@@ -135,7 +135,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
             className={tab === 'moderation' ? 'ctsv-btn-primary' : 'ctsv-btn-secondary'}
             onClick={() => setTab('moderation')}
           >
-            Hủy / Hoãn / Ẩn
+            Quản lý sự kiện
           </button>
         </div>
 
@@ -147,7 +147,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
           </p>
         ) : tab === 'moderation' && modEvents.length === 0 ? (
           <p style={{ padding: 32, textAlign: 'center', background: '#fff', borderRadius: 12 }}>
-            Không có yêu cầu hủy / hoãn / ẩn chờ Admin.
+            Không có yêu cầu quản lý sự kiện (hủy / hoãn / ẩn / chỉnh sửa) chờ Admin.
           </p>
         ) : tab === 'submit' ? (
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>

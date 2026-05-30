@@ -35,7 +35,7 @@ const requestModeration = async (eventId, { action, reason, isWeatherPostpone },
     throw new AppError('Chỉ áp dụng cho sự kiện cấp trường.', 400);
   }
   if (!canCtsvRequestModeration(event)) {
-    throw new AppError('Sự kiện không thể gửi yêu cầu hủy/hoãn/ẩn ở trạng thái hiện tại.', 400);
+    throw new AppError('Sự kiện không thể gửi yêu cầu quản lý ở trạng thái hiện tại.', 400);
   }
 
   if (action === 'postpone' && isWeatherPostpone === true) {
@@ -60,7 +60,7 @@ const requestModeration = async (eventId, { action, reason, isWeatherPostpone },
 
   await event.save();
 
-  const actionLabels = { cancel: 'hủy', hide: 'ẩn', postpone: 'hoãn' };
+  const actionLabels = { cancel: 'hủy', hide: 'ẩn', postpone: 'hoãn', edit: 'chỉnh sửa' };
   return {
     message: `Đã gửi yêu cầu ${actionLabels[action]} — chờ Admin phê duyệt.`,
     event
@@ -88,6 +88,11 @@ const approveModeration = async (eventId, authEmail) => {
   } else if (action === 'postpone') {
     event.status = previous;
     event.eventState = 'postponed';
+    event.postponeIsWeather = false;
+  } else if (action === 'edit') {
+    event.status = 'approved';
+    event.eventState = 'active';
+    event.postponeReason = '';
     event.postponeIsWeather = false;
   }
 
@@ -125,7 +130,7 @@ const rejectModeration = async (eventId, reason, authEmail) => {
   event.rejectionReason = trimmedReason;
   event.adminApprovedByEmail = authEmail || '';
 
-  if (action === 'postpone') {
+  if (action === 'postpone' || action === 'edit') {
     event.postponeReason = '';
     event.eventState = 'active';
   }

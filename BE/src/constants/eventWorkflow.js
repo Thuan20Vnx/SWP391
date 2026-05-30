@@ -16,6 +16,7 @@ const EVENT_STATUSES = [
   'pending_cancel',
   'pending_hide',
   'pending_postpone',
+  'pending_edit',
   'cancelled',
   'hidden'
 ];
@@ -33,7 +34,8 @@ const NON_PUBLIC_STATUSES = [
   'hidden',
   'pending_cancel',
   'pending_hide',
-  'pending_postpone'
+  'pending_postpone',
+  'pending_edit'
 ];
 
 /** Sự kiện hiển thị / đăng ký trên cổng sinh viên */
@@ -65,6 +67,7 @@ const STATUS_LABELS = {
   pending_cancel: 'CHỜ ADMIN — HỦY',
   pending_hide: 'CHỜ ADMIN — ẨN',
   pending_postpone: 'CHỜ ADMIN — HOÃN',
+  pending_edit: 'CHỜ ADMIN — CHỈNH SỬA',
   cancelled: 'ĐÃ HỦY',
   hidden: 'ĐÃ ẨN'
 };

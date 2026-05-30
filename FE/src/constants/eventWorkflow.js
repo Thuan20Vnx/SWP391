@@ -13,7 +13,8 @@ const NON_PUBLIC_STATUSES = [
   'hidden',
   'pending_cancel',
   'pending_hide',
-  'pending_postpone'
+  'pending_postpone',
+  'pending_edit'
 ];
 
 export const isEventPubliclyVisible = (eventOrStatus) => {
@@ -38,6 +39,7 @@ export const SCHOOL_EVENT_STATUS_LABELS = {
   pending_cancel: 'Chờ Admin — Hủy',
   pending_hide: 'Chờ Admin — Ẩn',
   pending_postpone: 'Chờ Admin — Hoãn',
+  pending_edit: 'Chờ Admin — Chỉnh sửa',
   cancelled: 'Đã hủy',
   hidden: 'Đã ẩn'
 };

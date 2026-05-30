@@ -2,20 +2,27 @@
  * Code First — yêu cầu hủy / hoãn / ẩn sự kiện cấp trường (đồng bộ FE)
  */
 
-const MODERATION_ACTIONS = ['cancel', 'hide', 'postpone'];
+const MODERATION_ACTIONS = ['cancel', 'hide', 'postpone', 'edit'];
 
-const MODERATION_PENDING_STATUSES = ['pending_cancel', 'pending_hide', 'pending_postpone'];
+const MODERATION_PENDING_STATUSES = [
+  'pending_cancel',
+  'pending_hide',
+  'pending_postpone',
+  'pending_edit'
+];
 
 const MODERATION_STATUS_BY_ACTION = {
   cancel: 'pending_cancel',
   hide: 'pending_hide',
-  postpone: 'pending_postpone'
+  postpone: 'pending_postpone',
+  edit: 'pending_edit'
 };
 
 const MODERATION_ACTION_LABELS = {
   cancel: 'Hủy sự kiện',
   hide: 'Ẩn sự kiện',
-  postpone: 'Hoãn sự kiện'
+  postpone: 'Hoãn sự kiện',
+  edit: 'Chỉnh sửa sự kiện'
 };
 
 /** Trạng thái CTSV được gửi yêu cầu điều phối (trước & sau publish) */
@@ -32,6 +39,7 @@ const getModerationActionFromStatus = (status) => {
   if (status === 'pending_cancel') return 'cancel';
   if (status === 'pending_hide') return 'hide';
   if (status === 'pending_postpone') return 'postpone';
+  if (status === 'pending_edit') return 'edit';
   return null;
 };
 
