@@ -1,15 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import BannerCropModal from '../../components/ctsv/BannerCropModal';
+import AvatarCropModal from '../../components/profile/AvatarCropModal';
 import AppSelect from '../../components/ui/AppSelect';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import { createCtsvEvent } from '../../services/ctsvApi';
+import { createCtsvEvent, fetchCtsvEvent, updateCtsvEvent } from '../../services/ctsvApi';
 import {
   clearSchoolEventDraft,
   formatDraftSavedLabel,
   loadSchoolEventDraft,
   saveSchoolEventDraft
 } from '../../utils/schoolEventDraft';
+import {
+  SPEAKER_AVATAR_MAX_BYTES,
+  SPEAKER_IMAGE_ACCEPT,
+  buildSpeakersPayload,
+  createEmptySpeakerRow,
+  resolveEventSpeakers
+} from '../../constants/eventSpeaker';
+import { CTSV_CATEGORY_OPTIONS, normalizeEventCategory } from '../../constants/eventCategories';
+import { canCtsvEditSchoolEvent } from '../../constants/eventWorkflow';
 
 const TICKET_AUDIENCE_OPTIONS = ['SV FPT', 'Khách ngoài trường', 'Tất cả'];
 
@@ -24,7 +34,7 @@ const EVENT_TYPES = [
   'Khác'
 ];
 
-const CATEGORIES = ['Công nghệ (IT)', 'Âm nhạc', 'Workshop', 'Kết nối', 'Thể thao', 'Khác'];
+const CATEGORIES = CTSV_CATEGORY_OPTIONS;
 
 const TICKET_CAP_EXTRA = 10;
 
@@ -126,10 +136,65 @@ const buildDateTime = (dateStr, timeStr) => {
   return `${dateStr}T${t}`;
 };
 
+const toInputDate = (value) => {
+  if (!value) return '';
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return '';
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const d = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const toInputTime = (value) => {
+  if (!value) return '14:00';
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return '14:00';
+  return `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+};
+
+const mapEventToForm = (event) => ({
+  title: event.title || '',
+  eventType: event.eventType || 'Hội thảo & Workshop',
+  category: normalizeEventCategory(event.category),
+  description: event.description || '',
+  eventDate: toInputDate(event.startDate),
+  startTime: toInputTime(event.startDate),
+  duration: event.duration || '3 tiếng',
+  format: event.format || 'campus',
+  location: event.location || '',
+  expectedAttendees: event.expectedAttendees ? String(event.expectedAttendees) : '',
+  agenda: event.agenda || '',
+  image: event.image || ''
+});
+
+const mapEventToTickets = (event) => {
+  if (!event.ticketTypes?.length) return DEFAULT_TICKETS;
+  return event.ticketTypes.map((t, index) => ({
+    id: index + 1,
+    name: t.name || '',
+    priceType: t.priceType === 'paid' ? 'paid' : 'free',
+    priceAmount: t.priceType === 'paid' && t.priceAmount ? String(t.priceAmount) : '',
+    qty: Number(t.qty ?? t.quantity) || 0,
+    audience: t.audience || 'SV FPT'
+  }));
+};
+
+const mapEventToSpeakers = (event) => {
+  const list = resolveEventSpeakers(event);
+  if (!list.length) return [];
+  return list.map((speaker, index) => ({
+    id: index + 1,
+    name: speaker.name || '',
+    role: speaker.role || '',
+    avatar: speaker.avatar || ''
+  }));
+};
+
 const EMPTY_FORM = {
   title: '',
   eventType: 'Hội thảo & Workshop',
-  category: 'Công nghệ (IT)',
+  category: 'Công nghệ',
   description: '',
   eventDate: '',
   startTime: '14:00',
@@ -137,28 +202,57 @@ const EMPTY_FORM = {
   format: 'campus',
   location: '',
   expectedAttendees: '',
-  speaker: '',
   agenda: '',
   image: ''
 };
 
 const CtsvEventCreate = () => {
+  const { id: editEventId } = useParams();
+  const location = useLocation();
+  const isEditMode = Boolean(editEventId && location.pathname.endsWith('/edit'));
   const navigate = useNavigate();
   const { showToast } = useOutletContext() || {};
+  const [loadingEvent, setLoadingEvent] = useState(isEditMode);
   const [submitting, setSubmitting] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [expectedAttendeesError, setExpectedAttendeesError] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [tickets, setTickets] = useState(DEFAULT_TICKETS);
+  const [speakers, setSpeakers] = useState([]);
   const [bannerFileName, setBannerFileName] = useState('');
   const [cropOpen, setCropOpen] = useState(false);
   const [cropSource, setCropSource] = useState('');
   const [cropFileName, setCropFileName] = useState('');
+  const [speakerCrop, setSpeakerCrop] = useState({ open: false, speakerId: null, source: '', fileName: '' });
   const bannerInputRef = useRef(null);
   const draftRestoreToastShownRef = useRef(false);
 
   useEffect(() => {
+    if (!isEditMode || !editEventId) return;
+    setLoadingEvent(true);
+    fetchCtsvEvent(editEventId)
+      .then((data) => {
+        const event = data.event;
+        if (!canCtsvEditSchoolEvent(event)) {
+          showToast?.('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 'error');
+          navigate(`/ctsv/events/${editEventId}`);
+          return;
+        }
+        setForm(mapEventToForm(event));
+        setTickets(mapEventToTickets(event));
+        setSpeakers(mapEventToSpeakers(event));
+        setBannerFileName(event.bannerFileName || '');
+      })
+      .catch((err) => {
+        showToast?.(err.message || 'Không tải được sự kiện.', 'error');
+        navigate('/ctsv/events');
+      })
+      .finally(() => setLoadingEvent(false));
+  }, [isEditMode, editEventId, navigate, showToast]);
+
+  useEffect(() => {
+    if (isEditMode) return;
     const draft = loadSchoolEventDraft();
     if (!draft?.form) return;
     const hasContent =
@@ -168,15 +262,32 @@ const CtsvEventCreate = () => {
       draft.form.image ||
       draft.form.location;
     if (!hasContent) return;
-    setForm({ ...EMPTY_FORM, ...draft.form, expectedAttendees: draft.form.expectedAttendees ?? '' });
+    setForm({
+      ...EMPTY_FORM,
+      ...draft.form,
+      expectedAttendees: draft.form.expectedAttendees ?? '',
+      category: normalizeEventCategory(draft.form.category)
+    });
     if (draft.tickets?.length) setTickets(draft.tickets);
+    if (draft.speakers?.length) {
+      setSpeakers(draft.speakers);
+    } else if (draft.form?.speaker) {
+      setSpeakers([
+        {
+          id: 1,
+          name: draft.form.speaker,
+          role: draft.form.speakerRole || '',
+          avatar: draft.form.speakerAvatar || ''
+        }
+      ]);
+    }
     if (draft.bannerFileName) setBannerFileName(draft.bannerFileName);
     if (draft.savedAt) setDraftSavedAt(draft.savedAt);
     if (!draftRestoreToastShownRef.current) {
       draftRestoreToastShownRef.current = true;
       showToast?.('Đã khôi phục bản nháp tạo sự kiện.', 'info');
     }
-  }, [showToast]);
+  }, [showToast, isEditMode]);
 
   const parsedExpected = parseExpectedAttendees(form.expectedAttendees);
   const maxTicketTotal = getMaxTicketTotal(form.expectedAttendees);
@@ -194,6 +305,67 @@ const CtsvEventCreate = () => {
       return;
     }
     setForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const updateSpeaker = (id, field, value) => {
+    setSpeakers((rows) => rows.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+  };
+
+  const handleSpeakerAvatarFile = (id, file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast?.('Chỉ chấp nhận file ảnh JPG, PNG hoặc WebP.', 'error');
+      return;
+    }
+    if (file.size > SPEAKER_AVATAR_MAX_BYTES) {
+      showToast?.('Ảnh đại diện tối đa 2MB. Vui lòng chọn file nhỏ hơn.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSpeakerCrop({
+        open: true,
+        speakerId: id,
+        source: reader.result,
+        fileName: file.name
+      });
+    };
+    reader.onerror = () => showToast?.('Không đọc được file ảnh.', 'error');
+    reader.readAsDataURL(file);
+  };
+
+  const openSpeakerAvatarEditor = (id) => {
+    const row = speakers.find((s) => s.id === id);
+    if (!row?.avatar) return;
+    setSpeakerCrop({
+      open: true,
+      speakerId: id,
+      source: row.avatar,
+      fileName: 'speaker-avatar.jpg'
+    });
+  };
+
+  const onSpeakerCropConfirm = (dataUrl) => {
+    const { speakerId } = speakerCrop;
+    setSpeakerCrop({ open: false, speakerId: null, source: '', fileName: '' });
+    if (!dataUrl || speakerId == null) {
+      if (dataUrl === null) showToast?.('Không xử lý được ảnh. Vui lòng thử lại.', 'error');
+      return;
+    }
+    setSpeakers((rows) => rows.map((r) => (r.id === speakerId ? { ...r, avatar: dataUrl } : r)));
+    showToast?.('Đã cập nhật ảnh đại diện diễn giả.', 'success');
+  };
+
+  const onSpeakerCropCancel = () => {
+    setSpeakerCrop({ open: false, speakerId: null, source: '', fileName: '' });
+  };
+
+  const addSpeakerRow = () => {
+    setSpeakers((rows) => [...rows, createEmptySpeakerRow()]);
+  };
+
+  const removeSpeakerRow = (id) => {
+    setSpeakers((rows) => rows.filter((r) => r.id !== id));
   };
 
   const onExpectedAttendeesBlur = () => {
@@ -305,7 +477,7 @@ const CtsvEventCreate = () => {
   };
 
   const persistDraft = () => {
-    const at = saveSchoolEventDraft({ form, tickets, bannerFileName });
+    const at = saveSchoolEventDraft({ form, tickets, speakers, bannerFileName });
     if (at) setDraftSavedAt(at);
     showToast?.('Đã lưu bản nháp.', 'success');
   };
@@ -353,29 +525,42 @@ const CtsvEventCreate = () => {
       qty: Number(t.qty) || 0,
       audience: t.audience
     }));
+    const speakerPayload = buildSpeakersPayload(speakers);
+
+    const payload = {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      category: normalizeEventCategory(form.category),
+      startDate: buildDateTime(form.eventDate, form.startTime),
+      location: form.location,
+      totalTickets: Number(totalTickets) || 100,
+      image: form.image,
+      bannerFileName,
+      eventType: form.eventType,
+      duration: form.duration,
+      format: form.format,
+      speakers: speakerPayload,
+      agenda: form.agenda,
+      expectedAttendees: parsedExpected,
+      ticketTypes
+    };
 
     setSubmitting(true);
     try {
-      const res = await createCtsvEvent({
-        title: form.title.trim(),
-        description: form.description.trim(),
-        category: form.category.replace(' (IT)', '').split(' ')[0] || form.category,
-        startDate: buildDateTime(form.eventDate, form.startTime),
-        location: form.location,
-        totalTickets: Number(totalTickets) || 100,
-        image: form.image,
-        bannerFileName,
-        eventType: form.eventType,
-        duration: form.duration,
-        format: form.format,
-        speaker: form.speaker,
-        agenda: form.agenda,
-        expectedAttendees: parsedExpected,
-        ticketTypes
-      });
-      clearSchoolEventDraft();
-      setDraftSavedAt(null);
-      showToast?.('Đã lưu sự kiện cấp trường!', 'success');
+      const res = isEditMode
+        ? await updateCtsvEvent(editEventId, payload)
+        : await createCtsvEvent(payload);
+      if (!isEditMode) {
+        clearSchoolEventDraft();
+        setDraftSavedAt(null);
+      }
+      showToast?.(
+        res.message ||
+          (isEditMode
+            ? 'Đã cập nhật và gửi lại Admin phê duyệt.'
+            : 'Đã gửi đơn tổ chức sự kiện. Chờ Admin phê duyệt.'),
+        'success'
+      );
       navigate(`/ctsv/events/${res.event.id}`);
     } catch (err) {
       showToast?.(err.message, 'error');
@@ -386,24 +571,37 @@ const CtsvEventCreate = () => {
   };
 
   const draftLabel = formatDraftSavedLabel(draftSavedAt);
+  const cancelPath = isEditMode ? `/ctsv/events/${editEventId}` : '/ctsv/events';
+
+  if (loadingEvent) {
+    return (
+      <div className="ctsv-page ctsv-create-page">
+        <p className="ctsv-muted">Đang tải thông tin sự kiện…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="ctsv-page ctsv-create-page">
       <ConfirmDialog
         open={confirmAction === 'cancel'}
-        title="Hủy tạo sự kiện?"
+        title={isEditMode ? 'Hủy chỉnh sửa?' : 'Hủy tạo sự kiện?'}
         message="Thay đổi chưa lưu sẽ bị bỏ. Bạn có chắc muốn rời khỏi trang?"
         confirmLabel="Rời trang"
         cancelLabel="Ở lại"
-        onConfirm={() => navigate('/ctsv/events')}
+        onConfirm={() => navigate(cancelPath)}
         onCancel={() => setConfirmAction(null)}
         danger
       />
       <ConfirmDialog
         open={confirmAction === 'submit'}
-        title="Lưu sự kiện cấp trường?"
-        message="Sự kiện sẽ được tạo và lưu vào hệ thống. Bạn có chắc muốn tiếp tục?"
-        confirmLabel="Lưu & Cập nhật"
+        title={isEditMode ? 'Gửi lại Admin phê duyệt?' : 'Gửi đơn tổ chức sự kiện?'}
+        message={
+          isEditMode
+            ? 'Thông tin sẽ được cập nhật và gửi lại Admin. Sự kiện chỉ publish được sau khi Admin duyệt lại.'
+            : 'Đơn sẽ được gửi lên Admin để phê duyệt. Sau khi Admin duyệt, bạn mới có thể publish và mở đăng ký.'
+        }
+        confirmLabel={isEditMode ? 'Gửi lại Admin' : 'Gửi đơn'}
         cancelLabel="Quay lại"
         onConfirm={doSubmit}
         onCancel={() => !submitting && setConfirmAction(null)}
@@ -413,13 +611,23 @@ const CtsvEventCreate = () => {
       <nav className="ctsv-breadcrumb" aria-label="Breadcrumb">
         <Link to="/ctsv/events">Quản lý sự kiện</Link>
         <span className="ctsv-breadcrumb-sep">/</span>
-        <span>Tạo sự kiện cấp trường</span>
+        {isEditMode ? (
+          <>
+            <Link to={`/ctsv/events/${editEventId}`}>Chi tiết sự kiện</Link>
+            <span className="ctsv-breadcrumb-sep">/</span>
+            <span>Chỉnh sửa</span>
+          </>
+        ) : (
+          <span>Tạo sự kiện cấp trường</span>
+        )}
       </nav>
 
       <header className="ctsv-create-header">
-        <h1>TẠO SỰ KIỆN CẤP TRƯỜNG</h1>
+        <h1>{isEditMode ? 'CHỈNH SỬA SỰ KIỆN CẤP TRƯỜNG' : 'TẠO SỰ KIỆN CẤP TRƯỜNG'}</h1>
         <p className="ctsv-muted">
-          Cập nhật các thông tin chi tiết của sự kiện trước khi lưu thay đổi.
+          {isEditMode
+            ? 'Cập nhật thông tin và gửi lại Admin phê duyệt trước khi publish.'
+            : 'Điền thông tin chi tiết và gửi đơn tổ chức. Admin sẽ phê duyệt trước khi mở đăng ký.'}
         </p>
         {draftLabel && (
           <p className="ctsv-create-draft-status" aria-live="polite">
@@ -462,7 +670,7 @@ const CtsvEventCreate = () => {
                   name="category"
                   value={form.category}
                   onChange={onChange}
-                  options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                  options={CATEGORIES}
                 />
               </Field>
             </div>
@@ -532,14 +740,116 @@ const CtsvEventCreate = () => {
                 )}
               </Field>
             </div>
-            <Field label="Diễn giả / Khách mời">
-              <input
-                name="speaker"
-                value={form.speaker}
-                onChange={onChange}
-                className="ctsv-input"
-                placeholder="Anh Trần Xuân Thuận - Tech Lead"
-              />
+            <Field label="Diễn giả / Khách mời" hint="Thêm từng diễn giả. Có thể tải, cắt/chỉnh sửa hoặc đổi ảnh đại diện.">
+              <div className="ctsv-speaker-table-wrap">
+                <table className="ctsv-speaker-table">
+                  <thead>
+                    <tr>
+                      <th>Avatar</th>
+                      <th>Họ tên</th>
+                      <th>Chức vụ</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {speakers.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="ctsv-speaker-empty">
+                          Chưa có diễn giả. Bấm &ldquo;Thêm diễn giả&rdquo; bên dưới.
+                        </td>
+                      </tr>
+                    ) : (
+                      speakers.map((row) => (
+                        <tr key={row.id}>
+                          <td className="ctsv-speaker-avatar-cell">
+                            <div className="ctsv-speaker-avatar-wrap">
+                              <label
+                                htmlFor={`speaker-avatar-${row.id}`}
+                                className={`ctsv-speaker-avatar-dropzone ${row.avatar ? 'has-image' : ''}`}
+                                aria-label={row.avatar ? 'Đổi ảnh đại diện diễn giả' : 'Tải ảnh đại diện diễn giả'}
+                              >
+                                {row.avatar ? (
+                                  <>
+                                    <img src={row.avatar} alt="" className="ctsv-speaker-avatar-preview" />
+                                    <span className="ctsv-speaker-avatar-overlay">Đổi ảnh</span>
+                                  </>
+                                ) : (
+                                  <span className="ctsv-speaker-avatar-placeholder">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+                                      <path
+                                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                                        fill="currentColor"
+                                        opacity="0.35"
+                                      />
+                                    </svg>
+                                  </span>
+                                )}
+                              </label>
+                              <input
+                                id={`speaker-avatar-${row.id}`}
+                                type="file"
+                                accept={SPEAKER_IMAGE_ACCEPT}
+                                className="ctsv-file-input-hidden"
+                                onChange={(e) => {
+                                  handleSpeakerAvatarFile(row.id, e.target.files?.[0]);
+                                  e.target.value = '';
+                                }}
+                              />
+                            </div>
+                            {row.avatar && (
+                              <div className="ctsv-speaker-avatar-tools">
+                                <button
+                                  type="button"
+                                  className="ctsv-speaker-avatar-tool"
+                                  onClick={() => openSpeakerAvatarEditor(row.id)}
+                                >
+                                  Chỉnh sửa
+                                </button>
+                                <button
+                                  type="button"
+                                  className="ctsv-speaker-avatar-tool ctsv-speaker-avatar-tool--danger"
+                                  onClick={() => updateSpeaker(row.id, 'avatar', '')}
+                                >
+                                  Xóa
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <input
+                              value={row.name}
+                              onChange={(e) => updateSpeaker(row.id, 'name', e.target.value)}
+                              className="ctsv-input ctsv-input-table"
+                              placeholder="Họ tên diễn giả"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={row.role}
+                              onChange={(e) => updateSpeaker(row.id, 'role', e.target.value)}
+                              className="ctsv-input ctsv-input-table"
+                              placeholder="Chức vụ (VD: Tech Lead)"
+                            />
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="ctsv-ticket-remove"
+                              onClick={() => removeSpeakerRow(row.id)}
+                              aria-label="Xóa diễn giả"
+                            >
+                              ×
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" className="ctsv-btn-add-ticket" onClick={addSpeakerRow}>
+                + Thêm diễn giả
+              </button>
             </Field>
             <Field label="Lịch trình chi tiết (Agenda)">
               <textarea
@@ -720,13 +1030,19 @@ const CtsvEventCreate = () => {
           <button
             type="button"
             className="ctsv-btn-draft"
-            disabled={submitting}
+            disabled={submitting || isEditMode}
             onClick={persistDraft}
           >
             Lưu nháp
           </button>
           <button type="submit" className="ctsv-btn-primary ctsv-btn-save" disabled={submitting}>
-            {submitting ? 'Đang lưu...' : 'Lưu & Cập nhật'}
+            {submitting
+              ? isEditMode
+                ? 'Đang gửi lại...'
+                : 'Đang gửi...'
+              : isEditMode
+                ? 'Gửi lại Admin'
+                : 'Gửi đơn tổ chức'}
           </button>
         </footer>
       </form>
@@ -737,6 +1053,14 @@ const CtsvEventCreate = () => {
         fileName={cropFileName}
         onConfirm={onCropConfirm}
         onCancel={onCropCancel}
+      />
+
+      <AvatarCropModal
+        open={speakerCrop.open}
+        imageSrc={speakerCrop.source}
+        fileName={speakerCrop.fileName}
+        onConfirm={onSpeakerCropConfirm}
+        onCancel={onSpeakerCropCancel}
       />
     </div>
   );

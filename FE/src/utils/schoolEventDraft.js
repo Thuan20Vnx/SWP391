@@ -14,6 +14,7 @@ export const loadSchoolEventDraft = () => {
     return {
       form: data.form || null,
       tickets: Array.isArray(data.tickets) ? data.tickets : null,
+      speakers: Array.isArray(data.speakers) ? data.speakers : null,
       bannerFileName: String(data.bannerFileName || ''),
       savedAt: data.savedAt || null
     };
@@ -26,6 +27,7 @@ export const saveSchoolEventDraft = (payload) => {
   const data = {
     form: payload.form ?? {},
     tickets: payload.tickets ?? [],
+    speakers: payload.speakers ?? [],
     bannerFileName: payload.bannerFileName ?? '',
     savedAt: Date.now()
   };

@@ -1,14 +1,5 @@
-const STATUS_LABELS = {
-  pending: 'CHỜ DUYỆT',
-  approved: 'MỞ ĐĂNG KÝ',
-  rejected: 'TỪ CHỐI',
-  draft: 'Bản nháp',
-  pending_icpdp: 'CHỜ ICPDP',
-  pending_ctsv: 'CHỜ CTSV DUYỆT',
-  revision: 'CẦN CHỈNH SỬA',
-  live: 'ĐANG DIỄN RA',
-  ended: 'ĐÃ KẾT THÚC'
-};
+const { resolveEventSpeakers } = require('../constants/eventSpeaker');
+const { STATUS_LABELS } = require('../constants/eventWorkflow');
 
 const formatDate = (d) => {
   if (!d) return '';
@@ -32,6 +23,8 @@ const formatEvent = (doc) => {
   const o = doc.toObject ? doc.toObject({ virtuals: true }) : { ...doc };
   const cap = o.capacity || o.totalTickets || 0;
   const remaining = Math.max(0, cap - (o.registeredCount || 0));
+  const speakers = resolveEventSpeakers(o);
+  const primarySpeaker = speakers[0];
   return {
     id: o._id?.toString() || o.id,
     title: o.title,
@@ -54,7 +47,10 @@ const formatEvent = (doc) => {
     eventType: o.eventType || '',
     duration: o.duration || '',
     format: o.format || 'campus',
-    speaker: o.speaker || '',
+    speaker: primarySpeaker?.name || '',
+    speakerRole: primarySpeaker?.role || '',
+    speakerAvatar: primarySpeaker?.avatar || '',
+    speakers,
     agenda: o.agenda || '',
     expectedAttendees: o.expectedAttendees ?? 0,
     ticketTypes: o.ticketTypes || [],
@@ -63,6 +59,10 @@ const formatEvent = (doc) => {
     managedByCtsv: o.source === 'school',
     createdByEmail: o.createdByEmail,
     approvedByEmail: o.approvedByEmail,
+    ctsvSubmittedByEmail: o.ctsvSubmittedByEmail || '',
+    ctsvSubmittedAt: o.ctsvSubmittedAt || null,
+    adminApprovedByEmail: o.adminApprovedByEmail || '',
+    adminApprovedAt: o.adminApprovedAt || null,
     ctsvNote: o.ctsvNote,
     rejectionReason: o.rejectionReason,
     expectedRevenue: o.expectedRevenue || 0,

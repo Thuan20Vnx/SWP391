@@ -3,6 +3,7 @@
  * Dùng bởi seed-events.js (Code First → MongoDB)
  */
 const { EVENT_CAMPUS } = require('../constants/eventVenues');
+const { SAMPLE_SPEAKERS } = require('./speakerSeedData');
 
 const eventSeedData = [
   {
@@ -19,6 +20,7 @@ const eventSeedData = [
     status: 'approved',
     eventState: 'expired',
     ticketPrice: 0,
+    speakers: SAMPLE_SPEAKERS.techWorkshop,
   },
   {
     title: 'Lễ hội Văn hóa FPT: Bản sắc Việt Nam',
@@ -34,6 +36,7 @@ const eventSeedData = [
     status: 'approved',
     eventState: 'active',
     ticketPrice: 50000,
+    speakers: SAMPLE_SPEAKERS.cultureFest,
   },
   {
     title: 'Diễn đàn Kinh tế Trẻ 4.0',
@@ -49,6 +52,7 @@ const eventSeedData = [
     status: 'approved',
     eventState: 'active',
     ticketPrice: 100000,
+    speakers: SAMPLE_SPEAKERS.careerForum,
   },
   {
     title: 'Workshop: Kỹ năng tranh biện (Debate)',

@@ -22,3 +22,12 @@ export const approveAdminPartner = (id) =>
 
 export const rejectAdminPartner = (id, reason = '') =>
   adminFetch(`/partners/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+
+export const fetchAdminSchoolEvents = (status = 'pending_admin') =>
+  adminFetch(`/school-events?status=${encodeURIComponent(status)}`);
+
+export const approveAdminSchoolEvent = (id) =>
+  adminFetch(`/school-events/${id}/approve`, { method: 'PATCH', body: '{}' });
+
+export const rejectAdminSchoolEvent = (id, reason = '') =>
+  adminFetch(`/school-events/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });

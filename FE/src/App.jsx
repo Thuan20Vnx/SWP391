@@ -30,6 +30,7 @@ import ClubDetail from './pages/ClubDetail';
 import CreateEvent from './pages/CreateEvent';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminPartnerApprovals from './pages/admin/AdminPartnerApprovals';
+import AdminSchoolEventApprovals from './pages/admin/AdminSchoolEventApprovals';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
 import Schedule from './pages/Schedule';
@@ -90,6 +91,7 @@ function App() {
               <Route path="dashboard" element={<CtsvDashboard />} />
               <Route path="events" element={<CtsvEventList />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
+              <Route path="events/:id/edit" element={<CtsvEventCreate />} />
               <Route path="events/:id" element={<CtsvEventDetail />} />
               <Route path="proposals" element={<CtsvProposalList />} />
               <Route path="proposals/:id" element={<CtsvProposalDetail />} />
@@ -149,14 +151,21 @@ function App() {
             }
           />
           <Route
+            path="/admin/events/school-approvals"
+            element={
+              <ProtectedRoute>
+                <AdminSchoolEventApprovals showToast={showToast} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/partners"
             element={
               <ProtectedRoute>
                 <AdminPartnerApprovals showToast={showToast} />
               </ProtectedRoute>
             }
-          />
-          <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
+          />          <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
           <Route
             path="/my-events"
             element={

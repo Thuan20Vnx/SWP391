@@ -1,25 +1,14 @@
 import { getCategoryColor, getFillPercent } from './eventDiscoveryData';
 import { formatVnd } from '../utils/ticketPricing';
+import { SAMPLE_SPEAKERS } from './speakerSeedData';
 
-const SPEAKER_AVATARS = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80',
-];
-
-const DEFAULT_SPEAKERS = [
-  {
-    name: 'Nguyễn Văn An',
-    role: 'AI Engineer @ FPT Software',
-    quote: 'Khám phá sức mạnh của Python trong việc thay đổi cách chúng ta tương tác với thế giới thực.',
-    avatar: SPEAKER_AVATARS[0],
-  },
-  {
-    name: 'Trần Thị Bình',
-    role: 'IoT Specialist',
-    quote: 'Tương lai của công nghệ nằm ở sự kết hợp giữa phần cứng thông minh và trí tuệ nhân tạo.',
-    avatar: SPEAKER_AVATARS[1],
-  },
-];
+const DEFAULT_SPEAKERS = SAMPLE_SPEAKERS.techWorkshop.map((speaker, index) => ({
+  ...speaker,
+  quote:
+    index === 0
+      ? 'Khám phá sức mạnh của Python trong việc thay đổi cách chúng ta tương tác với thế giới thực.'
+      : 'Tương lai của công nghệ nằm ở sự kết hợp giữa phần cứng thông minh và trí tuệ nhân tạo.'
+}));
 
 const CATEGORY_SECONDARY_TAG = {
   'Công nghệ': 'AI & PYTHON',

@@ -10,6 +10,8 @@ import {
 import { getUserRole } from '../../utils/auth';
 import { getCtsvEventAccess } from '../../utils/ctsvEventAccess';
 import { statusClass } from '../../utils/eventStatus';
+import { resolveEventSpeakers } from '../../constants/eventSpeaker';
+import { isSchoolEventPendingAdmin, canCtsvPublishSchoolEvent, canCtsvEditSchoolEvent } from '../../constants/eventWorkflow';
 
 const SOURCE_META = {
   school: { label: 'Cấp trường', tone: 'school' },
@@ -136,8 +138,13 @@ const CtsvEventDetail = () => {
 
   const access = getCtsvEventAccess(event);
   const source = SOURCE_META[event.source] || SOURCE_META.club;
+  const eventSpeakers = resolveEventSpeakers(event);
   const canApprove =
     access.canManage && ['pending_ctsv', 'pending_icpdp', 'revision'].includes(event.statusKey);
+  const showPartnerActions = canApprove && isCtsvOnly;
+  const showPublish = canCtsvPublishSchoolEvent(event);
+  const showEditSchoolEvent = access.canManage && canCtsvEditSchoolEvent(event);
+  const showCtsvActions = access.canManage && (showPartnerActions || showPublish || showEditSchoolEvent);
 
   return (
     <div className="ctsv-ed-page">
@@ -231,6 +238,50 @@ const CtsvEventDetail = () => {
         </div>
       )}
 
+      {access.canManage && event.source === 'school' && event.statusKey === 'approved' && (
+        <div className="ctsv-ed-banner ctsv-ed-banner--info" role="status">
+          <span className="ctsv-ed-banner-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12" y2="8" />
+            </svg>
+          </span>
+          <p>
+            Admin đã phê duyệt. Bạn có thể publish hoặc chỉnh sửa — nếu sửa, đơn sẽ gửi lại Admin duyệt trước khi publish.
+          </p>
+        </div>
+      )}
+
+      {access.canManage && event.source === 'school' && isSchoolEventPendingAdmin(event) && (
+        <div className="ctsv-ed-banner ctsv-ed-banner--info" role="status">
+          <span className="ctsv-ed-banner-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </span>
+          <p>
+            Đơn tổ chức đã gửi và đang chờ Admin phê duyệt. Bạn có thể chỉnh sửa và gửi lại trước khi Admin duyệt.
+          </p>
+        </div>
+      )}
+
+      {access.canManage && event.source === 'school' && event.statusKey === 'rejected' && event.rejectionReason && (
+        <div className="ctsv-ed-banner ctsv-ed-banner--danger" role="alert">
+          <span className="ctsv-ed-banner-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+          </span>
+          <p>
+            Admin đã từ chối đơn: {event.rejectionReason}. Chỉnh sửa thông tin và gửi lại để Admin xem xét.
+          </p>
+        </div>
+      )}
+
       <div className="ctsv-ed-content">
         {activeTab === 'info' && (
           <div className="ctsv-ed-panel">
@@ -253,10 +304,26 @@ const CtsvEventDetail = () => {
                   <strong>{event.expectedAttendees.toLocaleString('vi-VN')} người</strong>
                 </div>
               )}
-              {event.speaker && (
-                <div className="ctsv-ed-info-card">
-                  <span className="ctsv-ed-info-label">Diễn giả</span>
-                  <strong>{event.speaker}</strong>
+              {eventSpeakers.length > 0 && (
+                <div className="ctsv-ed-info-card ctsv-ed-info-card--speaker">
+                  <span className="ctsv-ed-info-label">Diễn giả / Khách mời</span>
+                  <div className="ctsv-ed-speaker-list">
+                    {eventSpeakers.map((sp) => (
+                      <div key={`${sp.name}-${sp.role}`} className="ctsv-ed-speaker">
+                        {sp.avatar ? (
+                          <img src={sp.avatar} alt="" className="ctsv-ed-speaker-avatar" />
+                        ) : (
+                          <span className="ctsv-ed-speaker-avatar ctsv-ed-speaker-avatar--fallback" aria-hidden>
+                            {sp.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <div className="ctsv-ed-speaker-text">
+                          <strong>{sp.name}</strong>
+                          {sp.role && <span>{sp.role}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
               {event.ctsvNote && (
@@ -313,18 +380,25 @@ const CtsvEventDetail = () => {
 
       </div>
 
-      {access.canManage && (
+      {showCtsvActions && (
         <section className="ctsv-ed-actions">
           <h2 className="ctsv-ed-panel-title">Thao tác CTSV</h2>
-          <textarea
-            className="ctsv-textarea ctsv-ed-note"
-            placeholder="Ghi chú / lý do (bắt buộc khi từ chối)"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            rows={3}
-          />
+          {showPartnerActions && (
+            <textarea
+              className="ctsv-textarea ctsv-ed-note"
+              placeholder="Ghi chú / lý do (bắt buộc khi từ chối)"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={3}
+            />
+          )}
           <div className="ctsv-action-buttons">
-            {canApprove && isCtsvOnly && (
+            {showEditSchoolEvent && (
+              <Link to={`/ctsv/events/${id}/edit`} className="ctsv-btn-secondary">
+                Chỉnh sửa & gửi lại Admin
+              </Link>
+            )}
+            {showPartnerActions && (
               <>
                 <button type="button" className="ctsv-btn-primary" onClick={handleApprove}>
                   Phê duyệt
@@ -337,7 +411,7 @@ const CtsvEventDetail = () => {
                 </button>
               </>
             )}
-            {event.statusKey === 'approved' && (
+            {showPublish && (
               <button type="button" className="ctsv-btn-primary" onClick={handlePublish}>
                 Publish sự kiện
               </button>
