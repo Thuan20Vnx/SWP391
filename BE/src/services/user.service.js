@@ -1,11 +1,37 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const AppError = require('../utils/AppError');
+const { normalizeRole } = require('../utils/role');
 
 const sanitizeUser = (user) => User.sanitizeUser(user);
 
+const MAX_IMAGE_DATA_URL_LENGTH = 800 * 1024;
+
+const assertValidImageDataUrl = (value, label) => {
+  if (!value || typeof value !== 'string') return;
+  if (value.length > MAX_IMAGE_DATA_URL_LENGTH) {
+    throw new AppError(
+      `${label} quá lớn. Vui lòng chọn ảnh nhỏ hơn hoặc nén lại trước khi tải lên.`,
+      400
+    );
+  }
+  if (value.startsWith('data:') && !value.startsWith('data:image/')) {
+    throw new AppError(`${label} phải là ảnh hợp lệ (data:image/...)!`, 400);
+  }
+};
+
+const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+
+const fixLegacyUserRole = async (user) => {
+  if (!user?.role) return;
+  const normalized = normalizeRole(user.role);
+  if (user.role === normalized) return;
+  user.role = normalized;
+  await User.updateOne({ _id: user._id }, { $set: { role: normalized } });
+};
+
 const getProfile = async (email) => {
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: normalizeEmail(email) });
 
   if (!user) {
     throw new AppError('Không tìm thấy thông tin người dùng!', 404);
@@ -16,13 +42,49 @@ const getProfile = async (email) => {
   return { user: sanitizeUser(user) };
 };
 
+const updateUserAvatar = async (email, picture) => {
+  assertValidImageDataUrl(picture, 'Ảnh đại diện');
+  const user = await User.findOne({ email: normalizeEmail(email) });
+  if (!user) {
+    throw new AppError('Không tìm thấy thông tin người dùng!', 404);
+  }
+  await fixLegacyUserRole(user);
+  const result = await User.updateOne(
+    { _id: user._id },
+    { $set: { picture, avatar: picture } }
+  );
+  if (result.matchedCount === 0) {
+    throw new AppError('Không tìm thấy thông tin người dùng!', 404);
+  }
+  user.picture = picture;
+  user.avatar = picture;
+  return {
+    message: 'Đã cập nhật ảnh đại diện.',
+    user: sanitizeUser(user),
+  };
+};
+
 const updateProfile = async (email, body) => {
   const { fullname, phone, orientation, interests, picture, avatar, course } = body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: normalizeEmail(email) });
 
   if (!user) {
     throw new AppError('Không tìm thấy thông tin người dùng!', 404);
+  }
+
+  await fixLegacyUserRole(user);
+
+  const onlyAvatarUpdate =
+    (picture !== undefined || avatar !== undefined) &&
+    fullname === undefined &&
+    phone === undefined &&
+    orientation === undefined &&
+    interests === undefined &&
+    course === undefined;
+
+  if (onlyAvatarUpdate) {
+    return updateUserAvatar(email, picture ?? avatar);
   }
 
   if (user.role === 'student') {
@@ -39,6 +101,15 @@ const updateProfile = async (email, body) => {
     user.fullname = fullname.trim();
   }
 
+  let picturePayload = null;
+  if (picture !== undefined) {
+    assertValidImageDataUrl(picture, 'Ảnh đại diện');
+    picturePayload = picture;
+  } else if (avatar !== undefined) {
+    assertValidImageDataUrl(avatar, 'Ảnh đại diện');
+    picturePayload = avatar;
+  }
+
   if (phone !== undefined) {
     const trimmedPhone = phone.trim();
     if (trimmedPhone) {
@@ -52,6 +123,7 @@ const updateProfile = async (email, body) => {
       user.phone = trimmedPhone;
     } else {
       user.phone = undefined;
+      user.set('phone', undefined);
     }
   }
 
@@ -63,26 +135,6 @@ const updateProfile = async (email, body) => {
     user.interests = interests;
   }
 
-  if (avatar !== undefined) {
-    if (avatar && typeof avatar === 'string' && avatar.length > 0) {
-      if (avatar.startsWith('data:') && !avatar.startsWith('data:image/')) {
-        throw new AppError('Avatar phải là ảnh hợp lệ (data:image/...)!', 400);
-      }
-    }
-    user.avatar = avatar;
-    if (avatar) user.picture = avatar;
-  }
-
-  if (picture !== undefined) {
-    if (picture && typeof picture === 'string' && picture.length > 0) {
-      if (picture.startsWith('data:') && !picture.startsWith('data:image/')) {
-        throw new AppError('Picture phải là ảnh hợp lệ (data:image/...)!', 400);
-      }
-    }
-    user.picture = picture;
-    if (picture) user.avatar = picture;
-  }
-
   if (user.role !== 'student' && course !== undefined && course !== user.course) {
     if (user.courseChanged) {
       throw new AppError('Khóa học chỉ được phép thay đổi 1 lần duy nhất!', 400);
@@ -91,8 +143,26 @@ const updateProfile = async (email, body) => {
     user.courseChanged = true;
   }
 
-  User.syncCourseFromStudentId(user);
-  await user.save();
+  const hasOtherUpdates =
+    fullname !== undefined ||
+    phone !== undefined ||
+    orientation !== undefined ||
+    interests !== undefined ||
+    course !== undefined;
+
+  if (picturePayload !== null) {
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { picture: picturePayload, avatar: picturePayload } }
+    );
+    user.picture = picturePayload;
+    user.avatar = picturePayload;
+  }
+
+  if (hasOtherUpdates) {
+    User.syncCourseFromStudentId(user);
+    await user.save();
+  }
 
   return {
     message: 'Cập nhật thông tin cá nhân thành công!',
@@ -158,6 +228,7 @@ const verifyPassword = async (email, password) => {
 module.exports = {
   getProfile,
   updateProfile,
+  updateUserAvatar,
   changePassword,
   verifyPassword,
 };

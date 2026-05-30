@@ -93,12 +93,12 @@ userSchema.statics.detectRole = async function (email) {
   if (!email) return { role: 'guest', studentId: '' };
 
   const normalizedEmail = email.trim().toLowerCase();
-  
+  const escapedEmail = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   try {
     const SchoolMember = mongoose.model('SchoolMember');
-    // Use regex for case-insensitive search in case Admin typed capital letters in Compass
-    const member = await SchoolMember.findOne({ 
-      email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') } 
+    const member = await SchoolMember.findOne({
+      email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') },
     });
     
     if (member) {
@@ -246,7 +246,18 @@ userSchema.statics.ensureProfileSynced = async function (user) {
   return changed;
 };
 
+userSchema.pre('validate', function () {
+  if (this.phone === '') {
+    this.phone = undefined;
+  }
+  // Enum chỉ nhận lowercase (ctsv); DB cũ có thể lưu "CTSV"
+  this.role = normalizeRole(this.role || resolveUserRole(this));
+});
+
 userSchema.pre('save', function () {
+  if (this.phone === '') {
+    this.phone = undefined;
+  }
   this.role = normalizeRole(this.role || resolveUserRole(this));
   if (this.studentId) {
     this.studentId = normalizeStudentId(this.studentId);

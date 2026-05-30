@@ -86,22 +86,122 @@ const IMG = {
       console.log('  Proposals seeded.');
     }
 
-    const partnerCount = await Partner.countDocuments();
-    if (partnerCount === 0) {
+    const removed = await Partner.deleteMany({ status: { $nin: ['pending', 'pending_admin', 'approved', 'rejected', 'info_requested'] } });
+    if (removed.deletedCount) {
+      console.log(`  Removed ${removed.deletedCount} partner(s) with invalid status (e.g. active).`);
+    }
+
+    const removedTest = await Partner.deleteMany({
+      $or: [
+        { name: /cursoragent/i },
+        { email: /cursoragent/i },
+        { partnerCode: /cursoragent/i }
+      ]
+    });
+    if (removedTest.deletedCount) {
+      console.log(`  Removed ${removedTest.deletedCount} test partner(s) (cursoragent).`);
+    }
+
+    const sampleCode = 'DEMO-PENDING';
+    const hasSample = await Partner.findOne({ partnerCode: sampleCode });
+    if (!hasSample) {
       const p = await Partner.create({
-        name: 'FPT Software Đà Nẵng',
-        email: 'partner@fptsoftware.com',
-        phone: '02363888888',
-        representative: 'Nguyễn Văn A',
-        status: 'pending'
+        name: 'Công ty TNHH Thực phẩm Xanh Việt',
+        partnerCode: sampleCode,
+        category: 'F&B — Thực phẩm & Đồ uống',
+        email: 'hop_tac@greenfood.vn',
+        phone: '0903123456',
+        representative: 'Phạm Minh Đức',
+        representativeTitle: 'Trưởng phòng Marketing',
+        proposedEventTitle: 'FPT Green Campus Day 2026',
+        expectedSponsorAmount: 120000000,
+        status: 'pending',
+        benefits: [
+          'Gian hàng sampling sản phẩm organic',
+          'Logo trên banner chính sân khấu',
+          'Quà tặng cho 200 SV tham dự'
+        ],
+        attachments: [
+          { name: 'Profile GreenFood 2026.pdf', url: '#', sizeLabel: '1.8 MB' },
+          { name: 'Đề xuất tài trợ v1.docx', url: '#', sizeLabel: '640 KB' }
+        ]
       });
       await Contract.create({
         partnerId: p._id,
-        title: 'Hợp đồng tài trợ Career Fair 2026',
-        amount: 50000000,
+        title: p.proposedEventTitle,
+        amount: p.expectedSponsorAmount,
         status: 'pending'
       });
-      console.log('  Partners seeded.');
+      console.log('  Added sample pending partner application.');
+    }
+
+    const partnerCount = await Partner.countDocuments();
+    if (partnerCount === 0) {
+      const demos = [
+        {
+          name: 'Suntory PepsiCo Vietnam',
+          partnerCode: 'SP',
+          category: 'FMCG - Nước giải khát',
+          email: 'csr@suntorypepsico.vn',
+          phone: '02838229999',
+          representative: 'Nguyễn Văn Hải',
+          representativeTitle: 'Trưởng phòng CSR',
+          proposedEventTitle: 'FPT Edu ColorDash 2024',
+          expectedSponsorAmount: 150000000,
+          status: 'pending',
+          benefits: [
+            'Logo trên backdrop sân khấu',
+            'Gian hàng trải nghiệm sản phẩm',
+            'MC nhắc tên 3 lần trong chương trình'
+          ],
+          attachments: [
+            { name: 'Hồ sơ năng lực Suntory PepsiCo', url: '#', sizeLabel: '2.4 MB' },
+            { name: 'Bản thảo hợp đồng tài trợ v1', url: '#', sizeLabel: '856 KB' }
+          ]
+        },
+        {
+          name: 'FPT Software',
+          partnerCode: 'FS',
+          category: 'Công nghệ thông tin',
+          email: 'partner@fptsoftware.com',
+          phone: '02363888888',
+          representative: 'Trần Minh Khoa',
+          representativeTitle: 'Quản lý đối tác học đường',
+          proposedEventTitle: 'Career Fair: Kết nối doanh nghiệp',
+          expectedSponsorAmount: 80000000,
+          status: 'approved',
+          approvedByEmail: 'ctsv@fpt.edu.vn'
+        },
+        {
+          name: 'VNG Corporation',
+          partnerCode: 'VNG',
+          category: 'Công nghệ & Giải trí',
+          email: 'sponsor@vng.com.vn',
+          phone: '02838229900',
+          representative: 'Lê Thị Mai',
+          representativeTitle: 'Chuyên viên Marketing',
+          proposedEventTitle: 'Workshop Khởi Nghiệp Kỷ Nguyên Số',
+          expectedSponsorAmount: 45000000,
+          status: 'rejected',
+          rejectionReason: 'Ngân sách chưa phù hợp khung tài trợ quý này.'
+        }
+      ];
+      for (const data of demos) {
+        const { proposedEventTitle, expectedSponsorAmount, benefits, attachments, ...partnerFields } =
+          data;
+        const p = await Partner.create({
+          ...partnerFields,
+          benefits: benefits || [],
+          attachments: attachments || []
+        });
+        await Contract.create({
+          partnerId: p._id,
+          title: proposedEventTitle,
+          amount: expectedSponsorAmount,
+          status: partnerFields.status === 'approved' ? 'approved' : 'pending'
+        });
+      }
+      console.log('  Partners seeded (3 demo).');
     }
 
     console.log('\nCTSV seed complete.');

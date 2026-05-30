@@ -83,19 +83,40 @@ export const approveCtsvPartner = (id) =>
 export const rejectCtsvPartner = (id, reason = '') =>
   ctsvFetch(`/partners/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });
 
+export const requestInfoCtsvPartner = (id, reason = '') =>
+  ctsvFetch(`/partners/${id}/request-info`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+
 export const approveCtsvContract = (id) =>
   ctsvFetch(`/contracts/${id}/approve`, { method: 'PATCH', body: '{}' });
 
 export const fetchCtsvAnnouncements = () => ctsvFetch('/announcements');
 
+/** Sự kiện cấp trường + đối tác đã duyệt (loại CLB / ICPDP). */
+export const fetchCtsvAnnouncementLinkableEvents = () =>
+  ctsvFetch('/events?forAnnouncement=1');
+
 export const publishCtsvAnnouncement = (body) =>
   ctsvFetch('/announcements', { method: 'POST', body: JSON.stringify(body) });
+
+export const hideCtsvAnnouncement = (id) => {
+  const safeId = encodeURIComponent(String(id || '').trim());
+  return ctsvFetch(`/announcements/${safeId}/hide`, { method: 'PATCH', body: '{}' });
+};
+
+export const deleteCtsvAnnouncement = (id) => {
+  const safeId = encodeURIComponent(String(id || '').trim());
+  if (!safeId || safeId === 'undefined' || safeId === 'null') {
+    return Promise.reject(new Error('Không xác định được thông báo.'));
+  }
+  return ctsvFetch(`/announcements/${safeId}/delete`, { method: 'POST', body: '{}' });
+};
 
 export const MOCK_EVENTS = [
   {
     id: 'ev-1',
     title: 'Đêm nhạc F-Fest: Giai điệu mùa hè',
     category: 'Âm nhạc',
+    source: 'school',
     date: '20/05/2026',
     time: '19:00',
     location: 'FPT Plaza 2, Đà Nẵng',
@@ -109,6 +130,7 @@ export const MOCK_EVENTS = [
     id: 'ev-2',
     title: 'Làm chủ Prompt Engineering với AI',
     category: 'Workshop',
+    source: 'club',
     date: '22/05/2026',
     time: '14:00',
     location: 'Hội trường A, FPT Tower',
@@ -122,6 +144,7 @@ export const MOCK_EVENTS = [
     id: 'ev-3',
     title: 'Hackathon 2026: Innovate for Green',
     category: 'Công nghệ',
+    source: 'club',
     date: '25/05/2026',
     time: '08:00',
     location: 'FPT Software Đà Nẵng',
@@ -135,6 +158,7 @@ export const MOCK_EVENTS = [
     id: 'ev-4',
     title: 'Career Fair: Kết nối doanh nghiệp',
     category: 'Kết nối',
+    source: 'school',
     date: '28/05/2026',
     time: '09:00',
     location: 'Sân bóng FPTU',
@@ -150,4 +174,52 @@ export const MOCK_STATS = [
   { label: 'Sự kiện chờ duyệt', value: '12', trend: '+3 tuần này' },
   { label: 'Sự kiện đang diễn ra', value: '5', trend: 'Ổn định' },
   { label: 'Sinh viên tham gia', value: '1.2K', trend: '+8%' }
+];
+
+export const MOCK_REPORTS = [
+  {
+    id: 'ev-report-1',
+    title: 'FPT Techday 2024: Kiến tạo tương lai số',
+    category: 'Công nghệ',
+    source: 'school',
+    date: '25/10/2024',
+    time: '08:00',
+    location: 'Sảnh tòa Gamma',
+    registeredCount: 180,
+    totalTickets: 200,
+    attendanceRate: 90,
+    status: 'MỞ ĐĂNG KÝ',
+    statusKey: 'approved',
+    reportPhase: 'ended'
+  },
+  {
+    id: 'ev-report-2',
+    title: 'Workshop: Kỹ năng tranh biện (Debate)',
+    category: 'Học thuật',
+    source: 'club',
+    date: '10/05/2024',
+    time: '14:00',
+    location: 'Tầng 5 tòa Alpha',
+    registeredCount: 50,
+    totalTickets: 50,
+    attendanceRate: 100,
+    status: 'MỞ ĐĂNG KÝ',
+    statusKey: 'approved',
+    reportPhase: 'ended'
+  },
+  {
+    id: 'ev-report-3',
+    title: 'Hackathon 2026: Innovate for Green',
+    category: 'Công nghệ',
+    source: 'club',
+    date: '25/05/2026',
+    time: '08:00',
+    location: 'FPT Software Đà Nẵng',
+    registeredCount: 30,
+    totalTickets: 150,
+    attendanceRate: 20,
+    status: 'ĐANG DIỄN RA',
+    statusKey: 'live',
+    reportPhase: 'live'
+  }
 ];

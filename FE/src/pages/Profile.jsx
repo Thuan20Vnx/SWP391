@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../constants/defaultAvatar';
-import { API_BASE, getAuthHeaders } from '../utils/api';
+import { API_BASE, getAuthHeaders, parseApiResponse } from '../utils/api';
 import { formatMssv } from '../utils/studentId';
-import { compressImageFile, resolveUserAvatar } from '../utils/image';
+import { resolveUserAvatar } from '../utils/image';
+import AvatarCropModal from '../components/profile/AvatarCropModal';
 import { getRoleLabel } from '../utils/role';
-import { clearUserProfileCache } from '../hooks/useUserProfile';
+import { logoutWithConfirm } from '../utils/logout';
 import { dispatchAuthChanged } from '../utils/authEvents';
+import { cacheUserProfile } from '../hooks/useUserProfile';
+import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileApi';
+import { isCtsvRole, normalizeRole } from '../utils/auth';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
 
-const Profile = ({ showToast }) => {
+const Profile = ({ showToast, embedded = false }) => {
   const navigate = useNavigate();
 
   // Profile data from backend
@@ -29,7 +33,6 @@ const Profile = ({ showToast }) => {
   // Track if course cohort has been changed once
   const [courseChanged, setCourseChanged] = useState(false);
 
-  // Responsive Sidebar State
   const [sidebarActive, setSidebarActive] = useState(false);
 
   const profileSectionRef = useRef(null);
@@ -41,6 +44,9 @@ const Profile = ({ showToast }) => {
   // Avatar Upload State
   const [avatar, setAvatar] = useState('');
   const [avatarSaving, setAvatarSaving] = useState(false);
+  const [avatarCropOpen, setAvatarCropOpen] = useState(false);
+  const [avatarCropSrc, setAvatarCropSrc] = useState('');
+  const [avatarCropFileName, setAvatarCropFileName] = useState('');
 
   // Form Orientation State
   const [orientation, setOrientation] = useState('');
@@ -136,6 +142,7 @@ const Profile = ({ showToast }) => {
 
   const displayAvatar = avatar || defaultAvatar;
   const profilePageTitle = 'Thông tin cá nhân';
+  const isCtsvEmbedded = embedded && isCtsvRole(userRole);
 
   const handleNavigateProfile = (e) => {
     e.preventDefault();
@@ -144,7 +151,7 @@ const Profile = ({ showToast }) => {
     profileSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const saveAvatarToBackend = (imageData) => {
+  const saveAvatarToBackend = async (imageData) => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       showToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!', 'error');
@@ -152,26 +159,33 @@ const Profile = ({ showToast }) => {
     }
 
     setAvatarSaving(true);
-    fetch(`${API_BASE}/api/user/profile`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ picture: imageData, avatar: imageData })
-    })
-      .then(res => res.json().then(data => ({ status: res.status, data })))
-      .then(({ status, data }) => {
-        if (status !== 200) {
-          showToast(data.message || 'Lưu ảnh đại diện thất bại!', 'error');
-        }
-      })
-      .catch(() => {
-        showToast('Không thể kết nối đến máy chủ để lưu ảnh đại diện!', 'error');
-      })
-      .finally(() => setAvatarSaving(false));
+    try {
+      const data = await updateUserAvatar(imageData);
+      if (data.user) {
+        const nextAvatar = resolveUserAvatar(data.user, '');
+        setAvatar(nextAvatar);
+        cacheUserProfile({
+          fullname: data.user.fullname || profileData.fullname,
+          course: data.user.course || profileData.course,
+          role: normalizeRole(data.user.role || userRole),
+          picture: nextAvatar
+        });
+        dispatchAuthChanged();
+      }
+      showToast('Đã cập nhật ảnh đại diện.', 'success');
+    } catch (err) {
+      showToast(
+        err.message || 'Không thể lưu ảnh đại diện. Kiểm tra kết nối máy chủ (port 5000).',
+        'error'
+      );
+    } finally {
+      setAvatarSaving(false);
+    }
   };
 
-  // Handle Avatar Change — auto-save to backend immediately
-  const handleAvatarChange = async (e) => {
-    const file = e.target.files[0];
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -183,15 +197,38 @@ const Profile = ({ showToast }) => {
       return;
     }
 
-    try {
-      const newAvatarData = await compressImageFile(file);
-      setAvatar(newAvatarData);
-      saveAvatarToBackend(newAvatarData);
-    } catch {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAvatarCropSrc(reader.result);
+      setAvatarCropFileName(file.name);
+      setAvatarCropOpen(true);
+    };
+    reader.onerror = () => showToast('Không thể đọc tệp ảnh.', 'error');
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarCropCancel = () => {
+    setAvatarCropOpen(false);
+    setAvatarCropSrc('');
+    setAvatarCropFileName('');
+  };
+
+  const handleAvatarCropConfirm = async (dataUrl) => {
+    setAvatarCropOpen(false);
+    setAvatarCropSrc('');
+    setAvatarCropFileName('');
+
+    if (!dataUrl) {
       showToast('Không thể xử lý ảnh. Vui lòng thử ảnh khác!', 'error');
-    } finally {
-      e.target.value = '';
+      return;
     }
+    if (dataUrl.length > 750000) {
+      showToast('Ảnh vẫn quá lớn sau khi cắt. Hãy zoom xa hơn hoặc chọn ảnh khác.', 'error');
+      return;
+    }
+
+    setAvatar(dataUrl);
+    await saveAvatarToBackend(dataUrl);
   };
 
   // Handle Interest Tag Checkbox Toggle
@@ -207,7 +244,7 @@ const Profile = ({ showToast }) => {
       return;
     }
 
-    if (!orientation.trim()) {
+    if (userRole === 'student' && !orientation.trim()) {
       showToast('Vui lòng nhập định hướng chuyên môn!', 'error');
       return;
     }
@@ -233,16 +270,17 @@ const Profile = ({ showToast }) => {
       body: JSON.stringify({
         ...(userRole !== 'student' ? { fullname: profileData.fullname.trim() } : {}),
         phone: profileData.phone.trim(),
-        orientation: orientation.trim(),
+        ...(userRole === 'student' || orientation.trim()
+          ? { orientation: orientation.trim() }
+          : {}),
         interests: activeInterests,
-        picture: avatar || displayAvatar,
-        avatar: avatar || displayAvatar
+        ...buildProfilePicturePayload(avatar, displayAvatar)
       })
     })
-      .then(res => res.json().then(data => ({ status: res.status, data })))
-      .then(({ status, data }) => {
+      .then(parseApiResponse)
+      .then(async ({ ok, status, data }) => {
         setSaveLoading(false);
-        if (status === 200) {
+        if (ok && status === 200 && data.success !== false) {
           setIsEditing(false);
           if (data.user) {
             setProfileData({
@@ -256,14 +294,22 @@ const Profile = ({ showToast }) => {
             if (data.user.picture || data.user.avatar) {
               setAvatar(resolveUserAvatar(data.user, ''));
             }
+            cacheUserProfile({
+              fullname: data.user.fullname || '',
+              course: data.user.course || '',
+              role: normalizeRole(data.user.role || userRole),
+              picture: resolveUserAvatar(data.user, displayAvatar)
+            });
+            dispatchAuthChanged();
           }
+          showToast('Cập nhật hồ sơ thành công.', 'success');
         } else {
           showToast(data.message || 'Cập nhật thất bại!', 'error');
         }
       })
-      .catch(err => {
+      .catch(() => {
         setSaveLoading(false);
-        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
+        showToast('Không thể kết nối máy chủ. Kiểm tra BE đang chạy tại cổng 5000.', 'error');
       });
   };
   const startEditing = () => {
@@ -285,207 +331,85 @@ const Profile = ({ showToast }) => {
   };
 
   const handleLogout = (e) => {
-    e.preventDefault();
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('loginMethod');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('authToken');
-    clearUserProfileCache();
-    dispatchAuthChanged();
-    navigate('/login');
+    e?.preventDefault?.();
+    logoutWithConfirm(navigate, {
+      showToast,
+      toastMessage: embedded ? 'Đã đăng xuất tài khoản CTSV.' : 'Đã đăng xuất.'
+    });
   };
 
-  // ============================================================
-  // Render
-  // ============================================================
-
-  return (
-    <div className="dashboard-body">
-      {/* Mobile Sidebar Overlay */}
-      <div
-        className={`sidebar-overlay ${sidebarActive ? 'active' : ''}`}
-        id="sidebar-overlay"
-        onClick={() => setSidebarActive(false)}
-      ></div>
-
-      <div className="dashboard-container">
-        {/* Sidebar Aside */}
-        <aside className={`sidebar-aside ${sidebarActive ? 'active' : ''}`} id="sidebar">
-          {/* Logo */}
-          <div
-            className="sidebar-logo"
-            style={{ display: 'flex', justifyContent: 'center', padding: '12px 16px', cursor: 'pointer' }}
-            onClick={() => navigate('/')}
-          >
-            <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
-              alt="FEvents Logo"
-              style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
-            />
+  const profileContent = (
+    <div className={`dashboard-content-wrapper${embedded ? ' ctsv-profile-content' : ''}`}>
+      <div className={`profile-grid${embedded ? ' ctsv-profile-grid' : ''}`}>
+        {profileLoading ? (
+          <div className="profile-page-loading" aria-busy="true" aria-label="Đang tải hồ sơ">
+            <div className="profile-skeleton profile-skeleton--avatar-lg" />
+            <div className="profile-skeleton profile-skeleton--block" />
+            <div className="profile-skeleton profile-skeleton--block profile-skeleton--block-short" />
           </div>
-
-          {/* User Profile Card */}
-          <a href="#" className="sidebar-user-card" onClick={(e) => e.preventDefault()}>
-            {profileLoading ? (
-              <div className="sidebar-avatar profile-skeleton profile-skeleton--avatar" aria-hidden="true" />
-            ) : (
-              <img className="sidebar-avatar" src={displayAvatar} alt="User Avatar" />
-            )}
-            <div className="sidebar-user-info">
-              {profileLoading ? (
-                <span className="profile-skeleton profile-skeleton--name" />
-              ) : (
-                <>
-                  <span className="sidebar-user-name">{profileData.fullname}</span>
-                  {userRole?.toLowerCase() !== 'student' && (
-                    <span className="sidebar-user-role">{getRoleLabel(userRole)}</span>
-                  )}
-                </>
-              )}
-            </div>
-          </a>
-
-          <DashboardSidebarNav
-            activeMenu="profile"
-            onScanClick={handleScanClick}
-            onCloseSidebar={() => setSidebarActive(false)}
-            onProfileMenuItem={(key, event) => {
-              if (key === 'profile') handleNavigateProfile(event);
-            }}
-            onNavigate={(path) => navigate(path)}
-          />
-
-          {/* Logout */}
-          <div className="sidebar-footer">
-            <a href="#" className="btn-logout" onClick={handleLogout}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-              <span>Đăng xuất</span>
-            </a>
-          </div>
-        </aside>
-
-        {/* Main Container */}
-        <main className="dashboard-main">
-          {/* Top Navigation Bar */}
-          <header className="top-navbar">
-            <div className="navbar-left">
-              {/* Mobile Menu Toggle Button */}
+        ) : (
+        <>
+        {/* Left Column (Avatar & Clubs) */}
+        <div className="profile-left-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className={`profile-card avatar-card${embedded ? ' ctsv-profile-avatar-card' : ''}`}>
+            <div className="avatar-card-content">
+              <div className="profile-avatar-container">
+                <img className="large-profile-avatar" id="profile-avatar-img" src={displayAvatar} alt="Avatar lớn" />
+                <label htmlFor="avatar-upload-input" className="btn-avatar-edit-pencil" title="Thay đổi ảnh đại diện">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </label>
+                <input
+                  type="file"
+                  id="avatar-upload-input"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleAvatarChange}
+                />
+              </div>
               <button
-                className="btn-mobile-menu-toggle"
-                id="menu-toggle"
-                aria-label="Mở menu"
-                onClick={() => setSidebarActive(true)}
+                type="button"
+                className="btn-upload-avatar"
+                disabled={avatarSaving || avatarCropOpen}
+                onClick={() => document.getElementById('avatar-upload-input').click()}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
+                {avatarSaving ? 'Đang lưu...' : avatarCropOpen ? 'Đang chỉnh sửa...' : 'Thay đổi ảnh đại diện'}
               </button>
-              {/* Breadcrumbs */}
-              <div className="breadcrumbs">
-                <Link to="/">Trang chủ</Link>
-                <span style={{ color: '#cbd5e1' }}>/</span>
-                <span className="current">{profilePageTitle}</span>
-              </div>
             </div>
+          </div>
 
-            <div className="navbar-right">
-              {/* User Dropdown Menu link */}
-              <a href="#" className="navbar-user-menu" onClick={(e) => e.preventDefault()}>
-                {profileLoading ? (
-                  <div className="navbar-user-avatar profile-skeleton profile-skeleton--avatar" aria-hidden="true" />
-                ) : (
-                  <img className="navbar-user-avatar" src={displayAvatar} alt="User Profile" />
-                )}
-                <div className="navbar-user-details">
-                  {profileLoading ? (
-                    <span className="profile-skeleton profile-skeleton--name" />
-                  ) : (
-                    <>
-                      <span className="navbar-user-name">{profileData.fullname}</span>
-                      {userRole?.toLowerCase() !== 'student' && (
-                        <span className="navbar-user-role">{getRoleLabel(userRole)}</span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </a>
+          {!embedded && (
+          <div className="profile-card clubs-card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary)' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>Câu lạc bộ của tôi</span>
             </div>
-          </header>
+            <div className="tag-list">
+              <span className="club-tag">FU-DEVIES</span>
+              <span className="club-tag">Minori Japanese Club</span>
+              <span className="club-tag">DreamTeam</span>
+            </div>
+          </div>
+          )}
+        </div>
 
-          {/* Dashboard Scrollable Body */}
-          <div className="dashboard-content-wrapper">
-            {/* Layout Grid */}
-            <div className="profile-grid">
-              {profileLoading ? (
-                <div className="profile-page-loading" aria-busy="true" aria-label="Đang tải hồ sơ">
-                  <div className="profile-skeleton profile-skeleton--avatar-lg" />
-                  <div className="profile-skeleton profile-skeleton--block" />
-                  <div className="profile-skeleton profile-skeleton--block profile-skeleton--block-short" />
-                </div>
-              ) : (
-              <>
-              {/* Left Column (Avatar & Clubs) */}
-              <div className="profile-left-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* Avatar card */}
-                <div className="profile-card avatar-card">
-                  <div className="avatar-card-content">
-                    <div className="profile-avatar-container">
-                      <img className="large-profile-avatar" id="profile-avatar-img" src={displayAvatar} alt="Avatar lớn" />
-                      <label htmlFor="avatar-upload-input" className="btn-avatar-edit-pencil" title="Thay đổi ảnh đại diện">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                          <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                      </label>
-                      <input
-                        type="file"
-                        id="avatar-upload-input"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={handleAvatarChange}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      className="btn-upload-avatar"
-                      disabled={avatarSaving}
-                      onClick={() => document.getElementById('avatar-upload-input').click()}
-                    >
-                      {avatarSaving ? 'Đang lưu...' : 'Thay đổi ảnh đại diện'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Clubs card */}
-                <div className="profile-card clubs-card">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary)' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span>Câu lạc bộ của tôi</span>
-                  </div>
-                  <div className="tag-list">
-                    <span className="club-tag">FU-DEVIES</span>
-                    <span className="club-tag">Minori Japanese Club</span>
-                    <span className="club-tag">DreamTeam</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column (Form Details) */}
-              <div className="profile-right-column" ref={profileSectionRef}>
-                <form id="profile-edit-form" onSubmit={handleProfileSubmit} className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>Thông tin cá nhân & Sở thích</h2>
+        <div className="profile-right-column" ref={profileSectionRef}>
+          <form
+            id="profile-edit-form"
+            onSubmit={handleProfileSubmit}
+            className={`profile-card${embedded ? ' ctsv-profile-form-card' : ''}`}
+            style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+          >
+            <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>
+              {isCtsvEmbedded ? 'Thông tin liên hệ & chuyên môn' : 'Thông tin cá nhân & Sở thích'}
+            </h2>
 
                   <div className="profile-form-grid">
                     <div className="profile-input-group">
@@ -547,7 +471,7 @@ const Profile = ({ showToast }) => {
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                  <div className={`profile-extra-section${embedded ? ' ctsv-profile-extra' : ''}`}>
                     <div className="profile-input-group profile-form-grid-full">
                       <label htmlFor="user-orientation">Định hướng chuyên môn</label>
                       <textarea
@@ -559,13 +483,16 @@ const Profile = ({ showToast }) => {
                       ></textarea>
                     </div>
 
-                    {/* Interests checklist */}
-                    <div className="interest-section">
+                    <div className={`interest-section${embedded ? ' ctsv-profile-interests' : ''}`}>
                       <div className="interest-title-wrapper">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                         </svg>
-                        <span>AI Recommend: Sở thích sự kiện</span>
+                        <span>
+                          {isCtsvEmbedded
+                            ? 'Lĩnh vực sự kiện quan tâm'
+                            : 'AI Recommend: Sở thích sự kiện'}
+                        </span>
                       </div>
 
                       <div className="interest-tag-list">
@@ -673,6 +600,7 @@ const Profile = ({ showToast }) => {
                       </div>
                     </div>
 
+                    <div className={`profile-form-actions${embedded ? ' ctsv-profile-actions' : ''}`}>
                     {!isEditing ? (
                       <button
                         type="button"
@@ -745,13 +673,163 @@ const Profile = ({ showToast }) => {
                         </button>
                       </div>
                     )}
+                    </div>
                   </div>
-                </form>
-              </div>
-              </>
+          </form>
+        </div>
+        </>
+        )}
+      </div>
+    </div>
+  );
+
+  // ============================================================
+  // Render
+  // ============================================================
+
+  const avatarCropModal = (
+    <AvatarCropModal
+      open={avatarCropOpen}
+      imageSrc={avatarCropSrc}
+      fileName={avatarCropFileName}
+      onConfirm={handleAvatarCropConfirm}
+      onCancel={handleAvatarCropCancel}
+    />
+  );
+
+  if (embedded) {
+    return (
+      <>
+        <div className="ctsv-page ctsv-profile-page">
+          <header className="ctsv-profile-hero">
+            <div className="ctsv-profile-hero-text">
+              <span className="ctsv-profile-eyebrow">Hồ sơ cán bộ</span>
+              <h1>{profilePageTitle}</h1>
+              <p>Quản lý thông tin cá nhân và liên hệ của cán bộ CTSV.</p>
+            </div>
+          </header>
+          {profileContent}
+        </div>
+        {avatarCropModal}
+      </>
+    );
+  }
+
+  return (
+    <>
+    <div className="dashboard-body">
+      <div
+        className={`sidebar-overlay ${sidebarActive ? 'active' : ''}`}
+        id="sidebar-overlay"
+        onClick={() => setSidebarActive(false)}
+      />
+
+      <div className="dashboard-container">
+        <aside className={`sidebar-aside ${sidebarActive ? 'active' : ''}`} id="sidebar">
+          {/* Logo */}
+          <div
+            className="sidebar-logo"
+            style={{ display: 'flex', justifyContent: 'center', padding: '12px 16px', cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+          >
+            <img
+              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+              alt="FEvents Logo"
+              style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
+            />
+          </div>
+
+          {/* User Profile Card */}
+          <a href="#" className="sidebar-user-card" onClick={(e) => e.preventDefault()}>
+            {profileLoading ? (
+              <div className="sidebar-avatar profile-skeleton profile-skeleton--avatar" aria-hidden="true" />
+            ) : (
+              <img className="sidebar-avatar" src={displayAvatar} alt="User Avatar" />
+            )}
+            <div className="sidebar-user-info">
+              {profileLoading ? (
+                <span className="profile-skeleton profile-skeleton--name" />
+              ) : (
+                <>
+                  <span className="sidebar-user-name">{profileData.fullname}</span>
+                  {userRole?.toLowerCase() !== 'student' && (
+                    <span className="sidebar-user-role">{getRoleLabel(userRole)}</span>
+                  )}
+                </>
               )}
             </div>
+          </a>
+
+          <DashboardSidebarNav
+            activeMenu="profile"
+            onScanClick={handleScanClick}
+            onCloseSidebar={() => setSidebarActive(false)}
+            onProfileMenuItem={(key, event) => {
+              if (key === 'profile') handleNavigateProfile(event);
+            }}
+            onNavigate={(path) => navigate(path)}
+          />
+
+          {/* Logout */}
+          <div className="sidebar-footer">
+            <a href="#" className="btn-logout" onClick={handleLogout}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Đăng xuất</span>
+            </a>
           </div>
+        </aside>
+
+        <main className="dashboard-main">
+          <header className="top-navbar">
+            <div className="navbar-left">
+              <button
+                className="btn-mobile-menu-toggle"
+                id="menu-toggle"
+                aria-label="Mở menu"
+                onClick={() => setSidebarActive(true)}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              </button>
+              <div className="breadcrumbs">
+                <Link to="/">Trang chủ</Link>
+                <span style={{ color: '#cbd5e1' }}>/</span>
+                <span className="current">{profilePageTitle}</span>
+              </div>
+            </div>
+
+            <div className="navbar-right">
+              {/* User Dropdown Menu link */}
+              <a href="#" className="navbar-user-menu" onClick={(e) => e.preventDefault()}>
+                {profileLoading ? (
+                  <div className="navbar-user-avatar profile-skeleton profile-skeleton--avatar" aria-hidden="true" />
+                ) : (
+                  <img className="navbar-user-avatar" src={displayAvatar} alt="User Profile" />
+                )}
+                <div className="navbar-user-details">
+                  {profileLoading ? (
+                    <span className="profile-skeleton profile-skeleton--name" />
+                  ) : (
+                    <>
+                      <span className="navbar-user-name">{profileData.fullname}</span>
+                      {userRole?.toLowerCase() !== 'student' && (
+                        <span className="navbar-user-role">{getRoleLabel(userRole)}</span>
+                      )}
+                    </>
+                  )}
+                </div>
+              </a>
+            </div>
+          </header>
+
+          {profileContent}
 
           {/* Dashboard Footer */}
           <footer className="dashboard-footer">
@@ -818,6 +896,8 @@ const Profile = ({ showToast }) => {
         </main>
       </div>
     </div>
+    {avatarCropModal}
+    </>
   );
 };
 

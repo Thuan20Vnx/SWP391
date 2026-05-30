@@ -4,6 +4,7 @@ const userRoutes = require('./user.routes');
 const eventRoutes = require('./event.routes');
 const clubRoutes = require('./club.routes');
 const ctsvRoutes = require('./ctsv.routes');
+const adminRoutes = require('./admin.routes');
 
 const router = express.Router();
 
@@ -12,5 +13,6 @@ router.use('/user', userRoutes);
 router.use('/events', eventRoutes);
 router.use('/clubs', clubRoutes);
 router.use('/ctsv', ctsvRoutes);
+router.use('/admin', adminRoutes);
 
 module.exports = router;

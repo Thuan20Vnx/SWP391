@@ -9,9 +9,14 @@ const {
 const Event = require('../models/Event');
 const EventProposal = require('../models/EventProposal');
 const Partner = require('../models/Partner');
+const { PARTNER_STATUSES } = require('../models/Partner');
 const Contract = require('../models/Contract');
 const Announcement = require('../models/Announcement');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
+const {
+  findLinkableAnnouncementEvents,
+  isEventLinkableForAnnouncement
+} = require('../utils/announcementEvents');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -103,8 +108,8 @@ const buildEventFilter = (query) => {
 // GET /api/ctsv/stats
 router.get('/stats', async (req, res) => {
   try {
-    const pendingCount = await Event.countDocuments({
-      status: { $in: ['pending_ctsv', 'pending_icpdp'] }
+    const pendingPartners = await Partner.countDocuments({
+      status: { $in: ['pending', 'info_requested'] }
     });
     const liveCount = await Event.countDocuments({ status: 'live' });
     const agg = await Event.aggregate([
@@ -117,11 +122,11 @@ router.get('/stats', async (req, res) => {
     return res.json({
       success: true,
       stats: [
-        { label: 'Sự kiện chờ duyệt', value: String(pendingCount), trend: '+3 tuần này' },
+        { label: 'Đối tác chờ duyệt', value: String(pendingPartners), trend: 'Cần xử lý' },
         { label: 'Sự kiện đang diễn ra', value: String(liveCount), trend: 'Ổn định' },
         { label: 'Sinh viên tham gia', value: participantsLabel, trend: '+8%' }
       ],
-      raw: { pendingCount, liveCount, participants }
+      raw: { pendingPartners, liveCount, participants }
     });
   } catch (error) {
     console.error('ctsv stats:', error);
@@ -132,6 +137,14 @@ router.get('/stats', async (req, res) => {
 // GET /api/ctsv/events
 router.get('/events', async (req, res) => {
   try {
+    if (req.query.forAnnouncement === '1' || req.query.forAnnouncement === 'true') {
+      const events = await findLinkableAnnouncementEvents();
+      return res.json({
+        success: true,
+        events: events.map(formatEvent)
+      });
+    }
+
     const filter = buildEventFilter(req.query);
     const events = await Event.find(filter).sort({ startDate: 1 }).limit(100);
     return res.json({
@@ -144,12 +157,10 @@ router.get('/events', async (req, res) => {
   }
 });
 
-// GET /api/ctsv/events/calendar
+// GET /api/ctsv/events/calendar — toàn bộ sự kiện (mọi trạng thái, mọi nguồn)
 router.get('/events/calendar', async (req, res) => {
   try {
-    const events = await Event.find({
-      status: { $in: ['approved', 'live', 'pending_ctsv', 'pending_icpdp'] }
-    }).sort({ startDate: 1 });
+    const events = await Event.find({}).sort({ startDate: 1 });
     return res.json({
       success: true,
       events: events.map(formatEvent)
@@ -314,22 +325,48 @@ router.patch('/events/:id/publish', requireCtsvApprove, async (req, res) => {
   }
 });
 
-// GET /api/ctsv/reports — báo cáo sau sự kiện (ended)
+// GET /api/ctsv/reports — báo cáo sau / đang diễn ra (live, ended, đã qua ngày, eventState expired)
 router.get('/reports', async (req, res) => {
   try {
-    const events = await Event.find({ status: { $in: ['ended', 'live'] } })
-      .sort({ updatedAt: -1 })
-      .limit(50);
-    return res.json({
-      success: true,
-      reports: events.map((e) => ({
+    const now = new Date();
+    const excludedStatuses = [
+      'draft',
+      'rejected',
+      'pending',
+      'pending_ctsv',
+      'pending_icpdp',
+      'revision'
+    ];
+    const events = await Event.find({
+      status: { $nin: excludedStatuses },
+      $or: [
+        { status: { $in: ['live', 'ended'] } },
+        { eventState: 'expired' },
+        { endDate: { $lte: now } },
+        { endDate: null, startDate: { $lte: now } },
+        { endDate: { $exists: false }, startDate: { $lte: now } }
+      ]
+    })
+      .sort({ startDate: -1 })
+      .limit(100);
+
+    const reports = events.map((e) => {
+      const cap = e.capacity || e.totalTickets || 0;
+      const registered = e.registeredCount || 0;
+      let reportPhase = 'completed';
+      if (e.status === 'live') reportPhase = 'live';
+      else if (e.status === 'ended' || e.eventState === 'expired') reportPhase = 'ended';
+
+      return {
         ...formatEvent(e),
-        attendanceRate:
-          e.totalTickets > 0
-            ? Math.round((e.registeredCount / e.totalTickets) * 100)
-            : 0
-      }))
+        registeredCount: registered,
+        totalTickets: cap,
+        attendanceRate: cap > 0 ? Math.round((registered / cap) * 100) : 0,
+        reportPhase
+      };
     });
+
+    return res.json({ success: true, reports });
   } catch (error) {
     console.error('ctsv reports:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -465,10 +502,39 @@ router.patch('/proposals/:id/request-revision', requireCtsvApprove, async (req, 
 
 router.get('/partners', async (req, res) => {
   try {
-    const filter = {};
+    const filter = { status: { $in: PARTNER_STATUSES } };
     if (req.query.status) filter.status = req.query.status;
-    const partners = await Partner.find(filter).sort({ createdAt: -1 });
-    return res.json({ success: true, partners });
+    const search = String(req.query.search || '').trim();
+    if (search) {
+      const re = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [
+        { name: re },
+        { email: re },
+        { partnerCode: re },
+        { proposedEventTitle: re },
+        { category: re }
+      ];
+    }
+    const partners = await Partner.find(filter).sort({ createdAt: -1 }).lean();
+    const ids = partners.map((p) => p._id);
+    const contracts = ids.length
+      ? await Contract.find({ partnerId: { $in: ids } }).sort({ createdAt: -1 }).lean()
+      : [];
+    const contractByPartner = {};
+    for (const c of contracts) {
+      const key = String(c.partnerId);
+      if (!contractByPartner[key]) contractByPartner[key] = c;
+    }
+    const enriched = partners.map((p) => {
+      const contract = contractByPartner[String(p._id)];
+      return {
+        ...p,
+        proposedProgram: p.proposedEventTitle || contract?.title || '',
+        contractStatus: contract?.status || '',
+        contractAmount: contract?.amount ?? null
+      };
+    });
+    return res.json({ success: true, partners: enriched });
   } catch (error) {
     console.error('ctsv partners:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -491,7 +557,19 @@ router.get('/partners/:id', async (req, res) => {
 
 router.post('/partners', requireCtsvApprove, async (req, res) => {
   try {
-    const { name, email, phone, representative, address, description } = req.body;
+    const {
+      name,
+      email,
+      phone,
+      representative,
+      address,
+      description,
+      partnerCode,
+      category,
+      proposedEventTitle,
+      expectedSponsorAmount,
+      representativeTitle
+    } = req.body;
     if (!name?.trim()) {
       return res.status(400).json({ success: false, message: 'Tên đối tác là bắt buộc!' });
     }
@@ -502,9 +580,21 @@ router.post('/partners', requireCtsvApprove, async (req, res) => {
       representative,
       address,
       description,
-      status: 'approved',
-      approvedByEmail: req.authEmail
+      partnerCode: partnerCode?.trim() || '',
+      category: category?.trim() || '',
+      proposedEventTitle: proposedEventTitle?.trim() || '',
+      expectedSponsorAmount: Number(expectedSponsorAmount) || 0,
+      representativeTitle: representativeTitle?.trim() || '',
+      status: 'pending'
     });
+    if (proposedEventTitle?.trim() || expectedSponsorAmount) {
+      await Contract.create({
+        partnerId: partner._id,
+        title: proposedEventTitle?.trim() || `Đề xuất tài trợ — ${name.trim()}`,
+        amount: Number(expectedSponsorAmount) || 0,
+        status: 'pending'
+      });
+    }
     return res.status(201).json({ success: true, partner });
   } catch (error) {
     console.error('ctsv create partner:', error);
@@ -512,16 +602,30 @@ router.post('/partners', requireCtsvApprove, async (req, res) => {
   }
 });
 
+const CTSV_PARTNER_ACTION_STATUSES = ['pending', 'info_requested'];
+
 router.patch('/partners/:id/approve', requireCtsvApprove, async (req, res) => {
   try {
     const partner = await Partner.findById(req.params.id);
     if (!partner) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
     }
-    partner.status = 'approved';
-    partner.approvedByEmail = req.authEmail;
+    if (!CTSV_PARTNER_ACTION_STATUSES.includes(partner.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn này không ở trạng thái chờ CTSV phê duyệt.'
+      });
+    }
+    partner.status = 'pending_admin';
+    partner.ctsvApprovedByEmail = req.authEmail;
+    partner.ctsvApprovedAt = new Date();
+    partner.rejectionReason = '';
     await partner.save();
-    return res.json({ success: true, partner });
+    return res.json({
+      success: true,
+      partner,
+      message: 'Đã phê duyệt cấp CTSV. Đơn chuyển Admin phê duyệt lần cuối.'
+    });
   } catch (error) {
     console.error('ctsv approve partner:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -530,16 +634,54 @@ router.patch('/partners/:id/approve', requireCtsvApprove, async (req, res) => {
 
 router.patch('/partners/:id/reject', requireCtsvApprove, async (req, res) => {
   try {
+    const reason = String(req.body.reason || '').trim();
+    if (!reason) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập lý do từ chối!' });
+    }
     const partner = await Partner.findById(req.params.id);
     if (!partner) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
     }
+    if (!CTSV_PARTNER_ACTION_STATUSES.includes(partner.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn này không thể từ chối ở trạng thái hiện tại.'
+      });
+    }
     partner.status = 'rejected';
-    partner.rejectionReason = req.body.reason || '';
+    partner.rejectionReason = reason;
+    partner.supplementReason = '';
     await partner.save();
     return res.json({ success: true, partner });
   } catch (error) {
     console.error('ctsv reject partner:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/partners/:id/request-info', requireCtsvApprove, async (req, res) => {
+  try {
+    const reason = String(req.body.reason || '').trim();
+    if (!reason) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập nội dung cần bổ sung!' });
+    }
+    const partner = await Partner.findById(req.params.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
+    }
+    if (!CTSV_PARTNER_ACTION_STATUSES.includes(partner.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn này không thể yêu cầu bổ sung ở trạng thái hiện tại.'
+      });
+    }
+    partner.status = 'info_requested';
+    partner.supplementReason = reason;
+    partner.rejectionReason = '';
+    await partner.save();
+    return res.json({ success: true, partner });
+  } catch (error) {
+    console.error('ctsv partner request-info:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
@@ -564,8 +706,16 @@ router.patch('/contracts/:id/approve', requireCtsvApprove, async (req, res) => {
 
 router.get('/announcements', async (req, res) => {
   try {
-    const list = await Announcement.find().sort({ publishedAt: -1 }).limit(50);
-    return res.json({ success: true, announcements: list });
+    const list = await Announcement.find()
+      .sort({ publishedAt: -1 })
+      .limit(50)
+      .populate('eventId', 'title')
+      .lean();
+    const announcements = list.map((doc) => ({
+      ...doc,
+      id: doc._id?.toString?.() || String(doc._id)
+    }));
+    return res.json({ success: true, announcements });
   } catch (error) {
     console.error('ctsv announcements:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -574,17 +724,39 @@ router.get('/announcements', async (req, res) => {
 
 router.post('/announcements', requireCtsvApprove, async (req, res) => {
   try {
-    const { title, content, eventId } = req.body;
+    const { title, content, eventId, image, imageFileName } = req.body;
     if (!title?.trim()) {
       return res.status(400).json({ success: false, message: 'Tiêu đề thông báo là bắt buộc!' });
     }
+    if (!content?.trim()) {
+      return res.status(400).json({ success: false, message: 'Nội dung thông báo là bắt buộc!' });
+    }
+    if (image && image.length > MAX_IMAGE_DATA_LEN) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ảnh minh họa quá lớn. Vui lòng cắt lại hoặc chọn ảnh nhỏ hơn.'
+      });
+    }
+    if (eventId) {
+      const linkable = await isEventLinkableForAnnouncement(eventId);
+      if (!linkable) {
+        return res.status(400).json({
+          success: false,
+          message:
+            'Chỉ được gắn sự kiện cấp trường (CTSV) hoặc sự kiện đối tác đã được CTSV và Admin phê duyệt.'
+        });
+      }
+    }
     const announcement = await Announcement.create({
       title: title.trim(),
-      content: content || '',
+      content: content.trim(),
       eventId: eventId || null,
+      image: image || '',
+      imageFileName: imageFileName?.trim() || '',
       publishedByEmail: req.authEmail,
       publishedAt: new Date(),
-      isPublished: true
+      isPublished: true,
+      isHidden: false
     });
     return res.status(201).json({ success: true, announcement });
   } catch (error) {
@@ -592,5 +764,36 @@ router.post('/announcements', requireCtsvApprove, async (req, res) => {
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
+
+router.patch('/announcements/:id/hide', requireCtsvApprove, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thông báo!' });
+    }
+    announcement.isHidden = true;
+    await announcement.save();
+    return res.json({ success: true, announcement });
+  } catch (error) {
+    console.error('ctsv hide announcement:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+const deleteAnnouncementHandler = async (req, res) => {
+  try {
+    const announcement = await Announcement.findByIdAndDelete(req.params.id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thông báo!' });
+    }
+    return res.json({ success: true, message: 'Đã xóa thông báo.' });
+  } catch (error) {
+    console.error('ctsv delete announcement:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+};
+
+router.delete('/announcements/:id', requireCtsvApprove, deleteAnnouncementHandler);
+router.post('/announcements/:id/delete', requireCtsvApprove, deleteAnnouncementHandler);
 
 module.exports = router;

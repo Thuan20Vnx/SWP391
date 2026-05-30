@@ -1,7 +1,17 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import BannerCropModal from '../../components/ctsv/BannerCropModal';
+import AppSelect from '../../components/ui/AppSelect';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { createCtsvEvent } from '../../services/ctsvApi';
+import {
+  clearSchoolEventDraft,
+  formatDraftSavedLabel,
+  loadSchoolEventDraft,
+  saveSchoolEventDraft
+} from '../../utils/schoolEventDraft';
+
+const TICKET_AUDIENCE_OPTIONS = ['SV FPT', 'Khách ngoài trường', 'Tất cả'];
 
 const BANNER_MAX_BYTES = 5 * 1024 * 1024;
 const BANNER_ACCEPT = 'image/jpeg,image/png,image/webp';
@@ -19,9 +29,18 @@ const CATEGORIES = ['Công nghệ (IT)', 'Âm nhạc', 'Workshop', 'Kết nối'
 const TICKET_CAP_EXTRA = 10;
 
 /** Tổng vé tối đa = số tham dự dự kiến + 10 (vd: 50 người → tối đa 60 vé). */
+const parseExpectedAttendees = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return Math.floor(n);
+};
+
 const getMaxTicketTotal = (expectedAttendees) => {
-  const expected = Math.max(0, Number(expectedAttendees) || 0);
-  return expected + TICKET_CAP_EXTRA;
+  const parsed = parseExpectedAttendees(expectedAttendees);
+  if (parsed == null) return TICKET_CAP_EXTRA;
+  return parsed + TICKET_CAP_EXTRA;
 };
 
 const clampTicketRows = (rows, maxTotal) => {
@@ -38,12 +57,6 @@ const clampTicketRows = (rows, maxTotal) => {
 const DEFAULT_TICKETS = [
   { id: 1, name: 'Vé sinh viên', priceType: 'free', priceAmount: '', qty: 50, audience: 'SV FPT' },
   { id: 2, name: 'Vé khách mời', priceType: 'free', priceAmount: '', qty: 10, audience: 'Khách ngoài trường' }
-];
-
-const FORMAT_OPTIONS = [
-  { value: 'campus', label: 'Trực tiếp tại Campus' },
-  { value: 'online', label: 'Trực tuyến (Online)' },
-  { value: 'hybrid', label: 'Kết hợp (Hybrid)' }
 ];
 
 const formatTicketPriceLabel = (row) => {
@@ -113,45 +126,83 @@ const buildDateTime = (dateStr, timeStr) => {
   return `${dateStr}T${t}`;
 };
 
+const EMPTY_FORM = {
+  title: '',
+  eventType: 'Hội thảo & Workshop',
+  category: 'Công nghệ (IT)',
+  description: '',
+  eventDate: '',
+  startTime: '14:00',
+  duration: '3 tiếng',
+  format: 'campus',
+  location: '',
+  expectedAttendees: '',
+  speaker: '',
+  agenda: '',
+  image: ''
+};
+
 const CtsvEventCreate = () => {
   const navigate = useNavigate();
   const { showToast } = useOutletContext() || {};
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({
-    title: '',
-    eventType: 'Hội thảo & Workshop',
-    category: 'Công nghệ (IT)',
-    description: '',
-    eventDate: '',
-    startTime: '14:00',
-    duration: '3 tiếng',
-    format: 'campus',
-    location: '',
-    expectedAttendees: 50,
-    speaker: '',
-    agenda: '',
-    image: ''
-  });
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [expectedAttendeesError, setExpectedAttendeesError] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [tickets, setTickets] = useState(DEFAULT_TICKETS);
   const [bannerFileName, setBannerFileName] = useState('');
   const [cropOpen, setCropOpen] = useState(false);
   const [cropSource, setCropSource] = useState('');
   const [cropFileName, setCropFileName] = useState('');
   const bannerInputRef = useRef(null);
+  const draftRestoreToastShownRef = useRef(false);
 
+  useEffect(() => {
+    const draft = loadSchoolEventDraft();
+    if (!draft?.form) return;
+    const hasContent =
+      draft.form.title ||
+      draft.form.description ||
+      draft.form.eventDate ||
+      draft.form.image ||
+      draft.form.location;
+    if (!hasContent) return;
+    setForm({ ...EMPTY_FORM, ...draft.form, expectedAttendees: draft.form.expectedAttendees ?? '' });
+    if (draft.tickets?.length) setTickets(draft.tickets);
+    if (draft.bannerFileName) setBannerFileName(draft.bannerFileName);
+    if (draft.savedAt) setDraftSavedAt(draft.savedAt);
+    if (!draftRestoreToastShownRef.current) {
+      draftRestoreToastShownRef.current = true;
+      showToast?.('Đã khôi phục bản nháp tạo sự kiện.', 'info');
+    }
+  }, [showToast]);
+
+  const parsedExpected = parseExpectedAttendees(form.expectedAttendees);
   const maxTicketTotal = getMaxTicketTotal(form.expectedAttendees);
   const allocatedTickets = tickets.reduce((s, t) => s + (Number(t.qty) || 0), 0);
+  const expectedLabel =
+    form.expectedAttendees === '' ? '—' : String(form.expectedAttendees);
 
   const onChange = (e) => {
     const { name, value } = e.target;
     if (name === 'expectedAttendees') {
-      const nextExpected = Math.max(1, Number(value) || 1);
-      setForm((f) => ({ ...f, expectedAttendees: nextExpected }));
-      setTickets((rows) => clampTicketRows(rows, getMaxTicketTotal(nextExpected)));
+      const digits = value.replace(/\D/g, '');
+      setExpectedAttendeesError(false);
+      setForm((f) => ({ ...f, expectedAttendees: digits }));
+      setTickets((rows) => clampTicketRows(rows, getMaxTicketTotal(digits)));
       return;
     }
     setForm((f) => ({ ...f, [name]: value }));
   };
+
+  const onExpectedAttendeesBlur = () => {
+    setExpectedAttendeesError(parseExpectedAttendees(form.expectedAttendees) == null);
+  };
+
+  useEffect(() => {
+    setTickets((rows) => clampTicketRows(rows, maxTicketTotal));
+  }, [maxTicketTotal]);
 
   const updateTicket = (id, field, value) => {
     if (field === 'qty') {
@@ -253,14 +304,27 @@ const CtsvEventCreate = () => {
     setTickets((rows) => rows.filter((r) => r.id !== id));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const persistDraft = () => {
+    const at = saveSchoolEventDraft({ form, tickets, bannerFileName });
+    if (at) setDraftSavedAt(at);
+    showToast?.('Đã lưu bản nháp.', 'success');
+  };
+
+  const doSubmit = async () => {
     if (!form.title.trim() || !form.eventDate) {
       showToast?.('Vui lòng điền tên sự kiện và ngày tổ chức.', 'error');
+      setConfirmAction(null);
+      return;
+    }
+    if (parseExpectedAttendees(form.expectedAttendees) == null) {
+      setExpectedAttendeesError(true);
+      showToast?.('Vui lòng nhập số lượng tham dự dự kiến (tối thiểu 1).', 'error');
+      setConfirmAction(null);
       return;
     }
     if (!form.image) {
       showToast?.('Vui lòng tải và cắt ảnh bìa sự kiện.', 'error');
+      setConfirmAction(null);
       return;
     }
 
@@ -269,6 +333,7 @@ const CtsvEventCreate = () => {
     );
     if (invalidPaid) {
       showToast?.('Vé có phí cần nhập số tiền lớn hơn 0.', 'error');
+      setConfirmAction(null);
       return;
     }
 
@@ -278,6 +343,7 @@ const CtsvEventCreate = () => {
         `Tổng số vé (${totalTickets}) vượt quá ${maxTicketTotal} (số tham dự dự kiến + 10).`,
         'error'
       );
+      setConfirmAction(null);
       return;
     }
     const ticketTypes = tickets.map((t) => ({
@@ -304,20 +370,46 @@ const CtsvEventCreate = () => {
         format: form.format,
         speaker: form.speaker,
         agenda: form.agenda,
-        expectedAttendees: Number(form.expectedAttendees) || 0,
+        expectedAttendees: parsedExpected,
         ticketTypes
       });
+      clearSchoolEventDraft();
+      setDraftSavedAt(null);
       showToast?.('Đã lưu sự kiện cấp trường!', 'success');
       navigate(`/ctsv/events/${res.event.id}`);
     } catch (err) {
       showToast?.(err.message, 'error');
     } finally {
       setSubmitting(false);
+      setConfirmAction(null);
     }
   };
 
+  const draftLabel = formatDraftSavedLabel(draftSavedAt);
+
   return (
     <div className="ctsv-page ctsv-create-page">
+      <ConfirmDialog
+        open={confirmAction === 'cancel'}
+        title="Hủy tạo sự kiện?"
+        message="Thay đổi chưa lưu sẽ bị bỏ. Bạn có chắc muốn rời khỏi trang?"
+        confirmLabel="Rời trang"
+        cancelLabel="Ở lại"
+        onConfirm={() => navigate('/ctsv/events')}
+        onCancel={() => setConfirmAction(null)}
+        danger
+      />
+      <ConfirmDialog
+        open={confirmAction === 'submit'}
+        title="Lưu sự kiện cấp trường?"
+        message="Sự kiện sẽ được tạo và lưu vào hệ thống. Bạn có chắc muốn tiếp tục?"
+        confirmLabel="Lưu & Cập nhật"
+        cancelLabel="Quay lại"
+        onConfirm={doSubmit}
+        onCancel={() => !submitting && setConfirmAction(null)}
+        loading={submitting}
+      />
+
       <nav className="ctsv-breadcrumb" aria-label="Breadcrumb">
         <Link to="/ctsv/events">Quản lý sự kiện</Link>
         <span className="ctsv-breadcrumb-sep">/</span>
@@ -325,19 +417,24 @@ const CtsvEventCreate = () => {
       </nav>
 
       <header className="ctsv-create-header">
-        <div className="ctsv-create-title-row">
-          <h1>TẠO SỰ KIỆN CẤP TRƯỜNG</h1>
-          <span className="ctsv-create-badge">
-            <span className="ctsv-create-badge-dot" />
-            Cấp trường
-          </span>
-        </div>
+        <h1>TẠO SỰ KIỆN CẤP TRƯỜNG</h1>
         <p className="ctsv-muted">
           Cập nhật các thông tin chi tiết của sự kiện trước khi lưu thay đổi.
         </p>
+        {draftLabel && (
+          <p className="ctsv-create-draft-status" aria-live="polite">
+            Bản nháp đã lưu lúc {draftLabel}
+          </p>
+        )}
       </header>
 
-      <form className="ctsv-create-form" onSubmit={handleSubmit}>
+      <form
+        className="ctsv-create-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setConfirmAction('submit');
+        }}
+      >
         <section className="ctsv-form-section">
           <SectionTitle>Thông tin chung</SectionTitle>
           <div className="ctsv-form-section-body">
@@ -353,22 +450,20 @@ const CtsvEventCreate = () => {
             </Field>
             <div className="ctsv-form-row-2">
               <Field label="Loại sự kiện" required>
-                <select name="eventType" value={form.eventType} onChange={onChange} className="ctsv-select">
-                  {EVENT_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
+                <AppSelect
+                  name="eventType"
+                  value={form.eventType}
+                  onChange={onChange}
+                  options={EVENT_TYPES.map((t) => ({ value: t, label: t }))}
+                />
               </Field>
               <Field label="Danh mục" required>
-                <select name="category" value={form.category} onChange={onChange} className="ctsv-select">
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                <AppSelect
+                  name="category"
+                  value={form.category}
+                  onChange={onChange}
+                  options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                />
               </Field>
             </div>
             <div className="ctsv-field">
@@ -410,27 +505,6 @@ const CtsvEventCreate = () => {
         <section className="ctsv-form-section">
           <SectionTitle>Lịch trình &amp; Địa điểm</SectionTitle>
           <div className="ctsv-form-section-body">
-            <Field label="Hình thức tổ chức" required>
-              <div className="ctsv-radio-group" role="radiogroup" aria-label="Hình thức tổ chức">
-                {FORMAT_OPTIONS.map((opt) => (
-                  <label
-                    key={opt.value}
-                    className={`ctsv-radio-card ${form.format === opt.value ? 'is-selected' : ''}`}
-                  >
-                    <input
-                      type="radio"
-                      name="format"
-                      value={opt.value}
-                      checked={form.format === opt.value}
-                      onChange={onChange}
-                      className="ctsv-radio-input-hidden"
-                    />
-                    <span className="ctsv-radio-indicator" aria-hidden />
-                    <span className="ctsv-radio-text">{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-            </Field>
             <div className="ctsv-form-row-2">
               <Field label="Địa điểm" required>
                 <input
@@ -443,13 +517,19 @@ const CtsvEventCreate = () => {
               </Field>
               <Field label="Số lượng tham dự dự kiến" required>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   name="expectedAttendees"
                   value={form.expectedAttendees}
                   onChange={onChange}
-                  className="ctsv-input"
-                  min={1}
+                  onBlur={onExpectedAttendeesBlur}
+                  className={`ctsv-input ${expectedAttendeesError ? 'ctsv-input--error' : ''}`}
+                  placeholder="VD: 40"
+                  aria-invalid={expectedAttendeesError}
                 />
+                {expectedAttendeesError && (
+                  <p className="ctsv-field-error-hint">Vui lòng nhập số lượng tham dự dự kiến (tối thiểu 1).</p>
+                )}
               </Field>
             </div>
             <Field label="Diễn giả / Khách mời">
@@ -480,7 +560,7 @@ const CtsvEventCreate = () => {
             <Field
               label="Danh sách loại vé"
               required
-              hint={`Tổng số vé tối đa ${maxTicketTotal} (= ${form.expectedAttendees} + 10). Đã phân bổ: ${allocatedTickets}/${maxTicketTotal}.`}
+              hint={`Tổng số vé tối đa ${maxTicketTotal} (= ${expectedLabel} + 10). Đã phân bổ: ${allocatedTickets}/${maxTicketTotal}.`}
             >
               <div className="ctsv-ticket-table-wrap">
                 <table className="ctsv-ticket-table">
@@ -515,21 +595,19 @@ const CtsvEventCreate = () => {
                             type="number"
                             value={row.qty}
                             onChange={(e) => updateTicket(row.id, 'qty', e.target.value)}
+                            onWheel={(e) => e.currentTarget.blur()}
                             className="ctsv-input ctsv-input-table"
                             min={0}
                             max={maxTicketTotal}
                           />
                         </td>
                         <td>
-                          <select
+                          <AppSelect
                             value={row.audience}
                             onChange={(e) => updateTicket(row.id, 'audience', e.target.value)}
-                            className="ctsv-select ctsv-input-table"
-                          >
-                            <option>SV FPT</option>
-                            <option>Khách ngoài trường</option>
-                            <option>Tất cả</option>
-                          </select>
+                            variant="table"
+                            options={TICKET_AUDIENCE_OPTIONS}
+                          />
                         </td>
                         <td>
                           <button
@@ -631,9 +709,22 @@ const CtsvEventCreate = () => {
         </section>
 
         <footer className="ctsv-form-actions">
-          <Link to="/ctsv/events" className="ctsv-btn-secondary">
+          <button
+            type="button"
+            className="ctsv-btn-secondary"
+            disabled={submitting}
+            onClick={() => setConfirmAction('cancel')}
+          >
             Hủy bỏ
-          </Link>
+          </button>
+          <button
+            type="button"
+            className="ctsv-btn-draft"
+            disabled={submitting}
+            onClick={persistDraft}
+          >
+            Lưu nháp
+          </button>
           <button type="submit" className="ctsv-btn-primary ctsv-btn-save" disabled={submitting}>
             {submitting ? 'Đang lưu...' : 'Lưu & Cập nhật'}
           </button>

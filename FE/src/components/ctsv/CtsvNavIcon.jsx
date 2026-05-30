@@ -1,0 +1,92 @@
+import React from 'react';
+
+const CtsvNavIcon = ({ type }) => {
+  const common = {
+    viewBox: '0 0 24 24',
+    width: 20,
+    height: 20,
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.75,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true
+  };
+
+  switch (type) {
+    case 'dashboard':
+      return (
+        <svg {...common}>
+          <rect x="3" y="3" width="8" height="8" rx="1.5" />
+          <rect x="13" y="3" width="8" height="5" rx="1.5" />
+          <rect x="13" y="10" width="8" height="11" rx="1.5" />
+          <rect x="3" y="13" width="8" height="8" rx="1.5" />
+        </svg>
+      );
+    case 'profile':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 20c1.5-3.5 4.5-5.5 7-5.5s5.5 2 7 5.5" />
+        </svg>
+      );
+    case 'partners':
+      return (
+        <svg {...common}>
+          <path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z" />
+          <rect x="8" y="6" width="8" height="13" rx="1.5" />
+          <path d="M11 12l2 2 4-4.5" />
+        </svg>
+      );
+    case 'create':
+      return (
+        <svg {...common}>
+          <path d="M12 5v14M5 12h14" />
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+        </svg>
+      );
+    case 'publish':
+      return (
+        <svg {...common}>
+          <path d="M5 5h9l5 5v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+          <path d="M14 5v5h5" />
+          <path d="M8 13h8M8 17h5" />
+        </svg>
+      );
+    case 'announce':
+      return (
+        <svg {...common}>
+          <path d="M12 4a3 3 0 0 1 3 3v4.5l2 2.5H7l2-2.5V7a3 3 0 0 1 3-3z" />
+          <path d="M10 19h4" />
+        </svg>
+      );
+    case 'proposals':
+      return (
+        <svg {...common}>
+          <path d="M7 4h10l3 3v13H4V7l3-3z" />
+          <path d="M9 12h6M9 16h4" />
+        </svg>
+      );
+    case 'calendar':
+      return (
+        <svg {...common}>
+          <rect x="4" y="5" width="16" height="15" rx="2" />
+          <path d="M8 3v4M16 3v4M4 10h16" />
+        </svg>
+      );
+    case 'reports':
+      return (
+        <svg {...common}>
+          <path d="M5 19V9M12 19V5M19 19v-7" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+      );
+  }
+};
+
+export default CtsvNavIcon;

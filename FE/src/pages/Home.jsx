@@ -2,6 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
+import AppSelect from '../components/ui/AppSelect';
+
+const HOME_TIME_FILTERS = [
+  { value: 'Tất cả', label: 'Tất cả thời gian' },
+  { value: 'Hôm nay', label: 'Hôm nay' },
+  { value: 'Tuần này', label: 'Tuần này' }
+];
+
+const HOME_CATEGORY_FILTERS = [
+  { value: 'Tất cả', label: 'Tất cả chủ đề' },
+  { value: 'Âm nhạc', label: 'Âm nhạc' },
+  { value: 'Workshop', label: 'Workshop' },
+  { value: 'Công nghệ', label: 'Công nghệ' },
+  { value: 'Kết nối', label: 'Kết nối' }
+];
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import useUserProfile from '../hooks/useUserProfile';
 import { mapApiEventToHomeCard, filterActiveDiscoveryEvents } from '../data/eventDiscoveryData';
@@ -267,16 +282,13 @@ const Home = ({ showToast }) => {
             </span>
             <div className="filter-control">
               <label htmlFor="time-select" className="filter-label">Thời gian</label>
-              <select
+              <AppSelect
                 id="time-select"
                 value={timeFilter}
                 onChange={(e) => setTimeFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="Tất cả">Tất cả thời gian</option>
-                <option value="Hôm nay">Hôm nay</option>
-                <option value="Tuần này">Tuần này</option>
-              </select>
+                variant="filter"
+                options={HOME_TIME_FILTERS}
+              />
             </div>
           </div>
 
@@ -290,18 +302,13 @@ const Home = ({ showToast }) => {
             </span>
             <div className="filter-control">
               <label htmlFor="category-select" className="filter-label">Chủ đề</label>
-              <select
+              <AppSelect
                 id="category-select"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="Tất cả">Tất cả chủ đề</option>
-                <option value="Âm nhạc">Âm nhạc</option>
-                <option value="Workshop">Workshop</option>
-                <option value="Công nghệ">Công nghệ</option>
-                <option value="Kết nối">Kết nối</option>
-              </select>
+                variant="filter"
+                options={HOME_CATEGORY_FILTERS}
+              />
             </div>
           </div>
 
