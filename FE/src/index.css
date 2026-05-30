@@ -11652,4 +11652,436 @@ body {
   font-weight: 400;
 }
 
+/* ── CTSV Phát hành thông báo ── */
+.ctsv-announce-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding-top: 8px;
+  max-width: 1100px;
+}
+
+.ctsv-announce-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 28px 32px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 55%, #475569 100%);
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(30, 41, 59, 0.16);
+}
+
+.ctsv-announce-eyebrow {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fdba74;
+  margin-bottom: 8px;
+}
+
+.ctsv-announce-hero h1 {
+  margin: 0 0 10px;
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ctsv-announce-hero p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+  max-width: 520px;
+}
+
+.ctsv-announce-hero-stat {
+  text-align: center;
+  padding: 16px 24px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  min-width: 120px;
+}
+
+.ctsv-announce-hero-stat-num {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ctsv-announce-hero-stat-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 4px;
+}
+
+.ctsv-announce-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .ctsv-announce-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ctsv-announce-form-card,
+.ctsv-announce-history-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.ctsv-announce-card-head {
+  padding: 22px 28px 0;
+}
+
+.ctsv-announce-card-head h2 {
+  margin: 0 0 6px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ctsv-announce-card-head p {
+  margin: 0 0 4px;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.ctsv-announce-form {
+  padding: 20px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ctsv-announce-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ctsv-announce-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.ctsv-announce-label em {
+  color: #ea580c;
+  font-style: normal;
+}
+
+.ctsv-announce-input,
+.ctsv-announce-textarea,
+.ctsv-announce-select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  color: #0f172a;
+  background: #f8fafc;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.ctsv-announce-input:focus,
+.ctsv-announce-textarea:focus,
+.ctsv-announce-select:focus {
+  outline: none;
+  border-color: #f97316;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.ctsv-announce-textarea {
+  resize: vertical;
+  min-height: 160px;
+  line-height: 1.55;
+  font-family: inherit;
+}
+
+.ctsv-announce-select-wrap {
+  position: relative;
+}
+
+.ctsv-announce-select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 36px;
+}
+
+.ctsv-announce-hint {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.ctsv-announce-hint strong {
+  color: #0f172a;
+}
+
+.ctsv-announce-char {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.ctsv-announce-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.ctsv-announce-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+
+.ctsv-announce-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.38);
+}
+
+.ctsv-announce-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ctsv-announce-reset {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ctsv-announce-reset:hover:not(:disabled) {
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.ctsv-announce-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ctsv-announce-tip-card,
+.ctsv-announce-preview-card {
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.ctsv-announce-tip-card {
+  background: linear-gradient(180deg, #fffaf7 0%, #ffffff 100%);
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+.ctsv-announce-tip-card h3,
+.ctsv-announce-preview-card h3 {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ctsv-announce-tip-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.8125rem;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.ctsv-announce-preview-title {
+  margin: 0 0 8px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ctsv-announce-preview-event {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.ctsv-announce-preview-body {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.ctsv-announce-history-card .ctsv-announce-card-head {
+  padding-bottom: 0;
+}
+
+.ctsv-announce-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 12px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ctsv-announce-history-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  background: #fafbfc;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.ctsv-announce-history-item:hover {
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.ctsv-announce-history-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #fff7ed, #ffedd5);
+  color: #ea580c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ctsv-announce-history-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctsv-announce-history-body h3 {
+  margin: 0 0 6px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ctsv-announce-history-body p {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.ctsv-announce-history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.ctsv-announce-history-event {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+}
+
+.ctsv-announce-history-link {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ctsv-announce-history-link:hover {
+  border-color: #f97316;
+  color: #ea580c;
+}
+
+.ctsv-announce-empty,
+.ctsv-announce-empty-state {
+  padding: 40px 28px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.9375rem;
+}
+
+.ctsv-announce-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ctsv-announce-empty-icon {
+  color: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+  .ctsv-announce-hero {
+    padding: 22px 20px;
+  }
+
+  .ctsv-announce-hero h1 {
+    font-size: 1.35rem;
+  }
+
+  .ctsv-announce-form,
+  .ctsv-announce-card-head {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .ctsv-announce-history-item {
+    flex-wrap: wrap;
+  }
+}
+
 

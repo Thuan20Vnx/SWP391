@@ -615,7 +615,10 @@ router.patch('/contracts/:id/approve', requireCtsvApprove, async (req, res) => {
 
 router.get('/announcements', async (req, res) => {
   try {
-    const list = await Announcement.find().sort({ publishedAt: -1 }).limit(50);
+    const list = await Announcement.find()
+      .sort({ publishedAt: -1 })
+      .limit(50)
+      .populate('eventId', 'title');
     return res.json({ success: true, announcements: list });
   } catch (error) {
     console.error('ctsv announcements:', error);
