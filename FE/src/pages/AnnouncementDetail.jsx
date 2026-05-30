@@ -1,36 +1,28 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import StudentDashboardLayout from '../components/StudentDashboardLayout';
+import AnnouncementsLayout from '../components/AnnouncementsLayout';
 import { getAnnouncementById } from '../data/studentMockData';
 
-const AnnouncementDetail = ({ showToast }) => {
+const AnnouncementDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const announcement = getAnnouncementById(id);
 
   if (!announcement) {
     return (
-      <StudentDashboardLayout
-        activeMenu="announcements"
-        pageTitle="Không tìm thấy thông báo"
-        showToast={showToast}
-      >
+      <AnnouncementsLayout title="Không tìm thấy thông báo">
         <div className="student-empty-state">
           <h3>Thông báo không tồn tại</h3>
           <button type="button" className="primary-button" onClick={() => navigate('/announcements')}>
             Quay lại danh sách
           </button>
         </div>
-      </StudentDashboardLayout>
+      </AnnouncementsLayout>
     );
   }
 
   return (
-    <StudentDashboardLayout
-      activeMenu="announcements"
-      breadcrumbLabel="Chi tiết thông báo"
-      showToast={showToast}
-    >
+    <AnnouncementsLayout>
       <button type="button" className="student-back-btn" onClick={() => navigate('/announcements')}>
         ← Quay lại danh sách
       </button>
@@ -51,7 +43,7 @@ const AnnouncementDetail = ({ showToast }) => {
           ))}
         </div>
       </article>
-    </StudentDashboardLayout>
+    </AnnouncementsLayout>
   );
 };
 

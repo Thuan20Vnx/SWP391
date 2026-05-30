@@ -5,6 +5,7 @@ import { API_BASE, getAuthHeaders } from '../utils/api';
 import { startGoogleLogin } from '../utils/googleAuth';
 import { cacheUserProfile } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
+import { getHomePathForRole, normalizeRole } from '../utils/auth';
 import { resolveUserAvatar } from '../utils/image';
 import defaultAvatar from '../constants/defaultAvatar';
 
@@ -189,7 +190,7 @@ const Login = ({ showToast }) => {
           }
 
           dispatchAuthChanged();
-          navigate('/');
+          navigate(getHomePathForRole(normalizeRole(data.user?.role)));
         } else {
           setValidFields(prev => ({ ...prev, password: false }));
           setErrors(prev => ({ ...prev, password: true }));
@@ -378,9 +379,6 @@ const Login = ({ showToast }) => {
                 <span className="checkbox-checkmark"></span>
                 <span className="checkbox-label">Ghi nhớ tài khoản</span>
               </label>
-              <Link to="/forgot" id="forgot-link" className="accent-link" style={{ color: 'var(--primary)', fontWeight: '600' }}>
-                Quên mật khẩu?
-              </Link>
             </div>
 
             {/* Submit Button */}

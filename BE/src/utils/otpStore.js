@@ -1,7 +1,6 @@
 const { OTP_EXPIRY_MINUTES } = require('../config/env');
 
 const pendingUsers = new Map();
-const pendingResets = new Map();
 const OTP_TTL_MS = OTP_EXPIRY_MINUTES * 60 * 1000;
 const MAX_OTP_ATTEMPTS = 5;
 const OTP_SIGNUP_LOCK_MS = 2 * 60 * 1000;
@@ -92,7 +91,6 @@ const throwOtpLockedError = (entry, context = 'signup') => {
 
 module.exports = {
   pendingUsers,
-  pendingResets,
   OTP_TTL_MS,
   MAX_OTP_ATTEMPTS,
   OTP_SIGNUP_LOCK_MS,

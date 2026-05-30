@@ -4,7 +4,7 @@ import defaultAvatar from '../constants/defaultAvatar';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { resolveUserAvatar } from '../utils/image';
-import { getRoleLabel } from '../utils/role';
+import { getRoleLabel, isAdminRoleLabel } from '../utils/role';
 import { clearUserProfileCache } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import DashboardSidebarNav from './DashboardSidebarNav';
@@ -37,6 +37,7 @@ const StudentDashboardLayout = ({
           fullname: user.fullname || '',
           picture: resolveUserAvatar(user, ''),
           role: user.role || localStorage.getItem('userRole') || 'guest',
+          course: user.course || '',
         });
       })
       .catch(() => {})
@@ -89,7 +90,16 @@ const StudentDashboardLayout = ({
                 <>
                   <span className="sidebar-user-name">{profileData.fullname || 'Người dùng'}</span>
                   {profileData.role?.toLowerCase() !== 'student' && (
-                    <span className="sidebar-user-role">{getRoleLabel(profileData.role)}</span>
+                    <span
+                      className={`sidebar-user-role${
+                        isAdminRoleLabel(profileData.role) ? ' profile-role-admin' : ''
+                      }`}
+                    >
+                      {getRoleLabel(
+                        profileData.role,
+                        isAdminRoleLabel(profileData.role) ? profileData.course : undefined
+                      )}
+                    </span>
                   )}
                 </>
               )}
@@ -150,7 +160,16 @@ const StudentDashboardLayout = ({
                     <>
                       <span className="navbar-user-name">{profileData.fullname || 'Người dùng'}</span>
                       {profileData.role?.toLowerCase() !== 'student' && (
-                        <span className="navbar-user-role">{getRoleLabel(profileData.role)}</span>
+                        <span
+                          className={`navbar-user-role${
+                            isAdminRoleLabel(profileData.role) ? ' profile-role-admin' : ''
+                          }`}
+                        >
+                          {getRoleLabel(
+                            profileData.role,
+                            isAdminRoleLabel(profileData.role) ? profileData.course : undefined
+                          )}
+                        </span>
                       )}
                     </>
                   )}

@@ -1,0 +1,234 @@
+/* Trang Thêm đối tác mới — admin */
+
+.admin-partners-page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 8px 0 40px;
+}
+
+.admin-partners-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.admin-partners-card__header {
+  padding: 28px 32px 8px;
+}
+
+.admin-partners-card__title {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a120e;
+  letter-spacing: -0.02em;
+}
+
+.admin-partners-card__subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.55;
+  max-width: 640px;
+}
+
+.admin-partners-form {
+  padding: 20px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-partners-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 24px;
+}
+
+.admin-partners-form__grid--full {
+  grid-column: 1 / -1;
+}
+
+.admin-partner-field__label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a120e;
+  margin-bottom: 8px;
+}
+
+.admin-partner-required {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.admin-partner-input-vnd {
+  position: relative;
+}
+
+.admin-partner-input-vnd .admin-data-input {
+  padding-right: 52px;
+}
+
+.admin-partner-input-vnd__suffix {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.admin-partners-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-partners-upload__zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 160px;
+  padding: 24px;
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-partners-upload__zone:hover,
+.admin-partners-upload__zone--drag {
+  border-color: #f26f21;
+  background: #fffbf7;
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.08);
+}
+
+.admin-partners-upload__zone--has-file {
+  border-style: solid;
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.admin-partners-upload__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fff7ed;
+  color: #f26f21;
+}
+
+.admin-partners-upload__text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #475569;
+  text-align: center;
+}
+
+.admin-partners-upload__text strong {
+  color: #f26f21;
+  font-weight: 700;
+}
+
+.admin-partners-upload__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.admin-partners-upload__file-name {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1a120e;
+  word-break: break-all;
+  text-align: center;
+}
+
+.admin-partners-upload__input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-partners-form__footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.admin-partners-btn-cancel {
+  min-width: 120px;
+  padding: 12px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #334155;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.admin-partners-btn-cancel:hover:not(:disabled) {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.admin-partners-btn-submit {
+  min-width: 160px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  background: #f26f21;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: inherit;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(242, 111, 33, 0.35);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-partners-btn-submit:hover:not(:disabled) {
+  background: #ea580c;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(242, 111, 33, 0.4);
+}
+
+.admin-partners-btn-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 720px) {
+  .admin-partners-card__header,
+  .admin-partners-form {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .admin-partners-form__grid {
+    grid-template-columns: 1fr;
+  }
+}

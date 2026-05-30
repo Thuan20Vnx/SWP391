@@ -22,3 +22,65 @@ export const approveAdminPartner = (id) =>
 
 export const rejectAdminPartner = (id, reason = '') =>
   adminFetch(`/partners/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+
+export const fetchAdminAccounts = async ({ page = 1, limit = 10, role = 'all', search = '' }) => {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    role,
+    search
+  });
+  const res = await fetch(`${API_BASE}/api/admin/accounts?${params}`, {
+    headers: getAuthHeaders(false)
+  });
+  return parseJson(res);
+};
+
+export const createAdminAccount = async (payload) => {
+  const res = await fetch(`${API_BASE}/api/admin/accounts`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload)
+  });
+  return parseJson(res);
+};
+
+export const updateAdminAccountStatus = async (id, isActive) => {
+  const res = await fetch(`${API_BASE}/api/admin/accounts/${id}/status`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ isActive })
+  });
+  return parseJson(res);
+};
+
+export const fetchAdminAccount = async (id) => {
+  const res = await fetch(`${API_BASE}/api/admin/accounts/${id}`, {
+    headers: getAuthHeaders(false)
+  });
+  return parseJson(res);
+};
+
+export const updateAdminAccount = async (id, payload) => {
+  const res = await fetch(`${API_BASE}/api/admin/accounts/${id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload)
+  });
+  return parseJson(res);
+};
+
+export const fetchAdminDataOverview = async () => {
+  const res = await fetch(`${API_BASE}/api/admin/data/overview`, {
+    headers: getAuthHeaders(false)
+  });
+  return parseJson(res);
+};
+
+export const deleteAdminAccount = async (id) => {
+  const res = await fetch(`${API_BASE}/api/admin/accounts/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(false)
+  });
+  return parseJson(res);
+};

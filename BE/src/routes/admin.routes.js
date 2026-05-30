@@ -1,13 +1,23 @@
 const express = require('express');
+const asyncHandler = require('../utils/asyncHandler');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
-const { requireAdmin } = require('../middleware/requireRole');
+const authorize = require('../middleware/authorize');
+const adminController = require('../controllers/admin.controller');
 const Partner = require('../models/Partner');
 const Contract = require('../models/Contract');
 const { ensurePartnerEvent } = require('../utils/announcementEvents');
 
 router.use(authMiddleware);
-router.use(requireAdmin);
+router.use(authorize('admin'));
+
+router.get('/accounts', asyncHandler(adminController.listAccounts));
+router.post('/accounts', asyncHandler(adminController.createAccount));
+router.get('/accounts/:id', asyncHandler(adminController.getAccount));
+router.put('/accounts/:id', asyncHandler(adminController.updateAccount));
+router.patch('/accounts/:id/status', asyncHandler(adminController.updateAccountStatus));
+router.delete('/accounts/:id', asyncHandler(adminController.deleteAccount));
+router.get('/data/overview', asyncHandler(adminController.getDataOverview));
 
 router.get('/partners', async (req, res) => {
   try {

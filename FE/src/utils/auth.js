@@ -40,14 +40,21 @@ export const isCtsvRole = (role = getUserRole()) => {
   return r === USER_ROLES.CTSV || r === USER_ROLES.ICPDP;
 };
 
+export const isAdminRole = (role = getUserRole()) =>
+  normalizeRole(role) === USER_ROLES.ADMIN;
+
 /** Chỉ CTSV được phê duyệt cuối; ICPDP duyệt bước nội bộ */
 export const isIcpdpRole = (role = getUserRole()) => normalizeRole(role) === USER_ROLES.ICPDP;
 
 export const canCtsvFinalApprove = (role = getUserRole()) =>
   normalizeRole(role) === USER_ROLES.CTSV;
 
-export const getHomePathForRole = (role = getUserRole()) =>
-  isCtsvRole(role) ? '/ctsv' : '/';
+export const getHomePathForRole = (role = getUserRole()) => {
+  const r = normalizeRole(role);
+  if (isCtsvRole(r)) return '/ctsv';
+  if (isAdminRole(r)) return '/admin';
+  return '/';
+};
 
 /** Nhãn hiển thị trên header / profile */
 export const getRoleDisplayLabel = (role, course = 'K18') => {
@@ -62,7 +69,7 @@ export const getRoleDisplayLabel = (role, course = 'K18') => {
     case USER_ROLES.PARTNER:
       return 'Đối tác';
     case USER_ROLES.ADMIN:
-      return 'Quản trị viên';
+      return course ? `IT Admin - ${course}` : 'IT Admin';
     case USER_ROLES.GUEST:
       return 'Khách';
     default:
