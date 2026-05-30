@@ -641,11 +641,40 @@ router.post('/announcements', requireCtsvApprove, async (req, res) => {
       eventId: eventId || null,
       publishedByEmail: req.authEmail,
       publishedAt: new Date(),
-      isPublished: true
+      isPublished: true,
+      isHidden: false
     });
     return res.status(201).json({ success: true, announcement });
   } catch (error) {
     console.error('ctsv publish announcement:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/announcements/:id/hide', requireCtsvApprove, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thông báo!' });
+    }
+    announcement.isHidden = true;
+    await announcement.save();
+    return res.json({ success: true, announcement });
+  } catch (error) {
+    console.error('ctsv hide announcement:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.delete('/announcements/:id', requireCtsvApprove, async (req, res) => {
+  try {
+    const announcement = await Announcement.findByIdAndDelete(req.params.id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thông báo!' });
+    }
+    return res.json({ success: true, message: 'Đã xóa thông báo.' });
+  } catch (error) {
+    console.error('ctsv delete announcement:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

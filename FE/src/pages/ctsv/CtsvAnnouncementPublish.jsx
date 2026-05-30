@@ -2,7 +2,13 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom';
 import AppSelect from '../../components/ui/AppSelect';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import { fetchCtsvAnnouncements, fetchCtsvEvents, publishCtsvAnnouncement } from '../../services/ctsvApi';
+import {
+  deleteCtsvAnnouncement,
+  fetchCtsvAnnouncements,
+  fetchCtsvEvents,
+  hideCtsvAnnouncement,
+  publishCtsvAnnouncement
+} from '../../services/ctsvApi';
 import {
   clearAnnouncementDraft,
   formatDraftSavedLabel,
@@ -59,6 +65,8 @@ const CtsvAnnouncementPublish = () => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [draftSavedAt, setDraftSavedAt] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [targetAnnouncement, setTargetAnnouncement] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const draftReadyRef = useRef(false);
   const autosaveTimerRef = useRef(null);
 
@@ -126,8 +134,13 @@ const CtsvAnnouncementPublish = () => {
     return () => window.removeEventListener('beforeunload', flush);
   }, [form]);
 
+  const refreshAnnouncements = useCallback(async () => {
+    const d = await fetchCtsvAnnouncements();
+    setHistory(d.announcements || []);
+  }, []);
+
   const historyThisWeek = useMemo(
-    () => history.filter((a) => isPublishedThisWeek(a.publishedAt)),
+    () => history.filter((a) => !a.isHidden && isPublishedThisWeek(a.publishedAt)),
     [history]
   );
 
@@ -163,14 +176,50 @@ const CtsvAnnouncementPublish = () => {
       setForm(EMPTY_FORM);
       clearAnnouncementDraft();
       setDraftSavedAt(null);
-      const d = await fetchCtsvAnnouncements();
-      setHistory(d.announcements || []);
+      await refreshAnnouncements();
     } catch (err) {
       showToast?.(err.message, 'error');
     } finally {
       setSubmitting(false);
       setConfirmAction(null);
     }
+  };
+
+  const doHideAnnouncement = async () => {
+    if (!targetAnnouncement?.id) return;
+    setActionLoading(true);
+    try {
+      await hideCtsvAnnouncement(targetAnnouncement.id);
+      showToast?.('Đã ẩn thông báo khỏi danh sách.', 'success');
+      await refreshAnnouncements();
+    } catch (err) {
+      showToast?.(err.message, 'error');
+    } finally {
+      setActionLoading(false);
+      setConfirmAction(null);
+      setTargetAnnouncement(null);
+    }
+  };
+
+  const doDeleteAnnouncement = async () => {
+    if (!targetAnnouncement?.id) return;
+    setActionLoading(true);
+    try {
+      await deleteCtsvAnnouncement(targetAnnouncement.id);
+      showToast?.('Đã xóa thông báo.', 'success');
+      await refreshAnnouncements();
+    } catch (err) {
+      showToast?.(err.message, 'error');
+    } finally {
+      setActionLoading(false);
+      setConfirmAction(null);
+      setTargetAnnouncement(null);
+    }
+  };
+
+  const openListConfirm = (type, announcement) => {
+    setTargetAnnouncement({ id: announcement._id, title: announcement.title });
+    setConfirmAction(type);
   };
 
   const doClearDraft = () => {
@@ -218,6 +267,45 @@ const CtsvAnnouncementPublish = () => {
         onConfirm={doClearDraft}
         onCancel={() => setConfirmAction(null)}
         danger
+      />
+      <ConfirmDialog
+        open={confirmAction === 'hide'}
+        title="Ẩn thông báo?"
+        message={
+          targetAnnouncement?.title
+            ? `"${targetAnnouncement.title}" sẽ không hiển thị trong danh sách tuần này.`
+            : 'Thông báo sẽ không hiển thị trong danh sách tuần này.'
+        }
+        confirmLabel="Ẩn"
+        cancelLabel="Hủy"
+        onConfirm={doHideAnnouncement}
+        onCancel={() => {
+          if (!actionLoading) {
+            setConfirmAction(null);
+            setTargetAnnouncement(null);
+          }
+        }}
+        loading={actionLoading}
+      />
+      <ConfirmDialog
+        open={confirmAction === 'delete'}
+        title="Xóa thông báo vĩnh viễn?"
+        message={
+          targetAnnouncement?.title
+            ? `Bạn có chắc muốn xóa "${targetAnnouncement.title}"? Dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục.`
+            : 'Thông báo sẽ bị xóa khỏi hệ thống và không thể khôi phục.'
+        }
+        confirmLabel="Xóa"
+        cancelLabel="Hủy"
+        onConfirm={doDeleteAnnouncement}
+        onCancel={() => {
+          if (!actionLoading) {
+            setConfirmAction(null);
+            setTargetAnnouncement(null);
+          }
+        }}
+        danger
+        loading={actionLoading}
       />
 
       <header className="ctsv-announce-hero">
@@ -385,14 +473,32 @@ const CtsvAnnouncementPublish = () => {
                       )}
                     </div>
                   </div>
-                  {evId && (
-                    <Link
-                      to={`/ctsv/events/${evId}`}
-                      className="ctsv-announce-history-link"
+                  <div className="ctsv-announce-history-actions">
+                    {evId && (
+                      <Link
+                        to={`/ctsv/events/${evId}`}
+                        className="ctsv-announce-history-link"
+                      >
+                        Sự kiện
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      className="ctsv-announce-history-btn ctsv-announce-history-btn--hide"
+                      onClick={() => openListConfirm('hide', a)}
+                      disabled={actionLoading || submitting}
                     >
-                      Sự kiện
-                    </Link>
-                  )}
+                      Ẩn
+                    </button>
+                    <button
+                      type="button"
+                      className="ctsv-announce-history-btn ctsv-announce-history-btn--delete"
+                      onClick={() => openListConfirm('delete', a)}
+                      disabled={actionLoading || submitting}
+                    >
+                      Xóa
+                    </button>
+                  </div>
                 </li>
               );
             })}

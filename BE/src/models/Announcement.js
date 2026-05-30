@@ -7,7 +7,8 @@ const announcementSchema = new mongoose.Schema(
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null },
     publishedByEmail: { type: String, default: '' },
     publishedAt: { type: Date, default: Date.now },
-    isPublished: { type: Boolean, default: true }
+    isPublished: { type: Boolean, default: true },
+    isHidden: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

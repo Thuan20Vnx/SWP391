@@ -91,6 +91,12 @@ export const fetchCtsvAnnouncements = () => ctsvFetch('/announcements');
 export const publishCtsvAnnouncement = (body) =>
   ctsvFetch('/announcements', { method: 'POST', body: JSON.stringify(body) });
 
+export const hideCtsvAnnouncement = (id) =>
+  ctsvFetch(`/announcements/${id}/hide`, { method: 'PATCH', body: '{}' });
+
+export const deleteCtsvAnnouncement = (id) =>
+  ctsvFetch(`/announcements/${id}`, { method: 'DELETE' });
+
 export const MOCK_EVENTS = [
   {
     id: 'ev-1',
