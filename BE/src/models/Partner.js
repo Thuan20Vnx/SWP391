@@ -10,6 +10,19 @@ const partnerSchema = new mongoose.Schema(
     representative: { type: String, default: '' },
     address: { type: String, default: '' },
     description: { type: String, default: '' },
+    partnerCode: { type: String, default: '', trim: true },
+    category: { type: String, default: '', trim: true },
+    proposedEventTitle: { type: String, default: '', trim: true },
+    expectedSponsorAmount: { type: Number, default: 0 },
+    benefits: { type: [String], default: [] },
+    attachments: [
+      {
+        name: { type: String, default: '' },
+        url: { type: String, default: '' },
+        sizeLabel: { type: String, default: '' }
+      }
+    ],
+    representativeTitle: { type: String, default: '', trim: true },
     status: {
       type: String,
       enum: PARTNER_STATUSES,

@@ -465,8 +465,37 @@ router.get('/partners', async (req, res) => {
   try {
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
-    const partners = await Partner.find(filter).sort({ createdAt: -1 });
-    return res.json({ success: true, partners });
+    const search = String(req.query.search || '').trim();
+    if (search) {
+      const re = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [
+        { name: re },
+        { email: re },
+        { partnerCode: re },
+        { proposedEventTitle: re },
+        { category: re }
+      ];
+    }
+    const partners = await Partner.find(filter).sort({ createdAt: -1 }).lean();
+    const ids = partners.map((p) => p._id);
+    const contracts = ids.length
+      ? await Contract.find({ partnerId: { $in: ids } }).sort({ createdAt: -1 }).lean()
+      : [];
+    const contractByPartner = {};
+    for (const c of contracts) {
+      const key = String(c.partnerId);
+      if (!contractByPartner[key]) contractByPartner[key] = c;
+    }
+    const enriched = partners.map((p) => {
+      const contract = contractByPartner[String(p._id)];
+      return {
+        ...p,
+        proposedProgram: p.proposedEventTitle || contract?.title || '',
+        contractStatus: contract?.status || '',
+        contractAmount: contract?.amount ?? null
+      };
+    });
+    return res.json({ success: true, partners: enriched });
   } catch (error) {
     console.error('ctsv partners:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -489,7 +518,19 @@ router.get('/partners/:id', async (req, res) => {
 
 router.post('/partners', requireCtsvApprove, async (req, res) => {
   try {
-    const { name, email, phone, representative, address, description } = req.body;
+    const {
+      name,
+      email,
+      phone,
+      representative,
+      address,
+      description,
+      partnerCode,
+      category,
+      proposedEventTitle,
+      expectedSponsorAmount,
+      representativeTitle
+    } = req.body;
     if (!name?.trim()) {
       return res.status(400).json({ success: false, message: 'Tên đối tác là bắt buộc!' });
     }
@@ -500,9 +541,21 @@ router.post('/partners', requireCtsvApprove, async (req, res) => {
       representative,
       address,
       description,
-      status: 'approved',
-      approvedByEmail: req.authEmail
+      partnerCode: partnerCode?.trim() || '',
+      category: category?.trim() || '',
+      proposedEventTitle: proposedEventTitle?.trim() || '',
+      expectedSponsorAmount: Number(expectedSponsorAmount) || 0,
+      representativeTitle: representativeTitle?.trim() || '',
+      status: 'pending'
     });
+    if (proposedEventTitle?.trim() || expectedSponsorAmount) {
+      await Contract.create({
+        partnerId: partner._id,
+        title: proposedEventTitle?.trim() || `Đề xuất tài trợ — ${name.trim()}`,
+        amount: Number(expectedSponsorAmount) || 0,
+        status: 'pending'
+      });
+    }
     return res.status(201).json({ success: true, partner });
   } catch (error) {
     console.error('ctsv create partner:', error);
