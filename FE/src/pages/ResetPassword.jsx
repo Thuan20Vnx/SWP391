@@ -1,67 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_BASE } from '../utils/api';
+import { PASSWORD_POLICY_HINT, validatePasswordPolicy } from '../utils/password';
+import OtpInput from '../components/OtpInput';
+
+const MAX_OTP_ATTEMPTS = 5;
 
 const ResetPassword = ({ showToast }) => {
   const navigate = useNavigate();
-  
-  // States
+
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
-  // Validation States
+
   const [errors, setErrors] = useState({
     email: false,
     otp: false,
     newPassword: false,
-    confirmPassword: false
+    confirmPassword: false,
   });
+  const [passwordErrorMsg, setPasswordErrorMsg] = useState(PASSWORD_POLICY_HINT);
+  const [otpLocked, setOtpLocked] = useState(false);
+  const [remainingAttempts, setRemainingAttempts] = useState(MAX_OTP_ATTEMPTS);
   const [shakeFields, setShakeFields] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Read email & OTP from URL search query on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email') || '';
     const otpParam = params.get('otp') || '';
-    
+
     if (emailParam) setEmail(decodeURIComponent(emailParam));
     if (otpParam) setOtp(otpParam);
   }, []);
 
-  const validateFields = () => {
-    const newErrors = {
-      email: !email.trim() || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()),
-      otp: !otp.trim() || otp.trim().length !== 6,
-      newPassword: !newPassword || newPassword.length < 6,
-      confirmPassword: !confirmPassword || newPassword !== confirmPassword
-    };
-    
-    setErrors(newErrors);
-    
-    const hasError = Object.values(newErrors).some(val => val === true);
-    return !hasError;
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isValid = validateFields();
+    if (otpLocked) {
+      showToast('OTP đã bị khóa. Vui lòng quay lại trang Quên mật khẩu để nhận mã mới.', 'error');
+      return;
+    }
 
-    if (!isValid) {
+    const passwordCheck = validatePasswordPolicy(newPassword);
+    const newErrors = {
+      email: !email.trim() || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()),
+      otp: !otp.trim() || otp.trim().length !== 6,
+      newPassword: !passwordCheck.valid,
+      confirmPassword: !confirmPassword || newPassword !== confirmPassword,
+    };
+
+    setErrors(newErrors);
+    if (!passwordCheck.valid) {
+      setPasswordErrorMsg(passwordCheck.message);
+    }
+
+    if (Object.values(newErrors).some(Boolean)) {
       setShakeFields(true);
       setTimeout(() => setShakeFields(false), 1000);
-      
-      if (errors.email) {
+
+      if (newErrors.email) {
         showToast('Vui lòng nhập Email hợp lệ!', 'error');
-      } else if (errors.otp) {
-        showToast('Mã OTP phải có độ dài đúng 6 ký tự!', 'error');
-      } else if (errors.newPassword) {
-        showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', 'error');
-      } else if (errors.confirmPassword) {
+      } else if (newErrors.otp) {
+        showToast('Mã OTP phải có đúng 6 chữ số!', 'error');
+      } else if (newErrors.newPassword) {
+        showToast(passwordCheck.message || PASSWORD_POLICY_HINT, 'error');
+      } else if (newErrors.confirmPassword) {
         showToast('Xác nhận mật khẩu mới không khớp!', 'error');
       } else {
         showToast('Vui lòng điền đầy đủ và đúng thông tin!', 'error');
@@ -71,25 +78,39 @@ const ResetPassword = ({ showToast }) => {
 
     setLoading(true);
 
-    fetch('http://localhost:5000/api/auth/reset-password', {
+    fetch(`${API_BASE}/api/auth/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: email.trim(),
         otp: otp.trim(),
-        newPassword: newPassword
-      })
+        newPassword,
+      }),
     })
-      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then((res) => res.json().then((data) => ({ status: res.status, data })))
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
+          showToast(data.message || 'Đặt lại mật khẩu thành công!', 'success');
           navigate('/login');
-        } else {
-          showToast(data.message || 'Mã OTP không hợp lệ hoặc đã hết hạn!', 'error');
+          return;
         }
+
+        if (status === 423) {
+          setOtpLocked(true);
+          setRemainingAttempts(0);
+          showToast(data.message || 'OTP đã bị khóa do nhập sai quá 5 lần.', 'error');
+          return;
+        }
+
+        const match = String(data.message || '').match(/Còn (\d+) lần thử/);
+        if (match) {
+          setRemainingAttempts(Number(match[1]));
+        }
+
+        showToast(data.message || 'Mã OTP không hợp lệ hoặc đã hết hạn!', 'error');
       })
-      .catch(err => {
+      .catch(() => {
         setLoading(false);
         showToast('Không thể kết nối đến máy chủ Backend!', 'error');
       });
@@ -97,7 +118,6 @@ const ResetPassword = ({ showToast }) => {
 
   return (
     <main className="page-container forgot-page">
-      {/* Left Column: Branding (40%) */}
       <section className="branding-column" aria-label="Giới thiệu FPT Event">
         <div className="glass-overlay"></div>
         <div className="branding-content">
@@ -108,10 +128,12 @@ const ResetPassword = ({ showToast }) => {
         </div>
       </section>
 
-      {/* Right Column: Form (60%) */}
-      <section className="form-column" aria-label="Biểu mẫu đặt lại mật khẩu" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      <section
+        className="form-column"
+        aria-label="Biểu mẫu đặt lại mật khẩu"
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+      >
         <div className={`forgot-card ${shakeFields ? 'shake' : ''}`}>
-          {/* Badge Header */}
           <header className="forgot-header">
             <div className="badge-circle">
               <svg width="28" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -123,9 +145,17 @@ const ResetPassword = ({ showToast }) => {
             <p>Vui lòng xác minh mã OTP gửi tới Email của bạn để hoàn tất đổi mật khẩu mới.</p>
           </header>
 
-          {/* Form */}
+          {otpLocked ? (
+            <div style={{ marginBottom: '16px', padding: '12px 14px', borderRadius: '10px', background: '#fff3f3', color: '#b42318', fontSize: '14px', lineHeight: 1.5 }}>
+              Bạn đã nhập sai OTP quá {MAX_OTP_ATTEMPTS} lần. Vui lòng quay lại trang Quên mật khẩu để nhận mã mới.
+            </div>
+          ) : (
+            <p style={{ margin: '0 0 12px', fontSize: '13px', color: '#667085' }}>
+              Còn {remainingAttempts}/{MAX_OTP_ATTEMPTS} lần nhập OTP.
+            </p>
+          )}
+
           <form id="reset-password-form" onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Email Field */}
             <div className={`input-group ${errors.email ? 'invalid' : ''}`} style={{ marginBottom: '0px' }}>
               <div className="input-wrapper">
                 <span className="input-icon">
@@ -134,14 +164,15 @@ const ResetPassword = ({ showToast }) => {
                     <polyline points="22,6 12,13 2,6"></polyline>
                   </svg>
                 </span>
-                <input 
-                  type="email" 
-                  placeholder=" " 
-                  required 
+                <input
+                  type="email"
+                  placeholder=" "
+                  required
                   value={email}
+                  disabled={otpLocked}
                   onChange={(e) => {
                     setEmail(e.target.value);
-                    setErrors(prev => ({ ...prev, email: false }));
+                    setErrors((prev) => ({ ...prev, email: false }));
                   }}
                 />
                 <label>Email đăng ký</label>
@@ -149,34 +180,27 @@ const ResetPassword = ({ showToast }) => {
               <span className="error-message">Vui lòng nhập email hợp lệ</span>
             </div>
 
-            {/* OTP Field */}
-            <div className={`input-group ${errors.otp ? 'invalid' : ''}`} style={{ marginBottom: '0px' }}>
-              <div className="input-wrapper">
-                <span className="input-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                  </svg>
-                </span>
-                <input 
-                  type="text" 
-                  maxLength={6}
-                  placeholder=" " 
-                  required 
-                  value={otp}
-                  onChange={(e) => {
-                    setOtp(e.target.value.replace(/[^0-9]/g, ''));
-                    setErrors(prev => ({ ...prev, otp: false }));
-                  }}
-                />
-                <label>Mã xác minh OTP (6 số)</label>
-              </div>
-              <span className="error-message">Mã OTP phải có đúng 6 chữ số</span>
+            <div style={{ marginBottom: '4px' }}>
+              <label className="otp-input__label" htmlFor="reset-otp-0">
+                Mã xác minh OTP (6 số)
+              </label>
+              <OtpInput
+                idPrefix="reset-otp"
+                value={otp}
+                disabled={otpLocked}
+                invalid={errors.otp}
+                valid={otp.length === 6 && !errors.otp}
+                autoFocus
+                onChange={(val) => {
+                  setOtp(val);
+                  setErrors((prev) => ({ ...prev, otp: false }));
+                }}
+              />
+              {errors.otp && (
+                <span className="otp-input__error">Mã OTP phải có đúng 6 chữ số</span>
+              )}
             </div>
 
-            {/* New Password Field */}
             <div className={`input-group ${errors.newPassword ? 'invalid' : ''}`} style={{ marginBottom: '0px' }}>
               <div className="input-wrapper">
                 <span className="input-icon">
@@ -185,20 +209,22 @@ const ResetPassword = ({ showToast }) => {
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
                 </span>
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  placeholder=" " 
-                  required 
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder=" "
+                  required
                   value={newPassword}
+                  disabled={otpLocked}
                   onChange={(e) => {
                     setNewPassword(e.target.value);
-                    setErrors(prev => ({ ...prev, newPassword: false }));
+                    setErrors((prev) => ({ ...prev, newPassword: false }));
+                    setPasswordErrorMsg(PASSWORD_POLICY_HINT);
                   }}
                 />
                 <label>Mật khẩu mới</label>
-                <button 
-                  type="button" 
-                  className="toggle-password" 
+                <button
+                  type="button"
+                  className="toggle-password"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
@@ -215,10 +241,9 @@ const ResetPassword = ({ showToast }) => {
                   )}
                 </button>
               </div>
-              <span className="error-message">Mật khẩu mới phải có tối thiểu 6 ký tự</span>
+              <span className="error-message">{passwordErrorMsg}</span>
             </div>
 
-            {/* Confirm Password Field */}
             <div className={`input-group ${errors.confirmPassword ? 'invalid' : ''}`} style={{ marginBottom: '0px' }}>
               <div className="input-wrapper">
                 <span className="input-icon">
@@ -227,20 +252,21 @@ const ResetPassword = ({ showToast }) => {
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
                 </span>
-                <input 
-                  type={showConfirmPassword ? 'text' : 'password'} 
-                  placeholder=" " 
-                  required 
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder=" "
+                  required
                   value={confirmPassword}
+                  disabled={otpLocked}
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
-                    setErrors(prev => ({ ...prev, confirmPassword: false }));
+                    setErrors((prev) => ({ ...prev, confirmPassword: false }));
                   }}
                 />
                 <label>Xác nhận mật khẩu</label>
-                <button 
-                  type="button" 
-                  className="toggle-password" 
+                <button
+                  type="button"
+                  className="toggle-password"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
@@ -260,12 +286,11 @@ const ResetPassword = ({ showToast }) => {
               <span className="error-message">Mật khẩu xác nhận không khớp</span>
             </div>
 
-            {/* Submit Button */}
-            <button 
-              type="submit" 
-              id="reset-btn" 
+            <button
+              type="submit"
+              id="reset-btn"
               className="primary-button"
-              disabled={loading}
+              disabled={loading || otpLocked}
               style={{ marginTop: '4px', height: '46px' }}
             >
               {loading ? (
@@ -275,7 +300,6 @@ const ResetPassword = ({ showToast }) => {
               )}
             </button>
 
-            {/* Back Navigation Link */}
             <Link to="/forgot" className="back-link">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -286,7 +310,6 @@ const ResetPassword = ({ showToast }) => {
           </form>
         </div>
 
-        {/* Copyright Footer */}
         <footer className="copyright-footer">
           © 2024 FPT EVENT MANAGEMENT. ALL RIGHTS RESERVED.
         </footer>
