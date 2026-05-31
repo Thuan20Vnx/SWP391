@@ -171,6 +171,12 @@ const AdminDashboard = ({ showToast }) => {
                         </dd>
                       </div>
                       <div className="admin-proposal-meta__row">
+                        <dt>Giá vé</dt>
+                        <dd>
+                          {event.ticketPrice > 0 ? `${Number(event.ticketPrice).toLocaleString('vi-VN')} VNĐ` : 'Miễn phí'}
+                        </dd>
+                      </div>
+                      <div className="admin-proposal-meta__row">
                         <dt>Bắt đầu</dt>
                         <dd>{formatDateTime(event.startDate)}</dd>
                       </div>

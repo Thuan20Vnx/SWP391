@@ -487,8 +487,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
-  max-width: 160px;
 }
 
 .clb-step-circle {
@@ -520,6 +518,7 @@
   font-weight: 700;
   color: #94a3b8;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .clb-step.active .clb-step-label {
@@ -527,11 +526,11 @@
 }
 
 .clb-step-line {
-  flex: 1;
+  width: 24px;
   height: 2px;
   background: #e2e8f0;
-  margin: 0 4px;
-  min-width: 12px;
+  margin: 0 8px;
+  flex-shrink: 0;
 }
 
 .clb-step.done .clb-step-line {
@@ -717,4 +716,52 @@
   .clb-page .header-nav {
     display: none;
   }
+}
+
+/* Tooltip cho trạng thái Từ chối */
+.clb-reject-tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.clb-reject-tooltip-wrapper:hover .clb-reject-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.clb-reject-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  margin-bottom: 8px;
+  background: #1e293b;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  white-space: normal;
+  width: max-content;
+  max-width: 250px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease-in-out;
+  z-index: 10;
+  pointer-events: none;
+  text-align: left;
+}
+
+.clb-reject-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #1e293b transparent transparent transparent;
 }

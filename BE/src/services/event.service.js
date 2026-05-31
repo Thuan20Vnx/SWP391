@@ -18,9 +18,11 @@ const createEvent = async (user, body) => {
     location,
     capacity,
     ticketPrice,
+    speaker,
+    agenda,
   } = body;
 
-  if (!title || !startDate || !endDate || !location || !capacity) {
+  if (!title || !startDate || !location || !capacity) {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
   }
 
@@ -46,6 +48,8 @@ const createEvent = async (user, body) => {
     eventState: 'active',
     createdBy: user._id,
     status: 'pending',
+    speaker: speaker || undefined,
+    agenda: agenda || undefined,
   });
 
   return {
