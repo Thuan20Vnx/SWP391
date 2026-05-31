@@ -35,6 +35,41 @@ export const HEADER_NOTIFICATIONS = [
   },
 ];
 
+export const CLUB_HEADER_NOTIFICATIONS = [
+  {
+    id: 'c1',
+    title: 'Sự kiện đã được duyệt',
+    body: 'Đề xuất sự kiện "Xuân Nhân đánh PickleBall" đã được phòng CTSV phê duyệt.',
+    time: 'Vừa xong',
+    unread: true,
+    tone: 'success',
+  },
+  {
+    id: 'c2',
+    title: 'Sự kiện bị từ chối',
+    body: 'Đề xuất sự kiện "Liinh yêu Thuận" bị từ chối. Lý do: Nội dung không phù hợp.',
+    time: '12 phút trước',
+    unread: true,
+    tone: 'alert',
+  },
+  {
+    id: 'c3',
+    title: 'Sự kiện đang chờ duyệt',
+    body: 'Đề xuất "Hiệp Cầu Hôn Lệ" đã được gửi thành công và đang chờ CTSV xét duyệt.',
+    time: '1 giờ trước',
+    unread: false,
+    tone: 'warning',
+  },
+  {
+    id: 'c4',
+    title: 'Cập nhật trạng thái',
+    body: 'Sự kiện "Thuận và Linh múa cột" đã được cập nhật thông tin.',
+    time: 'Hôm qua',
+    unread: false,
+    tone: 'info',
+  },
+];
+
 export const ADMIN_HEADER_NOTIFICATIONS = [
   {
     id: 'a1',

@@ -58,7 +58,7 @@ const SiteHeader = ({
   const navItems = showAdminMenu
     ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM]
     : showClubManagerNav
-      ? [...BASE_NAV_ITEMS.filter((item) => item.key !== 'clubs'), CLUB_MANAGER_NAV_ITEM]
+      ? [...BASE_NAV_ITEMS, CLUB_MANAGER_NAV_ITEM]
       : BASE_NAV_ITEMS;
 
   useEffect(() => {

@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ADMIN_HEADER_NOTIFICATIONS,
   HEADER_NOTIFICATIONS,
+  CLUB_HEADER_NOTIFICATIONS,
 } from '../data/headerNotificationsData';
 
 const toneClass = {
@@ -12,10 +13,15 @@ const toneClass = {
   alert: 'header-notif-item--alert',
 };
 
-const HeaderNotificationPanel = ({ open, onClose, isAdmin = false }) => {
+const HeaderNotificationPanel = ({ open, onClose, isAdmin = false, isClub = false, onUnreadCountChange }) => {
+  const navigate = useNavigate();
   const seed = useMemo(
-    () => (isAdmin ? ADMIN_HEADER_NOTIFICATIONS : HEADER_NOTIFICATIONS),
-    [isAdmin],
+    () => {
+      if (isAdmin) return ADMIN_HEADER_NOTIFICATIONS;
+      if (isClub) return CLUB_HEADER_NOTIFICATIONS;
+      return HEADER_NOTIFICATIONS;
+    },
+    [isAdmin, isClub],
   );
   const [items, setItems] = useState(seed);
 
@@ -32,9 +38,15 @@ const HeaderNotificationPanel = ({ open, onClose, isAdmin = false }) => {
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
-
   const unreadCount = items.filter((n) => n.unread).length;
+
+  useEffect(() => {
+    if (onUnreadCountChange) {
+      onUnreadCountChange(unreadCount);
+    }
+  }, [unreadCount, onUnreadCountChange]);
+
+  if (!open) return null;
 
   const markAllRead = () => {
     setItems((prev) => prev.map((n) => ({ ...n, unread: false })));
@@ -76,6 +88,11 @@ const HeaderNotificationPanel = ({ open, onClose, isAdmin = false }) => {
                     setItems((prev) =>
                       prev.map((n) => (n.id === item.id ? { ...n, unread: false } : n)),
                     );
+                    if (isAdmin || isClub) {
+                      onClose();
+                      if (isAdmin) navigate('/admin/events');
+                      else if (isClub) navigate('/quan-ly-clb');
+                    }
                   }}
                 >
                   <span className="header-notif-item__dot" aria-hidden="true" />
