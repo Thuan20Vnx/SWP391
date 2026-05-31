@@ -54,9 +54,11 @@ import EventReviews from './pages/EventReviews';
 import Announcements from './pages/Announcements';
 import AnnouncementDetail from './pages/AnnouncementDetail';
 import StaticPage from './pages/StaticPage';
+import ClubManagement from './pages/ClubManagement';
+import EventManagementDetail from './pages/EventManagementDetail';
 
 import { ToastContainer } from './components/Toast';
-import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole } from './utils/auth';
+import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole, isClubManagerRole } from './utils/auth';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import './index.css';
 
@@ -85,7 +87,9 @@ const PublicHomeRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (isLoggedIn) {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
+    if (isClubManagerRole()) return <Navigate to="/quan-ly-clb" replace />;
     if (isCtsvRole()) return <Navigate to="/ctsv" replace />;
+    if (isAdminRole()) return <Navigate to="/admin" replace />;
   }
   return <Home showToast={showToast} />;
 };
@@ -179,6 +183,22 @@ function App() {
           <Route path="/events/:eventId" element={<EventDetail showToast={showToast} />} />
           <Route path="/clubs" element={<Clubs showToast={showToast} />} />
           <Route path="/clubs/:clubId" element={<ClubDetail showToast={showToast} />} />
+          <Route
+            path="/quan-ly-clb"
+            element={
+              <ProtectedRoute>
+                <ClubManagement showToast={showToast} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quan-ly-clb/su-kien/:id"
+            element={
+              <ProtectedRoute>
+                <EventManagementDetail showToast={showToast} />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/create-event"
             element={

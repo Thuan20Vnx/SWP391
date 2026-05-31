@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { API_BASE, getEventHeaders } from '../utils/api';
-import defaultAvatar from '../assets/profile_avatar.png';
+import defaultAvatar from '../constants/defaultAvatar';
 import fptLogo from '../assets/fpt_logo.png';
 import './EventManagementDetail.css';
 

@@ -8,6 +8,9 @@ export const getAuthHeaders = (json = true) => {
   return headers;
 };
 
+/** Alias used by club management pages */
+export const getEventHeaders = getAuthHeaders;
+
 /** Parse JSON API response; surfaces server message when available */
 export const parseApiResponse = async (res) => {
   const text = await res.text();

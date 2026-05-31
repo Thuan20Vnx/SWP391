@@ -8,7 +8,7 @@ import HeaderNotificationPanel from './HeaderNotificationPanel';
 import { getRoleLabel } from '../utils/role';
 import useUserProfile, { clearUserProfileCache } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
-import { getUserRole, isAdminRole, normalizeRole } from '../utils/auth';
+import { getUserRole, isAdminRole, normalizeRole, isClubManagerRole } from '../utils/auth';
 import '../styles/admin-menu.css';
 
 const BASE_NAV_ITEMS = [
@@ -22,6 +22,12 @@ const ADMIN_NAV_ITEM = {
   key: 'admin',
   label: 'Quản trị viên',
   to: '/admin',
+};
+
+const CLUB_MANAGER_NAV_ITEM = {
+  key: 'club-manage',
+  label: 'Quản lý CLB',
+  to: '/quan-ly-clb',
 };
 
 const SiteHeader = ({
@@ -41,6 +47,7 @@ const SiteHeader = ({
 
   const role = normalizeRole(userProfile.role || getUserRole());
   const showAdminMenu = isLoggedIn && isAdminRole(role);
+  const showClubManagerNav = isLoggedIn && isClubManagerRole(role);
   const isAdminRoute = pathname.startsWith('/admin');
   const resolvedSearchPlaceholder =
     searchPlaceholder
@@ -50,7 +57,9 @@ const SiteHeader = ({
 
   const navItems = showAdminMenu
     ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM]
-    : BASE_NAV_ITEMS;
+    : showClubManagerNav
+      ? [...BASE_NAV_ITEMS.filter((item) => item.key !== 'clubs'), CLUB_MANAGER_NAV_ITEM]
+      : BASE_NAV_ITEMS;
 
   useEffect(() => {
     setAdminDrawerOpen(false);
@@ -90,7 +99,8 @@ const SiteHeader = ({
       'browse-events': '/events',
       settings: '/settings',
       schedule: '/schedule',
-      'my-clubs': '/my-clubs',
+      'my-clubs': isClubManagerRole() ? '/quan-ly-clb' : '/my-clubs',
+      'club-manage': '/quan-ly-clb',
       'my-events': '/my-events',
     };
 

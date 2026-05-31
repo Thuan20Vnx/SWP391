@@ -46,12 +46,18 @@ export const isAdminRole = (role = getUserRole()) =>
 /** Chỉ CTSV được phê duyệt cuối; ICPDP duyệt bước nội bộ */
 export const isIcpdpRole = (role = getUserRole()) => normalizeRole(role) === USER_ROLES.ICPDP;
 
+export const isPartnerRole = (role = getUserRole()) => normalizeRole(role) === USER_ROLES.PARTNER;
+
+export const isClubManagerRole = (role = getUserRole()) =>
+  normalizeRole(role) === USER_ROLES.CLUB_MANAGER;
+
 export const canCtsvFinalApprove = (role = getUserRole()) =>
   normalizeRole(role) === USER_ROLES.CTSV;
 
 export const getHomePathForRole = (role = getUserRole()) => {
   const r = normalizeRole(role);
   if (r === USER_ROLES.ICPDP) return '/icpdp';
+  if (isClubManagerRole(r)) return '/quan-ly-clb';
   if (isCtsvRole(r)) return '/ctsv';
   if (isAdminRole(r)) return '/admin';
   return '/';

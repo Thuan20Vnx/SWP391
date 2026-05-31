@@ -1,5 +1,6 @@
 import React from 'react';
 import defaultAvatar from '../constants/defaultAvatar';
+import { isClubManagerRole } from '../utils/auth';
 
 const Icon = ({ children, size = 18 }) => (
   <span className="nav-hub__icon" aria-hidden="true">
@@ -30,6 +31,9 @@ const ProfileSidebarMenu = ({
     onMenuAction(action, label);
   };
 
+  const clubMenuAction = isClubManagerRole() ? 'club-manage' : 'my-clubs';
+  const clubMenuLabel = isClubManagerRole() ? 'Quản lý CLB' : 'Câu lạc bộ của tôi';
+
   return (
     <div className="nav-hub nav-hub--compact">
       <header className="nav-hub__header">
@@ -59,8 +63,8 @@ const ProfileSidebarMenu = ({
             onClick={() => handleAction('profile', 'Thông tin cá nhân')}
           />
           <NavItem
-            active={activeItem === 'my-clubs'}
-            label="Câu lạc bộ của tôi"
+            active={activeItem === clubMenuAction || activeItem === 'my-clubs'}
+            label={clubMenuLabel}
             icon={
               <Icon>
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -69,7 +73,7 @@ const ProfileSidebarMenu = ({
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </Icon>
             }
-            onClick={() => handleAction('my-clubs', 'Câu lạc bộ của tôi')}
+            onClick={() => handleAction(clubMenuAction, clubMenuLabel)}
           />
           <NavItem
             active={activeItem === 'schedule'}

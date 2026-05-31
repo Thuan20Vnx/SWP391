@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import defaultAvatar from '../assets/profile_avatar.png';
+import defaultAvatar from '../constants/defaultAvatar';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders, getEventHeaders } from '../utils/api';
 
