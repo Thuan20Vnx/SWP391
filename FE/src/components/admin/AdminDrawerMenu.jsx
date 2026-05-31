@@ -15,6 +15,12 @@ const MENU_ITEMS = [
   { key: 'partners', label: 'Đối tác', to: '/admin/partners', icon: 'partners' },
   { key: 'analytics', label: 'Đánh giá & Phân tích', to: '/admin/analytics', icon: 'analytics' },
   { key: 'events', label: 'Duyệt đề xuất sự kiện', to: '/admin/events', icon: 'events' },
+  {
+    key: 'event-requests',
+    label: 'Yêu cầu sửa / ẩn / xóa',
+    to: '/admin/event-requests',
+    icon: 'event-requests',
+  },
 ];
 
 const AdminDrawerMenu = ({ open, onClose }) => {

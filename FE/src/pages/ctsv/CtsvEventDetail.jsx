@@ -7,7 +7,7 @@ import {
   rejectCtsvEvent,
   revisionCtsvEvent
 } from '../../services/ctsvApi';
-import { getUserRole } from '../../utils/auth';
+import { canCtsvFinalApprove } from '../../utils/auth';
 import { statusClass } from '../../utils/eventStatus';
 
 const CtsvEventDetail = () => {
@@ -32,8 +32,8 @@ const CtsvEventDetail = () => {
     fetchCtsvEvent(id).then((d) => setEvent(d.event));
 
   const handleApprove = async () => {
-    if (!isCtsvOnly) {
-      showToast?.('Chỉ cán bộ CTSV mới được phê duyệt cuối.', 'error');
+    if (!canFinalApprove) {
+      showToast?.('Bạn không có quyền phê duyệt sự kiện.', 'error');
       return;
     }
     try {
@@ -151,7 +151,7 @@ const CtsvEventDetail = () => {
           rows={3}
         />
         <div className="ctsv-action-buttons">
-          {canApprove && isCtsvOnly && (
+          {canApprove && canFinalApprove && (
             <>
               <button type="button" className="ctsv-btn-primary" onClick={handleApprove}>
                 Phê duyệt

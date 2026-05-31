@@ -2,7 +2,7 @@ const User = require('../models/User');
 const { normalizeRole, resolveUserRole } = require('../utils/role');
 
 const CTSV_PORTAL_ROLES = ['ctsv', 'icpdp'];
-const CTSV_APPROVE_ROLES = ['ctsv'];
+const CTSV_APPROVE_ROLES = ['ctsv', 'admin'];
 const ICPDP_APPROVE_ROLES = ['icpdp', 'ctsv'];
 
 const requireRole = (allowedRoles) => async (req, res, next) => {
