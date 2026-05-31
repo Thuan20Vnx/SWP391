@@ -3310,7 +3310,9 @@ body {
 }
 
 .chatbot-fab-btn.fab-active {
-  transform: rotate(360deg);
+  padding: 0;
+  width: 58px;
+  justify-content: center;
   background-color: #334155;
   box-shadow: 0 10px 25px -5px rgba(51, 65, 85, 0.4);
 }
@@ -3319,10 +3321,8 @@ body {
   display: none;
 }
 
-.chatbot-fab-btn.fab-active {
-  padding: 0;
-  width: 58px;
-  justify-content: center;
+.chatbot-fab-btn.fab-active:hover {
+  transform: translateY(-3px) scale(1.02);
 }
 
 .fab-icon {

@@ -46,8 +46,11 @@ export const isAdminRole = (role = getUserRole()) =>
 /** Chỉ CTSV được phê duyệt cuối; ICPDP duyệt bước nội bộ */
 export const isIcpdpRole = (role = getUserRole()) => normalizeRole(role) === USER_ROLES.ICPDP;
 
-export const canCtsvFinalApprove = (role = getUserRole()) =>
-  normalizeRole(role) === USER_ROLES.CTSV;
+/** Phê duyệt cuối sự kiện / đề xuất (CTSV hoặc Admin) */
+export const canCtsvFinalApprove = (role = getUserRole()) => {
+  const r = normalizeRole(role);
+  return r === USER_ROLES.CTSV || r === USER_ROLES.ADMIN;
+};
 
 export const getHomePathForRole = (role = getUserRole()) => {
   const r = normalizeRole(role);

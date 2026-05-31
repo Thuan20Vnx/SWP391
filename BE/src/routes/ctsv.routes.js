@@ -11,20 +11,15 @@ const EventProposal = require('../models/EventProposal');
 const Partner = require('../models/Partner');
 const Contract = require('../models/Contract');
 const Announcement = require('../models/Announcement');
+const { normalizeEventCategory } = require('../constants/eventCategories');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
+const {
+  normalizeTicketTypes,
+  deriveTicketPriceFromTypes,
+  totalQtyFromTypes
+} = require('../utils/ticketTypes');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
-
-const normalizeTicketTypes = (ticketTypes) => {
-  if (!Array.isArray(ticketTypes)) return [];
-  return ticketTypes.map((t) => ({
-    name: String(t.name || '').trim(),
-    priceType: t.priceType === 'paid' ? 'paid' : 'free',
-    priceAmount: t.priceType === 'paid' ? Math.max(0, Number(t.priceAmount) || 0) : 0,
-    qty: Math.max(0, Number(t.qty) || 0),
-    audience: t.audience || 'SV FPT'
-  }));
-};
 
 const pickSchoolEventFields = (body) => {
   const {
@@ -55,7 +50,7 @@ const pickSchoolEventFields = (body) => {
   return {
     title: title?.trim(),
     description: description || '',
-    category: category || 'Khác',
+    category: normalizeEventCategory(category || 'Khác'),
     startDate,
     endDate,
     location: location || '',
@@ -397,15 +392,30 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Đề xuất không thể phê duyệt!' });
     }
 
+    const ticketTypes = normalizeTicketTypes(proposal.ticketTypes);
+    const ticketPrice =
+      proposal.ticketPrice > 0
+        ? proposal.ticketPrice
+        : deriveTicketPriceFromTypes(ticketTypes);
+    const totalTickets =
+      proposal.totalTickets > 0
+        ? proposal.totalTickets
+        : totalQtyFromTypes(ticketTypes) || 100;
+
     const event = await Event.create({
       title: proposal.title,
       description: proposal.description,
-      category: proposal.category,
+      category: normalizeEventCategory(proposal.category),
       startDate: proposal.startDate,
       endDate: proposal.endDate,
       location: proposal.location,
-      totalTickets: proposal.totalTickets,
+      totalTickets,
+      capacity: totalTickets,
+      ticketPrice,
+      ticketTypes,
+      expectedAttendees: proposal.expectedAttendees || 0,
       image: proposal.image,
+      thumbnail: proposal.image,
       status: 'approved',
       source: 'club',
       createdByEmail: proposal.submittedByEmail,

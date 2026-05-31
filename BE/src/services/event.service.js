@@ -1,8 +1,17 @@
 const Event = require('../models/Event');
+const { normalizeEventCategory } = require('../constants/eventCategories');
 const AppError = require('../utils/AppError');
 const { isValidEventVenue } = require('../constants/eventVenues');
 const { getRegisteredEventIds } = require('./registration.service');
 const { enrichEventWithPricing } = require('../constants/eventPricing');
+const {
+  normalizeTicketTypes,
+  deriveTicketPriceFromTypes,
+  totalQtyFromTypes
+} = require('../utils/ticketTypes');
+
+/** Trạng thái chờ duyệt (đồng bộ với luồng CTSV / CLB) */
+const PENDING_EVENT_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'revision'];
 
 const createEvent = async (user, body) => {
   const {
@@ -15,7 +24,15 @@ const createEvent = async (user, body) => {
     location,
     capacity,
     ticketPrice,
+    ticketTypes,
   } = body;
+
+  const normalizedTickets = normalizeTicketTypes(ticketTypes);
+  const resolvedTicketPrice =
+    Math.max(0, Number(ticketPrice) || 0) || deriveTicketPriceFromTypes(normalizedTickets);
+  const resolvedCapacity = Math.max(1, Number(capacity) || 0);
+  const resolvedTotalTickets =
+    totalQtyFromTypes(normalizedTickets) || resolvedCapacity;
 
   if (!title || !description || !startDate || !endDate || !location || !capacity) {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
@@ -32,12 +49,14 @@ const createEvent = async (user, body) => {
     title,
     description,
     thumbnail: thumbnail || undefined,
-    category: category || 'Công nghệ',
+    category: normalizeEventCategory(category || 'Công nghệ'),
     startDate,
     endDate,
     location,
-    capacity,
-    ticketPrice: Math.max(0, Number(ticketPrice) || 0),
+    capacity: resolvedCapacity,
+    totalTickets: resolvedTotalTickets,
+    ticketPrice: resolvedTicketPrice,
+    ticketTypes: normalizedTickets,
     registeredCount: 0,
     eventState: 'active',
     createdBy: user._id,
@@ -51,7 +70,7 @@ const createEvent = async (user, body) => {
 };
 
 const getPendingEvents = async () => {
-  const events = await Event.find({ status: 'pending' })
+  const events = await Event.find({ status: { $in: PENDING_EVENT_STATUSES } })
     .populate('createdBy', 'fullname email studentId')
     .sort({ createdAt: -1 });
 
@@ -69,6 +88,10 @@ const updateEventStatus = async (eventId, { status, rejectionReason }) => {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
 
+  if (!PENDING_EVENT_STATUSES.includes(event.status)) {
+    throw new AppError('Sự kiện không ở trạng thái chờ duyệt!', 400);
+  }
+
   event.status = status;
   if (status === 'rejected' && rejectionReason) {
     event.rejectionReason = rejectionReason;
@@ -83,7 +106,7 @@ const updateEventStatus = async (eventId, { status, rejectionReason }) => {
 };
 
 const getApprovedEvents = async ({ category, user } = {}) => {
-  const query = { status: 'approved' };
+  const query = { status: 'approved', isDeleted: { $ne: true }, isHidden: { $ne: true } };
   if (category && category !== 'all') {
     query.category = category;
   }

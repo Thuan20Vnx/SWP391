@@ -1667,36 +1667,6 @@
   margin: 0 12px;
 }
 
-.admin-chat-fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fff;
-  border: 1px solid #e0c0b2;
-  border-radius: 999px;
-  padding: 10px 18px 10px 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  z-index: 50;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #251913;
-}
-
-.admin-chat-fab__icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f26f21, #ff9a56);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-}
-
 .admin-placeholder {
   max-width: 640px;
   margin: 0 auto;
@@ -1784,6 +1754,17 @@
   font-size: 0.8125rem;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.admin-events-section {
+  margin-bottom: 32px;
+}
+
+.admin-events-section__title {
+  margin: 0 0 16px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #251913;
 }
 
 .admin-events-page__loading {
@@ -1972,6 +1953,45 @@
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.55;
+  color: #334155;
+}
+
+.admin-proposal-tickets {
+  margin-top: 12px;
+}
+
+.admin-proposal-tickets__empty,
+.admin-proposal-tickets__single {
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.admin-proposal-tickets__single strong {
+  color: #251913;
+}
+
+.admin-proposal-tickets__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  margin-top: 6px;
+}
+
+.admin-proposal-tickets__table th,
+.admin-proposal-tickets__table td {
+  padding: 8px 10px;
+  text-align: left;
+  border: 1px solid #f0e8e2;
+}
+
+.admin-proposal-tickets__table th {
+  background: #faf6f3;
+  font-weight: 700;
+  color: #251913;
+}
+
+.admin-proposal-tickets__table td {
   color: #334155;
 }
 

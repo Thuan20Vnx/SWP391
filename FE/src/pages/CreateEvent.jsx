@@ -11,7 +11,9 @@ const CreateEvent = ({ showToast }) => {
     startDate: '',
     endDate: '',
     location: '',
-    capacity: ''
+    capacity: '',
+    ticketPriceType: 'free',
+    ticketPrice: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -27,6 +29,36 @@ const CreateEvent = ({ showToast }) => {
       return;
     }
 
+    const cap = Math.max(1, Number(formData.capacity) || 0);
+    const priceAmount =
+      formData.ticketPriceType === 'paid'
+        ? Math.max(0, Number(String(formData.ticketPrice).replace(/\D/g, '')) || 0)
+        : 0;
+    if (formData.ticketPriceType === 'paid' && priceAmount <= 0) {
+      showToast('Vé có phí cần nhập số tiền lớn hơn 0.', 'error');
+      return;
+    }
+
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      thumbnail: formData.thumbnail,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      location: formData.location,
+      capacity: cap,
+      ticketPrice: priceAmount,
+      ticketTypes: [
+        {
+          name: 'Vé tham dự',
+          priceType: formData.ticketPriceType,
+          priceAmount,
+          qty: cap,
+          audience: 'SV FPT'
+        }
+      ]
+    };
+
     setLoading(true);
     const email = localStorage.getItem('userEmail');
 
@@ -36,7 +68,7 @@ const CreateEvent = ({ showToast }) => {
         'Content-Type': 'application/json',
         'x-user-email': email
       },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(payload)
     })
       .then(res => res.json())
       .then(data => {
@@ -147,6 +179,49 @@ const CreateEvent = ({ showToast }) => {
               <label htmlFor="capacity">Số lượng vé / Số người tham dự tối đa</label>
             </div>
           </div>
+
+          <div className="input-group">
+            <div className="input-wrapper">
+              <select
+                id="ticketPriceType"
+                value={formData.ticketPriceType}
+                onChange={handleInputChange}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border-default)',
+                  outline: 'none',
+                  background: 'var(--bg-input)',
+                  color: 'var(--text-main)',
+                  fontSize: '1rem',
+                }}
+              >
+                <option value="free">Miễn phí</option>
+                <option value="paid">Có phí</option>
+              </select>
+              <label htmlFor="ticketPriceType" style={{ transform: 'translateY(-50%) scale(0.8)', top: '0', background: 'var(--bg-input)' }}>
+                Loại giá vé
+              </label>
+            </div>
+          </div>
+
+          {formData.ticketPriceType === 'paid' && (
+            <div className="input-group">
+              <div className="input-wrapper">
+                <input
+                  type="text"
+                  id="ticketPrice"
+                  placeholder=" "
+                  required
+                  inputMode="numeric"
+                  value={formData.ticketPrice}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="ticketPrice">Giá vé (VNĐ)</label>
+              </div>
+            </div>
+          )}
 
           <div style={{ gridColumn: '1 / -1', marginTop: '16px' }}>
             <button type="submit" className="primary-button" disabled={loading}>

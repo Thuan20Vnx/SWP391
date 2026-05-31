@@ -80,6 +80,23 @@ const IMG = {
           submittedByEmail: 'club@fpt.edu.vn',
           status: 'pending_ctsv',
           totalTickets: 40,
+          ticketPrice: 50000,
+          ticketTypes: [
+            {
+              name: 'Vé sinh viên',
+              priceType: 'paid',
+              priceAmount: 50000,
+              qty: 35,
+              audience: 'SV FPT'
+            },
+            {
+              name: 'Vé khách mời',
+              priceType: 'free',
+              priceAmount: 0,
+              qty: 5,
+              audience: 'Khách ngoài trường'
+            }
+          ],
           image: IMG.workshop
         }
       ]);

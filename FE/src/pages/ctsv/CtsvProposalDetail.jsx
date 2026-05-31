@@ -6,7 +6,8 @@ import {
   rejectCtsvProposal,
   revisionCtsvProposal
 } from '../../services/ctsvApi';
-import { getUserRole } from '../../utils/auth';
+import ProposalTicketsTable from '../../components/admin/ProposalTicketsTable';
+import { canCtsvFinalApprove, getUserRole } from '../../utils/auth';
 import { statusClass } from '../../utils/eventStatus';
 
 const CtsvProposalDetail = () => {
@@ -16,6 +17,7 @@ const CtsvProposalDetail = () => {
   const [proposal, setProposal] = useState(null);
   const [note, setNote] = useState('');
   const isCtsv = getUserRole() === 'ctsv';
+  const canFinalApprove = canCtsvFinalApprove();
 
   useEffect(() => {
     fetchCtsvProposal(id)
@@ -46,11 +48,15 @@ const CtsvProposalDetail = () => {
       <div className="ctsv-panel">
         <p>{proposal.description || 'Không có mô tả.'}</p>
         <p>Số vé dự kiến: {proposal.totalTickets}</p>
+        <ProposalTicketsTable
+          ticketTypes={proposal.ticketTypes}
+          ticketPrice={proposal.ticketPrice}
+        />
         {proposal.ctsvNote && <p>Ghi chú CTSV: {proposal.ctsvNote}</p>}
         {proposal.icpdpNote && <p>Ghi chú ICPDP: {proposal.icpdpNote}</p>}
       </div>
 
-      {canCtsvAct && isCtsv && (
+      {canCtsvAct && canFinalApprove && (
         <div className="ctsv-action-panel">
           <textarea
             className="ctsv-textarea"

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import ChatbotFloating from '../components/ChatbotFloating';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import '../styles/admin-menu.css';
@@ -12,6 +13,9 @@ const AdminLayout = ({ showToast }) => {
   const searchPlaceholder = useMemo(() => {
     if (pathname.startsWith('/admin/accounts')) {
       return 'Tìm kiếm tài khoản, email, MSSV...';
+    }
+    if (pathname.startsWith('/admin/event-requests')) {
+      return 'Tìm CLB, tên sự kiện, loại yêu cầu...';
     }
     return 'Tìm kiếm tài khoản, mã lệnh, log hệ thống...';
   }, [pathname]);
@@ -29,10 +33,7 @@ const AdminLayout = ({ showToast }) => {
 
       <SiteFooter />
 
-      <button type="button" className="admin-chat-fab" aria-label="Trợ lý ảo">
-        <span className="admin-chat-fab__icon" aria-hidden="true">🤖</span>
-        Bạn cần giúp gì?
-      </button>
+      <ChatbotFloating context="admin" />
     </div>
   );
 };
