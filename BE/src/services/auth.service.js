@@ -27,6 +27,8 @@ const {
   GOOGLE_CALLBACK_URL,
   GOOGLE_CALENDAR_CALLBACK_URL,
   CLIENT_ORIGIN,
+  MOCK_GOOGLE_EMAIL,
+  MOCK_GOOGLE_NAME,
 } = require('../config/env');
 const { verifyToken } = require('../utils/jwt');
 
@@ -425,10 +427,10 @@ const googleCallback = async (code) => {
 
   if (!GOOGLE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET === 'mock') {
     console.log('[MOCK CALLBACK] Client Secret is not set. Simulating login...');
-    email = 'kxnhan1507@gmail.com';
-    name = 'Nhân Khưu Xuân';
+    email = MOCK_GOOGLE_EMAIL;
+    name = MOCK_GOOGLE_NAME;
     picture = '';
-    googleId = 'mock-kxnhan1507';
+    googleId = `mock-${email.split('@')[0]}`;
   } else {
     const oauth2Client = new OAuth2Client(
       GOOGLE_CLIENT_ID,

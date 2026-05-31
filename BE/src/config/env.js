@@ -7,4 +7,6 @@ module.exports = {
   GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback',
   GOOGLE_CALENDAR_CALLBACK_URL: process.env.GOOGLE_CALENDAR_CALLBACK_URL || 'http://localhost:5000/api/auth/google/calendar/callback',
   OTP_EXPIRY_MINUTES: 5,
+  MOCK_GOOGLE_EMAIL: process.env.MOCK_GOOGLE_EMAIL || 'kxnhan1507@gmail.com',
+  MOCK_GOOGLE_NAME: process.env.MOCK_GOOGLE_NAME || 'Nhân Khưu Xuân',
 };
