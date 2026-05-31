@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import defaultAvatar from '../constants/defaultAvatar';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders, getEventHeaders } from '../utils/api';
+import './ClubManagement.css';
 
 const NAV_ITEMS = [
   { key: 'profile', label: 'Cập nhật hồ sơ CLB', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.02 7.02 0 0 0-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.47.41l-.36 2.54a7.37 7.37 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.04.69 1.62.94l.36 2.54c.05.24.27.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54a7.37 7.37 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg> },
@@ -24,7 +25,7 @@ const ClubManagement = ({ showToast }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createStep, setCreateStep] = useState(1);
-  const [newEvent, setNewEvent] = useState({ title: '', category: '', description: '', maxSlots: 100, location: 'Hội trường Alpha', isPaid: false });
+  const [newEvent, setNewEvent] = useState({ title: '', category: '', description: '', maxSlots: 100, location: 'Tầng 5 tòa Alpha', isPaid: false });
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null); // ID của row đang mở dropdown
   const totalEvents = 24;
@@ -70,11 +71,16 @@ const ClubManagement = ({ showToast }) => {
     try {
       const res = await fetch(`${API_BASE}/api/events/my`, { headers: getEventHeaders(false) });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.events)) {
         setEvents(data.events);
+      } else {
+        console.error('fetchMyEvents:', res.status, data);
+        showToast(data.message || 'Không tải được danh sách sự kiện. Hãy restart backend.', 'error');
+        setEvents([]);
       }
     } catch (err) {
       console.error('Lỗi tải sự kiện:', err);
+      showToast('Không kết nối được server. Kiểm tra BE đang chạy port 5000.', 'error');
     } finally {
       setLoadingEvents(false);
     }
@@ -134,7 +140,7 @@ const ClubManagement = ({ showToast }) => {
         showToast('Đề xuất sự kiện đã được gửi duyệt!', 'success');
         setShowCreateModal(false);
         setCreateStep(1);
-        setNewEvent({ title: '', category: '', description: '', maxSlots: 100, location: 'Hội trường Alpha', isPaid: false });
+        setNewEvent({ title: '', category: '', description: '', maxSlots: 100, location: 'Tầng 5 tòa Alpha', isPaid: false });
         fetchMyEvents();
       } else {
         showToast(data.message || 'Tạo sự kiện thất bại!', 'error');
@@ -387,10 +393,10 @@ const ClubManagement = ({ showToast }) => {
                       <select value={newEvent.category} onChange={e => setNewEvent(p => ({ ...p, category: e.target.value }))} required className="clb-input">
                         <option value="">Chọn thể loại</option>
                         <option value="Workshop">Workshop</option>
-                        <option value="Competition">Competition</option>
-                        <option value="Nội bộ">Nội bộ</option>
                         <option value="Công nghệ">Công nghệ</option>
+                        <option value="Thể thao">Thể thao</option>
                         <option value="Âm nhạc">Âm nhạc</option>
+                        <option value="Khác">Khác</option>
                       </select>
                     </div>
                   </div>
@@ -410,10 +416,10 @@ const ClubManagement = ({ showToast }) => {
                     <div className="clb-form-group">
                       <label>Địa điểm tổ chức</label>
                       <select value={newEvent.location} onChange={e => setNewEvent(p => ({ ...p, location: e.target.value }))} className="clb-input">
-                        <option>Hội trường Alpha</option>
-                        <option>Phòng Lab 402</option>
-                        <option>Sân bóng FPTU</option>
-                        <option>FPT Tower</option>
+                        <option>Tầng 5 tòa Alpha</option>
+                        <option>Tầng 4 tòa Beta</option>
+                        <option>Sảnh tòa Beta</option>
+                        <option>Sảnh tòa Gamma</option>
                       </select>
                     </div>
                   </div>

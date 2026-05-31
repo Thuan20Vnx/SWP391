@@ -27,11 +27,27 @@ const getEventById = async (req, res) => {
   const result = await eventService.getEventById(req.params.id, {
     user: req.user || null,
   });
+  const payload = { success: true, event: result.event };
+  if (result.students) {
+    payload.students = result.students;
+  }
+  res.status(200).json(payload);
+};
+
+const getMyEvents = async (req, res) => {
+  const result = await eventService.getMyEvents(req.user);
+  res.status(200).json({ success: true, ...result });
+};
+
+const deleteMyEvent = async (req, res) => {
+  const result = await eventService.deleteMyEvent(req.params.id, req.user);
   res.status(200).json({ success: true, ...result });
 };
 
 module.exports = {
   createEvent,
+  getMyEvents,
+  deleteMyEvent,
   getPendingEvents,
   updateEventStatus,
   getApprovedEvents,

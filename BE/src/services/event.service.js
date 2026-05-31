@@ -1,6 +1,8 @@
 const Event = require('../models/Event');
+const EventRegistration = require('../models/EventRegistration');
 const AppError = require('../utils/AppError');
 const { isValidEventVenue } = require('../constants/eventVenues');
+const { normalizeEventCategory } = require('../constants/eventCategories');
 const { SCHOOL_EVENT_PUBLIC_STATUSES } = require('../constants/eventWorkflow');
 const { getRegisteredEventIds } = require('./registration.service');
 const { enrichEventWithPricing } = require('../constants/eventPricing');
@@ -18,11 +20,12 @@ const createEvent = async (user, body) => {
     ticketPrice,
   } = body;
 
-  if (!title || !description || !startDate || !endDate || !location || !capacity) {
+  if (!title || !startDate || !endDate || !location || !capacity) {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
   }
 
-  if (!isValidEventVenue(location)) {
+  const isClubManager = user.role === 'club_manager';
+  if (!isClubManager && !isValidEventVenue(location)) {
     throw new AppError(
       'Địa điểm không hợp lệ. Chọn một trong: Sảnh tòa Gamma, Sảnh tòa Beta, Tầng 4 tòa Beta, Tầng 5 tòa Alpha.',
       400
@@ -31,9 +34,9 @@ const createEvent = async (user, body) => {
 
   const newEvent = await Event.create({
     title,
-    description,
+    description: description || 'Chưa có mô tả',
     thumbnail: thumbnail || undefined,
-    category: category || 'Công nghệ',
+    category: normalizeEventCategory(category || 'Workshop'),
     startDate,
     endDate,
     location,
@@ -49,6 +52,23 @@ const createEvent = async (user, body) => {
     message: 'Đề xuất sự kiện đã được gửi thành công và đang chờ duyệt!',
     event: newEvent,
   };
+};
+
+const getMyEvents = async (user) => {
+  const events = await Event.find({ createdBy: user._id }).sort({ createdAt: -1 });
+  return { events };
+};
+
+const deleteMyEvent = async (eventId, user) => {
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (String(event.createdBy) !== String(user._id)) {
+    throw new AppError('Bạn không có quyền xóa sự kiện này!', 403);
+  }
+  await Event.findByIdAndDelete(eventId);
+  return { message: 'Đã xóa sự kiện thành công!' };
 };
 
 const getPendingEvents = async () => {
@@ -112,18 +132,32 @@ const getApprovedEvents = async ({ category, user } = {}) => {
 };
 
 const getEventById = async (eventId, { user } = {}) => {
-  const event = await Event.findOne({
-    _id: eventId,
-    status: { $in: SCHOOL_EVENT_PUBLIC_STATUSES },
-    isHidden: { $ne: true }
-  })
-    .populate('createdBy', 'fullname email');
+  const event = await Event.findById(eventId).populate('createdBy', 'fullname email studentId role');
 
   if (!event) {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
 
+  const isOwner = user?._id && String(event.createdBy?._id || event.createdBy) === String(user._id);
+  const isPublic = SCHOOL_EVENT_PUBLIC_STATUSES.includes(event.status) && event.isHidden !== true;
+
+  if (!isPublic && !isOwner) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+
+  const registrations = await EventRegistration.find({ event: eventId })
+    .populate('user', 'fullname studentId email');
+
+  const registeredCount = registrations.filter((r) => r.status !== 'cancelled').length;
+  const checkinCount = registrations.filter((r) => r.status === 'attended').length;
+
   const doc = event.toObject();
+  doc.registeredCount = registeredCount;
+  doc.checkinCount = checkinCount;
+  doc.reach = doc.reach || 0;
+  doc.rating = doc.rating || 0;
+  doc.ratingCount = doc.ratingCount || 0;
+
   if (user?._id) {
     const ids = await getRegisteredEventIds(user._id);
     doc.isRegistered = ids.includes(String(event._id));
@@ -131,11 +165,23 @@ const getEventById = async (eventId, { user } = {}) => {
     doc.isRegistered = false;
   }
 
-  return { event: enrichEventWithPricing(doc, user) };
+  const students = registrations.map((r) => ({
+    _id: r._id,
+    status: r.status === 'attended' ? 'checked-in' : r.status,
+    createdAt: r.createdAt,
+    student: r.user,
+  }));
+
+  return {
+    event: enrichEventWithPricing(doc, user),
+    students: isOwner ? students : undefined,
+  };
 };
 
 module.exports = {
   createEvent,
+  getMyEvents,
+  deleteMyEvent,
   getPendingEvents,
   updateEventStatus,
   getApprovedEvents,
