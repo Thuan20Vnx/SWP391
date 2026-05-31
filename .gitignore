@@ -7,3 +7,7 @@ last_otp.txt
 BE/data/users.json
 BE/data/last_otp.txt
 figma-ui-mcp-plugin/
+
+.cursor/
+.understand-anything/
+screenshot-current-page.png
