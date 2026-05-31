@@ -11,6 +11,7 @@ const partnerSchema = new mongoose.Schema(
     address: { type: String, default: '' },
     description: { type: String, default: '' },
     partnerCode: { type: String, default: '', trim: true },
+    logo: { type: String, default: '' },
     category: { type: String, default: '', trim: true },
     proposedEventTitle: { type: String, default: '', trim: true },
     expectedSponsorAmount: { type: Number, default: 0 },

@@ -264,7 +264,7 @@ const PartnerHome = ({ showToast }) => {
               className="filter-submit-btn"
               onClick={() => navigate('/partner/proposals/create')}
             >
-              Tạo đề xuất mới
+              Tạo sự kiện mới
             </button>
           </div>
         ) : (
@@ -299,7 +299,7 @@ const PartnerHome = ({ showToast }) => {
               style={{ marginTop: '16px', width: '100%' }}
               onClick={() => navigate('/partner/proposals/create')}
             >
-              Tạo đề xuất mới
+              Tạo sự kiện mới
             </button>
           </article>
           <article className="ctsv-stat-card" style={{ padding: '24px' }}>
