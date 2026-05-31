@@ -1,0 +1,182 @@
+/* ═══════════════════════════════════════════════════════
+   Partner Portal — accent cam (đồng bộ CTSV), nền trắng cam nhẹ
+   ═══════════════════════════════════════════════════════ */
+
+.partner-app-shell {
+  --partner-accent: #f26f21;
+  --partner-accent-light: #f89e6c;
+  --partner-accent-dark: #d95e17;
+  --partner-accent-bg: rgba(242, 111, 33, 0.08);
+  --partner-accent-bg-strong: rgba(242, 111, 33, 0.15);
+  --partner-gradient: linear-gradient(135deg, #f26f21 0%, #ff9800 100%);
+  --partner-gradient-soft: linear-gradient(135deg, rgba(242, 111, 33, 0.12) 0%, rgba(255, 152, 0, 0.08) 100%);
+}
+
+/* Nền trắng cam nhẹ cho trang nội bộ (không phải trang chủ) */
+.partner-app-shell .partner-portal-inner {
+  background: linear-gradient(180deg, #fffaf7 0%, #ffffff 180px) !important;
+}
+
+.partner-app-shell .ctsv-portal-body:has(.hero-banner-slider) {
+  background: #ffffff !important;
+}
+
+.partner-sidebar .ctsv-nav-link.active,
+.partner-sidebar .partner-nav-link.active {
+  background: var(--partner-accent-bg-strong) !important;
+  color: var(--partner-accent) !important;
+  border-left-color: var(--partner-accent) !important;
+}
+.partner-sidebar .ctsv-nav-link.active .ctsv-nav-icon,
+.partner-sidebar .partner-nav-link.active .ctsv-nav-icon {
+  color: var(--partner-accent) !important;
+}
+.partner-sidebar .ctsv-nav-link:hover {
+  background: var(--partner-accent-bg) !important;
+}
+.partner-sidebar-logout:hover {
+  color: var(--partner-accent) !important;
+}
+.partner-sidebar-header::after {
+  content: 'Partner Portal';
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--partner-accent-light);
+  margin-top: 4px;
+  padding: 0 20px;
+  opacity: 0.8;
+}
+
+.partner-app-shell .ctsv-portal-hamburger:hover {
+  border-color: var(--partner-accent) !important;
+  color: var(--partner-accent) !important;
+  background: var(--partner-accent-bg) !important;
+}
+
+.partner-pill.nav-link-ctsv-pill {
+  background: var(--partner-accent) !important;
+  color: #fff !important;
+  border-color: var(--partner-accent) !important;
+}
+.partner-pill.nav-link-ctsv-pill:hover,
+.partner-pill.nav-link-ctsv-pill.is-current {
+  background: var(--partner-accent-dark) !important;
+  border-color: var(--partner-accent-dark) !important;
+  color: #fff !important;
+}
+.partner-pill.nav-link-ctsv-pill.is-current {
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.25) !important;
+}
+
+.partner-role-label {
+  color: var(--partner-accent) !important;
+}
+
+.partner-app-shell .hero-cta-btn {
+  background: var(--partner-accent);
+}
+.partner-app-shell .hero-cta-btn:hover {
+  background: var(--partner-accent-dark);
+}
+.partner-app-shell .hero-tag-badge {
+  background: rgba(242, 111, 33, 0.25);
+  border-color: rgba(242, 111, 33, 0.4);
+}
+
+.partner-app-shell .filter-submit-btn {
+  background: var(--partner-accent);
+}
+.partner-app-shell .filter-submit-btn:hover {
+  background: var(--partner-accent-dark);
+}
+
+.partner-app-shell .ctsv-dash-btn--primary,
+.partner-app-shell .ctsv-btn-primary {
+  background: var(--partner-accent);
+  border-color: var(--partner-accent);
+}
+.partner-app-shell .ctsv-dash-btn--primary:hover,
+.partner-app-shell .ctsv-btn-primary:hover {
+  background: var(--partner-accent-dark);
+  border-color: var(--partner-accent-dark);
+}
+
+.partner-app-shell .ctsv-dash-create-card:hover {
+  border-color: var(--partner-accent);
+}
+.partner-app-shell .ctsv-dash-quick-icon {
+  color: var(--partner-accent);
+}
+.partner-app-shell .ctsv-dash-stat-icon--amber,
+.partner-app-shell .ctsv-dash-stat-icon--green,
+.partner-app-shell .ctsv-dash-stat-icon--orange,
+.partner-app-shell .ctsv-dash-stat-icon--blue {
+  background: var(--partner-accent-bg);
+  color: var(--partner-accent);
+}
+.partner-app-shell .ctsv-dash-stat-card:hover {
+  border-color: var(--partner-accent-light);
+}
+.partner-app-shell .ctsv-dash-panel--accent {
+  border-color: rgba(242, 111, 33, 0.2);
+}
+.partner-app-shell .ctsv-dash-pill-count {
+  background: var(--partner-accent);
+}
+.partner-app-shell .ctsv-dash-link,
+.partner-app-shell .ctsv-dash-side-link {
+  color: var(--partner-accent);
+}
+
+.partner-nav-hub-cta {
+  background: var(--partner-accent-bg) !important;
+  color: var(--partner-accent) !important;
+  border: 1px solid rgba(242, 111, 33, 0.2) !important;
+}
+.partner-nav-hub-cta:hover {
+  background: var(--partner-accent-bg-strong) !important;
+}
+
+.partner-app-shell .ctsv-events-hero {
+  border-left-color: var(--partner-accent);
+}
+
+.partner-perf-ring__value {
+  color: var(--partner-accent);
+}
+.partner-perf-bar-fill {
+  background: var(--partner-gradient);
+}
+.partner-activity-dot {
+  background: var(--partner-accent);
+}
+
+.partner-btn-primary {
+  background: var(--partner-accent);
+}
+.partner-btn-primary:hover:not(:disabled) {
+  background: var(--partner-accent-dark);
+}
+.partner-btn-outline {
+  color: var(--partner-accent);
+  background: var(--partner-accent-bg);
+  border-color: rgba(242, 111, 33, 0.2);
+}
+.partner-btn-outline:hover {
+  background: var(--partner-accent-bg-strong);
+}
+.partner-field input:focus,
+.partner-field textarea:focus {
+  border-color: var(--partner-accent);
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.12);
+}
+.partner-toggle input:checked + .partner-toggle__slider {
+  background: var(--partner-accent);
+}
+
+[data-theme='dark'] .partner-app-shell .partner-portal-inner {
+  background: linear-gradient(180deg, #1a1512 0%, #0f172a 180px) !important;
+}

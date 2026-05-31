@@ -40,7 +40,12 @@ import AnnouncementDetail from './pages/AnnouncementDetail';
 import StaticPage from './pages/StaticPage';
 
 import { ToastContainer } from './components/Toast';
-import { getHomePathForRole, getUserRole, isCtsvRole } from './utils/auth';
+import PartnerLayout from './layouts/PartnerLayout';
+import PartnerHome from './pages/PartnerHome';
+import PartnerDashboard from './pages/partner/PartnerDashboard';
+import PartnerProfileSettings from './pages/partner/PartnerProfileSettings';
+import PartnerPlaceholder from './pages/partner/PartnerPlaceholder';
+import { getHomePathForRole, getUserRole, isCtsvRole, isPartnerRole } from './utils/auth';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import './index.css';
 
@@ -58,10 +63,18 @@ const CtsvProtectedRoute = () => {
   return <Outlet />;
 };
 
+const PartnerProtectedRoute = () => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (!isPartnerRole()) return <Navigate to="/" replace />;
+  return <Outlet />;
+};
+
 const PublicHomeRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  if (isLoggedIn && isCtsvRole()) {
-    return <Navigate to="/ctsv" replace />;
+  if (isLoggedIn) {
+    if (isPartnerRole()) return <Navigate to="/partner" replace />;
+    if (isCtsvRole()) return <Navigate to="/ctsv" replace />;
   }
   return <Home showToast={showToast} />;
 };
@@ -104,6 +117,19 @@ function App() {
             </Route>
           </Route>
 
+          <Route path="/partner" element={<PartnerProtectedRoute />}>
+            <Route element={<PartnerLayout showToast={showToast} />}>
+              <Route index element={<PartnerHome showToast={showToast} />} />
+              <Route path="dashboard" element={<PartnerDashboard />} />
+              <Route path="profile" element={<PartnerProfileSettings showToast={showToast} />} />
+              <Route path="events" element={<PartnerPlaceholder pageKey="events" />} />
+              <Route path="events/:id" element={<PartnerPlaceholder pageKey="events" />} />
+              <Route path="contracts" element={<PartnerPlaceholder pageKey="contracts" />} />
+              <Route path="analytics" element={<PartnerPlaceholder pageKey="analytics" />} />
+              <Route path="proposals/create" element={<PartnerPlaceholder pageKey="proposals/create" />} />
+            </Route>
+          </Route>
+
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/login" element={<Login showToast={showToast} />} />
           <Route path="/forgot" element={<ForgotPassword showToast={showToast} />} />
@@ -113,7 +139,9 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                {isCtsvRole() ? (
+                {isPartnerRole() ? (
+                  <Navigate to="/partner/profile" replace />
+                ) : isCtsvRole() ? (
                   <Navigate to="/ctsv/profile" replace />
                 ) : (
                   <Profile showToast={showToast} />
