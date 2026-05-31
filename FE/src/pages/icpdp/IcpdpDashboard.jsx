@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import CtsvNavIcon from '../../components/ctsv/CtsvNavIcon';
+import PortalDashHero from '../../components/portal/PortalDashHero';
 import {
   fetchIcpdpEvents,
   fetchIcpdpProposals,
@@ -22,27 +23,6 @@ const QUICK_ACTIONS = [
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', desc: 'Lịch tổng hợp', icon: 'calendar' },
   { path: '/icpdp/reports', label: 'Báo cáo sau SK', desc: 'Tổng hợp kết quả', icon: 'reports' }
 ];
-
-const getGreeting = (fullname) => {
-  const hour = new Date().getHours();
-  const part = hour < 12 ? 'Buổi sáng' : hour < 18 ? 'Buổi chiều' : 'Buổi tối';
-  const name = fullname?.trim();
-  const short = name ? name.split(/\s+/).slice(-1)[0] : 'bạn';
-  return `${part}, ${short}!`;
-};
-
-const formatToday = () => {
-  try {
-    return new Intl.DateTimeFormat('vi-VN', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    }).format(new Date());
-  } catch {
-    return new Date().toLocaleDateString('vi-VN');
-  }
-};
 
 const IcpdpDashboard = () => {
   const navigate = useNavigate();
@@ -83,27 +63,22 @@ const IcpdpDashboard = () => {
 
   return (
     <div className="ctsv-dashboard">
-      <section className="ctsv-dash-hero">
-        <div className="ctsv-dash-hero__content">
-          <span className="ctsv-dash-hero__date">{formatToday()}</span>
-          <h1 className="ctsv-dash-hero__title">{getGreeting(userProfile?.fullname)}</h1>
-          <p className="ctsv-dash-hero__desc">
-            Tổng quan đề xuất CLB chờ duyệt, sự kiện CLB và báo cáo — IC-PDP quản lý hoạt động Câu lạc bộ.
-          </p>
-          <div className="ctsv-dash-hero__actions">
+      <PortalDashHero
+        fullname={userProfile?.fullname}
+        description="Tổng quan đề xuất CLB chờ duyệt, sự kiện CLB và báo cáo — IC-PDP quản lý hoạt động Câu lạc bộ."
+        badgeValue={pendingCount}
+        badgeLabel="đề xuất chờ duyệt"
+        actions={
+          <>
             <Link to="/icpdp/proposals" className="ctsv-dash-btn ctsv-dash-btn--primary">
               Duyệt đề xuất CLB
             </Link>
             <Link to="/icpdp/reports" className="ctsv-dash-btn ctsv-dash-btn--ghost">
               Xem báo cáo
             </Link>
-          </div>
-        </div>
-        <div className="ctsv-dash-hero__badge" aria-hidden="true">
-          <span className="ctsv-dash-hero__badge-value">{pendingCount}</span>
-          <span className="ctsv-dash-hero__badge-label">đề xuất chờ duyệt</span>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <Link to="/icpdp/proposals" className="ctsv-dash-create-card">
         <span className="ctsv-dash-create-card__icon">
