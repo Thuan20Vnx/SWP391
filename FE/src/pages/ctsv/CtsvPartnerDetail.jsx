@@ -40,6 +40,7 @@ const CtsvPartnerDetail = () => {
   const { showToast } = useOutletContext() || {};
   const [partner, setPartner] = useState(null);
   const [contracts, setContracts] = useState([]);
+  const [eventRequest, setEventRequest] = useState(null);
   const [dialogMode, setDialogMode] = useState(null);
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -49,6 +50,7 @@ const CtsvPartnerDetail = () => {
     fetchCtsvPartner(id).then((d) => {
       setPartner(d.partner);
       setContracts(d.contracts || []);
+      setEventRequest(d.eventRequest || null);
     });
 
   useEffect(() => {
@@ -81,8 +83,9 @@ const CtsvPartnerDetail = () => {
   const statusLabel =
     PARTNER_STATUS_LABEL_DETAIL[partner.status] || PARTNER_STATUS_LABEL[partner.status] || partner.status;
   const mainContract = contracts[0];
-  const eventTitle = partner.proposedEventTitle || mainContract?.title || '—';
-  const amount = partner.expectedSponsorAmount || mainContract?.amount;
+  const eventTitle = eventRequest?.title || partner.proposedEventTitle || mainContract?.title || '—';
+  const amount = eventRequest?.expectedSponsorAmount ?? partner.expectedSponsorAmount ?? mainContract?.amount;
+  const eventBenefits = eventRequest?.benefits?.length ? eventRequest.benefits : partner.benefits;
   const canAct = CTSV_CAN_ACT.includes(partner.status) && isCtsv;
   const repRole = partner.representativeTitle
     ? `Đại diện liên hệ (${partner.representativeTitle})`
@@ -90,6 +93,7 @@ const CtsvPartnerDetail = () => {
   const contactLine = [partner.email, partner.phone].filter(Boolean).join(' • ');
 
   const attachmentItems = [
+    ...(eventRequest?.attachments || []).map((f, i) => ({ key: `req-att-${i}`, ...f })),
     ...(partner.attachments || []).map((f, i) => ({ key: `att-${i}`, ...f })),
     ...contracts.map((c) => ({
       key: c._id,
@@ -167,6 +171,35 @@ const CtsvPartnerDetail = () => {
             <p className="ctsv-pd-field-value">{eventTitle}</p>
           </div>
 
+          <div className="ctsv-pd-field">
+            <span className="ctsv-pd-field-label">Mô tả sự kiện</span>
+            <p className="ctsv-pd-field-value">{eventRequest?.description || partner.description || '—'}</p>
+          </div>
+
+          {eventRequest?.location && (
+            <div className="ctsv-pd-field">
+              <span className="ctsv-pd-field-label">Địa điểm / Hình thức</span>
+              <p className="ctsv-pd-field-value">
+                {eventRequest.location}
+                {eventRequest.format ? ` · ${eventRequest.format}` : ''}
+              </p>
+            </div>
+          )}
+
+          {eventRequest?.startDate && (
+            <div className="ctsv-pd-field">
+              <span className="ctsv-pd-field-label">Thời gian dự kiến</span>
+              <p className="ctsv-pd-field-value">{formatPartnerDate(eventRequest.startDate)}</p>
+            </div>
+          )}
+
+          {eventRequest?.partnerMessage && (
+            <div className="ctsv-pd-field">
+              <span className="ctsv-pd-field-label">Tin nhắn gửi CTSV</span>
+              <p className="ctsv-pd-field-value">{eventRequest.partnerMessage}</p>
+            </div>
+          )}
+
           <div className="ctsv-pd-duo">
             <div className="ctsv-pd-stat">
               <span className="ctsv-pd-stat-label">
@@ -187,9 +220,9 @@ const CtsvPartnerDetail = () => {
                 </svg>
                 Quyền lợi đối tác yêu cầu
               </span>
-              {partner.benefits?.length ? (
+              {eventBenefits?.length ? (
                 <ul className="ctsv-pd-benefits">
-                  {partner.benefits.map((b, i) => (
+                  {eventBenefits.map((b, i) => (
                     <li key={i}>{b}</li>
                   ))}
                 </ul>
