@@ -4,6 +4,7 @@ import AppSelect from '../components/ui/AppSelect';
 import { fetchCtsvEvents, fetchCtsvStats, MOCK_EVENTS, MOCK_STATS } from '../services/ctsvApi';
 import { getCtsvEventAccess, isCtsvManagedEvent, isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
 import { statusClass } from '../utils/eventStatus';
+import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../constants/eventCategories';
 
 const HOME_TIME_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -13,10 +14,7 @@ const HOME_TIME_FILTERS = [
 
 const HOME_CATEGORY_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả chủ đề' },
-  { value: 'Âm nhạc', label: 'Âm nhạc' },
-  { value: 'Workshop', label: 'Workshop' },
-  { value: 'Công nghệ', label: 'Công nghệ' },
-  { value: 'Kết nối', label: 'Kết nối' }
+  ...CTSV_CATEGORY_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
 ];
 
 const LIVE_OVERVIEW_LIMIT = 8;
@@ -27,7 +25,9 @@ const CtsvEventCard = ({ ev, onOpen }) => {
     <article className="event-card-item">
       <div className="event-card-image-wrapper">
         <img src={ev.image} alt={ev.title} className="event-card-img" />
-        <span className="event-card-category-badge">{ev.category}</span>
+        <span className="event-card-category-badge">
+          {getCategoryDisplayLabel(ev.category) || ev.category}
+        </span>
       </div>
       <div className="event-card-body">
         <h3 className="event-card-title">{ev.title}</h3>

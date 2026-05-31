@@ -21,6 +21,8 @@ const {
   shouldResubmitSchoolEventForAdmin,
   SCHOOL_EVENT_SUBMIT_STATUS
 } = require('../constants/eventWorkflow');
+const { getCtsvReportDetail, appendDemoToReportList } = require('../services/ctsvReport.service');
+const { resolveReportPhase, getReportDisplayStatus } = require('../constants/ctsvReportDisplay');
 const {
   findLinkableAnnouncementEvents,
   isEventLinkableForAnnouncement
@@ -448,12 +450,13 @@ router.get('/reports', async (req, res) => {
     const reports = events.map((e) => {
       const cap = e.capacity || e.totalTickets || 0;
       const registered = e.registeredCount || 0;
-      let reportPhase = 'completed';
-      if (e.status === 'live') reportPhase = 'live';
-      else if (e.status === 'ended' || e.eventState === 'expired') reportPhase = 'ended';
+      const reportPhase = resolveReportPhase(e);
+      const display = getReportDisplayStatus(reportPhase, e.status);
 
       return {
         ...formatEvent(e),
+        status: display.label,
+        statusKey: display.statusKey,
         registeredCount: registered,
         totalTickets: cap,
         attendanceRate: cap > 0 ? Math.round((registered / cap) * 100) : 0,
@@ -461,9 +464,23 @@ router.get('/reports', async (req, res) => {
       };
     });
 
-    return res.json({ success: true, reports });
+    return res.json({ success: true, reports: appendDemoToReportList(reports) });
   } catch (error) {
     console.error('ctsv reports:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// GET /api/ctsv/reports/:id — chi tiết báo cáo sau sự kiện (đã kết thúc)
+router.get('/reports/:id', async (req, res) => {
+  try {
+    const result = await getCtsvReportDetail(req.params.id);
+    return res.json({ success: true, report: result.report });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('ctsv report detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

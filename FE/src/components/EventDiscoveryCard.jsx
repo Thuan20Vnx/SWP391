@@ -18,6 +18,7 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
     title,
     thumbnail,
     category,
+    categoryLabel,
     dateLabel,
     location,
     filledSlots,
@@ -50,7 +51,7 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
           className="event-discovery-card__category"
           style={{ backgroundColor: isExpired ? '#4b5563' : categoryColor }}
         >
-          {category.toUpperCase()}
+          {categoryLabel || category}
         </span>
 
         {isRegistered && !isExpired && !isPostponed && (

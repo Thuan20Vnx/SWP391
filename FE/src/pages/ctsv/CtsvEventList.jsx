@@ -5,6 +5,7 @@ import AppSelect from '../../components/ui/AppSelect';
 import { fetchCtsvEvents, MOCK_EVENTS } from '../../services/ctsvApi';
 import { getCtsvEventAccess } from '../../utils/ctsvEventAccess';
 import { statusClass } from '../../utils/eventStatus';
+import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
 
 const TIME_FILTER_OPTIONS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -14,10 +15,7 @@ const TIME_FILTER_OPTIONS = [
 
 const CATEGORY_FILTER_OPTIONS = [
   { value: 'Tất cả', label: 'Tất cả chủ đề' },
-  { value: 'Âm nhạc', label: 'Âm nhạc' },
-  { value: 'Workshop', label: 'Workshop' },
-  { value: 'Công nghệ', label: 'Công nghệ' },
-  { value: 'Kết nối', label: 'Kết nối' }
+  ...CTSV_CATEGORY_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
 ];
 
 const SOURCE_META = {
@@ -208,7 +206,9 @@ const CtsvEventList = () => {
                     className="ctsv-events-card-img"
                     loading="lazy"
                   />
-                  <span className="ctsv-events-card-category">{ev.category}</span>
+                  <span className="ctsv-events-card-category">
+                    {getCategoryDisplayLabel(ev.category) || ev.category}
+                  </span>
                   <span className={`ctsv-events-card-source ctsv-events-card-source--${source.tone}`}>
                     {source.label}
                   </span>

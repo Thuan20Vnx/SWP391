@@ -1,6 +1,7 @@
 import { getCategoryColor, getFillPercent } from './eventDiscoveryData';
 import { formatVnd } from '../utils/ticketPricing';
 import { resolveEventSpeakers } from '../constants/eventSpeaker';
+import { getCategoryDisplayLabel } from '../constants/eventCategories';
 import { resolveEventDisplayImage } from '../utils/eventDisplay';
 const DEFAULT_HERO_IMAGE =
   'https://images.unsplash.com/photo-1517694712202-14dd9538aa65?auto=format&fit=crop&w=1600&q=80';
@@ -12,17 +13,6 @@ const mapSpeakersForDetail = (event) =>
     avatar: speaker.avatar || '',
     quote: speaker.quote || '',
   }));
-
-const CATEGORY_SECONDARY_TAG = {
-  'Công nghệ': 'AI & PYTHON',
-  Workshop: 'HANDS-ON',
-  'Học thuật': 'SEMINAR',
-  'Văn hóa': 'CULTURE',
-  'Kinh tế': 'BUSINESS',
-  'Nghệ thuật': 'ART & DESIGN',
-  'Âm nhạc': 'LIVE MUSIC',
-  'Thể thao': 'SPORTS',
-};
 
 const DEFAULT_LEARNING = [
   'Nắm vững kiến thức nền tảng và ứng dụng thực tế trong lĩnh vực sự kiện.',
@@ -188,11 +178,10 @@ export const mapApiEventToDetail = (event) => {
     title: event.title,
     thumbnail: resolveEventDisplayImage(event, DEFAULT_HERO_IMAGE),
     category: event.category || 'Sự kiện',
+    categoryLabel: getCategoryDisplayLabel(event.category || 'Sự kiện'),
     categoryColor: getCategoryColor(event.category),
-    secondaryTag:
-      CATEGORY_SECONDARY_TAG[event.category] ||
-      event.category?.toUpperCase() ||
-      'SỰ KIỆN',
+    eventType: event.eventType || '',
+    secondaryTag: event.eventType || '',
     dateShort: formatShortDate(event.startDate),
     timeRange: buildTimeRange(event.startDate, event.endDate),
     location: event.location,
@@ -236,6 +225,7 @@ export const FIGMA_EVENT_DETAIL_FALLBACK = mapApiEventToDetail({
     'Chào mừng bạn đến với workshop chuyên sâu về ứng dụng Python trong trí tuệ nhân tạo (AI). Trong buổi workshop này, chúng tôi sẽ dẫn dắt bạn đi từ những khái niệm cơ bản nhất đến việc triển khai một mô hình AI thực thụ trên các thiết bị nhúng.\n\nChúng ta sẽ cùng nhau khám phá thư viện Python mạnh mẽ, cách tối ưu hóa thuật toán và quy trình xử lý dữ liệu đầu vào từ các cảm biến thực tế. Đây không chỉ là một buổi học lý thuyết, mà là cơ hội để bạn thực hành ngay trên các thiết bị phần cứng hiện đại.',
   thumbnail: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa65?auto=format&fit=crop&w=1600&q=80',
   category: 'Công nghệ',
+  eventType: 'Hội thảo & Workshop',
   startDate: '2024-12-22T14:00:00+07:00',
   endDate: '2024-12-22T17:00:00+07:00',
   location: 'Tầng 4 tòa Beta',

@@ -1,4 +1,5 @@
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { buildFillRateHighlight } from '../constants/ctsvReportLabels';
 
 const parseJson = async (res) => {
   const data = await res.json().catch(() => ({}));
@@ -56,6 +57,10 @@ export const requestCtsvEventModeration = (id, { action, reason, isWeatherPostpo
 export const fetchCtsvCalendar = () => ctsvFetch('/events/calendar');
 
 export const fetchCtsvReports = () => ctsvFetch('/reports');
+
+export const fetchCtsvReportDetail = (id) => ctsvFetch(`/reports/${id}`);
+
+export const DEMO_REPORT_EVENT_ID = 'demo-ended-event';
 
 export const fetchCtsvProposals = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
@@ -182,7 +187,96 @@ export const MOCK_STATS = [
   { label: 'Sinh viên tham gia', value: '1.2K', trend: '+8%' }
 ];
 
+export const MOCK_REPORT_DETAIL = {
+  id: DEMO_REPORT_EVENT_ID,
+  title: 'FPT Career Connect 2025 — Bản demo báo cáo',
+  category: 'Công nghệ',
+  eventType: 'Hội thảo & Workshop',
+  source: 'school',
+  date: '15/03/2025',
+  time: '08:00',
+  location: 'Sảnh tòa Gamma',
+  campus: 'FPTU Đà Nẵng',
+  status: 'ĐÃ KẾT THÚC',
+  statusKey: 'ended',
+  reportPhase: 'ended',
+  isDemo: true,
+  image:
+    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80',
+  stats: {
+    totalCapacity: 200,
+    registeredCount: 186,
+    attendedCount: 172,
+    cancelledCount: 8,
+    noShowCount: 6,
+    fillRate: 93,
+    attendanceRate: 92,
+    averageRating: 4.6,
+    reviewCount: 124,
+    totalRevenue: 0,
+    studentRegistrations: 158,
+    guestRegistrations: 28
+  },
+  ticketBreakdown: [
+    { name: 'Vé sinh viên', sold: 158, capacity: 170, revenue: 0 },
+    { name: 'Vé khách mời', sold: 28, capacity: 30, revenue: 0 }
+  ],
+  registrationTimeline: [
+    { label: 'T-14 ngày', count: 24 },
+    { label: 'T-7 ngày', count: 58 },
+    { label: 'T-3 ngày', count: 42 },
+    { label: 'T-1 ngày', count: 38 },
+    { label: 'Ngày SK', count: 24 }
+  ],
+  ratingDistribution: [
+    { stars: 5, count: 78 },
+    { stars: 4, count: 32 },
+    { stars: 3, count: 10 },
+    { stars: 2, count: 3 },
+    { stars: 1, count: 1 }
+  ],
+  recentReviews: [
+    {
+      rating: 5,
+      comment: 'Chương trình rõ ràng, mentor nhiệt tình.',
+      authorName: 'Nguyễn Văn A',
+      createdAt: '2025-03-16T10:00:00.000Z'
+    },
+    {
+      rating: 4,
+      comment: 'Hữu ích cho sinh viên năm cuối tìm việc.',
+      authorName: 'Trần Thị B',
+      createdAt: '2025-03-16T11:30:00.000Z'
+    }
+  ],
+  recentRegistrations: [
+    { name: 'Phạm Minh D', email: 'dpm@fpt.edu.vn', status: 'attended', registeredAt: '01/03/2025' },
+    { name: 'Hoàng Thị E', email: 'heth@fpt.edu.vn', status: 'attended', registeredAt: '03/03/2025' },
+    { name: 'Vũ Văn F', email: 'vuvf@fpt.edu.vn', status: 'registered', registeredAt: '10/03/2025' }
+  ],
+  highlights: [
+    buildFillRateHighlight(93),
+    '124 đánh giá sau sự kiện, điểm TB 4.6/5.',
+    '172/186 người đăng ký có mặt (check-in).'
+  ]
+};
+
 export const MOCK_REPORTS = [
+  {
+    id: DEMO_REPORT_EVENT_ID,
+    title: 'FPT Career Connect 2025 — Bản demo báo cáo',
+    category: 'Công nghệ',
+    source: 'school',
+    date: '15/03/2025',
+    time: '08:00',
+    location: 'Sảnh tòa Gamma',
+    registeredCount: 186,
+    totalTickets: 200,
+    attendanceRate: 93,
+    status: 'ĐÃ KẾT THÚC',
+    statusKey: 'ended',
+    reportPhase: 'ended'
+  },
   {
     id: 'ev-report-1',
     title: 'FPT Techday 2024: Kiến tạo tương lai số',
@@ -194,8 +288,8 @@ export const MOCK_REPORTS = [
     registeredCount: 180,
     totalTickets: 200,
     attendanceRate: 90,
-    status: 'MỞ ĐĂNG KÝ',
-    statusKey: 'approved',
+    status: 'ĐÃ KẾT THÚC',
+    statusKey: 'ended',
     reportPhase: 'ended'
   },
   {
@@ -209,8 +303,8 @@ export const MOCK_REPORTS = [
     registeredCount: 50,
     totalTickets: 50,
     attendanceRate: 100,
-    status: 'MỞ ĐĂNG KÝ',
-    statusKey: 'approved',
+    status: 'ĐÃ KẾT THÚC',
+    statusKey: 'ended',
     reportPhase: 'ended'
   },
   {

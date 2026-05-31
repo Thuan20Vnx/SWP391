@@ -1,5 +1,6 @@
 import { formatVnd } from '../utils/ticketPricing';
 import { resolveEventDisplayImage } from '../utils/eventDisplay';
+import { getCategoryDisplayLabel } from '../constants/eventCategories';
 
 const formatEventDate = (dateInput) => {
   const date = new Date(dateInput);
@@ -195,6 +196,7 @@ export const mapApiEventToCard = (event) => {
   const totalSlots = event.capacity || 100;
   const filledSlots = event.registeredCount ?? 0;
   const category = event.category || 'Sự kiện';
+  const categoryLabel = getCategoryDisplayLabel(category);
   const isRegistered = event.isRegistered === true;
   const listPrice = event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0);
   const amountDue = event.amountDue ?? listPrice;
@@ -208,6 +210,8 @@ export const mapApiEventToCard = (event) => {
       'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80'
     ),
     category,
+    categoryLabel,
+    eventType: event.eventType || '',
     dateLabel: eventState === 'postponed'
       ? 'TBA (Sẽ thông báo sau)'
       : formatEventDate(event.startDate),
@@ -247,6 +251,8 @@ export const mapApiEventToHomeCard = (event) => {
     id: event._id,
     title: event.title,
     category: event.category || 'Sự kiện',
+    categoryLabel: getCategoryDisplayLabel(event.category || 'Sự kiện'),
+    eventType: event.eventType || '',
     date: Number.isNaN(start.getTime())
       ? ''
       : start.toLocaleDateString('vi-VN'),

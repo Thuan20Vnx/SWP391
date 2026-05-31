@@ -191,11 +191,13 @@ const EventDetail = ({ showToast }) => {
                   className="event-detail-page__tag event-detail-page__tag--primary"
                   style={{ backgroundColor: event.categoryColor }}
                 >
-                  {event.category.toUpperCase()}
+                  {event.categoryLabel || event.category}
                 </span>
-                <span className="event-detail-page__tag event-detail-page__tag--secondary">
-                  {event.secondaryTag}
-                </span>
+                {event.secondaryTag ? (
+                  <span className="event-detail-page__tag event-detail-page__tag--secondary">
+                    {event.secondaryTag}
+                  </span>
+                ) : null}
               </div>
               <h1>{event.title}</h1>
               <div className="event-detail-page__hero-meta">

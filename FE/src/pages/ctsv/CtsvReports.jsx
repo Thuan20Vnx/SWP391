@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { fetchCtsvReports, MOCK_REPORTS } from '../../services/ctsvApi';
-import { statusClass } from '../../utils/eventStatus';
+import { fetchCtsvReports, MOCK_REPORTS, DEMO_REPORT_EVENT_ID } from '../../services/ctsvApi';
+import { getReportDisplayStatus, reportStatusClass } from '../../constants/ctsvReportDisplay';
+import { REPORT_FILL_RATE_AVG_LABEL, REPORT_FILL_RATE_LABEL } from '../../constants/ctsvReportLabels';
 
 const PHASE_FILTERS = [
   { id: 'all', label: 'Tất cả' },
@@ -26,8 +27,8 @@ const ReportRowSkeleton = () => (
     <td><div className="sk sk-line sk-line--lg" /></td>
     <td><div className="sk sk-line" /></td>
     <td><div className="sk sk-line sk-line--short" /></td>
-    <td><div className="sk sk-line sk-line--short" /></td>
-    <td><div className="sk sk-btn" /></td>
+    <td className="ctsv-reports-fill-cell"><div className="sk sk-line sk-line--short" /></td>
+    <td className="ctsv-reports-actions-cell"><div className="sk sk-btn" /></td>
   </tr>
 );
 
@@ -41,9 +42,20 @@ const CtsvReports = () => {
   useEffect(() => {
     setLoading(true);
     fetchCtsvReports()
-      .then((d) => setReports(d.reports || []))
+      .then((d) => {
+        const rows = (d.reports || []).map((r) => {
+          const display = getReportDisplayStatus(r.reportPhase, r.statusKey);
+          return { ...r, status: display.label, statusKey: display.statusKey };
+        });
+        setReports(rows);
+      })
       .catch(() => {
-        setReports(MOCK_REPORTS);
+        setReports(
+          MOCK_REPORTS.map((r) => {
+            const display = getReportDisplayStatus(r.reportPhase, r.statusKey);
+            return { ...r, status: display.label, statusKey: display.statusKey };
+          })
+        );
         showToast?.('Dùng dữ liệu demo — kiểm tra BE đang chạy.', 'info');
       })
       .finally(() => setLoading(false));
@@ -79,7 +91,8 @@ const CtsvReports = () => {
           <span className="ctsv-events-eyebrow">Báo cáo CTSV</span>
           <h1>Quản lý báo cáo sau sự kiện</h1>
           <p>
-            Thống kê đăng ký và tỷ lệ lấp đầy cho sự kiện đang diễn ra hoặc đã kết thúc (mọi nguồn:
+            Thống kê đăng ký và {REPORT_FILL_RATE_LABEL.toLowerCase()} cho sự kiện đang diễn ra hoặc đã
+            kết thúc (mọi nguồn:
             trường, đối tác, CLB).
           </p>
         </div>
@@ -128,7 +141,7 @@ const CtsvReports = () => {
           <strong>{loading ? '—' : stats.totalRegistered.toLocaleString('vi-VN')}</strong>
         </div>
         <div className="ctsv-reports-summary-card">
-          <span className="ctsv-reports-summary-label">TB tỷ lệ lấp đầy</span>
+          <span className="ctsv-reports-summary-label">{REPORT_FILL_RATE_AVG_LABEL}</span>
           <strong>{loading ? '—' : `${stats.avgFill}%`}</strong>
         </div>
       </div>
@@ -140,8 +153,8 @@ const CtsvReports = () => {
               <th>Sự kiện</th>
               <th>Ngày</th>
               <th>Đăng ký</th>
-              <th>Tỷ lệ lấp đầy</th>
-              <th aria-hidden />
+              <th className="ctsv-reports-th-fill">{REPORT_FILL_RATE_LABEL}</th>
+              <th className="ctsv-reports-th-actions">Trạng thái</th>
             </tr>
           </thead>
           <tbody>
@@ -194,7 +207,7 @@ const CtsvReports = () => {
                         <span className="ctsv-reports-reg-cap"> / {r.totalTickets ?? 0}</span>
                       </span>
                     </td>
-                    <td>
+                    <td className="ctsv-reports-fill-cell">
                       <div className="ctsv-reports-fill">
                         <div className="ctsv-reports-fill-bar" aria-hidden>
                           <span className="ctsv-reports-fill-progress" style={{ width: `${fill}%` }} />
@@ -202,13 +215,25 @@ const CtsvReports = () => {
                         <span className="ctsv-reports-fill-pct">{fill}%</span>
                       </div>
                     </td>
-                    <td className="ctsv-reports-actions">
-                      <span className={`status-pill ${statusClass(r.status, r.statusKey)}`}>
-                        {r.status}
-                      </span>
-                      <Link to={`/ctsv/events/${r.id}`} className="ctsv-reports-detail-link">
-                        Chi tiết
-                      </Link>
+                    <td className="ctsv-reports-actions-cell">
+                      <div className="ctsv-reports-actions-stack">
+                        <span className={`status-pill ${reportStatusClass(r.statusKey)}`}>
+                          {r.status}
+                        </span>
+                        {['ended', 'completed'].includes(r.reportPhase) ? (
+                          <Link
+                            to={`/ctsv/reports/${r.id}`}
+                            className="ctsv-reports-detail-link"
+                            state={r.id === DEMO_REPORT_EVENT_ID ? { demo: true } : undefined}
+                          >
+                            Xem báo cáo
+                          </Link>
+                        ) : (
+                          <Link to={`/ctsv/events/${r.id}`} className="ctsv-reports-detail-link">
+                            Chi tiết
+                          </Link>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

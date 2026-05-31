@@ -9,6 +9,7 @@ import {
   MOCK_STATS
 } from '../../services/ctsvApi';
 import { isPendingApproval, statusClass } from '../../utils/eventStatus';
+import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 
 const STAT_STYLES = [
   { tone: 'amber', icon: 'partners', hint: 'Đối tác & hợp đồng', link: '/ctsv/partners' },
@@ -217,7 +218,9 @@ const CtsvDashboard = () => {
                     <img src={ev.image} alt="" loading="lazy" />
                   </div>
                   <div className="ctsv-dash-event-main">
-                    <span className="ctsv-dash-event-category">{ev.category}</span>
+                    <span className="ctsv-dash-event-category">
+                      {getCategoryDisplayLabel(ev.category) || ev.category}
+                    </span>
                     <h3>{ev.title}</h3>
                     <p>
                       {ev.date} · {ev.time}

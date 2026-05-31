@@ -349,7 +349,7 @@ const Home = ({ showToast }) => {
                 {/* Image block & Category badge */}
                 <div className="event-card-image-wrapper">
                   <img src={ev.image} alt={ev.title} className="event-card-img" />
-                  <span className="event-card-category-badge">{ev.category}</span>
+                  <span className="event-card-category-badge">{ev.categoryLabel || ev.category}</span>
                 </div>
 
                 {/* Event text body */}

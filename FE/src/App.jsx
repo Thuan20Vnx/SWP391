@@ -15,6 +15,7 @@ import CtsvPartnerDetail from './pages/ctsv/CtsvPartnerDetail';
 import CtsvAnnouncementPublish from './pages/ctsv/CtsvAnnouncementPublish';
 import CtsvCalendar from './pages/ctsv/CtsvCalendar';
 import CtsvReports from './pages/ctsv/CtsvReports';
+import CtsvReportDetail from './pages/ctsv/CtsvReportDetail';
 import CtsvProfile from './pages/ctsv/CtsvProfile';
 
 import IcpdpLayout from './layouts/IcpdpLayout';
@@ -133,6 +134,7 @@ function App() {
               <Route path="announcements/publish" element={<CtsvAnnouncementPublish />} />
               <Route path="calendar" element={<CtsvCalendar />} />
               <Route path="reports" element={<CtsvReports />} />
+              <Route path="reports/:id" element={<CtsvReportDetail />} />
               <Route path="profile" element={<CtsvProfile showToast={showToast} />} />
             </Route>
           </Route>

@@ -19,6 +19,45 @@ import {
   MODERATION_ACTION_LABELS
 } from '../../constants/eventModeration';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+
+const MODERATION_CONFIRM = {
+  edit: {
+    title: 'Yêu cầu chỉnh sửa',
+    message:
+      'Yêu cầu sẽ chuyển sang Admin phê duyệt. Chỉ khi Admin xác nhận, bạn mới được mở form chỉnh sửa và gửi lại nội dung sự kiện.',
+    confirmLabel: 'Gửi lên Admin'
+  },
+  cancel: {
+    title: 'Yêu cầu hủy sự kiện',
+    message:
+      'Yêu cầu sẽ chuyển sang Admin phê duyệt. Chỉ khi Admin xác nhận, sự kiện mới được hủy.',
+    confirmLabel: 'Gửi lên Admin',
+    danger: true
+  },
+  hide: {
+    title: 'Yêu cầu ẩn sự kiện',
+    message:
+      'Yêu cầu sẽ chuyển sang Admin phê duyệt. Sau khi Admin xác nhận, sự kiện sẽ không hiển thị trên cổng sinh viên.',
+    confirmLabel: 'Gửi lên Admin'
+  },
+  postpone: {
+    title: 'Yêu cầu hoãn sự kiện',
+    message:
+      'Yêu cầu sẽ chuyển sang Admin phê duyệt. Chỉ khi Admin xác nhận, sự kiện mới chuyển sang trạng thái hoãn.',
+    confirmLabel: 'Gửi lên Admin'
+  },
+  postponeWeather: {
+    title: 'Hoãn do thời tiết',
+    message: 'Sự kiện sẽ được hoãn ngay sau khi xác nhận, không cần Admin phê duyệt.',
+    confirmLabel: 'Xác nhận hoãn'
+  }
+};
+
+const getModerationConfirmConfig = (action, isWeatherPostpone) => {
+  if (action === 'postpone' && isWeatherPostpone) return MODERATION_CONFIRM.postponeWeather;
+  return MODERATION_CONFIRM[action] || null;
+};
 
 const SOURCE_META = {
   school: { label: 'Cấp trường', tone: 'school' },
@@ -59,6 +98,8 @@ const CtsvEventDetail = () => {
   const [note, setNote] = useState('');
   const [moderationReason, setModerationReason] = useState('');
   const [weatherPostpone, setWeatherPostpone] = useState(false);
+  const [moderationConfirm, setModerationConfirm] = useState(null);
+  const [moderationLoading, setModerationLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('info');
   const isCtsvOnly = getUserRole() === 'ctsv';
 
@@ -131,49 +172,19 @@ const CtsvEventDetail = () => {
     }
   };
 
-  const confirmModeration = (action) => {
-    const reasonPreview = moderationReason.trim();
-    if (!reasonPreview) {
+  const openModerationConfirm = (action) => {
+    if (!moderationReason.trim()) {
       showToast?.('Vui lòng nhập lý do trước khi xác nhận.', 'error');
-      return false;
+      return;
     }
-
-    if (action === 'cancel') {
-      return window.confirm(
-        `Bạn có chắc muốn gửi yêu cầu HỦY sự kiện "${event.title}"?\n\nLý do: ${reasonPreview}\n\nYêu cầu cần Admin phê duyệt trước khi có hiệu lực.`
-      );
-    }
-
-    if (action === 'hide') {
-      return window.confirm(
-        `Bạn có chắc muốn gửi yêu cầu ẨN sự kiện "${event.title}"?\n\nLý do: ${reasonPreview}\n\nSau khi Admin duyệt, sự kiện sẽ không hiển thị trên cổng sinh viên.`
-      );
-    }
-
-    if (action === 'postpone' && weatherPostpone) {
-      return window.confirm(
-        `Bạn có chắc muốn HOÃN sự kiện "${event.title}" do thời tiết?\n\nLý do: ${reasonPreview}\n\nSự kiện sẽ được hoãn ngay, không cần Admin duyệt.`
-      );
-    }
-
-    if (action === 'postpone') {
-      return window.confirm(
-        `Bạn có chắc muốn gửi yêu cầu HOÃN sự kiện "${event.title}"?\n\nLý do: ${reasonPreview}\n\nYêu cầu cần Admin phê duyệt trước khi sự kiện chuyển sang trạng thái hoãn.`
-      );
-    }
-
-    if (action === 'edit') {
-      return window.confirm(
-        `Bạn có chắc muốn gửi yêu cầu CHỈNH SỬA sự kiện "${event.title}"?\n\nLý do: ${reasonPreview}\n\nSau khi Admin phê duyệt, bạn mới được mở form chỉnh sửa và gửi lại Admin duyệt nội dung.`
-      );
-    }
-
-    return false;
+    setModerationConfirm(action);
   };
 
-  const handleModeration = async (action) => {
-    if (!confirmModeration(action)) return;
+  const executeModeration = async () => {
+    const action = moderationConfirm;
+    if (!action) return;
 
+    setModerationLoading(true);
     try {
       const data = await requestCtsvEventModeration(id, {
         action,
@@ -183,11 +194,18 @@ const CtsvEventDetail = () => {
       showToast?.(data.message || 'Đã gửi yêu cầu.', 'success');
       setModerationReason('');
       setWeatherPostpone(false);
+      setModerationConfirm(null);
       refresh();
     } catch (e) {
       showToast?.(e.message, 'error');
+    } finally {
+      setModerationLoading(false);
     }
   };
+
+  const moderationConfirmConfig = moderationConfirm
+    ? getModerationConfirmConfig(moderationConfirm, weatherPostpone)
+    : null;
 
   const formatLabel = (value) => {
     if (!value) return '—';
@@ -243,7 +261,9 @@ const CtsvEventDetail = () => {
           ) : (
             <div className="ctsv-ed-hero-img ctsv-ed-hero-img--placeholder" aria-hidden />
           )}
-          <span className="ctsv-ed-hero-category">{event.category || 'Sự kiện'}</span>
+          <span className="ctsv-ed-hero-category">
+            {getCategoryDisplayLabel(event.category) || 'Sự kiện'}
+          </span>
         </div>
         <div className="ctsv-ed-hero-body">
           <div className="ctsv-ed-hero-tags">
@@ -462,7 +482,7 @@ const CtsvEventDetail = () => {
             </div>
             <div className="ctsv-ed-fill">
               <div className="ctsv-ed-fill-head">
-                <span>Tỷ lệ lấp đầy</span>
+                <span>Tỷ lệ đăng ký</span>
                 <strong>{stats.fillRate}%</strong>
               </div>
               <div className="ctsv-ed-fill-bar" aria-hidden>
@@ -536,17 +556,17 @@ const CtsvEventDetail = () => {
           </label>
           <div className="ctsv-action-buttons">
             {showRequestEditBtn && (
-              <button type="button" className="ctsv-btn-primary" onClick={() => handleModeration('edit')}>
+              <button type="button" className="ctsv-btn-primary" onClick={() => openModerationConfirm('edit')}>
                 Yêu cầu chỉnh sửa
               </button>
             )}
-            <button type="button" className="ctsv-btn-danger" onClick={() => handleModeration('cancel')}>
+            <button type="button" className="ctsv-btn-danger" onClick={() => openModerationConfirm('cancel')}>
               Yêu cầu hủy
             </button>
-            <button type="button" className="ctsv-btn-secondary" onClick={() => handleModeration('postpone')}>
+            <button type="button" className="ctsv-btn-secondary" onClick={() => openModerationConfirm('postpone')}>
               {weatherPostpone ? 'Hoãn (thời tiết)' : 'Yêu cầu hoãn'}
             </button>
-            <button type="button" className="ctsv-btn-secondary" onClick={() => handleModeration('hide')}>
+            <button type="button" className="ctsv-btn-secondary" onClick={() => openModerationConfirm('hide')}>
               Yêu cầu ẩn
             </button>
           </div>
@@ -587,6 +607,17 @@ const CtsvEventDetail = () => {
           </div>
         </section>
       )}
+
+      <ConfirmDialog
+        open={Boolean(moderationConfirm && moderationConfirmConfig)}
+        title={moderationConfirmConfig?.title}
+        message={moderationConfirmConfig?.message}
+        confirmLabel={moderationConfirmConfig?.confirmLabel}
+        danger={moderationConfirmConfig?.danger}
+        loading={moderationLoading}
+        onCancel={() => !moderationLoading && setModerationConfirm(null)}
+        onConfirm={executeModeration}
+      />
     </div>
   );
 };
