@@ -1,0 +1,3795 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 23,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "FE/src/App.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 230,
+      "nonEmptyLines": 212,
+      "functions": [
+        {
+          "name": "ProtectedRoute",
+          "startLine": 49,
+          "endLine": 52,
+          "params": []
+        },
+        {
+          "name": "CtsvProtectedRoute",
+          "startLine": 54,
+          "endLine": 59,
+          "params": []
+        },
+        {
+          "name": "PublicHomeRoute",
+          "startLine": 61,
+          "endLine": 67,
+          "params": []
+        },
+        {
+          "name": "App",
+          "startLine": 69,
+          "endLine": 228,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ProtectedRoute",
+          "callee": "localStorage.getItem",
+          "lineNumber": 50
+        },
+        {
+          "caller": "CtsvProtectedRoute",
+          "callee": "localStorage.getItem",
+          "lineNumber": 55
+        },
+        {
+          "caller": "CtsvProtectedRoute",
+          "callee": "isCtsvRole",
+          "lineNumber": 57
+        },
+        {
+          "caller": "PublicHomeRoute",
+          "callee": "localStorage.getItem",
+          "lineNumber": 62
+        },
+        {
+          "caller": "PublicHomeRoute",
+          "callee": "isCtsvRole",
+          "lineNumber": 63
+        },
+        {
+          "caller": "App",
+          "callee": "useState",
+          "lineNumber": 70
+        },
+        {
+          "caller": "showToast",
+          "callee": "Date.now",
+          "lineNumber": 73
+        },
+        {
+          "caller": "showToast",
+          "callee": "Math.random().toString(36).substring",
+          "lineNumber": 73
+        },
+        {
+          "caller": "showToast",
+          "callee": "Math.random().toString",
+          "lineNumber": 73
+        },
+        {
+          "caller": "showToast",
+          "callee": "Math.random",
+          "lineNumber": 73
+        },
+        {
+          "caller": "showToast",
+          "callee": "setToasts",
+          "lineNumber": 74
+        },
+        {
+          "caller": "removeToast",
+          "callee": "setToasts",
+          "lineNumber": 78
+        },
+        {
+          "caller": "removeToast",
+          "callee": "prev.filter",
+          "lineNumber": 78
+        },
+        {
+          "caller": "App",
+          "callee": "isCtsvRole",
+          "lineNumber": 116
+        },
+        {
+          "caller": "App",
+          "callee": "getHomePathForRole",
+          "lineNumber": 223
+        },
+        {
+          "caller": "App",
+          "callee": "getUserRole",
+          "lineNumber": 223
+        }
+      ],
+      "metrics": {
+        "importCount": 40,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/Toast.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 66,
+      "nonEmptyLines": 59,
+      "functions": [
+        {
+          "name": "ToastIcon",
+          "startLine": 3,
+          "endLine": 29,
+          "params": []
+        },
+        {
+          "name": "ToastItem",
+          "startLine": 31,
+          "endLine": 56,
+          "params": []
+        },
+        {
+          "name": "ToastContainer",
+          "startLine": 58,
+          "endLine": 66,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ToastIcon",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "ToastContainer",
+          "line": 58,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ToastItem",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "ToastItem",
+          "callee": "useEffect",
+          "lineNumber": 34
+        },
+        {
+          "caller": "ToastItem",
+          "callee": "setTimeout",
+          "lineNumber": 36
+        },
+        {
+          "caller": "ToastItem",
+          "callee": "setFadeOut",
+          "lineNumber": 37
+        },
+        {
+          "caller": "ToastItem",
+          "callee": "setTimeout",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ToastItem",
+          "callee": "onRemove",
+          "lineNumber": 41
+        },
+        {
+          "caller": "ToastItem",
+          "callee": "clearTimeout",
+          "lineNumber": 45
+        },
+        {
+          "caller": "ToastItem",
+          "callee": "clearTimeout",
+          "lineNumber": 46
+        },
+        {
+          "caller": "ToastContainer",
+          "callee": "toasts.map",
+          "lineNumber": 61
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/BannerCropModal.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 336,
+      "nonEmptyLines": 301,
+      "functions": [
+        {
+          "name": "BannerCropModal",
+          "startLine": 16,
+          "endLine": 334,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "BannerCropModal",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useRef",
+          "lineNumber": 25
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useRef",
+          "lineNumber": 26
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useRef",
+          "lineNumber": 27
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useRef",
+          "lineNumber": 28
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useRef",
+          "lineNumber": 29
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useRef",
+          "lineNumber": 30
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useRef",
+          "lineNumber": 31
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useCallback",
+          "lineNumber": 33
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useCallback",
+          "lineNumber": 43
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "clampCropState",
+          "lineNumber": 46
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setCrop",
+          "lineNumber": 48
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "applyImageTransform",
+          "lineNumber": 49
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useCallback",
+          "lineNumber": 55
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "clearTimeout",
+          "lineNumber": 58
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setTimeout",
+          "lineNumber": 59
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "cropBannerPreview",
+          "lineNumber": 61
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setPreviewUrl",
+          "lineNumber": 62
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setPreviewUrl",
+          "lineNumber": 64
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useEffect",
+          "lineNumber": 71
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setLoading",
+          "lineNumber": 74
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setPreviewUrl",
+          "lineNumber": 75
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setCrop",
+          "lineNumber": 76
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "getMinScale",
+          "lineNumber": 83
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "getInitialCropState",
+          "lineNumber": 84
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setNaturalSize",
+          "lineNumber": 86
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setMinScale",
+          "lineNumber": 87
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setMaxScale",
+          "lineNumber": 88
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setCrop",
+          "lineNumber": 90
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setLoading",
+          "lineNumber": 91
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "applyImageTransform",
+          "lineNumber": 92
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "schedulePreview",
+          "lineNumber": 93
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "setLoading",
+          "lineNumber": 96
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "onCancel",
+          "lineNumber": 97
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "clearTimeout",
+          "lineNumber": 101
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useEffect",
+          "lineNumber": 104
+        },
+        {
+          "caller": "onKey",
+          "callee": "onCancel",
+          "lineNumber": 109
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "window.addEventListener",
+          "lineNumber": 111
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "window.removeEventListener",
+          "lineNumber": 114
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useEffect",
+          "lineNumber": 118
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "schedulePreview",
+          "lineNumber": 119
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useCallback",
+          "lineNumber": 122
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "Math.min",
+          "lineNumber": 126
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "Math.max",
+          "lineNumber": 126
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "zoomCropState",
+          "lineNumber": 127
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "commitCrop",
+          "lineNumber": 128
+        },
+        {
+          "caller": "handleReset",
+          "callee": "commitCrop",
+          "lineNumber": 135
+        },
+        {
+          "caller": "handleReset",
+          "callee": "getInitialCropState",
+          "lineNumber": 135
+        },
+        {
+          "caller": "handleFit",
+          "callee": "setZoom",
+          "lineNumber": 140
+        },
+        {
+          "caller": "onPointerDown",
+          "callee": "e.preventDefault",
+          "lineNumber": 145
+        },
+        {
+          "caller": "onPointerDown",
+          "callee": "viewportRef.current?.setPointerCapture",
+          "lineNumber": 146
+        },
+        {
+          "caller": "onPointerMove",
+          "callee": "clampCropState",
+          "lineNumber": 160
+        },
+        {
+          "caller": "onPointerMove",
+          "callee": "cancelAnimationFrame",
+          "lineNumber": 172
+        },
+        {
+          "caller": "onPointerMove",
+          "callee": "requestAnimationFrame",
+          "lineNumber": 173
+        },
+        {
+          "caller": "onPointerMove",
+          "callee": "applyImageTransform",
+          "lineNumber": 174
+        },
+        {
+          "caller": "onPointerUp",
+          "callee": "viewportRef.current?.releasePointerCapture",
+          "lineNumber": 183
+        },
+        {
+          "caller": "onPointerUp",
+          "callee": "commitCrop",
+          "lineNumber": 187
+        },
+        {
+          "caller": "onWheel",
+          "callee": "e.preventDefault",
+          "lineNumber": 192
+        },
+        {
+          "caller": "onWheel",
+          "callee": "viewportRef.current?.getBoundingClientRect",
+          "lineNumber": 193
+        },
+        {
+          "caller": "onWheel",
+          "callee": "setZoom",
+          "lineNumber": 198
+        },
+        {
+          "caller": "handleZoomSlider",
+          "callee": "setZoom",
+          "lineNumber": 202
+        },
+        {
+          "caller": "handleZoomSlider",
+          "callee": "Number",
+          "lineNumber": 202
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "setProcessing",
+          "lineNumber": 208
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "cropBannerImage",
+          "lineNumber": 210
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "onConfirm",
+          "lineNumber": 211
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "onConfirm",
+          "lineNumber": 213
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "setProcessing",
+          "lineNumber": 215
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "useCallback",
+          "lineNumber": 219
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "onCancel",
+          "lineNumber": 221
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "Math.round",
+          "lineNumber": 229
+        },
+        {
+          "caller": "BannerCropModal",
+          "callee": "e.stopPropagation",
+          "lineNumber": 239
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/CtsvActionIcon.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 45,
+      "functions": [
+        {
+          "name": "CtsvActionIcon",
+          "startLine": 4,
+          "endLine": 46,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/CtsvNavIcon.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 92,
+      "nonEmptyLines": 89,
+      "functions": [
+        {
+          "name": "CtsvNavIcon",
+          "startLine": 3,
+          "endLine": 90,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/PartnerActionDialog.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 96,
+      "nonEmptyLines": 88,
+      "functions": [
+        {
+          "name": "PartnerActionDialog",
+          "startLine": 22,
+          "endLine": 94,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "PartnerActionDialog",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "PartnerActionDialog",
+          "callee": "useEffect",
+          "lineNumber": 26
+        },
+        {
+          "caller": "PartnerActionDialog",
+          "callee": "setReason",
+          "lineNumber": 27
+        },
+        {
+          "caller": "PartnerActionDialog",
+          "callee": "useEffect",
+          "lineNumber": 30
+        },
+        {
+          "caller": "onKey",
+          "callee": "onCancel",
+          "lineNumber": 33
+        },
+        {
+          "caller": "PartnerActionDialog",
+          "callee": "document.addEventListener",
+          "lineNumber": 35
+        },
+        {
+          "caller": "PartnerActionDialog",
+          "callee": "document.removeEventListener",
+          "lineNumber": 36
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "reason.trim",
+          "lineNumber": 42
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "onConfirm",
+          "lineNumber": 44
+        },
+        {
+          "caller": "PartnerActionDialog",
+          "callee": "e.stopPropagation",
+          "lineNumber": 58
+        },
+        {
+          "caller": "PartnerActionDialog",
+          "callee": "setReason",
+          "lineNumber": 72
+        },
+        {
+          "caller": "PartnerActionDialog",
+          "callee": "reason.trim",
+          "lineNumber": 86
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/profile/AvatarCropModal.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 286,
+      "nonEmptyLines": 257,
+      "functions": [
+        {
+          "name": "AvatarCropModal",
+          "startLine": 15,
+          "endLine": 284,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useRef",
+          "lineNumber": 24
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useRef",
+          "lineNumber": 25
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useRef",
+          "lineNumber": 26
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useRef",
+          "lineNumber": 27
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useRef",
+          "lineNumber": 28
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useRef",
+          "lineNumber": 29
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useCallback",
+          "lineNumber": 31
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useCallback",
+          "lineNumber": 41
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "clampCropState",
+          "lineNumber": 44
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setCrop",
+          "lineNumber": 46
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "applyImageTransform",
+          "lineNumber": 47
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useCallback",
+          "lineNumber": 53
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "clearTimeout",
+          "lineNumber": 56
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setTimeout",
+          "lineNumber": 57
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "cropAvatarPreview",
+          "lineNumber": 59
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setPreviewUrl",
+          "lineNumber": 60
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setPreviewUrl",
+          "lineNumber": 62
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useEffect",
+          "lineNumber": 69
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setLoading",
+          "lineNumber": 72
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setPreviewUrl",
+          "lineNumber": 73
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setCrop",
+          "lineNumber": 74
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "getMinScale",
+          "lineNumber": 81
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "getInitialCropState",
+          "lineNumber": 83
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setNaturalSize",
+          "lineNumber": 84
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setMinScale",
+          "lineNumber": 85
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setMaxScale",
+          "lineNumber": 86
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setCrop",
+          "lineNumber": 88
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setLoading",
+          "lineNumber": 89
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "schedulePreview",
+          "lineNumber": 90
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "setLoading",
+          "lineNumber": 92
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "clearTimeout",
+          "lineNumber": 95
+        },
+        {
+          "caller": "setZoom",
+          "callee": "Math.min",
+          "lineNumber": 100
+        },
+        {
+          "caller": "setZoom",
+          "callee": "Math.max",
+          "lineNumber": 100
+        },
+        {
+          "caller": "setZoom",
+          "callee": "zoomCropState",
+          "lineNumber": 101
+        },
+        {
+          "caller": "setZoom",
+          "callee": "commitCrop",
+          "lineNumber": 102
+        },
+        {
+          "caller": "setZoom",
+          "callee": "schedulePreview",
+          "lineNumber": 103
+        },
+        {
+          "caller": "handleFit",
+          "callee": "getInitialCropState",
+          "lineNumber": 108
+        },
+        {
+          "caller": "handleFit",
+          "callee": "commitCrop",
+          "lineNumber": 109
+        },
+        {
+          "caller": "handleFit",
+          "callee": "schedulePreview",
+          "lineNumber": 110
+        },
+        {
+          "caller": "onPointerDown",
+          "callee": "viewportRef.current?.setPointerCapture",
+          "lineNumber": 119
+        },
+        {
+          "caller": "onPointerMove",
+          "callee": "commitCrop",
+          "lineNumber": 131
+        },
+        {
+          "caller": "onPointerUp",
+          "callee": "viewportRef.current?.releasePointerCapture",
+          "lineNumber": 138
+        },
+        {
+          "caller": "onPointerUp",
+          "callee": "commitCrop",
+          "lineNumber": 143
+        },
+        {
+          "caller": "onPointerUp",
+          "callee": "schedulePreview",
+          "lineNumber": 144
+        },
+        {
+          "caller": "onWheel",
+          "callee": "e.preventDefault",
+          "lineNumber": 150
+        },
+        {
+          "caller": "onWheel",
+          "callee": "viewportRef.current?.getBoundingClientRect",
+          "lineNumber": 151
+        },
+        {
+          "caller": "onWheel",
+          "callee": "setZoom",
+          "lineNumber": 155
+        },
+        {
+          "caller": "handleZoomSlider",
+          "callee": "setZoom",
+          "lineNumber": 159
+        },
+        {
+          "caller": "handleZoomSlider",
+          "callee": "Number",
+          "lineNumber": 159
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "setProcessing",
+          "lineNumber": 165
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "cropAvatarImage",
+          "lineNumber": 167
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "onConfirm",
+          "lineNumber": 168
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "onConfirm",
+          "lineNumber": 170
+        },
+        {
+          "caller": "handleConfirm",
+          "callee": "setProcessing",
+          "lineNumber": 172
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "useCallback",
+          "lineNumber": 176
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "onCancel",
+          "lineNumber": 178
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "Math.round",
+          "lineNumber": 186
+        },
+        {
+          "caller": "AvatarCropModal",
+          "callee": "e.stopPropagation",
+          "lineNumber": 196
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ui/AppSelect.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 202,
+      "nonEmptyLines": 188,
+      "functions": [
+        {
+          "name": "AppSelect",
+          "startLine": 8,
+          "endLine": 200,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AppSelect",
+          "callee": "useId",
+          "lineNumber": 21
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useRef",
+          "lineNumber": 24
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useRef",
+          "lineNumber": 25
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useMemo",
+          "lineNumber": 30
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "options.map",
+          "lineNumber": 32
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "String",
+          "lineNumber": 33
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useMemo",
+          "lineNumber": 38
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "normalized.find",
+          "lineNumber": 39
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "String",
+          "lineNumber": 39
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useCallback",
+          "lineNumber": 45
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "onChange",
+          "lineNumber": 47
+        },
+        {
+          "caller": "pick",
+          "callee": "emitChange",
+          "lineNumber": 55
+        },
+        {
+          "caller": "pick",
+          "callee": "setOpen",
+          "lineNumber": 56
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useCallback",
+          "lineNumber": 59
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "el.getBoundingClientRect",
+          "lineNumber": 62
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "Math.max",
+          "lineNumber": 63
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "setMenuRect",
+          "lineNumber": 64
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "Math.max",
+          "lineNumber": 67
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useLayoutEffect",
+          "lineNumber": 71
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "setMenuRect",
+          "lineNumber": 73
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "updateMenuPosition",
+          "lineNumber": 76
+        },
+        {
+          "caller": "onReflow",
+          "callee": "updateMenuPosition",
+          "lineNumber": 77
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "window.addEventListener",
+          "lineNumber": 78
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "window.addEventListener",
+          "lineNumber": 79
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "window.removeEventListener",
+          "lineNumber": 81
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "window.removeEventListener",
+          "lineNumber": 82
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "useEffect",
+          "lineNumber": 86
+        },
+        {
+          "caller": "onDoc",
+          "callee": "rootRef.current?.contains",
+          "lineNumber": 89
+        },
+        {
+          "caller": "onDoc",
+          "callee": "document.getElementById",
+          "lineNumber": 90
+        },
+        {
+          "caller": "onDoc",
+          "callee": "menuEl?.contains",
+          "lineNumber": 91
+        },
+        {
+          "caller": "onDoc",
+          "callee": "setOpen",
+          "lineNumber": 92
+        },
+        {
+          "caller": "onKey",
+          "callee": "setOpen",
+          "lineNumber": 95
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "document.addEventListener",
+          "lineNumber": 97
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "document.addEventListener",
+          "lineNumber": 98
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "document.removeEventListener",
+          "lineNumber": 100
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "document.removeEventListener",
+          "lineNumber": 101
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "[\r\n    'app-select',\r\n    `app-select--${variant}`,\r\n    fullWidth ? 'app-select--full' : '',\r\n    open ? 'is-open' : '',\r\n    disabled ? 'is-disabled' : '',\r\n    className\r\n  ]\r\n    .filter(Boolean)\r\n    .join",
+          "lineNumber": 105
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "[\r\n    'app-select',\r\n    `app-select--${variant}`,\r\n    fullWidth ? 'app-select--full' : '',\r\n    open ? 'is-open' : '',\r\n    disabled ? 'is-disabled' : '',\r\n    className\r\n  ]\r\n    .filter",
+          "lineNumber": 105
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "setOpen",
+          "lineNumber": 130
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "(() => {\r\n          const menu = (\r\n            <ul\r\n              id={listboxId}\r\n              className={`app-select__menu${useMenuPortal ? ' app-select__menu--portal' : ''}`}\r\n              role=\"listbox\"\r\n              aria-labelledby={id}\r\n              style={\r\n                useMenuPortal && menuRect\r\n                  ? {\r\n                      position: 'fixed',\r\n                      top: menuRect.top,\r\n                      left: menuRect.left,\r\n                      width: menuRect.width,\r\n                      zIndex: 1400\r\n                    }\r\n                  : undefined\r\n              }\r\n            >\r\n              {normalized.map((opt) => {\r\n                const isActive = opt.value === String(value);\r\n                return (\r\n                  <li key={opt.value || '__empty'} role=\"presentation\">\r\n                    <button\r\n                      type=\"button\"\r\n                      role=\"option\"\r\n                      aria-selected={isActive}\r\n                      className={`app-select__option${isActive ? ' is-selected' : ''}`}\r\n                      onClick={() => pick(opt.value)}\r\n                    >\r\n                      <span className=\"app-select__option-label\">{opt.label}</span>\r\n                      {isActive && (\r\n                        <span className=\"app-select__check\" aria-hidden>\r\n                          <svg viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" fill=\"none\">\r\n                            <path\r\n                              d=\"M3 8.5L6.5 12L13 4\"\r\n                              stroke=\"currentColor\"\r\n                              strokeWidth=\"2\"\r\n                              strokeLinecap=\"round\"\r\n                              strokeLinejoin=\"round\"\r\n                            />\r\n                          </svg>\r\n                        </span>\r\n                      )}\r\n                    </button>\r\n                  </li>\r\n                );\r\n              })}\r\n            </ul>\r\n          );\r\n          return useMenuPortal ? createPortal(menu, document.body) : menu;\r\n        })",
+          "lineNumber": 142
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "normalized.map",
+          "lineNumber": 161
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "String",
+          "lineNumber": 162
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "pick",
+          "lineNumber": 170
+        },
+        {
+          "caller": "AppSelect",
+          "callee": "createPortal",
+          "lineNumber": 192
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ui/ConfirmDialog.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 56,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "ConfirmDialog",
+          "startLine": 3,
+          "endLine": 54,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ConfirmDialog",
+          "callee": "useEffect",
+          "lineNumber": 14
+        },
+        {
+          "caller": "onKey",
+          "callee": "onCancel",
+          "lineNumber": 17
+        },
+        {
+          "caller": "ConfirmDialog",
+          "callee": "document.addEventListener",
+          "lineNumber": 19
+        },
+        {
+          "caller": "ConfirmDialog",
+          "callee": "document.removeEventListener",
+          "lineNumber": 20
+        },
+        {
+          "caller": "ConfirmDialog",
+          "callee": "e.stopPropagation",
+          "lineNumber": 32
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/constants/eventCategories.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 36,
+      "functions": [
+        {
+          "name": "normalizeEventCategory",
+          "startLine": 33,
+          "endLine": 40,
+          "params": [
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "EVENT_CATEGORIES",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "CTSV_CATEGORY_OPTIONS",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeEventCategory",
+          "line": 33,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalizeEventCategory",
+          "callee": "String(input ?? '').trim",
+          "lineNumber": 34
+        },
+        {
+          "caller": "normalizeEventCategory",
+          "callee": "String",
+          "lineNumber": 34
+        },
+        {
+          "caller": "normalizeEventCategory",
+          "callee": "EVENT_CATEGORIES.includes",
+          "lineNumber": 36
+        },
+        {
+          "caller": "normalizeEventCategory",
+          "callee": "EVENT_CATEGORIES.find",
+          "lineNumber": 38
+        },
+        {
+          "caller": "normalizeEventCategory",
+          "callee": "raw.toLowerCase().startsWith",
+          "lineNumber": 38
+        },
+        {
+          "caller": "normalizeEventCategory",
+          "callee": "raw.toLowerCase",
+          "lineNumber": 38
+        },
+        {
+          "caller": "normalizeEventCategory",
+          "callee": "cat.toLowerCase",
+          "lineNumber": 38
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/constants/eventSpeaker.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 36,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "createEmptySpeakerRow",
+          "startLine": 8,
+          "endLine": 13,
+          "params": []
+        },
+        {
+          "name": "normalizeSpeakerPayload",
+          "startLine": 15,
+          "endLine": 19,
+          "params": [
+            "row"
+          ]
+        },
+        {
+          "name": "buildSpeakersPayload",
+          "startLine": 21,
+          "endLine": 22,
+          "params": [
+            "rows"
+          ]
+        },
+        {
+          "name": "resolveEventSpeakers",
+          "startLine": 24,
+          "endLine": 36,
+          "params": [
+            "event"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SPEAKER_AVATAR_MAX_BYTES",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "SPEAKER_IMAGE_ACCEPT",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "createEmptySpeakerRow",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeSpeakerPayload",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "buildSpeakersPayload",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "resolveEventSpeakers",
+          "line": 24,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "createEmptySpeakerRow",
+          "callee": "Date.now",
+          "lineNumber": 9
+        },
+        {
+          "caller": "normalizeSpeakerPayload",
+          "callee": "String(row?.name || '').trim",
+          "lineNumber": 16
+        },
+        {
+          "caller": "normalizeSpeakerPayload",
+          "callee": "String",
+          "lineNumber": 16
+        },
+        {
+          "caller": "normalizeSpeakerPayload",
+          "callee": "String(row?.role || '').trim",
+          "lineNumber": 17
+        },
+        {
+          "caller": "normalizeSpeakerPayload",
+          "callee": "String",
+          "lineNumber": 17
+        },
+        {
+          "caller": "buildSpeakersPayload",
+          "callee": "(Array.isArray(rows) ? rows : []).map(normalizeSpeakerPayload).filter",
+          "lineNumber": 22
+        },
+        {
+          "caller": "buildSpeakersPayload",
+          "callee": "(Array.isArray(rows) ? rows : []).map",
+          "lineNumber": 22
+        },
+        {
+          "caller": "buildSpeakersPayload",
+          "callee": "Array.isArray",
+          "lineNumber": 22
+        },
+        {
+          "caller": "resolveEventSpeakers",
+          "callee": "buildSpeakersPayload",
+          "lineNumber": 25
+        },
+        {
+          "caller": "resolveEventSpeakers",
+          "callee": "String(event?.speaker || '').trim",
+          "lineNumber": 27
+        },
+        {
+          "caller": "resolveEventSpeakers",
+          "callee": "String",
+          "lineNumber": 27
+        },
+        {
+          "caller": "resolveEventSpeakers",
+          "callee": "String(event?.speakerRole || '').trim",
+          "lineNumber": 32
+        },
+        {
+          "caller": "resolveEventSpeakers",
+          "callee": "String",
+          "lineNumber": 32
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 6,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/constants/eventVenues.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 7,
+      "nonEmptyLines": 7,
+      "exports": [
+        {
+          "name": "EVENT_VENUES",
+          "line": 2,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/constants/eventWorkflow.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 24,
+      "functions": [
+        {
+          "name": "canCtsvPublishSchoolEvent",
+          "startLine": 22,
+          "endLine": 23,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "canCtsvEditSchoolEvent",
+          "startLine": 25,
+          "endLine": 27,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "isSchoolEventPendingAdmin",
+          "startLine": 29,
+          "endLine": 30,
+          "params": [
+            "event"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SCHOOL_EVENT_SUBMIT_STATUS",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "SCHOOL_EVENT_APPROVED_STATUS",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "SCHOOL_EVENT_EDITABLE_STATUSES",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "SCHOOL_EVENT_STATUS_LABELS",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "canCtsvPublishSchoolEvent",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "canCtsvEditSchoolEvent",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "isSchoolEventPendingAdmin",
+          "line": 29,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "canCtsvEditSchoolEvent",
+          "callee": "SCHOOL_EVENT_EDITABLE_STATUSES.includes",
+          "lineNumber": 27
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 7,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/hooks/useSettingsPreferences.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 53,
+      "nonEmptyLines": 43,
+      "functions": [
+        {
+          "name": "loadSettings",
+          "startLine": 13,
+          "endLine": 21,
+          "params": []
+        },
+        {
+          "name": "saveSettings",
+          "startLine": 23,
+          "endLine": 25,
+          "params": [
+            "settings"
+          ]
+        },
+        {
+          "name": "applyDarkMode",
+          "startLine": 27,
+          "endLine": 30,
+          "params": [
+            "enabled"
+          ]
+        },
+        {
+          "name": "initThemeFromStorage",
+          "startLine": 32,
+          "endLine": 34,
+          "params": []
+        },
+        {
+          "name": "useSettingsPreferences",
+          "startLine": 36,
+          "endLine": 53,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "DEFAULT_SETTINGS",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "loadSettings",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "saveSettings",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "applyDarkMode",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "initThemeFromStorage",
+          "line": 32,
+          "isDefault": false
+        },
+        {
+          "name": "useSettingsPreferences",
+          "line": 36,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "loadSettings",
+          "callee": "localStorage.getItem",
+          "lineNumber": 15
+        },
+        {
+          "caller": "loadSettings",
+          "callee": "JSON.parse",
+          "lineNumber": 17
+        },
+        {
+          "caller": "saveSettings",
+          "callee": "localStorage.setItem",
+          "lineNumber": 24
+        },
+        {
+          "caller": "saveSettings",
+          "callee": "JSON.stringify",
+          "lineNumber": 24
+        },
+        {
+          "caller": "applyDarkMode",
+          "callee": "document.documentElement.classList.toggle",
+          "lineNumber": 28
+        },
+        {
+          "caller": "applyDarkMode",
+          "callee": "document.body.classList.toggle",
+          "lineNumber": 29
+        },
+        {
+          "caller": "initThemeFromStorage",
+          "callee": "applyDarkMode",
+          "lineNumber": 33
+        },
+        {
+          "caller": "initThemeFromStorage",
+          "callee": "loadSettings",
+          "lineNumber": 33
+        },
+        {
+          "caller": "useSettingsPreferences",
+          "callee": "useState",
+          "lineNumber": 37
+        },
+        {
+          "caller": "useSettingsPreferences",
+          "callee": "useCallback",
+          "lineNumber": 39
+        },
+        {
+          "caller": "useSettingsPreferences",
+          "callee": "setSettings",
+          "lineNumber": 40
+        },
+        {
+          "caller": "useSettingsPreferences",
+          "callee": "saveSettings",
+          "lineNumber": 42
+        },
+        {
+          "caller": "useSettingsPreferences",
+          "callee": "applyDarkMode",
+          "lineNumber": 43
+        },
+        {
+          "caller": "useSettingsPreferences",
+          "callee": "useEffect",
+          "lineNumber": 48
+        },
+        {
+          "caller": "useSettingsPreferences",
+          "callee": "applyDarkMode",
+          "lineNumber": 49
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 6,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/main.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 12,
+      "nonEmptyLines": 11,
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/AdminDashboard.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 154,
+      "nonEmptyLines": 142,
+      "functions": [
+        {
+          "name": "AdminDashboard",
+          "startLine": 4,
+          "endLine": 152,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AdminDashboard",
+          "callee": "useState",
+          "lineNumber": 5
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "useState",
+          "lineNumber": 6
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "useNavigate",
+          "lineNumber": 7
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "localStorage.getItem",
+          "lineNumber": 8
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "useEffect",
+          "lineNumber": 10
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "showToast",
+          "lineNumber": 13
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "navigate",
+          "lineNumber": 14
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "fetchPendingEvents",
+          "lineNumber": 17
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "setLoading",
+          "lineNumber": 21
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "localStorage.getItem",
+          "lineNumber": 22
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "fetch('http://localhost:5000/api/events/pending', {\r\n      headers: {\r\n        'x-user-email': email\r\n      }\r\n    })\r\n      .then(res => res.json())\r\n      .then(data => {\r\n        if (data.success) {\r\n          setEvents(data.events);\r\n        } else {\r\n          showToast(data.message || 'Lỗi tải danh sách', 'error');\r\n        }\r\n        setLoading(false);\r\n      })\r\n      .catch",
+          "lineNumber": 24
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "fetch('http://localhost:5000/api/events/pending', {\r\n      headers: {\r\n        'x-user-email': email\r\n      }\r\n    })\r\n      .then(res => res.json())\r\n      .then",
+          "lineNumber": 24
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "fetch('http://localhost:5000/api/events/pending', {\r\n      headers: {\r\n        'x-user-email': email\r\n      }\r\n    })\r\n      .then",
+          "lineNumber": 24
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "fetch",
+          "lineNumber": 24
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "res.json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "setEvents",
+          "lineNumber": 32
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "showToast",
+          "lineNumber": 34
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "setLoading",
+          "lineNumber": 36
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "console.error",
+          "lineNumber": 39
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "showToast",
+          "lineNumber": 40
+        },
+        {
+          "caller": "fetchPendingEvents",
+          "callee": "setLoading",
+          "lineNumber": 41
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "localStorage.getItem",
+          "lineNumber": 46
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "fetch(`http://localhost:5000/api/events/${eventId}/status`, {\r\n      method: 'PUT',\r\n      headers: {\r\n        'Content-Type': 'application/json',\r\n        'x-user-email': email\r\n      },\r\n      body: JSON.stringify({ status, rejectionReason: reason })\r\n    })\r\n      .then(res => res.json())\r\n      .then(data => {\r\n        if (data.success) {\r\n          setEvents(prev => prev.filter(e => e._id !== eventId));\r\n        } else {\r\n          showToast(data.message || 'Lỗi xử lý', 'error');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "fetch(`http://localhost:5000/api/events/${eventId}/status`, {\r\n      method: 'PUT',\r\n      headers: {\r\n        'Content-Type': 'application/json',\r\n        'x-user-email': email\r\n      },\r\n      body: JSON.stringify({ status, rejectionReason: reason })\r\n    })\r\n      .then(res => res.json())\r\n      .then",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "fetch(`http://localhost:5000/api/events/${eventId}/status`, {\r\n      method: 'PUT',\r\n      headers: {\r\n        'Content-Type': 'application/json',\r\n        'x-user-email': email\r\n      },\r\n      body: JSON.stringify({ status, rejectionReason: reason })\r\n    })\r\n      .then",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "fetch",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "JSON.stringify",
+          "lineNumber": 54
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "res.json",
+          "lineNumber": 56
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "setEvents",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "prev.filter",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "showToast",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "console.error",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleStatusUpdate",
+          "callee": "showToast",
+          "lineNumber": 66
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "navigate",
+          "lineNumber": 74
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "navigate",
+          "lineNumber": 79
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "navigate",
+          "lineNumber": 83
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "events.map",
+          "lineNumber": 106
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "new Date(event.startDate).toLocaleString",
+          "lineNumber": 115
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "new Date(event.endDate).toLocaleString",
+          "lineNumber": 116
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "handleStatusUpdate",
+          "lineNumber": 126
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "window.prompt",
+          "lineNumber": 134
+        },
+        {
+          "caller": "AdminDashboard",
+          "callee": "handleStatusUpdate",
+          "lineNumber": 136
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/CreateEvent.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 152,
+      "nonEmptyLines": 135,
+      "functions": [
+        {
+          "name": "CreateEvent",
+          "startLine": 6,
+          "endLine": 150,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CreateEvent",
+          "callee": "useNavigate",
+          "lineNumber": 7
+        },
+        {
+          "caller": "CreateEvent",
+          "callee": "useState",
+          "lineNumber": 8
+        },
+        {
+          "caller": "CreateEvent",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "setFormData",
+          "lineNumber": 21
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 25
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 27
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 31
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "localStorage.getItem",
+          "lineNumber": 32
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/events', {\r\n      method: 'POST',\r\n      headers: {\r\n        'Content-Type': 'application/json',\r\n        'x-user-email': email\r\n      },\r\n      body: JSON.stringify(formData)\r\n    })\r\n      .then(res => res.json())\r\n      .then(data => {\r\n        setLoading(false);\r\n        if (data.success) {\r\n          navigate('/events');\r\n        } else {\r\n          showToast(data.message || 'Lỗi khi tạo sự kiện', 'error');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 34
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/events', {\r\n      method: 'POST',\r\n      headers: {\r\n        'Content-Type': 'application/json',\r\n        'x-user-email': email\r\n      },\r\n      body: JSON.stringify(formData)\r\n    })\r\n      .then(res => res.json())\r\n      .then",
+          "lineNumber": 34
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/events', {\r\n      method: 'POST',\r\n      headers: {\r\n        'Content-Type': 'application/json',\r\n        'x-user-email': email\r\n      },\r\n      body: JSON.stringify(formData)\r\n    })\r\n      .then",
+          "lineNumber": 34
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch",
+          "lineNumber": 34
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 40
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "navigate",
+          "lineNumber": 46
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "console.error",
+          "lineNumber": 52
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 54
+        },
+        {
+          "caller": "CreateEvent",
+          "callee": "navigate",
+          "lineNumber": 61
+        },
+        {
+          "caller": "CreateEvent",
+          "callee": "EVENT_VENUES.map",
+          "lineNumber": 125
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/CtsvHome.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 329,
+      "nonEmptyLines": 305,
+      "functions": [
+        {
+          "name": "CtsvEventCard",
+          "startLine": 24,
+          "endLine": 63,
+          "params": []
+        },
+        {
+          "name": "CtsvHome",
+          "startLine": 65,
+          "endLine": 327,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CtsvEventCard",
+          "callee": "getCtsvEventAccess",
+          "lineNumber": 25
+        },
+        {
+          "caller": "CtsvEventCard",
+          "callee": "statusClass",
+          "lineNumber": 50
+        },
+        {
+          "caller": "CtsvEventCard",
+          "callee": "onOpen",
+          "lineNumber": 55
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useNavigate",
+          "lineNumber": 66
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useOutletContext",
+          "lineNumber": 67
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useState",
+          "lineNumber": 69
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useState",
+          "lineNumber": 70
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useState",
+          "lineNumber": 71
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useState",
+          "lineNumber": 94
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useState",
+          "lineNumber": 95
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useState",
+          "lineNumber": 96
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useEffect",
+          "lineNumber": 98
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "fetchCtsvStats()\r\n      .then((d) => setStats(d.stats || MOCK_STATS))\r\n      .catch",
+          "lineNumber": 99
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "fetchCtsvStats()\r\n      .then",
+          "lineNumber": 99
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "fetchCtsvStats",
+          "lineNumber": 99
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setStats",
+          "lineNumber": 100
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setStats",
+          "lineNumber": 101
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "fetchCtsvEvents()\r\n      .then((d) => {\r\n        const list = d.events?.length ? d.events : MOCK_EVENTS;\r\n        setEvents(list);\r\n        setFilteredEvents(list);\r\n      })\r\n      .catch",
+          "lineNumber": 103
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "fetchCtsvEvents()\r\n      .then",
+          "lineNumber": 103
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "fetchCtsvEvents",
+          "lineNumber": 103
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setEvents",
+          "lineNumber": 106
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setFilteredEvents",
+          "lineNumber": 107
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setEvents",
+          "lineNumber": 110
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setFilteredEvents",
+          "lineNumber": 111
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useEffect",
+          "lineNumber": 115
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setInterval",
+          "lineNumber": 116
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setActiveSlide",
+          "lineNumber": 117
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "clearInterval",
+          "lineNumber": 119
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useCallback",
+          "lineNumber": 122
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "fetchCtsvEvents({\r\n      q: searchQuery,\r\n      category: categoryFilter,\r\n      time: timeFilter\r\n    })\r\n      .then((d) => {\r\n        const list = d.events || [];\r\n        setFilteredEvents(list);\r\n        setEvents(list);\r\n        showToast(`Đã lọc ${list.length} sự kiện.`, 'success');\r\n      })\r\n      .catch",
+          "lineNumber": 123
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "fetchCtsvEvents({\r\n      q: searchQuery,\r\n      category: categoryFilter,\r\n      time: timeFilter\r\n    })\r\n      .then",
+          "lineNumber": 123
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "fetchCtsvEvents",
+          "lineNumber": 123
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setFilteredEvents",
+          "lineNumber": 130
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setEvents",
+          "lineNumber": 131
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "showToast",
+          "lineNumber": 132
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "searchQuery.trim",
+          "lineNumber": 136
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "searchQuery.toLowerCase",
+          "lineNumber": 137
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "result.filter",
+          "lineNumber": 138
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "ev.title.toLowerCase().includes",
+          "lineNumber": 140
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "ev.title.toLowerCase",
+          "lineNumber": 140
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "ev.location.toLowerCase().includes",
+          "lineNumber": 141
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "ev.location.toLowerCase",
+          "lineNumber": 141
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "ev.category.toLowerCase().includes",
+          "lineNumber": 142
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "ev.category.toLowerCase",
+          "lineNumber": 142
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "result.filter",
+          "lineNumber": 146
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setFilteredEvents",
+          "lineNumber": 148
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "showToast",
+          "lineNumber": 149
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useEffect",
+          "lineNumber": 153
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "outlet.registerHeaderSearchSubmit",
+          "lineNumber": 154
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "outlet.registerHeaderSearchSubmit",
+          "lineNumber": 155
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useMemo",
+          "lineNumber": 158
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "events.filter(isEventLiveOrOngoing).slice",
+          "lineNumber": 159
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "events.filter",
+          "lineNumber": 159
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "useMemo",
+          "lineNumber": 163
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "filteredEvents.filter",
+          "lineNumber": 164
+        },
+        {
+          "caller": "handleOpenEvent",
+          "callee": "navigate",
+          "lineNumber": 169
+        },
+        {
+          "caller": "sectionLink",
+          "callee": "e.preventDefault",
+          "lineNumber": 177
+        },
+        {
+          "caller": "sectionLink",
+          "callee": "navigate",
+          "lineNumber": 178
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "sliderData.map",
+          "lineNumber": 191
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "navigate",
+          "lineNumber": 201
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "sliderData.map",
+          "lineNumber": 208
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setActiveSlide",
+          "lineNumber": 213
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "stats.map",
+          "lineNumber": 222
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setTimeFilter",
+          "lineNumber": 244
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "setCategoryFilter",
+          "lineNumber": 259
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "sectionLink",
+          "lineNumber": 279
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "liveOverviewEvents.map",
+          "lineNumber": 288
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "sectionLink",
+          "lineNumber": 303
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "navigate",
+          "lineNumber": 312
+        },
+        {
+          "caller": "CtsvHome",
+          "callee": "managedEvents.map",
+          "lineNumber": 319
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/ForgotPassword.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 209,
+      "nonEmptyLines": 186,
+      "functions": [
+        {
+          "name": "ForgotPassword",
+          "startLine": 9,
+          "endLine": 207,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ForgotPassword",
+          "callee": "useState",
+          "lineNumber": 10
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "useRef",
+          "lineNumber": 19
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "useEffect",
+          "lineNumber": 21
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "setTimeout",
+          "lineNumber": 23
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "setCountdown",
+          "lineNumber": 24
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "setIsCounting",
+          "lineNumber": 27
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "clearTimeout",
+          "lineNumber": 30
+        },
+        {
+          "caller": "validateContact",
+          "callee": "value.trim",
+          "lineNumber": 35
+        },
+        {
+          "caller": "validateContact",
+          "callee": "setErrors",
+          "lineNumber": 37
+        },
+        {
+          "caller": "validateContact",
+          "callee": "setValidFields",
+          "lineNumber": 38
+        },
+        {
+          "caller": "validateContact",
+          "callee": "patterns.email.test",
+          "lineNumber": 41
+        },
+        {
+          "caller": "validateContact",
+          "callee": "patterns.phone.test",
+          "lineNumber": 42
+        },
+        {
+          "caller": "validateContact",
+          "callee": "setErrors",
+          "lineNumber": 45
+        },
+        {
+          "caller": "validateContact",
+          "callee": "setValidFields",
+          "lineNumber": 46
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "setContact",
+          "lineNumber": 52
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "validateContact",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 57
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateContact",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setShakeFields",
+          "lineNumber": 64
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setTimeout",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setShakeFields",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 66
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 70
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/forgot-password', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({ contact: contact })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then(({ status, data }) => {\r\n        setLoading(false);\r\n        if (status === 200) {\r\n          setCountdown(60);\r\n          setIsCounting(true);\r\n        } else {\r\n          showToast(data.message || 'Gửi mã xác nhận thất bại!', 'error');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/forgot-password', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({ contact: contact })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/forgot-password', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({ contact: contact })\r\n    })\r\n      .then",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 75
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json().then",
+          "lineNumber": 77
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json",
+          "lineNumber": 77
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 79
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setCountdown",
+          "lineNumber": 81
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setIsCounting",
+          "lineNumber": 82
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 84
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 88
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 89
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "getGroupClass",
+          "lineNumber": 130
+        },
+        {
+          "caller": "ForgotPassword",
+          "callee": "encodeURIComponent",
+          "lineNumber": 176
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/ResetPassword.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 298,
+      "nonEmptyLines": 274,
+      "functions": [
+        {
+          "name": "ResetPassword",
+          "startLine": 4,
+          "endLine": 296,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ResetPassword",
+          "callee": "useNavigate",
+          "lineNumber": 5
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useState",
+          "lineNumber": 8
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useState",
+          "lineNumber": 9
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useState",
+          "lineNumber": 10
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "useEffect",
+          "lineNumber": 26
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "params.get",
+          "lineNumber": 28
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "params.get",
+          "lineNumber": 29
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setEmail",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "decodeURIComponent",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setOtp",
+          "lineNumber": 32
+        },
+        {
+          "caller": "validateFields",
+          "callee": "email.trim",
+          "lineNumber": 37
+        },
+        {
+          "caller": "validateFields",
+          "callee": "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/.test",
+          "lineNumber": 37
+        },
+        {
+          "caller": "validateFields",
+          "callee": "email.trim",
+          "lineNumber": 37
+        },
+        {
+          "caller": "validateFields",
+          "callee": "otp.trim",
+          "lineNumber": 38
+        },
+        {
+          "caller": "validateFields",
+          "callee": "otp.trim",
+          "lineNumber": 38
+        },
+        {
+          "caller": "validateFields",
+          "callee": "setErrors",
+          "lineNumber": 43
+        },
+        {
+          "caller": "validateFields",
+          "callee": "Object.values(newErrors).some",
+          "lineNumber": 45
+        },
+        {
+          "caller": "validateFields",
+          "callee": "Object.values",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 50
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateFields",
+          "lineNumber": 52
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setShakeFields",
+          "lineNumber": 55
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setTimeout",
+          "lineNumber": 56
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setShakeFields",
+          "lineNumber": 56
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 63
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 67
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/reset-password', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        email: email.trim(),\r\n        otp: otp.trim(),\r\n        newPassword: newPassword\r\n      })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then(({ status, data }) => {\r\n        setLoading(false);\r\n        if (status === 200) {\r\n          navigate('/login');\r\n        } else {\r\n          showToast(data.message || 'Mã OTP không hợp lệ hoặc đã hết hạn!', 'error');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 74
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/reset-password', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        email: email.trim(),\r\n        otp: otp.trim(),\r\n        newPassword: newPassword\r\n      })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then",
+          "lineNumber": 74
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/reset-password', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        email: email.trim(),\r\n        otp: otp.trim(),\r\n        newPassword: newPassword\r\n      })\r\n    })\r\n      .then",
+          "lineNumber": 74
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch",
+          "lineNumber": 74
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 77
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "email.trim",
+          "lineNumber": 78
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "otp.trim",
+          "lineNumber": 79
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json().then",
+          "lineNumber": 83
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json",
+          "lineNumber": 83
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 85
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "navigate",
+          "lineNumber": 87
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 89
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 93
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 94
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setEmail",
+          "lineNumber": 143
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setErrors",
+          "lineNumber": 144
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setOtp",
+          "lineNumber": 170
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "e.target.value.replace",
+          "lineNumber": 170
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setErrors",
+          "lineNumber": 171
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setNewPassword",
+          "lineNumber": 194
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setErrors",
+          "lineNumber": 195
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setShowPassword",
+          "lineNumber": 202
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setConfirmPassword",
+          "lineNumber": 236
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setErrors",
+          "lineNumber": 237
+        },
+        {
+          "caller": "ResetPassword",
+          "callee": "setShowConfirmPassword",
+          "lineNumber": 244
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/StaticPage.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 130,
+      "nonEmptyLines": 124,
+      "functions": [
+        {
+          "name": "StaticPage",
+          "startLine": 88,
+          "endLine": 128,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "StaticPage",
+          "callee": "useNavigate",
+          "lineNumber": 89
+        },
+        {
+          "caller": "StaticPage",
+          "callee": "navigate",
+          "lineNumber": 98
+        },
+        {
+          "caller": "StaticPage",
+          "callee": "navigate",
+          "lineNumber": 101
+        },
+        {
+          "caller": "StaticPage",
+          "callee": "page.sections.map",
+          "lineNumber": 118
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 174,
+      "nonEmptyLines": 165,
+      "functions": [
+        {
+          "name": "AdminPartnerApprovals",
+          "startLine": 10,
+          "endLine": 172,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "useNavigate",
+          "lineNumber": 11
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "localStorage.getItem",
+          "lineNumber": 17
+        },
+        {
+          "caller": "load",
+          "callee": "setLoading",
+          "lineNumber": 20
+        },
+        {
+          "caller": "load",
+          "callee": "fetchAdminPartners('pending_admin')\r\n      .then((d) => setPartners(d.partners || []))\r\n      .catch((e) => showToast?.(e.message, 'error'))\r\n      .finally",
+          "lineNumber": 21
+        },
+        {
+          "caller": "load",
+          "callee": "fetchAdminPartners('pending_admin')\r\n      .then((d) => setPartners(d.partners || []))\r\n      .catch",
+          "lineNumber": 21
+        },
+        {
+          "caller": "load",
+          "callee": "fetchAdminPartners('pending_admin')\r\n      .then",
+          "lineNumber": 21
+        },
+        {
+          "caller": "load",
+          "callee": "fetchAdminPartners",
+          "lineNumber": 21
+        },
+        {
+          "caller": "load",
+          "callee": "setPartners",
+          "lineNumber": 22
+        },
+        {
+          "caller": "load",
+          "callee": "showToast",
+          "lineNumber": 23
+        },
+        {
+          "caller": "load",
+          "callee": "setLoading",
+          "lineNumber": 24
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "useEffect",
+          "lineNumber": 27
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "showToast",
+          "lineNumber": 29
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "navigate",
+          "lineNumber": 30
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "load",
+          "lineNumber": 33
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "setBusy",
+          "lineNumber": 37
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "approveAdminPartner",
+          "lineNumber": 39
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "showToast",
+          "lineNumber": 40
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "setPartners",
+          "lineNumber": 41
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "prev.filter",
+          "lineNumber": 41
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "showToast",
+          "lineNumber": 43
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "setBusy",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleReject",
+          "callee": "rejectReason.trim",
+          "lineNumber": 50
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setBusy",
+          "lineNumber": 51
+        },
+        {
+          "caller": "handleReject",
+          "callee": "rejectAdminPartner",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleReject",
+          "callee": "rejectReason.trim",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleReject",
+          "callee": "showToast",
+          "lineNumber": 54
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setPartners",
+          "lineNumber": 55
+        },
+        {
+          "caller": "handleReject",
+          "callee": "prev.filter",
+          "lineNumber": 55
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setRejectId",
+          "lineNumber": 56
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setRejectReason",
+          "lineNumber": 57
+        },
+        {
+          "caller": "handleReject",
+          "callee": "showToast",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setBusy",
+          "lineNumber": 61
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "partners.map",
+          "lineNumber": 83
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "formatVnd",
+          "lineNumber": 97
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "formatPartnerDate",
+          "lineNumber": 100
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "handleApprove",
+          "lineNumber": 110
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "setRejectId",
+          "lineNumber": 120
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "setRejectReason",
+          "lineNumber": 121
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "setRejectId",
+          "lineNumber": 138
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "e.stopPropagation",
+          "lineNumber": 140
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "setRejectReason",
+          "lineNumber": 150
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "setRejectId",
+          "lineNumber": 154
+        },
+        {
+          "caller": "AdminPartnerApprovals",
+          "callee": "rejectReason.trim",
+          "lineNumber": 160
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 197,
+      "nonEmptyLines": 187,
+      "functions": [
+        {
+          "name": "formatDateTime",
+          "startLine": 10,
+          "endLine": 14,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "AdminSchoolEventApprovals",
+          "startLine": 16,
+          "endLine": 195,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatDateTime",
+          "callee": "Number.isNaN",
+          "lineNumber": 13
+        },
+        {
+          "caller": "formatDateTime",
+          "callee": "d.getTime",
+          "lineNumber": 13
+        },
+        {
+          "caller": "formatDateTime",
+          "callee": "d.toLocaleString",
+          "lineNumber": 13
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "useNavigate",
+          "lineNumber": 17
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "localStorage.getItem",
+          "lineNumber": 23
+        },
+        {
+          "caller": "load",
+          "callee": "setLoading",
+          "lineNumber": 26
+        },
+        {
+          "caller": "load",
+          "callee": "fetchAdminSchoolEvents('pending_admin')\r\n      .then((d) => setEvents(d.events || []))\r\n      .catch((e) => showToast?.(e.message, 'error'))\r\n      .finally",
+          "lineNumber": 27
+        },
+        {
+          "caller": "load",
+          "callee": "fetchAdminSchoolEvents('pending_admin')\r\n      .then((d) => setEvents(d.events || []))\r\n      .catch",
+          "lineNumber": 27
+        },
+        {
+          "caller": "load",
+          "callee": "fetchAdminSchoolEvents('pending_admin')\r\n      .then",
+          "lineNumber": 27
+        },
+        {
+          "caller": "load",
+          "callee": "fetchAdminSchoolEvents",
+          "lineNumber": 27
+        },
+        {
+          "caller": "load",
+          "callee": "setEvents",
+          "lineNumber": 28
+        },
+        {
+          "caller": "load",
+          "callee": "showToast",
+          "lineNumber": 29
+        },
+        {
+          "caller": "load",
+          "callee": "setLoading",
+          "lineNumber": 30
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "useEffect",
+          "lineNumber": 33
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "showToast",
+          "lineNumber": 35
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "navigate",
+          "lineNumber": 36
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "load",
+          "lineNumber": 39
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "setBusy",
+          "lineNumber": 43
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "approveAdminSchoolEvent",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "showToast",
+          "lineNumber": 46
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "setEvents",
+          "lineNumber": 47
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "prev.filter",
+          "lineNumber": 47
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "showToast",
+          "lineNumber": 49
+        },
+        {
+          "caller": "handleApprove",
+          "callee": "setBusy",
+          "lineNumber": 51
+        },
+        {
+          "caller": "handleReject",
+          "callee": "rejectReason.trim",
+          "lineNumber": 56
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setBusy",
+          "lineNumber": 57
+        },
+        {
+          "caller": "handleReject",
+          "callee": "rejectAdminSchoolEvent",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleReject",
+          "callee": "rejectReason.trim",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleReject",
+          "callee": "showToast",
+          "lineNumber": 60
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setEvents",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleReject",
+          "callee": "prev.filter",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setRejectId",
+          "lineNumber": 62
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setRejectReason",
+          "lineNumber": 63
+        },
+        {
+          "caller": "handleReject",
+          "callee": "showToast",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleReject",
+          "callee": "setBusy",
+          "lineNumber": 67
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "events.map",
+          "lineNumber": 89
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "formatDateTime",
+          "lineNumber": 130
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "handleApprove",
+          "lineNumber": 141
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "setRejectId",
+          "lineNumber": 150
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "setRejectReason",
+          "lineNumber": 151
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "setRejectId",
+          "lineNumber": 163
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "e.stopPropagation",
+          "lineNumber": 164
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "setRejectReason",
+          "lineNumber": 172
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "setRejectId",
+          "lineNumber": 177
+        },
+        {
+          "caller": "AdminSchoolEventApprovals",
+          "callee": "rejectReason.trim",
+          "lineNumber": 183
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,1724 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 20,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "BE/seed-clubs.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 41,
+      "nonEmptyLines": 34,
+      "functions": [
+        {
+          "name": "seedClubs",
+          "startLine": 11,
+          "endLine": 39,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "seedClubs",
+          "callee": "connectDB",
+          "lineNumber": 13
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "clubSeedData.map",
+          "lineNumber": 15
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "Club.deleteMany",
+          "lineNumber": 16
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "console.log",
+          "lineNumber": 17
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "Club.insertMany",
+          "lineNumber": 19
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "clubSeedData.map",
+          "lineNumber": 20
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "console.log",
+          "lineNumber": 27
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "console.log",
+          "lineNumber": 28
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "inserted.forEach",
+          "lineNumber": 29
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "console.log",
+          "lineNumber": 30
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "console.log",
+          "lineNumber": 32
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "process.exit",
+          "lineNumber": 34
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "console.error",
+          "lineNumber": 36
+        },
+        {
+          "caller": "seedClubs",
+          "callee": "process.exit",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/seed-event-reviews.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 82,
+      "nonEmptyLines": 69,
+      "functions": [
+        {
+          "name": "seedEventReviews",
+          "startLine": 16,
+          "endLine": 80,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "seedEventReviews",
+          "callee": "connectDB",
+          "lineNumber": 18
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "User.findOne",
+          "lineNumber": 20
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "User.findOne",
+          "lineNumber": 22
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "console.error",
+          "lineNumber": 25
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "process.exit",
+          "lineNumber": 26
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "Event.findOne",
+          "lineNumber": 29
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "Event.findOne",
+          "lineNumber": 30
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "console.error",
+          "lineNumber": 33
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "process.exit",
+          "lineNumber": 34
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "EventReview.deleteMany",
+          "lineNumber": 37
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "EventRegistration.deleteMany",
+          "lineNumber": 38
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "EventRegistration.create",
+          "lineNumber": 43
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "EventReview.create",
+          "lineNumber": 58
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "Event.findByIdAndUpdate",
+          "lineNumber": 65
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "Event.findByIdAndUpdate",
+          "lineNumber": 66
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "console.log",
+          "lineNumber": 68
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "console.log",
+          "lineNumber": 69
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "console.log",
+          "lineNumber": 70
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "console.log",
+          "lineNumber": 71
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "console.log",
+          "lineNumber": 72
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "console.log",
+          "lineNumber": 73
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "process.exit",
+          "lineNumber": 75
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "console.error",
+          "lineNumber": 77
+        },
+        {
+          "caller": "seedEventReviews",
+          "callee": "process.exit",
+          "lineNumber": 78
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/server.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 14,
+      "nonEmptyLines": 11,
+      "functions": [
+        {
+          "name": "startServer",
+          "startLine": 6,
+          "endLine": 12,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "startServer",
+          "callee": "connectDB",
+          "lineNumber": 7
+        },
+        {
+          "caller": "startServer",
+          "callee": "app.listen",
+          "lineNumber": 9
+        },
+        {
+          "caller": "startServer",
+          "callee": "console.log",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/app.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 23,
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/config/env.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 10,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/constants/eventPricing.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 60,
+      "functions": [
+        {
+          "name": "formatVnd",
+          "startLine": 6,
+          "endLine": 7,
+          "params": [
+            "amount"
+          ]
+        },
+        {
+          "name": "hasStudentTicketPrivilege",
+          "startLine": 9,
+          "endLine": 12,
+          "params": [
+            "user"
+          ]
+        },
+        {
+          "name": "getListPrice",
+          "startLine": 14,
+          "endLine": 14,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "calculateTicketAmount",
+          "startLine": 16,
+          "endLine": 20,
+          "params": [
+            "user",
+            "event"
+          ]
+        },
+        {
+          "name": "buildPriceLabel",
+          "startLine": 22,
+          "endLine": 28,
+          "params": [
+            "amountDue",
+            "listPrice",
+            "user"
+          ]
+        },
+        {
+          "name": "getPrimaryActionLabel",
+          "startLine": 30,
+          "endLine": 37,
+          "params": []
+        },
+        {
+          "name": "enrichEventWithPricing",
+          "startLine": 39,
+          "endLine": 58,
+          "params": [
+            "event"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatVnd",
+          "callee": "new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format",
+          "lineNumber": 7
+        },
+        {
+          "caller": "hasStudentTicketPrivilege",
+          "callee": "STUDENT_FREE_ROLES.has",
+          "lineNumber": 11
+        },
+        {
+          "caller": "hasStudentTicketPrivilege",
+          "callee": "String(user.role).toLowerCase",
+          "lineNumber": 11
+        },
+        {
+          "caller": "hasStudentTicketPrivilege",
+          "callee": "String",
+          "lineNumber": 11
+        },
+        {
+          "caller": "getListPrice",
+          "callee": "Math.max",
+          "lineNumber": 14
+        },
+        {
+          "caller": "getListPrice",
+          "callee": "Number",
+          "lineNumber": 14
+        },
+        {
+          "caller": "calculateTicketAmount",
+          "callee": "getListPrice",
+          "lineNumber": 17
+        },
+        {
+          "caller": "calculateTicketAmount",
+          "callee": "hasStudentTicketPrivilege",
+          "lineNumber": 18
+        },
+        {
+          "caller": "buildPriceLabel",
+          "callee": "hasStudentTicketPrivilege",
+          "lineNumber": 23
+        },
+        {
+          "caller": "buildPriceLabel",
+          "callee": "formatVnd",
+          "lineNumber": 27
+        },
+        {
+          "caller": "enrichEventWithPricing",
+          "callee": "getListPrice",
+          "lineNumber": 40
+        },
+        {
+          "caller": "enrichEventWithPricing",
+          "callee": "calculateTicketAmount",
+          "lineNumber": 41
+        },
+        {
+          "caller": "enrichEventWithPricing",
+          "callee": "hasStudentTicketPrivilege",
+          "lineNumber": 42
+        },
+        {
+          "caller": "enrichEventWithPricing",
+          "callee": "buildPriceLabel",
+          "lineNumber": 50
+        },
+        {
+          "caller": "enrichEventWithPricing",
+          "callee": "getPrimaryActionLabel",
+          "lineNumber": 51
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/controllers/auth.controller.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 86,
+      "nonEmptyLines": 75,
+      "functions": [
+        {
+          "name": "login",
+          "startLine": 4,
+          "endLine": 7,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "signup",
+          "startLine": 9,
+          "endLine": 12,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "verifyOtp",
+          "startLine": 14,
+          "endLine": 17,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "resendOtp",
+          "startLine": 19,
+          "endLine": 22,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "forgotPassword",
+          "startLine": 24,
+          "endLine": 27,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "resetPassword",
+          "startLine": 29,
+          "endLine": 32,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "googleLogin",
+          "startLine": 34,
+          "endLine": 39,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "googleCallback",
+          "startLine": 41,
+          "endLine": 49,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "googleCalendarConnect",
+          "startLine": 51,
+          "endLine": 60,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "googleCalendarCallback",
+          "startLine": 62,
+          "endLine": 73,
+          "params": [
+            "req",
+            "res"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "login",
+          "callee": "authService.login",
+          "lineNumber": 5
+        },
+        {
+          "caller": "login",
+          "callee": "res.status(200).json",
+          "lineNumber": 6
+        },
+        {
+          "caller": "login",
+          "callee": "res.status",
+          "lineNumber": 6
+        },
+        {
+          "caller": "signup",
+          "callee": "authService.signup",
+          "lineNumber": 10
+        },
+        {
+          "caller": "signup",
+          "callee": "res.status(200).json",
+          "lineNumber": 11
+        },
+        {
+          "caller": "signup",
+          "callee": "res.status",
+          "lineNumber": 11
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "authService.verifyOtp",
+          "lineNumber": 15
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "res.status(201).json",
+          "lineNumber": 16
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "res.status",
+          "lineNumber": 16
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "authService.resendOtp",
+          "lineNumber": 20
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "res.status(200).json",
+          "lineNumber": 21
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "res.status",
+          "lineNumber": 21
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "authService.forgotPassword",
+          "lineNumber": 25
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "res.status(200).json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "res.status",
+          "lineNumber": 26
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "authService.resetPassword",
+          "lineNumber": 30
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "res.status(200).json",
+          "lineNumber": 31
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "res.status",
+          "lineNumber": 31
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "authService.googleLogin",
+          "lineNumber": 35
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "res.status(statusCode).json",
+          "lineNumber": 38
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "res.status",
+          "lineNumber": 38
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "authService.googleCallback",
+          "lineNumber": 43
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "res.redirect",
+          "lineNumber": 44
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "encodeURIComponent",
+          "lineNumber": 46
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "res.redirect",
+          "lineNumber": 47
+        },
+        {
+          "caller": "googleCalendarConnect",
+          "callee": "authService.getGoogleCalendarAuthUrl",
+          "lineNumber": 54
+        },
+        {
+          "caller": "googleCalendarConnect",
+          "callee": "res.redirect",
+          "lineNumber": 55
+        },
+        {
+          "caller": "googleCalendarConnect",
+          "callee": "encodeURIComponent",
+          "lineNumber": 57
+        },
+        {
+          "caller": "googleCalendarConnect",
+          "callee": "res.redirect",
+          "lineNumber": 58
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "authService.googleCalendarCallback",
+          "lineNumber": 64
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "res.redirect",
+          "lineNumber": 68
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "encodeURIComponent",
+          "lineNumber": 70
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "res.redirect",
+          "lineNumber": 71
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 10,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/controllers/club.controller.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 54,
+      "nonEmptyLines": 46,
+      "functions": [
+        {
+          "name": "getClubs",
+          "startLine": 3,
+          "endLine": 10,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "getClubBySlug",
+          "startLine": 12,
+          "endLine": 15,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "followClub",
+          "startLine": 17,
+          "endLine": 20,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "unfollowClub",
+          "startLine": 22,
+          "endLine": 25,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "joinClub",
+          "startLine": 27,
+          "endLine": 30,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "cancelJoinClub",
+          "startLine": 32,
+          "endLine": 35,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "approveMembership",
+          "startLine": 37,
+          "endLine": 44,
+          "params": [
+            "req",
+            "res"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getClubs",
+          "callee": "clubService.getClubs",
+          "lineNumber": 4
+        },
+        {
+          "caller": "getClubs",
+          "callee": "res.status(200).json",
+          "lineNumber": 9
+        },
+        {
+          "caller": "getClubs",
+          "callee": "res.status",
+          "lineNumber": 9
+        },
+        {
+          "caller": "getClubBySlug",
+          "callee": "clubService.getClubBySlug",
+          "lineNumber": 13
+        },
+        {
+          "caller": "getClubBySlug",
+          "callee": "res.status(200).json",
+          "lineNumber": 14
+        },
+        {
+          "caller": "getClubBySlug",
+          "callee": "res.status",
+          "lineNumber": 14
+        },
+        {
+          "caller": "followClub",
+          "callee": "clubService.followClub",
+          "lineNumber": 18
+        },
+        {
+          "caller": "followClub",
+          "callee": "res.status(201).json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "followClub",
+          "callee": "res.status",
+          "lineNumber": 19
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "clubService.unfollowClub",
+          "lineNumber": 23
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "res.status(200).json",
+          "lineNumber": 24
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "res.status",
+          "lineNumber": 24
+        },
+        {
+          "caller": "joinClub",
+          "callee": "clubService.joinClub",
+          "lineNumber": 28
+        },
+        {
+          "caller": "joinClub",
+          "callee": "res.status(201).json",
+          "lineNumber": 29
+        },
+        {
+          "caller": "joinClub",
+          "callee": "res.status",
+          "lineNumber": 29
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "clubService.cancelJoinClub",
+          "lineNumber": 33
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "res.status(200).json",
+          "lineNumber": 34
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "res.status",
+          "lineNumber": 34
+        },
+        {
+          "caller": "approveMembership",
+          "callee": "clubService.approveMembership",
+          "lineNumber": 38
+        },
+        {
+          "caller": "approveMembership",
+          "callee": "res.status(200).json",
+          "lineNumber": 43
+        },
+        {
+          "caller": "approveMembership",
+          "callee": "res.status",
+          "lineNumber": 43
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/controllers/event.controller.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 33,
+      "functions": [
+        {
+          "name": "createEvent",
+          "startLine": 3,
+          "endLine": 6,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "getPendingEvents",
+          "startLine": 8,
+          "endLine": 11,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "updateEventStatus",
+          "startLine": 13,
+          "endLine": 16,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "getApprovedEvents",
+          "startLine": 18,
+          "endLine": 24,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "getEventById",
+          "startLine": 26,
+          "endLine": 31,
+          "params": [
+            "req",
+            "res"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "createEvent",
+          "callee": "eventService.createEvent",
+          "lineNumber": 4
+        },
+        {
+          "caller": "createEvent",
+          "callee": "res.status(201).json",
+          "lineNumber": 5
+        },
+        {
+          "caller": "createEvent",
+          "callee": "res.status",
+          "lineNumber": 5
+        },
+        {
+          "caller": "getPendingEvents",
+          "callee": "eventService.getPendingEvents",
+          "lineNumber": 9
+        },
+        {
+          "caller": "getPendingEvents",
+          "callee": "res.status(200).json",
+          "lineNumber": 10
+        },
+        {
+          "caller": "getPendingEvents",
+          "callee": "res.status",
+          "lineNumber": 10
+        },
+        {
+          "caller": "updateEventStatus",
+          "callee": "eventService.updateEventStatus",
+          "lineNumber": 14
+        },
+        {
+          "caller": "updateEventStatus",
+          "callee": "res.status(200).json",
+          "lineNumber": 15
+        },
+        {
+          "caller": "updateEventStatus",
+          "callee": "res.status",
+          "lineNumber": 15
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "eventService.getApprovedEvents",
+          "lineNumber": 19
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "res.status(200).json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "res.status",
+          "lineNumber": 23
+        },
+        {
+          "caller": "getEventById",
+          "callee": "eventService.getEventById",
+          "lineNumber": 27
+        },
+        {
+          "caller": "getEventById",
+          "callee": "res.status(200).json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "getEventById",
+          "callee": "res.status",
+          "lineNumber": 30
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/controllers/registration.controller.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 16,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "registerForEvent",
+          "startLine": 3,
+          "endLine": 6,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "cancelRegistration",
+          "startLine": 8,
+          "endLine": 11,
+          "params": [
+            "req",
+            "res"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "registerForEvent",
+          "callee": "registrationService.registerForEvent",
+          "lineNumber": 4
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "res.status(201).json",
+          "lineNumber": 5
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "res.status",
+          "lineNumber": 5
+        },
+        {
+          "caller": "cancelRegistration",
+          "callee": "registrationService.cancelRegistration",
+          "lineNumber": 9
+        },
+        {
+          "caller": "cancelRegistration",
+          "callee": "res.status(200).json",
+          "lineNumber": 10
+        },
+        {
+          "caller": "cancelRegistration",
+          "callee": "res.status",
+          "lineNumber": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/controllers/review.controller.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 8,
+      "functions": [
+        {
+          "name": "submitReview",
+          "startLine": 3,
+          "endLine": 6,
+          "params": [
+            "req",
+            "res"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "submitReview",
+          "callee": "reviewService.submitReview",
+          "lineNumber": 4
+        },
+        {
+          "caller": "submitReview",
+          "callee": "res.status(201).json",
+          "lineNumber": 5
+        },
+        {
+          "caller": "submitReview",
+          "callee": "res.status",
+          "lineNumber": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/controllers/user.controller.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 66,
+      "nonEmptyLines": 57,
+      "functions": [
+        {
+          "name": "getProfile",
+          "startLine": 6,
+          "endLine": 9,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "updateProfile",
+          "startLine": 11,
+          "endLine": 14,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "updateAvatar",
+          "startLine": 16,
+          "endLine": 26,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "changePassword",
+          "startLine": 28,
+          "endLine": 31,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "verifyPassword",
+          "startLine": 33,
+          "endLine": 36,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "getMyEvents",
+          "startLine": 38,
+          "endLine": 43,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "getMyClubs",
+          "startLine": 45,
+          "endLine": 48,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "getEventReviews",
+          "startLine": 50,
+          "endLine": 55,
+          "params": [
+            "req",
+            "res"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getProfile",
+          "callee": "userService.getProfile",
+          "lineNumber": 7
+        },
+        {
+          "caller": "getProfile",
+          "callee": "res.status(200).json",
+          "lineNumber": 8
+        },
+        {
+          "caller": "getProfile",
+          "callee": "res.status",
+          "lineNumber": 8
+        },
+        {
+          "caller": "updateProfile",
+          "callee": "userService.updateProfile",
+          "lineNumber": 12
+        },
+        {
+          "caller": "updateProfile",
+          "callee": "res.status(200).json",
+          "lineNumber": 13
+        },
+        {
+          "caller": "updateProfile",
+          "callee": "res.status",
+          "lineNumber": 13
+        },
+        {
+          "caller": "updateAvatar",
+          "callee": "res.status(400).json",
+          "lineNumber": 19
+        },
+        {
+          "caller": "updateAvatar",
+          "callee": "res.status",
+          "lineNumber": 19
+        },
+        {
+          "caller": "updateAvatar",
+          "callee": "userService.updateUserAvatar",
+          "lineNumber": 24
+        },
+        {
+          "caller": "updateAvatar",
+          "callee": "res.status(200).json",
+          "lineNumber": 25
+        },
+        {
+          "caller": "updateAvatar",
+          "callee": "res.status",
+          "lineNumber": 25
+        },
+        {
+          "caller": "changePassword",
+          "callee": "userService.changePassword",
+          "lineNumber": 29
+        },
+        {
+          "caller": "changePassword",
+          "callee": "res.status(200).json",
+          "lineNumber": 30
+        },
+        {
+          "caller": "changePassword",
+          "callee": "res.status",
+          "lineNumber": 30
+        },
+        {
+          "caller": "verifyPassword",
+          "callee": "userService.verifyPassword",
+          "lineNumber": 34
+        },
+        {
+          "caller": "verifyPassword",
+          "callee": "res.status(200).json",
+          "lineNumber": 35
+        },
+        {
+          "caller": "verifyPassword",
+          "callee": "res.status",
+          "lineNumber": 35
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "registrationService.getMyEvents",
+          "lineNumber": 39
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "res.status(200).json",
+          "lineNumber": 42
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "res.status",
+          "lineNumber": 42
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "clubService.getMyClubs",
+          "lineNumber": 46
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "res.status(200).json",
+          "lineNumber": 47
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "res.status",
+          "lineNumber": 47
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "reviewService.getEventReviews",
+          "lineNumber": 51
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "res.status(200).json",
+          "lineNumber": 54
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "res.status",
+          "lineNumber": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/data/clubSeedData.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 126,
+      "nonEmptyLines": 125,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/middleware/auth.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 25,
+      "functions": [
+        {
+          "name": "authMiddleware",
+          "startLine": 3,
+          "endLine": 28,
+          "params": [
+            "req",
+            "res",
+            "next"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "authMiddleware",
+          "callee": "header.startsWith",
+          "lineNumber": 6
+        },
+        {
+          "caller": "authMiddleware",
+          "callee": "res.status(401).json",
+          "lineNumber": 7
+        },
+        {
+          "caller": "authMiddleware",
+          "callee": "res.status",
+          "lineNumber": 7
+        },
+        {
+          "caller": "authMiddleware",
+          "callee": "header.slice",
+          "lineNumber": 13
+        },
+        {
+          "caller": "authMiddleware",
+          "callee": "verifyToken",
+          "lineNumber": 16
+        },
+        {
+          "caller": "authMiddleware",
+          "callee": "res.status(401).json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "authMiddleware",
+          "callee": "res.status",
+          "lineNumber": 18
+        },
+        {
+          "caller": "authMiddleware",
+          "callee": "next",
+          "lineNumber": 21
+        },
+        {
+          "caller": "authMiddleware",
+          "callee": "res.status(401).json",
+          "lineNumber": 23
+        },
+        {
+          "caller": "authMiddleware",
+          "callee": "res.status",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/middleware/authorize.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 32,
+      "nonEmptyLines": 24,
+      "functions": [
+        {
+          "name": "resolveEmail",
+          "startLine": 5,
+          "endLine": 9,
+          "params": [
+            "req"
+          ]
+        },
+        {
+          "name": "authorize",
+          "startLine": 11,
+          "endLine": 30,
+          "params": [
+            "...allowedRoles"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "authorize",
+          "callee": "asyncHandler",
+          "lineNumber": 11
+        },
+        {
+          "caller": "authorize",
+          "callee": "resolveEmail",
+          "lineNumber": 12
+        },
+        {
+          "caller": "authorize",
+          "callee": "User.findOne",
+          "lineNumber": 18
+        },
+        {
+          "caller": "authorize",
+          "callee": "email.trim().toLowerCase",
+          "lineNumber": 18
+        },
+        {
+          "caller": "authorize",
+          "callee": "email.trim",
+          "lineNumber": 18
+        },
+        {
+          "caller": "authorize",
+          "callee": "allowedRoles.includes",
+          "lineNumber": 24
+        },
+        {
+          "caller": "authorize",
+          "callee": "next",
+          "lineNumber": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/middleware/errorHandler.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 56,
+      "nonEmptyLines": 45,
+      "functions": [
+        {
+          "name": "normalizeError",
+          "startLine": 3,
+          "endLine": 35,
+          "params": [
+            "err"
+          ]
+        },
+        {
+          "name": "notFoundHandler",
+          "startLine": 37,
+          "endLine": 39,
+          "params": [
+            "req",
+            "res"
+          ]
+        },
+        {
+          "name": "errorHandler",
+          "startLine": 41,
+          "endLine": 54,
+          "params": [
+            "err",
+            "req",
+            "res",
+            "next"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalizeError",
+          "callee": "Object.values(err.errors)\r\n          .map((e) => e.message)\r\n          .join",
+          "lineNumber": 10
+        },
+        {
+          "caller": "normalizeError",
+          "callee": "Object.values(err.errors)\r\n          .map",
+          "lineNumber": 10
+        },
+        {
+          "caller": "normalizeError",
+          "callee": "Object.values",
+          "lineNumber": 10
+        },
+        {
+          "caller": "normalizeError",
+          "callee": "Object.keys",
+          "lineNumber": 18
+        },
+        {
+          "caller": "normalizeError",
+          "callee": "/maximum allowed size/i.test",
+          "lineNumber": 27
+        },
+        {
+          "caller": "notFoundHandler",
+          "callee": "res.status(404).json",
+          "lineNumber": 38
+        },
+        {
+          "caller": "notFoundHandler",
+          "callee": "res.status",
+          "lineNumber": 38
+        },
+        {
+          "caller": "errorHandler",
+          "callee": "normalizeError",
+          "lineNumber": 42
+        },
+        {
+          "caller": "errorHandler",
+          "callee": "console.error",
+          "lineNumber": 43
+        },
+        {
+          "caller": "errorHandler",
+          "callee": "Object.assign",
+          "lineNumber": 51
+        },
+        {
+          "caller": "errorHandler",
+          "callee": "res.status(statusCode).json",
+          "lineNumber": 53
+        },
+        {
+          "caller": "errorHandler",
+          "callee": "res.status",
+          "lineNumber": 53
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/middleware/optionalAuth.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 16,
+      "functions": [
+        {
+          "name": "optionalAuth",
+          "startLine": 3,
+          "endLine": 18,
+          "params": [
+            "req",
+            "res",
+            "next"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "optionalAuth",
+          "callee": "header.startsWith",
+          "lineNumber": 6
+        },
+        {
+          "caller": "optionalAuth",
+          "callee": "verifyToken",
+          "lineNumber": 8
+        },
+        {
+          "caller": "optionalAuth",
+          "callee": "header.slice",
+          "lineNumber": 8
+        },
+        {
+          "caller": "optionalAuth",
+          "callee": "next",
+          "lineNumber": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/middleware/optionalAuthorize.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 14,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/models/Club.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 110,
+      "nonEmptyLines": 103,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/models/ClubFollow.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 33,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

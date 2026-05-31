@@ -1,0 +1,1504 @@
+{
+  "nodes": [
+    {
+      "id": "file:BE/backfill-roles.js",
+      "type": "file",
+      "name": "backfill-roles.js",
+      "filePath": "BE/backfill-roles.js",
+      "summary": "Script một lần gán role cho user MongoDB cũ chưa có field role, dùng resolveUserRole và normalizeRole.",
+      "tags": [
+        "script",
+        "migration",
+        "role",
+        "mongodb"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/scripts/fix-role-case.js",
+      "type": "file",
+      "name": "fix-role-case.js",
+      "filePath": "BE/scripts/fix-role-case.js",
+      "summary": "Script sửa chữ hoa/thường không nhất quán của field role trong collection User.",
+      "tags": [
+        "script",
+        "maintenance",
+        "role",
+        "mongodb"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/scripts/test-avatar-save.js",
+      "type": "file",
+      "name": "test-avatar-save.js",
+      "filePath": "BE/scripts/test-avatar-save.js",
+      "summary": "Script kiểm thử thủ công luồng lưu avatar profile qua user.service.updateProfile.",
+      "tags": [
+        "script",
+        "test",
+        "avatar",
+        "user-service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/seed-ctsv-demo.js",
+      "type": "file",
+      "name": "seed-ctsv-demo.js",
+      "filePath": "BE/seed-ctsv-demo.js",
+      "summary": "Script seed dữ liệu demo cho portal CTSV gồm đối tác, hợp đồng, đề xuất và sự kiện mẫu.",
+      "tags": [
+        "script",
+        "seed",
+        "ctsv",
+        "demo-data"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Script seed lớn chạy top-level async IIFE với nhiều model Mongoose."
+    },
+    {
+      "id": "file:BE/seed-events.js",
+      "type": "file",
+      "name": "seed-events.js",
+      "filePath": "BE/seed-events.js",
+      "summary": "Script seed sự kiện mẫu từ eventSeedData vào MongoDB, đồng bộ trường diễn giả trước khi insert.",
+      "tags": [
+        "script",
+        "seed",
+        "event",
+        "mongodb"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/seed.js",
+      "type": "file",
+      "name": "seed.js",
+      "filePath": "BE/seed.js",
+      "summary": "Script seed user và SchoolMember ban đầu cho môi trường phát triển, hash mật khẩu bằng bcrypt.",
+      "tags": [
+        "script",
+        "seed",
+        "user",
+        "development"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/config/db.js",
+      "type": "file",
+      "name": "db.js",
+      "filePath": "BE/src/config/db.js",
+      "summary": "Module kết nối MongoDB qua Mongoose và đồng bộ khóa học sinh viên sau khi connect thành công.",
+      "tags": [
+        "config",
+        "database",
+        "mongoose",
+        "connection"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/constants/eventCategories.js",
+      "type": "file",
+      "name": "eventCategories.js",
+      "filePath": "BE/src/constants/eventCategories.js",
+      "summary": "Hằng số danh mục sự kiện và hàm chuẩn hóa category đầu vào từ form/API.",
+      "tags": [
+        "constants",
+        "event",
+        "validation",
+        "category"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/constants/eventSpeaker.js",
+      "type": "file",
+      "name": "eventSpeaker.js",
+      "filePath": "BE/src/constants/eventSpeaker.js",
+      "summary": "Utilities chuẩn hóa, resolve và đồng bộ thông tin diễn giả trên document sự kiện.",
+      "tags": [
+        "constants",
+        "event",
+        "speaker",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/constants/eventVenues.js",
+      "type": "file",
+      "name": "eventVenues.js",
+      "filePath": "BE/src/constants/eventVenues.js",
+      "summary": "Danh sách địa điểm sự kiện hợp lệ và helper kiểm tra venue có trong whitelist.",
+      "tags": [
+        "constants",
+        "event",
+        "venue",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/constants/eventWorkflow.js",
+      "type": "file",
+      "name": "eventWorkflow.js",
+      "filePath": "BE/src/constants/eventWorkflow.js",
+      "summary": "Hằng số trạng thái và quy tắc workflow sự kiện cấp trường, đồng bộ với FE.",
+      "tags": [
+        "constants",
+        "workflow",
+        "event",
+        "state-machine"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Code First — mirror FE/src/constants/eventWorkflow.js."
+    },
+    {
+      "id": "file:BE/src/data/eventSeedData.js",
+      "type": "file",
+      "name": "eventSeedData.js",
+      "filePath": "BE/src/data/eventSeedData.js",
+      "summary": "Dữ liệu seed sự kiện mẫu kèm diễn giả, địa điểm và metadata dùng bởi seed-events.js.",
+      "tags": [
+        "data",
+        "seed",
+        "event",
+        "fixture"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/data/speakerSeedData.js",
+      "type": "file",
+      "name": "speakerSeedData.js",
+      "filePath": "BE/src/data/speakerSeedData.js",
+      "summary": "Dữ liệu mẫu diễn giả được tham chiếu khi tạo event seed data.",
+      "tags": [
+        "data",
+        "seed",
+        "speaker",
+        "fixture"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/middleware/requireRole.js",
+      "type": "file",
+      "name": "requireRole.js",
+      "filePath": "BE/src/middleware/requireRole.js",
+      "summary": "Middleware Express kiểm tra role user trong DB trước khi cho phép truy cập route được bảo vệ.",
+      "tags": [
+        "middleware",
+        "authorization",
+        "express",
+        "role"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/models/Announcement.js",
+      "type": "file",
+      "name": "Announcement.js",
+      "filePath": "BE/src/models/Announcement.js",
+      "summary": "Mongoose schema cho thông báo CTSV với liên kết sự kiện và metadata hiển thị.",
+      "tags": [
+        "data-model",
+        "mongoose",
+        "announcement",
+        "ctsv"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/models/Contract.js",
+      "type": "file",
+      "name": "Contract.js",
+      "filePath": "BE/src/models/Contract.js",
+      "summary": "Mongoose schema hợp đồng đối tác gắn với partner và trạng thái phê duyệt.",
+      "tags": [
+        "data-model",
+        "mongoose",
+        "contract",
+        "partner"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/models/Event.js",
+      "type": "file",
+      "name": "Event.js",
+      "filePath": "BE/src/models/Event.js",
+      "summary": "Mongoose schema sự kiện cốt lõi với validation category, venue, workflow và diễn giả.",
+      "tags": [
+        "data-model",
+        "mongoose",
+        "event",
+        "core"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Schema lớn tích hợp nhiều constant module và pre-save hooks."
+    },
+    {
+      "id": "file:BE/src/models/EventProposal.js",
+      "type": "file",
+      "name": "EventProposal.js",
+      "filePath": "BE/src/models/EventProposal.js",
+      "summary": "Mongoose schema đề xuất sự kiện từ đối tác trước khi chuyển thành Event chính thức.",
+      "tags": [
+        "data-model",
+        "mongoose",
+        "proposal",
+        "event"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/models/Partner.js",
+      "type": "file",
+      "name": "Partner.js",
+      "filePath": "BE/src/models/Partner.js",
+      "summary": "Mongoose schema đối tác tài trợ/sự kiện với thông tin liên hệ và trạng thái duyệt.",
+      "tags": [
+        "data-model",
+        "mongoose",
+        "partner",
+        "ctsv"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/models/SchoolMember.js",
+      "type": "file",
+      "name": "SchoolMember.js",
+      "filePath": "BE/src/models/SchoolMember.js",
+      "summary": "Mongoose schema thành viên trường dùng làm whitelist cho đăng ký tài khoản sinh viên.",
+      "tags": [
+        "data-model",
+        "mongoose",
+        "school-member",
+        "whitelist"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/models/User.js",
+      "type": "file",
+      "name": "User.js",
+      "filePath": "BE/src/models/User.js",
+      "summary": "Mongoose schema user chính với role detection, avatar, studentId và static helpers đồng bộ profile.",
+      "tags": [
+        "data-model",
+        "mongoose",
+        "user",
+        "authentication"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Model trung tâm với static methods syncAllStudentCourses, detectRole, sanitizeUser."
+    },
+    {
+      "id": "file:BE/src/routes/admin.routes.js",
+      "type": "file",
+      "name": "admin.routes.js",
+      "filePath": "BE/src/routes/admin.routes.js",
+      "summary": "Route Express cho admin duyệt sự kiện trường, quản lý đối tác, hợp đồng và thông báo.",
+      "tags": [
+        "api-handler",
+        "express",
+        "admin",
+        "routes"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/routes/ctsv.routes.js",
+      "type": "file",
+      "name": "ctsv.routes.js",
+      "filePath": "BE/src/routes/ctsv.routes.js",
+      "summary": "Tập route Express lớn cho portal CTSV quản lý sự kiện, thông báo, đối tác và đề xuất.",
+      "tags": [
+        "api-handler",
+        "express",
+        "ctsv",
+        "routes"
+      ],
+      "complexity": "complex",
+      "languageNotes": "File route monolithic ~870 dòng với nhiều handler inline và helper cục bộ."
+    },
+    {
+      "id": "file:BE/src/services/user.service.js",
+      "type": "file",
+      "name": "user.service.js",
+      "filePath": "BE/src/services/user.service.js",
+      "summary": "Service layer xử lý profile, avatar, đổi mật khẩu và sanitize dữ liệu user trả về client.",
+      "tags": [
+        "service",
+        "user",
+        "profile",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/utils/announcementEvents.js",
+      "type": "file",
+      "name": "announcementEvents.js",
+      "filePath": "BE/src/utils/announcementEvents.js",
+      "summary": "Helpers tạo và liên kết sự kiện đối tác phục vụ gắn thông báo CTSV với event hợp lệ.",
+      "tags": [
+        "utility",
+        "announcement",
+        "event",
+        "partner"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/utils/eventFormat.js",
+      "type": "file",
+      "name": "eventFormat.js",
+      "filePath": "BE/src/utils/eventFormat.js",
+      "summary": "Format document sự kiện và đề xuất sang payload API thân thiện client, gồm ngày giờ và diễn giả.",
+      "tags": [
+        "utility",
+        "serialization",
+        "event",
+        "api"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/utils/role.js",
+      "type": "file",
+      "name": "role.js",
+      "filePath": "BE/src/utils/role.js",
+      "summary": "Chuẩn hóa chuỗi role và suy luận role user từ email, orientation hoặc campus.",
+      "tags": [
+        "utility",
+        "role",
+        "authorization",
+        "normalization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/utils/studentId.js",
+      "type": "file",
+      "name": "studentId.js",
+      "filePath": "BE/src/utils/studentId.js",
+      "summary": "Chuẩn hóa mã sinh viên và suy ra khóa học từ pattern mã số.",
+      "tags": [
+        "utility",
+        "student-id",
+        "normalization",
+        "course"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/scripts/test-avatar-save.js:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "BE/scripts/test-avatar-save.js",
+      "lineRange": [
+        9,
+        35
+      ],
+      "summary": "Kết nối MongoDB, tìm user mẫu và gọi updateProfile để kiểm tra lưu avatar.",
+      "tags": [
+        "test",
+        "avatar",
+        "integration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/seed-events.js:seedEvents",
+      "type": "function",
+      "name": "seedEvents",
+      "filePath": "BE/seed-events.js",
+      "lineRange": [
+        18,
+        61
+      ],
+      "summary": "Xóa và insert sự kiện seed, đồng bộ speaker fields trước khi ghi DB.",
+      "tags": [
+        "seed",
+        "event",
+        "mongodb"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/seed.js:seedData",
+      "type": "function",
+      "name": "seedData",
+      "filePath": "BE/seed.js",
+      "lineRange": [
+        8,
+        90
+      ],
+      "summary": "Reset collection User/SchoolMember và tạo tài khoản demo với role tự phát hiện.",
+      "tags": [
+        "seed",
+        "user",
+        "development"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:BE/src/config/db.js:connectDB",
+      "type": "function",
+      "name": "connectDB",
+      "filePath": "BE/src/config/db.js",
+      "lineRange": [
+        8,
+        28
+      ],
+      "summary": "Thiết lập kết nối Mongoose tới MONGO_URI và chạy syncAllStudentCourses sau connect.",
+      "tags": [
+        "database",
+        "connection",
+        "bootstrap"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/constants/eventCategories.js:normalizeEventCategory",
+      "type": "function",
+      "name": "normalizeEventCategory",
+      "filePath": "BE/src/constants/eventCategories.js",
+      "lineRange": [
+        27,
+        39
+      ],
+      "summary": "Chuẩn hóa chuỗi category đầu vào về giá trị hợp lệ trong EVENT_CATEGORIES.",
+      "tags": [
+        "validation",
+        "normalization",
+        "category"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/constants/eventSpeaker.js:resolveEventSpeakers",
+      "type": "function",
+      "name": "resolveEventSpeakers",
+      "filePath": "BE/src/constants/eventSpeaker.js",
+      "lineRange": [
+        28,
+        40
+      ],
+      "summary": "Resolve danh sách diễn giả từ mảng speakers hoặc fallback field speaker đơn.",
+      "tags": [
+        "speaker",
+        "normalization",
+        "event"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/constants/eventSpeaker.js:syncPrimarySpeakerFields",
+      "type": "function",
+      "name": "syncPrimarySpeakerFields",
+      "filePath": "BE/src/constants/eventSpeaker.js",
+      "lineRange": [
+        42,
+        55
+      ],
+      "summary": "Đồng bộ field speaker/speakerRole chính từ mảng speakers đã chuẩn hóa trên document.",
+      "tags": [
+        "speaker",
+        "sync",
+        "event"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/middleware/requireRole.js:requireRole",
+      "type": "function",
+      "name": "requireRole",
+      "filePath": "BE/src/middleware/requireRole.js",
+      "lineRange": [
+        8,
+        31
+      ],
+      "summary": "Factory middleware kiểm tra user có một trong các role được phép trước khi next().",
+      "tags": [
+        "middleware",
+        "authorization",
+        "role"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/routes/ctsv.routes.js:normalizeTicketTypes",
+      "type": "function",
+      "name": "normalizeTicketTypes",
+      "filePath": "BE/src/routes/ctsv.routes.js",
+      "lineRange": [
+        31,
+        40
+      ],
+      "summary": "Chuẩn hóa mảng loại vé từ request body với tên trim và số lượng không âm.",
+      "tags": [
+        "validation",
+        "ticket",
+        "normalization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/routes/ctsv.routes.js:pickSchoolEventFields",
+      "type": "function",
+      "name": "pickSchoolEventFields",
+      "filePath": "BE/src/routes/ctsv.routes.js",
+      "lineRange": [
+        42,
+        101
+      ],
+      "summary": "Trích và validate các field sự kiện cấp trường từ body request trước khi lưu.",
+      "tags": [
+        "validation",
+        "event",
+        "ctsv"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:BE/src/routes/ctsv.routes.js:buildEventFilter",
+      "type": "function",
+      "name": "buildEventFilter",
+      "filePath": "BE/src/routes/ctsv.routes.js",
+      "lineRange": [
+        106,
+        128
+      ],
+      "summary": "Xây dựng MongoDB filter từ query params cho danh sách sự kiện CTSV.",
+      "tags": [
+        "query",
+        "filter",
+        "event"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/routes/ctsv.routes.js:deleteAnnouncementHandler",
+      "type": "function",
+      "name": "deleteAnnouncementHandler",
+      "filePath": "BE/src/routes/ctsv.routes.js",
+      "lineRange": [
+        853,
+        864
+      ],
+      "summary": "Handler xóa thông báo theo ID và trả JSON success/error cho client.",
+      "tags": [
+        "api-handler",
+        "announcement",
+        "delete"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/services/user.service.js:assertValidImageDataUrl",
+      "type": "function",
+      "name": "assertValidImageDataUrl",
+      "filePath": "BE/src/services/user.service.js",
+      "lineRange": [
+        10,
+        21
+      ],
+      "summary": "Validate chuỗi ảnh là data URL JPEG/PNG/WebP hợp lệ trước khi lưu avatar.",
+      "tags": [
+        "validation",
+        "avatar",
+        "image"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/services/user.service.js:getProfile",
+      "type": "function",
+      "name": "getProfile",
+      "filePath": "BE/src/services/user.service.js",
+      "lineRange": [
+        33,
+        43
+      ],
+      "summary": "Lấy profile user theo email, đồng bộ metadata và trả object đã sanitize.",
+      "tags": [
+        "profile",
+        "read",
+        "user"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/services/user.service.js:updateUserAvatar",
+      "type": "function",
+      "name": "updateUserAvatar",
+      "filePath": "BE/src/services/user.service.js",
+      "lineRange": [
+        45,
+        65
+      ],
+      "summary": "Cập nhật avatar user sau khi validate data URL và fix legacy role nếu cần.",
+      "tags": [
+        "avatar",
+        "update",
+        "user"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/services/user.service.js:updateProfile",
+      "type": "function",
+      "name": "updateProfile",
+      "filePath": "BE/src/services/user.service.js",
+      "lineRange": [
+        67,
+        171
+      ],
+      "summary": "Cập nhật profile user toàn diện gồm tên, phone, orientation, avatar và sync course.",
+      "tags": [
+        "profile",
+        "update",
+        "user"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:BE/src/services/user.service.js:changePassword",
+      "type": "function",
+      "name": "changePassword",
+      "filePath": "BE/src/services/user.service.js",
+      "lineRange": [
+        173,
+        206
+      ],
+      "summary": "Đổi mật khẩu sau khi xác minh mật khẩu cũ bằng bcrypt.compare.",
+      "tags": [
+        "security",
+        "password",
+        "user"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/services/user.service.js:verifyPassword",
+      "type": "function",
+      "name": "verifyPassword",
+      "filePath": "BE/src/services/user.service.js",
+      "lineRange": [
+        208,
+        226
+      ],
+      "summary": "Xác minh mật khẩu hiện tại của user có khớp hash trong DB.",
+      "tags": [
+        "security",
+        "password",
+        "verification"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/utils/announcementEvents.js:ensurePartnerEvent",
+      "type": "function",
+      "name": "ensurePartnerEvent",
+      "filePath": "BE/src/utils/announcementEvents.js",
+      "lineRange": [
+        7,
+        30
+      ],
+      "summary": "Tạo hoặc trả về sự kiện đối tác placeholder cho partner đã được duyệt.",
+      "tags": [
+        "partner",
+        "event",
+        "announcement"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/utils/announcementEvents.js:findLinkableAnnouncementEvents",
+      "type": "function",
+      "name": "findLinkableAnnouncementEvents",
+      "filePath": "BE/src/utils/announcementEvents.js",
+      "lineRange": [
+        40,
+        58
+      ],
+      "summary": "Tìm các sự kiện có thể gắn vào thông báo sau khi đảm bảo partner events tồn tại.",
+      "tags": [
+        "announcement",
+        "query",
+        "event"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/utils/announcementEvents.js:isEventLinkableForAnnouncement",
+      "type": "function",
+      "name": "isEventLinkableForAnnouncement",
+      "filePath": "BE/src/utils/announcementEvents.js",
+      "lineRange": [
+        60,
+        71
+      ],
+      "summary": "Kiểm tra sự kiện có đủ điều kiện (nguồn, trạng thái) để liên kết với thông báo.",
+      "tags": [
+        "validation",
+        "announcement",
+        "event"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/utils/eventFormat.js:formatEvent",
+      "type": "function",
+      "name": "formatEvent",
+      "filePath": "BE/src/utils/eventFormat.js",
+      "lineRange": [
+        21,
+        71
+      ],
+      "summary": "Chuyển Mongoose event document sang payload API với ngày giờ, speakers và ID string hóa.",
+      "tags": [
+        "serialization",
+        "event",
+        "api"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:BE/src/utils/eventFormat.js:formatProposal",
+      "type": "function",
+      "name": "formatProposal",
+      "filePath": "BE/src/utils/eventFormat.js",
+      "lineRange": [
+        73,
+        98
+      ],
+      "summary": "Format document đề xuất sự kiện sang cấu trúc response cho client CTSV.",
+      "tags": [
+        "serialization",
+        "proposal",
+        "api"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/utils/role.js:resolveUserRole",
+      "type": "function",
+      "name": "resolveUserRole",
+      "filePath": "BE/src/utils/role.js",
+      "lineRange": [
+        13,
+        34
+      ],
+      "summary": "Suy luận role từ field role hiện có hoặc heuristic email/campus/orientation.",
+      "tags": [
+        "role",
+        "inference",
+        "authorization"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:BE/backfill-roles.js",
+      "target": "file:BE/src/models/User.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/backfill-roles.js",
+      "target": "file:BE/src/utils/role.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/scripts/fix-role-case.js",
+      "target": "file:BE/src/models/User.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/scripts/test-avatar-save.js",
+      "target": "file:BE/src/models/User.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/scripts/test-avatar-save.js",
+      "target": "file:BE/src/services/user.service.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-ctsv-demo.js",
+      "target": "file:BE/src/config/db.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-ctsv-demo.js",
+      "target": "file:BE/src/models/Contract.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-ctsv-demo.js",
+      "target": "file:BE/src/models/Event.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-ctsv-demo.js",
+      "target": "file:BE/src/models/EventProposal.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-ctsv-demo.js",
+      "target": "file:BE/src/models/Partner.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-events.js",
+      "target": "file:BE/src/config/db.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-events.js",
+      "target": "file:BE/src/constants/eventSpeaker.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-events.js",
+      "target": "file:BE/src/data/eventSeedData.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-events.js",
+      "target": "file:BE/src/models/Event.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-events.js",
+      "target": "file:BE/src/models/User.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed.js",
+      "target": "file:BE/src/config/db.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed.js",
+      "target": "file:BE/src/models/SchoolMember.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed.js",
+      "target": "file:BE/src/models/User.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/config/db.js",
+      "target": "file:BE/src/models/User.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/data/eventSeedData.js",
+      "target": "file:BE/src/constants/eventVenues.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/data/eventSeedData.js",
+      "target": "file:BE/src/data/speakerSeedData.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/middleware/requireRole.js",
+      "target": "file:BE/src/models/User.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/middleware/requireRole.js",
+      "target": "file:BE/src/utils/role.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/models/Event.js",
+      "target": "file:BE/src/constants/eventCategories.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/models/Event.js",
+      "target": "file:BE/src/constants/eventSpeaker.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/models/Event.js",
+      "target": "file:BE/src/constants/eventVenues.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/models/Event.js",
+      "target": "file:BE/src/constants/eventWorkflow.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/models/User.js",
+      "target": "file:BE/src/models/SchoolMember.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/models/User.js",
+      "target": "file:BE/src/utils/role.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/models/User.js",
+      "target": "file:BE/src/utils/studentId.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/admin.routes.js",
+      "target": "file:BE/src/constants/eventWorkflow.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/admin.routes.js",
+      "target": "file:BE/src/middleware/auth.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/admin.routes.js",
+      "target": "file:BE/src/middleware/requireRole.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/admin.routes.js",
+      "target": "file:BE/src/models/Contract.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/admin.routes.js",
+      "target": "file:BE/src/models/Event.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/admin.routes.js",
+      "target": "file:BE/src/models/Partner.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/admin.routes.js",
+      "target": "file:BE/src/utils/announcementEvents.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/admin.routes.js",
+      "target": "file:BE/src/utils/eventFormat.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/constants/eventCategories.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/constants/eventSpeaker.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/constants/eventWorkflow.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/middleware/auth.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/middleware/requireRole.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/models/Announcement.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/models/Contract.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/models/Event.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/models/EventProposal.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/models/Partner.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/utils/announcementEvents.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "file:BE/src/utils/eventFormat.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/services/user.service.js",
+      "target": "file:BE/src/models/User.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/services/user.service.js",
+      "target": "file:BE/src/utils/AppError.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/services/user.service.js",
+      "target": "file:BE/src/utils/role.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/utils/announcementEvents.js",
+      "target": "file:BE/src/models/Event.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/utils/announcementEvents.js",
+      "target": "file:BE/src/models/Partner.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/utils/eventFormat.js",
+      "target": "file:BE/src/constants/eventSpeaker.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/utils/eventFormat.js",
+      "target": "file:BE/src/constants/eventWorkflow.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/scripts/test-avatar-save.js",
+      "target": "function:BE/scripts/test-avatar-save.js:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/seed-events.js",
+      "target": "function:BE/seed-events.js:seedEvents",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/seed.js",
+      "target": "function:BE/seed.js:seedData",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/config/db.js",
+      "target": "function:BE/src/config/db.js:connectDB",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventCategories.js",
+      "target": "function:BE/src/constants/eventCategories.js:normalizeEventCategory",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventSpeaker.js",
+      "target": "function:BE/src/constants/eventSpeaker.js:resolveEventSpeakers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventSpeaker.js",
+      "target": "function:BE/src/constants/eventSpeaker.js:syncPrimarySpeakerFields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/middleware/requireRole.js",
+      "target": "function:BE/src/middleware/requireRole.js:requireRole",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "function:BE/src/routes/ctsv.routes.js:normalizeTicketTypes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "function:BE/src/routes/ctsv.routes.js:pickSchoolEventFields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "function:BE/src/routes/ctsv.routes.js:buildEventFilter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/routes/ctsv.routes.js",
+      "target": "function:BE/src/routes/ctsv.routes.js:deleteAnnouncementHandler",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/services/user.service.js",
+      "target": "function:BE/src/services/user.service.js:assertValidImageDataUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/services/user.service.js",
+      "target": "function:BE/src/services/user.service.js:getProfile",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/services/user.service.js",
+      "target": "function:BE/src/services/user.service.js:updateUserAvatar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/services/user.service.js",
+      "target": "function:BE/src/services/user.service.js:updateProfile",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/services/user.service.js",
+      "target": "function:BE/src/services/user.service.js:changePassword",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/services/user.service.js",
+      "target": "function:BE/src/services/user.service.js:verifyPassword",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/utils/announcementEvents.js",
+      "target": "function:BE/src/utils/announcementEvents.js:ensurePartnerEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/utils/announcementEvents.js",
+      "target": "function:BE/src/utils/announcementEvents.js:findLinkableAnnouncementEvents",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/utils/announcementEvents.js",
+      "target": "function:BE/src/utils/announcementEvents.js:isEventLinkableForAnnouncement",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/utils/eventFormat.js",
+      "target": "function:BE/src/utils/eventFormat.js:formatEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/utils/eventFormat.js",
+      "target": "function:BE/src/utils/eventFormat.js:formatProposal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/utils/role.js",
+      "target": "function:BE/src/utils/role.js:resolveUserRole",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:BE/scripts/test-avatar-save.js:main",
+      "target": "function:BE/src/services/user.service.js:updateProfile",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed-events.js:seedEvents",
+      "target": "function:BE/src/config/db.js:connectDB",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed-events.js:seedEvents",
+      "target": "function:BE/src/constants/eventSpeaker.js:syncPrimarySpeakerFields",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed.js:seedData",
+      "target": "function:BE/src/config/db.js:connectDB",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/config/db.js:connectDB",
+      "target": "file:BE/src/models/User.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/middleware/requireRole.js:requireRole",
+      "target": "function:BE/src/utils/role.js:resolveUserRole",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/utils/eventFormat.js:formatEvent",
+      "target": "function:BE/src/constants/eventSpeaker.js:resolveEventSpeakers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/routes/ctsv.routes.js:pickSchoolEventFields",
+      "target": "function:BE/src/constants/eventCategories.js:normalizeEventCategory",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/routes/ctsv.routes.js:pickSchoolEventFields",
+      "target": "function:BE/src/routes/ctsv.routes.js:normalizeTicketTypes",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/constants/eventSpeaker.js:syncPrimarySpeakerFields",
+      "target": "function:BE/src/constants/eventSpeaker.js:resolveEventSpeakers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/utils/announcementEvents.js:findLinkableAnnouncementEvents",
+      "target": "function:BE/src/utils/announcementEvents.js:ensurePartnerEvent",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/services/user.service.js:updateUserAvatar",
+      "target": "function:BE/src/services/user.service.js:assertValidImageDataUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/services/user.service.js:updateProfile",
+      "target": "function:BE/src/services/user.service.js:updateUserAvatar",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/services/user.service.js:updateProfile",
+      "target": "function:BE/src/services/user.service.js:assertValidImageDataUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/services/user.service.js:getProfile",
+      "target": "file:BE/src/models/User.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/services/user.service.js:updateProfile",
+      "target": "file:BE/src/models/User.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/services/user.service.js:changePassword",
+      "target": "file:BE/src/models/User.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/services/user.service.js:verifyPassword",
+      "target": "file:BE/src/models/User.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

@@ -1,0 +1,791 @@
+{
+  "nodes": [
+    {
+      "id": "file:FE/src/constants/eventWorkflow.js",
+      "type": "file",
+      "name": "eventWorkflow.js",
+      "filePath": "FE/src/constants/eventWorkflow.js",
+      "summary": "Trạng thái workflow sự kiện trường và helper kiểm tra quyền publish, chỉnh sửa và chờ duyệt admin.",
+      "tags": [
+        "type-definition",
+        "constants",
+        "workflow",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/constants/eventWorkflow.js:canCtsvPublishSchoolEvent",
+      "type": "function",
+      "name": "canCtsvPublishSchoolEvent",
+      "filePath": "FE/src/constants/eventWorkflow.js",
+      "lineRange": [
+        22,
+        23
+      ],
+      "summary": "Kiểm tra sự kiện trường có đủ điều kiện để CTSV publish hay không.",
+      "tags": [
+        "validation",
+        "workflow",
+        "ctsv"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/constants/eventWorkflow.js:canCtsvEditSchoolEvent",
+      "type": "function",
+      "name": "canCtsvEditSchoolEvent",
+      "filePath": "FE/src/constants/eventWorkflow.js",
+      "lineRange": [
+        25,
+        27
+      ],
+      "summary": "Kiểm tra trạng thái sự kiện có nằm trong danh sách cho phép chỉnh sửa.",
+      "tags": [
+        "validation",
+        "workflow",
+        "ctsv"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/constants/eventWorkflow.js:isSchoolEventPendingAdmin",
+      "type": "function",
+      "name": "isSchoolEventPendingAdmin",
+      "filePath": "FE/src/constants/eventWorkflow.js",
+      "lineRange": [
+        29,
+        30
+      ],
+      "summary": "Xác định sự kiện đang chờ phê duyệt từ admin ICPDP.",
+      "tags": [
+        "validation",
+        "workflow",
+        "admin"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:FE/src/hooks/useSettingsPreferences.js",
+      "type": "file",
+      "name": "useSettingsPreferences.js",
+      "filePath": "FE/src/hooks/useSettingsPreferences.js",
+      "summary": "Hook quản lý cài đặt người dùng (dark mode, ngôn ngữ) lưu localStorage và áp dụng theme khi khởi động.",
+      "tags": [
+        "hook",
+        "settings",
+        "persistence",
+        "utility"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "React hook kết hợp localStorage và DOM classList cho dark mode."
+    },
+    {
+      "id": "function:FE/src/hooks/useSettingsPreferences.js:loadSettings",
+      "type": "function",
+      "name": "loadSettings",
+      "filePath": "FE/src/hooks/useSettingsPreferences.js",
+      "lineRange": [
+        13,
+        21
+      ],
+      "summary": "Đọc cài đặt từ localStorage, merge với DEFAULT_SETTINGS nếu thiếu khóa.",
+      "tags": [
+        "utility",
+        "persistence",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/hooks/useSettingsPreferences.js:saveSettings",
+      "type": "function",
+      "name": "saveSettings",
+      "filePath": "FE/src/hooks/useSettingsPreferences.js",
+      "lineRange": [
+        23,
+        25
+      ],
+      "summary": "Ghi object cài đặt vào localStorage dưới khóa cố định.",
+      "tags": [
+        "utility",
+        "persistence",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/hooks/useSettingsPreferences.js:applyDarkMode",
+      "type": "function",
+      "name": "applyDarkMode",
+      "filePath": "FE/src/hooks/useSettingsPreferences.js",
+      "lineRange": [
+        27,
+        30
+      ],
+      "summary": "Bật/tắt class dark trên document.documentElement theo preference.",
+      "tags": [
+        "utility",
+        "settings",
+        "theme"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/hooks/useSettingsPreferences.js:initThemeFromStorage",
+      "type": "function",
+      "name": "initThemeFromStorage",
+      "filePath": "FE/src/hooks/useSettingsPreferences.js",
+      "lineRange": [
+        32,
+        34
+      ],
+      "summary": "Khởi tạo theme khi app load bằng cách gọi loadSettings và applyDarkMode.",
+      "tags": [
+        "utility",
+        "bootstrap",
+        "theme"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/hooks/useSettingsPreferences.js:useSettingsPreferences",
+      "type": "function",
+      "name": "useSettingsPreferences",
+      "filePath": "FE/src/hooks/useSettingsPreferences.js",
+      "lineRange": [
+        36,
+        53
+      ],
+      "summary": "Hook React expose settings state, setter và hàm toggle dark mode có persist.",
+      "tags": [
+        "hook",
+        "settings",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:FE/src/main.jsx",
+      "type": "file",
+      "name": "main.jsx",
+      "filePath": "FE/src/main.jsx",
+      "summary": "Điểm mount React DOM, import stylesheet toàn cục và render ứng dụng vào #root.",
+      "tags": [
+        "entry-point",
+        "bootstrap",
+        "react"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:FE/src/pages/AdminDashboard.jsx",
+      "type": "file",
+      "name": "AdminDashboard.jsx",
+      "filePath": "FE/src/pages/AdminDashboard.jsx",
+      "summary": "Trang tổng quan admin ICPDP với thống kê và liên kết nhanh tới các luồng phê duyệt.",
+      "tags": [
+        "component",
+        "admin",
+        "dashboard",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/AdminDashboard.jsx:AdminDashboard",
+      "type": "function",
+      "name": "AdminDashboard",
+      "filePath": "FE/src/pages/AdminDashboard.jsx",
+      "lineRange": [
+        4,
+        152
+      ],
+      "summary": "Dashboard admin với card thống kê và navigation tới phê duyệt đối tác/sự kiện.",
+      "tags": [
+        "component",
+        "admin",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/CreateEvent.jsx",
+      "type": "file",
+      "name": "CreateEvent.jsx",
+      "filePath": "FE/src/pages/CreateEvent.jsx",
+      "summary": "Form tạo sự kiện phía sinh viên với chọn địa điểm, thời gian và thông tin cơ bản.",
+      "tags": [
+        "component",
+        "event",
+        "form",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/CreateEvent.jsx:CreateEvent",
+      "type": "function",
+      "name": "CreateEvent",
+      "filePath": "FE/src/pages/CreateEvent.jsx",
+      "lineRange": [
+        6,
+        150
+      ],
+      "summary": "Form wizard tạo sự kiện sinh viên với AppSelect địa điểm và submit API.",
+      "tags": [
+        "component",
+        "form",
+        "event"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/CtsvHome.jsx",
+      "type": "file",
+      "name": "CtsvHome.jsx",
+      "filePath": "FE/src/pages/CtsvHome.jsx",
+      "summary": "Trang chủ cổng CTSV hiển thị thống kê, sự kiện nổi bật và bộ lọc trạng thái sự kiện trường.",
+      "tags": [
+        "component",
+        "ctsv",
+        "dashboard",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:FE/src/pages/CtsvHome.jsx:CtsvEventCard",
+      "type": "function",
+      "name": "CtsvEventCard",
+      "filePath": "FE/src/pages/CtsvHome.jsx",
+      "lineRange": [
+        24,
+        63
+      ],
+      "summary": "Card hiển thị một sự kiện CTSV với badge trạng thái và link chi tiết.",
+      "tags": [
+        "component",
+        "ctsv",
+        "event"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/CtsvHome.jsx:CtsvHome",
+      "type": "function",
+      "name": "CtsvHome",
+      "filePath": "FE/src/pages/CtsvHome.jsx",
+      "lineRange": [
+        65,
+        327
+      ],
+      "summary": "Trang chủ CTSV fetch stats/events, lọc theo trạng thái và render lưới CtsvEventCard.",
+      "tags": [
+        "component",
+        "ctsv",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ForgotPassword.jsx",
+      "type": "file",
+      "name": "ForgotPassword.jsx",
+      "filePath": "FE/src/pages/ForgotPassword.jsx",
+      "summary": "Trang yêu cầu đặt lại mật khẩu qua email với validation và gọi API auth.",
+      "tags": [
+        "component",
+        "auth",
+        "form",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/ForgotPassword.jsx:ForgotPassword",
+      "type": "function",
+      "name": "ForgotPassword",
+      "filePath": "FE/src/pages/ForgotPassword.jsx",
+      "lineRange": [
+        9,
+        207
+      ],
+      "summary": "Form nhập email gửi yêu cầu reset password với feedback lỗi/thành công.",
+      "tags": [
+        "component",
+        "auth",
+        "form"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ResetPassword.jsx",
+      "type": "file",
+      "name": "ResetPassword.jsx",
+      "filePath": "FE/src/pages/ResetPassword.jsx",
+      "summary": "Trang đặt mật khẩu mới từ token reset, kiểm tra độ mạnh và xác nhận khớp mật khẩu.",
+      "tags": [
+        "component",
+        "auth",
+        "form",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:FE/src/pages/ResetPassword.jsx:ResetPassword",
+      "type": "function",
+      "name": "ResetPassword",
+      "filePath": "FE/src/pages/ResetPassword.jsx",
+      "lineRange": [
+        4,
+        296
+      ],
+      "summary": "Form đặt mật khẩu mới từ query token, validate và gọi API reset.",
+      "tags": [
+        "component",
+        "auth",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/StaticPage.jsx",
+      "type": "file",
+      "name": "StaticPage.jsx",
+      "filePath": "FE/src/pages/StaticPage.jsx",
+      "summary": "Trang nội dung tĩnh (điều khoản, hướng dẫn) render markdown theo slug route.",
+      "tags": [
+        "component",
+        "content",
+        "routing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/StaticPage.jsx:StaticPage",
+      "type": "function",
+      "name": "StaticPage",
+      "filePath": "FE/src/pages/StaticPage.jsx",
+      "lineRange": [
+        88,
+        128
+      ],
+      "summary": "Đọc slug từ URL, tra cứu nội dung tĩnh và render HTML/markdown an toàn.",
+      "tags": [
+        "component",
+        "content",
+        "routing"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "type": "file",
+      "name": "AdminPartnerApprovals.jsx",
+      "filePath": "FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "summary": "Trang admin duyệt hồ sơ đối tác với danh sách, lọc trạng thái và hành động approve/reject.",
+      "tags": [
+        "component",
+        "admin",
+        "api-handler",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/admin/AdminPartnerApprovals.jsx:AdminPartnerApprovals",
+      "type": "function",
+      "name": "AdminPartnerApprovals",
+      "filePath": "FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "lineRange": [
+        10,
+        172
+      ],
+      "summary": "Bảng duyệt đối tác với fetch admin API, format hiển thị và nút approve/reject.",
+      "tags": [
+        "component",
+        "admin",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "type": "file",
+      "name": "AdminSchoolEventApprovals.jsx",
+      "filePath": "FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "summary": "Trang admin phê duyệt sự kiện trường, hiển thị chi tiết và workflow trạng thái từ constants.",
+      "tags": [
+        "component",
+        "admin",
+        "event",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/admin/AdminSchoolEventApprovals.jsx:AdminSchoolEventApprovals",
+      "type": "function",
+      "name": "AdminSchoolEventApprovals",
+      "filePath": "FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "lineRange": [
+        16,
+        195
+      ],
+      "summary": "Danh sách sự kiện trường chờ duyệt với chi tiết, label workflow và hành động admin.",
+      "tags": [
+        "component",
+        "admin",
+        "event"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:FE/src/constants/eventWorkflow.js",
+      "target": "function:FE/src/constants/eventWorkflow.js:canCtsvPublishSchoolEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/constants/eventWorkflow.js",
+      "target": "function:FE/src/constants/eventWorkflow.js:canCtsvPublishSchoolEvent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/constants/eventWorkflow.js",
+      "target": "function:FE/src/constants/eventWorkflow.js:canCtsvEditSchoolEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/constants/eventWorkflow.js",
+      "target": "function:FE/src/constants/eventWorkflow.js:canCtsvEditSchoolEvent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/constants/eventWorkflow.js",
+      "target": "function:FE/src/constants/eventWorkflow.js:isSchoolEventPendingAdmin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/constants/eventWorkflow.js",
+      "target": "function:FE/src/constants/eventWorkflow.js:isSchoolEventPendingAdmin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:loadSettings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:loadSettings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:saveSettings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:saveSettings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:applyDarkMode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:applyDarkMode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:initThemeFromStorage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:initThemeFromStorage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:useSettingsPreferences",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/hooks/useSettingsPreferences.js",
+      "target": "function:FE/src/hooks/useSettingsPreferences.js:useSettingsPreferences",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/pages/AdminDashboard.jsx",
+      "target": "function:FE/src/pages/AdminDashboard.jsx:AdminDashboard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/CreateEvent.jsx",
+      "target": "function:FE/src/pages/CreateEvent.jsx:CreateEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/CtsvHome.jsx",
+      "target": "function:FE/src/pages/CtsvHome.jsx:CtsvEventCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/CtsvHome.jsx",
+      "target": "function:FE/src/pages/CtsvHome.jsx:CtsvHome",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ForgotPassword.jsx",
+      "target": "function:FE/src/pages/ForgotPassword.jsx:ForgotPassword",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ResetPassword.jsx",
+      "target": "function:FE/src/pages/ResetPassword.jsx:ResetPassword",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/StaticPage.jsx",
+      "target": "function:FE/src/pages/StaticPage.jsx:StaticPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "target": "function:FE/src/pages/admin/AdminPartnerApprovals.jsx:AdminPartnerApprovals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "target": "function:FE/src/pages/admin/AdminSchoolEventApprovals.jsx:AdminSchoolEventApprovals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/main.jsx",
+      "target": "file:FE/src/App.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/main.jsx",
+      "target": "file:FE/src/index.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/main.jsx",
+      "target": "file:FE/src/styles/dark-theme.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/main.jsx",
+      "target": "file:FE/src/styles/tailwind.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/CreateEvent.jsx",
+      "target": "file:FE/src/components/ui/AppSelect.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/CreateEvent.jsx",
+      "target": "file:FE/src/constants/eventVenues.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/CtsvHome.jsx",
+      "target": "file:FE/src/components/ui/AppSelect.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/CtsvHome.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/CtsvHome.jsx",
+      "target": "file:FE/src/utils/ctsvEventAccess.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/CtsvHome.jsx",
+      "target": "file:FE/src/utils/eventStatus.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "target": "file:FE/src/services/adminApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "target": "file:FE/src/utils/partnerDisplay.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "target": "file:FE/src/constants/eventWorkflow.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "target": "file:FE/src/services/adminApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:FE/src/pages/CtsvHome.jsx:CtsvHome",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvStats",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/CtsvHome.jsx:CtsvHome",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvEvents",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/CtsvHome.jsx:CtsvHome",
+      "target": "function:FE/src/utils/ctsvEventAccess.js:getCtsvEventAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/CtsvHome.jsx:CtsvHome",
+      "target": "function:FE/src/utils/eventStatus.js:statusClass",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/admin/AdminPartnerApprovals.jsx:AdminPartnerApprovals",
+      "target": "function:FE/src/services/adminApi.js:fetchAdminPartners",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/admin/AdminPartnerApprovals.jsx:AdminPartnerApprovals",
+      "target": "function:FE/src/utils/partnerDisplay.js:partnerInitials",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/admin/AdminSchoolEventApprovals.jsx:AdminSchoolEventApprovals",
+      "target": "function:FE/src/services/adminApi.js:fetchAdminSchoolEvents",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/admin/AdminSchoolEventApprovals.jsx:AdminSchoolEventApprovals",
+      "target": "function:FE/src/constants/eventWorkflow.js:isSchoolEventPendingAdmin",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/CreateEvent.jsx:CreateEvent",
+      "target": "function:FE/src/components/ui/AppSelect.jsx:AppSelect",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:FE/src/main.jsx",
+      "target": "file:FE/src/App.jsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

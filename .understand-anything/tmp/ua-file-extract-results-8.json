@@ -1,0 +1,588 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 13,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "FE/src/components/settings/SettingsIcons.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 77,
+      "nonEmptyLines": 75,
+      "functions": [
+        {
+          "name": "IconBase",
+          "startLine": 1,
+          "endLine": 16,
+          "params": []
+        },
+        {
+          "name": "getSectionIcon",
+          "startLine": 77,
+          "endLine": 77,
+          "params": [
+            "sectionId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsIcons",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "getSectionIcon",
+          "line": 77,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/SettingsLayout.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "SettingsSectionHeader",
+          "startLine": 1,
+          "endLine": 6,
+          "params": []
+        },
+        {
+          "name": "SettingsCard",
+          "startLine": 8,
+          "endLine": 13,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SettingsSectionHeader",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "SettingsCard",
+          "line": 15,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/SettingsPanel.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "SettingsPanel",
+          "startLine": 10,
+          "endLine": 43,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsPanel",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "SettingsPanel",
+          "callee": "useSettingsPreferences",
+          "lineNumber": 12
+        },
+        {
+          "caller": "SettingsPanel",
+          "callee": "renderSection",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/SettingsRow.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 15,
+      "functions": [
+        {
+          "name": "SettingsRow",
+          "startLine": 3,
+          "endLine": 15,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/SettingsSidebar.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 27,
+      "nonEmptyLines": 25,
+      "functions": [
+        {
+          "name": "SettingsSidebar",
+          "startLine": 4,
+          "endLine": 25,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsSidebar",
+          "callee": "SETTINGS_SECTIONS.map",
+          "lineNumber": 8
+        },
+        {
+          "caller": "SettingsSidebar",
+          "callee": "onSelect",
+          "lineNumber": 14
+        },
+        {
+          "caller": "SettingsSidebar",
+          "callee": "getSectionIcon",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/SettingsToggle.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 20,
+      "functions": [
+        {
+          "name": "SettingsToggle",
+          "startLine": 1,
+          "endLine": 19,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SettingsToggle",
+          "callee": "onChange",
+          "lineNumber": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/sections/AboutSection.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 36,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "AboutSection",
+          "startLine": 6,
+          "endLine": 34,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AboutSection",
+          "callee": "useNavigate",
+          "lineNumber": 7
+        },
+        {
+          "caller": "AboutSection",
+          "callee": "navigate",
+          "lineNumber": 24
+        },
+        {
+          "caller": "AboutSection",
+          "callee": "navigate",
+          "lineNumber": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/sections/AppearanceSection.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "AppearanceSection",
+          "startLine": 11,
+          "endLine": 38,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AppearanceSection",
+          "callee": "updateSetting",
+          "lineNumber": 21
+        },
+        {
+          "caller": "AppearanceSection",
+          "callee": "updateSetting",
+          "lineNumber": 31
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/sections/NotificationsSection.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 32,
+      "nonEmptyLines": 29,
+      "functions": [
+        {
+          "name": "NotificationsSection",
+          "startLine": 5,
+          "endLine": 30,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "NotificationsSection",
+          "callee": "updateSetting",
+          "lineNumber": 14
+        },
+        {
+          "caller": "NotificationsSection",
+          "callee": "updateSetting",
+          "lineNumber": 20
+        },
+        {
+          "caller": "NotificationsSection",
+          "callee": "updateSetting",
+          "lineNumber": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/sections/SecuritySection.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 138,
+      "nonEmptyLines": 129,
+      "functions": [
+        {
+          "name": "SecuritySection",
+          "startLine": 7,
+          "endLine": 136,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SecuritySection",
+          "callee": "localStorage.getItem",
+          "lineNumber": 8
+        },
+        {
+          "caller": "SecuritySection",
+          "callee": "useState",
+          "lineNumber": 9
+        },
+        {
+          "caller": "SecuritySection",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "SecuritySection",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 18
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "showToast",
+          "lineNumber": 22
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "showToast",
+          "lineNumber": 26
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "showToast",
+          "lineNumber": 30
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "setLoading",
+          "lineNumber": 34
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "fetch(`${API_BASE}/api/user/change-password`, {\r\n      method: 'PUT',\r\n      headers: getAuthHeaders(),\r\n      body: JSON.stringify({ currentPassword, newPassword }),\r\n    })\r\n      .then((res) => res.json().then((data) => ({ status: res.status, data })))\r\n      .then(({ status, data }) => {\r\n        setLoading(false);\r\n        if (status === 200) {\r\n          setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });\r\n          setShowForm(false);\r\n          showToast('Đổi mật khẩu thành công.', 'success');\r\n        } else {\r\n          showToast(data.message || 'Đổi mật khẩu thất bại.', 'error');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "fetch(`${API_BASE}/api/user/change-password`, {\r\n      method: 'PUT',\r\n      headers: getAuthHeaders(),\r\n      body: JSON.stringify({ currentPassword, newPassword }),\r\n    })\r\n      .then((res) => res.json().then((data) => ({ status: res.status, data })))\r\n      .then",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "fetch(`${API_BASE}/api/user/change-password`, {\r\n      method: 'PUT',\r\n      headers: getAuthHeaders(),\r\n      body: JSON.stringify({ currentPassword, newPassword }),\r\n    })\r\n      .then",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "fetch",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "getAuthHeaders",
+          "lineNumber": 37
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 38
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "res.json().then",
+          "lineNumber": 40
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "res.json",
+          "lineNumber": 40
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "setLoading",
+          "lineNumber": 42
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "setPwForm",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "setShowForm",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "showToast",
+          "lineNumber": 46
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "showToast",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "setLoading",
+          "lineNumber": 52
+        },
+        {
+          "caller": "handlePasswordSubmit",
+          "callee": "showToast",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleLogoutAllDevices",
+          "callee": "showToast",
+          "lineNumber": 58
+        },
+        {
+          "caller": "SecuritySection",
+          "callee": "setShowForm",
+          "lineNumber": 75
+        },
+        {
+          "caller": "SecuritySection",
+          "callee": "setPwForm",
+          "lineNumber": 86
+        },
+        {
+          "caller": "SecuritySection",
+          "callee": "setPwForm",
+          "lineNumber": 96
+        },
+        {
+          "caller": "SecuritySection",
+          "callee": "setPwForm",
+          "lineNumber": 106
+        },
+        {
+          "caller": "SecuritySection",
+          "callee": "setShowForm",
+          "lineNumber": 116
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/sections/SupportSection.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 34,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "SupportSection",
+          "startLine": 6,
+          "endLine": 32,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SupportSection",
+          "callee": "useNavigate",
+          "lineNumber": 7
+        },
+        {
+          "caller": "SupportSection",
+          "callee": "navigate",
+          "lineNumber": 17
+        },
+        {
+          "caller": "SupportSection",
+          "callee": "navigate",
+          "lineNumber": 22
+        },
+        {
+          "caller": "SupportSection",
+          "callee": "navigate",
+          "lineNumber": 27
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/settings/settingsConfig.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 32,
+      "nonEmptyLines": 30,
+      "exports": [
+        {
+          "name": "SETTINGS_SECTIONS",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "SECTION_META",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "APP_VERSION",
+          "line": 32,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/Settings.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 15,
+      "functions": [
+        {
+          "name": "Settings",
+          "startLine": 4,
+          "endLine": 15,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

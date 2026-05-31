@@ -1,0 +1,248 @@
+{
+  "nodes": [
+    {
+      "id": "config:.cursor/mcp.json",
+      "type": "config",
+      "name": "mcp.json",
+      "filePath": ".cursor/mcp.json",
+      "summary": "Cấu hình MCP server Figma qua HTTP cho Cursor IDE, cho phép agent truy cập thiết kế Figma trong phiên làm việc.",
+      "tags": ["configuration", "mcp", "figma", "cursor-ide"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:.cursor/settings.json",
+      "type": "config",
+      "name": "settings.json",
+      "filePath": ".cursor/settings.json",
+      "summary": "Cài đặt workspace Cursor bật plugin Understand-Anything từ GitHub để phân tích và trực quan hóa kiến trúc mã nguồn.",
+      "tags": ["configuration", "cursor-ide", "plugins", "understand-anything"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.understand-anything/.understandignore",
+      "type": "file",
+      "name": ".understandignore",
+      "filePath": ".understand-anything/.understandignore",
+      "summary": "Danh sách mẫu file và thư mục loại trừ khỏi quá trình quét Understand-Anything, kế thừa các mục từ .gitignore và bỏ qua file test.",
+      "tags": ["configuration", "ignore-rules", "understand-anything", "tooling"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:BE/.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": "BE/.env.example",
+      "summary": "Mẫu biến môi trường backend gồm MongoDB, JWT, SMTP Gmail và Google OAuth/Calendar cho triển khai local và production.",
+      "tags": ["configuration", "environment", "security", "backend"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:BE/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "BE/package.json",
+      "summary": "Manifest npm của backend SWP391 với script khởi động, seed dữ liệu và các dependency Express, Mongoose, JWT, bcrypt.",
+      "tags": ["configuration", "npm", "backend", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/scripts/test-change-password.js",
+      "type": "file",
+      "name": "test-change-password.js",
+      "filePath": "BE/scripts/test-change-password.js",
+      "summary": "Script tích hợp kiểm thử luồng đổi mật khẩu qua REST API: login, verify, change-password và xác minh persistence trên server.",
+      "tags": ["test", "integration-test", "auth", "password"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/scripts/test-change-password.js:request",
+      "type": "function",
+      "name": "request",
+      "filePath": "BE/scripts/test-change-password.js",
+      "lineRange": [12, 23],
+      "summary": "Wrapper fetch gửi request JSON tới API backend và trả về status cùng body đã parse.",
+      "tags": ["utility", "http", "test-helper"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/scripts/test-change-password.js:run",
+      "type": "function",
+      "name": "run",
+      "filePath": "BE/scripts/test-change-password.js",
+      "lineRange": [32, 85],
+      "summary": "Điều phối toàn bộ kịch bản test đổi mật khẩu: xác thực, đổi mật khẩu, kiểm tra login cũ/mới và khôi phục trạng thái ban đầu.",
+      "tags": ["test", "orchestration", "auth", "integration-test"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:FE/eslint.config.js",
+      "type": "file",
+      "name": "eslint.config.js",
+      "filePath": "FE/eslint.config.js",
+      "summary": "Cấu hình ESLint flat cho frontend React/Vite với recommended rules, react-hooks và react-refresh plugin.",
+      "tags": ["configuration", "linting", "react", "frontend"],
+      "complexity": "simple",
+      "languageNotes": "Sử dụng ESLint 9 flat config với defineConfig và globalIgnores."
+    },
+    {
+      "id": "file:FE/src/App.css",
+      "type": "file",
+      "name": "App.css",
+      "filePath": "FE/src/App.css",
+      "summary": "Stylesheet component App kế thừa từ template Vite với hero animation, counter và layout demo ban đầu.",
+      "tags": ["stylesheet", "component", "vite-template"],
+      "complexity": "moderate",
+      "languageNotes": "Dùng CSS nesting với &:hover và &:focus-visible."
+    },
+    {
+      "id": "file:FE/src/index.css",
+      "type": "file",
+      "name": "index.css",
+      "filePath": "FE/src/index.css",
+      "summary": "Stylesheet toàn cục định nghĩa design system FPT (biến CSS, typography, component) cho toàn bộ ứng dụng frontend.",
+      "tags": ["stylesheet", "design-system", "global-styles", "theming"],
+      "complexity": "complex",
+      "languageNotes": "File CSS lớn (~15k dòng) chứa biến :root, utility classes và style cho hàng trăm component."
+    },
+    {
+      "id": "file:FE/src/styles/dark-theme.css",
+      "type": "file",
+      "name": "dark-theme.css",
+      "filePath": "FE/src/styles/dark-theme.css",
+      "summary": "Override giao diện tối kích hoạt bởi class html.dark, bao phủ layout, sidebar, form, modal và các trang dashboard.",
+      "tags": ["stylesheet", "dark-theme", "theming", "ui"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/styles/tailwind.css",
+      "type": "file",
+      "name": "tailwind.css",
+      "filePath": "FE/src/styles/tailwind.css",
+      "summary": "Entry point Tailwind CSS v4 với custom variant dark, token màu brand FPT và animation cho modal cài đặt.",
+      "tags": ["stylesheet", "tailwind", "design-tokens", "animation"],
+      "complexity": "simple",
+      "languageNotes": "Tailwind v4 với @import, @custom-variant và @theme inline."
+    },
+    {
+      "id": "file:FE/src/utils/password.js",
+      "type": "file",
+      "name": "password.js",
+      "filePath": "FE/src/utils/password.js",
+      "summary": "Utility đánh giá độ mạnh mật khẩu theo độ dài và loại ký tự, trả về level, nhãn tiếng Việt và số thanh hiển thị.",
+      "tags": ["utility", "validation", "password", "security"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/utils/password.js:getPasswordStrength",
+      "type": "function",
+      "name": "getPasswordStrength",
+      "filePath": "FE/src/utils/password.js",
+      "lineRange": [1, 25],
+      "summary": "Tính điểm mật khẩu dựa trên độ dài và regex (chữ thường, hoa, số, ký tự đặc biệt), phân loại very-weak đến strong.",
+      "tags": ["utility", "validation", "password", "scoring"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:FE/vite.config.js",
+      "type": "file",
+      "name": "vite.config.js",
+      "filePath": "FE/vite.config.js",
+      "summary": "Cấu hình Vite cho frontend React với plugin React và Tailwind CSS v4 qua @tailwindcss/vite.",
+      "tags": ["configuration", "build-system", "vite", "frontend"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:BE/scripts/test-change-password.js",
+      "target": "function:BE/scripts/test-change-password.js:request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:BE/scripts/test-change-password.js",
+      "target": "function:BE/scripts/test-change-password.js:run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:FE/src/utils/password.js",
+      "target": "function:FE/src/utils/password.js:getPasswordStrength",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:FE/src/utils/password.js",
+      "target": "function:FE/src/utils/password.js:getPasswordStrength",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "config:BE/.env.example",
+      "target": "file:BE/server.js",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:BE/package.json",
+      "target": "file:BE/server.js",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:FE/eslint.config.js",
+      "target": "file:FE/src/main.jsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:FE/vite.config.js",
+      "target": "file:FE/src/main.jsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:FE/src/index.css",
+      "target": "file:FE/src/main.jsx",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:FE/src/index.css",
+      "target": "file:FE/src/App.jsx",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:FE/src/styles/dark-theme.css",
+      "target": "file:FE/src/main.jsx",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:FE/src/styles/tailwind.css",
+      "target": "file:FE/src/main.jsx",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:BE/scripts/test-change-password.js",
+      "target": "config:BE/.env.example",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

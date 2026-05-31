@@ -1,0 +1,868 @@
+{
+  "nodes": [
+    {
+      "id": "file:FE/src/assets/brand.js",
+      "type": "file",
+      "name": "brand.js",
+      "filePath": "FE/src/assets/brand.js",
+      "summary": "Xuất logo và văn bản thay thế thương hiệu F-Events dùng chung cho header/footer portal.",
+      "tags": [
+        "tài-nguyên",
+        "thương-hiệu",
+        "frontend"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:FE/src/components/ClubDiscoveryCard.jsx",
+      "type": "file",
+      "name": "ClubDiscoveryCard.jsx",
+      "filePath": "FE/src/components/ClubDiscoveryCard.jsx",
+      "summary": "Thẻ React hiển thị câu lạc bộ trên trang khám phá với màu danh mục, số thành viên và nút khám phá.",
+      "tags": [
+        "component",
+        "react",
+        "câu-lạc-bộ",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/components/ClubDiscoveryCard.jsx:ClubDiscoveryCard",
+      "type": "function",
+      "name": "ClubDiscoveryCard",
+      "filePath": "FE/src/components/ClubDiscoveryCard.jsx",
+      "lineRange": [
+        10,
+        68
+      ],
+      "summary": "Component thẻ hiển thị thông tin câu lạc bộ với callback khám phá.",
+      "tags": [
+        "component",
+        "react",
+        "câu-lạc-bộ"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/components/ClubUpcomingEventCard.jsx",
+      "type": "file",
+      "name": "ClubUpcomingEventCard.jsx",
+      "filePath": "FE/src/components/ClubUpcomingEventCard.jsx",
+      "summary": "Thẻ sự kiện sắp tới của câu lạc bộ với ngày, địa điểm và hành động đăng ký.",
+      "tags": [
+        "component",
+        "react",
+        "sự-kiện",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/components/ClubUpcomingEventCard.jsx:ClubUpcomingEventCard",
+      "type": "function",
+      "name": "ClubUpcomingEventCard",
+      "filePath": "FE/src/components/ClubUpcomingEventCard.jsx",
+      "lineRange": [
+        15,
+        44
+      ],
+      "summary": "Component thẻ sự kiện sắp diễn ra của một câu lạc bộ.",
+      "tags": [
+        "component",
+        "react",
+        "sự-kiện"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:FE/src/components/DashboardSidebarNav.jsx",
+      "type": "file",
+      "name": "DashboardSidebarNav.jsx",
+      "filePath": "FE/src/components/DashboardSidebarNav.jsx",
+      "summary": "Thanh điều hướng sidebar cho dashboard sinh viên, render menu theo cấu hình và xử lý điều hướng.",
+      "tags": [
+        "component",
+        "react",
+        "navigation",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/components/DashboardSidebarNav.jsx:MenuIcon",
+      "type": "function",
+      "name": "MenuIcon",
+      "filePath": "FE/src/components/DashboardSidebarNav.jsx",
+      "lineRange": [
+        5,
+        78
+      ],
+      "summary": "Component SVG icon menu dùng trong sidebar dashboard.",
+      "tags": [
+        "component",
+        "icon",
+        "ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:FE/src/components/DashboardSidebarNav.jsx:DashboardSidebarNav",
+      "type": "function",
+      "name": "DashboardSidebarNav",
+      "filePath": "FE/src/components/DashboardSidebarNav.jsx",
+      "lineRange": [
+        80,
+        157
+      ],
+      "summary": "Render menu sidebar sinh viên và xử lý click điều hướng.",
+      "tags": [
+        "component",
+        "navigation",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/components/EventDiscoveryCard.jsx",
+      "type": "file",
+      "name": "EventDiscoveryCard.jsx",
+      "filePath": "FE/src/components/EventDiscoveryCard.jsx",
+      "summary": "Thẻ sự kiện trên trang khám phá với tiến độ đăng ký, nhãn danh mục và nút hành động chính.",
+      "tags": [
+        "component",
+        "react",
+        "sự-kiện",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/components/EventDiscoveryCard.jsx:EventDiscoveryCard",
+      "type": "function",
+      "name": "EventDiscoveryCard",
+      "filePath": "FE/src/components/EventDiscoveryCard.jsx",
+      "lineRange": [
+        16,
+        138
+      ],
+      "summary": "Component thẻ sự kiện với thanh tiến độ đăng ký và nút chi tiết/đăng ký.",
+      "tags": [
+        "component",
+        "react",
+        "sự-kiện"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/components/ProfileSidebarMenu.jsx",
+      "type": "file",
+      "name": "ProfileSidebarMenu.jsx",
+      "filePath": "FE/src/components/ProfileSidebarMenu.jsx",
+      "summary": "Menu popup sidebar hồ sơ người dùng trên site công khai với các mục điều hướng và đăng xuất.",
+      "tags": [
+        "component",
+        "react",
+        "hồ-sơ",
+        "navigation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/components/ProfileSidebarMenu.jsx:NavItem",
+      "type": "function",
+      "name": "NavItem",
+      "filePath": "FE/src/components/ProfileSidebarMenu.jsx",
+      "lineRange": [
+        12,
+        21
+      ],
+      "summary": "Hàm NavItem trong ProfileSidebarMenu.jsx.",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/components/ProfileSidebarMenu.jsx:ProfileSidebarMenu",
+      "type": "function",
+      "name": "ProfileSidebarMenu",
+      "filePath": "FE/src/components/ProfileSidebarMenu.jsx",
+      "lineRange": [
+        23,
+        140
+      ],
+      "summary": "Menu popup hồ sơ với các NavItem và handler hành động.",
+      "tags": [
+        "component",
+        "hồ-sơ",
+        "navigation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/components/SiteFooter.jsx",
+      "type": "file",
+      "name": "SiteFooter.jsx",
+      "filePath": "FE/src/components/SiteFooter.jsx",
+      "summary": "Footer site công khai với liên kết điều hướng, thông tin liên hệ và bản quyền F-Events.",
+      "tags": [
+        "component",
+        "react",
+        "layout",
+        "footer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/components/SiteFooter.jsx:SiteFooter",
+      "type": "function",
+      "name": "SiteFooter",
+      "filePath": "FE/src/components/SiteFooter.jsx",
+      "lineRange": [
+        5,
+        65
+      ],
+      "summary": "Footer tĩnh với các nhóm liên kết và thông tin bản quyền.",
+      "tags": [
+        "component",
+        "layout",
+        "footer"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/components/SiteHeader.jsx",
+      "type": "file",
+      "name": "SiteHeader.jsx",
+      "filePath": "FE/src/components/SiteHeader.jsx",
+      "summary": "Header site công khai với điều hướng, tìm kiếm, menu mobile và popup hồ sơ người dùng.",
+      "tags": [
+        "component",
+        "react",
+        "layout",
+        "navigation",
+        "auth"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:FE/src/components/SiteHeader.jsx:SiteHeader",
+      "type": "function",
+      "name": "SiteHeader",
+      "filePath": "FE/src/components/SiteHeader.jsx",
+      "lineRange": [
+        16,
+        201
+      ],
+      "summary": "Header điều hướng site công khai tích hợp useUserProfile và popup menu.",
+      "tags": [
+        "component",
+        "layout",
+        "auth"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "type": "file",
+      "name": "StudentDashboardLayout.jsx",
+      "filePath": "FE/src/components/StudentDashboardLayout.jsx",
+      "summary": "Layout bọc các trang dashboard sinh viên với sidebar, header, tải hồ sơ API và đăng xuất.",
+      "tags": [
+        "component",
+        "react",
+        "layout",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:FE/src/components/StudentDashboardLayout.jsx:StudentDashboardLayout",
+      "type": "function",
+      "name": "StudentDashboardLayout",
+      "filePath": "FE/src/components/StudentDashboardLayout.jsx",
+      "lineRange": [
+        12,
+        179
+      ],
+      "summary": "Layout dashboard bọc children, quản lý sidebar và tải hồ sơ từ API.",
+      "tags": [
+        "component",
+        "layout",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/components/ctsv/CtsvHamburgerButton.jsx",
+      "type": "file",
+      "name": "CtsvHamburgerButton.jsx",
+      "filePath": "FE/src/components/ctsv/CtsvHamburgerButton.jsx",
+      "summary": "Nút hamburger mở/đóng menu điều hướng mobile cho portal CTSV.",
+      "tags": [
+        "component",
+        "react",
+        "ctsv",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/components/ctsv/CtsvHamburgerButton.jsx:CtsvHamburgerButton",
+      "type": "function",
+      "name": "CtsvHamburgerButton",
+      "filePath": "FE/src/components/ctsv/CtsvHamburgerButton.jsx",
+      "lineRange": [
+        3,
+        18
+      ],
+      "summary": "Nút toggle menu mobile cho header portal CTSV.",
+      "tags": [
+        "component",
+        "ctsv",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:FE/src/components/ctsv/CtsvPortalFooter.jsx",
+      "type": "file",
+      "name": "CtsvPortalFooter.jsx",
+      "filePath": "FE/src/components/ctsv/CtsvPortalFooter.jsx",
+      "summary": "Footer portal CTSV với liên kết điều hướng nội bộ và logo thương hiệu.",
+      "tags": [
+        "component",
+        "react",
+        "ctsv",
+        "footer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/components/ctsv/CtsvPortalFooter.jsx:CtsvPortalFooter",
+      "type": "function",
+      "name": "CtsvPortalFooter",
+      "filePath": "FE/src/components/ctsv/CtsvPortalFooter.jsx",
+      "lineRange": [
+        5,
+        58
+      ],
+      "summary": "Footer portal với liên kết điều hướng nội bộ CTSV.",
+      "tags": [
+        "component",
+        "ctsv",
+        "footer"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "type": "file",
+      "name": "CtsvPortalHeader.jsx",
+      "filePath": "FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "summary": "Header portal CTSV với thanh tìm kiếm, menu desktop/mobile, popup hồ sơ và đăng xuất.",
+      "tags": [
+        "component",
+        "react",
+        "ctsv",
+        "navigation",
+        "auth"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:FE/src/components/ctsv/CtsvPortalHeader.jsx:CtsvPortalHeader",
+      "type": "function",
+      "name": "CtsvPortalHeader",
+      "filePath": "FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "lineRange": [
+        39,
+        210
+      ],
+      "summary": "Header portal CTSV với nav, tìm kiếm và menu hồ sơ.",
+      "tags": [
+        "component",
+        "ctsv",
+        "navigation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "type": "file",
+      "name": "CtsvProfileMenu.jsx",
+      "filePath": "FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "summary": "Menu popup hồ sơ cán bộ CTSV với các mục cài đặt và đăng xuất.",
+      "tags": [
+        "component",
+        "react",
+        "ctsv",
+        "hồ-sơ"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/components/ctsv/CtsvProfileMenu.jsx:Icon",
+      "type": "function",
+      "name": "Icon",
+      "filePath": "FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "lineRange": [
+        4,
+        19
+      ],
+      "summary": "Hàm Icon trong CtsvProfileMenu.jsx.",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/components/ctsv/CtsvProfileMenu.jsx:NavItem",
+      "type": "function",
+      "name": "NavItem",
+      "filePath": "FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "lineRange": [
+        21,
+        30
+      ],
+      "summary": "Hàm NavItem trong CtsvProfileMenu.jsx.",
+      "tags": [
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/components/ctsv/CtsvProfileMenu.jsx:CtsvProfileMenu",
+      "type": "function",
+      "name": "CtsvProfileMenu",
+      "filePath": "FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "lineRange": [
+        32,
+        138
+      ],
+      "summary": "Menu popup hồ sơ cán bộ CTSV.",
+      "tags": [
+        "component",
+        "ctsv",
+        "hồ-sơ"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:FE/src/components/ClubDiscoveryCard.jsx",
+      "target": "function:FE/src/components/ClubDiscoveryCard.jsx:ClubDiscoveryCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/ClubDiscoveryCard.jsx",
+      "target": "file:FE/src/data/clubDiscoveryData.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/ClubUpcomingEventCard.jsx",
+      "target": "function:FE/src/components/ClubUpcomingEventCard.jsx:ClubUpcomingEventCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/DashboardSidebarNav.jsx",
+      "target": "function:FE/src/components/DashboardSidebarNav.jsx:MenuIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/DashboardSidebarNav.jsx",
+      "target": "function:FE/src/components/DashboardSidebarNav.jsx:DashboardSidebarNav",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/DashboardSidebarNav.jsx",
+      "target": "file:FE/src/data/studentSidebarMenu.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/EventDiscoveryCard.jsx",
+      "target": "function:FE/src/components/EventDiscoveryCard.jsx:EventDiscoveryCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/EventDiscoveryCard.jsx",
+      "target": "file:FE/src/data/eventDiscoveryData.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/ProfileSidebarMenu.jsx",
+      "target": "function:FE/src/components/ProfileSidebarMenu.jsx:NavItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/ProfileSidebarMenu.jsx",
+      "target": "function:FE/src/components/ProfileSidebarMenu.jsx:ProfileSidebarMenu",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/ProfileSidebarMenu.jsx",
+      "target": "file:FE/src/constants/defaultAvatar.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/SiteFooter.jsx",
+      "target": "function:FE/src/components/SiteFooter.jsx:SiteFooter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/SiteHeader.jsx",
+      "target": "function:FE/src/components/SiteHeader.jsx:SiteHeader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/SiteHeader.jsx",
+      "target": "file:FE/src/components/ProfileSidebarMenu.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/SiteHeader.jsx",
+      "target": "file:FE/src/constants/defaultAvatar.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/SiteHeader.jsx",
+      "target": "file:FE/src/hooks/useUserProfile.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/SiteHeader.jsx",
+      "target": "file:FE/src/utils/authEvents.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/SiteHeader.jsx",
+      "target": "file:FE/src/utils/role.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "target": "function:FE/src/components/StudentDashboardLayout.jsx:StudentDashboardLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "target": "file:FE/src/components/DashboardSidebarNav.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "target": "file:FE/src/constants/defaultAvatar.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "target": "file:FE/src/hooks/useUserProfile.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "target": "file:FE/src/utils/api.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "target": "file:FE/src/utils/authEvents.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "target": "file:FE/src/utils/image.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "target": "file:FE/src/utils/role.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvHamburgerButton.jsx",
+      "target": "function:FE/src/components/ctsv/CtsvHamburgerButton.jsx:CtsvHamburgerButton",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalFooter.jsx",
+      "target": "function:FE/src/components/ctsv/CtsvPortalFooter.jsx:CtsvPortalFooter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalFooter.jsx",
+      "target": "file:FE/src/assets/brand.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "target": "function:FE/src/components/ctsv/CtsvPortalHeader.jsx:CtsvPortalHeader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "target": "file:FE/src/assets/brand.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "target": "file:FE/src/components/ctsv/CtsvHamburgerButton.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "target": "file:FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "target": "file:FE/src/utils/auth.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "target": "file:FE/src/utils/logout.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "target": "function:FE/src/components/ctsv/CtsvProfileMenu.jsx:Icon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "target": "function:FE/src/components/ctsv/CtsvProfileMenu.jsx:NavItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "target": "function:FE/src/components/ctsv/CtsvProfileMenu.jsx:CtsvProfileMenu",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "target": "file:FE/src/constants/defaultAvatar.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:FE/src/components/ClubDiscoveryCard.jsx:ClubDiscoveryCard",
+      "target": "function:FE/src/data/clubDiscoveryData.js:getCategoryColor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/ClubDiscoveryCard.jsx:ClubDiscoveryCard",
+      "target": "function:FE/src/data/clubDiscoveryData.js:formatMemberCount",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/DashboardSidebarNav.jsx:DashboardSidebarNav",
+      "target": "function:FE/src/data/studentSidebarMenu.js:getSidebarMenuSections",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/EventDiscoveryCard.jsx:EventDiscoveryCard",
+      "target": "function:FE/src/data/eventDiscoveryData.js:getFillPercent",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/EventDiscoveryCard.jsx:EventDiscoveryCard",
+      "target": "function:FE/src/data/eventDiscoveryData.js:getCategoryColor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/SiteHeader.jsx:SiteHeader",
+      "target": "function:FE/src/hooks/useUserProfile.js:useUserProfile",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/SiteHeader.jsx:SiteHeader",
+      "target": "function:FE/src/hooks/useUserProfile.js:clearUserProfileCache",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/SiteHeader.jsx:SiteHeader",
+      "target": "function:FE/src/utils/role.js:getRoleLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/SiteHeader.jsx:SiteHeader",
+      "target": "function:FE/src/utils/authEvents.js:dispatchAuthChanged",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/StudentDashboardLayout.jsx:StudentDashboardLayout",
+      "target": "function:FE/src/utils/api.js:getAuthHeaders",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/StudentDashboardLayout.jsx:StudentDashboardLayout",
+      "target": "function:FE/src/utils/image.js:resolveUserAvatar",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/StudentDashboardLayout.jsx:StudentDashboardLayout",
+      "target": "function:FE/src/hooks/useUserProfile.js:clearUserProfileCache",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/StudentDashboardLayout.jsx:StudentDashboardLayout",
+      "target": "function:FE/src/utils/role.js:getRoleLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/ctsv/CtsvPortalHeader.jsx:CtsvPortalHeader",
+      "target": "function:FE/src/utils/logout.js:logoutWithConfirm",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/ctsv/CtsvPortalHeader.jsx:CtsvPortalHeader",
+      "target": "function:FE/src/utils/auth.js:getRoleDisplayLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/components/ctsv/CtsvPortalHeader.jsx:CtsvPortalHeader",
+      "target": "function:FE/src/utils/auth.js:getUserRole",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "target": "file:FE/src/components/DashboardSidebarNav.jsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:FE/src/components/SiteHeader.jsx",
+      "target": "file:FE/src/components/ProfileSidebarMenu.jsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "target": "file:FE/src/components/ctsv/CtsvHamburgerButton.jsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "target": "file:FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

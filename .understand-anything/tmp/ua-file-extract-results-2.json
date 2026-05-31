@@ -1,0 +1,2994 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "FE/src/assets/brand.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 4,
+      "nonEmptyLines": 3,
+      "exports": [
+        {
+          "name": "FE_LOGO",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "FE_LOGO_ALT",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ClubDiscoveryCard.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 61,
+      "functions": [
+        {
+          "name": "MembersIcon",
+          "startLine": 4,
+          "endLine": 8,
+          "params": []
+        },
+        {
+          "name": "ClubDiscoveryCard",
+          "startLine": 10,
+          "endLine": 68,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ClubDiscoveryCard",
+          "callee": "getCategoryColor",
+          "lineNumber": 11
+        },
+        {
+          "caller": "ClubDiscoveryCard",
+          "callee": "formatMemberCount",
+          "lineNumber": 39
+        },
+        {
+          "caller": "ClubDiscoveryCard",
+          "callee": "onExplore",
+          "lineNumber": 61
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ClubUpcomingEventCard.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 46,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "CalendarIcon",
+          "startLine": 3,
+          "endLine": 7,
+          "params": []
+        },
+        {
+          "name": "LocationIcon",
+          "startLine": 9,
+          "endLine": 13,
+          "params": []
+        },
+        {
+          "name": "ClubUpcomingEventCard",
+          "startLine": 15,
+          "endLine": 44,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ClubUpcomingEventCard",
+          "callee": "onAction",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/DashboardSidebarNav.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 159,
+      "nonEmptyLines": 148,
+      "functions": [
+        {
+          "name": "MenuIcon",
+          "startLine": 5,
+          "endLine": 78,
+          "params": []
+        },
+        {
+          "name": "DashboardSidebarNav",
+          "startLine": 80,
+          "endLine": 157,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "DashboardSidebarNav",
+          "callee": "getSidebarMenuSections",
+          "lineNumber": 87
+        },
+        {
+          "caller": "handleItemClick",
+          "callee": "event.preventDefault",
+          "lineNumber": 90
+        },
+        {
+          "caller": "handleItemClick",
+          "callee": "onProfileMenuItem",
+          "lineNumber": 93
+        },
+        {
+          "caller": "handleItemClick",
+          "callee": "onCloseSidebar",
+          "lineNumber": 94
+        },
+        {
+          "caller": "handleItemClick",
+          "callee": "onNavigate",
+          "lineNumber": 99
+        },
+        {
+          "caller": "handleItemClick",
+          "callee": "onCloseSidebar",
+          "lineNumber": 100
+        },
+        {
+          "caller": "DashboardSidebarNav",
+          "callee": "sections.map",
+          "lineNumber": 107
+        },
+        {
+          "caller": "DashboardSidebarNav",
+          "callee": "section.items.map",
+          "lineNumber": 110
+        },
+        {
+          "caller": "DashboardSidebarNav",
+          "callee": "handleItemClick",
+          "lineNumber": 119
+        },
+        {
+          "caller": "DashboardSidebarNav",
+          "callee": "onCloseSidebar",
+          "lineNumber": 134
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/EventDiscoveryCard.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 140,
+      "nonEmptyLines": 125,
+      "functions": [
+        {
+          "name": "CalendarIcon",
+          "startLine": 4,
+          "endLine": 8,
+          "params": []
+        },
+        {
+          "name": "LocationIcon",
+          "startLine": 10,
+          "endLine": 14,
+          "params": []
+        },
+        {
+          "name": "EventDiscoveryCard",
+          "startLine": 16,
+          "endLine": 138,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "EventDiscoveryCard",
+          "callee": "getFillPercent",
+          "lineNumber": 33
+        },
+        {
+          "caller": "EventDiscoveryCard",
+          "callee": "getCategoryColor",
+          "lineNumber": 34
+        },
+        {
+          "caller": "EventDiscoveryCard",
+          "callee": "category.toUpperCase",
+          "lineNumber": 53
+        },
+        {
+          "caller": "EventDiscoveryCard",
+          "callee": "onDetail",
+          "lineNumber": 119
+        },
+        {
+          "caller": "EventDiscoveryCard",
+          "callee": "onPrimaryAction",
+          "lineNumber": 130
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ProfileSidebarMenu.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 142,
+      "nonEmptyLines": 133,
+      "functions": [
+        {
+          "name": "Icon",
+          "startLine": 4,
+          "endLine": 10,
+          "params": []
+        },
+        {
+          "name": "NavItem",
+          "startLine": 12,
+          "endLine": 21,
+          "params": []
+        },
+        {
+          "name": "ProfileSidebarMenu",
+          "startLine": 23,
+          "endLine": 140,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "handleAction",
+          "callee": "onMenuAction",
+          "lineNumber": 30
+        },
+        {
+          "caller": "ProfileSidebarMenu",
+          "callee": "handleAction",
+          "lineNumber": 59
+        },
+        {
+          "caller": "ProfileSidebarMenu",
+          "callee": "handleAction",
+          "lineNumber": 72
+        },
+        {
+          "caller": "ProfileSidebarMenu",
+          "callee": "handleAction",
+          "lineNumber": 85
+        },
+        {
+          "caller": "ProfileSidebarMenu",
+          "callee": "handleAction",
+          "lineNumber": 92
+        },
+        {
+          "caller": "ProfileSidebarMenu",
+          "callee": "handleAction",
+          "lineNumber": 119
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/SiteFooter.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 67,
+      "nonEmptyLines": 61,
+      "functions": [
+        {
+          "name": "SiteFooter",
+          "startLine": 5,
+          "endLine": 65,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 20
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 21
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 28
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 29
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 30
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 31
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 38
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 43
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 48
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 60
+        },
+        {
+          "caller": "SiteFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 61
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/SiteHeader.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 203,
+      "nonEmptyLines": 186,
+      "functions": [
+        {
+          "name": "SiteHeader",
+          "startLine": 16,
+          "endLine": 201,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SiteHeader",
+          "callee": "useNavigate",
+          "lineNumber": 23
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "useUserProfile",
+          "lineNumber": 26
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "useEffect",
+          "lineNumber": 28
+        },
+        {
+          "caller": "handleEscape",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 32
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "document.addEventListener",
+          "lineNumber": 35
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "document.removeEventListener",
+          "lineNumber": 36
+        },
+        {
+          "caller": "handleOpenProfilePopup",
+          "callee": "navigate",
+          "lineNumber": 41
+        },
+        {
+          "caller": "handleOpenProfilePopup",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handleProfileMenuAction",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleProfileMenuAction",
+          "callee": "navigate",
+          "lineNumber": 60
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 66
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 67
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "clearUserProfileCache",
+          "lineNumber": 68
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "dispatchAuthChanged",
+          "lineNumber": 69
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 70
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "navigate",
+          "lineNumber": 71
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "setMobileMenuOpen",
+          "lineNumber": 80
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "navigate",
+          "lineNumber": 93
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "navigate",
+          "lineNumber": 96
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "NAV_ITEMS.map",
+          "lineNumber": 99
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "setMobileMenuOpen",
+          "lineNumber": 104
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "onSearchChange",
+          "lineNumber": 122
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "getRoleLabel",
+          "lineNumber": 158
+        },
+        {
+          "caller": "SiteHeader",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 171
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/StudentDashboardLayout.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 181,
+      "nonEmptyLines": 165,
+      "functions": [
+        {
+          "name": "StudentDashboardLayout",
+          "startLine": 12,
+          "endLine": 179,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "useNavigate",
+          "lineNumber": 20
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "useEffect",
+          "lineNumber": 25
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "localStorage.getItem",
+          "lineNumber": 26
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "setProfileLoading",
+          "lineNumber": 28
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.ok ? res.json() : Promise.reject()))\r\n      .then((data) => {\r\n        const user = data.user || {};\r\n        setProfileData({\r\n          fullname: user.fullname || '',\r\n          picture: resolveUserAvatar(user, ''),\r\n          role: user.role || localStorage.getItem('userRole') || 'guest',\r\n        });\r\n      })\r\n      .catch(() => {})\r\n      .finally",
+          "lineNumber": 32
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.ok ? res.json() : Promise.reject()))\r\n      .then((data) => {\r\n        const user = data.user || {};\r\n        setProfileData({\r\n          fullname: user.fullname || '',\r\n          picture: resolveUserAvatar(user, ''),\r\n          role: user.role || localStorage.getItem('userRole') || 'guest',\r\n        });\r\n      })\r\n      .catch",
+          "lineNumber": 32
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.ok ? res.json() : Promise.reject()))\r\n      .then",
+          "lineNumber": 32
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 32
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "fetch",
+          "lineNumber": 32
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "getAuthHeaders",
+          "lineNumber": 32
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "res.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "Promise.reject",
+          "lineNumber": 33
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "setProfileData",
+          "lineNumber": 36
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "resolveUserAvatar",
+          "lineNumber": 38
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "localStorage.getItem",
+          "lineNumber": 39
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "setProfileLoading",
+          "lineNumber": 43
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 47
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 49
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 50
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "clearUserProfileCache",
+          "lineNumber": 51
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "dispatchAuthChanged",
+          "lineNumber": 52
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "navigate",
+          "lineNumber": 53
+        },
+        {
+          "caller": "handleScanClick",
+          "callee": "showToast",
+          "lineNumber": 57
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "setSidebarActive",
+          "lineNumber": 68
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "navigate",
+          "lineNumber": 75
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "navigate",
+          "lineNumber": 79
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "profileData.role?.toLowerCase",
+          "lineNumber": 91
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "getRoleLabel",
+          "lineNumber": 92
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "setSidebarActive",
+          "lineNumber": 102
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "setSidebarActive",
+          "lineNumber": 124
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "navigate",
+          "lineNumber": 140
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "profileData.role?.toLowerCase",
+          "lineNumber": 152
+        },
+        {
+          "caller": "StudentDashboardLayout",
+          "callee": "getRoleLabel",
+          "lineNumber": 153
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/CtsvHamburgerButton.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 18,
+      "functions": [
+        {
+          "name": "CtsvHamburgerButton",
+          "startLine": 3,
+          "endLine": 18,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/CtsvPortalFooter.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 60,
+      "nonEmptyLines": 57,
+      "functions": [
+        {
+          "name": "CtsvPortalFooter",
+          "startLine": 5,
+          "endLine": 58,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "useNavigate",
+          "lineNumber": 6
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 21
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "navigate",
+          "lineNumber": 21
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 26
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "navigate",
+          "lineNumber": 26
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 31
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "navigate",
+          "lineNumber": 31
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 41
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "navigate",
+          "lineNumber": 41
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "e.preventDefault",
+          "lineNumber": 46
+        },
+        {
+          "caller": "CtsvPortalFooter",
+          "callee": "navigate",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 212,
+      "nonEmptyLines": 195,
+      "functions": [
+        {
+          "name": "resolveActiveMenuItem",
+          "startLine": 31,
+          "endLine": 37,
+          "params": [
+            "pathname"
+          ]
+        },
+        {
+          "name": "CtsvPortalHeader",
+          "startLine": 39,
+          "endLine": 210,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "resolveActiveMenuItem",
+          "callee": "pathname.startsWith",
+          "lineNumber": 32
+        },
+        {
+          "caller": "resolveActiveMenuItem",
+          "callee": "pathname.startsWith",
+          "lineNumber": 33
+        },
+        {
+          "caller": "resolveActiveMenuItem",
+          "callee": "pathname.startsWith",
+          "lineNumber": 34
+        },
+        {
+          "caller": "resolveActiveMenuItem",
+          "callee": "pathname.startsWith",
+          "lineNumber": 35
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "useNavigate",
+          "lineNumber": 49
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "useLocation",
+          "lineNumber": 50
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "useState",
+          "lineNumber": 51
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "useState",
+          "lineNumber": 52
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "useMemo",
+          "lineNumber": 54
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "resolveActiveMenuItem",
+          "lineNumber": 54
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "getRoleDisplayLabel",
+          "lineNumber": 55
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "getUserRole",
+          "lineNumber": 55
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "useEffect",
+          "lineNumber": 57
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 58
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 62
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "logoutWithConfirm",
+          "lineNumber": 63
+        },
+        {
+          "caller": "handleProfileMenuAction",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 70
+        },
+        {
+          "caller": "handleProfileMenuAction",
+          "callee": "navigate",
+          "lineNumber": 72
+        },
+        {
+          "caller": "closeMobileNav",
+          "callee": "setMobileNavOpen",
+          "lineNumber": 75
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "navigate",
+          "lineNumber": 91
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "NAV_LINKS.map",
+          "lineNumber": 99
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "item.match",
+          "lineNumber": 103
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "path.startsWith",
+          "lineNumber": 111
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "onSearchChange",
+          "lineNumber": 133
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "onSearchSubmit",
+          "lineNumber": 134
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "setMobileNavOpen",
+          "lineNumber": 144
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "showToast",
+          "lineNumber": 155
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 173
+        },
+        {
+          "caller": "CtsvPortalHeader",
+          "callee": "setProfilePopupOpen",
+          "lineNumber": 190
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 140,
+      "nonEmptyLines": 131,
+      "functions": [
+        {
+          "name": "Icon",
+          "startLine": 4,
+          "endLine": 19,
+          "params": []
+        },
+        {
+          "name": "NavItem",
+          "startLine": 21,
+          "endLine": 30,
+          "params": []
+        },
+        {
+          "name": "CtsvProfileMenu",
+          "startLine": 32,
+          "endLine": 138,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "act",
+          "callee": "onMenuAction",
+          "lineNumber": 39
+        },
+        {
+          "caller": "CtsvProfileMenu",
+          "callee": "act",
+          "lineNumber": 68
+        },
+        {
+          "caller": "CtsvProfileMenu",
+          "callee": "act",
+          "lineNumber": 84
+        },
+        {
+          "caller": "CtsvProfileMenu",
+          "callee": "act",
+          "lineNumber": 97
+        },
+        {
+          "caller": "CtsvProfileMenu",
+          "callee": "act",
+          "lineNumber": 101
+        },
+        {
+          "caller": "CtsvProfileMenu",
+          "callee": "act",
+          "lineNumber": 121
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/CtsvSidebarAside.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 73,
+      "nonEmptyLines": 70,
+      "functions": [
+        {
+          "name": "CtsvSidebarAside",
+          "startLine": 12,
+          "endLine": 71,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "renderNavItems",
+          "callee": "CTSV_NAV_ITEMS.forEach",
+          "lineNumber": 22
+        },
+        {
+          "caller": "renderNavItems",
+          "callee": "out.push",
+          "lineNumber": 25
+        },
+        {
+          "caller": "renderNavItems",
+          "callee": "isCtsvNavActive",
+          "lineNumber": 31
+        },
+        {
+          "caller": "renderNavItems",
+          "callee": "out.push",
+          "lineNumber": 34
+        },
+        {
+          "caller": "renderNavItems",
+          "callee": "isCtsvDesktop",
+          "lineNumber": 40
+        },
+        {
+          "caller": "renderNavItems",
+          "callee": "onClose",
+          "lineNumber": 40
+        },
+        {
+          "caller": "CtsvSidebarAside",
+          "callee": "renderNavItems",
+          "lineNumber": 58
+        },
+        {
+          "caller": "CtsvSidebarAside",
+          "callee": "getRoleDisplayLabel",
+          "lineNumber": 63
+        },
+        {
+          "caller": "CtsvSidebarAside",
+          "callee": "getUserRole",
+          "lineNumber": 63
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/components/ctsv/ctsvNavConfig.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 47,
+      "nonEmptyLines": 42,
+      "functions": [
+        {
+          "name": "readSidebarPref",
+          "startLine": 14,
+          "endLine": 23,
+          "params": []
+        },
+        {
+          "name": "persistSidebarOpen",
+          "startLine": 25,
+          "endLine": 31,
+          "params": [
+            "open"
+          ]
+        },
+        {
+          "name": "isCtsvDesktop",
+          "startLine": 33,
+          "endLine": 33,
+          "params": []
+        },
+        {
+          "name": "isCtsvNavActive",
+          "startLine": 35,
+          "endLine": 47,
+          "params": [
+            "path",
+            "pathname"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SIDEBAR_KEY",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "CTSV_NAV_ITEMS",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "readSidebarPref",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "persistSidebarOpen",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "isCtsvDesktop",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "isCtsvNavActive",
+          "line": 35,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "readSidebarPref",
+          "callee": "sessionStorage.getItem",
+          "lineNumber": 16
+        },
+        {
+          "caller": "persistSidebarOpen",
+          "callee": "sessionStorage.setItem",
+          "lineNumber": 27
+        },
+        {
+          "caller": "isCtsvDesktop",
+          "callee": "window.matchMedia",
+          "lineNumber": 33
+        },
+        {
+          "caller": "isCtsvNavActive",
+          "callee": "pathname.startsWith",
+          "lineNumber": 43
+        },
+        {
+          "caller": "isCtsvNavActive",
+          "callee": "pathname.includes",
+          "lineNumber": 43
+        },
+        {
+          "caller": "isCtsvNavActive",
+          "callee": "pathname.startsWith",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 6,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/constants/defaultAvatar.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 3,
+      "nonEmptyLines": 2,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/data/clubDetailData.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 195,
+      "nonEmptyLines": 192,
+      "functions": [
+        {
+          "name": "mapApiClubToDetail",
+          "startLine": 101,
+          "endLine": 118,
+          "params": [
+            "club"
+          ]
+        },
+        {
+          "name": "buildClubDetailFromList",
+          "startLine": 121,
+          "endLine": 186,
+          "params": [
+            "club"
+          ]
+        },
+        {
+          "name": "getClubDetailById",
+          "startLine": 188,
+          "endLine": 195,
+          "params": [
+            "clubId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "FU_DEVER_DETAIL",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "mapApiClubToDetail",
+          "line": 101,
+          "isDefault": false
+        },
+        {
+          "name": "buildClubDetailFromList",
+          "line": 121,
+          "isDefault": false
+        },
+        {
+          "name": "getClubDetailById",
+          "line": 188,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "mapApiClubToDetail",
+          "callee": "buildClubDetailFromList",
+          "lineNumber": 101
+        },
+        {
+          "caller": "buildClubDetailFromList",
+          "callee": "club.name.startsWith",
+          "lineNumber": 126
+        },
+        {
+          "caller": "buildClubDetailFromList",
+          "callee": "Math.max",
+          "lineNumber": 134
+        },
+        {
+          "caller": "buildClubDetailFromList",
+          "callee": "Math.round",
+          "lineNumber": 134
+        },
+        {
+          "caller": "buildClubDetailFromList",
+          "callee": "club.featuredEvent.monthShort.replace",
+          "lineNumber": 176
+        },
+        {
+          "caller": "getClubDetailById",
+          "callee": "listClubs.find",
+          "lineNumber": 192
+        },
+        {
+          "caller": "getClubDetailById",
+          "callee": "buildClubDetailFromList",
+          "lineNumber": 193
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/data/clubDiscoveryData.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 166,
+      "nonEmptyLines": 159,
+      "functions": [
+        {
+          "name": "getCategoryColor",
+          "startLine": 13,
+          "endLine": 14,
+          "params": [
+            "category"
+          ]
+        },
+        {
+          "name": "formatMemberCount",
+          "startLine": 127,
+          "endLine": 127,
+          "params": [
+            "count"
+          ]
+        },
+        {
+          "name": "mapApiClubToListItem",
+          "startLine": 129,
+          "endLine": 144,
+          "params": [
+            "club"
+          ]
+        },
+        {
+          "name": "filterClubsBySearch",
+          "startLine": 146,
+          "endLine": 156,
+          "params": [
+            "clubs",
+            "query"
+          ]
+        },
+        {
+          "name": "filterClubsByTag",
+          "startLine": 158,
+          "endLine": 166,
+          "params": [
+            "clubs",
+            "tag"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "HERO_TAGS",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "CATEGORY_COLORS",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "getCategoryColor",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "CLUB_SAMPLE_DATA",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "formatMemberCount",
+          "line": 127,
+          "isDefault": false
+        },
+        {
+          "name": "mapApiClubToListItem",
+          "line": 129,
+          "isDefault": false
+        },
+        {
+          "name": "filterClubsBySearch",
+          "line": 146,
+          "isDefault": false
+        },
+        {
+          "name": "filterClubsByTag",
+          "line": 158,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "query.trim().toLowerCase",
+          "lineNumber": 147
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "query.trim",
+          "lineNumber": 147
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "clubs.filter",
+          "lineNumber": 149
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "club.name.toLowerCase().includes",
+          "lineNumber": 151
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "club.name.toLowerCase",
+          "lineNumber": 151
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "club.category.toLowerCase().includes",
+          "lineNumber": 152
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "club.category.toLowerCase",
+          "lineNumber": 152
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "club.description.toLowerCase().includes",
+          "lineNumber": 153
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "club.description.toLowerCase",
+          "lineNumber": 153
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "club.tags.some",
+          "lineNumber": 154
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "tag.includes",
+          "lineNumber": 154
+        },
+        {
+          "caller": "filterClubsBySearch",
+          "callee": "q.replace",
+          "lineNumber": 154
+        },
+        {
+          "caller": "filterClubsByTag",
+          "callee": "tag.replace('#', '').toLowerCase",
+          "lineNumber": 160
+        },
+        {
+          "caller": "filterClubsByTag",
+          "callee": "tag.replace",
+          "lineNumber": 160
+        },
+        {
+          "caller": "filterClubsByTag",
+          "callee": "clubs.filter",
+          "lineNumber": 161
+        },
+        {
+          "caller": "filterClubsByTag",
+          "callee": "club.category.toLowerCase().includes",
+          "lineNumber": 163
+        },
+        {
+          "caller": "filterClubsByTag",
+          "callee": "club.category.toLowerCase",
+          "lineNumber": 163
+        },
+        {
+          "caller": "filterClubsByTag",
+          "callee": "club.tags.some",
+          "lineNumber": 164
+        },
+        {
+          "caller": "filterClubsByTag",
+          "callee": "t.includes",
+          "lineNumber": 164
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/data/eventDetailData.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 237,
+      "nonEmptyLines": 217,
+      "functions": [
+        {
+          "name": "formatShortDate",
+          "startLine": 40,
+          "endLine": 48,
+          "params": [
+            "dateInput"
+          ]
+        },
+        {
+          "name": "formatTime",
+          "startLine": 50,
+          "endLine": 54,
+          "params": [
+            "dateInput"
+          ]
+        },
+        {
+          "name": "buildTimeRange",
+          "startLine": 56,
+          "endLine": 61,
+          "params": [
+            "startDate",
+            "endDate"
+          ]
+        },
+        {
+          "name": "buildRegistrationDeadline",
+          "startLine": 63,
+          "endLine": 69,
+          "params": [
+            "startDate"
+          ]
+        },
+        {
+          "name": "splitDescription",
+          "startLine": 71,
+          "endLine": 76,
+          "params": [
+            "text"
+          ]
+        },
+        {
+          "name": "buildAgenda",
+          "startLine": 78,
+          "endLine": 112,
+          "params": [
+            "startDate",
+            "endDate"
+          ]
+        },
+        {
+          "name": "getRegistrationStatus",
+          "startLine": 114,
+          "endLine": 128,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "getPrimaryActionLabel",
+          "startLine": 130,
+          "endLine": 141,
+          "params": [
+            "event",
+            "isRegistered",
+            "amountDue",
+            "listPrice"
+          ]
+        },
+        {
+          "name": "mapApiEventToDetail",
+          "startLine": 143,
+          "endLine": 200,
+          "params": [
+            "event"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "mapApiEventToDetail",
+          "line": 143,
+          "isDefault": false
+        },
+        {
+          "name": "FIGMA_EVENT_DETAIL_FALLBACK",
+          "line": 202,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatShortDate",
+          "callee": "Number.isNaN",
+          "lineNumber": 42
+        },
+        {
+          "caller": "formatShortDate",
+          "callee": "date.getTime",
+          "lineNumber": 42
+        },
+        {
+          "caller": "formatShortDate",
+          "callee": "date.toLocaleDateString",
+          "lineNumber": 43
+        },
+        {
+          "caller": "formatTime",
+          "callee": "Number.isNaN",
+          "lineNumber": 52
+        },
+        {
+          "caller": "formatTime",
+          "callee": "date.getTime",
+          "lineNumber": 52
+        },
+        {
+          "caller": "formatTime",
+          "callee": "date.toLocaleTimeString",
+          "lineNumber": 53
+        },
+        {
+          "caller": "buildTimeRange",
+          "callee": "formatTime",
+          "lineNumber": 57
+        },
+        {
+          "caller": "buildTimeRange",
+          "callee": "formatTime",
+          "lineNumber": 58
+        },
+        {
+          "caller": "buildRegistrationDeadline",
+          "callee": "Number.isNaN",
+          "lineNumber": 65
+        },
+        {
+          "caller": "buildRegistrationDeadline",
+          "callee": "start.getTime",
+          "lineNumber": 65
+        },
+        {
+          "caller": "buildRegistrationDeadline",
+          "callee": "deadline.setDate",
+          "lineNumber": 67
+        },
+        {
+          "caller": "buildRegistrationDeadline",
+          "callee": "deadline.getDate",
+          "lineNumber": 67
+        },
+        {
+          "caller": "buildRegistrationDeadline",
+          "callee": "formatShortDate",
+          "lineNumber": 68
+        },
+        {
+          "caller": "splitDescription",
+          "callee": "text.split(/\\n\\n+/).map((p) => p.trim()).filter",
+          "lineNumber": 73
+        },
+        {
+          "caller": "splitDescription",
+          "callee": "text.split(/\\n\\n+/).map",
+          "lineNumber": 73
+        },
+        {
+          "caller": "splitDescription",
+          "callee": "text.split",
+          "lineNumber": 73
+        },
+        {
+          "caller": "splitDescription",
+          "callee": "p.trim",
+          "lineNumber": 73
+        },
+        {
+          "caller": "splitDescription",
+          "callee": "text.trim",
+          "lineNumber": 75
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "Number.isNaN",
+          "lineNumber": 81
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "start.getTime",
+          "lineNumber": 81
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "Number.isNaN",
+          "lineNumber": 81
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "end.getTime",
+          "lineNumber": 81
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "end.getTime",
+          "lineNumber": 89
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "start.getTime",
+          "lineNumber": 89
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "start.getTime",
+          "lineNumber": 91
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "start.getTime",
+          "lineNumber": 92
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "/workshop/i.test",
+          "lineNumber": 94
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "formatTime",
+          "lineNumber": 98
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "formatTime",
+          "lineNumber": 98
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "formatTime",
+          "lineNumber": 102
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "formatTime",
+          "lineNumber": 102
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "formatTime",
+          "lineNumber": 108
+        },
+        {
+          "caller": "buildAgenda",
+          "callee": "formatTime",
+          "lineNumber": 108
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "getFillPercent",
+          "lineNumber": 148
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "getRegistrationStatus",
+          "lineNumber": 149
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "Math.max",
+          "lineNumber": 150
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "Number",
+          "lineNumber": 150
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "formatVnd",
+          "lineNumber": 152
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "getCategoryColor",
+          "lineNumber": 162
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "event.category?.toUpperCase",
+          "lineNumber": 165
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "formatShortDate",
+          "lineNumber": 167
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "buildTimeRange",
+          "lineNumber": 168
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "splitDescription",
+          "lineNumber": 172
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "buildAgenda",
+          "lineNumber": 174
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "buildRegistrationDeadline",
+          "lineNumber": 189
+        },
+        {
+          "caller": "mapApiEventToDetail",
+          "callee": "getPrimaryActionLabel",
+          "lineNumber": 191
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 9,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/data/eventDiscoveryData.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 293,
+      "nonEmptyLines": 267,
+      "functions": [
+        {
+          "name": "formatEventDate",
+          "startLine": 3,
+          "endLine": 11,
+          "params": [
+            "dateInput"
+          ]
+        },
+        {
+          "name": "getCategoryColor",
+          "startLine": 45,
+          "endLine": 46,
+          "params": [
+            "category"
+          ]
+        },
+        {
+          "name": "getPrimaryLabel",
+          "startLine": 148,
+          "endLine": 152,
+          "params": [
+            "eventState"
+          ]
+        },
+        {
+          "name": "isEventActiveForDiscovery",
+          "startLine": 155,
+          "endLine": 166,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "filterActiveDiscoveryEvents",
+          "startLine": 168,
+          "endLine": 169,
+          "params": [
+            "events"
+          ]
+        },
+        {
+          "name": "getEventCardStateGroup",
+          "startLine": 172,
+          "endLine": 176,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "filterEventsByState",
+          "startLine": 178,
+          "endLine": 181,
+          "params": [
+            "events",
+            "stateId"
+          ]
+        },
+        {
+          "name": "sortEventsByStatePriority",
+          "startLine": 185,
+          "endLine": 190,
+          "params": [
+            "events"
+          ]
+        },
+        {
+          "name": "mapApiEventToCard",
+          "startLine": 192,
+          "endLine": 226,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "mapApiEventToHomeCard",
+          "startLine": 228,
+          "endLine": 264,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "getFillPercent",
+          "startLine": 266,
+          "endLine": 269,
+          "params": [
+            "filled",
+            "total"
+          ]
+        },
+        {
+          "name": "filterEventsByCategory",
+          "startLine": 271,
+          "endLine": 282,
+          "params": [
+            "events",
+            "filterId"
+          ]
+        },
+        {
+          "name": "filterEventsBySearch",
+          "startLine": 284,
+          "endLine": 293,
+          "params": [
+            "events",
+            "query"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "CATEGORY_FILTERS",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "STATE_FILTERS",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "CATEGORY_COLORS",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "getCategoryColor",
+          "line": 45,
+          "isDefault": false
+        },
+        {
+          "name": "FIGMA_SAMPLE_EVENTS",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "isEventActiveForDiscovery",
+          "line": 155,
+          "isDefault": false
+        },
+        {
+          "name": "filterActiveDiscoveryEvents",
+          "line": 168,
+          "isDefault": false
+        },
+        {
+          "name": "getEventCardStateGroup",
+          "line": 172,
+          "isDefault": false
+        },
+        {
+          "name": "filterEventsByState",
+          "line": 178,
+          "isDefault": false
+        },
+        {
+          "name": "sortEventsByStatePriority",
+          "line": 185,
+          "isDefault": false
+        },
+        {
+          "name": "mapApiEventToCard",
+          "line": 192,
+          "isDefault": false
+        },
+        {
+          "name": "mapApiEventToHomeCard",
+          "line": 228,
+          "isDefault": false
+        },
+        {
+          "name": "getFillPercent",
+          "line": 266,
+          "isDefault": false
+        },
+        {
+          "name": "filterEventsByCategory",
+          "line": 271,
+          "isDefault": false
+        },
+        {
+          "name": "filterEventsBySearch",
+          "line": 284,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatEventDate",
+          "callee": "Number.isNaN",
+          "lineNumber": 5
+        },
+        {
+          "caller": "formatEventDate",
+          "callee": "date.getTime",
+          "lineNumber": 5
+        },
+        {
+          "caller": "formatEventDate",
+          "callee": "date.toLocaleDateString",
+          "lineNumber": 6
+        },
+        {
+          "caller": "isEventActiveForDiscovery",
+          "callee": "Number.isNaN",
+          "lineNumber": 159
+        },
+        {
+          "caller": "isEventActiveForDiscovery",
+          "callee": "end.getTime",
+          "lineNumber": 159
+        },
+        {
+          "caller": "filterActiveDiscoveryEvents",
+          "callee": "events.filter",
+          "lineNumber": 169
+        },
+        {
+          "caller": "filterEventsByState",
+          "callee": "events.filter",
+          "lineNumber": 180
+        },
+        {
+          "caller": "filterEventsByState",
+          "callee": "getEventCardStateGroup",
+          "lineNumber": 180
+        },
+        {
+          "caller": "sortEventsByStatePriority",
+          "callee": "[...events].sort",
+          "lineNumber": 186
+        },
+        {
+          "caller": "sortEventsByStatePriority",
+          "callee": "getEventCardStateGroup",
+          "lineNumber": 188
+        },
+        {
+          "caller": "sortEventsByStatePriority",
+          "callee": "getEventCardStateGroup",
+          "lineNumber": 189
+        },
+        {
+          "caller": "mapApiEventToCard",
+          "callee": "Math.max",
+          "lineNumber": 198
+        },
+        {
+          "caller": "mapApiEventToCard",
+          "callee": "Number",
+          "lineNumber": 198
+        },
+        {
+          "caller": "mapApiEventToCard",
+          "callee": "formatVnd",
+          "lineNumber": 200
+        },
+        {
+          "caller": "mapApiEventToCard",
+          "callee": "formatEventDate",
+          "lineNumber": 209
+        },
+        {
+          "caller": "mapApiEventToCard",
+          "callee": "getPrimaryLabel",
+          "lineNumber": 217
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "Math.max",
+          "lineNumber": 232
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "Number.isNaN",
+          "lineNumber": 246
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "start.getTime",
+          "lineNumber": 246
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "start.toLocaleDateString",
+          "lineNumber": 248
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "Number.isNaN",
+          "lineNumber": 249
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "start.getTime",
+          "lineNumber": 249
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "start.toLocaleTimeString",
+          "lineNumber": 251
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "Math.max",
+          "lineNumber": 259
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "Number",
+          "lineNumber": 259
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "Math.max",
+          "lineNumber": 260
+        },
+        {
+          "caller": "mapApiEventToHomeCard",
+          "callee": "Number",
+          "lineNumber": 260
+        },
+        {
+          "caller": "getFillPercent",
+          "callee": "Math.min",
+          "lineNumber": 268
+        },
+        {
+          "caller": "getFillPercent",
+          "callee": "Math.round",
+          "lineNumber": 268
+        },
+        {
+          "caller": "filterEventsByCategory",
+          "callee": "CATEGORY_FILTERS.find",
+          "lineNumber": 273
+        },
+        {
+          "caller": "filterEventsByCategory",
+          "callee": "events.filter",
+          "lineNumber": 276
+        },
+        {
+          "caller": "filterEventsByCategory",
+          "callee": "ev.filterTags?.includes",
+          "lineNumber": 277
+        },
+        {
+          "caller": "filterEventsByCategory",
+          "callee": "filter.categories.some",
+          "lineNumber": 278
+        },
+        {
+          "caller": "filterEventsByCategory",
+          "callee": "ev.category?.toLowerCase",
+          "lineNumber": 279
+        },
+        {
+          "caller": "filterEventsByCategory",
+          "callee": "cat.toLowerCase",
+          "lineNumber": 279
+        },
+        {
+          "caller": "filterEventsBySearch",
+          "callee": "query.trim().toLowerCase",
+          "lineNumber": 285
+        },
+        {
+          "caller": "filterEventsBySearch",
+          "callee": "query.trim",
+          "lineNumber": 285
+        },
+        {
+          "caller": "filterEventsBySearch",
+          "callee": "events.filter",
+          "lineNumber": 287
+        },
+        {
+          "caller": "filterEventsBySearch",
+          "callee": "ev.title.toLowerCase().includes",
+          "lineNumber": 289
+        },
+        {
+          "caller": "filterEventsBySearch",
+          "callee": "ev.title.toLowerCase",
+          "lineNumber": 289
+        },
+        {
+          "caller": "filterEventsBySearch",
+          "callee": "ev.location.toLowerCase().includes",
+          "lineNumber": 290
+        },
+        {
+          "caller": "filterEventsBySearch",
+          "callee": "ev.location.toLowerCase",
+          "lineNumber": 290
+        },
+        {
+          "caller": "filterEventsBySearch",
+          "callee": "ev.category.toLowerCase().includes",
+          "lineNumber": 291
+        },
+        {
+          "caller": "filterEventsBySearch",
+          "callee": "ev.category.toLowerCase",
+          "lineNumber": 291
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 15,
+        "functionCount": 13,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/data/speakerSeedData.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 38,
+      "nonEmptyLines": 36,
+      "exports": [
+        {
+          "name": "SPEAKER_AVATARS",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "SAMPLE_SPEAKERS",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/data/studentMockData.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 185,
+      "nonEmptyLines": 172,
+      "functions": [
+        {
+          "name": "getAnnouncementById",
+          "startLine": 179,
+          "endLine": 179,
+          "params": [
+            "id"
+          ]
+        },
+        {
+          "name": "getGreeting",
+          "startLine": 181,
+          "endLine": 185,
+          "params": [
+            "name"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "dashboardStats",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "todayTimeline",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "upcomingRecommendations",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "myEvents",
+          "line": 45,
+          "isDefault": false
+        },
+        {
+          "name": "scheduleEvents",
+          "line": 86,
+          "isDefault": false
+        },
+        {
+          "name": "pendingReviews",
+          "line": 93,
+          "isDefault": false
+        },
+        {
+          "name": "completedReviews",
+          "line": 110,
+          "isDefault": false
+        },
+        {
+          "name": "announcements",
+          "line": 120,
+          "isDefault": false
+        },
+        {
+          "name": "getAnnouncementById",
+          "line": 179,
+          "isDefault": false
+        },
+        {
+          "name": "getGreeting",
+          "line": 181,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getAnnouncementById",
+          "callee": "announcements.find",
+          "lineNumber": 179
+        },
+        {
+          "caller": "getGreeting",
+          "callee": "new Date().getHours",
+          "lineNumber": 182
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 10,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/data/studentSidebarMenu.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 23,
+      "functions": [
+        {
+          "name": "getSidebarMenuSections",
+          "startLine": 24,
+          "endLine": 24,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "studentMenuSections",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "getSidebarMenuSections",
+          "line": 24,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/hooks/useUserProfile.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 118,
+      "nonEmptyLines": 102,
+      "functions": [
+        {
+          "name": "readCachedProfile",
+          "startLine": 16,
+          "endLine": 29,
+          "params": []
+        },
+        {
+          "name": "writeCachedProfile",
+          "startLine": 31,
+          "endLine": 45,
+          "params": [
+            "profile"
+          ]
+        },
+        {
+          "name": "clearUserProfileCache",
+          "startLine": 47,
+          "endLine": 49,
+          "params": []
+        },
+        {
+          "name": "cacheUserProfile",
+          "startLine": 51,
+          "endLine": 53,
+          "params": [
+            "profile"
+          ]
+        },
+        {
+          "name": "useUserProfile",
+          "startLine": 55,
+          "endLine": 116,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "clearUserProfileCache",
+          "line": 47,
+          "isDefault": false
+        },
+        {
+          "name": "cacheUserProfile",
+          "line": 51,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "readCachedProfile",
+          "callee": "sessionStorage.getItem",
+          "lineNumber": 18
+        },
+        {
+          "caller": "readCachedProfile",
+          "callee": "JSON.parse",
+          "lineNumber": 20
+        },
+        {
+          "caller": "writeCachedProfile",
+          "callee": "sessionStorage.setItem",
+          "lineNumber": 33
+        },
+        {
+          "caller": "writeCachedProfile",
+          "callee": "JSON.stringify",
+          "lineNumber": 35
+        },
+        {
+          "caller": "clearUserProfileCache",
+          "callee": "sessionStorage.removeItem",
+          "lineNumber": 48
+        },
+        {
+          "caller": "cacheUserProfile",
+          "callee": "writeCachedProfile",
+          "lineNumber": 52
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "useState",
+          "lineNumber": 56
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "localStorage.getItem",
+          "lineNumber": 57
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "useState",
+          "lineNumber": 59
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "localStorage.getItem",
+          "lineNumber": 60
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "useState",
+          "lineNumber": 62
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "readCachedProfile",
+          "lineNumber": 63
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "useCallback",
+          "lineNumber": 66
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "localStorage.getItem",
+          "lineNumber": 67
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "setIsLoggedIn",
+          "lineNumber": 68
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "setUserProfile",
+          "lineNumber": 71
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "setProfileLoading",
+          "lineNumber": 72
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "localStorage.getItem",
+          "lineNumber": 76
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "setProfileLoading",
+          "lineNumber": 78
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "setProfileLoading",
+          "lineNumber": 82
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('profile fetch failed'))))\r\n      .then((data) => {\r\n        const u = data.user;\r\n        const profile = {\r\n          fullname: u.fullname || '',\r\n          course: u.course || '',\r\n          picture: resolveUserAvatar(u, defaultAvatar),\r\n          role: u.role || 'guest',\r\n        };\r\n        setUserProfile(profile);\r\n        localStorage.setItem('userRole', profile.role);\r\n        writeCachedProfile(profile);\r\n      })\r\n      .catch(() => {\r\n        const cached = readCachedProfile();\r\n        if (cached) setUserProfile(cached);\r\n      })\r\n      .finally",
+          "lineNumber": 84
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('profile fetch failed'))))\r\n      .then((data) => {\r\n        const u = data.user;\r\n        const profile = {\r\n          fullname: u.fullname || '',\r\n          course: u.course || '',\r\n          picture: resolveUserAvatar(u, defaultAvatar),\r\n          role: u.role || 'guest',\r\n        };\r\n        setUserProfile(profile);\r\n        localStorage.setItem('userRole', profile.role);\r\n        writeCachedProfile(profile);\r\n      })\r\n      .catch",
+          "lineNumber": 84
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('profile fetch failed'))))\r\n      .then",
+          "lineNumber": 84
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 84
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "fetch",
+          "lineNumber": 84
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "getAuthHeaders",
+          "lineNumber": 84
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "res.json",
+          "lineNumber": 85
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "Promise.reject",
+          "lineNumber": 85
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "resolveUserAvatar",
+          "lineNumber": 91
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "setUserProfile",
+          "lineNumber": 94
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "localStorage.setItem",
+          "lineNumber": 95
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "writeCachedProfile",
+          "lineNumber": 96
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "readCachedProfile",
+          "lineNumber": 99
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "setUserProfile",
+          "lineNumber": 100
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "setProfileLoading",
+          "lineNumber": 102
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "useEffect",
+          "lineNumber": 105
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "refreshProfile",
+          "lineNumber": 106
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "useEffect",
+          "lineNumber": 109
+        },
+        {
+          "caller": "handleAuthChanged",
+          "callee": "refreshProfile",
+          "lineNumber": 110
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "window.addEventListener",
+          "lineNumber": 111
+        },
+        {
+          "caller": "useUserProfile",
+          "callee": "window.removeEventListener",
+          "lineNumber": 112
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/layouts/CtsvLayout.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 259,
+      "nonEmptyLines": 134,
+      "functions": [
+        {
+          "name": "CtsvLayout",
+          "startLine": 33,
+          "endLine": 254,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "CtsvLayout",
+          "callee": "useNavigate",
+          "lineNumber": 35
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useLocation",
+          "lineNumber": 37
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useState",
+          "lineNumber": 39
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useState",
+          "lineNumber": 41
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useRef",
+          "lineNumber": 43
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "localStorage.getItem",
+          "lineNumber": 47
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useCallback",
+          "lineNumber": 55
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "isCtsvRole",
+          "lineNumber": 56
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "navigate",
+          "lineNumber": 57
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "localStorage.getItem",
+          "lineNumber": 60
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.status === 200 ? res.json() : Promise.reject()))\r\n      .then((data) => {\r\n        const role = normalizeRole(data.user?.role);\r\n        if (!isCtsvRole(role)) {\r\n          navigate('/', { replace: true });\r\n          return;\r\n        }\r\n        localStorage.setItem('userRole', role);\r\n        if (data.user?.fullname) {\r\n          localStorage.setItem('userFullname', data.user.fullname);\r\n        }\r\n        setUserProfile({\r\n          fullname: data.user.fullname || 'Cán bộ CTSV',\r\n          picture: resolveUserAvatar(data.user, defaultAvatar)\r\n        });\r\n      })\r\n      .catch",
+          "lineNumber": 62
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.status === 200 ? res.json() : Promise.reject()))\r\n      .then",
+          "lineNumber": 62
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 62
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "fetch",
+          "lineNumber": 62
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "getAuthHeaders",
+          "lineNumber": 62
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "res.json",
+          "lineNumber": 63
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "Promise.reject",
+          "lineNumber": 63
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "normalizeRole",
+          "lineNumber": 65
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "isCtsvRole",
+          "lineNumber": 66
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "navigate",
+          "lineNumber": 67
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "localStorage.setItem",
+          "lineNumber": 70
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "localStorage.setItem",
+          "lineNumber": 72
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "setUserProfile",
+          "lineNumber": 74
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "resolveUserAvatar",
+          "lineNumber": 76
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useEffect",
+          "lineNumber": 82
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "loadCtsvUserProfile",
+          "lineNumber": 83
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useEffect",
+          "lineNumber": 86
+        },
+        {
+          "caller": "onAuthChanged",
+          "callee": "loadCtsvUserProfile",
+          "lineNumber": 87
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "window.addEventListener",
+          "lineNumber": 88
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "window.removeEventListener",
+          "lineNumber": 89
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useCallback",
+          "lineNumber": 94
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "setSidebarOpen",
+          "lineNumber": 96
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "persistSidebarOpen",
+          "lineNumber": 100
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "useCallback",
+          "lineNumber": 110
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "setSidebarOpen",
+          "lineNumber": 112
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "persistSidebarOpen",
+          "lineNumber": 114
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "logoutWithConfirm",
+          "lineNumber": 122
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "isCtsvDesktop",
+          "lineNumber": 142
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "headerSearchSubmitRef.current",
+          "lineNumber": 200
+        },
+        {
+          "caller": "CtsvLayout",
+          "callee": "navigate",
+          "lineNumber": 204
+        }
+      ],
+      "metrics": {
+        "importCount": 10,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

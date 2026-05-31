@@ -1,0 +1,13 @@
+{
+  "projectRoot": "c:\\Users\\Thuan\\OneDrive\\Documents\\SWP391_Project\\SWP391-1",
+  "batchFiles": [
+    {"path": "README.md", "language": "markdown", "sizeLines": 0, "fileCategory": "docs"},
+    {"path": "test_api.ps1", "language": "powershell", "sizeLines": 141, "fileCategory": "script"},
+    {"path": "test_role_detection.ps1", "language": "powershell", "sizeLines": 323, "fileCategory": "script"}
+  ],
+  "batchImportData": {
+    "README.md": [],
+    "test_api.ps1": [],
+    "test_role_detection.ps1": []
+  }
+}

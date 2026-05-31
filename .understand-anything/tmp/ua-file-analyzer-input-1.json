@@ -1,0 +1,276 @@
+{
+  "projectRoot": "c:/Users/Thuan/OneDrive/Documents/SWP391_Project/SWP391-1",
+  "batchFiles": [
+    {
+      "path": "BE/backfill-roles.js",
+      "language": "javascript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/scripts/fix-role-case.js",
+      "language": "javascript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/scripts/test-avatar-save.js",
+      "language": "javascript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/seed-ctsv-demo.js",
+      "language": "javascript",
+      "sizeLines": 213,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/seed-events.js",
+      "language": "javascript",
+      "sizeLines": 63,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/seed.js",
+      "language": "javascript",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/config/db.js",
+      "language": "javascript",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/constants/eventCategories.js",
+      "language": "javascript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/constants/eventSpeaker.js",
+      "language": "javascript",
+      "sizeLines": 66,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/constants/eventVenues.js",
+      "language": "javascript",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/constants/eventWorkflow.js",
+      "language": "javascript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/data/eventSeedData.js",
+      "language": "javascript",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/data/speakerSeedData.js",
+      "language": "javascript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/middleware/requireRole.js",
+      "language": "javascript",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/models/Announcement.js",
+      "language": "javascript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/models/Contract.js",
+      "language": "javascript",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/models/Event.js",
+      "language": "javascript",
+      "sizeLines": 206,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/models/EventProposal.js",
+      "language": "javascript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/models/Partner.js",
+      "language": "javascript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/models/SchoolMember.js",
+      "language": "javascript",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/models/User.js",
+      "language": "javascript",
+      "sizeLines": 285,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/routes/admin.routes.js",
+      "language": "javascript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/routes/ctsv.routes.js",
+      "language": "javascript",
+      "sizeLines": 869,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/services/user.service.js",
+      "language": "javascript",
+      "sizeLines": 234,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/utils/announcementEvents.js",
+      "language": "javascript",
+      "sizeLines": 78,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/utils/eventFormat.js",
+      "language": "javascript",
+      "sizeLines": 100,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/utils/role.js",
+      "language": "javascript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "BE/src/utils/studentId.js",
+      "language": "javascript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "BE/backfill-roles.js": [
+      "BE/src/models/User.js",
+      "BE/src/utils/role.js"
+    ],
+    "BE/scripts/fix-role-case.js": [
+      "BE/src/models/User.js"
+    ],
+    "BE/scripts/test-avatar-save.js": [
+      "BE/src/models/User.js",
+      "BE/src/services/user.service.js"
+    ],
+    "BE/seed-ctsv-demo.js": [
+      "BE/src/config/db.js",
+      "BE/src/models/Contract.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/EventProposal.js",
+      "BE/src/models/Partner.js"
+    ],
+    "BE/seed-events.js": [
+      "BE/src/config/db.js",
+      "BE/src/constants/eventSpeaker.js",
+      "BE/src/data/eventSeedData.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/User.js"
+    ],
+    "BE/seed.js": [
+      "BE/src/config/db.js",
+      "BE/src/models/SchoolMember.js",
+      "BE/src/models/User.js"
+    ],
+    "BE/src/config/db.js": [
+      "BE/src/models/User.js"
+    ],
+    "BE/src/constants/eventCategories.js": [],
+    "BE/src/constants/eventSpeaker.js": [],
+    "BE/src/constants/eventVenues.js": [],
+    "BE/src/constants/eventWorkflow.js": [],
+    "BE/src/data/eventSeedData.js": [
+      "BE/src/constants/eventVenues.js",
+      "BE/src/data/speakerSeedData.js"
+    ],
+    "BE/src/data/speakerSeedData.js": [],
+    "BE/src/middleware/requireRole.js": [
+      "BE/src/models/User.js",
+      "BE/src/utils/role.js"
+    ],
+    "BE/src/models/Announcement.js": [],
+    "BE/src/models/Contract.js": [],
+    "BE/src/models/Event.js": [
+      "BE/src/constants/eventCategories.js",
+      "BE/src/constants/eventSpeaker.js",
+      "BE/src/constants/eventVenues.js",
+      "BE/src/constants/eventWorkflow.js"
+    ],
+    "BE/src/models/EventProposal.js": [],
+    "BE/src/models/Partner.js": [],
+    "BE/src/models/SchoolMember.js": [],
+    "BE/src/models/User.js": [
+      "BE/src/models/SchoolMember.js",
+      "BE/src/utils/role.js",
+      "BE/src/utils/studentId.js"
+    ],
+    "BE/src/routes/admin.routes.js": [
+      "BE/src/constants/eventWorkflow.js",
+      "BE/src/middleware/auth.js",
+      "BE/src/middleware/requireRole.js",
+      "BE/src/models/Contract.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/Partner.js",
+      "BE/src/utils/announcementEvents.js",
+      "BE/src/utils/eventFormat.js"
+    ],
+    "BE/src/routes/ctsv.routes.js": [
+      "BE/src/constants/eventCategories.js",
+      "BE/src/constants/eventSpeaker.js",
+      "BE/src/constants/eventWorkflow.js",
+      "BE/src/middleware/auth.js",
+      "BE/src/middleware/requireRole.js",
+      "BE/src/models/Announcement.js",
+      "BE/src/models/Contract.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/EventProposal.js",
+      "BE/src/models/Partner.js",
+      "BE/src/utils/announcementEvents.js",
+      "BE/src/utils/eventFormat.js"
+    ],
+    "BE/src/services/user.service.js": [
+      "BE/src/models/User.js",
+      "BE/src/utils/AppError.js",
+      "BE/src/utils/role.js"
+    ],
+    "BE/src/utils/announcementEvents.js": [
+      "BE/src/models/Event.js",
+      "BE/src/models/Partner.js"
+    ],
+    "BE/src/utils/eventFormat.js": [
+      "BE/src/constants/eventSpeaker.js",
+      "BE/src/constants/eventWorkflow.js"
+    ],
+    "BE/src/utils/role.js": [],
+    "BE/src/utils/studentId.js": []
+  }
+}

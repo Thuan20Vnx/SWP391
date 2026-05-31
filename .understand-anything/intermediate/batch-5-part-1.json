@@ -1,0 +1,1137 @@
+{
+  "nodes": [
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "type": "file",
+      "name": "CtsvAnnouncementPublish.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "summary": "Trang CTSV soạn thảo, xem trước và xuất bản thông báo sự kiện, hỗ trợ lưu nháp và liên kết sự kiện.",
+      "tags": [
+        "component",
+        "ctsv",
+        "announcement",
+        "form"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:formatDateTime",
+      "type": "function",
+      "name": "formatDateTime",
+      "filePath": "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "lineRange": [
+        32,
+        45
+      ],
+      "summary": "Định dạng datetime theo locale vi-VN, fallback qua formatPartnerDate.",
+      "tags": [
+        "utility",
+        "date",
+        "formatting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:readInitialDraftState",
+      "type": "function",
+      "name": "readInitialDraftState",
+      "filePath": "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "lineRange": [
+        71,
+        87
+      ],
+      "summary": "Khôi phục trạng thái nháp thông báo từ localStorage khi mount.",
+      "tags": [
+        "utility",
+        "draft",
+        "initialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:CtsvAnnouncementPublish",
+      "type": "function",
+      "name": "CtsvAnnouncementPublish",
+      "filePath": "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "lineRange": [
+        89,
+        781
+      ],
+      "summary": "Component chính quản lý form xuất bản thông báo, preview và gọi API CTSV.",
+      "tags": [
+        "component",
+        "announcement",
+        "form"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "type": "file",
+      "name": "CtsvCalendar.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "summary": "Lịch tháng hiển thị sự kiện CTSV với điều hướng tháng và trạng thái sự kiện.",
+      "tags": [
+        "component",
+        "ctsv",
+        "calendar",
+        "event"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvCalendar.jsx:CtsvCalendar",
+      "type": "function",
+      "name": "CtsvCalendar",
+      "filePath": "FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "lineRange": [
+        21,
+        292
+      ],
+      "summary": "Component lịch tháng tải sự kiện qua fetchCtsvCalendar và render lưới.",
+      "tags": [
+        "component",
+        "calendar"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "type": "file",
+      "name": "CtsvDashboard.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "summary": "Bảng điều khiển CTSV tổng hợp thống kê, sự kiện sắp diễn ra và điều hướng nhanh.",
+      "tags": [
+        "component",
+        "ctsv",
+        "dashboard",
+        "entry-point"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvDashboard.jsx:formatToday",
+      "type": "function",
+      "name": "formatToday",
+      "filePath": "FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "lineRange": [
+        35,
+        46
+      ],
+      "summary": "Định dạng ngày hôm nay cho header dashboard.",
+      "tags": [
+        "utility",
+        "date"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvDashboard.jsx:CtsvDashboard",
+      "type": "function",
+      "name": "CtsvDashboard",
+      "filePath": "FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "lineRange": [
+        48,
+        310
+      ],
+      "summary": "Dashboard CTSV hiển thị stats, sự kiện và liên kết điều hướng.",
+      "tags": [
+        "component",
+        "dashboard"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "type": "file",
+      "name": "CtsvEventCreate.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "summary": "Form tạo/chỉnh sửa sự kiện trường phức tạp với vé, diễn giả, banner và lưu nháp cục bộ.",
+      "tags": [
+        "component",
+        "ctsv",
+        "event",
+        "form"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:clampTicketRows",
+      "type": "function",
+      "name": "clampTicketRows",
+      "filePath": "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "lineRange": [
+        56,
+        65
+      ],
+      "summary": "Giới hạn số hàng vé trong form theo min/max.",
+      "tags": [
+        "utility",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:TicketPriceEditor",
+      "type": "function",
+      "name": "TicketPriceEditor",
+      "filePath": "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "lineRange": [
+        79,
+        113
+      ],
+      "summary": "Sub-component chỉnh sửa giá và số lượng vé.",
+      "tags": [
+        "component",
+        "form"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:Field",
+      "type": "function",
+      "name": "Field",
+      "filePath": "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "lineRange": [
+        122,
+        131
+      ],
+      "summary": "Wrapper input có label và lỗi cho form sự kiện.",
+      "tags": [
+        "component",
+        "form"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:mapEventToForm",
+      "type": "function",
+      "name": "mapEventToForm",
+      "filePath": "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "lineRange": [
+        156,
+        169
+      ],
+      "summary": "Map dữ liệu API sự kiện sang state form.",
+      "tags": [
+        "utility",
+        "mapping"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:mapEventToTickets",
+      "type": "function",
+      "name": "mapEventToTickets",
+      "filePath": "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "lineRange": [
+        171,
+        181
+      ],
+      "summary": "Map payload vé từ API sang state cục bộ.",
+      "tags": [
+        "utility",
+        "mapping"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:mapEventToSpeakers",
+      "type": "function",
+      "name": "mapEventToSpeakers",
+      "filePath": "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "lineRange": [
+        183,
+        192
+      ],
+      "summary": "Map danh sách diễn giả API sang form rows.",
+      "tags": [
+        "utility",
+        "mapping"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:CtsvEventCreate",
+      "type": "function",
+      "name": "CtsvEventCreate",
+      "filePath": "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "lineRange": [
+        209,
+        1067
+      ],
+      "summary": "Form lớn tạo/sửa sự kiện trường với vé, diễn giả, upload và submit workflow.",
+      "tags": [
+        "component",
+        "event",
+        "form"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "type": "file",
+      "name": "CtsvEventDetail.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "summary": "Trang chi tiết sự kiện CTSV với hành động phê duyệt, xuất bản và quản lý workflow.",
+      "tags": [
+        "component",
+        "ctsv",
+        "event",
+        "workflow"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventDetail.jsx:CtsvEventDetail",
+      "type": "function",
+      "name": "CtsvEventDetail",
+      "filePath": "FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "lineRange": [
+        47,
+        424
+      ],
+      "summary": "Hiển thị chi tiết sự kiện và các nút hành động workflow CTSV.",
+      "tags": [
+        "component",
+        "event"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvEventList.jsx",
+      "type": "file",
+      "name": "CtsvEventList.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvEventList.jsx",
+      "summary": "Danh sách sự kiện CTSV có lọc trạng thái, skeleton loading và thẻ sự kiện.",
+      "tags": [
+        "component",
+        "ctsv",
+        "event",
+        "list"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventList.jsx:EventCardSkeleton",
+      "type": "function",
+      "name": "EventCardSkeleton",
+      "filePath": "FE/src/pages/ctsv/CtsvEventList.jsx",
+      "lineRange": [
+        52,
+        62
+      ],
+      "summary": "Skeleton placeholder khi đang tải danh sách sự kiện.",
+      "tags": [
+        "component",
+        "loading"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvEventList.jsx:CtsvEventList",
+      "type": "function",
+      "name": "CtsvEventList",
+      "filePath": "FE/src/pages/ctsv/CtsvEventList.jsx",
+      "lineRange": [
+        64,
+        250
+      ],
+      "summary": "Danh sách sự kiện có filter, fetch và render thẻ.",
+      "tags": [
+        "component",
+        "list"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "type": "file",
+      "name": "CtsvPartnerDetail.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "summary": "Chi tiết đối tác CTSV với hợp đồng, hành động phê duyệt/từ chối và hiển thị trạng thái.",
+      "tags": [
+        "component",
+        "ctsv",
+        "partner",
+        "workflow"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvPartnerDetail.jsx:CtsvPartnerDetail",
+      "type": "function",
+      "name": "CtsvPartnerDetail",
+      "filePath": "FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "lineRange": [
+        38,
+        331
+      ],
+      "summary": "Trang chi tiết đối tác với dialog hành động và thông tin hợp đồng.",
+      "tags": [
+        "component",
+        "partner"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "type": "file",
+      "name": "CtsvPartnerList.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "summary": "Danh sách đối tác CTSV với lọc trạng thái và điều hướng tới chi tiết.",
+      "tags": [
+        "component",
+        "ctsv",
+        "partner",
+        "list"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvPartnerList.jsx:CtsvPartnerList",
+      "type": "function",
+      "name": "CtsvPartnerList",
+      "filePath": "FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "lineRange": [
+        22,
+        197
+      ],
+      "summary": "Bảng/danh sách đối tác với filter và fetch API.",
+      "tags": [
+        "component",
+        "list"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvProfile.jsx",
+      "type": "file",
+      "name": "CtsvProfile.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvProfile.jsx",
+      "summary": "Wrapper tái sử dụng trang Profile chung cho vai trò CTSV.",
+      "tags": [
+        "component",
+        "ctsv",
+        "profile",
+        "wrapper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "type": "file",
+      "name": "CtsvProposalDetail.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "summary": "Chi tiết đề xuất sự kiện với hành động phê duyệt, từ chối hoặc yêu cầu chỉnh sửa.",
+      "tags": [
+        "component",
+        "ctsv",
+        "proposal",
+        "workflow"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvProposalDetail.jsx:CtsvProposalDetail",
+      "type": "function",
+      "name": "CtsvProposalDetail",
+      "filePath": "FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "lineRange": [
+        12,
+        119
+      ],
+      "summary": "Chi tiết đề xuất với approve/reject/revision.",
+      "tags": [
+        "component",
+        "proposal"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvProposalList.jsx",
+      "type": "file",
+      "name": "CtsvProposalList.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvProposalList.jsx",
+      "summary": "Danh sách đề xuất sự kiện chờ CTSV xử lý.",
+      "tags": [
+        "component",
+        "ctsv",
+        "proposal",
+        "list"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvProposalList.jsx:CtsvProposalList",
+      "type": "function",
+      "name": "CtsvProposalList",
+      "filePath": "FE/src/pages/ctsv/CtsvProposalList.jsx",
+      "lineRange": [
+        6,
+        63
+      ],
+      "summary": "Liệt kê đề xuất sự kiện chờ xử lý.",
+      "tags": [
+        "component",
+        "list"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvReports.jsx",
+      "type": "file",
+      "name": "CtsvReports.jsx",
+      "filePath": "FE/src/pages/ctsv/CtsvReports.jsx",
+      "summary": "Trang báo cáo CTSV hiển thị thống kê và biểu đồ tổng hợp sự kiện.",
+      "tags": [
+        "component",
+        "ctsv",
+        "reports",
+        "analytics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:FE/src/pages/ctsv/CtsvReports.jsx:CtsvReports",
+      "type": "function",
+      "name": "CtsvReports",
+      "filePath": "FE/src/pages/ctsv/CtsvReports.jsx",
+      "lineRange": [
+        34,
+        222
+      ],
+      "summary": "Render báo cáo thống kê từ fetchCtsvReports.",
+      "tags": [
+        "component",
+        "reports"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "file:FE/src/components/ctsv/BannerCropModal.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "file:FE/src/components/ctsv/CtsvActionIcon.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "file:FE/src/components/ui/AppSelect.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "file:FE/src/components/ui/ConfirmDialog.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "file:FE/src/utils/announcementDraft.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "file:FE/src/utils/announcementEvents.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "file:FE/src/utils/announcementId.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "file:FE/src/utils/partnerDisplay.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:formatDateTime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:readInitialDraftState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:CtsvAnnouncementPublish",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "target": "file:FE/src/utils/ctsvCalendar.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "target": "file:FE/src/utils/eventStatus.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvCalendar.jsx:CtsvCalendar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "target": "file:FE/src/components/ctsv/CtsvNavIcon.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "target": "file:FE/src/utils/eventStatus.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvDashboard.jsx:formatToday",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvDashboard.jsx:CtsvDashboard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "file:FE/src/components/ctsv/BannerCropModal.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "file:FE/src/components/profile/AvatarCropModal.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "file:FE/src/components/ui/AppSelect.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "file:FE/src/components/ui/ConfirmDialog.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "file:FE/src/constants/eventCategories.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "file:FE/src/constants/eventSpeaker.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "file:FE/src/constants/eventWorkflow.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "file:FE/src/utils/schoolEventDraft.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:clampTicketRows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:TicketPriceEditor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:Field",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:mapEventToForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:mapEventToTickets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:mapEventToSpeakers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:CtsvEventCreate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "target": "file:FE/src/constants/eventSpeaker.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "target": "file:FE/src/constants/eventWorkflow.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "target": "file:FE/src/utils/auth.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "target": "file:FE/src/utils/ctsvEventAccess.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "target": "file:FE/src/utils/eventStatus.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventDetail.jsx:CtsvEventDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventList.jsx",
+      "target": "file:FE/src/components/ui/AppSelect.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventList.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventList.jsx",
+      "target": "file:FE/src/utils/ctsvEventAccess.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventList.jsx",
+      "target": "file:FE/src/utils/eventStatus.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventList.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventList.jsx:EventCardSkeleton",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvEventList.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvEventList.jsx:CtsvEventList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "target": "file:FE/src/components/ctsv/PartnerActionDialog.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "target": "file:FE/src/components/ui/ConfirmDialog.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "target": "file:FE/src/utils/auth.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "target": "file:FE/src/utils/partnerDisplay.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvPartnerDetail.jsx:CtsvPartnerDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "target": "file:FE/src/components/ui/AppSelect.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "target": "file:FE/src/utils/partnerDisplay.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvPartnerList.jsx:CtsvPartnerList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvProfile.jsx",
+      "target": "file:FE/src/pages/Profile.jsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "target": "file:FE/src/utils/auth.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "target": "file:FE/src/utils/eventStatus.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvProposalDetail.jsx:CtsvProposalDetail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvProposalList.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvProposalList.jsx",
+      "target": "file:FE/src/utils/eventStatus.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvProposalList.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvProposalList.jsx:CtsvProposalList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvReports.jsx",
+      "target": "file:FE/src/services/ctsvApi.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvReports.jsx",
+      "target": "file:FE/src/utils/eventStatus.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvReports.jsx",
+      "target": "function:FE/src/pages/ctsv/CtsvReports.jsx:CtsvReports",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:formatDateTime",
+      "target": "function:FE/src/utils/partnerDisplay.js:formatPartnerDate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:CtsvAnnouncementPublish",
+      "target": "function:FE/src/utils/announcementDraft.js:loadAnnouncementDraft",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:CtsvAnnouncementPublish",
+      "target": "function:FE/src/utils/announcementDraft.js:saveAnnouncementDraft",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:CtsvAnnouncementPublish",
+      "target": "function:FE/src/services/ctsvApi.js:publishCtsvAnnouncement",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvCalendar.jsx:CtsvCalendar",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvCalendar",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvCalendar.jsx:CtsvCalendar",
+      "target": "function:FE/src/utils/ctsvCalendar.js:buildMonthCells",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvCalendar.jsx:CtsvCalendar",
+      "target": "function:FE/src/utils/ctsvCalendar.js:mapCtsvCalendarEvent",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvDashboard.jsx:CtsvDashboard",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvStats",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:CtsvEventCreate",
+      "target": "function:FE/src/services/ctsvApi.js:createCtsvEvent",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:CtsvEventCreate",
+      "target": "function:FE/src/utils/schoolEventDraft.js:loadSchoolEventDraft",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvEventDetail.jsx:CtsvEventDetail",
+      "target": "function:FE/src/utils/ctsvEventAccess.js:getCtsvEventAccess",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvEventList.jsx:CtsvEventList",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvEvents",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvPartnerDetail.jsx:CtsvPartnerDetail",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvPartner",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvPartnerList.jsx:CtsvPartnerList",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvPartners",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvProposalDetail.jsx:CtsvProposalDetail",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvProposal",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvProposalList.jsx:CtsvProposalList",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvProposals",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:FE/src/pages/ctsv/CtsvReports.jsx:CtsvReports",
+      "target": "function:FE/src/services/ctsvApi.js:fetchCtsvReports",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:FE/src/pages/ctsv/CtsvProfile.jsx",
+      "target": "file:FE/src/pages/Profile.jsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

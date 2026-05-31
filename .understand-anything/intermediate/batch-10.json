@@ -1,0 +1,115 @@
+{
+  "nodes": [
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Tài liệu tổng quan tối giản của dự án SWP391, hiện chỉ gồm tiêu đề dự án.",
+      "tags": ["documentation", "entry-point", "overview"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:test_api.ps1",
+      "type": "file",
+      "name": "test_api.ps1",
+      "filePath": "test_api.ps1",
+      "summary": "Script PowerShell kiểm thử tích hợp thủ công các endpoint backend Express (auth, hồ sơ người dùng, đổi mật khẩu, Google SSO mock) qua HTTP tại localhost:5000.",
+      "tags": ["test", "integration", "api-handler", "powershell"],
+      "complexity": "moderate",
+      "languageNotes": "Dùng Invoke-RestMethod và đọc OTP từ BE/data/last_otp.txt trong quy trình đăng ký."
+    },
+    {
+      "id": "file:test_role_detection.ps1",
+      "type": "file",
+      "name": "test_role_detection.ps1",
+      "filePath": "test_role_detection.ps1",
+      "summary": "Script PowerShell xác minh logic phân vai trò student/staff/guest theo domain email FPT, gồm đăng ký OTP, đăng nhập và Google SSO mock.",
+      "tags": ["test", "integration", "validation", "powershell"],
+      "complexity": "complex",
+      "languageNotes": "Chạy sáu kịch bản: sinh viên @fpt.edu.vn, nhân viên @fe.edu.vn, khách Gmail và ba luồng Google SSO tương ứng."
+    },
+    {
+      "id": "function:test_role_detection.ps1:Test-Role",
+      "type": "function",
+      "name": "Test-Role",
+      "filePath": "test_role_detection.ps1",
+      "lineRange": [21, 150],
+      "summary": "Hàm trợ giúp thực hiện chuỗi signup → đọc OTP → verify → login và so khớp role cùng studentId với giá trị kỳ vọng.",
+      "tags": ["test", "utility", "validation"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:README.md",
+      "target": "file:BE/server.js",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:test_role_detection.ps1",
+      "target": "function:test_role_detection.ps1:Test-Role",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:test_api.ps1",
+      "target": "file:test_role_detection.ps1",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:BE/src/routes/auth.routes.js",
+      "target": "file:test_api.ps1",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "file:test_api.ps1",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:BE/src/routes/user.routes.js",
+      "target": "file:test_api.ps1",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:BE/src/controllers/user.controller.js",
+      "target": "file:test_api.ps1",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:BE/src/routes/auth.routes.js",
+      "target": "file:test_role_detection.ps1",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "file:test_role_detection.ps1",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:BE/src/services/auth.service.js",
+      "target": "file:test_role_detection.ps1",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

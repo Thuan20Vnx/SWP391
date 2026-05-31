@@ -57,6 +57,7 @@ export const canCtsvFinalApprove = (role = getUserRole()) =>
 export const getHomePathForRole = (role = getUserRole()) => {
   const r = normalizeRole(role);
   if (r === USER_ROLES.ICPDP) return '/icpdp';
+  if (isPartnerRole(r)) return '/partner';
   if (isClubManagerRole(r)) return '/quan-ly-clb';
   if (isCtsvRole(r)) return '/ctsv';
   if (isAdminRole(r)) return '/admin';

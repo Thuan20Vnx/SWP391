@@ -1,0 +1,3352 @@
+{
+  "scriptCompleted": true,
+  "entryPointCandidates": [
+    {
+      "id": "document:README.md",
+      "score": 5,
+      "name": "README.md",
+      "summary": "Tài liệu tổng quan tối giản của dự án SWP391, hiện chỉ gồm tiêu đề dự án."
+    },
+    {
+      "id": "file:BE/server.js",
+      "score": 4,
+      "name": "server.js",
+      "summary": "Điểm khởi động server Express: kết nối DB rồi lắng nghe cổng từ biến môi trường."
+    },
+    {
+      "id": "file:BE/src/app.js",
+      "score": 4,
+      "name": "app.js",
+      "summary": "Cấu hình ứng dụng Express: CORS, JSON body, mount routes và middleware xử lý lỗi."
+    },
+    {
+      "id": "file:BE/src/routes/index.js",
+      "score": 4,
+      "name": "index.js",
+      "summary": "Router gốc gắn các route con admin, auth, club, ctsv, event và user dưới prefix API."
+    },
+    {
+      "id": "file:BE/seed-events.js",
+      "score": 3,
+      "name": "seed-events.js",
+      "summary": "Script seed sự kiện mẫu từ eventSeedData vào MongoDB, đồng bộ trường diễn giả trước khi insert."
+    }
+  ],
+  "fanInRanking": [
+    {
+      "id": "file:BE/src/models/User.js",
+      "fanIn": 21,
+      "name": "User.js",
+      "summary": "Mongoose schema user chính với role detection, avatar, studentId và static helpers đồng bộ profile."
+    },
+    {
+      "id": "function:FE/src/utils/api.js:getAuthHeaders",
+      "fanIn": 20,
+      "name": "getAuthHeaders",
+      "summary": "Tạo header Authorization Bearer từ token localStorage."
+    },
+    {
+      "id": "file:FE/src/utils/api.js",
+      "fanIn": 19,
+      "name": "api.js",
+      "summary": "Tiện ích HTTP cơ bản: base URL API, header xác thực và parse phản hồi JSON/text."
+    },
+    {
+      "id": "file:FE/src/services/ctsvApi.js",
+      "fanIn": 12,
+      "name": "ctsvApi.js",
+      "summary": "Lớp gọi API tập trung cho module CTSV: sự kiện, đối tác, đề xuất, thông báo và báo cáo."
+    },
+    {
+      "id": "file:BE/src/services/auth.service.js",
+      "fanIn": 11,
+      "name": "auth.service.js",
+      "summary": "Service xác thực backend: login/signup OTP, reset mật khẩu, Google login và liên kết Google Calendar."
+    },
+    {
+      "id": "file:BE/src/models/Event.js",
+      "fanIn": 10,
+      "name": "Event.js",
+      "summary": "Mongoose schema sự kiện cốt lõi với validation category, venue, workflow và diễn giả."
+    },
+    {
+      "id": "file:BE/src/services/club.service.js",
+      "fanIn": 10,
+      "name": "club.service.js",
+      "summary": "Logic nghiệp vụ câu lạc bộ: follow, join, duyệt thành viên, đếm follower và danh sách CLB của tôi."
+    },
+    {
+      "id": "file:BE/src/utils/AppError.js",
+      "fanIn": 10,
+      "name": "AppError.js",
+      "summary": "Class lỗi HTTP tùy chỉnh mang statusCode dùng chung cho middleware error handler."
+    },
+    {
+      "id": "file:FE/src/components/StudentDashboardLayout.jsx",
+      "fanIn": 9,
+      "name": "StudentDashboardLayout.jsx",
+      "summary": "Layout bọc các trang dashboard sinh viên với sidebar, header, tải hồ sơ API và đăng xuất."
+    },
+    {
+      "id": "file:FE/src/hooks/useUserProfile.js",
+      "fanIn": 9,
+      "name": "useUserProfile.js",
+      "summary": "Hook React quản lý hồ sơ người dùng với cache sessionStorage, fetch API và lắng nghe sự kiện auth."
+    },
+    {
+      "id": "file:FE/src/utils/auth.js",
+      "fanIn": 9,
+      "name": "auth.js",
+      "summary": "Quản lý session JWT trong localStorage và helper phân quyền vai trò người dùng."
+    },
+    {
+      "id": "file:FE/src/utils/eventStatus.js",
+      "fanIn": 9,
+      "name": "eventStatus.js",
+      "summary": "Kiểm tra trạng thái chờ duyệt và ánh xạ class CSS theo status sự kiện."
+    },
+    {
+      "id": "file:BE/src/config/db.js",
+      "fanIn": 8,
+      "name": "db.js",
+      "summary": "Module kết nối MongoDB qua Mongoose và đồng bộ khóa học sinh viên sau khi connect thành công."
+    },
+    {
+      "id": "file:FE/src/components/ui/AppSelect.jsx",
+      "fanIn": 8,
+      "name": "AppSelect.jsx",
+      "summary": "Dropdown select tùy chỉnh hỗ trợ tìm kiếm, placeholder và styling thống nhất cho toàn ứng dụng."
+    },
+    {
+      "id": "file:FE/src/constants/defaultAvatar.js",
+      "fanIn": 8,
+      "name": "defaultAvatar.js",
+      "summary": "Hằng số URL avatar mặc định khi người dùng chưa có ảnh đại diện tùy chỉnh."
+    },
+    {
+      "id": "file:FE/src/main.jsx",
+      "fanIn": 8,
+      "name": "main.jsx",
+      "summary": "Điểm mount React DOM, import stylesheet toàn cục và render ứng dụng vào #root."
+    },
+    {
+      "id": "file:BE/src/config/env.js",
+      "fanIn": 7,
+      "name": "env.js",
+      "summary": "Tải dotenv và xuất cấu hình runtime (port, JWT, OAuth, email) từ process.env."
+    },
+    {
+      "id": "file:BE/src/services/user.service.js",
+      "fanIn": 7,
+      "name": "user.service.js",
+      "summary": "Service layer xử lý profile, avatar, đổi mật khẩu và sanitize dữ liệu user trả về client."
+    },
+    {
+      "id": "file:BE/src/utils/asyncHandler.js",
+      "fanIn": 7,
+      "name": "asyncHandler.js",
+      "summary": "Wrapper Express chuyển lỗi từ handler async sang middleware next()."
+    },
+    {
+      "id": "file:FE/src/utils/authEvents.js",
+      "fanIn": 7,
+      "name": "authEvents.js",
+      "summary": "Sự kiện tùy chỉnh window để đồng bộ trạng thái đăng nhập giữa các component."
+    }
+  ],
+  "fanOutRanking": [
+    {
+      "id": "file:FE/src/services/ctsvApi.js",
+      "fanOut": 57,
+      "name": "ctsvApi.js",
+      "summary": "Lớp gọi API tập trung cho module CTSV: sự kiện, đối tác, đề xuất, thông báo và báo cáo."
+    },
+    {
+      "id": "file:FE/src/App.jsx",
+      "fanOut": 41,
+      "name": "App.jsx",
+      "summary": "Thành phần gốc React Router định nghĩa toàn bộ tuyến đường, bảo vệ phiên đăng nhập theo vai trò và hiển thị hệ thống toast toàn cục."
+    },
+    {
+      "id": "file:BE/src/services/auth.service.js",
+      "fanOut": 27,
+      "name": "auth.service.js",
+      "summary": "Service xác thực backend: login/signup OTP, reset mật khẩu, Google login và liên kết Google Calendar."
+    },
+    {
+      "id": "file:BE/src/services/club.service.js",
+      "fanOut": 26,
+      "name": "club.service.js",
+      "summary": "Logic nghiệp vụ câu lạc bộ: follow, join, duyệt thành viên, đếm follower và danh sách CLB của tôi."
+    },
+    {
+      "id": "file:FE/src/data/eventDiscoveryData.js",
+      "fanOut": 23,
+      "name": "eventDiscoveryData.js",
+      "summary": "Bộ lọc, sắp xếp và mapper thẻ sự kiện cho trang khám phá và trang chủ."
+    },
+    {
+      "id": "file:BE/src/controllers/auth.controller.js",
+      "fanOut": 22,
+      "name": "auth.controller.js",
+      "summary": "HTTP handlers xác thực: đăng nhập, OTP, Google OAuth và kết nối Google Calendar."
+    },
+    {
+      "id": "file:BE/src/controllers/user.controller.js",
+      "fanOut": 20,
+      "name": "user.controller.js",
+      "summary": "HTTP handlers hồ sơ người dùng, mật khẩu, sự kiện/club của tôi và đánh giá."
+    },
+    {
+      "id": "file:FE/src/utils/auth.js",
+      "fanOut": 18,
+      "name": "auth.js",
+      "summary": "Quản lý session JWT trong localStorage và helper phân quyền vai trò người dùng."
+    },
+    {
+      "id": "file:FE/src/utils/cropImage.js",
+      "fanOut": 17,
+      "name": "cropImage.js",
+      "summary": "Tiện ích cắt ảnh banner/avatar trên canvas với zoom, pan và tính scale tối thiểu."
+    },
+    {
+      "id": "file:BE/src/routes/ctsv.routes.js",
+      "fanOut": 16,
+      "name": "ctsv.routes.js",
+      "summary": "Tập route Express lớn cho portal CTSV quản lý sự kiện, thông báo, đối tác và đề xuất."
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "fanOut": 16,
+      "name": "CtsvEventCreate.jsx",
+      "summary": "Form tạo/chỉnh sửa sự kiện trường phức tạp với vé, diễn giả, banner và lưu nháp cục bộ."
+    },
+    {
+      "id": "file:BE/src/controllers/club.controller.js",
+      "fanOut": 15,
+      "name": "club.controller.js",
+      "summary": "HTTP handlers CRUD câu lạc bộ: danh sách, theo dõi, gia nhập và duyệt thành viên."
+    },
+    {
+      "id": "file:BE/src/services/event.service.js",
+      "fanOut": 15,
+      "name": "event.service.js",
+      "summary": "Service sự kiện: tạo đề xuất, duyệt/từ chối, liệt kê sự kiện approved và chi tiết kèm trạng thái đăng ký."
+    },
+    {
+      "id": "file:BE/src/services/registration.service.js",
+      "fanOut": 15,
+      "name": "registration.service.js",
+      "summary": "Đăng ký và hủy vé sự kiện, tính giá vé sinh viên, đồng bộ Google Calendar và trả danh sách sự kiện của tôi."
+    },
+    {
+      "id": "file:BE/src/constants/eventPricing.js",
+      "fanOut": 14,
+      "name": "eventPricing.js",
+      "summary": "Logic tính giá vé sự kiện, ưu đãi sinh viên và nhãn hiển thị cho API sự kiện."
+    },
+    {
+      "id": "file:FE/src/layouts/CtsvLayout.jsx",
+      "fanOut": 14,
+      "name": "CtsvLayout.jsx",
+      "summary": "Layout chính portal CTSV: xác thực vai trò, sidebar, header/footer và vùng nội dung con."
+    },
+    {
+      "id": "file:BE/src/services/review.service.js",
+      "fanOut": 13,
+      "name": "review.service.js",
+      "summary": "Quản lý đánh giá sự kiện: liệt kê pending/completed, gửi review và cập nhật thống kê rating event."
+    },
+    {
+      "id": "file:FE/src/pages/Profile.jsx",
+      "fanOut": 13,
+      "name": "Profile.jsx",
+      "summary": "Trang hồ sơ cá nhân phức tạp: chỉnh sửa thông tin, avatar, sở thích và đổi mật khẩu."
+    },
+    {
+      "id": "file:FE/src/services/adminApi.js",
+      "fanOut": 13,
+      "name": "adminApi.js",
+      "summary": "Client API phê duyệt đối tác và sự kiện trường dành cho admin."
+    },
+    {
+      "id": "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "fanOut": 12,
+      "name": "CtsvAnnouncementPublish.jsx",
+      "summary": "Trang CTSV soạn thảo, xem trước và xuất bản thông báo sự kiện, hỗ trợ lưu nháp và liên kết sự kiện."
+    }
+  ],
+  "bfsTraversal": {
+    "startNode": "file:BE/server.js",
+    "order": [
+      "file:BE/server.js",
+      "file:BE/src/app.js",
+      "file:BE/src/config/db.js",
+      "file:BE/src/config/env.js",
+      "file:BE/src/middleware/errorHandler.js",
+      "file:BE/src/routes/index.js",
+      "file:BE/src/models/User.js",
+      "file:BE/src/utils/AppError.js",
+      "file:BE/src/routes/admin.routes.js",
+      "file:BE/src/routes/auth.routes.js",
+      "file:BE/src/routes/club.routes.js",
+      "file:BE/src/routes/ctsv.routes.js",
+      "file:BE/src/routes/event.routes.js",
+      "file:BE/src/routes/user.routes.js",
+      "file:BE/src/models/SchoolMember.js",
+      "file:BE/src/utils/role.js",
+      "file:BE/src/utils/studentId.js",
+      "file:BE/src/constants/eventWorkflow.js",
+      "file:BE/src/middleware/auth.js",
+      "file:BE/src/middleware/requireRole.js",
+      "file:BE/src/models/Contract.js",
+      "file:BE/src/models/Event.js",
+      "file:BE/src/models/Partner.js",
+      "file:BE/src/utils/announcementEvents.js",
+      "file:BE/src/utils/eventFormat.js",
+      "file:BE/src/controllers/auth.controller.js",
+      "file:BE/src/utils/asyncHandler.js",
+      "file:BE/src/controllers/club.controller.js",
+      "file:BE/src/middleware/authorize.js",
+      "file:BE/src/middleware/optionalAuth.js",
+      "file:BE/src/middleware/optionalAuthorize.js",
+      "file:BE/src/constants/eventCategories.js",
+      "file:BE/src/constants/eventSpeaker.js",
+      "file:BE/src/models/Announcement.js",
+      "file:BE/src/models/EventProposal.js",
+      "file:BE/src/constants/eventPricing.js",
+      "file:BE/src/controllers/event.controller.js",
+      "file:BE/src/controllers/registration.controller.js",
+      "file:BE/src/controllers/review.controller.js",
+      "file:BE/src/controllers/user.controller.js",
+      "file:BE/src/utils/jwt.js",
+      "file:BE/src/constants/eventVenues.js",
+      "file:BE/src/services/auth.service.js",
+      "file:BE/src/services/club.service.js",
+      "file:BE/src/services/event.service.js",
+      "file:BE/src/services/registration.service.js",
+      "file:BE/src/services/review.service.js",
+      "file:BE/src/services/user.service.js",
+      "file:BE/src/services/email.service.js",
+      "file:BE/src/utils/otpStore.js",
+      "file:BE/src/models/Club.js",
+      "file:BE/src/models/ClubFollow.js",
+      "file:BE/src/models/ClubMembership.js",
+      "file:BE/src/models/EventRegistration.js",
+      "file:BE/src/services/calendar.service.js",
+      "file:BE/src/models/EventReview.js"
+    ],
+    "depthMap": {
+      "file:BE/server.js": 0,
+      "file:BE/src/app.js": 1,
+      "file:BE/src/config/db.js": 1,
+      "file:BE/src/config/env.js": 1,
+      "file:BE/src/middleware/errorHandler.js": 2,
+      "file:BE/src/routes/index.js": 2,
+      "file:BE/src/models/User.js": 2,
+      "file:BE/src/utils/AppError.js": 3,
+      "file:BE/src/routes/admin.routes.js": 3,
+      "file:BE/src/routes/auth.routes.js": 3,
+      "file:BE/src/routes/club.routes.js": 3,
+      "file:BE/src/routes/ctsv.routes.js": 3,
+      "file:BE/src/routes/event.routes.js": 3,
+      "file:BE/src/routes/user.routes.js": 3,
+      "file:BE/src/models/SchoolMember.js": 3,
+      "file:BE/src/utils/role.js": 3,
+      "file:BE/src/utils/studentId.js": 3,
+      "file:BE/src/constants/eventWorkflow.js": 4,
+      "file:BE/src/middleware/auth.js": 4,
+      "file:BE/src/middleware/requireRole.js": 4,
+      "file:BE/src/models/Contract.js": 4,
+      "file:BE/src/models/Event.js": 4,
+      "file:BE/src/models/Partner.js": 4,
+      "file:BE/src/utils/announcementEvents.js": 4,
+      "file:BE/src/utils/eventFormat.js": 4,
+      "file:BE/src/controllers/auth.controller.js": 4,
+      "file:BE/src/utils/asyncHandler.js": 4,
+      "file:BE/src/controllers/club.controller.js": 4,
+      "file:BE/src/middleware/authorize.js": 4,
+      "file:BE/src/middleware/optionalAuth.js": 4,
+      "file:BE/src/middleware/optionalAuthorize.js": 4,
+      "file:BE/src/constants/eventCategories.js": 4,
+      "file:BE/src/constants/eventSpeaker.js": 4,
+      "file:BE/src/models/Announcement.js": 4,
+      "file:BE/src/models/EventProposal.js": 4,
+      "file:BE/src/constants/eventPricing.js": 4,
+      "file:BE/src/controllers/event.controller.js": 4,
+      "file:BE/src/controllers/registration.controller.js": 4,
+      "file:BE/src/controllers/review.controller.js": 4,
+      "file:BE/src/controllers/user.controller.js": 4,
+      "file:BE/src/utils/jwt.js": 5,
+      "file:BE/src/constants/eventVenues.js": 5,
+      "file:BE/src/services/auth.service.js": 5,
+      "file:BE/src/services/club.service.js": 5,
+      "file:BE/src/services/event.service.js": 5,
+      "file:BE/src/services/registration.service.js": 5,
+      "file:BE/src/services/review.service.js": 5,
+      "file:BE/src/services/user.service.js": 5,
+      "file:BE/src/services/email.service.js": 6,
+      "file:BE/src/utils/otpStore.js": 6,
+      "file:BE/src/models/Club.js": 6,
+      "file:BE/src/models/ClubFollow.js": 6,
+      "file:BE/src/models/ClubMembership.js": 6,
+      "file:BE/src/models/EventRegistration.js": 6,
+      "file:BE/src/services/calendar.service.js": 6,
+      "file:BE/src/models/EventReview.js": 6
+    },
+    "byDepth": {
+      "0": [
+        "file:BE/server.js"
+      ],
+      "1": [
+        "file:BE/src/app.js",
+        "file:BE/src/config/db.js",
+        "file:BE/src/config/env.js"
+      ],
+      "2": [
+        "file:BE/src/middleware/errorHandler.js",
+        "file:BE/src/routes/index.js",
+        "file:BE/src/models/User.js"
+      ],
+      "3": [
+        "file:BE/src/utils/AppError.js",
+        "file:BE/src/routes/admin.routes.js",
+        "file:BE/src/routes/auth.routes.js",
+        "file:BE/src/routes/club.routes.js",
+        "file:BE/src/routes/ctsv.routes.js",
+        "file:BE/src/routes/event.routes.js",
+        "file:BE/src/routes/user.routes.js",
+        "file:BE/src/models/SchoolMember.js",
+        "file:BE/src/utils/role.js",
+        "file:BE/src/utils/studentId.js"
+      ],
+      "4": [
+        "file:BE/src/constants/eventWorkflow.js",
+        "file:BE/src/middleware/auth.js",
+        "file:BE/src/middleware/requireRole.js",
+        "file:BE/src/models/Contract.js",
+        "file:BE/src/models/Event.js",
+        "file:BE/src/models/Partner.js",
+        "file:BE/src/utils/announcementEvents.js",
+        "file:BE/src/utils/eventFormat.js",
+        "file:BE/src/controllers/auth.controller.js",
+        "file:BE/src/utils/asyncHandler.js",
+        "file:BE/src/controllers/club.controller.js",
+        "file:BE/src/middleware/authorize.js",
+        "file:BE/src/middleware/optionalAuth.js",
+        "file:BE/src/middleware/optionalAuthorize.js",
+        "file:BE/src/constants/eventCategories.js",
+        "file:BE/src/constants/eventSpeaker.js",
+        "file:BE/src/models/Announcement.js",
+        "file:BE/src/models/EventProposal.js",
+        "file:BE/src/constants/eventPricing.js",
+        "file:BE/src/controllers/event.controller.js",
+        "file:BE/src/controllers/registration.controller.js",
+        "file:BE/src/controllers/review.controller.js",
+        "file:BE/src/controllers/user.controller.js"
+      ],
+      "5": [
+        "file:BE/src/utils/jwt.js",
+        "file:BE/src/constants/eventVenues.js",
+        "file:BE/src/services/auth.service.js",
+        "file:BE/src/services/club.service.js",
+        "file:BE/src/services/event.service.js",
+        "file:BE/src/services/registration.service.js",
+        "file:BE/src/services/review.service.js",
+        "file:BE/src/services/user.service.js"
+      ],
+      "6": [
+        "file:BE/src/services/email.service.js",
+        "file:BE/src/utils/otpStore.js",
+        "file:BE/src/models/Club.js",
+        "file:BE/src/models/ClubFollow.js",
+        "file:BE/src/models/ClubMembership.js",
+        "file:BE/src/models/EventRegistration.js",
+        "file:BE/src/services/calendar.service.js",
+        "file:BE/src/models/EventReview.js"
+      ]
+    }
+  },
+  "nonCodeFiles": {
+    "documentation": [
+      {
+        "id": "document:FE/README.md",
+        "name": "README.md",
+        "type": "document",
+        "summary": "Tài liệu mẫu React + Vite mô tả plugin React, tùy chọn React Compiler và hướng dẫn mở rộng cấu hình ESLint cho dự án frontend."
+      },
+      {
+        "id": "document:README.md",
+        "name": "README.md",
+        "type": "document",
+        "summary": "Tài liệu tổng quan tối giản của dự án SWP391, hiện chỉ gồm tiêu đề dự án."
+      }
+    ],
+    "infrastructure": [],
+    "data": [],
+    "config": [
+      {
+        "id": "config:FE/package.json",
+        "name": "package.json",
+        "type": "config",
+        "summary": "Manifest npm của frontend: script dev/build/lint/preview Vite 8, phụ thuộc React 19, react-router-dom 7 và toolchain ESLint/Tailwind 4."
+      },
+      {
+        "id": "config:.cursor/mcp.json",
+        "name": "mcp.json",
+        "type": "config",
+        "summary": "Cấu hình MCP server Figma qua HTTP cho Cursor IDE, cho phép agent truy cập thiết kế Figma trong phiên làm việc."
+      },
+      {
+        "id": "config:.cursor/settings.json",
+        "name": "settings.json",
+        "type": "config",
+        "summary": "Cài đặt workspace Cursor bật plugin Understand-Anything từ GitHub để phân tích và trực quan hóa kiến trúc mã nguồn."
+      },
+      {
+        "id": "config:BE/.env.example",
+        "name": ".env.example",
+        "type": "config",
+        "summary": "Mẫu biến môi trường backend gồm MongoDB, JWT, SMTP Gmail và Google OAuth/Calendar cho triển khai local và production."
+      },
+      {
+        "id": "config:BE/package.json",
+        "name": "package.json",
+        "type": "config",
+        "summary": "Manifest npm của backend SWP391 với script khởi động, seed dữ liệu và các dependency Express, Mongoose, JWT, bcrypt."
+      }
+    ]
+  },
+  "clusters": [
+    {
+      "nodes": [
+        "file:FE/src/App.jsx",
+        "file:FE/src/index.css",
+        "file:FE/src/main.jsx"
+      ],
+      "edgeCount": 6
+    },
+    {
+      "nodes": [
+        "file:FE/src/main.jsx",
+        "file:FE/src/styles/dark-theme.css"
+      ],
+      "edgeCount": 2
+    },
+    {
+      "nodes": [
+        "file:FE/src/main.jsx",
+        "file:FE/src/styles/tailwind.css"
+      ],
+      "edgeCount": 2
+    }
+  ],
+  "layers": {
+    "count": 0,
+    "list": []
+  },
+  "nodeSummaryIndex": {
+    "file:BE/backfill-roles.js": {
+      "name": "backfill-roles.js",
+      "type": "file",
+      "summary": "Script một lần gán role cho user MongoDB cũ chưa có field role, dùng resolveUserRole và normalizeRole."
+    },
+    "file:BE/scripts/fix-role-case.js": {
+      "name": "fix-role-case.js",
+      "type": "file",
+      "summary": "Script sửa chữ hoa/thường không nhất quán của field role trong collection User."
+    },
+    "file:BE/scripts/test-avatar-save.js": {
+      "name": "test-avatar-save.js",
+      "type": "file",
+      "summary": "Script kiểm thử thủ công luồng lưu avatar profile qua user.service.updateProfile."
+    },
+    "file:BE/seed-ctsv-demo.js": {
+      "name": "seed-ctsv-demo.js",
+      "type": "file",
+      "summary": "Script seed dữ liệu demo cho portal CTSV gồm đối tác, hợp đồng, đề xuất và sự kiện mẫu."
+    },
+    "file:BE/seed-events.js": {
+      "name": "seed-events.js",
+      "type": "file",
+      "summary": "Script seed sự kiện mẫu từ eventSeedData vào MongoDB, đồng bộ trường diễn giả trước khi insert."
+    },
+    "file:BE/seed.js": {
+      "name": "seed.js",
+      "type": "file",
+      "summary": "Script seed user và SchoolMember ban đầu cho môi trường phát triển, hash mật khẩu bằng bcrypt."
+    },
+    "file:BE/src/config/db.js": {
+      "name": "db.js",
+      "type": "file",
+      "summary": "Module kết nối MongoDB qua Mongoose và đồng bộ khóa học sinh viên sau khi connect thành công."
+    },
+    "file:BE/src/constants/eventCategories.js": {
+      "name": "eventCategories.js",
+      "type": "file",
+      "summary": "Hằng số danh mục sự kiện và hàm chuẩn hóa category đầu vào từ form/API."
+    },
+    "file:BE/src/constants/eventSpeaker.js": {
+      "name": "eventSpeaker.js",
+      "type": "file",
+      "summary": "Utilities chuẩn hóa, resolve và đồng bộ thông tin diễn giả trên document sự kiện."
+    },
+    "file:BE/src/constants/eventVenues.js": {
+      "name": "eventVenues.js",
+      "type": "file",
+      "summary": "Danh sách địa điểm sự kiện hợp lệ và helper kiểm tra venue có trong whitelist."
+    },
+    "file:BE/src/constants/eventWorkflow.js": {
+      "name": "eventWorkflow.js",
+      "type": "file",
+      "summary": "Hằng số trạng thái và quy tắc workflow sự kiện cấp trường, đồng bộ với FE."
+    },
+    "file:BE/src/data/eventSeedData.js": {
+      "name": "eventSeedData.js",
+      "type": "file",
+      "summary": "Dữ liệu seed sự kiện mẫu kèm diễn giả, địa điểm và metadata dùng bởi seed-events.js."
+    },
+    "file:BE/src/data/speakerSeedData.js": {
+      "name": "speakerSeedData.js",
+      "type": "file",
+      "summary": "Dữ liệu mẫu diễn giả được tham chiếu khi tạo event seed data."
+    },
+    "file:BE/src/middleware/requireRole.js": {
+      "name": "requireRole.js",
+      "type": "file",
+      "summary": "Middleware Express kiểm tra role user trong DB trước khi cho phép truy cập route được bảo vệ."
+    },
+    "file:BE/src/models/Announcement.js": {
+      "name": "Announcement.js",
+      "type": "file",
+      "summary": "Mongoose schema cho thông báo CTSV với liên kết sự kiện và metadata hiển thị."
+    },
+    "file:BE/src/models/Contract.js": {
+      "name": "Contract.js",
+      "type": "file",
+      "summary": "Mongoose schema hợp đồng đối tác gắn với partner và trạng thái phê duyệt."
+    },
+    "file:BE/src/models/Event.js": {
+      "name": "Event.js",
+      "type": "file",
+      "summary": "Mongoose schema sự kiện cốt lõi với validation category, venue, workflow và diễn giả."
+    },
+    "file:BE/src/models/EventProposal.js": {
+      "name": "EventProposal.js",
+      "type": "file",
+      "summary": "Mongoose schema đề xuất sự kiện từ đối tác trước khi chuyển thành Event chính thức."
+    },
+    "file:BE/src/models/Partner.js": {
+      "name": "Partner.js",
+      "type": "file",
+      "summary": "Mongoose schema đối tác tài trợ/sự kiện với thông tin liên hệ và trạng thái duyệt."
+    },
+    "file:BE/src/models/SchoolMember.js": {
+      "name": "SchoolMember.js",
+      "type": "file",
+      "summary": "Mongoose schema thành viên trường dùng làm whitelist cho đăng ký tài khoản sinh viên."
+    },
+    "file:BE/src/models/User.js": {
+      "name": "User.js",
+      "type": "file",
+      "summary": "Mongoose schema user chính với role detection, avatar, studentId và static helpers đồng bộ profile."
+    },
+    "file:BE/src/routes/admin.routes.js": {
+      "name": "admin.routes.js",
+      "type": "file",
+      "summary": "Route Express cho admin duyệt sự kiện trường, quản lý đối tác, hợp đồng và thông báo."
+    },
+    "file:BE/src/routes/ctsv.routes.js": {
+      "name": "ctsv.routes.js",
+      "type": "file",
+      "summary": "Tập route Express lớn cho portal CTSV quản lý sự kiện, thông báo, đối tác và đề xuất."
+    },
+    "file:BE/src/services/user.service.js": {
+      "name": "user.service.js",
+      "type": "file",
+      "summary": "Service layer xử lý profile, avatar, đổi mật khẩu và sanitize dữ liệu user trả về client."
+    },
+    "file:BE/src/utils/announcementEvents.js": {
+      "name": "announcementEvents.js",
+      "type": "file",
+      "summary": "Helpers tạo và liên kết sự kiện đối tác phục vụ gắn thông báo CTSV với event hợp lệ."
+    },
+    "file:BE/src/utils/eventFormat.js": {
+      "name": "eventFormat.js",
+      "type": "file",
+      "summary": "Format document sự kiện và đề xuất sang payload API thân thiện client, gồm ngày giờ và diễn giả."
+    },
+    "file:BE/src/utils/role.js": {
+      "name": "role.js",
+      "type": "file",
+      "summary": "Chuẩn hóa chuỗi role và suy luận role user từ email, orientation hoặc campus."
+    },
+    "file:BE/src/utils/studentId.js": {
+      "name": "studentId.js",
+      "type": "file",
+      "summary": "Chuẩn hóa mã sinh viên và suy ra khóa học từ pattern mã số."
+    },
+    "function:BE/scripts/test-avatar-save.js:main": {
+      "name": "main",
+      "type": "function",
+      "summary": "Kết nối MongoDB, tìm user mẫu và gọi updateProfile để kiểm tra lưu avatar."
+    },
+    "function:BE/seed-events.js:seedEvents": {
+      "name": "seedEvents",
+      "type": "function",
+      "summary": "Xóa và insert sự kiện seed, đồng bộ speaker fields trước khi ghi DB."
+    },
+    "function:BE/seed.js:seedData": {
+      "name": "seedData",
+      "type": "function",
+      "summary": "Reset collection User/SchoolMember và tạo tài khoản demo với role tự phát hiện."
+    },
+    "function:BE/src/config/db.js:connectDB": {
+      "name": "connectDB",
+      "type": "function",
+      "summary": "Thiết lập kết nối Mongoose tới MONGO_URI và chạy syncAllStudentCourses sau connect."
+    },
+    "function:BE/src/constants/eventCategories.js:normalizeEventCategory": {
+      "name": "normalizeEventCategory",
+      "type": "function",
+      "summary": "Chuẩn hóa chuỗi category đầu vào về giá trị hợp lệ trong EVENT_CATEGORIES."
+    },
+    "function:BE/src/constants/eventSpeaker.js:resolveEventSpeakers": {
+      "name": "resolveEventSpeakers",
+      "type": "function",
+      "summary": "Resolve danh sách diễn giả từ mảng speakers hoặc fallback field speaker đơn."
+    },
+    "function:BE/src/constants/eventSpeaker.js:syncPrimarySpeakerFields": {
+      "name": "syncPrimarySpeakerFields",
+      "type": "function",
+      "summary": "Đồng bộ field speaker/speakerRole chính từ mảng speakers đã chuẩn hóa trên document."
+    },
+    "function:BE/src/middleware/requireRole.js:requireRole": {
+      "name": "requireRole",
+      "type": "function",
+      "summary": "Factory middleware kiểm tra user có một trong các role được phép trước khi next()."
+    },
+    "function:BE/src/routes/ctsv.routes.js:normalizeTicketTypes": {
+      "name": "normalizeTicketTypes",
+      "type": "function",
+      "summary": "Chuẩn hóa mảng loại vé từ request body với tên trim và số lượng không âm."
+    },
+    "function:BE/src/routes/ctsv.routes.js:pickSchoolEventFields": {
+      "name": "pickSchoolEventFields",
+      "type": "function",
+      "summary": "Trích và validate các field sự kiện cấp trường từ body request trước khi lưu."
+    },
+    "function:BE/src/routes/ctsv.routes.js:buildEventFilter": {
+      "name": "buildEventFilter",
+      "type": "function",
+      "summary": "Xây dựng MongoDB filter từ query params cho danh sách sự kiện CTSV."
+    },
+    "function:BE/src/routes/ctsv.routes.js:deleteAnnouncementHandler": {
+      "name": "deleteAnnouncementHandler",
+      "type": "function",
+      "summary": "Handler xóa thông báo theo ID và trả JSON success/error cho client."
+    },
+    "function:BE/src/services/user.service.js:assertValidImageDataUrl": {
+      "name": "assertValidImageDataUrl",
+      "type": "function",
+      "summary": "Validate chuỗi ảnh là data URL JPEG/PNG/WebP hợp lệ trước khi lưu avatar."
+    },
+    "function:BE/src/services/user.service.js:getProfile": {
+      "name": "getProfile",
+      "type": "function",
+      "summary": "Lấy profile user theo email, đồng bộ metadata và trả object đã sanitize."
+    },
+    "function:BE/src/services/user.service.js:updateUserAvatar": {
+      "name": "updateUserAvatar",
+      "type": "function",
+      "summary": "Cập nhật avatar user sau khi validate data URL và fix legacy role nếu cần."
+    },
+    "function:BE/src/services/user.service.js:updateProfile": {
+      "name": "updateProfile",
+      "type": "function",
+      "summary": "Cập nhật profile user toàn diện gồm tên, phone, orientation, avatar và sync course."
+    },
+    "function:BE/src/services/user.service.js:changePassword": {
+      "name": "changePassword",
+      "type": "function",
+      "summary": "Đổi mật khẩu sau khi xác minh mật khẩu cũ bằng bcrypt.compare."
+    },
+    "function:BE/src/services/user.service.js:verifyPassword": {
+      "name": "verifyPassword",
+      "type": "function",
+      "summary": "Xác minh mật khẩu hiện tại của user có khớp hash trong DB."
+    },
+    "function:BE/src/utils/announcementEvents.js:ensurePartnerEvent": {
+      "name": "ensurePartnerEvent",
+      "type": "function",
+      "summary": "Tạo hoặc trả về sự kiện đối tác placeholder cho partner đã được duyệt."
+    },
+    "function:BE/src/utils/announcementEvents.js:findLinkableAnnouncementEvents": {
+      "name": "findLinkableAnnouncementEvents",
+      "type": "function",
+      "summary": "Tìm các sự kiện có thể gắn vào thông báo sau khi đảm bảo partner events tồn tại."
+    },
+    "function:BE/src/utils/announcementEvents.js:isEventLinkableForAnnouncement": {
+      "name": "isEventLinkableForAnnouncement",
+      "type": "function",
+      "summary": "Kiểm tra sự kiện có đủ điều kiện (nguồn, trạng thái) để liên kết với thông báo."
+    },
+    "function:BE/src/utils/eventFormat.js:formatEvent": {
+      "name": "formatEvent",
+      "type": "function",
+      "summary": "Chuyển Mongoose event document sang payload API với ngày giờ, speakers và ID string hóa."
+    },
+    "function:BE/src/utils/eventFormat.js:formatProposal": {
+      "name": "formatProposal",
+      "type": "function",
+      "summary": "Format document đề xuất sự kiện sang cấu trúc response cho client CTSV."
+    },
+    "function:BE/src/utils/role.js:resolveUserRole": {
+      "name": "resolveUserRole",
+      "type": "function",
+      "summary": "Suy luận role từ field role hiện có hoặc heuristic email/campus/orientation."
+    },
+    "file:FE/src/assets/brand.js": {
+      "name": "brand.js",
+      "type": "file",
+      "summary": "Xuất logo và văn bản thay thế thương hiệu F-Events dùng chung cho header/footer portal."
+    },
+    "file:FE/src/components/ClubDiscoveryCard.jsx": {
+      "name": "ClubDiscoveryCard.jsx",
+      "type": "file",
+      "summary": "Thẻ React hiển thị câu lạc bộ trên trang khám phá với màu danh mục, số thành viên và nút khám phá."
+    },
+    "function:FE/src/components/ClubDiscoveryCard.jsx:ClubDiscoveryCard": {
+      "name": "ClubDiscoveryCard",
+      "type": "function",
+      "summary": "Component thẻ hiển thị thông tin câu lạc bộ với callback khám phá."
+    },
+    "file:FE/src/components/ClubUpcomingEventCard.jsx": {
+      "name": "ClubUpcomingEventCard.jsx",
+      "type": "file",
+      "summary": "Thẻ sự kiện sắp tới của câu lạc bộ với ngày, địa điểm và hành động đăng ký."
+    },
+    "function:FE/src/components/ClubUpcomingEventCard.jsx:ClubUpcomingEventCard": {
+      "name": "ClubUpcomingEventCard",
+      "type": "function",
+      "summary": "Component thẻ sự kiện sắp diễn ra của một câu lạc bộ."
+    },
+    "file:FE/src/components/DashboardSidebarNav.jsx": {
+      "name": "DashboardSidebarNav.jsx",
+      "type": "file",
+      "summary": "Thanh điều hướng sidebar cho dashboard sinh viên, render menu theo cấu hình và xử lý điều hướng."
+    },
+    "function:FE/src/components/DashboardSidebarNav.jsx:MenuIcon": {
+      "name": "MenuIcon",
+      "type": "function",
+      "summary": "Component SVG icon menu dùng trong sidebar dashboard."
+    },
+    "function:FE/src/components/DashboardSidebarNav.jsx:DashboardSidebarNav": {
+      "name": "DashboardSidebarNav",
+      "type": "function",
+      "summary": "Render menu sidebar sinh viên và xử lý click điều hướng."
+    },
+    "file:FE/src/components/EventDiscoveryCard.jsx": {
+      "name": "EventDiscoveryCard.jsx",
+      "type": "file",
+      "summary": "Thẻ sự kiện trên trang khám phá với tiến độ đăng ký, nhãn danh mục và nút hành động chính."
+    },
+    "function:FE/src/components/EventDiscoveryCard.jsx:EventDiscoveryCard": {
+      "name": "EventDiscoveryCard",
+      "type": "function",
+      "summary": "Component thẻ sự kiện với thanh tiến độ đăng ký và nút chi tiết/đăng ký."
+    },
+    "file:FE/src/components/ProfileSidebarMenu.jsx": {
+      "name": "ProfileSidebarMenu.jsx",
+      "type": "file",
+      "summary": "Menu popup sidebar hồ sơ người dùng trên site công khai với các mục điều hướng và đăng xuất."
+    },
+    "function:FE/src/components/ProfileSidebarMenu.jsx:NavItem": {
+      "name": "NavItem",
+      "type": "function",
+      "summary": "Hàm NavItem trong ProfileSidebarMenu.jsx."
+    },
+    "function:FE/src/components/ProfileSidebarMenu.jsx:ProfileSidebarMenu": {
+      "name": "ProfileSidebarMenu",
+      "type": "function",
+      "summary": "Menu popup hồ sơ với các NavItem và handler hành động."
+    },
+    "file:FE/src/components/SiteFooter.jsx": {
+      "name": "SiteFooter.jsx",
+      "type": "file",
+      "summary": "Footer site công khai với liên kết điều hướng, thông tin liên hệ và bản quyền F-Events."
+    },
+    "function:FE/src/components/SiteFooter.jsx:SiteFooter": {
+      "name": "SiteFooter",
+      "type": "function",
+      "summary": "Footer tĩnh với các nhóm liên kết và thông tin bản quyền."
+    },
+    "file:FE/src/components/SiteHeader.jsx": {
+      "name": "SiteHeader.jsx",
+      "type": "file",
+      "summary": "Header site công khai với điều hướng, tìm kiếm, menu mobile và popup hồ sơ người dùng."
+    },
+    "function:FE/src/components/SiteHeader.jsx:SiteHeader": {
+      "name": "SiteHeader",
+      "type": "function",
+      "summary": "Header điều hướng site công khai tích hợp useUserProfile và popup menu."
+    },
+    "file:FE/src/components/StudentDashboardLayout.jsx": {
+      "name": "StudentDashboardLayout.jsx",
+      "type": "file",
+      "summary": "Layout bọc các trang dashboard sinh viên với sidebar, header, tải hồ sơ API và đăng xuất."
+    },
+    "function:FE/src/components/StudentDashboardLayout.jsx:StudentDashboardLayout": {
+      "name": "StudentDashboardLayout",
+      "type": "function",
+      "summary": "Layout dashboard bọc children, quản lý sidebar và tải hồ sơ từ API."
+    },
+    "file:FE/src/components/ctsv/CtsvHamburgerButton.jsx": {
+      "name": "CtsvHamburgerButton.jsx",
+      "type": "file",
+      "summary": "Nút hamburger mở/đóng menu điều hướng mobile cho portal CTSV."
+    },
+    "function:FE/src/components/ctsv/CtsvHamburgerButton.jsx:CtsvHamburgerButton": {
+      "name": "CtsvHamburgerButton",
+      "type": "function",
+      "summary": "Nút toggle menu mobile cho header portal CTSV."
+    },
+    "file:FE/src/components/ctsv/CtsvPortalFooter.jsx": {
+      "name": "CtsvPortalFooter.jsx",
+      "type": "file",
+      "summary": "Footer portal CTSV với liên kết điều hướng nội bộ và logo thương hiệu."
+    },
+    "function:FE/src/components/ctsv/CtsvPortalFooter.jsx:CtsvPortalFooter": {
+      "name": "CtsvPortalFooter",
+      "type": "function",
+      "summary": "Footer portal với liên kết điều hướng nội bộ CTSV."
+    },
+    "file:FE/src/components/ctsv/CtsvPortalHeader.jsx": {
+      "name": "CtsvPortalHeader.jsx",
+      "type": "file",
+      "summary": "Header portal CTSV với thanh tìm kiếm, menu desktop/mobile, popup hồ sơ và đăng xuất."
+    },
+    "function:FE/src/components/ctsv/CtsvPortalHeader.jsx:CtsvPortalHeader": {
+      "name": "CtsvPortalHeader",
+      "type": "function",
+      "summary": "Header portal CTSV với nav, tìm kiếm và menu hồ sơ."
+    },
+    "file:FE/src/components/ctsv/CtsvProfileMenu.jsx": {
+      "name": "CtsvProfileMenu.jsx",
+      "type": "file",
+      "summary": "Menu popup hồ sơ cán bộ CTSV với các mục cài đặt và đăng xuất."
+    },
+    "function:FE/src/components/ctsv/CtsvProfileMenu.jsx:Icon": {
+      "name": "Icon",
+      "type": "function",
+      "summary": "Hàm Icon trong CtsvProfileMenu.jsx."
+    },
+    "function:FE/src/components/ctsv/CtsvProfileMenu.jsx:NavItem": {
+      "name": "NavItem",
+      "type": "function",
+      "summary": "Hàm NavItem trong CtsvProfileMenu.jsx."
+    },
+    "function:FE/src/components/ctsv/CtsvProfileMenu.jsx:CtsvProfileMenu": {
+      "name": "CtsvProfileMenu",
+      "type": "function",
+      "summary": "Menu popup hồ sơ cán bộ CTSV."
+    },
+    "file:FE/src/components/ctsv/CtsvSidebarAside.jsx": {
+      "name": "CtsvSidebarAside.jsx",
+      "type": "file",
+      "summary": "Sidebar điều hướng portal CTSV render danh sách nav từ cấu hình và hiển thị vai trò người dùng."
+    },
+    "function:FE/src/components/ctsv/CtsvSidebarAside.jsx:CtsvSidebarAside": {
+      "name": "CtsvSidebarAside",
+      "type": "function",
+      "summary": "Sidebar CTSV render nav items và nhãn vai trò người dùng."
+    },
+    "file:FE/src/components/ctsv/ctsvNavConfig.js": {
+      "name": "ctsvNavConfig.js",
+      "type": "file",
+      "summary": "Cấu hình menu sidebar CTSV, tiện ích lưu trạng thái sidebar và kiểm tra route đang active."
+    },
+    "function:FE/src/components/ctsv/ctsvNavConfig.js:readSidebarPref": {
+      "name": "readSidebarPref",
+      "type": "function",
+      "summary": "Đọc trạng thái mở/đóng sidebar từ sessionStorage."
+    },
+    "function:FE/src/components/ctsv/ctsvNavConfig.js:persistSidebarOpen": {
+      "name": "persistSidebarOpen",
+      "type": "function",
+      "summary": "Lưu trạng thái sidebar vào sessionStorage."
+    },
+    "function:FE/src/components/ctsv/ctsvNavConfig.js:isCtsvDesktop": {
+      "name": "isCtsvDesktop",
+      "type": "function",
+      "summary": "Kiểm tra viewport có phải desktop theo breakpoint CTSV."
+    },
+    "function:FE/src/components/ctsv/ctsvNavConfig.js:isCtsvNavActive": {
+      "name": "isCtsvNavActive",
+      "type": "function",
+      "summary": "Xác định mục nav sidebar có đang active theo pathname."
+    },
+    "file:FE/src/constants/defaultAvatar.js": {
+      "name": "defaultAvatar.js",
+      "type": "file",
+      "summary": "Hằng số URL avatar mặc định khi người dùng chưa có ảnh đại diện tùy chỉnh."
+    },
+    "file:FE/src/data/clubDetailData.js": {
+      "name": "clubDetailData.js",
+      "type": "file",
+      "summary": "Dữ liệu mẫu và mapper chuyển phản hồi API câu lạc bộ sang model chi tiết cho trang ClubDetail."
+    },
+    "function:FE/src/data/clubDetailData.js:mapApiClubToDetail": {
+      "name": "mapApiClubToDetail",
+      "type": "function",
+      "summary": "Chuyển object club từ API sang model chi tiết đầy đủ."
+    },
+    "function:FE/src/data/clubDetailData.js:buildClubDetailFromList": {
+      "name": "buildClubDetailFromList",
+      "type": "function",
+      "summary": "Xây dựng model chi tiết club từ dữ liệu danh sách kèm sự kiện nổi bật."
+    },
+    "function:FE/src/data/clubDetailData.js:getClubDetailById": {
+      "name": "getClubDetailById",
+      "type": "function",
+      "summary": "Tra cứu và build chi tiết club theo ID từ danh sách mẫu."
+    },
+    "file:FE/src/data/clubDiscoveryData.js": {
+      "name": "clubDiscoveryData.js",
+      "type": "file",
+      "summary": "Dữ liệu khám phá câu lạc bộ, màu danh mục và hàm lọc/tìm kiếm danh sách club."
+    },
+    "function:FE/src/data/clubDiscoveryData.js:getCategoryColor": {
+      "name": "getCategoryColor",
+      "type": "function",
+      "summary": "Trả về màu CSS theo danh mục club hoặc sự kiện."
+    },
+    "function:FE/src/data/clubDiscoveryData.js:formatMemberCount": {
+      "name": "formatMemberCount",
+      "type": "function",
+      "summary": "Định dạng số lượng thành viên câu lạc bộ."
+    },
+    "function:FE/src/data/clubDiscoveryData.js:mapApiClubToListItem": {
+      "name": "mapApiClubToListItem",
+      "type": "function",
+      "summary": "Map phản hồi API club sang item hiển thị trên thẻ khám phá."
+    },
+    "function:FE/src/data/clubDiscoveryData.js:filterClubsBySearch": {
+      "name": "filterClubsBySearch",
+      "type": "function",
+      "summary": "Lọc danh sách club theo từ khóa tìm kiếm."
+    },
+    "function:FE/src/data/clubDiscoveryData.js:filterClubsByTag": {
+      "name": "filterClubsByTag",
+      "type": "function",
+      "summary": "Lọc danh sách club theo tag hoặc danh mục."
+    },
+    "file:FE/src/data/eventDetailData.js": {
+      "name": "eventDetailData.js",
+      "type": "file",
+      "summary": "Mapper và fallback chi tiết sự kiện, bao gồm agenda, deadline đăng ký và nhãn hành động."
+    },
+    "function:FE/src/data/eventDetailData.js:buildAgenda": {
+      "name": "buildAgenda",
+      "type": "function",
+      "summary": "Sinh lịch trình agenda sự kiện từ thời gian bắt đầu/kết thúc."
+    },
+    "function:FE/src/data/eventDetailData.js:getRegistrationStatus": {
+      "name": "getRegistrationStatus",
+      "type": "function",
+      "summary": "Xác định trạng thái đăng ký sự kiện (mở/đóng/đầy)."
+    },
+    "function:FE/src/data/eventDetailData.js:getPrimaryActionLabel": {
+      "name": "getPrimaryActionLabel",
+      "type": "function",
+      "summary": "Sinh nhãn nút hành động chính trên trang chi tiết sự kiện."
+    },
+    "function:FE/src/data/eventDetailData.js:mapApiEventToDetail": {
+      "name": "mapApiEventToDetail",
+      "type": "function",
+      "summary": "Map phản hồi API sự kiện sang model chi tiết đầy đủ cho UI."
+    },
+    "file:FE/src/data/eventDiscoveryData.js": {
+      "name": "eventDiscoveryData.js",
+      "type": "file",
+      "summary": "Bộ lọc, sắp xếp và mapper thẻ sự kiện cho trang khám phá và trang chủ."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:getCategoryColor": {
+      "name": "getCategoryColor",
+      "type": "function",
+      "summary": "Trả về màu CSS theo danh mục club hoặc sự kiện."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:isEventActiveForDiscovery": {
+      "name": "isEventActiveForDiscovery",
+      "type": "function",
+      "summary": "Kiểm tra sự kiện còn hiển thị trên trang khám phá."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:filterActiveDiscoveryEvents": {
+      "name": "filterActiveDiscoveryEvents",
+      "type": "function",
+      "summary": "Lọc chỉ các sự kiện đang active cho discovery."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:getEventCardStateGroup": {
+      "name": "getEventCardStateGroup",
+      "type": "function",
+      "summary": "Phân nhóm trạng thái thẻ sự kiện (sắp diễn ra, đang diễn ra, v.v.)."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:filterEventsByState": {
+      "name": "filterEventsByState",
+      "type": "function",
+      "summary": "Lọc sự kiện theo bộ lọc trạng thái."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:sortEventsByStatePriority": {
+      "name": "sortEventsByStatePriority",
+      "type": "function",
+      "summary": "Sắp xếp sự kiện theo ưu tiên trạng thái hiển thị."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:mapApiEventToCard": {
+      "name": "mapApiEventToCard",
+      "type": "function",
+      "summary": "Map API event sang model thẻ khám phá sự kiện."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:mapApiEventToHomeCard": {
+      "name": "mapApiEventToHomeCard",
+      "type": "function",
+      "summary": "Map API event sang model thẻ trang chủ."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:getFillPercent": {
+      "name": "getFillPercent",
+      "type": "function",
+      "summary": "Tính phần trăm lấp đầy suất đăng ký sự kiện."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:filterEventsByCategory": {
+      "name": "filterEventsByCategory",
+      "type": "function",
+      "summary": "Lọc sự kiện theo bộ lọc danh mục."
+    },
+    "function:FE/src/data/eventDiscoveryData.js:filterEventsBySearch": {
+      "name": "filterEventsBySearch",
+      "type": "function",
+      "summary": "Lọc sự kiện theo từ khóa tìm kiếm."
+    },
+    "file:FE/src/data/speakerSeedData.js": {
+      "name": "speakerSeedData.js",
+      "type": "file",
+      "summary": "Dữ liệu seed diễn giả mẫu và avatar dùng khi render chi tiết sự kiện."
+    },
+    "file:FE/src/data/studentMockData.js": {
+      "name": "studentMockData.js",
+      "type": "file",
+      "summary": "Dữ liệu mock cho dashboard sinh viên: thống kê, lịch, sự kiện, thông báo và đánh giá."
+    },
+    "function:FE/src/data/studentMockData.js:getAnnouncementById": {
+      "name": "getAnnouncementById",
+      "type": "function",
+      "summary": "Tra cứu thông báo mock theo ID."
+    },
+    "function:FE/src/data/studentMockData.js:getGreeting": {
+      "name": "getGreeting",
+      "type": "function",
+      "summary": "Sinh lời chào theo giờ trong ngày và tên người dùng."
+    },
+    "file:FE/src/data/studentSidebarMenu.js": {
+      "name": "studentSidebarMenu.js",
+      "type": "file",
+      "summary": "Cấu hình các mục menu sidebar dashboard sinh viên theo nhóm chức năng."
+    },
+    "function:FE/src/data/studentSidebarMenu.js:getSidebarMenuSections": {
+      "name": "getSidebarMenuSections",
+      "type": "function",
+      "summary": "Trả về cấu hình menu sidebar dashboard sinh viên."
+    },
+    "file:FE/src/hooks/useUserProfile.js": {
+      "name": "useUserProfile.js",
+      "type": "file",
+      "summary": "Hook React quản lý hồ sơ người dùng với cache sessionStorage, fetch API và lắng nghe sự kiện auth."
+    },
+    "function:FE/src/hooks/useUserProfile.js:readCachedProfile": {
+      "name": "readCachedProfile",
+      "type": "function",
+      "summary": "Đọc hồ sơ người dùng đã cache trong sessionStorage."
+    },
+    "function:FE/src/hooks/useUserProfile.js:writeCachedProfile": {
+      "name": "writeCachedProfile",
+      "type": "function",
+      "summary": "Ghi hồ sơ người dùng vào sessionStorage."
+    },
+    "function:FE/src/hooks/useUserProfile.js:clearUserProfileCache": {
+      "name": "clearUserProfileCache",
+      "type": "function",
+      "summary": "Xóa cache hồ sơ người dùng khỏi sessionStorage."
+    },
+    "function:FE/src/hooks/useUserProfile.js:cacheUserProfile": {
+      "name": "cacheUserProfile",
+      "type": "function",
+      "summary": "API công khai để cache hồ sơ sau khi cập nhật."
+    },
+    "function:FE/src/hooks/useUserProfile.js:useUserProfile": {
+      "name": "useUserProfile",
+      "type": "function",
+      "summary": "Hook quản lý trạng thái đăng nhập và hồ sơ, fetch từ API user/profile."
+    },
+    "file:FE/src/layouts/CtsvLayout.jsx": {
+      "name": "CtsvLayout.jsx",
+      "type": "file",
+      "summary": "Layout chính portal CTSV: xác thực vai trò, sidebar, header/footer và vùng nội dung con."
+    },
+    "function:FE/src/layouts/CtsvLayout.jsx:CtsvLayout": {
+      "name": "CtsvLayout",
+      "type": "function",
+      "summary": "Layout portal CTSV kiểm tra vai trò, quản lý sidebar và render outlet."
+    },
+    "file:FE/src/pages/AnnouncementDetail.jsx": {
+      "name": "AnnouncementDetail.jsx",
+      "type": "file",
+      "summary": "Trang chi tiết thông báo trong dashboard sinh viên, hiển thị nội dung và điều hướng quay lại danh sách."
+    },
+    "function:FE/src/pages/AnnouncementDetail.jsx:AnnouncementDetail": {
+      "name": "AnnouncementDetail",
+      "type": "function",
+      "summary": "Component React hiển thị chi tiết một thông báo theo ID từ mock data."
+    },
+    "file:FE/src/pages/Announcements.jsx": {
+      "name": "Announcements.jsx",
+      "type": "file",
+      "summary": "Trang danh sách thông báo với bộ lọc và tìm kiếm trong khu vực dashboard sinh viên."
+    },
+    "function:FE/src/pages/Announcements.jsx:Announcements": {
+      "name": "Announcements",
+      "type": "function",
+      "summary": "Component liệt kê thông báo với bộ lọc danh mục và điều hướng tới chi tiết."
+    },
+    "file:FE/src/pages/ClubDetail.jsx": {
+      "name": "ClubDetail.jsx",
+      "type": "file",
+      "summary": "Trang chi tiết câu lạc bộ: tải dữ liệu từ API, theo dõi/tham gia CLB và hiển thị sự kiện sắp tới."
+    },
+    "function:FE/src/pages/ClubDetail.jsx:ClubDetail": {
+      "name": "ClubDetail",
+      "type": "function",
+      "summary": "Component trang chi tiết CLB: fetch API, follow/join và render nội dung CLB."
+    },
+    "file:FE/src/pages/Clubs.jsx": {
+      "name": "Clubs.jsx",
+      "type": "file",
+      "summary": "Trang khám phá CLB công khai với tìm kiếm, lọc theo tag và phân trang lazy-load."
+    },
+    "function:FE/src/pages/Clubs.jsx:Clubs": {
+      "name": "Clubs",
+      "type": "function",
+      "summary": "Component trang khám phá CLB với hero search, tag filter và infinite scroll."
+    },
+    "file:FE/src/pages/EventDetail.jsx": {
+      "name": "EventDetail.jsx",
+      "type": "file",
+      "summary": "Trang chi tiết sự kiện: đăng ký, chia sẻ, tính giá vé theo vai trò người dùng."
+    },
+    "function:FE/src/pages/EventDetail.jsx:EventDetail": {
+      "name": "EventDetail",
+      "type": "function",
+      "summary": "Component trang chi tiết sự kiện với đăng ký, pricing và chia sẻ."
+    },
+    "file:FE/src/pages/EventReviews.jsx": {
+      "name": "EventReviews.jsx",
+      "type": "file",
+      "summary": "Trang đánh giá sự kiện trong dashboard sinh viên, gửi rating và bình luận qua API."
+    },
+    "function:FE/src/pages/EventReviews.jsx:EventReviews": {
+      "name": "EventReviews",
+      "type": "function",
+      "summary": "Component quản lý tab đánh giá sự kiện pending/completed qua API."
+    },
+    "file:FE/src/pages/Events.jsx": {
+      "name": "Events.jsx",
+      "type": "file",
+      "summary": "Trang khám phá sự kiện với lọc trạng thái, danh mục và tìm kiếm trên dữ liệu API."
+    },
+    "function:FE/src/pages/Events.jsx:Events": {
+      "name": "Events",
+      "type": "function",
+      "summary": "Component trang khám phá sự kiện với bộ lọc đa chiều và fallback Figma."
+    },
+    "file:FE/src/pages/Home.jsx": {
+      "name": "Home.jsx",
+      "type": "file",
+      "summary": "Trang chủ công khai giới thiệu sự kiện nổi bật, hero search và CTA đăng nhập/đăng ký."
+    },
+    "function:FE/src/pages/Home.jsx:Home": {
+      "name": "Home",
+      "type": "function",
+      "summary": "Component landing page với hero, featured events và quick search."
+    },
+    "file:FE/src/pages/Login.jsx": {
+      "name": "Login.jsx",
+      "type": "file",
+      "summary": "Trang đăng nhập xác thực JWT, lưu session và đồng bộ hồ sơ người dùng vào cache."
+    },
+    "function:FE/src/pages/Login.jsx:persistProfileFromUser": {
+      "name": "persistProfileFromUser",
+      "type": "function",
+      "summary": "Helper cache hồ sơ người dùng sau đăng nhập thành công."
+    },
+    "function:FE/src/pages/Login.jsx:Login": {
+      "name": "Login",
+      "type": "function",
+      "summary": "Component form đăng nhập email/mật khẩu với xử lý lỗi và redirect theo role."
+    },
+    "file:FE/src/pages/MyClubs.jsx": {
+      "name": "MyClubs.jsx",
+      "type": "file",
+      "summary": "Trang CLB của tôi trong dashboard: tab đã tham gia, chờ duyệt và đang theo dõi."
+    },
+    "function:FE/src/pages/MyClubs.jsx:MyClubsSkeleton": {
+      "name": "MyClubsSkeleton",
+      "type": "function",
+      "summary": "Skeleton loading UI cho trang CLB của tôi."
+    },
+    "function:FE/src/pages/MyClubs.jsx:MyClubs": {
+      "name": "MyClubs",
+      "type": "function",
+      "summary": "Component tab CLB đã tham gia/chờ duyệt/theo dõi với tìm kiếm cục bộ."
+    },
+    "file:FE/src/pages/MyEvents.jsx": {
+      "name": "MyEvents.jsx",
+      "type": "file",
+      "summary": "Trang sự kiện đã đăng ký của sinh viên với tab sắp diễn ra và đã tham dự."
+    },
+    "function:FE/src/pages/MyEvents.jsx:MyEvents": {
+      "name": "MyEvents",
+      "type": "function",
+      "summary": "Component liệt kê sự kiện đã đăng ký và hủy đăng ký qua API."
+    },
+    "file:FE/src/pages/Profile.jsx": {
+      "name": "Profile.jsx",
+      "type": "file",
+      "summary": "Trang hồ sơ cá nhân phức tạp: chỉnh sửa thông tin, avatar, sở thích và đổi mật khẩu."
+    },
+    "function:FE/src/pages/Profile.jsx:Profile": {
+      "name": "Profile",
+      "type": "function",
+      "summary": "Component form hồ sơ đa tab: thông tin cá nhân, avatar crop và bảo mật."
+    },
+    "file:FE/src/pages/Schedule.jsx": {
+      "name": "Schedule.jsx",
+      "type": "file",
+      "summary": "Trang lịch sự kiện trong dashboard với lịch tháng và danh sách sự kiện sắp tới/đã tham dự."
+    },
+    "function:FE/src/pages/Schedule.jsx:Schedule": {
+      "name": "Schedule",
+      "type": "function",
+      "summary": "Component lịch tháng kết hợp sự kiện API và mock fallback."
+    },
+    "file:FE/src/pages/Signup.jsx": {
+      "name": "Signup.jsx",
+      "type": "file",
+      "summary": "Trang đăng ký tài khoản hai bước với xác thực OTP qua email."
+    },
+    "function:FE/src/pages/Signup.jsx:Signup": {
+      "name": "Signup",
+      "type": "function",
+      "summary": "Component đăng ký hai bước: form thông tin và xác thực OTP."
+    },
+    "file:FE/src/pages/StudentDashboard.jsx": {
+      "name": "StudentDashboard.jsx",
+      "type": "file",
+      "summary": "Dashboard sinh viên tổng quan: thống kê, timeline hôm nay và gợi ý sự kiện."
+    },
+    "function:FE/src/pages/StudentDashboard.jsx:StudentDashboard": {
+      "name": "StudentDashboard",
+      "type": "function",
+      "summary": "Component dashboard tổng quan với stats, timeline và recommendations."
+    },
+    "file:FE/src/utils/api.js": {
+      "name": "api.js",
+      "type": "file",
+      "summary": "Tiện ích HTTP cơ bản: base URL API, header xác thực và parse phản hồi JSON/text."
+    },
+    "function:FE/src/utils/api.js:getAuthHeaders": {
+      "name": "getAuthHeaders",
+      "type": "function",
+      "summary": "Tạo header Authorization Bearer từ token localStorage."
+    },
+    "function:FE/src/utils/api.js:parseApiResponse": {
+      "name": "parseApiResponse",
+      "type": "function",
+      "summary": "Parse response fetch: JSON hoặc text tùy Content-Type."
+    },
+    "file:FE/src/utils/auth.js": {
+      "name": "auth.js",
+      "type": "file",
+      "summary": "Quản lý session JWT trong localStorage và helper phân quyền vai trò người dùng."
+    },
+    "function:FE/src/utils/auth.js:normalizeRole": {
+      "name": "normalizeRole",
+      "type": "function",
+      "summary": "Chuẩn hóa chuỗi role về lowercase để so sánh."
+    },
+    "function:FE/src/utils/auth.js:persistSession": {
+      "name": "persistSession",
+      "type": "function",
+      "summary": "Lưu user và JWT token vào localStorage."
+    },
+    "function:FE/src/utils/auth.js:clearSession": {
+      "name": "clearSession",
+      "type": "function",
+      "summary": "Xóa token và dữ liệu user khỏi localStorage."
+    },
+    "function:FE/src/utils/auth.js:getUserRole": {
+      "name": "getUserRole",
+      "type": "function",
+      "summary": "Đọc role hiện tại từ session đã lưu."
+    },
+    "function:FE/src/utils/auth.js:isCtsvRole": {
+      "name": "isCtsvRole",
+      "type": "function",
+      "summary": "Kiểm tra user có vai trò CTSV hay không."
+    },
+    "function:FE/src/utils/auth.js:isIcpdpRole": {
+      "name": "isIcpdpRole",
+      "type": "function",
+      "summary": "Kiểm tra user có vai trò ICPDP hay không."
+    },
+    "function:FE/src/utils/auth.js:canCtsvFinalApprove": {
+      "name": "canCtsvFinalApprove",
+      "type": "function",
+      "summary": "Kiểm tra quyền phê duyệt cuối của CTSV."
+    },
+    "function:FE/src/utils/auth.js:getHomePathForRole": {
+      "name": "getHomePathForRole",
+      "type": "function",
+      "summary": "Trả về đường dẫn home mặc định theo role."
+    },
+    "function:FE/src/utils/auth.js:getRoleDisplayLabel": {
+      "name": "getRoleDisplayLabel",
+      "type": "function",
+      "summary": "Trả về nhãn hiển thị tiếng Việt cho role."
+    },
+    "file:FE/src/utils/authEvents.js": {
+      "name": "authEvents.js",
+      "type": "file",
+      "summary": "Sự kiện tùy chỉnh window để đồng bộ trạng thái đăng nhập giữa các component."
+    },
+    "function:FE/src/utils/authEvents.js:dispatchAuthChanged": {
+      "name": "dispatchAuthChanged",
+      "type": "function",
+      "summary": "Phát sự kiện AUTH_CHANGED trên window."
+    },
+    "file:FE/src/utils/image.js": {
+      "name": "image.js",
+      "type": "file",
+      "summary": "Xử lý avatar: nhận diện ảnh upload, resolve URL và nén ảnh trước khi gửi lên server."
+    },
+    "function:FE/src/utils/image.js:isCustomUploadedAvatar": {
+      "name": "isCustomUploadedAvatar",
+      "type": "function",
+      "summary": "Kiểm tra avatar là data URL hoặc blob upload."
+    },
+    "function:FE/src/utils/image.js:resolveUserAvatar": {
+      "name": "resolveUserAvatar",
+      "type": "function",
+      "summary": "Resolve URL avatar từ user object và fallback."
+    },
+    "function:FE/src/utils/image.js:compressImageFile": {
+      "name": "compressImageFile",
+      "type": "function",
+      "summary": "Nén file ảnh qua canvas trước upload."
+    },
+    "file:FE/src/utils/logout.js": {
+      "name": "logout.js",
+      "type": "file",
+      "summary": "Luồng đăng xuất có xác nhận, xóa session và cache hồ sơ người dùng."
+    },
+    "function:FE/src/utils/logout.js:confirmLogout": {
+      "name": "confirmLogout",
+      "type": "function",
+      "summary": "Hiển thị dialog xác nhận trước khi đăng xuất."
+    },
+    "function:FE/src/utils/logout.js:logoutWithConfirm": {
+      "name": "logoutWithConfirm",
+      "type": "function",
+      "summary": "Thực hiện logout: clear session, cache và redirect."
+    },
+    "file:FE/src/utils/profileApi.js": {
+      "name": "profileApi.js",
+      "type": "file",
+      "summary": "API cập nhật avatar người dùng và xây dựng payload ảnh đại diện."
+    },
+    "function:FE/src/utils/profileApi.js:updateUserAvatar": {
+      "name": "updateUserAvatar",
+      "type": "function",
+      "summary": "Gọi API PUT cập nhật avatar người dùng."
+    },
+    "function:FE/src/utils/profileApi.js:buildProfilePicturePayload": {
+      "name": "buildProfilePicturePayload",
+      "type": "function",
+      "summary": "Xây payload avatar cho API profile."
+    },
+    "file:FE/src/utils/role.js": {
+      "name": "role.js",
+      "type": "file",
+      "summary": "Ánh xạ mã vai trò backend sang nhãn hiển thị tiếng Việt."
+    },
+    "function:FE/src/utils/role.js:getRoleLabel": {
+      "name": "getRoleLabel",
+      "type": "function",
+      "summary": "Map role code sang nhãn hiển thị ngắn."
+    },
+    "file:FE/src/utils/studentId.js": {
+      "name": "studentId.js",
+      "type": "file",
+      "summary": "Định dạng MSSV và suy luận khóa học từ mã sinh viên."
+    },
+    "function:FE/src/utils/studentId.js:formatMssv": {
+      "name": "formatMssv",
+      "type": "function",
+      "summary": "Chuẩn hóa và format mã số sinh viên."
+    },
+    "function:FE/src/utils/studentId.js:deriveCourseFromMssv": {
+      "name": "deriveCourseFromMssv",
+      "type": "function",
+      "summary": "Suy luận khóa học từ prefix MSSV."
+    },
+    "file:FE/src/utils/ticketPricing.js": {
+      "name": "ticketPricing.js",
+      "type": "file",
+      "summary": "Logic giá vé sự kiện: miễn phí sinh viên, format VND và nhãn hành động chính."
+    },
+    "function:FE/src/utils/ticketPricing.js:hasStudentTicketPrivilege": {
+      "name": "hasStudentTicketPrivilege",
+      "type": "function",
+      "summary": "Kiểm tra role được miễn phí vé sinh viên."
+    },
+    "function:FE/src/utils/ticketPricing.js:formatVnd": {
+      "name": "formatVnd",
+      "type": "function",
+      "summary": "Format số tiền theo locale VND."
+    },
+    "function:FE/src/utils/ticketPricing.js:calculateTicketAmount": {
+      "name": "calculateTicketAmount",
+      "type": "function",
+      "summary": "Tính số tiền vé theo role người dùng."
+    },
+    "function:FE/src/utils/ticketPricing.js:buildPriceLabel": {
+      "name": "buildPriceLabel",
+      "type": "function",
+      "summary": "Tạo nhãn giá hiển thị (miễn phí/giảm giá/giá gốc)."
+    },
+    "function:FE/src/utils/ticketPricing.js:getPrimaryActionLabel": {
+      "name": "getPrimaryActionLabel",
+      "type": "function",
+      "summary": "Trả về nhãn nút hành động chính theo trạng thái sự kiện."
+    },
+    "function:FE/src/utils/ticketPricing.js:resolveEventPricing": {
+      "name": "resolveEventPricing",
+      "type": "function",
+      "summary": "Tổng hợp thông tin pricing đầy đủ cho một sự kiện."
+    },
+    "file:FE/src/App.jsx": {
+      "name": "App.jsx",
+      "type": "file",
+      "summary": "Thành phần gốc React Router định nghĩa toàn bộ tuyến đường, bảo vệ phiên đăng nhập theo vai trò và hiển thị hệ thống toast toàn cục."
+    },
+    "function:FE/src/App.jsx:App": {
+      "name": "App",
+      "type": "function",
+      "summary": "Cấu hình BrowserRouter, state toast toàn cục và đăng ký toàn bộ route public, sinh viên, CTSV và admin."
+    },
+    "file:FE/src/components/Toast.jsx": {
+      "name": "Toast.jsx",
+      "type": "file",
+      "summary": "Hệ thống thông báo toast với biểu tượng theo loại, hiệu ứng fade và container cố định góc màn hình."
+    },
+    "function:FE/src/components/Toast.jsx:ToastIcon": {
+      "name": "ToastIcon",
+      "type": "function",
+      "summary": "Render SVG icon theo loại toast (success, error, warning, info)."
+    },
+    "function:FE/src/components/Toast.jsx:ToastItem": {
+      "name": "ToastItem",
+      "type": "function",
+      "summary": "Một toast đơn lẻ với timer tự ẩn, fade-out và callback onRemove."
+    },
+    "function:FE/src/components/Toast.jsx:ToastContainer": {
+      "name": "ToastContainer",
+      "type": "function",
+      "summary": "Container cố định góc phải dưới chứa danh sách ToastItem."
+    },
+    "file:FE/src/components/ctsv/BannerCropModal.jsx": {
+      "name": "BannerCropModal.jsx",
+      "type": "file",
+      "summary": "Modal cắt và căn chỉnh ảnh banner sự kiện CTSV với zoom, kéo thả và xuất preview trước khi tải lên."
+    },
+    "function:FE/src/components/ctsv/BannerCropModal.jsx:BannerCropModal": {
+      "name": "BannerCropModal",
+      "type": "function",
+      "summary": "UI modal cắt banner với canvas preview, điều khiển zoom/pan và gọi cropBannerImage trước khi confirm."
+    },
+    "file:FE/src/components/ctsv/CtsvActionIcon.jsx": {
+      "name": "CtsvActionIcon.jsx",
+      "type": "file",
+      "summary": "Component icon hành động tái sử dụng cho các thao tác trong giao diện cổng CTSV."
+    },
+    "function:FE/src/components/ctsv/CtsvActionIcon.jsx:CtsvActionIcon": {
+      "name": "CtsvActionIcon",
+      "type": "function",
+      "summary": "Render nút icon hành động với tooltip và variant màu theo loại thao tác."
+    },
+    "file:FE/src/components/ctsv/CtsvNavIcon.jsx": {
+      "name": "CtsvNavIcon.jsx",
+      "type": "file",
+      "summary": "Icon điều hướng sidebar CTSV với trạng thái active và nhãn cho từng mục menu."
+    },
+    "function:FE/src/components/ctsv/CtsvNavIcon.jsx:CtsvNavIcon": {
+      "name": "CtsvNavIcon",
+      "type": "function",
+      "summary": "Link sidebar CTSV kèm icon SVG và highlight khi route khớp."
+    },
+    "file:FE/src/components/ctsv/PartnerActionDialog.jsx": {
+      "name": "PartnerActionDialog.jsx",
+      "type": "file",
+      "summary": "Hộp thoại xác nhận hành động đối tác (duyệt, từ chối, yêu cầu bổ sung) trong luồng quản lý CTSV."
+    },
+    "function:FE/src/components/ctsv/PartnerActionDialog.jsx:PartnerActionDialog": {
+      "name": "PartnerActionDialog",
+      "type": "function",
+      "summary": "Dialog modal thu thập lý do và xác nhận hành động duyệt/từ chối đối tác."
+    },
+    "file:FE/src/components/profile/AvatarCropModal.jsx": {
+      "name": "AvatarCropModal.jsx",
+      "type": "file",
+      "summary": "Modal cắt ảnh đại diện người dùng hoặc diễn giả với tỷ lệ vuông, zoom và xuất blob để upload."
+    },
+    "function:FE/src/components/profile/AvatarCropModal.jsx:AvatarCropModal": {
+      "name": "AvatarCropModal",
+      "type": "function",
+      "summary": "Modal cắt avatar vuông với cropAvatarImage/cropAvatarPreview và trả blob cho upload."
+    },
+    "file:FE/src/components/ui/AppSelect.jsx": {
+      "name": "AppSelect.jsx",
+      "type": "file",
+      "summary": "Dropdown select tùy chỉnh hỗ trợ tìm kiếm, placeholder và styling thống nhất cho toàn ứng dụng."
+    },
+    "function:FE/src/components/ui/AppSelect.jsx:AppSelect": {
+      "name": "AppSelect",
+      "type": "function",
+      "summary": "Select dropdown có thể tìm kiếm, keyboard-friendly và custom render option."
+    },
+    "file:FE/src/components/ui/ConfirmDialog.jsx": {
+      "name": "ConfirmDialog.jsx",
+      "type": "file",
+      "summary": "Hộp thoại xác nhận generic với tiêu đề, mô tả và nút hủy/xác nhận cho các thao tác nguy hiểm."
+    },
+    "function:FE/src/components/ui/ConfirmDialog.jsx:ConfirmDialog": {
+      "name": "ConfirmDialog",
+      "type": "function",
+      "summary": "Overlay dialog xác nhận với props title, message và onConfirm/onCancel."
+    },
+    "file:FE/src/constants/eventCategories.js": {
+      "name": "eventCategories.js",
+      "type": "file",
+      "summary": "Hằng số danh mục sự kiện trường và hàm chuẩn hóa giá trị category cho form CTSV."
+    },
+    "function:FE/src/constants/eventCategories.js:normalizeEventCategory": {
+      "name": "normalizeEventCategory",
+      "type": "function",
+      "summary": "Chuẩn hóa chuỗi category về giá trị hợp lệ trong EVENT_CATEGORIES hoặc fallback mặc định."
+    },
+    "file:FE/src/constants/eventSpeaker.js": {
+      "name": "eventSpeaker.js",
+      "type": "file",
+      "summary": "Cấu hình diễn giả sự kiện: giới hạn ảnh, tạo hàng trống và chuẩn hóa payload speakers khi gửi API."
+    },
+    "function:FE/src/constants/eventSpeaker.js:createEmptySpeakerRow": {
+      "name": "createEmptySpeakerRow",
+      "type": "function",
+      "summary": "Tạo object speaker rỗng với các trường mặc định cho form thêm diễn giả."
+    },
+    "function:FE/src/constants/eventSpeaker.js:normalizeSpeakerPayload": {
+      "name": "normalizeSpeakerPayload",
+      "type": "function",
+      "summary": "Chuẩn hóa một speaker trước khi gửi API, loại bỏ trường rỗng."
+    },
+    "function:FE/src/constants/eventSpeaker.js:buildSpeakersPayload": {
+      "name": "buildSpeakersPayload",
+      "type": "function",
+      "summary": "Map mảng speakers form thành payload API đã chuẩn hóa."
+    },
+    "function:FE/src/constants/eventSpeaker.js:resolveEventSpeakers": {
+      "name": "resolveEventSpeakers",
+      "type": "function",
+      "summary": "Giải quyết danh sách speakers từ dữ liệu sự kiện API về format hiển thị form."
+    },
+    "file:FE/src/constants/eventVenues.js": {
+      "name": "eventVenues.js",
+      "type": "file",
+      "summary": "Danh sách địa điểm tổ chức sự kiện cố định dùng trong form tạo sự kiện sinh viên."
+    },
+    "file:FE/src/constants/eventWorkflow.js": {
+      "name": "eventWorkflow.js",
+      "type": "file",
+      "summary": "Trạng thái workflow sự kiện trường và helper kiểm tra quyền publish, chỉnh sửa và chờ duyệt admin."
+    },
+    "function:FE/src/constants/eventWorkflow.js:canCtsvPublishSchoolEvent": {
+      "name": "canCtsvPublishSchoolEvent",
+      "type": "function",
+      "summary": "Kiểm tra sự kiện trường có đủ điều kiện để CTSV publish hay không."
+    },
+    "function:FE/src/constants/eventWorkflow.js:canCtsvEditSchoolEvent": {
+      "name": "canCtsvEditSchoolEvent",
+      "type": "function",
+      "summary": "Kiểm tra trạng thái sự kiện có nằm trong danh sách cho phép chỉnh sửa."
+    },
+    "function:FE/src/constants/eventWorkflow.js:isSchoolEventPendingAdmin": {
+      "name": "isSchoolEventPendingAdmin",
+      "type": "function",
+      "summary": "Xác định sự kiện đang chờ phê duyệt từ admin ICPDP."
+    },
+    "file:FE/src/hooks/useSettingsPreferences.js": {
+      "name": "useSettingsPreferences.js",
+      "type": "file",
+      "summary": "Hook quản lý cài đặt người dùng (dark mode, ngôn ngữ) lưu localStorage và áp dụng theme khi khởi động."
+    },
+    "function:FE/src/hooks/useSettingsPreferences.js:loadSettings": {
+      "name": "loadSettings",
+      "type": "function",
+      "summary": "Đọc cài đặt từ localStorage, merge với DEFAULT_SETTINGS nếu thiếu khóa."
+    },
+    "function:FE/src/hooks/useSettingsPreferences.js:saveSettings": {
+      "name": "saveSettings",
+      "type": "function",
+      "summary": "Ghi object cài đặt vào localStorage dưới khóa cố định."
+    },
+    "function:FE/src/hooks/useSettingsPreferences.js:applyDarkMode": {
+      "name": "applyDarkMode",
+      "type": "function",
+      "summary": "Bật/tắt class dark trên document.documentElement theo preference."
+    },
+    "function:FE/src/hooks/useSettingsPreferences.js:initThemeFromStorage": {
+      "name": "initThemeFromStorage",
+      "type": "function",
+      "summary": "Khởi tạo theme khi app load bằng cách gọi loadSettings và applyDarkMode."
+    },
+    "function:FE/src/hooks/useSettingsPreferences.js:useSettingsPreferences": {
+      "name": "useSettingsPreferences",
+      "type": "function",
+      "summary": "Hook React expose settings state, setter và hàm toggle dark mode có persist."
+    },
+    "file:FE/src/main.jsx": {
+      "name": "main.jsx",
+      "type": "file",
+      "summary": "Điểm mount React DOM, import stylesheet toàn cục và render ứng dụng vào #root."
+    },
+    "file:FE/src/pages/AdminDashboard.jsx": {
+      "name": "AdminDashboard.jsx",
+      "type": "file",
+      "summary": "Trang tổng quan admin ICPDP với thống kê và liên kết nhanh tới các luồng phê duyệt."
+    },
+    "function:FE/src/pages/AdminDashboard.jsx:AdminDashboard": {
+      "name": "AdminDashboard",
+      "type": "function",
+      "summary": "Dashboard admin với card thống kê và navigation tới phê duyệt đối tác/sự kiện."
+    },
+    "file:FE/src/pages/CreateEvent.jsx": {
+      "name": "CreateEvent.jsx",
+      "type": "file",
+      "summary": "Form tạo sự kiện phía sinh viên với chọn địa điểm, thời gian và thông tin cơ bản."
+    },
+    "function:FE/src/pages/CreateEvent.jsx:CreateEvent": {
+      "name": "CreateEvent",
+      "type": "function",
+      "summary": "Form wizard tạo sự kiện sinh viên với AppSelect địa điểm và submit API."
+    },
+    "file:FE/src/pages/CtsvHome.jsx": {
+      "name": "CtsvHome.jsx",
+      "type": "file",
+      "summary": "Trang chủ cổng CTSV hiển thị thống kê, sự kiện nổi bật và bộ lọc trạng thái sự kiện trường."
+    },
+    "function:FE/src/pages/CtsvHome.jsx:CtsvEventCard": {
+      "name": "CtsvEventCard",
+      "type": "function",
+      "summary": "Card hiển thị một sự kiện CTSV với badge trạng thái và link chi tiết."
+    },
+    "function:FE/src/pages/CtsvHome.jsx:CtsvHome": {
+      "name": "CtsvHome",
+      "type": "function",
+      "summary": "Trang chủ CTSV fetch stats/events, lọc theo trạng thái và render lưới CtsvEventCard."
+    },
+    "file:FE/src/pages/ForgotPassword.jsx": {
+      "name": "ForgotPassword.jsx",
+      "type": "file",
+      "summary": "Trang yêu cầu đặt lại mật khẩu qua email với validation và gọi API auth."
+    },
+    "function:FE/src/pages/ForgotPassword.jsx:ForgotPassword": {
+      "name": "ForgotPassword",
+      "type": "function",
+      "summary": "Form nhập email gửi yêu cầu reset password với feedback lỗi/thành công."
+    },
+    "file:FE/src/pages/ResetPassword.jsx": {
+      "name": "ResetPassword.jsx",
+      "type": "file",
+      "summary": "Trang đặt mật khẩu mới từ token reset, kiểm tra độ mạnh và xác nhận khớp mật khẩu."
+    },
+    "function:FE/src/pages/ResetPassword.jsx:ResetPassword": {
+      "name": "ResetPassword",
+      "type": "function",
+      "summary": "Form đặt mật khẩu mới từ query token, validate và gọi API reset."
+    },
+    "file:FE/src/pages/StaticPage.jsx": {
+      "name": "StaticPage.jsx",
+      "type": "file",
+      "summary": "Trang nội dung tĩnh (điều khoản, hướng dẫn) render markdown theo slug route."
+    },
+    "function:FE/src/pages/StaticPage.jsx:StaticPage": {
+      "name": "StaticPage",
+      "type": "function",
+      "summary": "Đọc slug từ URL, tra cứu nội dung tĩnh và render HTML/markdown an toàn."
+    },
+    "file:FE/src/pages/admin/AdminPartnerApprovals.jsx": {
+      "name": "AdminPartnerApprovals.jsx",
+      "type": "file",
+      "summary": "Trang admin duyệt hồ sơ đối tác với danh sách, lọc trạng thái và hành động approve/reject."
+    },
+    "function:FE/src/pages/admin/AdminPartnerApprovals.jsx:AdminPartnerApprovals": {
+      "name": "AdminPartnerApprovals",
+      "type": "function",
+      "summary": "Bảng duyệt đối tác với fetch admin API, format hiển thị và nút approve/reject."
+    },
+    "file:FE/src/pages/admin/AdminSchoolEventApprovals.jsx": {
+      "name": "AdminSchoolEventApprovals.jsx",
+      "type": "file",
+      "summary": "Trang admin phê duyệt sự kiện trường, hiển thị chi tiết và workflow trạng thái từ constants."
+    },
+    "function:FE/src/pages/admin/AdminSchoolEventApprovals.jsx:AdminSchoolEventApprovals": {
+      "name": "AdminSchoolEventApprovals",
+      "type": "function",
+      "summary": "Danh sách sự kiện trường chờ duyệt với chi tiết, label workflow và hành động admin."
+    },
+    "file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx": {
+      "name": "CtsvAnnouncementPublish.jsx",
+      "type": "file",
+      "summary": "Trang CTSV soạn thảo, xem trước và xuất bản thông báo sự kiện, hỗ trợ lưu nháp và liên kết sự kiện."
+    },
+    "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:formatDateTime": {
+      "name": "formatDateTime",
+      "type": "function",
+      "summary": "Định dạng datetime theo locale vi-VN, fallback qua formatPartnerDate."
+    },
+    "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:readInitialDraftState": {
+      "name": "readInitialDraftState",
+      "type": "function",
+      "summary": "Khôi phục trạng thái nháp thông báo từ localStorage khi mount."
+    },
+    "function:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx:CtsvAnnouncementPublish": {
+      "name": "CtsvAnnouncementPublish",
+      "type": "function",
+      "summary": "Component chính quản lý form xuất bản thông báo, preview và gọi API CTSV."
+    },
+    "file:FE/src/pages/ctsv/CtsvCalendar.jsx": {
+      "name": "CtsvCalendar.jsx",
+      "type": "file",
+      "summary": "Lịch tháng hiển thị sự kiện CTSV với điều hướng tháng và trạng thái sự kiện."
+    },
+    "function:FE/src/pages/ctsv/CtsvCalendar.jsx:CtsvCalendar": {
+      "name": "CtsvCalendar",
+      "type": "function",
+      "summary": "Component lịch tháng tải sự kiện qua fetchCtsvCalendar và render lưới."
+    },
+    "file:FE/src/pages/ctsv/CtsvDashboard.jsx": {
+      "name": "CtsvDashboard.jsx",
+      "type": "file",
+      "summary": "Bảng điều khiển CTSV tổng hợp thống kê, sự kiện sắp diễn ra và điều hướng nhanh."
+    },
+    "function:FE/src/pages/ctsv/CtsvDashboard.jsx:formatToday": {
+      "name": "formatToday",
+      "type": "function",
+      "summary": "Định dạng ngày hôm nay cho header dashboard."
+    },
+    "function:FE/src/pages/ctsv/CtsvDashboard.jsx:CtsvDashboard": {
+      "name": "CtsvDashboard",
+      "type": "function",
+      "summary": "Dashboard CTSV hiển thị stats, sự kiện và liên kết điều hướng."
+    },
+    "file:FE/src/pages/ctsv/CtsvEventCreate.jsx": {
+      "name": "CtsvEventCreate.jsx",
+      "type": "file",
+      "summary": "Form tạo/chỉnh sửa sự kiện trường phức tạp với vé, diễn giả, banner và lưu nháp cục bộ."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:clampTicketRows": {
+      "name": "clampTicketRows",
+      "type": "function",
+      "summary": "Giới hạn số hàng vé trong form theo min/max."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:TicketPriceEditor": {
+      "name": "TicketPriceEditor",
+      "type": "function",
+      "summary": "Sub-component chỉnh sửa giá và số lượng vé."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:Field": {
+      "name": "Field",
+      "type": "function",
+      "summary": "Wrapper input có label và lỗi cho form sự kiện."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:mapEventToForm": {
+      "name": "mapEventToForm",
+      "type": "function",
+      "summary": "Map dữ liệu API sự kiện sang state form."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:mapEventToTickets": {
+      "name": "mapEventToTickets",
+      "type": "function",
+      "summary": "Map payload vé từ API sang state cục bộ."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:mapEventToSpeakers": {
+      "name": "mapEventToSpeakers",
+      "type": "function",
+      "summary": "Map danh sách diễn giả API sang form rows."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventCreate.jsx:CtsvEventCreate": {
+      "name": "CtsvEventCreate",
+      "type": "function",
+      "summary": "Form lớn tạo/sửa sự kiện trường với vé, diễn giả, upload và submit workflow."
+    },
+    "file:FE/src/pages/ctsv/CtsvEventDetail.jsx": {
+      "name": "CtsvEventDetail.jsx",
+      "type": "file",
+      "summary": "Trang chi tiết sự kiện CTSV với hành động phê duyệt, xuất bản và quản lý workflow."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventDetail.jsx:CtsvEventDetail": {
+      "name": "CtsvEventDetail",
+      "type": "function",
+      "summary": "Hiển thị chi tiết sự kiện và các nút hành động workflow CTSV."
+    },
+    "file:FE/src/pages/ctsv/CtsvEventList.jsx": {
+      "name": "CtsvEventList.jsx",
+      "type": "file",
+      "summary": "Danh sách sự kiện CTSV có lọc trạng thái, skeleton loading và thẻ sự kiện."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventList.jsx:EventCardSkeleton": {
+      "name": "EventCardSkeleton",
+      "type": "function",
+      "summary": "Skeleton placeholder khi đang tải danh sách sự kiện."
+    },
+    "function:FE/src/pages/ctsv/CtsvEventList.jsx:CtsvEventList": {
+      "name": "CtsvEventList",
+      "type": "function",
+      "summary": "Danh sách sự kiện có filter, fetch và render thẻ."
+    },
+    "file:FE/src/pages/ctsv/CtsvPartnerDetail.jsx": {
+      "name": "CtsvPartnerDetail.jsx",
+      "type": "file",
+      "summary": "Chi tiết đối tác CTSV với hợp đồng, hành động phê duyệt/từ chối và hiển thị trạng thái."
+    },
+    "function:FE/src/pages/ctsv/CtsvPartnerDetail.jsx:CtsvPartnerDetail": {
+      "name": "CtsvPartnerDetail",
+      "type": "function",
+      "summary": "Trang chi tiết đối tác với dialog hành động và thông tin hợp đồng."
+    },
+    "file:FE/src/pages/ctsv/CtsvPartnerList.jsx": {
+      "name": "CtsvPartnerList.jsx",
+      "type": "file",
+      "summary": "Danh sách đối tác CTSV với lọc trạng thái và điều hướng tới chi tiết."
+    },
+    "function:FE/src/pages/ctsv/CtsvPartnerList.jsx:CtsvPartnerList": {
+      "name": "CtsvPartnerList",
+      "type": "function",
+      "summary": "Bảng/danh sách đối tác với filter và fetch API."
+    },
+    "file:FE/src/pages/ctsv/CtsvProfile.jsx": {
+      "name": "CtsvProfile.jsx",
+      "type": "file",
+      "summary": "Wrapper tái sử dụng trang Profile chung cho vai trò CTSV."
+    },
+    "file:FE/src/pages/ctsv/CtsvProposalDetail.jsx": {
+      "name": "CtsvProposalDetail.jsx",
+      "type": "file",
+      "summary": "Chi tiết đề xuất sự kiện với hành động phê duyệt, từ chối hoặc yêu cầu chỉnh sửa."
+    },
+    "function:FE/src/pages/ctsv/CtsvProposalDetail.jsx:CtsvProposalDetail": {
+      "name": "CtsvProposalDetail",
+      "type": "function",
+      "summary": "Chi tiết đề xuất với approve/reject/revision."
+    },
+    "file:FE/src/pages/ctsv/CtsvProposalList.jsx": {
+      "name": "CtsvProposalList.jsx",
+      "type": "file",
+      "summary": "Danh sách đề xuất sự kiện chờ CTSV xử lý."
+    },
+    "function:FE/src/pages/ctsv/CtsvProposalList.jsx:CtsvProposalList": {
+      "name": "CtsvProposalList",
+      "type": "function",
+      "summary": "Liệt kê đề xuất sự kiện chờ xử lý."
+    },
+    "file:FE/src/pages/ctsv/CtsvReports.jsx": {
+      "name": "CtsvReports.jsx",
+      "type": "file",
+      "summary": "Trang báo cáo CTSV hiển thị thống kê và biểu đồ tổng hợp sự kiện."
+    },
+    "function:FE/src/pages/ctsv/CtsvReports.jsx:CtsvReports": {
+      "name": "CtsvReports",
+      "type": "function",
+      "summary": "Render báo cáo thống kê từ fetchCtsvReports."
+    },
+    "file:FE/src/services/adminApi.js": {
+      "name": "adminApi.js",
+      "type": "file",
+      "summary": "Client API phê duyệt đối tác và sự kiện trường dành cho admin."
+    },
+    "function:FE/src/services/adminApi.js:fetchAdminPartners": {
+      "name": "fetchAdminPartners",
+      "type": "function",
+      "summary": "GET danh sách đối tác chờ admin phê duyệt."
+    },
+    "function:FE/src/services/adminApi.js:approveAdminPartner": {
+      "name": "approveAdminPartner",
+      "type": "function",
+      "summary": "POST phê duyệt đối tác (admin)."
+    },
+    "function:FE/src/services/adminApi.js:rejectAdminPartner": {
+      "name": "rejectAdminPartner",
+      "type": "function",
+      "summary": "POST từ chối đối tác (admin)."
+    },
+    "function:FE/src/services/adminApi.js:fetchAdminSchoolEvents": {
+      "name": "fetchAdminSchoolEvents",
+      "type": "function",
+      "summary": "GET sự kiện trường chờ admin duyệt."
+    },
+    "function:FE/src/services/adminApi.js:approveAdminSchoolEvent": {
+      "name": "approveAdminSchoolEvent",
+      "type": "function",
+      "summary": "POST phê duyệt sự kiện trường (admin)."
+    },
+    "function:FE/src/services/adminApi.js:rejectAdminSchoolEvent": {
+      "name": "rejectAdminSchoolEvent",
+      "type": "function",
+      "summary": "POST từ chối sự kiện trường (admin)."
+    },
+    "file:FE/src/services/ctsvApi.js": {
+      "name": "ctsvApi.js",
+      "type": "file",
+      "summary": "Lớp gọi API tập trung cho module CTSV: sự kiện, đối tác, đề xuất, thông báo và báo cáo."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvStats": {
+      "name": "fetchCtsvStats",
+      "type": "function",
+      "summary": "Lấy thống kê tổng quan cho dashboard CTSV."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvEvents": {
+      "name": "fetchCtsvEvents",
+      "type": "function",
+      "summary": "Lấy danh sách sự kiện CTSV có query params."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvEvent": {
+      "name": "fetchCtsvEvent",
+      "type": "function",
+      "summary": "Lấy chi tiết một sự kiện theo ID."
+    },
+    "function:FE/src/services/ctsvApi.js:createCtsvEvent": {
+      "name": "createCtsvEvent",
+      "type": "function",
+      "summary": "Tạo sự kiện trường mới qua POST."
+    },
+    "function:FE/src/services/ctsvApi.js:updateCtsvEvent": {
+      "name": "updateCtsvEvent",
+      "type": "function",
+      "summary": "Cập nhật sự kiện trường qua PUT/PATCH."
+    },
+    "function:FE/src/services/ctsvApi.js:approveCtsvEvent": {
+      "name": "approveCtsvEvent",
+      "type": "function",
+      "summary": "Phê duyệt sự kiện ở cấp CTSV."
+    },
+    "function:FE/src/services/ctsvApi.js:rejectCtsvEvent": {
+      "name": "rejectCtsvEvent",
+      "type": "function",
+      "summary": "Từ chối sự kiện ở cấp CTSV."
+    },
+    "function:FE/src/services/ctsvApi.js:revisionCtsvEvent": {
+      "name": "revisionCtsvEvent",
+      "type": "function",
+      "summary": "Yêu cầu chỉnh sửa sự kiện."
+    },
+    "function:FE/src/services/ctsvApi.js:publishCtsvEvent": {
+      "name": "publishCtsvEvent",
+      "type": "function",
+      "summary": "Xuất bản sự kiện đã được duyệt."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvCalendar": {
+      "name": "fetchCtsvCalendar",
+      "type": "function",
+      "summary": "Lấy sự kiện cho view lịch tháng."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvReports": {
+      "name": "fetchCtsvReports",
+      "type": "function",
+      "summary": "Lấy dữ liệu báo cáo thống kê CTSV."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvProposals": {
+      "name": "fetchCtsvProposals",
+      "type": "function",
+      "summary": "Lấy danh sách đề xuất sự kiện."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvProposal": {
+      "name": "fetchCtsvProposal",
+      "type": "function",
+      "summary": "Lấy chi tiết một đề xuất."
+    },
+    "function:FE/src/services/ctsvApi.js:approveCtsvProposal": {
+      "name": "approveCtsvProposal",
+      "type": "function",
+      "summary": "Phê duyệt đề xuất sự kiện."
+    },
+    "function:FE/src/services/ctsvApi.js:rejectCtsvProposal": {
+      "name": "rejectCtsvProposal",
+      "type": "function",
+      "summary": "Từ chối đề xuất sự kiện."
+    },
+    "function:FE/src/services/ctsvApi.js:revisionCtsvProposal": {
+      "name": "revisionCtsvProposal",
+      "type": "function",
+      "summary": "Yêu cầu chỉnh sửa đề xuất."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvPartners": {
+      "name": "fetchCtsvPartners",
+      "type": "function",
+      "summary": "Lấy danh sách đối tác CTSV."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvPartner": {
+      "name": "fetchCtsvPartner",
+      "type": "function",
+      "summary": "Lấy chi tiết đối tác theo ID."
+    },
+    "function:FE/src/services/ctsvApi.js:createCtsvPartner": {
+      "name": "createCtsvPartner",
+      "type": "function",
+      "summary": "Tạo đối tác mới."
+    },
+    "function:FE/src/services/ctsvApi.js:approveCtsvPartner": {
+      "name": "approveCtsvPartner",
+      "type": "function",
+      "summary": "Phê duyệt đối tác CTSV."
+    },
+    "function:FE/src/services/ctsvApi.js:rejectCtsvPartner": {
+      "name": "rejectCtsvPartner",
+      "type": "function",
+      "summary": "Từ chối đối tác CTSV."
+    },
+    "function:FE/src/services/ctsvApi.js:requestInfoCtsvPartner": {
+      "name": "requestInfoCtsvPartner",
+      "type": "function",
+      "summary": "Yêu cầu bổ sung thông tin đối tác."
+    },
+    "function:FE/src/services/ctsvApi.js:approveCtsvContract": {
+      "name": "approveCtsvContract",
+      "type": "function",
+      "summary": "Phê duyệt hợp đồng đối tác."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvAnnouncements": {
+      "name": "fetchCtsvAnnouncements",
+      "type": "function",
+      "summary": "Lấy danh sách thông báo CTSV."
+    },
+    "function:FE/src/services/ctsvApi.js:fetchCtsvAnnouncementLinkableEvents": {
+      "name": "fetchCtsvAnnouncementLinkableEvents",
+      "type": "function",
+      "summary": "Lấy sự kiện có thể gắn vào thông báo."
+    },
+    "function:FE/src/services/ctsvApi.js:publishCtsvAnnouncement": {
+      "name": "publishCtsvAnnouncement",
+      "type": "function",
+      "summary": "Xuất bản thông báo mới."
+    },
+    "function:FE/src/services/ctsvApi.js:hideCtsvAnnouncement": {
+      "name": "hideCtsvAnnouncement",
+      "type": "function",
+      "summary": "Ẩn thông báo đã xuất bản."
+    },
+    "function:FE/src/services/ctsvApi.js:deleteCtsvAnnouncement": {
+      "name": "deleteCtsvAnnouncement",
+      "type": "function",
+      "summary": "Xóa thông báo."
+    },
+    "file:FE/src/utils/announcementDraft.js": {
+      "name": "announcementDraft.js",
+      "type": "file",
+      "summary": "Quản lý nháp thông báo trong localStorage với load/save/clear và nhãn thời gian."
+    },
+    "function:FE/src/utils/announcementDraft.js:loadAnnouncementDraft": {
+      "name": "loadAnnouncementDraft",
+      "type": "function",
+      "summary": "Đọc nháp thông báo từ localStorage."
+    },
+    "function:FE/src/utils/announcementDraft.js:saveAnnouncementDraft": {
+      "name": "saveAnnouncementDraft",
+      "type": "function",
+      "summary": "Lưu nháp thông báo vào localStorage."
+    },
+    "function:FE/src/utils/announcementDraft.js:clearAnnouncementDraft": {
+      "name": "clearAnnouncementDraft",
+      "type": "function",
+      "summary": "Xóa nháp thông báo khỏi localStorage."
+    },
+    "function:FE/src/utils/announcementDraft.js:formatDraftSavedLabel": {
+      "name": "formatDraftSavedLabel",
+      "type": "function",
+      "summary": "Tạo nhãn thời gian đã lưu nháp."
+    },
+    "file:FE/src/utils/announcementEvents.js": {
+      "name": "announcementEvents.js",
+      "type": "file",
+      "summary": "Helper kiểm tra sự kiện có thể liên kết thông báo và định dạng nhãn hiển thị."
+    },
+    "function:FE/src/utils/announcementEvents.js:isAnnouncementLinkableEvent": {
+      "name": "isAnnouncementLinkableEvent",
+      "type": "function",
+      "summary": "Kiểm tra sự kiện đủ điều kiện liên kết thông báo."
+    },
+    "function:FE/src/utils/announcementEvents.js:formatAnnouncementEventLabel": {
+      "name": "formatAnnouncementEventLabel",
+      "type": "function",
+      "summary": "Định dạng nhãn sự kiện trong dropdown thông báo."
+    },
+    "file:FE/src/utils/announcementId.js": {
+      "name": "announcementId.js",
+      "type": "file",
+      "summary": "Giải quyết ID thông báo từ nhiều trường dữ liệu API khác nhau."
+    },
+    "function:FE/src/utils/announcementId.js:resolveAnnouncementId": {
+      "name": "resolveAnnouncementId",
+      "type": "function",
+      "summary": "Chuẩn hóa ID thông báo từ object API."
+    },
+    "file:FE/src/utils/cropImage.js": {
+      "name": "cropImage.js",
+      "type": "file",
+      "summary": "Tiện ích cắt ảnh banner/avatar trên canvas với zoom, pan và tính scale tối thiểu."
+    },
+    "function:FE/src/utils/cropImage.js:getMinScale": {
+      "name": "getMinScale",
+      "type": "function",
+      "summary": "Tính scale tối thiểu để ảnh phủ vùng crop."
+    },
+    "function:FE/src/utils/cropImage.js:getInitialCropState": {
+      "name": "getInitialCropState",
+      "type": "function",
+      "summary": "Khởi tạo state pan/zoom/scale cho crop modal."
+    },
+    "function:FE/src/utils/cropImage.js:clampCropState": {
+      "name": "clampCropState",
+      "type": "function",
+      "summary": "Giới hạn pan/zoom trong khung crop hợp lệ."
+    },
+    "function:FE/src/utils/cropImage.js:zoomCropState": {
+      "name": "zoomCropState",
+      "type": "function",
+      "summary": "Cập nhật scale khi zoom in/out."
+    },
+    "function:FE/src/utils/cropImage.js:drawCropped": {
+      "name": "drawCropped",
+      "type": "function",
+      "summary": "Vẽ vùng ảnh đã crop lên canvas ẩn."
+    },
+    "function:FE/src/utils/cropImage.js:cropBannerImage": {
+      "name": "cropBannerImage",
+      "type": "function",
+      "summary": "Xuất blob ảnh banner đã cắt."
+    },
+    "function:FE/src/utils/cropImage.js:cropBannerPreview": {
+      "name": "cropBannerPreview",
+      "type": "function",
+      "summary": "Tạo data URL preview banner đã cắt."
+    },
+    "function:FE/src/utils/cropImage.js:cropAvatarImage": {
+      "name": "cropAvatarImage",
+      "type": "function",
+      "summary": "Xuất blob avatar tròn đã cắt."
+    },
+    "function:FE/src/utils/cropImage.js:cropAvatarPreview": {
+      "name": "cropAvatarPreview",
+      "type": "function",
+      "summary": "Tạo data URL preview avatar đã cắt."
+    },
+    "file:FE/src/utils/ctsvCalendar.js": {
+      "name": "ctsvCalendar.js",
+      "type": "file",
+      "summary": "Helper lịch CTSV: parse ngày sự kiện, nhãn tháng tiếng Việt và lưới ô tháng."
+    },
+    "function:FE/src/utils/ctsvCalendar.js:startOfDay": {
+      "name": "startOfDay",
+      "type": "function",
+      "summary": "Chuẩn hóa Date về 00:00:00."
+    },
+    "function:FE/src/utils/ctsvCalendar.js:formatMonthLabel": {
+      "name": "formatMonthLabel",
+      "type": "function",
+      "summary": "Nhãn tháng/năm tiếng Việt cho header lịch."
+    },
+    "function:FE/src/utils/ctsvCalendar.js:parseEventDate": {
+      "name": "parseEventDate",
+      "type": "function",
+      "summary": "Parse chuỗi/ngày sự kiện an toàn."
+    },
+    "function:FE/src/utils/ctsvCalendar.js:mapCtsvCalendarEvent": {
+      "name": "mapCtsvCalendarEvent",
+      "type": "function",
+      "summary": "Map raw event API sang model hiển thị trên lịch."
+    },
+    "function:FE/src/utils/ctsvCalendar.js:buildMonthCells": {
+      "name": "buildMonthCells",
+      "type": "function",
+      "summary": "Xây lưới ô ngày cho tháng hiện tại."
+    },
+    "file:FE/src/utils/ctsvEventAccess.js": {
+      "name": "ctsvEventAccess.js",
+      "type": "file",
+      "summary": "Quy tắc quyền truy cập và trạng thái sự kiện do CTSV quản lý."
+    },
+    "function:FE/src/utils/ctsvEventAccess.js:getCtsvEventAccess": {
+      "name": "getCtsvEventAccess",
+      "type": "function",
+      "summary": "Tính quyền xem/sửa/duyệt sự kiện theo role và status."
+    },
+    "function:FE/src/utils/ctsvEventAccess.js:isCtsvManagedEvent": {
+      "name": "isCtsvManagedEvent",
+      "type": "function",
+      "summary": "Kiểm tra sự kiện thuộc phạm vi quản lý CTSV."
+    },
+    "function:FE/src/utils/ctsvEventAccess.js:isEventLiveOrOngoing": {
+      "name": "isEventLiveOrOngoing",
+      "type": "function",
+      "summary": "Kiểm tra sự kiện đang diễn ra hoặc live."
+    },
+    "file:FE/src/utils/eventStatus.js": {
+      "name": "eventStatus.js",
+      "type": "file",
+      "summary": "Kiểm tra trạng thái chờ duyệt và ánh xạ class CSS theo status sự kiện."
+    },
+    "function:FE/src/utils/eventStatus.js:isPendingApproval": {
+      "name": "isPendingApproval",
+      "type": "function",
+      "summary": "True nếu status thuộc nhóm chờ duyệt."
+    },
+    "function:FE/src/utils/eventStatus.js:statusClass": {
+      "name": "statusClass",
+      "type": "function",
+      "summary": "Trả về class CSS badge theo status."
+    },
+    "file:FE/src/utils/partnerDisplay.js": {
+      "name": "partnerDisplay.js",
+      "type": "file",
+      "summary": "Hằng số và formatter hiển thị đối tác: trạng thái, ngày tháng, VND và initials."
+    },
+    "function:FE/src/utils/partnerDisplay.js:partnerInitials": {
+      "name": "partnerInitials",
+      "type": "function",
+      "summary": "Lấy 2 chữ cái đầu làm avatar initials đối tác."
+    },
+    "function:FE/src/utils/partnerDisplay.js:formatPartnerDate": {
+      "name": "formatPartnerDate",
+      "type": "function",
+      "summary": "Định dạng ngày tháng đối tác locale vi-VN."
+    },
+    "function:FE/src/utils/partnerDisplay.js:formatVnd": {
+      "name": "formatVnd",
+      "type": "function",
+      "summary": "Định dạng số tiền VND."
+    },
+    "file:FE/src/utils/schoolEventDraft.js": {
+      "name": "schoolEventDraft.js",
+      "type": "file",
+      "summary": "Lưu nháp form sự kiện trường vào localStorage tương tự announcementDraft."
+    },
+    "function:FE/src/utils/schoolEventDraft.js:loadSchoolEventDraft": {
+      "name": "loadSchoolEventDraft",
+      "type": "function",
+      "summary": "Đọc nháp form sự kiện trường từ localStorage."
+    },
+    "function:FE/src/utils/schoolEventDraft.js:saveSchoolEventDraft": {
+      "name": "saveSchoolEventDraft",
+      "type": "function",
+      "summary": "Lưu nháp form sự kiện trường."
+    },
+    "function:FE/src/utils/schoolEventDraft.js:clearSchoolEventDraft": {
+      "name": "clearSchoolEventDraft",
+      "type": "function",
+      "summary": "Xóa nháp sự kiện trường."
+    },
+    "function:FE/src/utils/schoolEventDraft.js:formatDraftSavedLabel": {
+      "name": "formatDraftSavedLabel",
+      "type": "function",
+      "summary": "Tạo nhãn thời gian đã lưu nháp."
+    },
+    "file:BE/seed-clubs.js": {
+      "name": "seed-clubs.js",
+      "type": "file",
+      "summary": "Script seed dữ liệu câu lạc bộ mẫu vào MongoDB, xóa và chèn lại từ clubSeedData."
+    },
+    "file:BE/seed-event-reviews.js": {
+      "name": "seed-event-reviews.js",
+      "type": "file",
+      "summary": "Script seed đăng ký và đánh giá sự kiện thử nghiệm cho user/event có sẵn trong DB."
+    },
+    "file:BE/server.js": {
+      "name": "server.js",
+      "type": "file",
+      "summary": "Điểm khởi động server Express: kết nối DB rồi lắng nghe cổng từ biến môi trường."
+    },
+    "file:BE/src/app.js": {
+      "name": "app.js",
+      "type": "file",
+      "summary": "Cấu hình ứng dụng Express: CORS, JSON body, mount routes và middleware xử lý lỗi."
+    },
+    "file:BE/src/config/env.js": {
+      "name": "env.js",
+      "type": "file",
+      "summary": "Tải dotenv và xuất cấu hình runtime (port, JWT, OAuth, email) từ process.env."
+    },
+    "file:BE/src/constants/eventPricing.js": {
+      "name": "eventPricing.js",
+      "type": "file",
+      "summary": "Logic tính giá vé sự kiện, ưu đãi sinh viên và nhãn hiển thị cho API sự kiện."
+    },
+    "file:BE/src/controllers/auth.controller.js": {
+      "name": "auth.controller.js",
+      "type": "file",
+      "summary": "HTTP handlers xác thực: đăng nhập, OTP, Google OAuth và kết nối Google Calendar."
+    },
+    "file:BE/src/controllers/club.controller.js": {
+      "name": "club.controller.js",
+      "type": "file",
+      "summary": "HTTP handlers CRUD câu lạc bộ: danh sách, theo dõi, gia nhập và duyệt thành viên."
+    },
+    "file:BE/src/controllers/event.controller.js": {
+      "name": "event.controller.js",
+      "type": "file",
+      "summary": "HTTP handlers quản lý sự kiện: tạo, duyệt trạng thái và lấy danh sách/chi tiết."
+    },
+    "file:BE/src/controllers/registration.controller.js": {
+      "name": "registration.controller.js",
+      "type": "file",
+      "summary": "HTTP handlers đăng ký và hủy đăng ký tham gia sự kiện."
+    },
+    "function:BE/seed-clubs.js:seedClubs": {
+      "name": "seedClubs",
+      "type": "function",
+      "summary": "Kết nối DB, xóa toàn bộ club và insertMany từ clubSeedData."
+    },
+    "function:BE/seed-event-reviews.js:seedEventReviews": {
+      "name": "seedEventReviews",
+      "type": "function",
+      "summary": "Tạo registration và review mẫu, cập nhật rating trung bình cho event."
+    },
+    "function:BE/src/constants/eventPricing.js:formatVnd": {
+      "name": "formatVnd",
+      "type": "function",
+      "summary": "Định dạng số tiền theo locale vi-VN và VND."
+    },
+    "function:BE/src/constants/eventPricing.js:hasStudentTicketPrivilege": {
+      "name": "hasStudentTicketPrivilege",
+      "type": "function",
+      "summary": "Kiểm tra role user có được miễn phí vé sinh viên không."
+    },
+    "function:BE/src/constants/eventPricing.js:getListPrice": {
+      "name": "getListPrice",
+      "type": "function",
+      "summary": "Lấy giá niêm yết từ event.price (tối thiểu 0)."
+    },
+    "function:BE/src/constants/eventPricing.js:calculateTicketAmount": {
+      "name": "calculateTicketAmount",
+      "type": "function",
+      "summary": "Tính số tiền phải trả sau ưu đãi sinh viên."
+    },
+    "function:BE/src/constants/eventPricing.js:buildPriceLabel": {
+      "name": "buildPriceLabel",
+      "type": "function",
+      "summary": "Tạo nhãn giá hiển thị (miễn phí hoặc format VND)."
+    },
+    "function:BE/src/constants/eventPricing.js:getPrimaryActionLabel": {
+      "name": "getPrimaryActionLabel",
+      "type": "function",
+      "summary": "Trả nhãn nút hành động chính theo trạng thái đăng ký."
+    },
+    "function:BE/src/constants/eventPricing.js:enrichEventWithPricing": {
+      "name": "enrichEventWithPricing",
+      "type": "function",
+      "summary": "Bổ sung trường pricing/labels vào object event cho client."
+    },
+    "function:BE/src/controllers/auth.controller.js:login": {
+      "name": "login",
+      "type": "function",
+      "summary": "Ủy quyền đăng nhập email/password cho authService."
+    },
+    "function:BE/src/controllers/auth.controller.js:signup": {
+      "name": "signup",
+      "type": "function",
+      "summary": "Đăng ký tài khoản và gửi OTP qua authService."
+    },
+    "function:BE/src/controllers/auth.controller.js:verifyOtp": {
+      "name": "verifyOtp",
+      "type": "function",
+      "summary": "Xác minh OTP hoàn tất đăng ký."
+    },
+    "function:BE/src/controllers/auth.controller.js:resendOtp": {
+      "name": "resendOtp",
+      "type": "function",
+      "summary": "Gửi lại mã OTP."
+    },
+    "function:BE/src/controllers/auth.controller.js:forgotPassword": {
+      "name": "forgotPassword",
+      "type": "function",
+      "summary": "Khởi tạo luồng quên mật khẩu."
+    },
+    "function:BE/src/controllers/auth.controller.js:resetPassword": {
+      "name": "resetPassword",
+      "type": "function",
+      "summary": "Đặt lại mật khẩu bằng token/OTP."
+    },
+    "function:BE/src/controllers/auth.controller.js:googleLogin": {
+      "name": "googleLogin",
+      "type": "function",
+      "summary": "Trả URL hoặc payload bắt đầu OAuth Google."
+    },
+    "function:BE/src/controllers/auth.controller.js:googleCallback": {
+      "name": "googleCallback",
+      "type": "function",
+      "summary": "Xử lý callback OAuth và redirect về frontend."
+    },
+    "function:BE/src/controllers/auth.controller.js:googleCalendarConnect": {
+      "name": "googleCalendarConnect",
+      "type": "function",
+      "summary": "Redirect user tới Google Calendar OAuth."
+    },
+    "function:BE/src/controllers/auth.controller.js:googleCalendarCallback": {
+      "name": "googleCalendarCallback",
+      "type": "function",
+      "summary": "Lưu token calendar sau callback Google."
+    },
+    "function:BE/src/controllers/club.controller.js:getClubs": {
+      "name": "getClubs",
+      "type": "function",
+      "summary": "Lấy danh sách club có filter/pagination."
+    },
+    "function:BE/src/controllers/club.controller.js:getClubBySlug": {
+      "name": "getClubBySlug",
+      "type": "function",
+      "summary": "Chi tiết club theo slug."
+    },
+    "function:BE/src/controllers/club.controller.js:followClub": {
+      "name": "followClub",
+      "type": "function",
+      "summary": "Theo dõi club."
+    },
+    "function:BE/src/controllers/club.controller.js:unfollowClub": {
+      "name": "unfollowClub",
+      "type": "function",
+      "summary": "Bỏ theo dõi club."
+    },
+    "function:BE/src/controllers/club.controller.js:joinClub": {
+      "name": "joinClub",
+      "type": "function",
+      "summary": "Gửi yêu cầu gia nhập club."
+    },
+    "function:BE/src/controllers/club.controller.js:cancelJoinClub": {
+      "name": "cancelJoinClub",
+      "type": "function",
+      "summary": "Hủy yêu cầu gia nhập đang chờ."
+    },
+    "function:BE/src/controllers/club.controller.js:approveMembership": {
+      "name": "approveMembership",
+      "type": "function",
+      "summary": "Duyệt thành viên (admin club)."
+    },
+    "function:BE/src/controllers/event.controller.js:createEvent": {
+      "name": "createEvent",
+      "type": "function",
+      "summary": "Tạo sự kiện mới qua eventService."
+    },
+    "function:BE/src/controllers/event.controller.js:getPendingEvents": {
+      "name": "getPendingEvents",
+      "type": "function",
+      "summary": "Danh sách sự kiện chờ duyệt."
+    },
+    "function:BE/src/controllers/event.controller.js:updateEventStatus": {
+      "name": "updateEventStatus",
+      "type": "function",
+      "summary": "Cập nhật trạng thái duyệt sự kiện."
+    },
+    "function:BE/src/controllers/event.controller.js:getApprovedEvents": {
+      "name": "getApprovedEvents",
+      "type": "function",
+      "summary": "Sự kiện đã duyệt cho trang công khai."
+    },
+    "function:BE/src/controllers/event.controller.js:getEventById": {
+      "name": "getEventById",
+      "type": "function",
+      "summary": "Chi tiết một sự kiện theo id."
+    },
+    "function:BE/src/controllers/registration.controller.js:registerForEvent": {
+      "name": "registerForEvent",
+      "type": "function",
+      "summary": "Đăng ký tham gia sự kiện."
+    },
+    "function:BE/src/controllers/registration.controller.js:cancelRegistration": {
+      "name": "cancelRegistration",
+      "type": "function",
+      "summary": "Hủy đăng ký sự kiện."
+    },
+    "file:BE/src/controllers/review.controller.js": {
+      "name": "review.controller.js",
+      "type": "file",
+      "summary": "HTTP handler gửi đánh giá sau khi tham gia sự kiện."
+    },
+    "file:BE/src/controllers/user.controller.js": {
+      "name": "user.controller.js",
+      "type": "file",
+      "summary": "HTTP handlers hồ sơ người dùng, mật khẩu, sự kiện/club của tôi và đánh giá."
+    },
+    "file:BE/src/data/clubSeedData.js": {
+      "name": "clubSeedData.js",
+      "type": "file",
+      "summary": "Mảng dữ liệu tĩnh mô tả các câu lạc bộ mẫu dùng cho script seed."
+    },
+    "file:BE/src/middleware/auth.js": {
+      "name": "auth.js",
+      "type": "file",
+      "summary": "Middleware bắt buộc JWT Bearer, gắn req.authEmail hoặc trả 401."
+    },
+    "file:BE/src/middleware/authorize.js": {
+      "name": "authorize.js",
+      "type": "file",
+      "summary": "Factory middleware kiểm tra vai trò user trong DB theo email từ token."
+    },
+    "file:BE/src/middleware/errorHandler.js": {
+      "name": "errorHandler.js",
+      "type": "file",
+      "summary": "Chuẩn hóa lỗi Mongoose/JWT/upload và middleware 404 + handler lỗi toàn cục."
+    },
+    "file:BE/src/middleware/optionalAuth.js": {
+      "name": "optionalAuth.js",
+      "type": "file",
+      "summary": "Middleware JWT tùy chọn: parse token nếu có, không chặn khi thiếu."
+    },
+    "file:BE/src/middleware/optionalAuthorize.js": {
+      "name": "optionalAuthorize.js",
+      "type": "file",
+      "summary": "Middleware gắn req.user khi đã có authEmail, bỏ qua khi khách ẩn danh."
+    },
+    "file:BE/src/models/Club.js": {
+      "name": "Club.js",
+      "type": "file",
+      "summary": "Schema Mongoose cho câu lạc bộ: slug, mô tả, follower và trạng thái hoạt động."
+    },
+    "file:BE/src/models/ClubFollow.js": {
+      "name": "ClubFollow.js",
+      "type": "file",
+      "summary": "Schema quan hệ theo dõi câu lạc bộ giữa user và club (unique compound index)."
+    },
+    "function:BE/src/controllers/review.controller.js:submitReview": {
+      "name": "submitReview",
+      "type": "function",
+      "summary": "Gửi đánh giá sự kiện đã tham dự."
+    },
+    "function:BE/src/controllers/user.controller.js:getProfile": {
+      "name": "getProfile",
+      "type": "function",
+      "summary": "Lấy hồ sơ user hiện tại."
+    },
+    "function:BE/src/controllers/user.controller.js:updateProfile": {
+      "name": "updateProfile",
+      "type": "function",
+      "summary": "Cập nhật thông tin hồ sơ."
+    },
+    "function:BE/src/controllers/user.controller.js:updateAvatar": {
+      "name": "updateAvatar",
+      "type": "function",
+      "summary": "Upload/cập nhật avatar (validate file)."
+    },
+    "function:BE/src/controllers/user.controller.js:changePassword": {
+      "name": "changePassword",
+      "type": "function",
+      "summary": "Đổi mật khẩu đã đăng nhập."
+    },
+    "function:BE/src/controllers/user.controller.js:verifyPassword": {
+      "name": "verifyPassword",
+      "type": "function",
+      "summary": "Xác minh mật khẩu trước thao tác nhạy cảm."
+    },
+    "function:BE/src/controllers/user.controller.js:getMyEvents": {
+      "name": "getMyEvents",
+      "type": "function",
+      "summary": "Sự kiện user đã đăng ký."
+    },
+    "function:BE/src/controllers/user.controller.js:getMyClubs": {
+      "name": "getMyClubs",
+      "type": "function",
+      "summary": "Club user đang theo dõi/tham gia."
+    },
+    "function:BE/src/controllers/user.controller.js:getEventReviews": {
+      "name": "getEventReviews",
+      "type": "function",
+      "summary": "Đánh giá của user cho một sự kiện."
+    },
+    "function:BE/src/middleware/auth.js:authMiddleware": {
+      "name": "authMiddleware",
+      "type": "function",
+      "summary": "Parse Bearer JWT và set req.authEmail."
+    },
+    "function:BE/src/middleware/authorize.js:authorize": {
+      "name": "authorize",
+      "type": "function",
+      "summary": "Kiểm tra role user có trong allowedRoles."
+    },
+    "function:BE/src/middleware/errorHandler.js:normalizeError": {
+      "name": "normalizeError",
+      "type": "function",
+      "summary": "Map lỗi Mongoose/JWT/multer sang AppError thống nhất."
+    },
+    "function:BE/src/middleware/errorHandler.js:notFoundHandler": {
+      "name": "notFoundHandler",
+      "type": "function",
+      "summary": "Trả JSON 404 cho route không tồn tại."
+    },
+    "function:BE/src/middleware/errorHandler.js:errorHandler": {
+      "name": "errorHandler",
+      "type": "function",
+      "summary": "Log và trả JSON lỗi đã chuẩn hóa."
+    },
+    "function:BE/src/middleware/optionalAuth.js:optionalAuth": {
+      "name": "optionalAuth",
+      "type": "function",
+      "summary": "Parse JWT nếu có, luôn gọi next."
+    },
+    "function:BE/src/middleware/optionalAuthorize.js:optionalAuthorize": {
+      "name": "optionalAuthorize",
+      "type": "function",
+      "summary": "Load user từ DB khi có authEmail, không bắt buộc."
+    },
+    "file:BE/src/models/ClubMembership.js": {
+      "name": "ClubMembership.js",
+      "type": "file",
+      "summary": "Schema Mongoose mô tả quan hệ thành viên câu lạc bộ với trạng thái pending/member và mốc thời gian tham gia hoặc rời."
+    },
+    "file:BE/src/models/EventRegistration.js": {
+      "name": "EventRegistration.js",
+      "type": "file",
+      "summary": "Schema đăng ký sự kiện lưu user, event, trạng thái vé, giá và liên kết Google Calendar."
+    },
+    "file:BE/src/models/EventReview.js": {
+      "name": "EventReview.js",
+      "type": "file",
+      "summary": "Schema đánh giá sự kiện sau khi tham dự, gồm rating, comment và tham chiếu user/event."
+    },
+    "file:BE/src/routes/auth.routes.js": {
+      "name": "auth.routes.js",
+      "type": "file",
+      "summary": "Router Express cho đăng nhập, đăng ký OTP, quên mật khẩu, Google OAuth và ủy quyền Google Calendar."
+    },
+    "file:BE/src/routes/club.routes.js": {
+      "name": "club.routes.js",
+      "type": "file",
+      "summary": "Router API câu lạc bộ: liệt kê, follow/unfollow, join/cancel và duyệt thành viên với middleware phân quyền."
+    },
+    "file:BE/src/routes/event.routes.js": {
+      "name": "event.routes.js",
+      "type": "file",
+      "summary": "Router sự kiện cho tạo/duyệt sự kiện, đăng ký vé, hủy đăng ký và gửi đánh giá với auth linh hoạt."
+    },
+    "file:BE/src/routes/index.js": {
+      "name": "index.js",
+      "type": "file",
+      "summary": "Router gốc gắn các route con admin, auth, club, ctsv, event và user dưới prefix API."
+    },
+    "file:BE/src/routes/user.routes.js": {
+      "name": "user.routes.js",
+      "type": "file",
+      "summary": "Router profile người dùng và các endpoint câu lạc bộ/sự kiện cá nhân yêu cầu xác thực."
+    },
+    "file:BE/src/services/auth.service.js": {
+      "name": "auth.service.js",
+      "type": "file",
+      "summary": "Service xác thực backend: login/signup OTP, reset mật khẩu, Google login và liên kết Google Calendar."
+    },
+    "function:BE/src/services/auth.service.js:createUserFromGoogle": {
+      "name": "createUserFromGoogle",
+      "type": "function",
+      "summary": "Hàm createUserFromGoogle trong auth.service.js."
+    },
+    "function:BE/src/services/auth.service.js:login": {
+      "name": "login",
+      "type": "function",
+      "summary": "Xác thực email/mật khẩu, đồng bộ profile và trả JWT cùng user đã sanitize."
+    },
+    "function:BE/src/services/auth.service.js:signup": {
+      "name": "signup",
+      "type": "function",
+      "summary": "Validate input, hash mật khẩu, lưu pending user và gửi OTP qua email."
+    },
+    "function:BE/src/services/auth.service.js:verifyOtp": {
+      "name": "verifyOtp",
+      "type": "function",
+      "summary": "Xác minh OTP đăng ký, tạo user MongoDB và phát hành JWT."
+    },
+    "function:BE/src/services/auth.service.js:resendOtp": {
+      "name": "resendOtp",
+      "type": "function",
+      "summary": "Tạo OTP mới cho pending signup và gửi lại email xác nhận."
+    },
+    "function:BE/src/services/auth.service.js:forgotPassword": {
+      "name": "forgotPassword",
+      "type": "function",
+      "summary": "Tìm user theo email/SĐT, lưu OTP reset và gửi email khôi phục."
+    },
+    "function:BE/src/services/auth.service.js:resetPassword": {
+      "name": "resetPassword",
+      "type": "function",
+      "summary": "Xác minh OTP reset, hash mật khẩu mới và cập nhật user."
+    },
+    "function:BE/src/services/auth.service.js:googleLogin": {
+      "name": "googleLogin",
+      "type": "function",
+      "summary": "Xác minh Google ID token, tạo hoặc cập nhật user và trả JWT."
+    },
+    "function:BE/src/services/auth.service.js:googleCallback": {
+      "name": "googleCallback",
+      "type": "function",
+      "summary": "OAuth callback server-side: đổi code lấy token Google và redirect frontend kèm JWT."
+    },
+    "function:BE/src/services/auth.service.js:getGoogleCalendarAuthUrl": {
+      "name": "getGoogleCalendarAuthUrl",
+      "type": "function",
+      "summary": "Tạo URL ủy quyền Google Calendar từ JWT state."
+    },
+    "function:BE/src/services/auth.service.js:googleCalendarCallback": {
+      "name": "googleCalendarCallback",
+      "type": "function",
+      "summary": "Callback OAuth Calendar: lưu refresh token vào profile user."
+    },
+    "file:BE/src/services/calendar.service.js": {
+      "name": "calendar.service.js",
+      "type": "file",
+      "summary": "Đồng bộ và xóa sự kiện trên Google Calendar của user qua refresh token và REST API."
+    },
+    "function:BE/src/services/calendar.service.js:buildCalendarEventPayload": {
+      "name": "buildCalendarEventPayload",
+      "type": "function",
+      "summary": "Chuyển document event sang payload JSON cho Google Calendar API."
+    },
+    "function:BE/src/services/calendar.service.js:syncEventToGoogleCalendar": {
+      "name": "syncEventToGoogleCalendar",
+      "type": "function",
+      "summary": "Tạo sự kiện trên Google Calendar của user đã liên kết tài khoản."
+    },
+    "function:BE/src/services/calendar.service.js:removeEventFromGoogleCalendar": {
+      "name": "removeEventFromGoogleCalendar",
+      "type": "function",
+      "summary": "Xóa sự kiện khỏi Google Calendar khi user hủy đăng ký."
+    },
+    "file:BE/src/services/club.service.js": {
+      "name": "club.service.js",
+      "type": "file",
+      "summary": "Logic nghiệp vụ câu lạc bộ: follow, join, duyệt thành viên, đếm follower và danh sách CLB của tôi."
+    },
+    "function:BE/src/services/club.service.js:getFollowedClubIds": {
+      "name": "getFollowedClubIds",
+      "type": "function",
+      "summary": "Hàm getFollowedClubIds trong club.service.js."
+    },
+    "function:BE/src/services/club.service.js:getMembershipMap": {
+      "name": "getMembershipMap",
+      "type": "function",
+      "summary": "Hàm getMembershipMap trong club.service.js."
+    },
+    "function:BE/src/services/club.service.js:attachUserClubFlags": {
+      "name": "attachUserClubFlags",
+      "type": "function",
+      "summary": "Gắn isFollowing và membershipStatus vào object CLB cho response API."
+    },
+    "function:BE/src/services/club.service.js:buildClubQuery": {
+      "name": "buildClubQuery",
+      "type": "function",
+      "summary": "Xây MongoDB query filter theo category và search text."
+    },
+    "function:BE/src/services/club.service.js:getClubs": {
+      "name": "getClubs",
+      "type": "function",
+      "summary": "Liệt kê CLB có filter, gắn cờ follow/membership của user hiện tại."
+    },
+    "function:BE/src/services/club.service.js:getClubBySlug": {
+      "name": "getClubBySlug",
+      "type": "function",
+      "summary": "Lấy chi tiết CLB theo id/slug kèm trạng thái follow và membership."
+    },
+    "function:BE/src/services/club.service.js:followClub": {
+      "name": "followClub",
+      "type": "function",
+      "summary": "Theo dõi CLB, tạo/cập nhật ClubFollow và tăng follower count."
+    },
+    "function:BE/src/services/club.service.js:unfollowClub": {
+      "name": "unfollowClub",
+      "type": "function",
+      "summary": "Bỏ theo dõi CLB và giảm follower count."
+    },
+    "function:BE/src/services/club.service.js:joinClub": {
+      "name": "joinClub",
+      "type": "function",
+      "summary": "Gửi yêu cầu tham gia CLB, tạo membership pending và cập nhật counter."
+    },
+    "function:BE/src/services/club.service.js:cancelJoinClub": {
+      "name": "cancelJoinClub",
+      "type": "function",
+      "summary": "Hủy yêu cầu join pending và rollback counter CLB."
+    },
+    "function:BE/src/services/club.service.js:approveMembership": {
+      "name": "approveMembership",
+      "type": "function",
+      "summary": "Staff duyệt membership pending thành member và cập nhật số thành viên."
+    },
+    "function:BE/src/services/club.service.js:formatClubForFollowList": {
+      "name": "formatClubForFollowList",
+      "type": "function",
+      "summary": "Hàm formatClubForFollowList trong club.service.js."
+    },
+    "function:BE/src/services/club.service.js:formatClubForMembershipList": {
+      "name": "formatClubForMembershipList",
+      "type": "function",
+      "summary": "Hàm formatClubForMembershipList trong club.service.js."
+    },
+    "function:BE/src/services/club.service.js:getMyClubs": {
+      "name": "getMyClubs",
+      "type": "function",
+      "summary": "Trả danh sách CLB theo tab joined/pending/following kèm counts."
+    },
+    "file:BE/src/services/email.service.js": {
+      "name": "email.service.js",
+      "type": "file",
+      "summary": "Gửi email OTP đăng ký và reset mật khẩu bằng Nodemailer, có chế độ dev ghi OTP ra file."
+    },
+    "function:BE/src/services/email.service.js:getTransporter": {
+      "name": "getTransporter",
+      "type": "function",
+      "summary": "Khởi tạo Nodemailer transporter từ env hoặc Ethereal test account."
+    },
+    "function:BE/src/services/email.service.js:buildEmailShell": {
+      "name": "buildEmailShell",
+      "type": "function",
+      "summary": "Tạo khung HTML email thống nhất cho các loại thông báo OTP."
+    },
+    "function:BE/src/services/email.service.js:sendMail": {
+      "name": "sendMail",
+      "type": "function",
+      "summary": "Gửi email thực tế và log preview URL ở môi trường dev."
+    },
+    "function:BE/src/services/email.service.js:sendOtpEmail": {
+      "name": "sendOtpEmail",
+      "type": "function",
+      "summary": "Render template HTML OTP đăng ký và gửi qua Nodemailer."
+    },
+    "function:BE/src/services/email.service.js:sendResetEmail": {
+      "name": "sendResetEmail",
+      "type": "function",
+      "summary": "Gửi email reset mật khẩu kèm OTP và link frontend."
+    },
+    "file:BE/src/services/event.service.js": {
+      "name": "event.service.js",
+      "type": "file",
+      "summary": "Service sự kiện: tạo đề xuất, duyệt/từ chối, liệt kê sự kiện approved và chi tiết kèm trạng thái đăng ký."
+    },
+    "function:BE/src/services/event.service.js:createEvent": {
+      "name": "createEvent",
+      "type": "function",
+      "summary": "Validate venue/pricing, tạo event pending và gán createdBy."
+    },
+    "function:BE/src/services/event.service.js:getPendingEvents": {
+      "name": "getPendingEvents",
+      "type": "function",
+      "summary": "Liệt kê sự kiện chờ duyệt kèm thông tin người tạo."
+    },
+    "function:BE/src/services/event.service.js:updateEventStatus": {
+      "name": "updateEventStatus",
+      "type": "function",
+      "summary": "Staff duyệt hoặc từ chối sự kiện pending."
+    },
+    "function:BE/src/services/event.service.js:getApprovedEvents": {
+      "name": "getApprovedEvents",
+      "type": "function",
+      "summary": "Liệt kê sự kiện approved có filter, enrich pricing và cờ đã đăng ký."
+    },
+    "function:BE/src/services/event.service.js:getEventById": {
+      "name": "getEventById",
+      "type": "function",
+      "summary": "Chi tiết sự kiện approved kèm pricing và trạng thái đăng ký của user."
+    },
+    "file:BE/src/services/registration.service.js": {
+      "name": "registration.service.js",
+      "type": "file",
+      "summary": "Đăng ký và hủy vé sự kiện, tính giá vé sinh viên, đồng bộ Google Calendar và trả danh sách sự kiện của tôi."
+    },
+    "function:BE/src/services/registration.service.js:formatEventForMyEvents": {
+      "name": "formatEventForMyEvents",
+      "type": "function",
+      "summary": "Map registration sang DTO sự kiện cho dashboard sinh viên."
+    },
+    "function:BE/src/services/registration.service.js:assertEventRegisterable": {
+      "name": "assertEventRegisterable",
+      "type": "function",
+      "summary": "Kiểm tra sự kiện approved, chưa hết hạn và còn chỗ trước khi đăng ký."
+    },
+    "function:BE/src/services/registration.service.js:registerForEvent": {
+      "name": "registerForEvent",
+      "type": "function",
+      "summary": "Đăng ký vé, tính giá, tạo EventRegistration và đồng bộ Google Calendar."
+    },
+    "function:BE/src/services/registration.service.js:cancelRegistration": {
+      "name": "cancelRegistration",
+      "type": "function",
+      "summary": "Hủy đăng ký, xóa event khỏi Calendar và giảm registeredCount."
+    },
+    "function:BE/src/services/registration.service.js:getRegisteredEventIds": {
+      "name": "getRegisteredEventIds",
+      "type": "function",
+      "summary": "Trả mảng id sự kiện user đã đăng ký thành công."
+    },
+    "function:BE/src/services/registration.service.js:getMyEvents": {
+      "name": "getMyEvents",
+      "type": "function",
+      "summary": "Nhóm sự kiện của user theo upcoming/past/cancelled từ registrations."
+    },
+    "file:BE/src/services/review.service.js": {
+      "name": "review.service.js",
+      "type": "file",
+      "summary": "Quản lý đánh giá sự kiện: liệt kê pending/completed, gửi review và cập nhật thống kê rating event."
+    },
+    "function:BE/src/services/review.service.js:formatPendingItem": {
+      "name": "formatPendingItem",
+      "type": "function",
+      "summary": "Format registration chưa review thành item pending cho UI."
+    },
+    "function:BE/src/services/review.service.js:formatCompletedItem": {
+      "name": "formatCompletedItem",
+      "type": "function",
+      "summary": "Format review đã hoàn thành kèm rating và comment."
+    },
+    "function:BE/src/services/review.service.js:isEligibleForReview": {
+      "name": "isEligibleForReview",
+      "type": "function",
+      "summary": "Kiểm tra registration đã tham dự và sự kiện đã kết thúc."
+    },
+    "function:BE/src/services/review.service.js:updateEventRatingStats": {
+      "name": "updateEventRatingStats",
+      "type": "function",
+      "summary": "Aggregate rating từ EventReview và cập nhật event.averageRating."
+    },
+    "function:BE/src/services/review.service.js:getEventReviews": {
+      "name": "getEventReviews",
+      "type": "function",
+      "summary": "Trả pending và completed reviews của user từ registrations và EventReview."
+    },
+    "function:BE/src/services/review.service.js:submitReview": {
+      "name": "submitReview",
+      "type": "function",
+      "summary": "Gửi rating/comment, cập nhật registration và thống kê rating event."
+    },
+    "file:BE/src/utils/AppError.js": {
+      "name": "AppError.js",
+      "type": "file",
+      "summary": "Class lỗi HTTP tùy chỉnh mang statusCode dùng chung cho middleware error handler."
+    },
+    "class:BE/src/utils/AppError.js:AppError": {
+      "name": "AppError",
+      "type": "class",
+      "summary": "Error subclass mang statusCode HTTP cho phản hồi API nhất quán."
+    },
+    "file:BE/src/utils/asyncHandler.js": {
+      "name": "asyncHandler.js",
+      "type": "file",
+      "summary": "Wrapper Express chuyển lỗi từ handler async sang middleware next()."
+    },
+    "function:BE/src/utils/asyncHandler.js:asyncHandler": {
+      "name": "asyncHandler",
+      "type": "function",
+      "summary": "Bọc handler async Express để catch rejection và gọi next(err)."
+    },
+    "file:BE/src/utils/jwt.js": {
+      "name": "jwt.js",
+      "type": "file",
+      "summary": "Tiện ích ký và xác minh JWT cho phiên đăng nhập người dùng."
+    },
+    "function:BE/src/utils/jwt.js:signToken": {
+      "name": "signToken",
+      "type": "function",
+      "summary": "Ký JWT chứa user id, email và role với secret từ env."
+    },
+    "function:BE/src/utils/jwt.js:verifyToken": {
+      "name": "verifyToken",
+      "type": "function",
+      "summary": "Xác minh JWT và trả payload decoded."
+    },
+    "file:BE/src/utils/otpStore.js": {
+      "name": "otpStore.js",
+      "type": "file",
+      "summary": "Store in-memory cho OTP đăng ký/reset và helper kiểm tra thời hạn hết hạn."
+    },
+    "function:BE/src/utils/otpStore.js:generateOtp": {
+      "name": "generateOtp",
+      "type": "function",
+      "summary": "Sinh mã OTP 6 chữ số ngẫu nhiên."
+    },
+    "function:BE/src/utils/otpStore.js:isExpired": {
+      "name": "isExpired",
+      "type": "function",
+      "summary": "So sánh timestamp entry với TTL cấu hình để biết OTP hết hạn."
+    },
+    "file:FE/src/components/settings/SettingsIcons.jsx": {
+      "name": "SettingsIcons.jsx",
+      "type": "file",
+      "summary": "Tập hợp các component icon SVG dùng cho sidebar và các mục cài đặt; cung cấp hàm ánh xạ sectionId sang icon tương ứng."
+    },
+    "file:FE/src/components/settings/SettingsLayout.jsx": {
+      "name": "SettingsLayout.jsx",
+      "type": "file",
+      "summary": "Các primitive layout tái sử dụng cho mọi tab cài đặt: tiêu đề section và khung card bọc nội dung."
+    },
+    "file:FE/src/components/settings/SettingsPanel.jsx": {
+      "name": "SettingsPanel.jsx",
+      "type": "file",
+      "summary": "Panel trung tâm của trang cài đặt: sidebar chọn mục, render section động và đồng bộ preferences qua hook useSettingsPreferences."
+    },
+    "file:FE/src/components/settings/SettingsRow.jsx": {
+      "name": "SettingsRow.jsx",
+      "type": "file",
+      "summary": "Hàng cài đặt chuẩn với nhãn, mô tả phụ và vùng control (toggle, nút, v.v.) bên phải."
+    },
+    "file:FE/src/components/settings/SettingsSidebar.jsx": {
+      "name": "SettingsSidebar.jsx",
+      "type": "file",
+      "summary": "Thanh điều hướng trái liệt kê các mục cài đặt từ settingsConfig và hiển thị icon tương ứng."
+    },
+    "file:FE/src/components/settings/SettingsToggle.jsx": {
+      "name": "SettingsToggle.jsx",
+      "type": "file",
+      "summary": "Công tắc bật/tắt có nhãn dùng cho các tùy chọn boolean trong tab thông báo và giao diện."
+    },
+    "file:FE/src/components/settings/sections/AboutSection.jsx": {
+      "name": "AboutSection.jsx",
+      "type": "file",
+      "summary": "Tab Giới thiệu hiển thị phiên bản ứng dụng và các liên kết điều hướng (điều khoản, chính sách)."
+    },
+    "file:FE/src/components/settings/sections/AppearanceSection.jsx": {
+      "name": "AppearanceSection.jsx",
+      "type": "file",
+      "summary": "Tab Giao diện cho phép chọn theme và cỡ chữ, cập nhật preferences qua callback updateSetting."
+    },
+    "file:FE/src/components/settings/sections/NotificationsSection.jsx": {
+      "name": "NotificationsSection.jsx",
+      "type": "file",
+      "summary": "Tab Thông báo quản lý các toggle email/push và lưu trạng thái qua updateSetting."
+    },
+    "file:FE/src/components/settings/sections/SecuritySection.jsx": {
+      "name": "SecuritySection.jsx",
+      "type": "file",
+      "summary": "Tab Bảo mật xử lý đổi mật khẩu qua API backend, toast phản hồi và tùy chọn đăng xuất mọi thiết bị."
+    },
+    "file:FE/src/components/settings/sections/SupportSection.jsx": {
+      "name": "SupportSection.jsx",
+      "type": "file",
+      "summary": "Tab Hỗ trợ cung cấp liên kết FAQ, liên hệ và phản hồi thông qua điều hướng React Router."
+    },
+    "file:FE/src/components/settings/settingsConfig.js": {
+      "name": "settingsConfig.js",
+      "type": "file",
+      "summary": "Cấu hình tĩnh định nghĩa danh sách section, metadata tiêu đề/mô tả và phiên bản ứng dụng."
+    },
+    "file:FE/src/pages/Settings.jsx": {
+      "name": "Settings.jsx",
+      "type": "file",
+      "summary": "Trang route Cài đặt bọc SettingsPanel trong layout dashboard sinh viên."
+    },
+    "function:FE/src/components/settings/SettingsIcons.jsx:IconBase": {
+      "name": "IconBase",
+      "type": "function",
+      "summary": "Wrapper SVG chung nhận children và className cho mọi icon cài đặt."
+    },
+    "function:FE/src/components/settings/SettingsIcons.jsx:getSectionIcon": {
+      "name": "getSectionIcon",
+      "type": "function",
+      "summary": "Trả về component icon tương ứng với sectionId của mục sidebar."
+    },
+    "function:FE/src/components/settings/SettingsLayout.jsx:SettingsSectionHeader": {
+      "name": "SettingsSectionHeader",
+      "type": "function",
+      "summary": "Hiển thị tiêu đề và mô tả phụ cho một tab cài đặt."
+    },
+    "function:FE/src/components/settings/SettingsLayout.jsx:SettingsCard": {
+      "name": "SettingsCard",
+      "type": "function",
+      "summary": "Khung card bọc nội dung section với padding và viền thống nhất."
+    },
+    "function:FE/src/components/settings/SettingsPanel.jsx:SettingsPanel": {
+      "name": "SettingsPanel",
+      "type": "function",
+      "summary": "Điều phối sidebar, state section đang chọn và render section con với preferences từ hook."
+    },
+    "function:FE/src/components/settings/SettingsRow.jsx:SettingsRow": {
+      "name": "SettingsRow",
+      "type": "function",
+      "summary": "Layout một dòng cài đặt: label, description và children control."
+    },
+    "function:FE/src/components/settings/SettingsSidebar.jsx:SettingsSidebar": {
+      "name": "SettingsSidebar",
+      "type": "function",
+      "summary": "Render danh sách nút mục cài đặt và gọi onSelect khi người dùng chuyển tab."
+    },
+    "function:FE/src/components/settings/SettingsToggle.jsx:SettingsToggle": {
+      "name": "SettingsToggle",
+      "type": "function",
+      "summary": "Checkbox/switch styled gọi onChange khi người dùng bật tắt tùy chọn."
+    },
+    "function:FE/src/components/settings/sections/AboutSection.jsx:AboutSection": {
+      "name": "AboutSection",
+      "type": "function",
+      "summary": "Tab giới thiệu ứng dụng với phiên bản và nút điều hướng tới trang pháp lý."
+    },
+    "function:FE/src/components/settings/sections/AppearanceSection.jsx:AppearanceSection": {
+      "name": "AppearanceSection",
+      "type": "function",
+      "summary": "Tab chỉnh theme và font size, gọi updateSetting khi người dùng thay đổi AppSelect."
+    },
+    "function:FE/src/components/settings/sections/NotificationsSection.jsx:NotificationsSection": {
+      "name": "NotificationsSection",
+      "type": "function",
+      "summary": "Tab bật/tắt các kênh thông báo email và push qua SettingsToggle."
+    },
+    "function:FE/src/components/settings/sections/SecuritySection.jsx:SecuritySection": {
+      "name": "SecuritySection",
+      "type": "function",
+      "summary": "Tab bảo mật: form đổi mật khẩu gọi API PUT change-password, toast và nút đăng xuất thiết bị."
+    },
+    "function:FE/src/components/settings/sections/SupportSection.jsx:SupportSection": {
+      "name": "SupportSection",
+      "type": "function",
+      "summary": "Tab hỗ trợ với các hàng SettingsRow dẫn tới FAQ, liên hệ và gửi phản hồi."
+    },
+    "function:FE/src/pages/Settings.jsx:Settings": {
+      "name": "Settings",
+      "type": "function",
+      "summary": "Component trang bọc SettingsPanel trong StudentDashboardLayout cho route cài đặt."
+    },
+    "document:FE/README.md": {
+      "name": "README.md",
+      "type": "document",
+      "summary": "Tài liệu mẫu React + Vite mô tả plugin React, tùy chọn React Compiler và hướng dẫn mở rộng cấu hình ESLint cho dự án frontend."
+    },
+    "file:FE/index.html": {
+      "name": "index.html",
+      "type": "file",
+      "summary": "Khung HTML gốc của SPA FPT Students Community: meta SEO tiếng Việt, font Inter, mount point #root và nạp module FE/src/main.jsx."
+    },
+    "config:FE/package.json": {
+      "name": "package.json",
+      "type": "config",
+      "summary": "Manifest npm của frontend: script dev/build/lint/preview Vite 8, phụ thuộc React 19, react-router-dom 7 và toolchain ESLint/Tailwind 4."
+    },
+    "document:README.md": {
+      "name": "README.md",
+      "type": "document",
+      "summary": "Tài liệu tổng quan tối giản của dự án SWP391, hiện chỉ gồm tiêu đề dự án."
+    },
+    "file:test_api.ps1": {
+      "name": "test_api.ps1",
+      "type": "file",
+      "summary": "Script PowerShell kiểm thử tích hợp thủ công các endpoint backend Express (auth, hồ sơ người dùng, đổi mật khẩu, Google SSO mock) qua HTTP tại localhost:5000."
+    },
+    "file:test_role_detection.ps1": {
+      "name": "test_role_detection.ps1",
+      "type": "file",
+      "summary": "Script PowerShell xác minh logic phân vai trò student/staff/guest theo domain email FPT, gồm đăng ký OTP, đăng nhập và Google SSO mock."
+    },
+    "function:test_role_detection.ps1:Test-Role": {
+      "name": "Test-Role",
+      "type": "function",
+      "summary": "Hàm trợ giúp thực hiện chuỗi signup → đọc OTP → verify → login và so khớp role cùng studentId với giá trị kỳ vọng."
+    },
+    "config:.cursor/mcp.json": {
+      "name": "mcp.json",
+      "type": "config",
+      "summary": "Cấu hình MCP server Figma qua HTTP cho Cursor IDE, cho phép agent truy cập thiết kế Figma trong phiên làm việc."
+    },
+    "config:.cursor/settings.json": {
+      "name": "settings.json",
+      "type": "config",
+      "summary": "Cài đặt workspace Cursor bật plugin Understand-Anything từ GitHub để phân tích và trực quan hóa kiến trúc mã nguồn."
+    },
+    "file:.understand-anything/.understandignore": {
+      "name": ".understandignore",
+      "type": "file",
+      "summary": "Danh sách mẫu file và thư mục loại trừ khỏi quá trình quét Understand-Anything, kế thừa các mục từ .gitignore và bỏ qua file test."
+    },
+    "config:BE/.env.example": {
+      "name": ".env.example",
+      "type": "config",
+      "summary": "Mẫu biến môi trường backend gồm MongoDB, JWT, SMTP Gmail và Google OAuth/Calendar cho triển khai local và production."
+    },
+    "config:BE/package.json": {
+      "name": "package.json",
+      "type": "config",
+      "summary": "Manifest npm của backend SWP391 với script khởi động, seed dữ liệu và các dependency Express, Mongoose, JWT, bcrypt."
+    },
+    "file:BE/scripts/test-change-password.js": {
+      "name": "test-change-password.js",
+      "type": "file",
+      "summary": "Script tích hợp kiểm thử luồng đổi mật khẩu qua REST API: login, verify, change-password và xác minh persistence trên server."
+    },
+    "function:BE/scripts/test-change-password.js:request": {
+      "name": "request",
+      "type": "function",
+      "summary": "Wrapper fetch gửi request JSON tới API backend và trả về status cùng body đã parse."
+    },
+    "function:BE/scripts/test-change-password.js:run": {
+      "name": "run",
+      "type": "function",
+      "summary": "Điều phối toàn bộ kịch bản test đổi mật khẩu: xác thực, đổi mật khẩu, kiểm tra login cũ/mới và khôi phục trạng thái ban đầu."
+    },
+    "file:FE/eslint.config.js": {
+      "name": "eslint.config.js",
+      "type": "file",
+      "summary": "Cấu hình ESLint flat cho frontend React/Vite với recommended rules, react-hooks và react-refresh plugin."
+    },
+    "file:FE/src/App.css": {
+      "name": "App.css",
+      "type": "file",
+      "summary": "Stylesheet component App kế thừa từ template Vite với hero animation, counter và layout demo ban đầu."
+    },
+    "file:FE/src/index.css": {
+      "name": "index.css",
+      "type": "file",
+      "summary": "Stylesheet toàn cục định nghĩa design system FPT (biến CSS, typography, component) cho toàn bộ ứng dụng frontend."
+    },
+    "file:FE/src/styles/dark-theme.css": {
+      "name": "dark-theme.css",
+      "type": "file",
+      "summary": "Override giao diện tối kích hoạt bởi class html.dark, bao phủ layout, sidebar, form, modal và các trang dashboard."
+    },
+    "file:FE/src/styles/tailwind.css": {
+      "name": "tailwind.css",
+      "type": "file",
+      "summary": "Entry point Tailwind CSS v4 với custom variant dark, token màu brand FPT và animation cho modal cài đặt."
+    },
+    "file:FE/src/utils/password.js": {
+      "name": "password.js",
+      "type": "file",
+      "summary": "Utility đánh giá độ mạnh mật khẩu theo độ dài và loại ký tự, trả về level, nhãn tiếng Việt và số thanh hiển thị."
+    },
+    "function:FE/src/utils/password.js:getPasswordStrength": {
+      "name": "getPasswordStrength",
+      "type": "function",
+      "summary": "Tính điểm mật khẩu dựa trên độ dài và regex (chữ thường, hoa, số, ký tự đặc biệt), phân loại very-weak đến strong."
+    },
+    "file:FE/vite.config.js": {
+      "name": "vite.config.js",
+      "type": "file",
+      "summary": "Cấu hình Vite cho frontend React với plugin React và Tailwind CSS v4 qua @tailwindcss/vite."
+    }
+  },
+  "totalNodes": 560,
+  "totalEdges": 1233
+}

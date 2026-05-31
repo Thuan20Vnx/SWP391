@@ -1,0 +1,142 @@
+{
+  "projectRoot": "c:\\Users\\Thuan\\OneDrive\\Documents\\SWP391_Project\\SWP391-1",
+  "batchFiles": [
+    {"path": "FE/src/pages/AnnouncementDetail.jsx", "language": "javascript", "sizeLines": 58, "fileCategory": "code"},
+    {"path": "FE/src/pages/Announcements.jsx", "language": "javascript", "sizeLines": 79, "fileCategory": "code"},
+    {"path": "FE/src/pages/ClubDetail.jsx", "language": "javascript", "sizeLines": 327, "fileCategory": "code"},
+    {"path": "FE/src/pages/Clubs.jsx", "language": "javascript", "sizeLines": 255, "fileCategory": "code"},
+    {"path": "FE/src/pages/EventDetail.jsx", "language": "javascript", "sizeLines": 379, "fileCategory": "code"},
+    {"path": "FE/src/pages/EventReviews.jsx", "language": "javascript", "sizeLines": 189, "fileCategory": "code"},
+    {"path": "FE/src/pages/Events.jsx", "language": "javascript", "sizeLines": 239, "fileCategory": "code"},
+    {"path": "FE/src/pages/Home.jsx", "language": "javascript", "sizeLines": 500, "fileCategory": "code"},
+    {"path": "FE/src/pages/Login.jsx", "language": "javascript", "sizeLines": 423, "fileCategory": "code"},
+    {"path": "FE/src/pages/MyClubs.jsx", "language": "javascript", "sizeLines": 414, "fileCategory": "code"},
+    {"path": "FE/src/pages/MyEvents.jsx", "language": "javascript", "sizeLines": 143, "fileCategory": "code"},
+    {"path": "FE/src/pages/Profile.jsx", "language": "javascript", "sizeLines": 904, "fileCategory": "code"},
+    {"path": "FE/src/pages/Schedule.jsx", "language": "javascript", "sizeLines": 265, "fileCategory": "code"},
+    {"path": "FE/src/pages/Signup.jsx", "language": "javascript", "sizeLines": 609, "fileCategory": "code"},
+    {"path": "FE/src/pages/StudentDashboard.jsx", "language": "javascript", "sizeLines": 91, "fileCategory": "code"},
+    {"path": "FE/src/utils/api.js", "language": "javascript", "sizeLines": 38, "fileCategory": "code"},
+    {"path": "FE/src/utils/auth.js", "language": "javascript", "sizeLines": 71, "fileCategory": "code"},
+    {"path": "FE/src/utils/authEvents.js", "language": "javascript", "sizeLines": 5, "fileCategory": "code"},
+    {"path": "FE/src/utils/image.js", "language": "javascript", "sizeLines": 34, "fileCategory": "code"},
+    {"path": "FE/src/utils/logout.js", "language": "javascript", "sizeLines": 25, "fileCategory": "code"},
+    {"path": "FE/src/utils/profileApi.js", "language": "javascript", "sizeLines": 30, "fileCategory": "code"},
+    {"path": "FE/src/utils/role.js", "language": "javascript", "sizeLines": 10, "fileCategory": "code"},
+    {"path": "FE/src/utils/studentId.js", "language": "javascript", "sizeLines": 15, "fileCategory": "code"},
+    {"path": "FE/src/utils/ticketPricing.js", "language": "javascript", "sizeLines": 65, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "FE/src/pages/AnnouncementDetail.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/studentMockData.js"
+    ],
+    "FE/src/pages/Announcements.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/studentMockData.js"
+    ],
+    "FE/src/pages/ClubDetail.jsx": [
+      "FE/src/components/ClubUpcomingEventCard.jsx",
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/data/clubDetailData.js",
+      "FE/src/data/clubDiscoveryData.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Clubs.jsx": [
+      "FE/src/components/ClubDiscoveryCard.jsx",
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/data/clubDiscoveryData.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/EventDetail.jsx": [
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/data/eventDetailData.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js",
+      "FE/src/utils/ticketPricing.js"
+    ],
+    "FE/src/pages/EventReviews.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Events.jsx": [
+      "FE/src/components/EventDiscoveryCard.jsx",
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/data/eventDiscoveryData.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Home.jsx": [
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/data/eventDiscoveryData.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Login.jsx": [
+      "FE/src/constants/defaultAvatar.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js",
+      "FE/src/utils/authEvents.js",
+      "FE/src/utils/image.js"
+    ],
+    "FE/src/pages/MyClubs.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/clubDiscoveryData.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/MyEvents.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Profile.jsx": [
+      "FE/src/components/DashboardSidebarNav.jsx",
+      "FE/src/components/profile/AvatarCropModal.jsx",
+      "FE/src/constants/defaultAvatar.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/authEvents.js",
+      "FE/src/utils/image.js",
+      "FE/src/utils/logout.js",
+      "FE/src/utils/profileApi.js",
+      "FE/src/utils/role.js",
+      "FE/src/utils/studentId.js"
+    ],
+    "FE/src/pages/Schedule.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/studentMockData.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Signup.jsx": [
+      "FE/src/assets/brand.js"
+    ],
+    "FE/src/pages/StudentDashboard.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/studentMockData.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/utils/api.js": [],
+    "FE/src/utils/auth.js": [],
+    "FE/src/utils/authEvents.js": [],
+    "FE/src/utils/image.js": [],
+    "FE/src/utils/logout.js": [
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/authEvents.js"
+    ],
+    "FE/src/utils/profileApi.js": [
+      "FE/src/utils/api.js",
+      "FE/src/utils/image.js"
+    ],
+    "FE/src/utils/role.js": [],
+    "FE/src/utils/studentId.js": [],
+    "FE/src/utils/ticketPricing.js": []
+  }
+}

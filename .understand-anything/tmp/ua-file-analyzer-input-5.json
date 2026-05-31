@@ -1,0 +1,236 @@
+{
+  "projectRoot": "c:\\\\Users\\\\Thuan\\\\OneDrive\\\\Documents\\\\SWP391_Project\\\\SWP391-1",
+  "batchFiles": [
+    {
+      "path": "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "language": "javascript",
+      "sizeLines": 783,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "language": "javascript",
+      "sizeLines": 294,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "language": "javascript",
+      "sizeLines": 312,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "language": "javascript",
+      "sizeLines": 1069,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "language": "javascript",
+      "sizeLines": 426,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvEventList.jsx",
+      "language": "javascript",
+      "sizeLines": 252,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "language": "javascript",
+      "sizeLines": 333,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "language": "javascript",
+      "sizeLines": 199,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvProfile.jsx",
+      "language": "javascript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "language": "javascript",
+      "sizeLines": 121,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvProposalList.jsx",
+      "language": "javascript",
+      "sizeLines": 65,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ctsv/CtsvReports.jsx",
+      "language": "javascript",
+      "sizeLines": 224,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/services/adminApi.js",
+      "language": "javascript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/services/ctsvApi.js",
+      "language": "javascript",
+      "sizeLines": 225,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/utils/announcementDraft.js",
+      "language": "javascript",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/utils/announcementEvents.js",
+      "language": "javascript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/utils/announcementId.js",
+      "language": "javascript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/utils/cropImage.js",
+      "language": "javascript",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/utils/ctsvCalendar.js",
+      "language": "javascript",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/utils/ctsvEventAccess.js",
+      "language": "javascript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/utils/eventStatus.js",
+      "language": "javascript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/utils/partnerDisplay.js",
+      "language": "javascript",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/utils/schoolEventDraft.js",
+      "language": "javascript",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx": [
+      "FE/src/components/ctsv/BannerCropModal.jsx",
+      "FE/src/components/ctsv/CtsvActionIcon.jsx",
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/components/ui/ConfirmDialog.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/announcementDraft.js",
+      "FE/src/utils/announcementEvents.js",
+      "FE/src/utils/announcementId.js",
+      "FE/src/utils/partnerDisplay.js"
+    ],
+    "FE/src/pages/ctsv/CtsvCalendar.jsx": [
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/ctsvCalendar.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvDashboard.jsx": [
+      "FE/src/components/ctsv/CtsvNavIcon.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvEventCreate.jsx": [
+      "FE/src/components/ctsv/BannerCropModal.jsx",
+      "FE/src/components/profile/AvatarCropModal.jsx",
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/components/ui/ConfirmDialog.jsx",
+      "FE/src/constants/eventCategories.js",
+      "FE/src/constants/eventSpeaker.js",
+      "FE/src/constants/eventWorkflow.js",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/schoolEventDraft.js"
+    ],
+    "FE/src/pages/ctsv/CtsvEventDetail.jsx": [
+      "FE/src/constants/eventSpeaker.js",
+      "FE/src/constants/eventWorkflow.js",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/ctsvEventAccess.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvEventList.jsx": [
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/ctsvEventAccess.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvPartnerDetail.jsx": [
+      "FE/src/components/ctsv/PartnerActionDialog.jsx",
+      "FE/src/components/ui/ConfirmDialog.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/partnerDisplay.js"
+    ],
+    "FE/src/pages/ctsv/CtsvPartnerList.jsx": [
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/partnerDisplay.js"
+    ],
+    "FE/src/pages/ctsv/CtsvProfile.jsx": [
+      "FE/src/pages/Profile.jsx"
+    ],
+    "FE/src/pages/ctsv/CtsvProposalDetail.jsx": [
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvProposalList.jsx": [
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvReports.jsx": [
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/services/adminApi.js": [
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/services/ctsvApi.js": [
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/utils/announcementDraft.js": [],
+    "FE/src/utils/announcementEvents.js": [],
+    "FE/src/utils/announcementId.js": [],
+    "FE/src/utils/cropImage.js": [],
+    "FE/src/utils/ctsvCalendar.js": [],
+    "FE/src/utils/ctsvEventAccess.js": [
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/utils/eventStatus.js": [],
+    "FE/src/utils/partnerDisplay.js": [],
+    "FE/src/utils/schoolEventDraft.js": []
+  }
+}

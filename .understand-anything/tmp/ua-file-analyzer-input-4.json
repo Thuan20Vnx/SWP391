@@ -1,0 +1,232 @@
+{
+  "projectRoot": "c:/Users/Thuan/OneDrive/Documents/SWP391_Project/SWP391-1",
+  "batchFiles": [
+    {
+      "path": "FE/src/App.jsx",
+      "language": "javascript",
+      "sizeLines": 230,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/components/Toast.jsx",
+      "language": "javascript",
+      "sizeLines": 66,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/components/ctsv/BannerCropModal.jsx",
+      "language": "javascript",
+      "sizeLines": 336,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/components/ctsv/CtsvActionIcon.jsx",
+      "language": "javascript",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/components/ctsv/CtsvNavIcon.jsx",
+      "language": "javascript",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/components/ctsv/PartnerActionDialog.jsx",
+      "language": "javascript",
+      "sizeLines": 96,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/components/profile/AvatarCropModal.jsx",
+      "language": "javascript",
+      "sizeLines": 286,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/components/ui/AppSelect.jsx",
+      "language": "javascript",
+      "sizeLines": 202,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/components/ui/ConfirmDialog.jsx",
+      "language": "javascript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/constants/eventCategories.js",
+      "language": "javascript",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/constants/eventSpeaker.js",
+      "language": "javascript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/constants/eventVenues.js",
+      "language": "javascript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/constants/eventWorkflow.js",
+      "language": "javascript",
+      "sizeLines": 30,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/hooks/useSettingsPreferences.js",
+      "language": "javascript",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/main.jsx",
+      "language": "javascript",
+      "sizeLines": 12,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/AdminDashboard.jsx",
+      "language": "javascript",
+      "sizeLines": 154,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/CreateEvent.jsx",
+      "language": "javascript",
+      "sizeLines": 152,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/CtsvHome.jsx",
+      "language": "javascript",
+      "sizeLines": 329,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ForgotPassword.jsx",
+      "language": "javascript",
+      "sizeLines": 209,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/ResetPassword.jsx",
+      "language": "javascript",
+      "sizeLines": 298,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/StaticPage.jsx",
+      "language": "javascript",
+      "sizeLines": 130,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "language": "javascript",
+      "sizeLines": 174,
+      "fileCategory": "code"
+    },
+    {
+      "path": "FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "language": "javascript",
+      "sizeLines": 197,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "FE/src/App.jsx": [
+      "FE/src/components/Toast.jsx",
+      "FE/src/hooks/useSettingsPreferences.js",
+      "FE/src/index.css",
+      "FE/src/layouts/CtsvLayout.jsx",
+      "FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "FE/src/pages/AdminDashboard.jsx",
+      "FE/src/pages/AnnouncementDetail.jsx",
+      "FE/src/pages/Announcements.jsx",
+      "FE/src/pages/ClubDetail.jsx",
+      "FE/src/pages/Clubs.jsx",
+      "FE/src/pages/CreateEvent.jsx",
+      "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "FE/src/pages/ctsv/CtsvEventList.jsx",
+      "FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "FE/src/pages/ctsv/CtsvProfile.jsx",
+      "FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "FE/src/pages/ctsv/CtsvProposalList.jsx",
+      "FE/src/pages/ctsv/CtsvReports.jsx",
+      "FE/src/pages/CtsvHome.jsx",
+      "FE/src/pages/EventDetail.jsx",
+      "FE/src/pages/EventReviews.jsx",
+      "FE/src/pages/Events.jsx",
+      "FE/src/pages/ForgotPassword.jsx",
+      "FE/src/pages/Home.jsx",
+      "FE/src/pages/Login.jsx",
+      "FE/src/pages/MyClubs.jsx",
+      "FE/src/pages/MyEvents.jsx",
+      "FE/src/pages/Profile.jsx",
+      "FE/src/pages/ResetPassword.jsx",
+      "FE/src/pages/Schedule.jsx",
+      "FE/src/pages/Settings.jsx",
+      "FE/src/pages/Signup.jsx",
+      "FE/src/pages/StaticPage.jsx",
+      "FE/src/utils/auth.js"
+    ],
+    "FE/src/components/Toast.jsx": [],
+    "FE/src/components/ctsv/BannerCropModal.jsx": [
+      "FE/src/utils/cropImage.js"
+    ],
+    "FE/src/components/ctsv/CtsvActionIcon.jsx": [],
+    "FE/src/components/ctsv/CtsvNavIcon.jsx": [],
+    "FE/src/components/ctsv/PartnerActionDialog.jsx": [],
+    "FE/src/components/profile/AvatarCropModal.jsx": [
+      "FE/src/utils/cropImage.js"
+    ],
+    "FE/src/components/ui/AppSelect.jsx": [],
+    "FE/src/components/ui/ConfirmDialog.jsx": [],
+    "FE/src/constants/eventCategories.js": [],
+    "FE/src/constants/eventSpeaker.js": [],
+    "FE/src/constants/eventVenues.js": [],
+    "FE/src/constants/eventWorkflow.js": [],
+    "FE/src/hooks/useSettingsPreferences.js": [],
+    "FE/src/main.jsx": [
+      "FE/src/App.jsx",
+      "FE/src/index.css",
+      "FE/src/styles/dark-theme.css",
+      "FE/src/styles/tailwind.css"
+    ],
+    "FE/src/pages/AdminDashboard.jsx": [],
+    "FE/src/pages/CreateEvent.jsx": [
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/constants/eventVenues.js"
+    ],
+    "FE/src/pages/CtsvHome.jsx": [
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/ctsvEventAccess.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ForgotPassword.jsx": [],
+    "FE/src/pages/ResetPassword.jsx": [],
+    "FE/src/pages/StaticPage.jsx": [],
+    "FE/src/pages/admin/AdminPartnerApprovals.jsx": [
+      "FE/src/services/adminApi.js",
+      "FE/src/utils/partnerDisplay.js"
+    ],
+    "FE/src/pages/admin/AdminSchoolEventApprovals.jsx": [
+      "FE/src/constants/eventWorkflow.js",
+      "FE/src/services/adminApi.js"
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "projectRoot": "c:/Users/Thuan/OneDrive/Documents/SWP391_Project/SWP391-1",
+  "batchFiles": [
+    {"path": "FE/src/components/settings/SettingsIcons.jsx", "language": "javascript", "sizeLines": 77, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/SettingsLayout.jsx", "language": "javascript", "sizeLines": 15, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/SettingsPanel.jsx", "language": "javascript", "sizeLines": 45, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/SettingsRow.jsx", "language": "javascript", "sizeLines": 17, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/SettingsSidebar.jsx", "language": "javascript", "sizeLines": 27, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/SettingsToggle.jsx", "language": "javascript", "sizeLines": 21, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/sections/AboutSection.jsx", "language": "javascript", "sizeLines": 36, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/sections/AppearanceSection.jsx", "language": "javascript", "sizeLines": 40, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/sections/NotificationsSection.jsx", "language": "javascript", "sizeLines": 32, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/sections/SecuritySection.jsx", "language": "javascript", "sizeLines": 138, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/sections/SupportSection.jsx", "language": "javascript", "sizeLines": 34, "fileCategory": "code"},
+    {"path": "FE/src/components/settings/settingsConfig.js", "language": "javascript", "sizeLines": 32, "fileCategory": "code"},
+    {"path": "FE/src/pages/Settings.jsx", "language": "javascript", "sizeLines": 17, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "FE/src/components/settings/SettingsIcons.jsx": [],
+    "FE/src/components/settings/SettingsLayout.jsx": [],
+    "FE/src/components/settings/SettingsPanel.jsx": [
+      "FE/src/components/settings/sections/AboutSection.jsx",
+      "FE/src/components/settings/sections/AppearanceSection.jsx",
+      "FE/src/components/settings/sections/NotificationsSection.jsx",
+      "FE/src/components/settings/sections/SecuritySection.jsx",
+      "FE/src/components/settings/sections/SupportSection.jsx",
+      "FE/src/components/settings/SettingsSidebar.jsx",
+      "FE/src/hooks/useSettingsPreferences.js"
+    ],
+    "FE/src/components/settings/SettingsRow.jsx": [
+      "FE/src/components/settings/SettingsIcons.jsx"
+    ],
+    "FE/src/components/settings/SettingsSidebar.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsIcons.jsx"
+    ],
+    "FE/src/components/settings/SettingsToggle.jsx": [],
+    "FE/src/components/settings/sections/AboutSection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsRow.jsx"
+    ],
+    "FE/src/components/settings/sections/AppearanceSection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsToggle.jsx",
+      "FE/src/components/ui/AppSelect.jsx"
+    ],
+    "FE/src/components/settings/sections/NotificationsSection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsToggle.jsx"
+    ],
+    "FE/src/components/settings/sections/SecuritySection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsRow.jsx",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/components/settings/sections/SupportSection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsRow.jsx"
+    ],
+    "FE/src/components/settings/settingsConfig.js": [],
+    "FE/src/pages/Settings.jsx": [
+      "FE/src/components/settings/SettingsPanel.jsx",
+      "FE/src/components/StudentDashboardLayout.jsx"
+    ]
+  }
+}

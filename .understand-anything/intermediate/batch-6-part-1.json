@@ -1,0 +1,1508 @@
+{
+  "nodes": [
+    {
+      "id": "file:BE/seed-clubs.js",
+      "type": "file",
+      "name": "seed-clubs.js",
+      "filePath": "BE/seed-clubs.js",
+      "summary": "Script seed dữ liệu câu lạc bộ mẫu vào MongoDB, xóa và chèn lại từ clubSeedData.",
+      "tags": [
+        "seed",
+        "database",
+        "club",
+        "script"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/seed-event-reviews.js",
+      "type": "file",
+      "name": "seed-event-reviews.js",
+      "filePath": "BE/seed-event-reviews.js",
+      "summary": "Script seed đăng ký và đánh giá sự kiện thử nghiệm cho user/event có sẵn trong DB.",
+      "tags": [
+        "seed",
+        "database",
+        "event",
+        "review"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/server.js",
+      "type": "file",
+      "name": "server.js",
+      "filePath": "BE/server.js",
+      "summary": "Điểm khởi động server Express: kết nối DB rồi lắng nghe cổng từ biến môi trường.",
+      "tags": [
+        "entry-point",
+        "server",
+        "express"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/app.js",
+      "type": "file",
+      "name": "app.js",
+      "filePath": "BE/src/app.js",
+      "summary": "Cấu hình ứng dụng Express: CORS, JSON body, mount routes và middleware xử lý lỗi.",
+      "tags": [
+        "entry-point",
+        "express",
+        "middleware"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/config/env.js",
+      "type": "file",
+      "name": "env.js",
+      "filePath": "BE/src/config/env.js",
+      "summary": "Tải dotenv và xuất cấu hình runtime (port, JWT, OAuth, email) từ process.env.",
+      "tags": [
+        "configuration",
+        "environment",
+        "dotenv"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/constants/eventPricing.js",
+      "type": "file",
+      "name": "eventPricing.js",
+      "filePath": "BE/src/constants/eventPricing.js",
+      "summary": "Logic tính giá vé sự kiện, ưu đãi sinh viên và nhãn hiển thị cho API sự kiện.",
+      "tags": [
+        "utility",
+        "pricing",
+        "event",
+        "constants"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/controllers/auth.controller.js",
+      "type": "file",
+      "name": "auth.controller.js",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "summary": "HTTP handlers xác thực: đăng nhập, OTP, Google OAuth và kết nối Google Calendar.",
+      "tags": [
+        "api-handler",
+        "auth",
+        "controller"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/controllers/club.controller.js",
+      "type": "file",
+      "name": "club.controller.js",
+      "filePath": "BE/src/controllers/club.controller.js",
+      "summary": "HTTP handlers CRUD câu lạc bộ: danh sách, theo dõi, gia nhập và duyệt thành viên.",
+      "tags": [
+        "api-handler",
+        "club",
+        "controller"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:BE/src/controllers/event.controller.js",
+      "type": "file",
+      "name": "event.controller.js",
+      "filePath": "BE/src/controllers/event.controller.js",
+      "summary": "HTTP handlers quản lý sự kiện: tạo, duyệt trạng thái và lấy danh sách/chi tiết.",
+      "tags": [
+        "api-handler",
+        "event",
+        "controller"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:BE/src/controllers/registration.controller.js",
+      "type": "file",
+      "name": "registration.controller.js",
+      "filePath": "BE/src/controllers/registration.controller.js",
+      "summary": "HTTP handlers đăng ký và hủy đăng ký tham gia sự kiện.",
+      "tags": [
+        "api-handler",
+        "registration",
+        "event"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/seed-clubs.js:seedClubs",
+      "type": "function",
+      "name": "seedClubs",
+      "filePath": "BE/seed-clubs.js",
+      "lineRange": [
+        11,
+        39
+      ],
+      "summary": "Kết nối DB, xóa toàn bộ club và insertMany từ clubSeedData.",
+      "tags": [
+        "seed",
+        "database",
+        "club"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/seed-event-reviews.js:seedEventReviews",
+      "type": "function",
+      "name": "seedEventReviews",
+      "filePath": "BE/seed-event-reviews.js",
+      "lineRange": [
+        16,
+        80
+      ],
+      "summary": "Tạo registration và review mẫu, cập nhật rating trung bình cho event.",
+      "tags": [
+        "seed",
+        "review",
+        "event"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/constants/eventPricing.js:formatVnd",
+      "type": "function",
+      "name": "formatVnd",
+      "filePath": "BE/src/constants/eventPricing.js",
+      "lineRange": [
+        6,
+        7
+      ],
+      "summary": "Định dạng số tiền theo locale vi-VN và VND.",
+      "tags": [
+        "utility",
+        "formatting",
+        "pricing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/constants/eventPricing.js:hasStudentTicketPrivilege",
+      "type": "function",
+      "name": "hasStudentTicketPrivilege",
+      "filePath": "BE/src/constants/eventPricing.js",
+      "lineRange": [
+        9,
+        12
+      ],
+      "summary": "Kiểm tra role user có được miễn phí vé sinh viên không.",
+      "tags": [
+        "pricing",
+        "authorization",
+        "student"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/constants/eventPricing.js:getListPrice",
+      "type": "function",
+      "name": "getListPrice",
+      "filePath": "BE/src/constants/eventPricing.js",
+      "lineRange": [
+        14,
+        14
+      ],
+      "summary": "Lấy giá niêm yết từ event.price (tối thiểu 0).",
+      "tags": [
+        "pricing",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/constants/eventPricing.js:calculateTicketAmount",
+      "type": "function",
+      "name": "calculateTicketAmount",
+      "filePath": "BE/src/constants/eventPricing.js",
+      "lineRange": [
+        16,
+        20
+      ],
+      "summary": "Tính số tiền phải trả sau ưu đãi sinh viên.",
+      "tags": [
+        "pricing",
+        "calculation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/constants/eventPricing.js:buildPriceLabel",
+      "type": "function",
+      "name": "buildPriceLabel",
+      "filePath": "BE/src/constants/eventPricing.js",
+      "lineRange": [
+        22,
+        28
+      ],
+      "summary": "Tạo nhãn giá hiển thị (miễn phí hoặc format VND).",
+      "tags": [
+        "pricing",
+        "ui-label"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/constants/eventPricing.js:getPrimaryActionLabel",
+      "type": "function",
+      "name": "getPrimaryActionLabel",
+      "filePath": "BE/src/constants/eventPricing.js",
+      "lineRange": [
+        30,
+        37
+      ],
+      "summary": "Trả nhãn nút hành động chính theo trạng thái đăng ký.",
+      "tags": [
+        "pricing",
+        "ui-label"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/constants/eventPricing.js:enrichEventWithPricing",
+      "type": "function",
+      "name": "enrichEventWithPricing",
+      "filePath": "BE/src/constants/eventPricing.js",
+      "lineRange": [
+        39,
+        58
+      ],
+      "summary": "Bổ sung trường pricing/labels vào object event cho client.",
+      "tags": [
+        "pricing",
+        "serialization",
+        "event"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:login",
+      "type": "function",
+      "name": "login",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        4,
+        7
+      ],
+      "summary": "Ủy quyền đăng nhập email/password cho authService.",
+      "tags": [
+        "api-handler",
+        "auth",
+        "login"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:signup",
+      "type": "function",
+      "name": "signup",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        9,
+        12
+      ],
+      "summary": "Đăng ký tài khoản và gửi OTP qua authService.",
+      "tags": [
+        "api-handler",
+        "auth",
+        "signup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:verifyOtp",
+      "type": "function",
+      "name": "verifyOtp",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        14,
+        17
+      ],
+      "summary": "Xác minh OTP hoàn tất đăng ký.",
+      "tags": [
+        "api-handler",
+        "auth",
+        "otp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:resendOtp",
+      "type": "function",
+      "name": "resendOtp",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        19,
+        22
+      ],
+      "summary": "Gửi lại mã OTP.",
+      "tags": [
+        "api-handler",
+        "auth",
+        "otp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:forgotPassword",
+      "type": "function",
+      "name": "forgotPassword",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        24,
+        27
+      ],
+      "summary": "Khởi tạo luồng quên mật khẩu.",
+      "tags": [
+        "api-handler",
+        "auth",
+        "password"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:resetPassword",
+      "type": "function",
+      "name": "resetPassword",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        29,
+        32
+      ],
+      "summary": "Đặt lại mật khẩu bằng token/OTP.",
+      "tags": [
+        "api-handler",
+        "auth",
+        "password"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:googleLogin",
+      "type": "function",
+      "name": "googleLogin",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        34,
+        39
+      ],
+      "summary": "Trả URL hoặc payload bắt đầu OAuth Google.",
+      "tags": [
+        "api-handler",
+        "auth",
+        "oauth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:googleCallback",
+      "type": "function",
+      "name": "googleCallback",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        41,
+        49
+      ],
+      "summary": "Xử lý callback OAuth và redirect về frontend.",
+      "tags": [
+        "api-handler",
+        "auth",
+        "oauth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:googleCalendarConnect",
+      "type": "function",
+      "name": "googleCalendarConnect",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        51,
+        60
+      ],
+      "summary": "Redirect user tới Google Calendar OAuth.",
+      "tags": [
+        "api-handler",
+        "calendar",
+        "oauth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/auth.controller.js:googleCalendarCallback",
+      "type": "function",
+      "name": "googleCalendarCallback",
+      "filePath": "BE/src/controllers/auth.controller.js",
+      "lineRange": [
+        62,
+        73
+      ],
+      "summary": "Lưu token calendar sau callback Google.",
+      "tags": [
+        "api-handler",
+        "calendar",
+        "oauth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/club.controller.js:getClubs",
+      "type": "function",
+      "name": "getClubs",
+      "filePath": "BE/src/controllers/club.controller.js",
+      "lineRange": [
+        3,
+        10
+      ],
+      "summary": "Lấy danh sách club có filter/pagination.",
+      "tags": [
+        "api-handler",
+        "club",
+        "list"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/club.controller.js:getClubBySlug",
+      "type": "function",
+      "name": "getClubBySlug",
+      "filePath": "BE/src/controllers/club.controller.js",
+      "lineRange": [
+        12,
+        15
+      ],
+      "summary": "Chi tiết club theo slug.",
+      "tags": [
+        "api-handler",
+        "club",
+        "detail"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/club.controller.js:followClub",
+      "type": "function",
+      "name": "followClub",
+      "filePath": "BE/src/controllers/club.controller.js",
+      "lineRange": [
+        17,
+        20
+      ],
+      "summary": "Theo dõi club.",
+      "tags": [
+        "api-handler",
+        "club",
+        "follow"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/club.controller.js:unfollowClub",
+      "type": "function",
+      "name": "unfollowClub",
+      "filePath": "BE/src/controllers/club.controller.js",
+      "lineRange": [
+        22,
+        25
+      ],
+      "summary": "Bỏ theo dõi club.",
+      "tags": [
+        "api-handler",
+        "club",
+        "follow"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/club.controller.js:joinClub",
+      "type": "function",
+      "name": "joinClub",
+      "filePath": "BE/src/controllers/club.controller.js",
+      "lineRange": [
+        27,
+        30
+      ],
+      "summary": "Gửi yêu cầu gia nhập club.",
+      "tags": [
+        "api-handler",
+        "club",
+        "membership"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/club.controller.js:cancelJoinClub",
+      "type": "function",
+      "name": "cancelJoinClub",
+      "filePath": "BE/src/controllers/club.controller.js",
+      "lineRange": [
+        32,
+        35
+      ],
+      "summary": "Hủy yêu cầu gia nhập đang chờ.",
+      "tags": [
+        "api-handler",
+        "club",
+        "membership"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/club.controller.js:approveMembership",
+      "type": "function",
+      "name": "approveMembership",
+      "filePath": "BE/src/controllers/club.controller.js",
+      "lineRange": [
+        37,
+        44
+      ],
+      "summary": "Duyệt thành viên (admin club).",
+      "tags": [
+        "api-handler",
+        "club",
+        "admin"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/event.controller.js:createEvent",
+      "type": "function",
+      "name": "createEvent",
+      "filePath": "BE/src/controllers/event.controller.js",
+      "lineRange": [
+        3,
+        6
+      ],
+      "summary": "Tạo sự kiện mới qua eventService.",
+      "tags": [
+        "api-handler",
+        "event",
+        "create"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/event.controller.js:getPendingEvents",
+      "type": "function",
+      "name": "getPendingEvents",
+      "filePath": "BE/src/controllers/event.controller.js",
+      "lineRange": [
+        8,
+        11
+      ],
+      "summary": "Danh sách sự kiện chờ duyệt.",
+      "tags": [
+        "api-handler",
+        "event",
+        "admin"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/event.controller.js:updateEventStatus",
+      "type": "function",
+      "name": "updateEventStatus",
+      "filePath": "BE/src/controllers/event.controller.js",
+      "lineRange": [
+        13,
+        16
+      ],
+      "summary": "Cập nhật trạng thái duyệt sự kiện.",
+      "tags": [
+        "api-handler",
+        "event",
+        "admin"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/event.controller.js:getApprovedEvents",
+      "type": "function",
+      "name": "getApprovedEvents",
+      "filePath": "BE/src/controllers/event.controller.js",
+      "lineRange": [
+        18,
+        24
+      ],
+      "summary": "Sự kiện đã duyệt cho trang công khai.",
+      "tags": [
+        "api-handler",
+        "event",
+        "list"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/event.controller.js:getEventById",
+      "type": "function",
+      "name": "getEventById",
+      "filePath": "BE/src/controllers/event.controller.js",
+      "lineRange": [
+        26,
+        31
+      ],
+      "summary": "Chi tiết một sự kiện theo id.",
+      "tags": [
+        "api-handler",
+        "event",
+        "detail"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/registration.controller.js:registerForEvent",
+      "type": "function",
+      "name": "registerForEvent",
+      "filePath": "BE/src/controllers/registration.controller.js",
+      "lineRange": [
+        3,
+        6
+      ],
+      "summary": "Đăng ký tham gia sự kiện.",
+      "tags": [
+        "api-handler",
+        "registration",
+        "event"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:BE/src/controllers/registration.controller.js:cancelRegistration",
+      "type": "function",
+      "name": "cancelRegistration",
+      "filePath": "BE/src/controllers/registration.controller.js",
+      "lineRange": [
+        8,
+        11
+      ],
+      "summary": "Hủy đăng ký sự kiện.",
+      "tags": [
+        "api-handler",
+        "registration",
+        "event"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:BE/seed-clubs.js",
+      "target": "file:BE/src/config/db.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-clubs.js",
+      "target": "file:BE/src/data/clubSeedData.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-clubs.js",
+      "target": "file:BE/src/models/Club.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-clubs.js",
+      "target": "function:BE/seed-clubs.js:seedClubs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/seed-event-reviews.js",
+      "target": "file:BE/src/config/db.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-event-reviews.js",
+      "target": "file:BE/src/models/Event.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-event-reviews.js",
+      "target": "file:BE/src/models/EventRegistration.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-event-reviews.js",
+      "target": "file:BE/src/models/EventReview.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-event-reviews.js",
+      "target": "file:BE/src/models/User.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/seed-event-reviews.js",
+      "target": "function:BE/seed-event-reviews.js:seedEventReviews",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/server.js",
+      "target": "file:BE/src/app.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/server.js",
+      "target": "file:BE/src/config/db.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/server.js",
+      "target": "file:BE/src/config/env.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/app.js",
+      "target": "file:BE/src/config/env.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/app.js",
+      "target": "file:BE/src/middleware/errorHandler.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/app.js",
+      "target": "file:BE/src/routes/index.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:formatVnd",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:formatVnd",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:hasStudentTicketPrivilege",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:hasStudentTicketPrivilege",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:getListPrice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:getListPrice",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:calculateTicketAmount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:calculateTicketAmount",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:buildPriceLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:buildPriceLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:getPrimaryActionLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:getPrimaryActionLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:enrichEventWithPricing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/constants/eventPricing.js",
+      "target": "function:BE/src/constants/eventPricing.js:enrichEventWithPricing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "file:BE/src/config/env.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:login",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:login",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:login",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:signup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:signup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:signup",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:verifyOtp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:verifyOtp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:verifyOtp",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:resendOtp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:resendOtp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:resendOtp",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:forgotPassword",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:forgotPassword",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:forgotPassword",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:resetPassword",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:resetPassword",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:resetPassword",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:googleLogin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:googleLogin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:googleLogin",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:googleCallback",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:googleCallback",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:googleCallback",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:googleCalendarConnect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:googleCalendarConnect",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:googleCalendarConnect",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:googleCalendarCallback",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/auth.controller.js",
+      "target": "function:BE/src/controllers/auth.controller.js:googleCalendarCallback",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/auth.controller.js:googleCalendarCallback",
+      "target": "file:BE/src/services/auth.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "file:BE/src/services/club.service.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:getClubs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:getClubs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/club.controller.js:getClubs",
+      "target": "file:BE/src/services/club.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:getClubBySlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:getClubBySlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/club.controller.js:getClubBySlug",
+      "target": "file:BE/src/services/club.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:followClub",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:followClub",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/club.controller.js:followClub",
+      "target": "file:BE/src/services/club.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:unfollowClub",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:unfollowClub",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/club.controller.js:unfollowClub",
+      "target": "file:BE/src/services/club.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:joinClub",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:joinClub",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/club.controller.js:joinClub",
+      "target": "file:BE/src/services/club.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:cancelJoinClub",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:cancelJoinClub",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/club.controller.js:cancelJoinClub",
+      "target": "file:BE/src/services/club.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:approveMembership",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/club.controller.js",
+      "target": "function:BE/src/controllers/club.controller.js:approveMembership",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/club.controller.js:approveMembership",
+      "target": "file:BE/src/services/club.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "file:BE/src/services/event.service.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:createEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:createEvent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/event.controller.js:createEvent",
+      "target": "file:BE/src/services/event.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:getPendingEvents",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:getPendingEvents",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/event.controller.js:getPendingEvents",
+      "target": "file:BE/src/services/event.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:updateEventStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:updateEventStatus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/event.controller.js:updateEventStatus",
+      "target": "file:BE/src/services/event.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:getApprovedEvents",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:getApprovedEvents",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/event.controller.js:getApprovedEvents",
+      "target": "file:BE/src/services/event.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:getEventById",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/event.controller.js",
+      "target": "function:BE/src/controllers/event.controller.js:getEventById",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/event.controller.js:getEventById",
+      "target": "file:BE/src/services/event.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/registration.controller.js",
+      "target": "file:BE/src/services/registration.service.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:BE/src/controllers/registration.controller.js",
+      "target": "function:BE/src/controllers/registration.controller.js:registerForEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/registration.controller.js",
+      "target": "function:BE/src/controllers/registration.controller.js:registerForEvent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/registration.controller.js:registerForEvent",
+      "target": "file:BE/src/services/registration.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:BE/src/controllers/registration.controller.js",
+      "target": "function:BE/src/controllers/registration.controller.js:cancelRegistration",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:BE/src/controllers/registration.controller.js",
+      "target": "function:BE/src/controllers/registration.controller.js:cancelRegistration",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/src/controllers/registration.controller.js:cancelRegistration",
+      "target": "file:BE/src/services/registration.service.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed-clubs.js:seedClubs",
+      "target": "file:BE/src/config/db.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed-clubs.js:seedClubs",
+      "target": "file:BE/src/models/Club.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed-event-reviews.js:seedEventReviews",
+      "target": "file:BE/src/config/db.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed-event-reviews.js:seedEventReviews",
+      "target": "file:BE/src/models/Event.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed-event-reviews.js:seedEventReviews",
+      "target": "file:BE/src/models/EventRegistration.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed-event-reviews.js:seedEventReviews",
+      "target": "file:BE/src/models/EventReview.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/seed-event-reviews.js:seedEventReviews",
+      "target": "file:BE/src/models/User.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/server.js:startServer",
+      "target": "file:BE/src/config/db.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:BE/server.js:startServer",
+      "target": "file:BE/src/app.js",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

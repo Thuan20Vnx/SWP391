@@ -1,0 +1,6626 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 24,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "FE/src/pages/AnnouncementDetail.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 58,
+      "nonEmptyLines": 53,
+      "functions": [
+        {
+          "name": "AnnouncementDetail",
+          "startLine": 6,
+          "endLine": 56,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "AnnouncementDetail",
+          "callee": "useParams",
+          "lineNumber": 7
+        },
+        {
+          "caller": "AnnouncementDetail",
+          "callee": "useNavigate",
+          "lineNumber": 8
+        },
+        {
+          "caller": "AnnouncementDetail",
+          "callee": "getAnnouncementById",
+          "lineNumber": 9
+        },
+        {
+          "caller": "AnnouncementDetail",
+          "callee": "navigate",
+          "lineNumber": 20
+        },
+        {
+          "caller": "AnnouncementDetail",
+          "callee": "navigate",
+          "lineNumber": 34
+        },
+        {
+          "caller": "AnnouncementDetail",
+          "callee": "(announcement.body || announcement.excerpt).split('\\n\\n').map",
+          "lineNumber": 49
+        },
+        {
+          "caller": "AnnouncementDetail",
+          "callee": "(announcement.body || announcement.excerpt).split",
+          "lineNumber": 49
+        },
+        {
+          "caller": "AnnouncementDetail",
+          "callee": "paragraph.slice",
+          "lineNumber": 50
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/Announcements.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 79,
+      "nonEmptyLines": 71,
+      "functions": [
+        {
+          "name": "Announcements",
+          "startLine": 8,
+          "endLine": 77,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Announcements",
+          "callee": "useNavigate",
+          "lineNumber": 9
+        },
+        {
+          "caller": "Announcements",
+          "callee": "useState",
+          "lineNumber": 10
+        },
+        {
+          "caller": "Announcements",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "Announcements",
+          "callee": "useMemo",
+          "lineNumber": 13
+        },
+        {
+          "caller": "Announcements",
+          "callee": "items.filter",
+          "lineNumber": 14
+        },
+        {
+          "caller": "Announcements",
+          "callee": "items.filter",
+          "lineNumber": 15
+        },
+        {
+          "caller": "markAllRead",
+          "callee": "setItems",
+          "lineNumber": 20
+        },
+        {
+          "caller": "markAllRead",
+          "callee": "prev.map",
+          "lineNumber": 20
+        },
+        {
+          "caller": "markAllRead",
+          "callee": "showToast",
+          "lineNumber": 21
+        },
+        {
+          "caller": "Announcements",
+          "callee": "filters.map",
+          "lineNumber": 38
+        },
+        {
+          "caller": "Announcements",
+          "callee": "setActiveFilter",
+          "lineNumber": 43
+        },
+        {
+          "caller": "Announcements",
+          "callee": "filteredItems.map",
+          "lineNumber": 51
+        },
+        {
+          "caller": "Announcements",
+          "callee": "navigate",
+          "lineNumber": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/ClubDetail.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 327,
+      "nonEmptyLines": 296,
+      "functions": [
+        {
+          "name": "RocketIcon",
+          "startLine": 11,
+          "endLine": 15,
+          "params": []
+        },
+        {
+          "name": "CommunityIcon",
+          "startLine": 17,
+          "endLine": 21,
+          "params": []
+        },
+        {
+          "name": "ClubDetail",
+          "startLine": 28,
+          "endLine": 325,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ClubDetail",
+          "callee": "useParams",
+          "lineNumber": 29
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "useNavigate",
+          "lineNumber": 30
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "useState",
+          "lineNumber": 33
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "useState",
+          "lineNumber": 34
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "useState",
+          "lineNumber": 35
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "useUserProfile",
+          "lineNumber": 36
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "useEffect",
+          "lineNumber": 38
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "setLoading",
+          "lineNumber": 39
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "fetch(`${API_BASE}/api/clubs/${clubId}`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then((data) => {\r\n        if (data.success && data.club) {\r\n          const apiClub = data.club;\r\n          const detail = clubId === 'fu-dever'\r\n            ? {\r\n                ...FU_DEVER_DETAIL,\r\n                _id: apiClub._id,\r\n                isFollowing: apiClub.isFollowing,\r\n                membershipStatus: apiClub.membershipStatus || null,\r\n              }\r\n            : mapApiClubToDetail(apiClub);\r\n          setClub(detail);\r\n        } else {\r\n          const fallback = getClubDetailById(clubId, CLUB_SAMPLE_DATA);\r\n          setClub(fallback);\r\n        }\r\n      })\r\n      .catch(() => {\r\n        setClub(getClubDetailById(clubId, CLUB_SAMPLE_DATA));\r\n      })\r\n      .finally",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "fetch(`${API_BASE}/api/clubs/${clubId}`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then((data) => {\r\n        if (data.success && data.club) {\r\n          const apiClub = data.club;\r\n          const detail = clubId === 'fu-dever'\r\n            ? {\r\n                ...FU_DEVER_DETAIL,\r\n                _id: apiClub._id,\r\n                isFollowing: apiClub.isFollowing,\r\n                membershipStatus: apiClub.membershipStatus || null,\r\n              }\r\n            : mapApiClubToDetail(apiClub);\r\n          setClub(detail);\r\n        } else {\r\n          const fallback = getClubDetailById(clubId, CLUB_SAMPLE_DATA);\r\n          setClub(fallback);\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "fetch(`${API_BASE}/api/clubs/${clubId}`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "fetch(`${API_BASE}/api/clubs/${clubId}`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "fetch",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "getAuthHeaders",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "res.json",
+          "lineNumber": 41
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "mapApiClubToDetail",
+          "lineNumber": 52
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "setClub",
+          "lineNumber": 53
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "getClubDetailById",
+          "lineNumber": 55
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "setClub",
+          "lineNumber": 56
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "setClub",
+          "lineNumber": 60
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "getClubDetailById",
+          "lineNumber": 60
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "setLoading",
+          "lineNumber": 62
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "showToast",
+          "lineNumber": 92
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "setTimeout",
+          "lineNumber": 93
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "navigate",
+          "lineNumber": 93
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "setFollowLoading",
+          "lineNumber": 97
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "fetch",
+          "lineNumber": 102
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "getAuthHeaders",
+          "lineNumber": 104
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "res.json",
+          "lineNumber": 106
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "showToast",
+          "lineNumber": 109
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "setClub",
+          "lineNumber": 113
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "showToast",
+          "lineNumber": 114
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "console.error",
+          "lineNumber": 116
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "showToast",
+          "lineNumber": 117
+        },
+        {
+          "caller": "handleFollow",
+          "callee": "setFollowLoading",
+          "lineNumber": 119
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "showToast",
+          "lineNumber": 125
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "setTimeout",
+          "lineNumber": 126
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "navigate",
+          "lineNumber": 126
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "showToast",
+          "lineNumber": 131
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "showToast",
+          "lineNumber": 136
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "setJoinLoading",
+          "lineNumber": 140
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "fetch",
+          "lineNumber": 142
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "getAuthHeaders",
+          "lineNumber": 144
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "res.json",
+          "lineNumber": 146
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "showToast",
+          "lineNumber": 149
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "setClub",
+          "lineNumber": 153
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "showToast",
+          "lineNumber": 157
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "console.error",
+          "lineNumber": 159
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "showToast",
+          "lineNumber": 160
+        },
+        {
+          "caller": "handleJoin",
+          "callee": "setJoinLoading",
+          "lineNumber": 162
+        },
+        {
+          "caller": "handleEventAction",
+          "callee": "showToast",
+          "lineNumber": 177
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "joinButtonLabel",
+          "lineNumber": 232
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "club.about.map",
+          "lineNumber": 245
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "paragraph.slice",
+          "lineNumber": 246
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "club.highlights.map",
+          "lineNumber": 249
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "club.board.map",
+          "lineNumber": 265
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "club.upcomingEvents.map",
+          "lineNumber": 278
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "club.links.map",
+          "lineNumber": 307
+        },
+        {
+          "caller": "ClubDetail",
+          "callee": "showToast",
+          "lineNumber": 312
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 0,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/Clubs.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 255,
+      "nonEmptyLines": 234,
+      "functions": [
+        {
+          "name": "Clubs",
+          "startLine": 19,
+          "endLine": 253,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Clubs",
+          "callee": "useNavigate",
+          "lineNumber": 20
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useEffect",
+          "lineNumber": 30
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setLoading",
+          "lineNumber": 31
+        },
+        {
+          "caller": "Clubs",
+          "callee": "fetch(`${API_BASE}/api/clubs`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then((data) => {\r\n        if (data.success && data.clubs?.length > 0) {\r\n          setClubs(data.clubs.map(mapApiClubToListItem));\r\n          setTotalClubs(data.total ?? data.clubs.length);\r\n        } else {\r\n          setClubs(CLUB_SAMPLE_DATA);\r\n          setTotalClubs(CLUB_SAMPLE_DATA.length);\r\n        }\r\n      })\r\n      .catch(() => {\r\n        setClubs(CLUB_SAMPLE_DATA);\r\n        setTotalClubs(CLUB_SAMPLE_DATA.length);\r\n        showToast?.('Không thể tải danh sách CLB', 'error');\r\n      })\r\n      .finally",
+          "lineNumber": 32
+        },
+        {
+          "caller": "Clubs",
+          "callee": "fetch(`${API_BASE}/api/clubs`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then((data) => {\r\n        if (data.success && data.clubs?.length > 0) {\r\n          setClubs(data.clubs.map(mapApiClubToListItem));\r\n          setTotalClubs(data.total ?? data.clubs.length);\r\n        } else {\r\n          setClubs(CLUB_SAMPLE_DATA);\r\n          setTotalClubs(CLUB_SAMPLE_DATA.length);\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 32
+        },
+        {
+          "caller": "Clubs",
+          "callee": "fetch(`${API_BASE}/api/clubs`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then",
+          "lineNumber": 32
+        },
+        {
+          "caller": "Clubs",
+          "callee": "fetch(`${API_BASE}/api/clubs`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 32
+        },
+        {
+          "caller": "Clubs",
+          "callee": "fetch",
+          "lineNumber": 32
+        },
+        {
+          "caller": "Clubs",
+          "callee": "getAuthHeaders",
+          "lineNumber": 32
+        },
+        {
+          "caller": "Clubs",
+          "callee": "res.json",
+          "lineNumber": 33
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setClubs",
+          "lineNumber": 36
+        },
+        {
+          "caller": "Clubs",
+          "callee": "data.clubs.map",
+          "lineNumber": 36
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setTotalClubs",
+          "lineNumber": 37
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setClubs",
+          "lineNumber": 39
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setTotalClubs",
+          "lineNumber": 40
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setClubs",
+          "lineNumber": 44
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setTotalClubs",
+          "lineNumber": 45
+        },
+        {
+          "caller": "Clubs",
+          "callee": "showToast",
+          "lineNumber": 46
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setLoading",
+          "lineNumber": 48
+        },
+        {
+          "caller": "Clubs",
+          "callee": "useMemo",
+          "lineNumber": 53
+        },
+        {
+          "caller": "Clubs",
+          "callee": "filterClubsByTag",
+          "lineNumber": 54
+        },
+        {
+          "caller": "Clubs",
+          "callee": "filterClubsBySearch",
+          "lineNumber": 55
+        },
+        {
+          "caller": "Clubs",
+          "callee": "filteredClubs.slice",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleHeroSearch",
+          "callee": "e.preventDefault",
+          "lineNumber": 64
+        },
+        {
+          "caller": "handleHeroSearch",
+          "callee": "setHeaderSearch",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleHeroSearch",
+          "callee": "setVisibleCount",
+          "lineNumber": 66
+        },
+        {
+          "caller": "handleTagClick",
+          "callee": "setActiveTag",
+          "lineNumber": 70
+        },
+        {
+          "caller": "handleTagClick",
+          "callee": "setVisibleCount",
+          "lineNumber": 71
+        },
+        {
+          "caller": "handleHeaderSearchChange",
+          "callee": "setHeaderSearch",
+          "lineNumber": 75
+        },
+        {
+          "caller": "handleHeaderSearchChange",
+          "callee": "setVisibleCount",
+          "lineNumber": 76
+        },
+        {
+          "caller": "handleExplore",
+          "callee": "navigate",
+          "lineNumber": 80
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setHeroSearch",
+          "lineNumber": 114
+        },
+        {
+          "caller": "Clubs",
+          "callee": "HERO_TAGS.map",
+          "lineNumber": 121
+        },
+        {
+          "caller": "Clubs",
+          "callee": "handleTagClick",
+          "lineNumber": 126
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setLayout",
+          "lineNumber": 160
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setLayout",
+          "lineNumber": 173
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setHeroSearch",
+          "lineNumber": 196
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setHeaderSearch",
+          "lineNumber": 197
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setActiveTag",
+          "lineNumber": 198
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setVisibleCount",
+          "lineNumber": 199
+        },
+        {
+          "caller": "Clubs",
+          "callee": "visibleClubs.map",
+          "lineNumber": 207
+        },
+        {
+          "caller": "Clubs",
+          "callee": "setVisibleCount",
+          "lineNumber": 223
+        },
+        {
+          "caller": "Clubs",
+          "callee": "Math.min",
+          "lineNumber": 231
+        },
+        {
+          "caller": "Clubs",
+          "callee": "navigate",
+          "lineNumber": 244
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/EventDetail.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 379,
+      "nonEmptyLines": 348,
+      "functions": [
+        {
+          "name": "CalendarIcon",
+          "startLine": 10,
+          "endLine": 14,
+          "params": []
+        },
+        {
+          "name": "ClockIcon",
+          "startLine": 16,
+          "endLine": 20,
+          "params": []
+        },
+        {
+          "name": "LocationIcon",
+          "startLine": 22,
+          "endLine": 26,
+          "params": []
+        },
+        {
+          "name": "CheckIcon",
+          "startLine": 28,
+          "endLine": 33,
+          "params": []
+        },
+        {
+          "name": "ShareIcon",
+          "startLine": 35,
+          "endLine": 39,
+          "params": []
+        },
+        {
+          "name": "LinkIcon",
+          "startLine": 41,
+          "endLine": 45,
+          "params": []
+        },
+        {
+          "name": "MailIcon",
+          "startLine": 47,
+          "endLine": 51,
+          "params": []
+        },
+        {
+          "name": "EventDetail",
+          "startLine": 53,
+          "endLine": 377,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "EventDetail",
+          "callee": "useParams",
+          "lineNumber": 54
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "useNavigate",
+          "lineNumber": 55
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "useState",
+          "lineNumber": 56
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "useState",
+          "lineNumber": 57
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "useState",
+          "lineNumber": 58
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "useUserProfile",
+          "lineNumber": 59
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "useEffect",
+          "lineNumber": 61
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "setLoading",
+          "lineNumber": 62
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "fetch(`${API_BASE}/api/events/${eventId}`, { headers: getAuthHeaders(false) })\r\n      .then((res) => {\r\n        if (res.status === 404) {\r\n          setEvent(null);\r\n          return null;\r\n        }\r\n        return res.json();\r\n      })\r\n      .then((data) => {\r\n        if (!data) return;\r\n        if (data.success && data.event) {\r\n          setEvent(mapApiEventToDetail(data.event));\r\n        } else {\r\n          setEvent(null);\r\n        }\r\n      })\r\n      .catch(() => {\r\n        setEvent(null);\r\n      })\r\n      .finally",
+          "lineNumber": 63
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "fetch(`${API_BASE}/api/events/${eventId}`, { headers: getAuthHeaders(false) })\r\n      .then((res) => {\r\n        if (res.status === 404) {\r\n          setEvent(null);\r\n          return null;\r\n        }\r\n        return res.json();\r\n      })\r\n      .then((data) => {\r\n        if (!data) return;\r\n        if (data.success && data.event) {\r\n          setEvent(mapApiEventToDetail(data.event));\r\n        } else {\r\n          setEvent(null);\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 63
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "fetch(`${API_BASE}/api/events/${eventId}`, { headers: getAuthHeaders(false) })\r\n      .then((res) => {\r\n        if (res.status === 404) {\r\n          setEvent(null);\r\n          return null;\r\n        }\r\n        return res.json();\r\n      })\r\n      .then",
+          "lineNumber": 63
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "fetch(`${API_BASE}/api/events/${eventId}`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 63
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "fetch",
+          "lineNumber": 63
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "getAuthHeaders",
+          "lineNumber": 63
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "setEvent",
+          "lineNumber": 66
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "res.json",
+          "lineNumber": 69
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "setEvent",
+          "lineNumber": 74
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "mapApiEventToDetail",
+          "lineNumber": 74
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "setEvent",
+          "lineNumber": 76
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "setEvent",
+          "lineNumber": 80
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "setLoading",
+          "lineNumber": 82
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 89
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 96
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "setTimeout",
+          "lineNumber": 97
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "navigate",
+          "lineNumber": 97
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 102
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 107
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "setRegisterLoading",
+          "lineNumber": 111
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "fetch",
+          "lineNumber": 113
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "getAuthHeaders",
+          "lineNumber": 115
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "res.json",
+          "lineNumber": 117
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 120
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "setEvent",
+          "lineNumber": 124
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "mapApiEventToDetail",
+          "lineNumber": 124
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 125
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 127
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "setRegisterLoading",
+          "lineNumber": 129
+        },
+        {
+          "caller": "handleShare",
+          "callee": "navigator.clipboard.writeText",
+          "lineNumber": 137
+        },
+        {
+          "caller": "handleShare",
+          "callee": "showToast",
+          "lineNumber": 138
+        },
+        {
+          "caller": "handleShare",
+          "callee": "showToast",
+          "lineNumber": 140
+        },
+        {
+          "caller": "handleShare",
+          "callee": "encodeURIComponent",
+          "lineNumber": 145
+        },
+        {
+          "caller": "handleShare",
+          "callee": "encodeURIComponent",
+          "lineNumber": 145
+        },
+        {
+          "caller": "handleShare",
+          "callee": "navigator.share({ title: event?.title, url }).catch",
+          "lineNumber": 149
+        },
+        {
+          "caller": "handleShare",
+          "callee": "navigator.share",
+          "lineNumber": 149
+        },
+        {
+          "caller": "handleShare",
+          "callee": "handleShare",
+          "lineNumber": 151
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "event.category.toUpperCase",
+          "lineNumber": 193
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "event.descriptionParagraphs.map",
+          "lineNumber": 216
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "paragraph.slice",
+          "lineNumber": 217
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "event.learningOutcomes.map",
+          "lineNumber": 221
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "event.agenda.map",
+          "lineNumber": 234
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "event.speakers.map",
+          "lineNumber": 254
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "navigate",
+          "lineNumber": 286
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "navigate",
+          "lineNumber": 293
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "formatVnd",
+          "lineNumber": 321
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "handleShare",
+          "lineNumber": 358
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "handleShare",
+          "lineNumber": 361
+        },
+        {
+          "caller": "EventDetail",
+          "callee": "handleShare",
+          "lineNumber": 364
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/EventReviews.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 189,
+      "nonEmptyLines": 179,
+      "functions": [
+        {
+          "name": "EventReviews",
+          "startLine": 6,
+          "endLine": 187,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "EventReviews",
+          "callee": "useNavigate",
+          "lineNumber": 7
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "useState",
+          "lineNumber": 8
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "useState",
+          "lineNumber": 9
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "useState",
+          "lineNumber": 10
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "useCallback",
+          "lineNumber": 16
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setLoading",
+          "lineNumber": 17
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "fetch(`${API_BASE}/api/user/event-reviews?tab=${activeTab}`, {\r\n      headers: getAuthHeaders(false),\r\n    })\r\n      .then((res) => {\r\n        if (res.status === 401) {\r\n          navigate('/login');\r\n          return Promise.reject(new Error('Unauthorized'));\r\n        }\r\n        return res.json();\r\n      })\r\n      .then((data) => {\r\n        if (data.success) {\r\n          setItems(data.items || []);\r\n          setCounts(data.counts || { pending: 0, completed: 0 });\r\n        } else {\r\n          setItems([]);\r\n        }\r\n      })\r\n      .catch((err) => {\r\n        if (err.message !== 'Unauthorized') {\r\n          showToast?.('Không thể tải danh sách đánh giá.', 'error');\r\n        }\r\n        setItems([]);\r\n      })\r\n      .finally",
+          "lineNumber": 18
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "fetch(`${API_BASE}/api/user/event-reviews?tab=${activeTab}`, {\r\n      headers: getAuthHeaders(false),\r\n    })\r\n      .then((res) => {\r\n        if (res.status === 401) {\r\n          navigate('/login');\r\n          return Promise.reject(new Error('Unauthorized'));\r\n        }\r\n        return res.json();\r\n      })\r\n      .then((data) => {\r\n        if (data.success) {\r\n          setItems(data.items || []);\r\n          setCounts(data.counts || { pending: 0, completed: 0 });\r\n        } else {\r\n          setItems([]);\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 18
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "fetch(`${API_BASE}/api/user/event-reviews?tab=${activeTab}`, {\r\n      headers: getAuthHeaders(false),\r\n    })\r\n      .then((res) => {\r\n        if (res.status === 401) {\r\n          navigate('/login');\r\n          return Promise.reject(new Error('Unauthorized'));\r\n        }\r\n        return res.json();\r\n      })\r\n      .then",
+          "lineNumber": 18
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "fetch(`${API_BASE}/api/user/event-reviews?tab=${activeTab}`, {\r\n      headers: getAuthHeaders(false),\r\n    })\r\n      .then",
+          "lineNumber": 18
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "fetch",
+          "lineNumber": 18
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "getAuthHeaders",
+          "lineNumber": 19
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "navigate",
+          "lineNumber": 23
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "Promise.reject",
+          "lineNumber": 24
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "res.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setItems",
+          "lineNumber": 30
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setCounts",
+          "lineNumber": 31
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setItems",
+          "lineNumber": 33
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "showToast",
+          "lineNumber": 38
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setItems",
+          "lineNumber": 40
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setLoading",
+          "lineNumber": 42
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "useEffect",
+          "lineNumber": 45
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "loadReviews",
+          "lineNumber": 46
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 51
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setSubmittingId",
+          "lineNumber": 55
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch",
+          "lineNumber": 57
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "getAuthHeaders",
+          "lineNumber": 59
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 60
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 68
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 72
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setRatings",
+          "lineNumber": 73
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setComments",
+          "lineNumber": 78
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setActiveTab",
+          "lineNumber": 83
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 85
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setSubmittingId",
+          "lineNumber": 87
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setActiveTab",
+          "lineNumber": 102
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setActiveTab",
+          "lineNumber": 109
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "items.map",
+          "lineNumber": 124
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "review.tags.map",
+          "lineNumber": 131
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "[1, 2, 3, 4, 5].map",
+          "lineNumber": 136
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setRatings",
+          "lineNumber": 141
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "setComments",
+          "lineNumber": 152
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "handleSubmit",
+          "lineNumber": 158
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "items.map",
+          "lineNumber": 171
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "'★'.repeat",
+          "lineNumber": 178
+        },
+        {
+          "caller": "EventReviews",
+          "callee": "'☆'.repeat",
+          "lineNumber": 178
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/Events.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 239,
+      "nonEmptyLines": 217,
+      "functions": [
+        {
+          "name": "Events",
+          "startLine": 23,
+          "endLine": 237,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Events",
+          "callee": "useNavigate",
+          "lineNumber": 24
+        },
+        {
+          "caller": "Events",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "Events",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "Events",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "Events",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "Events",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "Events",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "Events",
+          "callee": "useUserProfile",
+          "lineNumber": 31
+        },
+        {
+          "caller": "Events",
+          "callee": "useEffect",
+          "lineNumber": 33
+        },
+        {
+          "caller": "Events",
+          "callee": "setLoading",
+          "lineNumber": 34
+        },
+        {
+          "caller": "Events",
+          "callee": "fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then((data) => {\r\n        if (data.success && data.events?.length > 0) {\r\n          setEvents(data.events.map(mapApiEventToCard));\r\n        } else if (USE_FIGMA_FALLBACK) {\r\n          setEvents(FIGMA_SAMPLE_EVENTS.filter((ev) => ev.cardState === 'active' && ev.filledSlots < ev.totalSlots));\r\n        } else {\r\n          setEvents([]);\r\n        }\r\n      })\r\n      .catch((err) => {\r\n        console.error(err);\r\n        if (USE_FIGMA_FALLBACK) setEvents(FIGMA_SAMPLE_EVENTS);\r\n        showToast?.('Không thể tải danh sách sự kiện', 'error');\r\n      })\r\n      .finally",
+          "lineNumber": 35
+        },
+        {
+          "caller": "Events",
+          "callee": "fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then((data) => {\r\n        if (data.success && data.events?.length > 0) {\r\n          setEvents(data.events.map(mapApiEventToCard));\r\n        } else if (USE_FIGMA_FALLBACK) {\r\n          setEvents(FIGMA_SAMPLE_EVENTS.filter((ev) => ev.cardState === 'active' && ev.filledSlots < ev.totalSlots));\r\n        } else {\r\n          setEvents([]);\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 35
+        },
+        {
+          "caller": "Events",
+          "callee": "fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then",
+          "lineNumber": 35
+        },
+        {
+          "caller": "Events",
+          "callee": "fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 35
+        },
+        {
+          "caller": "Events",
+          "callee": "fetch",
+          "lineNumber": 35
+        },
+        {
+          "caller": "Events",
+          "callee": "getAuthHeaders",
+          "lineNumber": 35
+        },
+        {
+          "caller": "Events",
+          "callee": "res.json",
+          "lineNumber": 36
+        },
+        {
+          "caller": "Events",
+          "callee": "setEvents",
+          "lineNumber": 39
+        },
+        {
+          "caller": "Events",
+          "callee": "data.events.map",
+          "lineNumber": 39
+        },
+        {
+          "caller": "Events",
+          "callee": "setEvents",
+          "lineNumber": 41
+        },
+        {
+          "caller": "Events",
+          "callee": "FIGMA_SAMPLE_EVENTS.filter",
+          "lineNumber": 41
+        },
+        {
+          "caller": "Events",
+          "callee": "setEvents",
+          "lineNumber": 43
+        },
+        {
+          "caller": "Events",
+          "callee": "console.error",
+          "lineNumber": 47
+        },
+        {
+          "caller": "Events",
+          "callee": "setEvents",
+          "lineNumber": 48
+        },
+        {
+          "caller": "Events",
+          "callee": "showToast",
+          "lineNumber": 49
+        },
+        {
+          "caller": "Events",
+          "callee": "setLoading",
+          "lineNumber": 51
+        },
+        {
+          "caller": "Events",
+          "callee": "useMemo",
+          "lineNumber": 54
+        },
+        {
+          "caller": "Events",
+          "callee": "filterEventsByState",
+          "lineNumber": 55
+        },
+        {
+          "caller": "Events",
+          "callee": "filterEventsByCategory",
+          "lineNumber": 56
+        },
+        {
+          "caller": "Events",
+          "callee": "filterEventsBySearch",
+          "lineNumber": 57
+        },
+        {
+          "caller": "Events",
+          "callee": "sortEventsByStatePriority",
+          "lineNumber": 58
+        },
+        {
+          "caller": "Events",
+          "callee": "filteredEvents.slice",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "handleDetail",
+          "lineNumber": 66
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 71
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 76
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "setTimeout",
+          "lineNumber": 77
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "navigate",
+          "lineNumber": 77
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 82
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "fetch",
+          "lineNumber": 87
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "getAuthHeaders",
+          "lineNumber": 89
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "res.json",
+          "lineNumber": 91
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 94
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "setEvents",
+          "lineNumber": 99
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "prev.map",
+          "lineNumber": 100
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "mapApiEventToCard",
+          "lineNumber": 102
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 109
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "console.error",
+          "lineNumber": 111
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 112
+        },
+        {
+          "caller": "handleDetail",
+          "callee": "navigate",
+          "lineNumber": 117
+        },
+        {
+          "caller": "Events",
+          "callee": "setSearchQuery",
+          "lineNumber": 127
+        },
+        {
+          "caller": "Events",
+          "callee": "setVisibleCount",
+          "lineNumber": 128
+        },
+        {
+          "caller": "Events",
+          "callee": "STATE_FILTERS.map",
+          "lineNumber": 139
+        },
+        {
+          "caller": "Events",
+          "callee": "setStateFilter",
+          "lineNumber": 145
+        },
+        {
+          "caller": "Events",
+          "callee": "setVisibleCount",
+          "lineNumber": 146
+        },
+        {
+          "caller": "Events",
+          "callee": "CATEGORY_FILTERS.map",
+          "lineNumber": 155
+        },
+        {
+          "caller": "Events",
+          "callee": "setActiveFilter",
+          "lineNumber": 161
+        },
+        {
+          "caller": "Events",
+          "callee": "setVisibleCount",
+          "lineNumber": 162
+        },
+        {
+          "caller": "Events",
+          "callee": "setActiveFilter",
+          "lineNumber": 185
+        },
+        {
+          "caller": "Events",
+          "callee": "setStateFilter",
+          "lineNumber": 186
+        },
+        {
+          "caller": "Events",
+          "callee": "setSearchQuery",
+          "lineNumber": 187
+        },
+        {
+          "caller": "Events",
+          "callee": "setVisibleCount",
+          "lineNumber": 188
+        },
+        {
+          "caller": "Events",
+          "callee": "visibleEvents.map",
+          "lineNumber": 196
+        },
+        {
+          "caller": "Events",
+          "callee": "setVisibleCount",
+          "lineNumber": 212
+        },
+        {
+          "caller": "Events",
+          "callee": "showToast",
+          "lineNumber": 229
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/Home.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 500,
+      "nonEmptyLines": 449,
+      "functions": [
+        {
+          "name": "Home",
+          "startLine": 24,
+          "endLine": 498,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Home",
+          "callee": "useNavigate",
+          "lineNumber": 25
+        },
+        {
+          "caller": "Home",
+          "callee": "useUserProfile",
+          "lineNumber": 26
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 34
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 37
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 38
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 41
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 44
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "Home",
+          "callee": "useState",
+          "lineNumber": 47
+        },
+        {
+          "caller": "Home",
+          "callee": "useEffect",
+          "lineNumber": 69
+        },
+        {
+          "caller": "Home",
+          "callee": "fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then((data) => {\r\n        if (data.success && data.events?.length > 0) {\r\n          const mapped = filterActiveDiscoveryEvents(data.events)\r\n            .slice(0, 4)\r\n            .map(mapApiEventToHomeCard);\r\n          setEvents(mapped);\r\n          setFilteredEvents(mapped);\r\n        }\r\n      })\r\n      .catch((err) => console.error(err))\r\n      .finally",
+          "lineNumber": 70
+        },
+        {
+          "caller": "Home",
+          "callee": "fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then((data) => {\r\n        if (data.success && data.events?.length > 0) {\r\n          const mapped = filterActiveDiscoveryEvents(data.events)\r\n            .slice(0, 4)\r\n            .map(mapApiEventToHomeCard);\r\n          setEvents(mapped);\r\n          setFilteredEvents(mapped);\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 70
+        },
+        {
+          "caller": "Home",
+          "callee": "fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })\r\n      .then((res) => res.json())\r\n      .then",
+          "lineNumber": 70
+        },
+        {
+          "caller": "Home",
+          "callee": "fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 70
+        },
+        {
+          "caller": "Home",
+          "callee": "fetch",
+          "lineNumber": 70
+        },
+        {
+          "caller": "Home",
+          "callee": "getAuthHeaders",
+          "lineNumber": 70
+        },
+        {
+          "caller": "Home",
+          "callee": "res.json",
+          "lineNumber": 71
+        },
+        {
+          "caller": "Home",
+          "callee": "filterActiveDiscoveryEvents(data.events)\r\n            .slice(0, 4)\r\n            .map",
+          "lineNumber": 74
+        },
+        {
+          "caller": "Home",
+          "callee": "filterActiveDiscoveryEvents(data.events)\r\n            .slice",
+          "lineNumber": 74
+        },
+        {
+          "caller": "Home",
+          "callee": "filterActiveDiscoveryEvents",
+          "lineNumber": 74
+        },
+        {
+          "caller": "Home",
+          "callee": "setEvents",
+          "lineNumber": 77
+        },
+        {
+          "caller": "Home",
+          "callee": "setFilteredEvents",
+          "lineNumber": 78
+        },
+        {
+          "caller": "Home",
+          "callee": "console.error",
+          "lineNumber": 81
+        },
+        {
+          "caller": "Home",
+          "callee": "setEventsLoading",
+          "lineNumber": 82
+        },
+        {
+          "caller": "Home",
+          "callee": "useEffect",
+          "lineNumber": 86
+        },
+        {
+          "caller": "Home",
+          "callee": "setInterval",
+          "lineNumber": 87
+        },
+        {
+          "caller": "Home",
+          "callee": "setActiveSlide",
+          "lineNumber": 88
+        },
+        {
+          "caller": "Home",
+          "callee": "clearInterval",
+          "lineNumber": 90
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "searchQuery.trim",
+          "lineNumber": 98
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "searchQuery.toLowerCase().trim",
+          "lineNumber": 99
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "searchQuery.toLowerCase",
+          "lineNumber": 99
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "result.filter",
+          "lineNumber": 100
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "ev.title.toLowerCase().includes",
+          "lineNumber": 101
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "ev.title.toLowerCase",
+          "lineNumber": 101
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "ev.category.toLowerCase().includes",
+          "lineNumber": 102
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "ev.category.toLowerCase",
+          "lineNumber": 102
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "ev.location.toLowerCase().includes",
+          "lineNumber": 103
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "ev.location.toLowerCase",
+          "lineNumber": 103
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "result.filter",
+          "lineNumber": 109
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "result.slice",
+          "lineNumber": 116
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "result.slice",
+          "lineNumber": 118
+        },
+        {
+          "caller": "handleFilterSubmit",
+          "callee": "setFilteredEvents",
+          "lineNumber": 122
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "events.filter",
+          "lineNumber": 128
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "ev.title.toLowerCase().includes",
+          "lineNumber": 129
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "ev.title.toLowerCase",
+          "lineNumber": 129
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "searchQuery.toLowerCase().trim",
+          "lineNumber": 129
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "searchQuery.toLowerCase",
+          "lineNumber": 129
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "ev.category.toLowerCase().includes",
+          "lineNumber": 130
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "ev.category.toLowerCase",
+          "lineNumber": 130
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "searchQuery.toLowerCase().trim",
+          "lineNumber": 130
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "searchQuery.toLowerCase",
+          "lineNumber": 130
+        },
+        {
+          "caller": "handleNavSearch",
+          "callee": "setFilteredEvents",
+          "lineNumber": 132
+        },
+        {
+          "caller": "handleViewDetail",
+          "callee": "navigate",
+          "lineNumber": 137
+        },
+        {
+          "caller": "handleViewDetail",
+          "callee": "showToast",
+          "lineNumber": 138
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 144
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "setTimeout",
+          "lineNumber": 145
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "navigate",
+          "lineNumber": 145
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "events.find",
+          "lineNumber": 149
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 153
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 158
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "fetch",
+          "lineNumber": 163
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "getAuthHeaders",
+          "lineNumber": 165
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "res.json",
+          "lineNumber": 167
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 170
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "mapApiEventToHomeCard",
+          "lineNumber": 174
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "setEvents",
+          "lineNumber": 175
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "prev.map",
+          "lineNumber": 175
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 176
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "console.error",
+          "lineNumber": 178
+        },
+        {
+          "caller": "handleRegister",
+          "callee": "showToast",
+          "lineNumber": 179
+        },
+        {
+          "caller": "Home",
+          "callee": "useEffect",
+          "lineNumber": 184
+        },
+        {
+          "caller": "Home",
+          "callee": "result.filter",
+          "lineNumber": 187
+        },
+        {
+          "caller": "Home",
+          "callee": "searchQuery.trim",
+          "lineNumber": 189
+        },
+        {
+          "caller": "Home",
+          "callee": "result.filter",
+          "lineNumber": 190
+        },
+        {
+          "caller": "Home",
+          "callee": "ev.title.toLowerCase().includes",
+          "lineNumber": 190
+        },
+        {
+          "caller": "Home",
+          "callee": "ev.title.toLowerCase",
+          "lineNumber": 190
+        },
+        {
+          "caller": "Home",
+          "callee": "searchQuery.toLowerCase().trim",
+          "lineNumber": 190
+        },
+        {
+          "caller": "Home",
+          "callee": "searchQuery.toLowerCase",
+          "lineNumber": 190
+        },
+        {
+          "caller": "Home",
+          "callee": "setFilteredEvents",
+          "lineNumber": 192
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "e.preventDefault",
+          "lineNumber": 197
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "chatInput.trim",
+          "lineNumber": 198
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "chatInput.trim",
+          "lineNumber": 200
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "setChatMessages",
+          "lineNumber": 201
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "setChatInput",
+          "lineNumber": 202
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "setTimeout",
+          "lineNumber": 205
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "userMsg.toLowerCase",
+          "lineNumber": 207
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 208
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 208
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 208
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 210
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 210
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 210
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 212
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 212
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 212
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 214
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 214
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 216
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 216
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "lowercase.includes",
+          "lineNumber": 216
+        },
+        {
+          "caller": "handleSendMessage",
+          "callee": "setChatMessages",
+          "lineNumber": 220
+        },
+        {
+          "caller": "Home",
+          "callee": "sliderData.map",
+          "lineNumber": 235
+        },
+        {
+          "caller": "Home",
+          "callee": "handleRegister",
+          "lineNumber": 249
+        },
+        {
+          "caller": "Home",
+          "callee": "navigate",
+          "lineNumber": 251
+        },
+        {
+          "caller": "Home",
+          "callee": "sliderData.map",
+          "lineNumber": 263
+        },
+        {
+          "caller": "Home",
+          "callee": "setActiveSlide",
+          "lineNumber": 267
+        },
+        {
+          "caller": "Home",
+          "callee": "setTimeFilter",
+          "lineNumber": 288
+        },
+        {
+          "caller": "Home",
+          "callee": "setCategoryFilter",
+          "lineNumber": 308
+        },
+        {
+          "caller": "Home",
+          "callee": "e.preventDefault",
+          "lineNumber": 332
+        },
+        {
+          "caller": "Home",
+          "callee": "setFilteredEvents",
+          "lineNumber": 332
+        },
+        {
+          "caller": "Home",
+          "callee": "setCategoryFilter",
+          "lineNumber": 332
+        },
+        {
+          "caller": "Home",
+          "callee": "filteredEvents.map",
+          "lineNumber": 347
+        },
+        {
+          "caller": "Home",
+          "callee": "handleViewDetail",
+          "lineNumber": 401
+        },
+        {
+          "caller": "Home",
+          "callee": "handleRegister",
+          "lineNumber": 408
+        },
+        {
+          "caller": "Home",
+          "callee": "setCategoryFilter",
+          "lineNumber": 431
+        },
+        {
+          "caller": "Home",
+          "callee": "setTimeFilter",
+          "lineNumber": 431
+        },
+        {
+          "caller": "Home",
+          "callee": "setSearchQuery",
+          "lineNumber": 431
+        },
+        {
+          "caller": "Home",
+          "callee": "setFilteredEvents",
+          "lineNumber": 431
+        },
+        {
+          "caller": "Home",
+          "callee": "setChatbotOpen",
+          "lineNumber": 449
+        },
+        {
+          "caller": "Home",
+          "callee": "chatMessages.map",
+          "lineNumber": 457
+        },
+        {
+          "caller": "Home",
+          "callee": "setChatInput",
+          "lineNumber": 469
+        },
+        {
+          "caller": "Home",
+          "callee": "setChatbotOpen",
+          "lineNumber": 484
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/Login.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 423,
+      "nonEmptyLines": 369,
+      "functions": [
+        {
+          "name": "persistProfileFromUser",
+          "startLine": 16,
+          "endLine": 26,
+          "params": [
+            "user"
+          ]
+        },
+        {
+          "name": "Login",
+          "startLine": 28,
+          "endLine": 421,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "persistProfileFromUser",
+          "callee": "resolveUserAvatar",
+          "lineNumber": 21
+        },
+        {
+          "caller": "persistProfileFromUser",
+          "callee": "localStorage.setItem",
+          "lineNumber": 24
+        },
+        {
+          "caller": "persistProfileFromUser",
+          "callee": "cacheUserProfile",
+          "lineNumber": 25
+        },
+        {
+          "caller": "Login",
+          "callee": "useNavigate",
+          "lineNumber": 29
+        },
+        {
+          "caller": "Login",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "Login",
+          "callee": "useState",
+          "lineNumber": 36
+        },
+        {
+          "caller": "Login",
+          "callee": "useState",
+          "lineNumber": 37
+        },
+        {
+          "caller": "Login",
+          "callee": "useState",
+          "lineNumber": 38
+        },
+        {
+          "caller": "Login",
+          "callee": "useState",
+          "lineNumber": 39
+        },
+        {
+          "caller": "Login",
+          "callee": "useState",
+          "lineNumber": 40
+        },
+        {
+          "caller": "Login",
+          "callee": "useState",
+          "lineNumber": 41
+        },
+        {
+          "caller": "Login",
+          "callee": "useEffect",
+          "lineNumber": 43
+        },
+        {
+          "caller": "Login",
+          "callee": "localStorage.getItem",
+          "lineNumber": 44
+        },
+        {
+          "caller": "Login",
+          "callee": "setFormData",
+          "lineNumber": 47
+        },
+        {
+          "caller": "Login",
+          "callee": "setRememberMe",
+          "lineNumber": 48
+        },
+        {
+          "caller": "Login",
+          "callee": "setValidFields",
+          "lineNumber": 49
+        },
+        {
+          "caller": "Login",
+          "callee": "patterns.email.test",
+          "lineNumber": 51
+        },
+        {
+          "caller": "Login",
+          "callee": "savedEmail.trim",
+          "lineNumber": 51
+        },
+        {
+          "caller": "Login",
+          "callee": "useEffect",
+          "lineNumber": 55
+        },
+        {
+          "caller": "Login",
+          "callee": "params.get",
+          "lineNumber": 57
+        },
+        {
+          "caller": "Login",
+          "callee": "params.get",
+          "lineNumber": 59
+        },
+        {
+          "caller": "Login",
+          "callee": "params.get",
+          "lineNumber": 60
+        },
+        {
+          "caller": "Login",
+          "callee": "params.get",
+          "lineNumber": 61
+        },
+        {
+          "caller": "Login",
+          "callee": "localStorage.setItem",
+          "lineNumber": 63
+        },
+        {
+          "caller": "Login",
+          "callee": "localStorage.setItem",
+          "lineNumber": 64
+        },
+        {
+          "caller": "Login",
+          "callee": "localStorage.setItem",
+          "lineNumber": 65
+        },
+        {
+          "caller": "Login",
+          "callee": "localStorage.setItem",
+          "lineNumber": 66
+        },
+        {
+          "caller": "Login",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n        .then(r => r.json())\r\n        .then(d => {\r\n          if (d.success && d.user) {\r\n            persistProfileFromUser(d.user);\r\n          }\r\n        })\r\n        .catch",
+          "lineNumber": 68
+        },
+        {
+          "caller": "Login",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n        .then(r => r.json())\r\n        .then",
+          "lineNumber": 68
+        },
+        {
+          "caller": "Login",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n        .then",
+          "lineNumber": 68
+        },
+        {
+          "caller": "Login",
+          "callee": "fetch",
+          "lineNumber": 68
+        },
+        {
+          "caller": "Login",
+          "callee": "getAuthHeaders",
+          "lineNumber": 68
+        },
+        {
+          "caller": "Login",
+          "callee": "r.json",
+          "lineNumber": 69
+        },
+        {
+          "caller": "Login",
+          "callee": "persistProfileFromUser",
+          "lineNumber": 72
+        },
+        {
+          "caller": "Login",
+          "callee": "localStorage.getItem",
+          "lineNumber": 78
+        },
+        {
+          "caller": "Login",
+          "callee": "JSON.parse",
+          "lineNumber": 79
+        },
+        {
+          "caller": "Login",
+          "callee": "accounts.some",
+          "lineNumber": 80
+        },
+        {
+          "caller": "Login",
+          "callee": "acc.email.toLowerCase",
+          "lineNumber": 80
+        },
+        {
+          "caller": "Login",
+          "callee": "email.toLowerCase",
+          "lineNumber": 80
+        },
+        {
+          "caller": "Login",
+          "callee": "accounts.push",
+          "lineNumber": 81
+        },
+        {
+          "caller": "Login",
+          "callee": "email.toLowerCase",
+          "lineNumber": 81
+        },
+        {
+          "caller": "Login",
+          "callee": "localStorage.setItem",
+          "lineNumber": 82
+        },
+        {
+          "caller": "Login",
+          "callee": "JSON.stringify",
+          "lineNumber": 82
+        },
+        {
+          "caller": "Login",
+          "callee": "params.get",
+          "lineNumber": 85
+        },
+        {
+          "caller": "Login",
+          "callee": "encodeURIComponent",
+          "lineNumber": 86
+        },
+        {
+          "caller": "Login",
+          "callee": "dispatchAuthChanged",
+          "lineNumber": 90
+        },
+        {
+          "caller": "Login",
+          "callee": "navigate",
+          "lineNumber": 91
+        },
+        {
+          "caller": "Login",
+          "callee": "params.get",
+          "lineNumber": 93
+        },
+        {
+          "caller": "Login",
+          "callee": "showToast",
+          "lineNumber": 94
+        },
+        {
+          "caller": "Login",
+          "callee": "navigate",
+          "lineNumber": 95
+        },
+        {
+          "caller": "validateField",
+          "callee": "patterns.email.test",
+          "lineNumber": 103
+        },
+        {
+          "caller": "validateField",
+          "callee": "value.trim",
+          "lineNumber": 103
+        },
+        {
+          "caller": "validateField",
+          "callee": "value.trim",
+          "lineNumber": 105
+        },
+        {
+          "caller": "validateField",
+          "callee": "setErrors",
+          "lineNumber": 108
+        },
+        {
+          "caller": "validateField",
+          "callee": "setValidFields",
+          "lineNumber": 109
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "setFormData",
+          "lineNumber": 116
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "validateField",
+          "lineNumber": 117
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "document.getElementById",
+          "lineNumber": 121
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "setFormData",
+          "lineNumber": 128
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "patterns.email.test",
+          "lineNumber": 130
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "value.trim",
+          "lineNumber": 130
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "setErrors",
+          "lineNumber": 132
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "setValidFields",
+          "lineNumber": 133
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "document.getElementById",
+          "lineNumber": 135
+        },
+        {
+          "caller": "triggerShake",
+          "callee": "setShakeFields",
+          "lineNumber": 143
+        },
+        {
+          "caller": "triggerShake",
+          "callee": "setTimeout",
+          "lineNumber": 144
+        },
+        {
+          "caller": "triggerShake",
+          "callee": "setShakeFields",
+          "lineNumber": 145
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 150
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateField",
+          "lineNumber": 152
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateField",
+          "lineNumber": 153
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "triggerShake",
+          "lineNumber": 158
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "triggerShake",
+          "lineNumber": 159
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 163
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch(`${API_BASE}/api/auth/login`, {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        email: formData.email,\r\n        password: formData.password\r\n      })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then(({ status, data }) => {\r\n        setLoading(false);\r\n        if (status === 200) {\r\n          persistProfileFromUser(data.user);\r\n\r\n          localStorage.setItem('isLoggedIn', 'true');\r\n          localStorage.setItem('userEmail', formData.email);\r\n          localStorage.setItem('loginMethod', 'local');\r\n          if (data.token) localStorage.setItem('authToken', data.token);\r\n\r\n          if (rememberMe) {\r\n            localStorage.setItem(REMEMBER_EMAIL_KEY, formData.email.trim().toLowerCase());\r\n          } else {\r\n            localStorage.removeItem(REMEMBER_EMAIL_KEY);\r\n          }\r\n\r\n          dispatchAuthChanged();\r\n          navigate('/');\r\n        } else {\r\n          setValidFields(prev => ({ ...prev, password: false }));\r\n          setErrors(prev => ({ ...prev, password: true }));\r\n\r\n          const errorSpan = document.getElementById('error-password');\r\n          if (errorSpan) {\r\n            errorSpan.textContent = data.message || \"Tài khoản hoặc mật khẩu không chính xác.\";\r\n          }\r\n\r\n          triggerShake('password');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 165
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch(`${API_BASE}/api/auth/login`, {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        email: formData.email,\r\n        password: formData.password\r\n      })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then",
+          "lineNumber": 165
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch(`${API_BASE}/api/auth/login`, {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        email: formData.email,\r\n        password: formData.password\r\n      })\r\n    })\r\n      .then",
+          "lineNumber": 165
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch",
+          "lineNumber": 165
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 168
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json().then",
+          "lineNumber": 173
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json",
+          "lineNumber": 173
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 175
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "persistProfileFromUser",
+          "lineNumber": 177
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "localStorage.setItem",
+          "lineNumber": 179
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "localStorage.setItem",
+          "lineNumber": 180
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "localStorage.setItem",
+          "lineNumber": 181
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "localStorage.setItem",
+          "lineNumber": 182
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "localStorage.setItem",
+          "lineNumber": 185
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "formData.email.trim().toLowerCase",
+          "lineNumber": 185
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "formData.email.trim",
+          "lineNumber": 185
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 187
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "dispatchAuthChanged",
+          "lineNumber": 190
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "navigate",
+          "lineNumber": 191
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setValidFields",
+          "lineNumber": 193
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setErrors",
+          "lineNumber": 194
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "document.getElementById",
+          "lineNumber": 196
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "triggerShake",
+          "lineNumber": 201
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 205
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 206
+        },
+        {
+          "caller": "Login",
+          "callee": "getGroupClass",
+          "lineNumber": 313
+        },
+        {
+          "caller": "Login",
+          "callee": "getGroupClass",
+          "lineNumber": 336
+        },
+        {
+          "caller": "Login",
+          "callee": "setShowPassword",
+          "lineNumber": 357
+        },
+        {
+          "caller": "Login",
+          "callee": "setRememberMe",
+          "lineNumber": 383
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/MyClubs.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 414,
+      "nonEmptyLines": 382,
+      "functions": [
+        {
+          "name": "formatClubDate",
+          "startLine": 28,
+          "endLine": 35,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "SearchIcon",
+          "startLine": 37,
+          "endLine": 44,
+          "params": []
+        },
+        {
+          "name": "MembersIcon",
+          "startLine": 46,
+          "endLine": 50,
+          "params": []
+        },
+        {
+          "name": "MyClubsSkeleton",
+          "startLine": 52,
+          "endLine": 65,
+          "params": []
+        },
+        {
+          "name": "MyClubs",
+          "startLine": 67,
+          "endLine": 412,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatClubDate",
+          "callee": "new Date(value).toLocaleDateString",
+          "lineNumber": 30
+        },
+        {
+          "caller": "MyClubsSkeleton",
+          "callee": "[1, 2, 3].map",
+          "lineNumber": 54
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useNavigate",
+          "lineNumber": 68
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useState",
+          "lineNumber": 69
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useState",
+          "lineNumber": 70
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useState",
+          "lineNumber": 71
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useState",
+          "lineNumber": 72
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useState",
+          "lineNumber": 73
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useState",
+          "lineNumber": 74
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useEffect",
+          "lineNumber": 76
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setLoading",
+          "lineNumber": 77
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "fetch(`${API_BASE}/api/user/my-clubs?tab=${activeTab}`, { headers: getAuthHeaders(false) })\r\n      .then((res) => {\r\n        if (res.status === 401) {\r\n          navigate('/login');\r\n          return Promise.reject(new Error('Unauthorized'));\r\n        }\r\n        return res.json();\r\n      })\r\n      .then((data) => {\r\n        if (data.success) {\r\n          setClubs(data.clubs || []);\r\n          setCounts(data.counts || { joined: 0, pending: 0, following: 0 });\r\n        } else {\r\n          setClubs([]);\r\n        }\r\n      })\r\n      .catch((err) => {\r\n        if (err.message !== 'Unauthorized') {\r\n          showToast?.('Không thể tải danh sách câu lạc bộ.', 'error');\r\n        }\r\n        setClubs([]);\r\n      })\r\n      .finally",
+          "lineNumber": 78
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "fetch(`${API_BASE}/api/user/my-clubs?tab=${activeTab}`, { headers: getAuthHeaders(false) })\r\n      .then((res) => {\r\n        if (res.status === 401) {\r\n          navigate('/login');\r\n          return Promise.reject(new Error('Unauthorized'));\r\n        }\r\n        return res.json();\r\n      })\r\n      .then((data) => {\r\n        if (data.success) {\r\n          setClubs(data.clubs || []);\r\n          setCounts(data.counts || { joined: 0, pending: 0, following: 0 });\r\n        } else {\r\n          setClubs([]);\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 78
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "fetch(`${API_BASE}/api/user/my-clubs?tab=${activeTab}`, { headers: getAuthHeaders(false) })\r\n      .then((res) => {\r\n        if (res.status === 401) {\r\n          navigate('/login');\r\n          return Promise.reject(new Error('Unauthorized'));\r\n        }\r\n        return res.json();\r\n      })\r\n      .then",
+          "lineNumber": 78
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "fetch(`${API_BASE}/api/user/my-clubs?tab=${activeTab}`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 78
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "fetch",
+          "lineNumber": 78
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "getAuthHeaders",
+          "lineNumber": 78
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "navigate",
+          "lineNumber": 81
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "Promise.reject",
+          "lineNumber": 82
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "res.json",
+          "lineNumber": 84
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setClubs",
+          "lineNumber": 88
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setCounts",
+          "lineNumber": 89
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setClubs",
+          "lineNumber": 91
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "showToast",
+          "lineNumber": 96
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setClubs",
+          "lineNumber": 98
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setLoading",
+          "lineNumber": 100
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useMemo",
+          "lineNumber": 103
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "clubs.map((club) => club.category).filter",
+          "lineNumber": 104
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "clubs.map",
+          "lineNumber": 104
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "useMemo",
+          "lineNumber": 108
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "search.trim().toLowerCase",
+          "lineNumber": 109
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "search.trim",
+          "lineNumber": 109
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "clubs.filter",
+          "lineNumber": 110
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "club.name.toLowerCase().includes",
+          "lineNumber": 114
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "club.name.toLowerCase",
+          "lineNumber": 114
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "club.category?.toLowerCase().includes",
+          "lineNumber": 115
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "club.category?.toLowerCase",
+          "lineNumber": 115
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "club.description?.toLowerCase().includes",
+          "lineNumber": 116
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "club.description?.toLowerCase",
+          "lineNumber": 116
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "fetch",
+          "lineNumber": 123
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "getAuthHeaders",
+          "lineNumber": 125
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "res.json",
+          "lineNumber": 127
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "showToast",
+          "lineNumber": 130
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "setClubs",
+          "lineNumber": 134
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "prev.filter",
+          "lineNumber": 134
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "setCounts",
+          "lineNumber": 135
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "Math.max",
+          "lineNumber": 135
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "showToast",
+          "lineNumber": 136
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "console.error",
+          "lineNumber": 138
+        },
+        {
+          "caller": "handleUnfollow",
+          "callee": "showToast",
+          "lineNumber": 139
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "window.confirm",
+          "lineNumber": 149
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "fetch",
+          "lineNumber": 152
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "getAuthHeaders",
+          "lineNumber": 154
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "res.json",
+          "lineNumber": 156
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "showToast",
+          "lineNumber": 159
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "setClubs",
+          "lineNumber": 163
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "prev.filter",
+          "lineNumber": 163
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "setCounts",
+          "lineNumber": 164
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "Math.max",
+          "lineNumber": 166
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "showToast",
+          "lineNumber": 168
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "console.error",
+          "lineNumber": 170
+        },
+        {
+          "caller": "handleCancelMembership",
+          "callee": "showToast",
+          "lineNumber": 171
+        },
+        {
+          "caller": "getDateLabel",
+          "callee": "formatClubDate",
+          "lineNumber": 177
+        },
+        {
+          "caller": "getDateLabel",
+          "callee": "formatClubDate",
+          "lineNumber": 180
+        },
+        {
+          "caller": "getDateLabel",
+          "callee": "formatClubDate",
+          "lineNumber": 182
+        },
+        {
+          "caller": "getSecondaryAction",
+          "callee": "handleUnfollow",
+          "lineNumber": 189
+        },
+        {
+          "caller": "getSecondaryAction",
+          "callee": "handleCancelMembership",
+          "lineNumber": 195
+        },
+        {
+          "caller": "getSecondaryAction",
+          "callee": "handleCancelMembership",
+          "lineNumber": 200
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "tabs.map",
+          "lineNumber": 233
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setActiveTab",
+          "lineNumber": 239
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setSearch",
+          "lineNumber": 240
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setActiveCategory",
+          "lineNumber": 241
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setSearch",
+          "lineNumber": 258
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "navigate",
+          "lineNumber": 266
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setActiveCategory",
+          "lineNumber": 277
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "categories.map",
+          "lineNumber": 281
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setActiveCategory",
+          "lineNumber": 286
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "navigate",
+          "lineNumber": 310
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setSearch",
+          "lineNumber": 323
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "setActiveCategory",
+          "lineNumber": 324
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "filteredClubs.map",
+          "lineNumber": 338
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "getSecondaryAction",
+          "lineNumber": 339
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "getCategoryColor",
+          "lineNumber": 352
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "formatMemberCount",
+          "lineNumber": 377
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "getDateLabel",
+          "lineNumber": 384
+        },
+        {
+          "caller": "MyClubs",
+          "callee": "navigate",
+          "lineNumber": 389
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/MyEvents.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 143,
+      "nonEmptyLines": 132,
+      "functions": [
+        {
+          "name": "MyEvents",
+          "startLine": 12,
+          "endLine": 141,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "MyEvents",
+          "callee": "useNavigate",
+          "lineNumber": 13
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "useEffect",
+          "lineNumber": 18
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "setLoading",
+          "lineNumber": 19
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "fetch(`${API_BASE}/api/user/my-events?tab=${activeTab}`, {\r\n      headers: getAuthHeaders(false),\r\n    })\r\n      .then((res) => {\r\n        if (res.status === 401) {\r\n          navigate('/login');\r\n          return Promise.reject(new Error('Unauthorized'));\r\n        }\r\n        return res.json();\r\n      })\r\n      .then((data) => {\r\n        if (data.success) {\r\n          setEvents(data.events || []);\r\n        } else {\r\n          setEvents([]);\r\n        }\r\n      })\r\n      .catch((err) => {\r\n        if (err.message !== 'Unauthorized') {\r\n          showToast?.('Không thể tải sự kiện đã đăng ký.', 'error');\r\n        }\r\n        setEvents([]);\r\n      })\r\n      .finally",
+          "lineNumber": 20
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "fetch(`${API_BASE}/api/user/my-events?tab=${activeTab}`, {\r\n      headers: getAuthHeaders(false),\r\n    })\r\n      .then((res) => {\r\n        if (res.status === 401) {\r\n          navigate('/login');\r\n          return Promise.reject(new Error('Unauthorized'));\r\n        }\r\n        return res.json();\r\n      })\r\n      .then((data) => {\r\n        if (data.success) {\r\n          setEvents(data.events || []);\r\n        } else {\r\n          setEvents([]);\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 20
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "fetch(`${API_BASE}/api/user/my-events?tab=${activeTab}`, {\r\n      headers: getAuthHeaders(false),\r\n    })\r\n      .then((res) => {\r\n        if (res.status === 401) {\r\n          navigate('/login');\r\n          return Promise.reject(new Error('Unauthorized'));\r\n        }\r\n        return res.json();\r\n      })\r\n      .then",
+          "lineNumber": 20
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "fetch(`${API_BASE}/api/user/my-events?tab=${activeTab}`, {\r\n      headers: getAuthHeaders(false),\r\n    })\r\n      .then",
+          "lineNumber": 20
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "fetch",
+          "lineNumber": 20
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "getAuthHeaders",
+          "lineNumber": 21
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "navigate",
+          "lineNumber": 25
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "Promise.reject",
+          "lineNumber": 26
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "res.json",
+          "lineNumber": 28
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "setEvents",
+          "lineNumber": 32
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "setEvents",
+          "lineNumber": 34
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "showToast",
+          "lineNumber": 39
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "setEvents",
+          "lineNumber": 41
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "setLoading",
+          "lineNumber": 43
+        },
+        {
+          "caller": "handleCancel",
+          "callee": "fetch",
+          "lineNumber": 50
+        },
+        {
+          "caller": "handleCancel",
+          "callee": "getAuthHeaders",
+          "lineNumber": 52
+        },
+        {
+          "caller": "handleCancel",
+          "callee": "res.json",
+          "lineNumber": 54
+        },
+        {
+          "caller": "handleCancel",
+          "callee": "showToast",
+          "lineNumber": 57
+        },
+        {
+          "caller": "handleCancel",
+          "callee": "setEvents",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleCancel",
+          "callee": "prev.filter",
+          "lineNumber": 61
+        },
+        {
+          "caller": "handleCancel",
+          "callee": "showToast",
+          "lineNumber": 62
+        },
+        {
+          "caller": "handleCancel",
+          "callee": "console.error",
+          "lineNumber": 64
+        },
+        {
+          "caller": "handleCancel",
+          "callee": "showToast",
+          "lineNumber": 65
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "navigate",
+          "lineNumber": 77
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "tabs.map",
+          "lineNumber": 83
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "setActiveTab",
+          "lineNumber": 88
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "events.map",
+          "lineNumber": 107
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "handleCancel",
+          "lineNumber": 121
+        },
+        {
+          "caller": "MyEvents",
+          "callee": "navigate",
+          "lineNumber": 129
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/Profile.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 904,
+      "nonEmptyLines": 838,
+      "functions": [
+        {
+          "name": "Profile",
+          "startLine": 16,
+          "endLine": 902,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Profile",
+          "callee": "useNavigate",
+          "lineNumber": 17
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "Profile",
+          "callee": "localStorage.getItem",
+          "lineNumber": 25
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 31
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 34
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 36
+        },
+        {
+          "caller": "Profile",
+          "callee": "useRef",
+          "lineNumber": 38
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 41
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 42
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 46
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 47
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 48
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 49
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 52
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 53
+        },
+        {
+          "caller": "Profile",
+          "callee": "useEffect",
+          "lineNumber": 56
+        },
+        {
+          "caller": "Profile",
+          "callee": "localStorage.getItem",
+          "lineNumber": 57
+        },
+        {
+          "caller": "Profile",
+          "callee": "setProfileLoading",
+          "lineNumber": 59
+        },
+        {
+          "caller": "Profile",
+          "callee": "navigate",
+          "lineNumber": 60
+        },
+        {
+          "caller": "Profile",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then(res => {\r\n        if (res.status === 200) {\r\n          return res.json();\r\n        } else {\r\n          throw new Error('Failed to load profile');\r\n        }\r\n      })\r\n      .then(data => {\r\n        const u = data.user;\r\n        setProfileData({\r\n          fullname: u.fullname || '',\r\n          course: u.course || '',\r\n          campus: u.campus || '',\r\n          email: u.email || '',\r\n          phone: u.phone || ''\r\n        });\r\n        setCourseChanged(u.courseChanged || false);\r\n        setAvatar(resolveUserAvatar(u, ''));\r\n        if (u.orientation !== undefined) {\r\n          setOrientation(u.orientation);\r\n        }\r\n        // Load role & studentId\r\n        if (u.role) setUserRole(u.role);\r\n        if (u.studentId) setStudentId(formatMssv(u.studentId));\r\n\r\n        // Populate interests checklist state\r\n        if (u.interests) {\r\n          const map = {\r\n            hardware: 'Phần cứng & Vi điều khiển',\r\n            ai: 'AI',\r\n            japan: 'Văn hóa Nhật Bản',\r\n            charity: 'Thiện nguyện',\r\n            sports: 'Thể thao',\r\n            music: 'Âm nhạc & Nghệ thuật'\r\n          };\r\n          setInterests({\r\n            hardware: u.interests.includes(map.hardware),\r\n            ai: u.interests.includes(map.ai),\r\n            japan: u.interests.includes(map.japan),\r\n            charity: u.interests.includes(map.charity),\r\n            sports: u.interests.includes(map.sports),\r\n            music: u.interests.includes(map.music)\r\n          });\r\n        }\r\n      })\r\n      .catch(err => {\r\n        console.error(err);\r\n        showToast('Không thể tải dữ liệu hồ sơ cá nhân từ Backend!', 'error');\r\n      })\r\n      .finally",
+          "lineNumber": 64
+        },
+        {
+          "caller": "Profile",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then(res => {\r\n        if (res.status === 200) {\r\n          return res.json();\r\n        } else {\r\n          throw new Error('Failed to load profile');\r\n        }\r\n      })\r\n      .then(data => {\r\n        const u = data.user;\r\n        setProfileData({\r\n          fullname: u.fullname || '',\r\n          course: u.course || '',\r\n          campus: u.campus || '',\r\n          email: u.email || '',\r\n          phone: u.phone || ''\r\n        });\r\n        setCourseChanged(u.courseChanged || false);\r\n        setAvatar(resolveUserAvatar(u, ''));\r\n        if (u.orientation !== undefined) {\r\n          setOrientation(u.orientation);\r\n        }\r\n        // Load role & studentId\r\n        if (u.role) setUserRole(u.role);\r\n        if (u.studentId) setStudentId(formatMssv(u.studentId));\r\n\r\n        // Populate interests checklist state\r\n        if (u.interests) {\r\n          const map = {\r\n            hardware: 'Phần cứng & Vi điều khiển',\r\n            ai: 'AI',\r\n            japan: 'Văn hóa Nhật Bản',\r\n            charity: 'Thiện nguyện',\r\n            sports: 'Thể thao',\r\n            music: 'Âm nhạc & Nghệ thuật'\r\n          };\r\n          setInterests({\r\n            hardware: u.interests.includes(map.hardware),\r\n            ai: u.interests.includes(map.ai),\r\n            japan: u.interests.includes(map.japan),\r\n            charity: u.interests.includes(map.charity),\r\n            sports: u.interests.includes(map.sports),\r\n            music: u.interests.includes(map.music)\r\n          });\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 64
+        },
+        {
+          "caller": "Profile",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then(res => {\r\n        if (res.status === 200) {\r\n          return res.json();\r\n        } else {\r\n          throw new Error('Failed to load profile');\r\n        }\r\n      })\r\n      .then",
+          "lineNumber": 64
+        },
+        {
+          "caller": "Profile",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 64
+        },
+        {
+          "caller": "Profile",
+          "callee": "fetch",
+          "lineNumber": 64
+        },
+        {
+          "caller": "Profile",
+          "callee": "getAuthHeaders",
+          "lineNumber": 64
+        },
+        {
+          "caller": "Profile",
+          "callee": "res.json",
+          "lineNumber": 67
+        },
+        {
+          "caller": "Profile",
+          "callee": "setProfileData",
+          "lineNumber": 74
+        },
+        {
+          "caller": "Profile",
+          "callee": "setCourseChanged",
+          "lineNumber": 81
+        },
+        {
+          "caller": "Profile",
+          "callee": "setAvatar",
+          "lineNumber": 82
+        },
+        {
+          "caller": "Profile",
+          "callee": "resolveUserAvatar",
+          "lineNumber": 82
+        },
+        {
+          "caller": "Profile",
+          "callee": "setOrientation",
+          "lineNumber": 84
+        },
+        {
+          "caller": "Profile",
+          "callee": "setUserRole",
+          "lineNumber": 87
+        },
+        {
+          "caller": "Profile",
+          "callee": "setStudentId",
+          "lineNumber": 88
+        },
+        {
+          "caller": "Profile",
+          "callee": "formatMssv",
+          "lineNumber": 88
+        },
+        {
+          "caller": "Profile",
+          "callee": "setInterests",
+          "lineNumber": 100
+        },
+        {
+          "caller": "Profile",
+          "callee": "u.interests.includes",
+          "lineNumber": 101
+        },
+        {
+          "caller": "Profile",
+          "callee": "u.interests.includes",
+          "lineNumber": 102
+        },
+        {
+          "caller": "Profile",
+          "callee": "u.interests.includes",
+          "lineNumber": 103
+        },
+        {
+          "caller": "Profile",
+          "callee": "u.interests.includes",
+          "lineNumber": 104
+        },
+        {
+          "caller": "Profile",
+          "callee": "u.interests.includes",
+          "lineNumber": 105
+        },
+        {
+          "caller": "Profile",
+          "callee": "u.interests.includes",
+          "lineNumber": 106
+        },
+        {
+          "caller": "Profile",
+          "callee": "console.error",
+          "lineNumber": 111
+        },
+        {
+          "caller": "Profile",
+          "callee": "showToast",
+          "lineNumber": 112
+        },
+        {
+          "caller": "Profile",
+          "callee": "setProfileLoading",
+          "lineNumber": 114
+        },
+        {
+          "caller": "Profile",
+          "callee": "useState",
+          "lineNumber": 118
+        },
+        {
+          "caller": "handleFeatureNotImplemented",
+          "callee": "e.preventDefault",
+          "lineNumber": 129
+        },
+        {
+          "caller": "handleFeatureNotImplemented",
+          "callee": "showToast",
+          "lineNumber": 130
+        },
+        {
+          "caller": "handleSidebarNavigate",
+          "callee": "e.preventDefault",
+          "lineNumber": 134
+        },
+        {
+          "caller": "handleSidebarNavigate",
+          "callee": "setSidebarActive",
+          "lineNumber": 135
+        },
+        {
+          "caller": "handleSidebarNavigate",
+          "callee": "navigate",
+          "lineNumber": 136
+        },
+        {
+          "caller": "handleScanClick",
+          "callee": "showToast",
+          "lineNumber": 140
+        },
+        {
+          "caller": "Profile",
+          "callee": "isCtsvRole",
+          "lineNumber": 145
+        },
+        {
+          "caller": "handleNavigateProfile",
+          "callee": "e.preventDefault",
+          "lineNumber": 148
+        },
+        {
+          "caller": "handleNavigateProfile",
+          "callee": "setSidebarActive",
+          "lineNumber": 149
+        },
+        {
+          "caller": "handleNavigateProfile",
+          "callee": "setIsEditing",
+          "lineNumber": 150
+        },
+        {
+          "caller": "handleNavigateProfile",
+          "callee": "profileSectionRef.current?.scrollIntoView",
+          "lineNumber": 151
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "localStorage.getItem",
+          "lineNumber": 155
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "showToast",
+          "lineNumber": 157
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "setAvatarSaving",
+          "lineNumber": 161
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "updateUserAvatar",
+          "lineNumber": 163
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "resolveUserAvatar",
+          "lineNumber": 165
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "setAvatar",
+          "lineNumber": 166
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "cacheUserProfile",
+          "lineNumber": 167
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "normalizeRole",
+          "lineNumber": 170
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "dispatchAuthChanged",
+          "lineNumber": 173
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "showToast",
+          "lineNumber": 175
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "showToast",
+          "lineNumber": 177
+        },
+        {
+          "caller": "saveAvatarToBackend",
+          "callee": "setAvatarSaving",
+          "lineNumber": 182
+        },
+        {
+          "caller": "handleAvatarChange",
+          "callee": "file.type.startsWith",
+          "lineNumber": 191
+        },
+        {
+          "caller": "handleAvatarChange",
+          "callee": "showToast",
+          "lineNumber": 192
+        },
+        {
+          "caller": "handleAvatarChange",
+          "callee": "showToast",
+          "lineNumber": 196
+        },
+        {
+          "caller": "handleAvatarChange",
+          "callee": "setAvatarCropSrc",
+          "lineNumber": 202
+        },
+        {
+          "caller": "handleAvatarChange",
+          "callee": "setAvatarCropFileName",
+          "lineNumber": 203
+        },
+        {
+          "caller": "handleAvatarChange",
+          "callee": "setAvatarCropOpen",
+          "lineNumber": 204
+        },
+        {
+          "caller": "handleAvatarChange",
+          "callee": "showToast",
+          "lineNumber": 206
+        },
+        {
+          "caller": "handleAvatarChange",
+          "callee": "reader.readAsDataURL",
+          "lineNumber": 207
+        },
+        {
+          "caller": "handleAvatarCropCancel",
+          "callee": "setAvatarCropOpen",
+          "lineNumber": 211
+        },
+        {
+          "caller": "handleAvatarCropCancel",
+          "callee": "setAvatarCropSrc",
+          "lineNumber": 212
+        },
+        {
+          "caller": "handleAvatarCropCancel",
+          "callee": "setAvatarCropFileName",
+          "lineNumber": 213
+        },
+        {
+          "caller": "handleAvatarCropConfirm",
+          "callee": "setAvatarCropOpen",
+          "lineNumber": 217
+        },
+        {
+          "caller": "handleAvatarCropConfirm",
+          "callee": "setAvatarCropSrc",
+          "lineNumber": 218
+        },
+        {
+          "caller": "handleAvatarCropConfirm",
+          "callee": "setAvatarCropFileName",
+          "lineNumber": 219
+        },
+        {
+          "caller": "handleAvatarCropConfirm",
+          "callee": "showToast",
+          "lineNumber": 222
+        },
+        {
+          "caller": "handleAvatarCropConfirm",
+          "callee": "showToast",
+          "lineNumber": 226
+        },
+        {
+          "caller": "handleAvatarCropConfirm",
+          "callee": "setAvatar",
+          "lineNumber": 230
+        },
+        {
+          "caller": "handleAvatarCropConfirm",
+          "callee": "saveAvatarToBackend",
+          "lineNumber": 231
+        },
+        {
+          "caller": "handleInterestChange",
+          "callee": "setInterests",
+          "lineNumber": 237
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 240
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "profileData.fullname.trim",
+          "lineNumber": 242
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "showToast",
+          "lineNumber": 243
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "orientation.trim",
+          "lineNumber": 247
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "showToast",
+          "lineNumber": 248
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "setSaveLoading",
+          "lineNumber": 252
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "Object.keys(interests)\r\n      .filter(k => interests[k])\r\n      .map",
+          "lineNumber": 263
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "Object.keys(interests)\r\n      .filter",
+          "lineNumber": 263
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "Object.keys",
+          "lineNumber": 263
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, {\r\n      method: 'PUT',\r\n      headers: getAuthHeaders(),\r\n      body: JSON.stringify({\r\n        ...(userRole !== 'student' ? { fullname: profileData.fullname.trim() } : {}),\r\n        phone: profileData.phone.trim(),\r\n        ...(userRole === 'student' || orientation.trim()\r\n          ? { orientation: orientation.trim() }\r\n          : {}),\r\n        interests: activeInterests,\r\n        ...buildProfilePicturePayload(avatar, displayAvatar)\r\n      })\r\n    })\r\n      .then(parseApiResponse)\r\n      .then(async ({ ok, status, data }) => {\r\n        setSaveLoading(false);\r\n        if (ok && status === 200 && data.success !== false) {\r\n          setIsEditing(false);\r\n          if (data.user) {\r\n            setProfileData({\r\n              fullname: data.user.fullname || '',\r\n              course: data.user.course || '',\r\n              campus: data.user.campus || '',\r\n              email: data.user.email || '',\r\n              phone: data.user.phone || ''\r\n            });\r\n            setCourseChanged(data.user.courseChanged || false);\r\n            if (data.user.picture || data.user.avatar) {\r\n              setAvatar(resolveUserAvatar(data.user, ''));\r\n            }\r\n            cacheUserProfile({\r\n              fullname: data.user.fullname || '',\r\n              course: data.user.course || '',\r\n              role: normalizeRole(data.user.role || userRole),\r\n              picture: resolveUserAvatar(data.user, displayAvatar)\r\n            });\r\n            dispatchAuthChanged();\r\n          }\r\n          showToast('Cập nhật hồ sơ thành công.', 'success');\r\n        } else {\r\n          showToast(data.message || 'Cập nhật thất bại!', 'error');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 267
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, {\r\n      method: 'PUT',\r\n      headers: getAuthHeaders(),\r\n      body: JSON.stringify({\r\n        ...(userRole !== 'student' ? { fullname: profileData.fullname.trim() } : {}),\r\n        phone: profileData.phone.trim(),\r\n        ...(userRole === 'student' || orientation.trim()\r\n          ? { orientation: orientation.trim() }\r\n          : {}),\r\n        interests: activeInterests,\r\n        ...buildProfilePicturePayload(avatar, displayAvatar)\r\n      })\r\n    })\r\n      .then(parseApiResponse)\r\n      .then",
+          "lineNumber": 267
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, {\r\n      method: 'PUT',\r\n      headers: getAuthHeaders(),\r\n      body: JSON.stringify({\r\n        ...(userRole !== 'student' ? { fullname: profileData.fullname.trim() } : {}),\r\n        phone: profileData.phone.trim(),\r\n        ...(userRole === 'student' || orientation.trim()\r\n          ? { orientation: orientation.trim() }\r\n          : {}),\r\n        interests: activeInterests,\r\n        ...buildProfilePicturePayload(avatar, displayAvatar)\r\n      })\r\n    })\r\n      .then",
+          "lineNumber": 267
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "fetch",
+          "lineNumber": 267
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "getAuthHeaders",
+          "lineNumber": 269
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 270
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "profileData.fullname.trim",
+          "lineNumber": 271
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "profileData.phone.trim",
+          "lineNumber": 272
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "orientation.trim",
+          "lineNumber": 273
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "orientation.trim",
+          "lineNumber": 274
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "buildProfilePicturePayload",
+          "lineNumber": 277
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "setSaveLoading",
+          "lineNumber": 282
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "setIsEditing",
+          "lineNumber": 284
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "setProfileData",
+          "lineNumber": 286
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "setCourseChanged",
+          "lineNumber": 293
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "setAvatar",
+          "lineNumber": 295
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "resolveUserAvatar",
+          "lineNumber": 295
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "cacheUserProfile",
+          "lineNumber": 297
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "normalizeRole",
+          "lineNumber": 300
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "resolveUserAvatar",
+          "lineNumber": 301
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "dispatchAuthChanged",
+          "lineNumber": 303
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "showToast",
+          "lineNumber": 305
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "showToast",
+          "lineNumber": 307
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "setSaveLoading",
+          "lineNumber": 311
+        },
+        {
+          "caller": "handleProfileSubmit",
+          "callee": "showToast",
+          "lineNumber": 312
+        },
+        {
+          "caller": "startEditing",
+          "callee": "setBackupData",
+          "lineNumber": 316
+        },
+        {
+          "caller": "startEditing",
+          "callee": "setIsEditing",
+          "lineNumber": 321
+        },
+        {
+          "caller": "cancelEditing",
+          "callee": "setProfileData",
+          "lineNumber": 326
+        },
+        {
+          "caller": "cancelEditing",
+          "callee": "setOrientation",
+          "lineNumber": 327
+        },
+        {
+          "caller": "cancelEditing",
+          "callee": "setInterests",
+          "lineNumber": 328
+        },
+        {
+          "caller": "cancelEditing",
+          "callee": "setIsEditing",
+          "lineNumber": 330
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "e?.preventDefault",
+          "lineNumber": 334
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "logoutWithConfirm",
+          "lineNumber": 335
+        },
+        {
+          "caller": "Profile",
+          "callee": "document.getElementById('avatar-upload-input').click",
+          "lineNumber": 376
+        },
+        {
+          "caller": "Profile",
+          "callee": "document.getElementById",
+          "lineNumber": 376
+        },
+        {
+          "caller": "Profile",
+          "callee": "setProfileData",
+          "lineNumber": 421
+        },
+        {
+          "caller": "Profile",
+          "callee": "setProfileData",
+          "lineNumber": 462
+        },
+        {
+          "caller": "Profile",
+          "callee": "setOrientation",
+          "lineNumber": 481
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleInterestChange",
+          "lineNumber": 505
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleInterestChange",
+          "lineNumber": 522
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleInterestChange",
+          "lineNumber": 539
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleInterestChange",
+          "lineNumber": 556
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleInterestChange",
+          "lineNumber": 573
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleInterestChange",
+          "lineNumber": 590
+        },
+        {
+          "caller": "Profile",
+          "callee": "setSidebarActive",
+          "lineNumber": 724
+        },
+        {
+          "caller": "Profile",
+          "callee": "navigate",
+          "lineNumber": 733
+        },
+        {
+          "caller": "Profile",
+          "callee": "e.preventDefault",
+          "lineNumber": 743
+        },
+        {
+          "caller": "Profile",
+          "callee": "userRole?.toLowerCase",
+          "lineNumber": 755
+        },
+        {
+          "caller": "Profile",
+          "callee": "getRoleLabel",
+          "lineNumber": 756
+        },
+        {
+          "caller": "Profile",
+          "callee": "setSidebarActive",
+          "lineNumber": 766
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleNavigateProfile",
+          "lineNumber": 768
+        },
+        {
+          "caller": "Profile",
+          "callee": "navigate",
+          "lineNumber": 770
+        },
+        {
+          "caller": "Profile",
+          "callee": "setSidebarActive",
+          "lineNumber": 793
+        },
+        {
+          "caller": "Profile",
+          "callee": "e.preventDefault",
+          "lineNumber": 810
+        },
+        {
+          "caller": "Profile",
+          "callee": "userRole?.toLowerCase",
+          "lineNumber": 822
+        },
+        {
+          "caller": "Profile",
+          "callee": "getRoleLabel",
+          "lineNumber": 823
+        },
+        {
+          "caller": "Profile",
+          "callee": "e.preventDefault",
+          "lineNumber": 839
+        },
+        {
+          "caller": "Profile",
+          "callee": "navigate",
+          "lineNumber": 839
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleSidebarNavigate",
+          "lineNumber": 852
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleSidebarNavigate",
+          "lineNumber": 853
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleSidebarNavigate",
+          "lineNumber": 854
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleSidebarNavigate",
+          "lineNumber": 861
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleSidebarNavigate",
+          "lineNumber": 862
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleSidebarNavigate",
+          "lineNumber": 863
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleSidebarNavigate",
+          "lineNumber": 864
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleFeatureNotImplemented",
+          "lineNumber": 871
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleFeatureNotImplemented",
+          "lineNumber": 876
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleFeatureNotImplemented",
+          "lineNumber": 890
+        },
+        {
+          "caller": "Profile",
+          "callee": "handleFeatureNotImplemented",
+          "lineNumber": 891
+        }
+      ],
+      "metrics": {
+        "importCount": 12,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/Schedule.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 265,
+      "nonEmptyLines": 236,
+      "functions": [
+        {
+          "name": "startOfDay",
+          "startLine": 11,
+          "endLine": 15,
+          "params": [
+            "date"
+          ]
+        },
+        {
+          "name": "formatMonthLabel",
+          "startLine": 17,
+          "endLine": 20,
+          "params": [
+            "date"
+          ]
+        },
+        {
+          "name": "formatEventTime",
+          "startLine": 22,
+          "endLine": 26,
+          "params": [
+            "dateInput"
+          ]
+        },
+        {
+          "name": "mapApiEventToSchedule",
+          "startLine": 28,
+          "endLine": 35,
+          "params": [
+            "event",
+            "index"
+          ]
+        },
+        {
+          "name": "mapMockToSchedule",
+          "startLine": 37,
+          "endLine": 44,
+          "params": [
+            "event",
+            "index"
+          ]
+        },
+        {
+          "name": "Schedule",
+          "startLine": 46,
+          "endLine": 263,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "startOfDay",
+          "callee": "d.setHours",
+          "lineNumber": 13
+        },
+        {
+          "caller": "startOfDay",
+          "callee": "d.getTime",
+          "lineNumber": 14
+        },
+        {
+          "caller": "formatMonthLabel",
+          "callee": "date.toLocaleDateString",
+          "lineNumber": 18
+        },
+        {
+          "caller": "formatMonthLabel",
+          "callee": "label.charAt(0).toUpperCase",
+          "lineNumber": 19
+        },
+        {
+          "caller": "formatMonthLabel",
+          "callee": "label.charAt",
+          "lineNumber": 19
+        },
+        {
+          "caller": "formatMonthLabel",
+          "callee": "label.slice",
+          "lineNumber": 19
+        },
+        {
+          "caller": "formatEventTime",
+          "callee": "Number.isNaN",
+          "lineNumber": 24
+        },
+        {
+          "caller": "formatEventTime",
+          "callee": "date.getTime",
+          "lineNumber": 24
+        },
+        {
+          "caller": "formatEventTime",
+          "callee": "date.toLocaleTimeString",
+          "lineNumber": 25
+        },
+        {
+          "caller": "mapApiEventToSchedule",
+          "callee": "formatEventTime",
+          "lineNumber": 32
+        },
+        {
+          "caller": "Schedule",
+          "callee": "useState",
+          "lineNumber": 47
+        },
+        {
+          "caller": "Schedule",
+          "callee": "useState",
+          "lineNumber": 48
+        },
+        {
+          "caller": "Schedule",
+          "callee": "now.getFullYear",
+          "lineNumber": 50
+        },
+        {
+          "caller": "Schedule",
+          "callee": "now.getMonth",
+          "lineNumber": 50
+        },
+        {
+          "caller": "Schedule",
+          "callee": "useState",
+          "lineNumber": 52
+        },
+        {
+          "caller": "Schedule",
+          "callee": "useState",
+          "lineNumber": 53
+        },
+        {
+          "caller": "Schedule",
+          "callee": "useMemo",
+          "lineNumber": 55
+        },
+        {
+          "caller": "Schedule",
+          "callee": "startOfDay",
+          "lineNumber": 55
+        },
+        {
+          "caller": "Schedule",
+          "callee": "useEffect",
+          "lineNumber": 57
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "setLoading",
+          "lineNumber": 59
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "getAuthHeaders",
+          "lineNumber": 61
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "Promise.all",
+          "lineNumber": 62
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "fetch",
+          "lineNumber": 63
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "fetch",
+          "lineNumber": 64
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "setEvents",
+          "lineNumber": 68
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "mockScheduleEvents.map",
+          "lineNumber": 68
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "upcomingRes.json",
+          "lineNumber": 72
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "attendedRes.json",
+          "lineNumber": 73
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "setEvents",
+          "lineNumber": 77
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "merged.map",
+          "lineNumber": 77
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "setEvents",
+          "lineNumber": 79
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "mockScheduleEvents.map",
+          "lineNumber": 79
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "setEvents",
+          "lineNumber": 82
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "mockScheduleEvents.map",
+          "lineNumber": 82
+        },
+        {
+          "caller": "loadEvents",
+          "callee": "setLoading",
+          "lineNumber": 84
+        },
+        {
+          "caller": "Schedule",
+          "callee": "loadEvents",
+          "lineNumber": 88
+        },
+        {
+          "caller": "Schedule",
+          "callee": "formatMonthLabel",
+          "lineNumber": 91
+        },
+        {
+          "caller": "Schedule",
+          "callee": "viewDate.getFullYear",
+          "lineNumber": 92
+        },
+        {
+          "caller": "Schedule",
+          "callee": "viewDate.getMonth",
+          "lineNumber": 93
+        },
+        {
+          "caller": "Schedule",
+          "callee": "useMemo",
+          "lineNumber": 95
+        },
+        {
+          "caller": "Schedule",
+          "callee": "events.filter",
+          "lineNumber": 97
+        },
+        {
+          "caller": "Schedule",
+          "callee": "event.date.getFullYear",
+          "lineNumber": 99
+        },
+        {
+          "caller": "Schedule",
+          "callee": "event.date.getMonth",
+          "lineNumber": 99
+        },
+        {
+          "caller": "Schedule",
+          "callee": "useMemo",
+          "lineNumber": 104
+        },
+        {
+          "caller": "Schedule",
+          "callee": "firstDay.getDay",
+          "lineNumber": 106
+        },
+        {
+          "caller": "Schedule",
+          "callee": "new Date(viewYear, viewMonth + 1, 0).getDate",
+          "lineNumber": 107
+        },
+        {
+          "caller": "Schedule",
+          "callee": "cells.push",
+          "lineNumber": 110
+        },
+        {
+          "caller": "Schedule",
+          "callee": "startOfDay",
+          "lineNumber": 113
+        },
+        {
+          "caller": "Schedule",
+          "callee": "cells.push",
+          "lineNumber": 114
+        },
+        {
+          "caller": "Schedule",
+          "callee": "eventsInMonth.filter",
+          "lineNumber": 117
+        },
+        {
+          "caller": "Schedule",
+          "callee": "event.date.getDate",
+          "lineNumber": 117
+        },
+        {
+          "caller": "Schedule",
+          "callee": "useMemo",
+          "lineNumber": 126
+        },
+        {
+          "caller": "Schedule",
+          "callee": "[...eventsInMonth].sort",
+          "lineNumber": 128
+        },
+        {
+          "caller": "Schedule",
+          "callee": "a.date.getTime",
+          "lineNumber": 128
+        },
+        {
+          "caller": "Schedule",
+          "callee": "b.date.getTime",
+          "lineNumber": 128
+        },
+        {
+          "caller": "goPrevMonth",
+          "callee": "setViewDate",
+          "lineNumber": 133
+        },
+        {
+          "caller": "goPrevMonth",
+          "callee": "prev.getFullYear",
+          "lineNumber": 133
+        },
+        {
+          "caller": "goPrevMonth",
+          "callee": "prev.getMonth",
+          "lineNumber": 133
+        },
+        {
+          "caller": "goNextMonth",
+          "callee": "setViewDate",
+          "lineNumber": 137
+        },
+        {
+          "caller": "goNextMonth",
+          "callee": "prev.getFullYear",
+          "lineNumber": 137
+        },
+        {
+          "caller": "goNextMonth",
+          "callee": "prev.getMonth",
+          "lineNumber": 137
+        },
+        {
+          "caller": "goToday",
+          "callee": "setViewDate",
+          "lineNumber": 142
+        },
+        {
+          "caller": "goToday",
+          "callee": "now.getFullYear",
+          "lineNumber": 142
+        },
+        {
+          "caller": "goToday",
+          "callee": "now.getMonth",
+          "lineNumber": 142
+        },
+        {
+          "caller": "Schedule",
+          "callee": "new Date().getFullYear",
+          "lineNumber": 145
+        },
+        {
+          "caller": "Schedule",
+          "callee": "new Date().getMonth",
+          "lineNumber": 145
+        },
+        {
+          "caller": "handleViewModeChange",
+          "callee": "showToast",
+          "lineNumber": 149
+        },
+        {
+          "caller": "handleViewModeChange",
+          "callee": "setViewMode",
+          "lineNumber": 152
+        },
+        {
+          "caller": "Schedule",
+          "callee": "VIEW_MODES.map",
+          "lineNumber": 183
+        },
+        {
+          "caller": "Schedule",
+          "callee": "handleViewModeChange",
+          "lineNumber": 188
+        },
+        {
+          "caller": "Schedule",
+          "callee": "WEEKDAYS.map",
+          "lineNumber": 199
+        },
+        {
+          "caller": "Schedule",
+          "callee": "calendarDays.map",
+          "lineNumber": 204
+        },
+        {
+          "caller": "Schedule",
+          "callee": "[\r\n                  'student-calendar__cell',\r\n                  cell?.isToday ? 'student-calendar__cell--today' : '',\r\n                  cell?.isPast ? 'student-calendar__cell--past' : '',\r\n                  cell?.isFuture ? 'student-calendar__cell--future' : '',\r\n                ].filter(Boolean).join",
+          "lineNumber": 207
+        },
+        {
+          "caller": "Schedule",
+          "callee": "[\r\n                  'student-calendar__cell',\r\n                  cell?.isToday ? 'student-calendar__cell--today' : '',\r\n                  cell?.isPast ? 'student-calendar__cell--past' : '',\r\n                  cell?.isFuture ? 'student-calendar__cell--future' : '',\r\n                ].filter",
+          "lineNumber": 207
+        },
+        {
+          "caller": "Schedule",
+          "callee": "cell.events.map",
+          "lineNumber": 217
+        },
+        {
+          "caller": "Schedule",
+          "callee": "sidebarEvents.map",
+          "lineNumber": 241
+        },
+        {
+          "caller": "Schedule",
+          "callee": "startOfDay",
+          "lineNumber": 242
+        },
+        {
+          "caller": "Schedule",
+          "callee": "event.date.toLocaleDateString",
+          "lineNumber": 252
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/Signup.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 609,
+      "nonEmptyLines": 550,
+      "functions": [
+        {
+          "name": "Signup",
+          "startLine": 12,
+          "endLine": 607,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "Signup",
+          "callee": "useNavigate",
+          "lineNumber": 13
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 32
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 33
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 34
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 35
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 36
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 37
+        },
+        {
+          "caller": "Signup",
+          "callee": "useState",
+          "lineNumber": 38
+        },
+        {
+          "caller": "Signup",
+          "callee": "React.useEffect",
+          "lineNumber": 40
+        },
+        {
+          "caller": "Signup",
+          "callee": "setInterval",
+          "lineNumber": 43
+        },
+        {
+          "caller": "Signup",
+          "callee": "setCountdown",
+          "lineNumber": 44
+        },
+        {
+          "caller": "Signup",
+          "callee": "setIsOtpCounting",
+          "lineNumber": 47
+        },
+        {
+          "caller": "Signup",
+          "callee": "clearInterval",
+          "lineNumber": 49
+        },
+        {
+          "caller": "validateField",
+          "callee": "patterns.fullname.test",
+          "lineNumber": 58
+        },
+        {
+          "caller": "validateField",
+          "callee": "value.trim",
+          "lineNumber": 58
+        },
+        {
+          "caller": "validateField",
+          "callee": "value.trim().split",
+          "lineNumber": 60
+        },
+        {
+          "caller": "validateField",
+          "callee": "value.trim",
+          "lineNumber": 60
+        },
+        {
+          "caller": "validateField",
+          "callee": "patterns.email.test",
+          "lineNumber": 64
+        },
+        {
+          "caller": "validateField",
+          "callee": "value.trim",
+          "lineNumber": 64
+        },
+        {
+          "caller": "validateField",
+          "callee": "patterns.phone.test",
+          "lineNumber": 66
+        },
+        {
+          "caller": "validateField",
+          "callee": "value.trim",
+          "lineNumber": 66
+        },
+        {
+          "caller": "validateField",
+          "callee": "patterns.password.test",
+          "lineNumber": 68
+        },
+        {
+          "caller": "validateField",
+          "callee": "setErrors",
+          "lineNumber": 77
+        },
+        {
+          "caller": "validateField",
+          "callee": "setValidFields",
+          "lineNumber": 78
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "setFormData",
+          "lineNumber": 88
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "setTimeout",
+          "lineNumber": 93
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "validateField",
+          "lineNumber": 93
+        },
+        {
+          "caller": "handleInputChange",
+          "callee": "validateField",
+          "lineNumber": 98
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "setFormData",
+          "lineNumber": 103
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "patterns.email.test",
+          "lineNumber": 105
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "value.trim",
+          "lineNumber": 105
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "setErrors",
+          "lineNumber": 107
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "setValidFields",
+          "lineNumber": 108
+        },
+        {
+          "caller": "handleEmailChange",
+          "callee": "document.getElementById",
+          "lineNumber": 110
+        },
+        {
+          "caller": "triggerShake",
+          "callee": "setShakeFields",
+          "lineNumber": 118
+        },
+        {
+          "caller": "triggerShake",
+          "callee": "setTimeout",
+          "lineNumber": 119
+        },
+        {
+          "caller": "triggerShake",
+          "callee": "setShakeFields",
+          "lineNumber": 120
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 125
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateField",
+          "lineNumber": 127
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateField",
+          "lineNumber": 128
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateField",
+          "lineNumber": 129
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateField",
+          "lineNumber": 130
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateField",
+          "lineNumber": 131
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "validateField",
+          "lineNumber": 132
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "triggerShake",
+          "lineNumber": 137
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "triggerShake",
+          "lineNumber": 138
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "triggerShake",
+          "lineNumber": 139
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "triggerShake",
+          "lineNumber": 140
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "triggerShake",
+          "lineNumber": 141
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "triggerShake",
+          "lineNumber": 142
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 144
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 148
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/signup', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        fullname: formData.fullname,\r\n        email: formData.email,\r\n        phone: formData.phone,\r\n        password: formData.password\r\n      })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then(({ status, data }) => {\r\n        setLoading(false);\r\n        if (status === 200 && data.status === 'OTP_SENT') {\r\n          setShowOtpStep(true);\r\n          setCountdown(60);\r\n          setIsOtpCounting(true);\r\n          setOtpCode('');\r\n          setOtpError(false);\r\n        } else {\r\n          showToast(data.message || 'Đăng ký thất bại!', 'error');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 150
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/signup', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        fullname: formData.fullname,\r\n        email: formData.email,\r\n        phone: formData.phone,\r\n        password: formData.password\r\n      })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then",
+          "lineNumber": 150
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/signup', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        fullname: formData.fullname,\r\n        email: formData.email,\r\n        phone: formData.phone,\r\n        password: formData.password\r\n      })\r\n    })\r\n      .then",
+          "lineNumber": 150
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "fetch",
+          "lineNumber": 150
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 153
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json().then",
+          "lineNumber": 160
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "res.json",
+          "lineNumber": 160
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 162
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setShowOtpStep",
+          "lineNumber": 164
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setCountdown",
+          "lineNumber": 165
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setIsOtpCounting",
+          "lineNumber": 166
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setOtpCode",
+          "lineNumber": 167
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setOtpError",
+          "lineNumber": 168
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 170
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setLoading",
+          "lineNumber": 174
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "showToast",
+          "lineNumber": 175
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 180
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setOtpError",
+          "lineNumber": 183
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setOtpErrorMsg",
+          "lineNumber": 184
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setOtpLoading",
+          "lineNumber": 188
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/verify-otp', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        email: formData.email,\r\n        otp: otpCode\r\n      })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then(({ status, data }) => {\r\n        setOtpLoading(false);\r\n        if (status === 201) {\r\n          setFormData({\r\n            fullname: '',\r\n            email: '',\r\n            phone: '',\r\n            password: '',\r\n            confirmPassword: '',\r\n            terms: false\r\n          });\r\n          setErrors({});\r\n          setValidFields({});\r\n          setOtpCode('');\r\n          setOtpError(false);\r\n          setShowOtpStep(false);\r\n          navigate('/login');\r\n        } else {\r\n          setOtpError(true);\r\n          setOtpErrorMsg(data.message || 'Mã xác minh không chính xác!');\r\n          showToast(data.message || 'Xác minh OTP thất bại!', 'error');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 190
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/verify-otp', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        email: formData.email,\r\n        otp: otpCode\r\n      })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then",
+          "lineNumber": 190
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "fetch('http://localhost:5000/api/auth/verify-otp', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({\r\n        email: formData.email,\r\n        otp: otpCode\r\n      })\r\n    })\r\n      .then",
+          "lineNumber": 190
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "fetch",
+          "lineNumber": 190
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "JSON.stringify",
+          "lineNumber": 193
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "res.json().then",
+          "lineNumber": 198
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "res.json",
+          "lineNumber": 198
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setOtpLoading",
+          "lineNumber": 200
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setFormData",
+          "lineNumber": 202
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setErrors",
+          "lineNumber": 210
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setValidFields",
+          "lineNumber": 211
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setOtpCode",
+          "lineNumber": 212
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setOtpError",
+          "lineNumber": 213
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setShowOtpStep",
+          "lineNumber": 214
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "navigate",
+          "lineNumber": 215
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setOtpError",
+          "lineNumber": 217
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setOtpErrorMsg",
+          "lineNumber": 218
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "showToast",
+          "lineNumber": 219
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "setOtpLoading",
+          "lineNumber": 223
+        },
+        {
+          "caller": "handleOtpSubmit",
+          "callee": "showToast",
+          "lineNumber": 224
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "setCountdown",
+          "lineNumber": 229
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "setIsOtpCounting",
+          "lineNumber": 230
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "setOtpCode",
+          "lineNumber": 231
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "setOtpError",
+          "lineNumber": 232
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "fetch('http://localhost:5000/api/auth/resend-otp', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({ email: formData.email })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then(({ status, data }) => {\r\n        if (status !== 200) {\r\n          showToast(data.message || 'Gửi lại mã thất bại!', 'error');\r\n        }\r\n      })\r\n      .catch",
+          "lineNumber": 234
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "fetch('http://localhost:5000/api/auth/resend-otp', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({ email: formData.email })\r\n    })\r\n      .then(res => res.json().then(data => ({ status: res.status, data })))\r\n      .then",
+          "lineNumber": 234
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "fetch('http://localhost:5000/api/auth/resend-otp', {\r\n      method: 'POST',\r\n      headers: { 'Content-Type': 'application/json' },\r\n      body: JSON.stringify({ email: formData.email })\r\n    })\r\n      .then",
+          "lineNumber": 234
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "fetch",
+          "lineNumber": 234
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "JSON.stringify",
+          "lineNumber": 237
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "res.json().then",
+          "lineNumber": 239
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "res.json",
+          "lineNumber": 239
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "showToast",
+          "lineNumber": 242
+        },
+        {
+          "caller": "handleResendOtp",
+          "callee": "showToast",
+          "lineNumber": 246
+        },
+        {
+          "caller": "Signup",
+          "callee": "e.target.value.replace",
+          "lineNumber": 330
+        },
+        {
+          "caller": "Signup",
+          "callee": "setOtpCode",
+          "lineNumber": 331
+        },
+        {
+          "caller": "Signup",
+          "callee": "setOtpError",
+          "lineNumber": 333
+        },
+        {
+          "caller": "Signup",
+          "callee": "setShowOtpStep",
+          "lineNumber": 348
+        },
+        {
+          "caller": "Signup",
+          "callee": "setOtpCode",
+          "lineNumber": 349
+        },
+        {
+          "caller": "Signup",
+          "callee": "setOtpError",
+          "lineNumber": 350
+        },
+        {
+          "caller": "Signup",
+          "callee": "getGroupClass",
+          "lineNumber": 400
+        },
+        {
+          "caller": "Signup",
+          "callee": "getGroupClass",
+          "lineNumber": 423
+        },
+        {
+          "caller": "Signup",
+          "callee": "getGroupClass",
+          "lineNumber": 446
+        },
+        {
+          "caller": "Signup",
+          "callee": "getGroupClass",
+          "lineNumber": 468
+        },
+        {
+          "caller": "Signup",
+          "callee": "setShowPassword",
+          "lineNumber": 489
+        },
+        {
+          "caller": "Signup",
+          "callee": "getGroupClass",
+          "lineNumber": 509
+        },
+        {
+          "caller": "Signup",
+          "callee": "setShowConfirmPassword",
+          "lineNumber": 530
+        },
+        {
+          "caller": "Signup",
+          "callee": "e.preventDefault",
+          "lineNumber": 561
+        },
+        {
+          "caller": "Signup",
+          "callee": "e.preventDefault",
+          "lineNumber": 561
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/pages/StudentDashboard.jsx",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 91,
+      "nonEmptyLines": 85,
+      "functions": [
+        {
+          "name": "StudentDashboard",
+          "startLine": 12,
+          "endLine": 89,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "StudentDashboard",
+          "callee": "useNavigate",
+          "lineNumber": 13
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "useEffect",
+          "lineNumber": 16
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.ok ? res.json() : Promise.reject()))\r\n      .then((data) => setFullname(data.user?.fullname || ''))\r\n      .catch",
+          "lineNumber": 17
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then((res) => (res.ok ? res.json() : Promise.reject()))\r\n      .then",
+          "lineNumber": 17
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })\r\n      .then",
+          "lineNumber": 17
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "fetch",
+          "lineNumber": 17
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "getAuthHeaders",
+          "lineNumber": 17
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "res.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "Promise.reject",
+          "lineNumber": 18
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "setFullname",
+          "lineNumber": 19
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "getGreeting",
+          "lineNumber": 26
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "dashboardStats.map",
+          "lineNumber": 32
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "navigate",
+          "lineNumber": 47
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "todayTimeline.map",
+          "lineNumber": 52
+        },
+        {
+          "caller": "StudentDashboard",
+          "callee": "upcomingRecommendations.map",
+          "lineNumber": 74
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/utils/api.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 38,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "getAuthHeaders",
+          "startLine": 3,
+          "endLine": 9,
+          "params": []
+        },
+        {
+          "name": "parseApiResponse",
+          "startLine": 12,
+          "endLine": 36,
+          "params": [
+            "res"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getAuthHeaders",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "parseApiResponse",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "API_BASE",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getAuthHeaders",
+          "callee": "localStorage.getItem",
+          "lineNumber": 6
+        },
+        {
+          "caller": "parseApiResponse",
+          "callee": "res.text",
+          "lineNumber": 13
+        },
+        {
+          "caller": "parseApiResponse",
+          "callee": "JSON.parse",
+          "lineNumber": 22
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/utils/auth.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 71,
+      "nonEmptyLines": 62,
+      "functions": [
+        {
+          "name": "normalizeRole",
+          "startLine": 12,
+          "endLine": 15,
+          "params": [
+            "role"
+          ]
+        },
+        {
+          "name": "persistSession",
+          "startLine": 17,
+          "endLine": 25,
+          "params": [
+            "user",
+            "token"
+          ]
+        },
+        {
+          "name": "clearSession",
+          "startLine": 27,
+          "endLine": 34,
+          "params": []
+        },
+        {
+          "name": "getUserRole",
+          "startLine": 36,
+          "endLine": 36,
+          "params": []
+        },
+        {
+          "name": "isCtsvRole",
+          "startLine": 38,
+          "endLine": 41,
+          "params": []
+        },
+        {
+          "name": "isIcpdpRole",
+          "startLine": 44,
+          "endLine": 44,
+          "params": []
+        },
+        {
+          "name": "canCtsvFinalApprove",
+          "startLine": 46,
+          "endLine": 47,
+          "params": []
+        },
+        {
+          "name": "getHomePathForRole",
+          "startLine": 49,
+          "endLine": 50,
+          "params": []
+        },
+        {
+          "name": "getRoleDisplayLabel",
+          "startLine": 53,
+          "endLine": 71,
+          "params": [
+            "role"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "USER_ROLES",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "normalizeRole",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "persistSession",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "clearSession",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "getUserRole",
+          "line": 36,
+          "isDefault": false
+        },
+        {
+          "name": "isCtsvRole",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "isIcpdpRole",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "canCtsvFinalApprove",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "getHomePathForRole",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "getRoleDisplayLabel",
+          "line": 53,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalizeRole",
+          "callee": "String(role).trim().toLowerCase",
+          "lineNumber": 14
+        },
+        {
+          "caller": "normalizeRole",
+          "callee": "String(role).trim",
+          "lineNumber": 14
+        },
+        {
+          "caller": "normalizeRole",
+          "callee": "String",
+          "lineNumber": 14
+        },
+        {
+          "caller": "persistSession",
+          "callee": "normalizeRole",
+          "lineNumber": 18
+        },
+        {
+          "caller": "persistSession",
+          "callee": "localStorage.setItem",
+          "lineNumber": 19
+        },
+        {
+          "caller": "persistSession",
+          "callee": "localStorage.setItem",
+          "lineNumber": 20
+        },
+        {
+          "caller": "persistSession",
+          "callee": "localStorage.setItem",
+          "lineNumber": 21
+        },
+        {
+          "caller": "persistSession",
+          "callee": "localStorage.setItem",
+          "lineNumber": 22
+        },
+        {
+          "caller": "persistSession",
+          "callee": "localStorage.setItem",
+          "lineNumber": 23
+        },
+        {
+          "caller": "persistSession",
+          "callee": "localStorage.setItem",
+          "lineNumber": 24
+        },
+        {
+          "caller": "clearSession",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 28
+        },
+        {
+          "caller": "clearSession",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 29
+        },
+        {
+          "caller": "clearSession",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 30
+        },
+        {
+          "caller": "clearSession",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 31
+        },
+        {
+          "caller": "clearSession",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 32
+        },
+        {
+          "caller": "clearSession",
+          "callee": "localStorage.removeItem",
+          "lineNumber": 33
+        },
+        {
+          "caller": "getUserRole",
+          "callee": "normalizeRole",
+          "lineNumber": 36
+        },
+        {
+          "caller": "getUserRole",
+          "callee": "localStorage.getItem",
+          "lineNumber": 36
+        },
+        {
+          "caller": "isCtsvRole",
+          "callee": "getUserRole",
+          "lineNumber": 38
+        },
+        {
+          "caller": "isCtsvRole",
+          "callee": "normalizeRole",
+          "lineNumber": 39
+        },
+        {
+          "caller": "isIcpdpRole",
+          "callee": "getUserRole",
+          "lineNumber": 44
+        },
+        {
+          "caller": "isIcpdpRole",
+          "callee": "normalizeRole",
+          "lineNumber": 44
+        },
+        {
+          "caller": "canCtsvFinalApprove",
+          "callee": "getUserRole",
+          "lineNumber": 46
+        },
+        {
+          "caller": "canCtsvFinalApprove",
+          "callee": "normalizeRole",
+          "lineNumber": 47
+        },
+        {
+          "caller": "getHomePathForRole",
+          "callee": "getUserRole",
+          "lineNumber": 49
+        },
+        {
+          "caller": "getHomePathForRole",
+          "callee": "isCtsvRole",
+          "lineNumber": 50
+        },
+        {
+          "caller": "getRoleDisplayLabel",
+          "callee": "normalizeRole",
+          "lineNumber": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 10,
+        "functionCount": 9,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/utils/authEvents.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "dispatchAuthChanged",
+          "startLine": 3,
+          "endLine": 5,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "AUTH_CHANGED_EVENT",
+          "line": 1,
+          "isDefault": false
+        },
+        {
+          "name": "dispatchAuthChanged",
+          "line": 3,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "dispatchAuthChanged",
+          "callee": "window.dispatchEvent",
+          "lineNumber": 4
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/utils/image.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 34,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "isCustomUploadedAvatar",
+          "startLine": 2,
+          "endLine": 3,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "resolveUserAvatar",
+          "startLine": 6,
+          "endLine": 11,
+          "params": [
+            "user"
+          ]
+        },
+        {
+          "name": "compressImageFile",
+          "startLine": 13,
+          "endLine": 34,
+          "params": [
+            "file"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "isCustomUploadedAvatar",
+          "line": 2,
+          "isDefault": false
+        },
+        {
+          "name": "resolveUserAvatar",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "compressImageFile",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "isCustomUploadedAvatar",
+          "callee": "value.startsWith",
+          "lineNumber": 3
+        },
+        {
+          "caller": "resolveUserAvatar",
+          "callee": "isCustomUploadedAvatar",
+          "lineNumber": 8
+        },
+        {
+          "caller": "resolveUserAvatar",
+          "callee": "isCustomUploadedAvatar",
+          "lineNumber": 9
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "Math.min",
+          "lineNumber": 19
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "Math.max",
+          "lineNumber": 19
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "Math.round",
+          "lineNumber": 20
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "Math.round",
+          "lineNumber": 21
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "document.createElement",
+          "lineNumber": 22
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "canvas.getContext",
+          "lineNumber": 25
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "ctx.drawImage",
+          "lineNumber": 26
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "resolve",
+          "lineNumber": 27
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "canvas.toDataURL",
+          "lineNumber": 27
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "reject",
+          "lineNumber": 29
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "reject",
+          "lineNumber": 32
+        },
+        {
+          "caller": "compressImageFile",
+          "callee": "reader.readAsDataURL",
+          "lineNumber": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/utils/logout.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 22,
+      "functions": [
+        {
+          "name": "confirmLogout",
+          "startLine": 8,
+          "endLine": 8,
+          "params": []
+        },
+        {
+          "name": "logoutWithConfirm",
+          "startLine": 14,
+          "endLine": 25,
+          "params": [
+            "navigate"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "LOGOUT_CONFIRM_MESSAGE",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "confirmLogout",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "logoutWithConfirm",
+          "line": 14,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "confirmLogout",
+          "callee": "window.confirm",
+          "lineNumber": 8
+        },
+        {
+          "caller": "logoutWithConfirm",
+          "callee": "confirmLogout",
+          "lineNumber": 18
+        },
+        {
+          "caller": "logoutWithConfirm",
+          "callee": "clearSession",
+          "lineNumber": 19
+        },
+        {
+          "caller": "logoutWithConfirm",
+          "callee": "clearUserProfileCache",
+          "lineNumber": 20
+        },
+        {
+          "caller": "logoutWithConfirm",
+          "callee": "dispatchAuthChanged",
+          "lineNumber": 21
+        },
+        {
+          "caller": "logoutWithConfirm",
+          "callee": "showToast",
+          "lineNumber": 22
+        },
+        {
+          "caller": "logoutWithConfirm",
+          "callee": "navigate",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/utils/profileApi.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 30,
+      "nonEmptyLines": 28,
+      "functions": [
+        {
+          "name": "updateUserAvatar",
+          "startLine": 5,
+          "endLine": 25,
+          "params": [
+            "imageData"
+          ]
+        },
+        {
+          "name": "buildProfilePicturePayload",
+          "startLine": 27,
+          "endLine": 30,
+          "params": [
+            "avatar",
+            "displayAvatar"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "updateUserAvatar",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "buildProfilePicturePayload",
+          "line": 27,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "updateUserAvatar",
+          "callee": "fetch",
+          "lineNumber": 6
+        },
+        {
+          "caller": "updateUserAvatar",
+          "callee": "getAuthHeaders",
+          "lineNumber": 8
+        },
+        {
+          "caller": "updateUserAvatar",
+          "callee": "JSON.stringify",
+          "lineNumber": 9
+        },
+        {
+          "caller": "updateUserAvatar",
+          "callee": "parseApiResponse",
+          "lineNumber": 11
+        },
+        {
+          "caller": "buildProfilePicturePayload",
+          "callee": "isCustomUploadedAvatar",
+          "lineNumber": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/utils/role.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 10,
+      "functions": [
+        {
+          "name": "getRoleLabel",
+          "startLine": 1,
+          "endLine": 10,
+          "params": [
+            "role"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getRoleLabel",
+          "line": 1,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getRoleLabel",
+          "callee": "role?.toLowerCase",
+          "lineNumber": 2
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/utils/studentId.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 14,
+      "functions": [
+        {
+          "name": "formatMssv",
+          "startLine": 5,
+          "endLine": 8,
+          "params": [
+            "studentId"
+          ]
+        },
+        {
+          "name": "deriveCourseFromMssv",
+          "startLine": 10,
+          "endLine": 15,
+          "params": [
+            "studentId"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "formatMssv",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "deriveCourseFromMssv",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatMssv",
+          "callee": "studentId.trim().toUpperCase",
+          "lineNumber": 7
+        },
+        {
+          "caller": "formatMssv",
+          "callee": "studentId.trim",
+          "lineNumber": 7
+        },
+        {
+          "caller": "deriveCourseFromMssv",
+          "callee": "formatMssv",
+          "lineNumber": 11
+        },
+        {
+          "caller": "deriveCourseFromMssv",
+          "callee": "normalized.match",
+          "lineNumber": 12
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "FE/src/utils/ticketPricing.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 65,
+      "nonEmptyLines": 57,
+      "functions": [
+        {
+          "name": "hasStudentTicketPrivilege",
+          "startLine": 3,
+          "endLine": 4,
+          "params": [
+            "role"
+          ]
+        },
+        {
+          "name": "formatVnd",
+          "startLine": 6,
+          "endLine": 7,
+          "params": [
+            "amount"
+          ]
+        },
+        {
+          "name": "calculateTicketAmount",
+          "startLine": 9,
+          "endLine": 13,
+          "params": [
+            "role"
+          ]
+        },
+        {
+          "name": "buildPriceLabel",
+          "startLine": 15,
+          "endLine": 21,
+          "params": [
+            "amountDue",
+            "listPrice",
+            "role"
+          ]
+        },
+        {
+          "name": "getPrimaryActionLabel",
+          "startLine": 23,
+          "endLine": 36,
+          "params": []
+        },
+        {
+          "name": "resolveEventPricing",
+          "startLine": 38,
+          "endLine": 65,
+          "params": [
+            "event"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "hasStudentTicketPrivilege",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "formatVnd",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "calculateTicketAmount",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "buildPriceLabel",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "getPrimaryActionLabel",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "resolveEventPricing",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "hasStudentTicketPrivilege",
+          "callee": "STUDENT_FREE_ROLES.has",
+          "lineNumber": 4
+        },
+        {
+          "caller": "hasStudentTicketPrivilege",
+          "callee": "String(role || '').toLowerCase",
+          "lineNumber": 4
+        },
+        {
+          "caller": "hasStudentTicketPrivilege",
+          "callee": "String",
+          "lineNumber": 4
+        },
+        {
+          "caller": "formatVnd",
+          "callee": "new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format",
+          "lineNumber": 7
+        },
+        {
+          "caller": "calculateTicketAmount",
+          "callee": "Math.max",
+          "lineNumber": 10
+        },
+        {
+          "caller": "calculateTicketAmount",
+          "callee": "Number",
+          "lineNumber": 10
+        },
+        {
+          "caller": "calculateTicketAmount",
+          "callee": "hasStudentTicketPrivilege",
+          "lineNumber": 11
+        },
+        {
+          "caller": "buildPriceLabel",
+          "callee": "hasStudentTicketPrivilege",
+          "lineNumber": 16
+        },
+        {
+          "caller": "buildPriceLabel",
+          "callee": "formatVnd",
+          "lineNumber": 20
+        },
+        {
+          "caller": "resolveEventPricing",
+          "callee": "Math.max",
+          "lineNumber": 49
+        },
+        {
+          "caller": "resolveEventPricing",
+          "callee": "Number",
+          "lineNumber": 49
+        },
+        {
+          "caller": "resolveEventPricing",
+          "callee": "calculateTicketAmount",
+          "lineNumber": 50
+        },
+        {
+          "caller": "resolveEventPricing",
+          "callee": "hasStudentTicketPrivilege",
+          "lineNumber": 51
+        },
+        {
+          "caller": "resolveEventPricing",
+          "callee": "buildPriceLabel",
+          "lineNumber": 56
+        },
+        {
+          "caller": "resolveEventPricing",
+          "callee": "getPrimaryActionLabel",
+          "lineNumber": 58
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 6,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    }
+  ]
+}

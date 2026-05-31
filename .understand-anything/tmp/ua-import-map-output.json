@@ -1,0 +1,708 @@
+{
+  "scriptCompleted": true,
+  "stats": {
+    "filesScanned": 194,
+    "filesWithImports": 107,
+    "totalEdges": 397
+  },
+  "importMap": {
+    ".cursor/mcp.json": [],
+    ".cursor/settings.json": [],
+    ".understand-anything/.understandignore": [],
+    "BE/.env.example": [],
+    "BE/backfill-roles.js": [
+      "BE/src/models/User.js",
+      "BE/src/utils/role.js"
+    ],
+    "BE/package.json": [],
+    "BE/scripts/fix-role-case.js": [
+      "BE/src/models/User.js"
+    ],
+    "BE/scripts/test-avatar-save.js": [
+      "BE/src/models/User.js",
+      "BE/src/services/user.service.js"
+    ],
+    "BE/scripts/test-change-password.js": [],
+    "BE/seed-clubs.js": [
+      "BE/src/config/db.js",
+      "BE/src/data/clubSeedData.js",
+      "BE/src/models/Club.js"
+    ],
+    "BE/seed-ctsv-demo.js": [
+      "BE/src/config/db.js",
+      "BE/src/models/Contract.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/EventProposal.js",
+      "BE/src/models/Partner.js"
+    ],
+    "BE/seed-event-reviews.js": [
+      "BE/src/config/db.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/EventRegistration.js",
+      "BE/src/models/EventReview.js",
+      "BE/src/models/User.js"
+    ],
+    "BE/seed-events.js": [
+      "BE/src/config/db.js",
+      "BE/src/constants/eventSpeaker.js",
+      "BE/src/data/eventSeedData.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/User.js"
+    ],
+    "BE/seed.js": [
+      "BE/src/config/db.js",
+      "BE/src/models/SchoolMember.js",
+      "BE/src/models/User.js"
+    ],
+    "BE/server.js": [
+      "BE/src/app.js",
+      "BE/src/config/db.js",
+      "BE/src/config/env.js"
+    ],
+    "BE/src/app.js": [
+      "BE/src/config/env.js",
+      "BE/src/middleware/errorHandler.js",
+      "BE/src/routes/index.js"
+    ],
+    "BE/src/config/db.js": [
+      "BE/src/models/User.js"
+    ],
+    "BE/src/config/env.js": [],
+    "BE/src/constants/eventCategories.js": [],
+    "BE/src/constants/eventPricing.js": [],
+    "BE/src/constants/eventSpeaker.js": [],
+    "BE/src/constants/eventVenues.js": [],
+    "BE/src/constants/eventWorkflow.js": [],
+    "BE/src/controllers/auth.controller.js": [
+      "BE/src/config/env.js",
+      "BE/src/services/auth.service.js"
+    ],
+    "BE/src/controllers/club.controller.js": [
+      "BE/src/services/club.service.js"
+    ],
+    "BE/src/controllers/event.controller.js": [
+      "BE/src/services/event.service.js"
+    ],
+    "BE/src/controllers/registration.controller.js": [
+      "BE/src/services/registration.service.js"
+    ],
+    "BE/src/controllers/review.controller.js": [
+      "BE/src/services/review.service.js"
+    ],
+    "BE/src/controllers/user.controller.js": [
+      "BE/src/services/club.service.js",
+      "BE/src/services/registration.service.js",
+      "BE/src/services/review.service.js",
+      "BE/src/services/user.service.js"
+    ],
+    "BE/src/data/clubSeedData.js": [],
+    "BE/src/data/eventSeedData.js": [
+      "BE/src/constants/eventVenues.js",
+      "BE/src/data/speakerSeedData.js"
+    ],
+    "BE/src/data/speakerSeedData.js": [],
+    "BE/src/middleware/auth.js": [
+      "BE/src/utils/jwt.js"
+    ],
+    "BE/src/middleware/authorize.js": [
+      "BE/src/models/User.js",
+      "BE/src/utils/AppError.js",
+      "BE/src/utils/asyncHandler.js"
+    ],
+    "BE/src/middleware/errorHandler.js": [
+      "BE/src/utils/AppError.js"
+    ],
+    "BE/src/middleware/optionalAuth.js": [
+      "BE/src/utils/jwt.js"
+    ],
+    "BE/src/middleware/optionalAuthorize.js": [
+      "BE/src/models/User.js",
+      "BE/src/utils/asyncHandler.js"
+    ],
+    "BE/src/middleware/requireRole.js": [
+      "BE/src/models/User.js",
+      "BE/src/utils/role.js"
+    ],
+    "BE/src/models/Announcement.js": [],
+    "BE/src/models/Club.js": [],
+    "BE/src/models/ClubFollow.js": [],
+    "BE/src/models/ClubMembership.js": [],
+    "BE/src/models/Contract.js": [],
+    "BE/src/models/Event.js": [
+      "BE/src/constants/eventCategories.js",
+      "BE/src/constants/eventSpeaker.js",
+      "BE/src/constants/eventVenues.js",
+      "BE/src/constants/eventWorkflow.js"
+    ],
+    "BE/src/models/EventProposal.js": [],
+    "BE/src/models/EventRegistration.js": [],
+    "BE/src/models/EventReview.js": [],
+    "BE/src/models/Partner.js": [],
+    "BE/src/models/SchoolMember.js": [],
+    "BE/src/models/User.js": [
+      "BE/src/models/SchoolMember.js",
+      "BE/src/utils/role.js",
+      "BE/src/utils/studentId.js"
+    ],
+    "BE/src/routes/admin.routes.js": [
+      "BE/src/constants/eventWorkflow.js",
+      "BE/src/middleware/auth.js",
+      "BE/src/middleware/requireRole.js",
+      "BE/src/models/Contract.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/Partner.js",
+      "BE/src/utils/announcementEvents.js",
+      "BE/src/utils/eventFormat.js"
+    ],
+    "BE/src/routes/auth.routes.js": [
+      "BE/src/controllers/auth.controller.js",
+      "BE/src/utils/asyncHandler.js"
+    ],
+    "BE/src/routes/club.routes.js": [
+      "BE/src/controllers/club.controller.js",
+      "BE/src/middleware/auth.js",
+      "BE/src/middleware/authorize.js",
+      "BE/src/middleware/optionalAuth.js",
+      "BE/src/middleware/optionalAuthorize.js",
+      "BE/src/utils/asyncHandler.js"
+    ],
+    "BE/src/routes/ctsv.routes.js": [
+      "BE/src/constants/eventCategories.js",
+      "BE/src/constants/eventSpeaker.js",
+      "BE/src/constants/eventWorkflow.js",
+      "BE/src/middleware/auth.js",
+      "BE/src/middleware/requireRole.js",
+      "BE/src/models/Announcement.js",
+      "BE/src/models/Contract.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/EventProposal.js",
+      "BE/src/models/Partner.js",
+      "BE/src/utils/announcementEvents.js",
+      "BE/src/utils/eventFormat.js"
+    ],
+    "BE/src/routes/event.routes.js": [
+      "BE/src/constants/eventPricing.js",
+      "BE/src/controllers/event.controller.js",
+      "BE/src/controllers/registration.controller.js",
+      "BE/src/controllers/review.controller.js",
+      "BE/src/middleware/auth.js",
+      "BE/src/middleware/authorize.js",
+      "BE/src/middleware/optionalAuth.js",
+      "BE/src/middleware/optionalAuthorize.js",
+      "BE/src/utils/asyncHandler.js"
+    ],
+    "BE/src/routes/index.js": [
+      "BE/src/routes/admin.routes.js",
+      "BE/src/routes/auth.routes.js",
+      "BE/src/routes/club.routes.js",
+      "BE/src/routes/ctsv.routes.js",
+      "BE/src/routes/event.routes.js",
+      "BE/src/routes/user.routes.js"
+    ],
+    "BE/src/routes/user.routes.js": [
+      "BE/src/controllers/user.controller.js",
+      "BE/src/middleware/auth.js",
+      "BE/src/middleware/authorize.js",
+      "BE/src/utils/asyncHandler.js"
+    ],
+    "BE/src/services/auth.service.js": [
+      "BE/src/config/env.js",
+      "BE/src/models/User.js",
+      "BE/src/services/email.service.js",
+      "BE/src/utils/AppError.js",
+      "BE/src/utils/jwt.js",
+      "BE/src/utils/otpStore.js"
+    ],
+    "BE/src/services/calendar.service.js": [
+      "BE/src/config/env.js",
+      "BE/src/models/User.js"
+    ],
+    "BE/src/services/club.service.js": [
+      "BE/src/models/Club.js",
+      "BE/src/models/ClubFollow.js",
+      "BE/src/models/ClubMembership.js",
+      "BE/src/utils/AppError.js"
+    ],
+    "BE/src/services/email.service.js": [
+      "BE/src/config/env.js"
+    ],
+    "BE/src/services/event.service.js": [
+      "BE/src/constants/eventPricing.js",
+      "BE/src/constants/eventVenues.js",
+      "BE/src/models/Event.js",
+      "BE/src/services/registration.service.js",
+      "BE/src/utils/AppError.js"
+    ],
+    "BE/src/services/registration.service.js": [
+      "BE/src/constants/eventPricing.js",
+      "BE/src/models/Event.js",
+      "BE/src/models/EventRegistration.js",
+      "BE/src/services/calendar.service.js",
+      "BE/src/utils/AppError.js"
+    ],
+    "BE/src/services/review.service.js": [
+      "BE/src/models/Event.js",
+      "BE/src/models/EventRegistration.js",
+      "BE/src/models/EventReview.js",
+      "BE/src/utils/AppError.js"
+    ],
+    "BE/src/services/user.service.js": [
+      "BE/src/models/User.js",
+      "BE/src/utils/AppError.js",
+      "BE/src/utils/role.js"
+    ],
+    "BE/src/utils/announcementEvents.js": [
+      "BE/src/models/Event.js",
+      "BE/src/models/Partner.js"
+    ],
+    "BE/src/utils/AppError.js": [],
+    "BE/src/utils/asyncHandler.js": [],
+    "BE/src/utils/eventFormat.js": [
+      "BE/src/constants/eventSpeaker.js",
+      "BE/src/constants/eventWorkflow.js"
+    ],
+    "BE/src/utils/jwt.js": [],
+    "BE/src/utils/otpStore.js": [
+      "BE/src/config/env.js"
+    ],
+    "BE/src/utils/role.js": [],
+    "BE/src/utils/studentId.js": [],
+    "FE/eslint.config.js": [],
+    "FE/index.html": [],
+    "FE/package.json": [],
+    "FE/README.md": [],
+    "FE/src/App.css": [],
+    "FE/src/App.jsx": [
+      "FE/src/components/Toast.jsx",
+      "FE/src/hooks/useSettingsPreferences.js",
+      "FE/src/index.css",
+      "FE/src/layouts/CtsvLayout.jsx",
+      "FE/src/pages/admin/AdminPartnerApprovals.jsx",
+      "FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "FE/src/pages/AdminDashboard.jsx",
+      "FE/src/pages/AnnouncementDetail.jsx",
+      "FE/src/pages/Announcements.jsx",
+      "FE/src/pages/ClubDetail.jsx",
+      "FE/src/pages/Clubs.jsx",
+      "FE/src/pages/CreateEvent.jsx",
+      "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
+      "FE/src/pages/ctsv/CtsvCalendar.jsx",
+      "FE/src/pages/ctsv/CtsvDashboard.jsx",
+      "FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "FE/src/pages/ctsv/CtsvEventDetail.jsx",
+      "FE/src/pages/ctsv/CtsvEventList.jsx",
+      "FE/src/pages/ctsv/CtsvPartnerDetail.jsx",
+      "FE/src/pages/ctsv/CtsvPartnerList.jsx",
+      "FE/src/pages/ctsv/CtsvProfile.jsx",
+      "FE/src/pages/ctsv/CtsvProposalDetail.jsx",
+      "FE/src/pages/ctsv/CtsvProposalList.jsx",
+      "FE/src/pages/ctsv/CtsvReports.jsx",
+      "FE/src/pages/CtsvHome.jsx",
+      "FE/src/pages/EventDetail.jsx",
+      "FE/src/pages/EventReviews.jsx",
+      "FE/src/pages/Events.jsx",
+      "FE/src/pages/ForgotPassword.jsx",
+      "FE/src/pages/Home.jsx",
+      "FE/src/pages/Login.jsx",
+      "FE/src/pages/MyClubs.jsx",
+      "FE/src/pages/MyEvents.jsx",
+      "FE/src/pages/Profile.jsx",
+      "FE/src/pages/ResetPassword.jsx",
+      "FE/src/pages/Schedule.jsx",
+      "FE/src/pages/Settings.jsx",
+      "FE/src/pages/Signup.jsx",
+      "FE/src/pages/StaticPage.jsx",
+      "FE/src/utils/auth.js"
+    ],
+    "FE/src/assets/brand.js": [],
+    "FE/src/components/ClubDiscoveryCard.jsx": [
+      "FE/src/data/clubDiscoveryData.js"
+    ],
+    "FE/src/components/ClubUpcomingEventCard.jsx": [],
+    "FE/src/components/ctsv/BannerCropModal.jsx": [
+      "FE/src/utils/cropImage.js"
+    ],
+    "FE/src/components/ctsv/CtsvActionIcon.jsx": [],
+    "FE/src/components/ctsv/CtsvHamburgerButton.jsx": [],
+    "FE/src/components/ctsv/ctsvNavConfig.js": [],
+    "FE/src/components/ctsv/CtsvNavIcon.jsx": [],
+    "FE/src/components/ctsv/CtsvPortalFooter.jsx": [
+      "FE/src/assets/brand.js"
+    ],
+    "FE/src/components/ctsv/CtsvPortalHeader.jsx": [
+      "FE/src/assets/brand.js",
+      "FE/src/components/ctsv/CtsvHamburgerButton.jsx",
+      "FE/src/components/ctsv/CtsvProfileMenu.jsx",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/logout.js"
+    ],
+    "FE/src/components/ctsv/CtsvProfileMenu.jsx": [
+      "FE/src/constants/defaultAvatar.js"
+    ],
+    "FE/src/components/ctsv/CtsvSidebarAside.jsx": [
+      "FE/src/assets/brand.js",
+      "FE/src/components/ctsv/ctsvNavConfig.js",
+      "FE/src/components/ctsv/CtsvNavIcon.jsx",
+      "FE/src/utils/auth.js"
+    ],
+    "FE/src/components/ctsv/PartnerActionDialog.jsx": [],
+    "FE/src/components/DashboardSidebarNav.jsx": [
+      "FE/src/data/studentSidebarMenu.js"
+    ],
+    "FE/src/components/EventDiscoveryCard.jsx": [
+      "FE/src/data/eventDiscoveryData.js"
+    ],
+    "FE/src/components/profile/AvatarCropModal.jsx": [
+      "FE/src/utils/cropImage.js"
+    ],
+    "FE/src/components/ProfileSidebarMenu.jsx": [
+      "FE/src/constants/defaultAvatar.js"
+    ],
+    "FE/src/components/settings/sections/AboutSection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsRow.jsx"
+    ],
+    "FE/src/components/settings/sections/AppearanceSection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsToggle.jsx",
+      "FE/src/components/ui/AppSelect.jsx"
+    ],
+    "FE/src/components/settings/sections/NotificationsSection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsToggle.jsx"
+    ],
+    "FE/src/components/settings/sections/SecuritySection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsRow.jsx",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/components/settings/sections/SupportSection.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsLayout.jsx",
+      "FE/src/components/settings/SettingsRow.jsx"
+    ],
+    "FE/src/components/settings/settingsConfig.js": [],
+    "FE/src/components/settings/SettingsIcons.jsx": [],
+    "FE/src/components/settings/SettingsLayout.jsx": [],
+    "FE/src/components/settings/SettingsPanel.jsx": [
+      "FE/src/components/settings/sections/AboutSection.jsx",
+      "FE/src/components/settings/sections/AppearanceSection.jsx",
+      "FE/src/components/settings/sections/NotificationsSection.jsx",
+      "FE/src/components/settings/sections/SecuritySection.jsx",
+      "FE/src/components/settings/sections/SupportSection.jsx",
+      "FE/src/components/settings/SettingsSidebar.jsx",
+      "FE/src/hooks/useSettingsPreferences.js"
+    ],
+    "FE/src/components/settings/SettingsRow.jsx": [
+      "FE/src/components/settings/SettingsIcons.jsx"
+    ],
+    "FE/src/components/settings/SettingsSidebar.jsx": [
+      "FE/src/components/settings/settingsConfig.js",
+      "FE/src/components/settings/SettingsIcons.jsx"
+    ],
+    "FE/src/components/settings/SettingsToggle.jsx": [],
+    "FE/src/components/SiteFooter.jsx": [],
+    "FE/src/components/SiteHeader.jsx": [
+      "FE/src/components/ProfileSidebarMenu.jsx",
+      "FE/src/constants/defaultAvatar.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/authEvents.js",
+      "FE/src/utils/role.js"
+    ],
+    "FE/src/components/StudentDashboardLayout.jsx": [
+      "FE/src/components/DashboardSidebarNav.jsx",
+      "FE/src/constants/defaultAvatar.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js",
+      "FE/src/utils/authEvents.js",
+      "FE/src/utils/image.js",
+      "FE/src/utils/role.js"
+    ],
+    "FE/src/components/Toast.jsx": [],
+    "FE/src/components/ui/AppSelect.jsx": [],
+    "FE/src/components/ui/ConfirmDialog.jsx": [],
+    "FE/src/constants/defaultAvatar.js": [],
+    "FE/src/constants/eventCategories.js": [],
+    "FE/src/constants/eventSpeaker.js": [],
+    "FE/src/constants/eventVenues.js": [],
+    "FE/src/constants/eventWorkflow.js": [],
+    "FE/src/data/clubDetailData.js": [],
+    "FE/src/data/clubDiscoveryData.js": [],
+    "FE/src/data/eventDetailData.js": [
+      "FE/src/data/eventDiscoveryData.js",
+      "FE/src/data/speakerSeedData.js",
+      "FE/src/utils/ticketPricing.js"
+    ],
+    "FE/src/data/eventDiscoveryData.js": [
+      "FE/src/utils/ticketPricing.js"
+    ],
+    "FE/src/data/speakerSeedData.js": [],
+    "FE/src/data/studentMockData.js": [],
+    "FE/src/data/studentSidebarMenu.js": [],
+    "FE/src/hooks/useSettingsPreferences.js": [],
+    "FE/src/hooks/useUserProfile.js": [
+      "FE/src/constants/defaultAvatar.js",
+      "FE/src/utils/api.js",
+      "FE/src/utils/authEvents.js",
+      "FE/src/utils/image.js"
+    ],
+    "FE/src/index.css": [],
+    "FE/src/layouts/CtsvLayout.jsx": [
+      "FE/src/components/ctsv/ctsvNavConfig.js",
+      "FE/src/components/ctsv/CtsvPortalFooter.jsx",
+      "FE/src/components/ctsv/CtsvPortalHeader.jsx",
+      "FE/src/components/ctsv/CtsvSidebarAside.jsx",
+      "FE/src/constants/defaultAvatar.js",
+      "FE/src/utils/api.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/authEvents.js",
+      "FE/src/utils/image.js",
+      "FE/src/utils/logout.js"
+    ],
+    "FE/src/main.jsx": [
+      "FE/src/App.jsx",
+      "FE/src/index.css",
+      "FE/src/styles/dark-theme.css",
+      "FE/src/styles/tailwind.css"
+    ],
+    "FE/src/pages/admin/AdminPartnerApprovals.jsx": [
+      "FE/src/services/adminApi.js",
+      "FE/src/utils/partnerDisplay.js"
+    ],
+    "FE/src/pages/admin/AdminSchoolEventApprovals.jsx": [
+      "FE/src/constants/eventWorkflow.js",
+      "FE/src/services/adminApi.js"
+    ],
+    "FE/src/pages/AdminDashboard.jsx": [],
+    "FE/src/pages/AnnouncementDetail.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/studentMockData.js"
+    ],
+    "FE/src/pages/Announcements.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/studentMockData.js"
+    ],
+    "FE/src/pages/ClubDetail.jsx": [
+      "FE/src/components/ClubUpcomingEventCard.jsx",
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/data/clubDetailData.js",
+      "FE/src/data/clubDiscoveryData.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Clubs.jsx": [
+      "FE/src/components/ClubDiscoveryCard.jsx",
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/data/clubDiscoveryData.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/CreateEvent.jsx": [
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/constants/eventVenues.js"
+    ],
+    "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx": [
+      "FE/src/components/ctsv/BannerCropModal.jsx",
+      "FE/src/components/ctsv/CtsvActionIcon.jsx",
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/components/ui/ConfirmDialog.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/announcementDraft.js",
+      "FE/src/utils/announcementEvents.js",
+      "FE/src/utils/announcementId.js",
+      "FE/src/utils/partnerDisplay.js"
+    ],
+    "FE/src/pages/ctsv/CtsvCalendar.jsx": [
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/ctsvCalendar.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvDashboard.jsx": [
+      "FE/src/components/ctsv/CtsvNavIcon.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvEventCreate.jsx": [
+      "FE/src/components/ctsv/BannerCropModal.jsx",
+      "FE/src/components/profile/AvatarCropModal.jsx",
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/components/ui/ConfirmDialog.jsx",
+      "FE/src/constants/eventCategories.js",
+      "FE/src/constants/eventSpeaker.js",
+      "FE/src/constants/eventWorkflow.js",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/schoolEventDraft.js"
+    ],
+    "FE/src/pages/ctsv/CtsvEventDetail.jsx": [
+      "FE/src/constants/eventSpeaker.js",
+      "FE/src/constants/eventWorkflow.js",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/ctsvEventAccess.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvEventList.jsx": [
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/ctsvEventAccess.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvPartnerDetail.jsx": [
+      "FE/src/components/ctsv/PartnerActionDialog.jsx",
+      "FE/src/components/ui/ConfirmDialog.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/partnerDisplay.js"
+    ],
+    "FE/src/pages/ctsv/CtsvPartnerList.jsx": [
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/partnerDisplay.js"
+    ],
+    "FE/src/pages/ctsv/CtsvProfile.jsx": [
+      "FE/src/pages/Profile.jsx"
+    ],
+    "FE/src/pages/ctsv/CtsvProposalDetail.jsx": [
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvProposalList.jsx": [
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/ctsv/CtsvReports.jsx": [
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/CtsvHome.jsx": [
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/services/ctsvApi.js",
+      "FE/src/utils/ctsvEventAccess.js",
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/pages/EventDetail.jsx": [
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/data/eventDetailData.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js",
+      "FE/src/utils/ticketPricing.js"
+    ],
+    "FE/src/pages/EventReviews.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Events.jsx": [
+      "FE/src/components/EventDiscoveryCard.jsx",
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/data/eventDiscoveryData.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/ForgotPassword.jsx": [],
+    "FE/src/pages/Home.jsx": [
+      "FE/src/components/SiteFooter.jsx",
+      "FE/src/components/SiteHeader.jsx",
+      "FE/src/components/ui/AppSelect.jsx",
+      "FE/src/data/eventDiscoveryData.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Login.jsx": [
+      "FE/src/constants/defaultAvatar.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js",
+      "FE/src/utils/authEvents.js",
+      "FE/src/utils/image.js"
+    ],
+    "FE/src/pages/MyClubs.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/clubDiscoveryData.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/MyEvents.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Profile.jsx": [
+      "FE/src/components/DashboardSidebarNav.jsx",
+      "FE/src/components/profile/AvatarCropModal.jsx",
+      "FE/src/constants/defaultAvatar.js",
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/api.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/authEvents.js",
+      "FE/src/utils/image.js",
+      "FE/src/utils/logout.js",
+      "FE/src/utils/profileApi.js",
+      "FE/src/utils/role.js",
+      "FE/src/utils/studentId.js"
+    ],
+    "FE/src/pages/ResetPassword.jsx": [],
+    "FE/src/pages/Schedule.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/studentMockData.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/pages/Settings.jsx": [
+      "FE/src/components/settings/SettingsPanel.jsx",
+      "FE/src/components/StudentDashboardLayout.jsx"
+    ],
+    "FE/src/pages/Signup.jsx": [
+      "FE/src/assets/brand.js"
+    ],
+    "FE/src/pages/StaticPage.jsx": [],
+    "FE/src/pages/StudentDashboard.jsx": [
+      "FE/src/components/StudentDashboardLayout.jsx",
+      "FE/src/data/studentMockData.js",
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/services/adminApi.js": [
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/services/ctsvApi.js": [
+      "FE/src/utils/api.js"
+    ],
+    "FE/src/styles/dark-theme.css": [],
+    "FE/src/styles/tailwind.css": [],
+    "FE/src/utils/announcementDraft.js": [],
+    "FE/src/utils/announcementEvents.js": [],
+    "FE/src/utils/announcementId.js": [],
+    "FE/src/utils/api.js": [],
+    "FE/src/utils/auth.js": [],
+    "FE/src/utils/authEvents.js": [],
+    "FE/src/utils/cropImage.js": [],
+    "FE/src/utils/ctsvCalendar.js": [],
+    "FE/src/utils/ctsvEventAccess.js": [
+      "FE/src/utils/eventStatus.js"
+    ],
+    "FE/src/utils/eventStatus.js": [],
+    "FE/src/utils/image.js": [],
+    "FE/src/utils/logout.js": [
+      "FE/src/hooks/useUserProfile.js",
+      "FE/src/utils/auth.js",
+      "FE/src/utils/authEvents.js"
+    ],
+    "FE/src/utils/partnerDisplay.js": [],
+    "FE/src/utils/password.js": [],
+    "FE/src/utils/profileApi.js": [
+      "FE/src/utils/api.js",
+      "FE/src/utils/image.js"
+    ],
+    "FE/src/utils/role.js": [],
+    "FE/src/utils/schoolEventDraft.js": [],
+    "FE/src/utils/studentId.js": [],
+    "FE/src/utils/ticketPricing.js": [],
+    "FE/vite.config.js": [],
+    "README.md": [],
+    "test_api.ps1": [],
+    "test_role_detection.ps1": []
+  }
+}

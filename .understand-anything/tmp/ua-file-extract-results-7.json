@@ -1,0 +1,2699 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 19,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "BE/src/models/ClubMembership.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 44,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/models/EventRegistration.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 51,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/models/EventReview.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 36,
+      "nonEmptyLines": 32,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/routes/auth.routes.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 18,
+      "nonEmptyLines": 15,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/routes/club.routes.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 41,
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/routes/event.routes.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 35,
+      "metrics": {
+        "importCount": 9,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/routes/index.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 18,
+      "nonEmptyLines": 15,
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/routes/user.routes.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 17,
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/services/auth.service.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 468,
+      "nonEmptyLines": 383,
+      "functions": [
+        {
+          "name": "sanitizeUser",
+          "startLine": 23,
+          "endLine": 23,
+          "params": [
+            "user"
+          ]
+        },
+        {
+          "name": "buildGoogleLoginUpdate",
+          "startLine": 25,
+          "endLine": 33,
+          "params": [
+            "user"
+          ]
+        },
+        {
+          "name": "createUserFromGoogle",
+          "startLine": 35,
+          "endLine": 53,
+          "params": []
+        },
+        {
+          "name": "login",
+          "startLine": 55,
+          "endLine": 83,
+          "params": []
+        },
+        {
+          "name": "signup",
+          "startLine": 85,
+          "endLine": 119,
+          "params": []
+        },
+        {
+          "name": "verifyOtp",
+          "startLine": 121,
+          "endLine": 170,
+          "params": []
+        },
+        {
+          "name": "resendOtp",
+          "startLine": 172,
+          "endLine": 190,
+          "params": []
+        },
+        {
+          "name": "forgotPassword",
+          "startLine": 192,
+          "endLine": 220,
+          "params": []
+        },
+        {
+          "name": "resetPassword",
+          "startLine": 222,
+          "endLine": 255,
+          "params": []
+        },
+        {
+          "name": "googleLogin",
+          "startLine": 257,
+          "endLine": 319,
+          "params": []
+        },
+        {
+          "name": "googleCallback",
+          "startLine": 321,
+          "endLine": 385,
+          "params": [
+            "code"
+          ]
+        },
+        {
+          "name": "getGoogleCalendarAuthUrl",
+          "startLine": 387,
+          "endLine": 418,
+          "params": [
+            "authToken"
+          ]
+        },
+        {
+          "name": "googleCalendarCallback",
+          "startLine": 420,
+          "endLine": 455,
+          "params": [
+            "code",
+            "state"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "sanitizeUser",
+          "callee": "User.sanitizeUser",
+          "lineNumber": 23
+        },
+        {
+          "caller": "buildGoogleLoginUpdate",
+          "callee": "User.hasCustomAvatar",
+          "lineNumber": 28
+        },
+        {
+          "caller": "createUserFromGoogle",
+          "callee": "User.detectRole",
+          "lineNumber": 36
+        },
+        {
+          "caller": "createUserFromGoogle",
+          "callee": "User.create",
+          "lineNumber": 38
+        },
+        {
+          "caller": "createUserFromGoogle",
+          "callee": "email.toLowerCase",
+          "lineNumber": 40
+        },
+        {
+          "caller": "login",
+          "callee": "User.findOne",
+          "lineNumber": 60
+        },
+        {
+          "caller": "login",
+          "callee": "email.trim().toLowerCase",
+          "lineNumber": 60
+        },
+        {
+          "caller": "login",
+          "callee": "email.trim",
+          "lineNumber": 60
+        },
+        {
+          "caller": "login",
+          "callee": "bcrypt.compare",
+          "lineNumber": 70
+        },
+        {
+          "caller": "login",
+          "callee": "User.syncAndPersistUserProfile",
+          "lineNumber": 76
+        },
+        {
+          "caller": "login",
+          "callee": "sanitizeUser",
+          "lineNumber": 80
+        },
+        {
+          "caller": "login",
+          "callee": "signToken",
+          "lineNumber": 81
+        },
+        {
+          "caller": "signup",
+          "callee": "fullname?.trim",
+          "lineNumber": 86
+        },
+        {
+          "caller": "signup",
+          "callee": "email.trim().toLowerCase",
+          "lineNumber": 91
+        },
+        {
+          "caller": "signup",
+          "callee": "email.trim",
+          "lineNumber": 91
+        },
+        {
+          "caller": "signup",
+          "callee": "User.findOne",
+          "lineNumber": 93
+        },
+        {
+          "caller": "signup",
+          "callee": "phone.trim",
+          "lineNumber": 97
+        },
+        {
+          "caller": "signup",
+          "callee": "User.findOne",
+          "lineNumber": 97
+        },
+        {
+          "caller": "signup",
+          "callee": "phone.trim",
+          "lineNumber": 97
+        },
+        {
+          "caller": "signup",
+          "callee": "generateOtp",
+          "lineNumber": 101
+        },
+        {
+          "caller": "signup",
+          "callee": "bcrypt.hash",
+          "lineNumber": 102
+        },
+        {
+          "caller": "signup",
+          "callee": "pendingUsers.set",
+          "lineNumber": 104
+        },
+        {
+          "caller": "signup",
+          "callee": "fullname.trim",
+          "lineNumber": 105
+        },
+        {
+          "caller": "signup",
+          "callee": "email.trim",
+          "lineNumber": 106
+        },
+        {
+          "caller": "signup",
+          "callee": "phone.trim",
+          "lineNumber": 107
+        },
+        {
+          "caller": "signup",
+          "callee": "Date.now",
+          "lineNumber": 110
+        },
+        {
+          "caller": "signup",
+          "callee": "sendOtpEmail",
+          "lineNumber": 113
+        },
+        {
+          "caller": "signup",
+          "callee": "email.trim",
+          "lineNumber": 113
+        },
+        {
+          "caller": "signup",
+          "callee": "fullname.trim",
+          "lineNumber": 113
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "email.trim().toLowerCase",
+          "lineNumber": 126
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "email.trim",
+          "lineNumber": 126
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "pendingUsers.get",
+          "lineNumber": 127
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "isExpired",
+          "lineNumber": 133
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "pendingUsers.delete",
+          "lineNumber": 134
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "otp.trim",
+          "lineNumber": 138
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "User.findOne",
+          "lineNumber": 142
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "pendingUsers.delete",
+          "lineNumber": 143
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "User.detectRole",
+          "lineNumber": 147
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "User.create",
+          "lineNumber": 149
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "pendingUsers.delete",
+          "lineNumber": 163
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "sanitizeUser",
+          "lineNumber": 167
+        },
+        {
+          "caller": "verifyOtp",
+          "callee": "signToken",
+          "lineNumber": 168
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "email.trim().toLowerCase",
+          "lineNumber": 175
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "email.trim",
+          "lineNumber": 175
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "pendingUsers.get",
+          "lineNumber": 176
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "generateOtp",
+          "lineNumber": 182
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "Date.now",
+          "lineNumber": 184
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "pendingUsers.set",
+          "lineNumber": 185
+        },
+        {
+          "caller": "resendOtp",
+          "callee": "sendOtpEmail",
+          "lineNumber": 187
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "contact.trim().toLowerCase",
+          "lineNumber": 195
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "contact.trim",
+          "lineNumber": 195
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "User.findOne",
+          "lineNumber": 196
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "generateOtp",
+          "lineNumber": 204
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "user.email.toLowerCase",
+          "lineNumber": 205
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "pendingResets.set",
+          "lineNumber": 207
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "Date.now",
+          "lineNumber": 210
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "sendResetEmail",
+          "lineNumber": 213
+        },
+        {
+          "caller": "forgotPassword",
+          "callee": "/^[0-9]+$/.test",
+          "lineNumber": 217
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "email.trim().toLowerCase",
+          "lineNumber": 227
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "email.trim",
+          "lineNumber": 227
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "pendingResets.get",
+          "lineNumber": 228
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "isExpired",
+          "lineNumber": 234
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "pendingResets.delete",
+          "lineNumber": 235
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "otp.trim",
+          "lineNumber": 239
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "User.findOne",
+          "lineNumber": 243
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "pendingResets.delete",
+          "lineNumber": 246
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "bcrypt.hash",
+          "lineNumber": 250
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "user.save",
+          "lineNumber": 251
+        },
+        {
+          "caller": "resetPassword",
+          "callee": "pendingResets.delete",
+          "lineNumber": 252
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "client.verifyIdToken",
+          "lineNumber": 267
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "ticket.getPayload",
+          "lineNumber": 271
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "email.trim().toLowerCase",
+          "lineNumber": 280
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "email.trim",
+          "lineNumber": 280
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "name.trim",
+          "lineNumber": 281
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "User.findOne",
+          "lineNumber": 290
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "googleEmail.toLowerCase",
+          "lineNumber": 290
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "User.syncAndPersistUserProfile",
+          "lineNumber": 293
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "buildGoogleLoginUpdate",
+          "lineNumber": 293
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "User.findOne",
+          "lineNumber": 297
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "googleEmail.toLowerCase",
+          "lineNumber": 297
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "sanitizeUser",
+          "lineNumber": 301
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "signToken",
+          "lineNumber": 302
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "createUserFromGoogle",
+          "lineNumber": 306
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "sanitizeUser",
+          "lineNumber": 315
+        },
+        {
+          "caller": "googleLogin",
+          "callee": "signToken",
+          "lineNumber": 316
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "console.log",
+          "lineNumber": 332
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "oauth2Client.getToken",
+          "lineNumber": 343
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "oauth2Client.setCredentials",
+          "lineNumber": 344
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "oauth2Client.verifyIdToken",
+          "lineNumber": 346
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "ticket.getPayload",
+          "lineNumber": 350
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "User.findOne",
+          "lineNumber": 357
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "email.toLowerCase",
+          "lineNumber": 357
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "User.syncAndPersistUserProfile",
+          "lineNumber": 360
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "buildGoogleLoginUpdate",
+          "lineNumber": 360
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "User.findOne",
+          "lineNumber": 364
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "email.toLowerCase",
+          "lineNumber": 364
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "createUserFromGoogle",
+          "lineNumber": 366
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "signToken",
+          "lineNumber": 374
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "encodeURIComponent",
+          "lineNumber": 375
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "encodeURIComponent",
+          "lineNumber": 375
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "encodeURIComponent",
+          "lineNumber": 375
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "User.findOne({ email: email.toLowerCase() })\r\n    .select",
+          "lineNumber": 377
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "User.findOne",
+          "lineNumber": 377
+        },
+        {
+          "caller": "googleCallback",
+          "callee": "email.toLowerCase",
+          "lineNumber": 377
+        },
+        {
+          "caller": "getGoogleCalendarAuthUrl",
+          "callee": "verifyToken",
+          "lineNumber": 394
+        },
+        {
+          "caller": "getGoogleCalendarAuthUrl",
+          "callee": "oauth2Client.generateAuthUrl",
+          "lineNumber": 410
+        },
+        {
+          "caller": "getGoogleCalendarAuthUrl",
+          "callee": "encodeURIComponent",
+          "lineNumber": 414
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "decodeURIComponent(state || '').trim().toLowerCase",
+          "lineNumber": 425
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "decodeURIComponent(state || '').trim",
+          "lineNumber": 425
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "decodeURIComponent",
+          "lineNumber": 425
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "oauth2Client.getToken",
+          "lineNumber": 439
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "User.findOne",
+          "lineNumber": 445
+        },
+        {
+          "caller": "googleCalendarCallback",
+          "callee": "User.syncAndPersistUserProfile",
+          "lineNumber": 450
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 13,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/services/calendar.service.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 100,
+      "nonEmptyLines": 85,
+      "functions": [
+        {
+          "name": "getAccessToken",
+          "startLine": 11,
+          "endLine": 16,
+          "params": [
+            "refreshToken"
+          ]
+        },
+        {
+          "name": "buildCalendarEventPayload",
+          "startLine": 18,
+          "endLine": 35,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "syncEventToGoogleCalendar",
+          "startLine": 37,
+          "endLine": 68,
+          "params": [
+            "userId",
+            "event"
+          ]
+        },
+        {
+          "name": "removeEventFromGoogleCalendar",
+          "startLine": 70,
+          "endLine": 95,
+          "params": [
+            "userId",
+            "googleCalendarEventId"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getAccessToken",
+          "callee": "client.setCredentials",
+          "lineNumber": 13
+        },
+        {
+          "caller": "getAccessToken",
+          "callee": "client.getAccessToken",
+          "lineNumber": 14
+        },
+        {
+          "caller": "buildCalendarEventPayload",
+          "callee": "[\r\n    event.description || '',\r\n    '',\r\n    '— Đăng ký qua FPT Event Platform',\r\n    event.category ? `Chủ đề: ${event.category}` : '',\r\n  ].filter(Boolean).join",
+          "lineNumber": 21
+        },
+        {
+          "caller": "buildCalendarEventPayload",
+          "callee": "[\r\n    event.description || '',\r\n    '',\r\n    '— Đăng ký qua FPT Event Platform',\r\n    event.category ? `Chủ đề: ${event.category}` : '',\r\n  ].filter",
+          "lineNumber": 21
+        },
+        {
+          "caller": "buildCalendarEventPayload",
+          "callee": "new Date(event.startDate).toISOString",
+          "lineNumber": 28
+        },
+        {
+          "caller": "buildCalendarEventPayload",
+          "callee": "new Date(event.endDate).toISOString",
+          "lineNumber": 32
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "User.findById(userId).select",
+          "lineNumber": 41
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "User.findById",
+          "lineNumber": 41
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "getAccessToken",
+          "lineNumber": 44
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "fetch",
+          "lineNumber": 47
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "JSON.stringify",
+          "lineNumber": 53
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "buildCalendarEventPayload",
+          "lineNumber": 53
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "response.text",
+          "lineNumber": 57
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "console.error",
+          "lineNumber": 58
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "response.json",
+          "lineNumber": 62
+        },
+        {
+          "caller": "syncEventToGoogleCalendar",
+          "callee": "console.error",
+          "lineNumber": 65
+        },
+        {
+          "caller": "removeEventFromGoogleCalendar",
+          "callee": "User.findById(userId).select",
+          "lineNumber": 74
+        },
+        {
+          "caller": "removeEventFromGoogleCalendar",
+          "callee": "User.findById",
+          "lineNumber": 74
+        },
+        {
+          "caller": "removeEventFromGoogleCalendar",
+          "callee": "getAccessToken",
+          "lineNumber": 77
+        },
+        {
+          "caller": "removeEventFromGoogleCalendar",
+          "callee": "fetch",
+          "lineNumber": 80
+        },
+        {
+          "caller": "removeEventFromGoogleCalendar",
+          "callee": "encodeURIComponent",
+          "lineNumber": 81
+        },
+        {
+          "caller": "removeEventFromGoogleCalendar",
+          "callee": "response.text",
+          "lineNumber": 89
+        },
+        {
+          "caller": "removeEventFromGoogleCalendar",
+          "callee": "console.error",
+          "lineNumber": 90
+        },
+        {
+          "caller": "removeEventFromGoogleCalendar",
+          "callee": "console.error",
+          "lineNumber": 93
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/services/club.service.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 394,
+      "nonEmptyLines": 318,
+      "functions": [
+        {
+          "name": "resolveClub",
+          "startLine": 7,
+          "endLine": 13,
+          "params": [
+            "idOrSlug"
+          ]
+        },
+        {
+          "name": "getFollowedClubIds",
+          "startLine": 15,
+          "endLine": 24,
+          "params": [
+            "userId"
+          ]
+        },
+        {
+          "name": "getMembershipMap",
+          "startLine": 26,
+          "endLine": 35,
+          "params": [
+            "userId"
+          ]
+        },
+        {
+          "name": "attachUserClubFlags",
+          "startLine": 37,
+          "endLine": 47,
+          "params": [
+            "clubDoc",
+            "followedSet",
+            "membershipMap"
+          ]
+        },
+        {
+          "name": "buildClubQuery",
+          "startLine": 49,
+          "endLine": 67,
+          "params": []
+        },
+        {
+          "name": "getClubs",
+          "startLine": 69,
+          "endLine": 80,
+          "params": []
+        },
+        {
+          "name": "getClubBySlug",
+          "startLine": 82,
+          "endLine": 93,
+          "params": [
+            "idOrSlug",
+            "userId"
+          ]
+        },
+        {
+          "name": "followClub",
+          "startLine": 95,
+          "endLine": 132,
+          "params": [
+            "userId",
+            "idOrSlug"
+          ]
+        },
+        {
+          "name": "unfollowClub",
+          "startLine": 134,
+          "endLine": 165,
+          "params": [
+            "userId",
+            "idOrSlug"
+          ]
+        },
+        {
+          "name": "joinClub",
+          "startLine": 167,
+          "endLine": 221,
+          "params": [
+            "userId",
+            "idOrSlug"
+          ]
+        },
+        {
+          "name": "cancelJoinClub",
+          "startLine": 223,
+          "endLine": 258,
+          "params": [
+            "userId",
+            "idOrSlug"
+          ]
+        },
+        {
+          "name": "approveMembership",
+          "startLine": 260,
+          "endLine": 289,
+          "params": [
+            "staffUserId",
+            "idOrSlug",
+            "targetUserId"
+          ]
+        },
+        {
+          "name": "formatClubForFollowList",
+          "startLine": 291,
+          "endLine": 311,
+          "params": [
+            "follow"
+          ]
+        },
+        {
+          "name": "formatClubForMembershipList",
+          "startLine": 313,
+          "endLine": 337,
+          "params": [
+            "membership"
+          ]
+        },
+        {
+          "name": "getMyClubsCounts",
+          "startLine": 339,
+          "endLine": 347,
+          "params": [
+            "userId"
+          ]
+        },
+        {
+          "name": "getMyClubs",
+          "startLine": 349,
+          "endLine": 383,
+          "params": [
+            "userId"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "resolveClub",
+          "callee": "mongoose.Types.ObjectId.isValid",
+          "lineNumber": 8
+        },
+        {
+          "caller": "resolveClub",
+          "callee": "Club.findById",
+          "lineNumber": 9
+        },
+        {
+          "caller": "resolveClub",
+          "callee": "Club.findOne",
+          "lineNumber": 12
+        },
+        {
+          "caller": "getFollowedClubIds",
+          "callee": "ClubFollow.find({\r\n    user: userId,\r\n    status: 'following',\r\n  }).select",
+          "lineNumber": 18
+        },
+        {
+          "caller": "getFollowedClubIds",
+          "callee": "ClubFollow.find",
+          "lineNumber": 18
+        },
+        {
+          "caller": "getFollowedClubIds",
+          "callee": "follows.map",
+          "lineNumber": 23
+        },
+        {
+          "caller": "getFollowedClubIds",
+          "callee": "String",
+          "lineNumber": 23
+        },
+        {
+          "caller": "getMembershipMap",
+          "callee": "ClubMembership.find({\r\n    user: userId,\r\n    status: { $in: ['pending', 'member'] },\r\n  }).select",
+          "lineNumber": 29
+        },
+        {
+          "caller": "getMembershipMap",
+          "callee": "ClubMembership.find",
+          "lineNumber": 29
+        },
+        {
+          "caller": "getMembershipMap",
+          "callee": "memberships.map",
+          "lineNumber": 34
+        },
+        {
+          "caller": "getMembershipMap",
+          "callee": "String",
+          "lineNumber": 34
+        },
+        {
+          "caller": "attachUserClubFlags",
+          "callee": "clubDoc.toObject",
+          "lineNumber": 38
+        },
+        {
+          "caller": "attachUserClubFlags",
+          "callee": "followedSet.has",
+          "lineNumber": 39
+        },
+        {
+          "caller": "attachUserClubFlags",
+          "callee": "String",
+          "lineNumber": 39
+        },
+        {
+          "caller": "attachUserClubFlags",
+          "callee": "membershipMap.get",
+          "lineNumber": 41
+        },
+        {
+          "caller": "attachUserClubFlags",
+          "callee": "String",
+          "lineNumber": 41
+        },
+        {
+          "caller": "buildClubQuery",
+          "callee": "search?.trim",
+          "lineNumber": 56
+        },
+        {
+          "caller": "buildClubQuery",
+          "callee": "search.trim",
+          "lineNumber": 57
+        },
+        {
+          "caller": "getClubs",
+          "callee": "getFollowedClubIds",
+          "lineNumber": 70
+        },
+        {
+          "caller": "getClubs",
+          "callee": "getMembershipMap",
+          "lineNumber": 71
+        },
+        {
+          "caller": "getClubs",
+          "callee": "Club.find(buildClubQuery({ category, search }))\r\n    .sort",
+          "lineNumber": 73
+        },
+        {
+          "caller": "getClubs",
+          "callee": "Club.find",
+          "lineNumber": 73
+        },
+        {
+          "caller": "getClubs",
+          "callee": "buildClubQuery",
+          "lineNumber": 73
+        },
+        {
+          "caller": "getClubs",
+          "callee": "clubs.map",
+          "lineNumber": 77
+        },
+        {
+          "caller": "getClubs",
+          "callee": "attachUserClubFlags",
+          "lineNumber": 77
+        },
+        {
+          "caller": "getClubBySlug",
+          "callee": "resolveClub",
+          "lineNumber": 83
+        },
+        {
+          "caller": "getClubBySlug",
+          "callee": "getFollowedClubIds",
+          "lineNumber": 89
+        },
+        {
+          "caller": "getClubBySlug",
+          "callee": "getMembershipMap",
+          "lineNumber": 90
+        },
+        {
+          "caller": "getClubBySlug",
+          "callee": "attachUserClubFlags",
+          "lineNumber": 92
+        },
+        {
+          "caller": "followClub",
+          "callee": "resolveClub",
+          "lineNumber": 96
+        },
+        {
+          "caller": "followClub",
+          "callee": "ClubFollow.findOne",
+          "lineNumber": 102
+        },
+        {
+          "caller": "followClub",
+          "callee": "follow.save",
+          "lineNumber": 112
+        },
+        {
+          "caller": "followClub",
+          "callee": "ClubFollow.create",
+          "lineNumber": 114
+        },
+        {
+          "caller": "followClub",
+          "callee": "Math.max",
+          "lineNumber": 121
+        },
+        {
+          "caller": "followClub",
+          "callee": "club.save",
+          "lineNumber": 122
+        },
+        {
+          "caller": "followClub",
+          "callee": "getMembershipMap",
+          "lineNumber": 124
+        },
+        {
+          "caller": "followClub",
+          "callee": "attachUserClubFlags",
+          "lineNumber": 125
+        },
+        {
+          "caller": "followClub",
+          "callee": "String",
+          "lineNumber": 125
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "resolveClub",
+          "lineNumber": 135
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "ClubFollow.findOne",
+          "lineNumber": 141
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "follow.save",
+          "lineNumber": 153
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "Math.max",
+          "lineNumber": 155
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "club.save",
+          "lineNumber": 156
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "getMembershipMap",
+          "lineNumber": 158
+        },
+        {
+          "caller": "unfollowClub",
+          "callee": "attachUserClubFlags",
+          "lineNumber": 159
+        },
+        {
+          "caller": "joinClub",
+          "callee": "resolveClub",
+          "lineNumber": 168
+        },
+        {
+          "caller": "joinClub",
+          "callee": "ClubMembership.findOne",
+          "lineNumber": 174
+        },
+        {
+          "caller": "joinClub",
+          "callee": "note?.trim",
+          "lineNumber": 192
+        },
+        {
+          "caller": "joinClub",
+          "callee": "membership.save",
+          "lineNumber": 193
+        },
+        {
+          "caller": "joinClub",
+          "callee": "ClubMembership.create",
+          "lineNumber": 195
+        },
+        {
+          "caller": "joinClub",
+          "callee": "note?.trim",
+          "lineNumber": 201
+        },
+        {
+          "caller": "joinClub",
+          "callee": "Math.max",
+          "lineNumber": 206
+        },
+        {
+          "caller": "joinClub",
+          "callee": "club.save",
+          "lineNumber": 207
+        },
+        {
+          "caller": "joinClub",
+          "callee": "getFollowedClubIds",
+          "lineNumber": 210
+        },
+        {
+          "caller": "joinClub",
+          "callee": "getMembershipMap",
+          "lineNumber": 211
+        },
+        {
+          "caller": "joinClub",
+          "callee": "attachUserClubFlags",
+          "lineNumber": 212
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "resolveClub",
+          "lineNumber": 224
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "ClubMembership.findOne",
+          "lineNumber": 230
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "membership.save",
+          "lineNumber": 243
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "Math.max",
+          "lineNumber": 246
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "club.save",
+          "lineNumber": 247
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "getFollowedClubIds",
+          "lineNumber": 250
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "getMembershipMap",
+          "lineNumber": 251
+        },
+        {
+          "caller": "cancelJoinClub",
+          "callee": "attachUserClubFlags",
+          "lineNumber": 252
+        },
+        {
+          "caller": "approveMembership",
+          "callee": "resolveClub",
+          "lineNumber": 261
+        },
+        {
+          "caller": "approveMembership",
+          "callee": "ClubMembership.findOne",
+          "lineNumber": 267
+        },
+        {
+          "caller": "approveMembership",
+          "callee": "membership.save",
+          "lineNumber": 279
+        },
+        {
+          "caller": "approveMembership",
+          "callee": "Math.max",
+          "lineNumber": 281
+        },
+        {
+          "caller": "approveMembership",
+          "callee": "club.save",
+          "lineNumber": 282
+        },
+        {
+          "caller": "getMyClubsCounts",
+          "callee": "Promise.all",
+          "lineNumber": 340
+        },
+        {
+          "caller": "getMyClubsCounts",
+          "callee": "ClubFollow.countDocuments",
+          "lineNumber": 341
+        },
+        {
+          "caller": "getMyClubsCounts",
+          "callee": "ClubMembership.countDocuments",
+          "lineNumber": 342
+        },
+        {
+          "caller": "getMyClubsCounts",
+          "callee": "ClubMembership.countDocuments",
+          "lineNumber": 343
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "getMyClubsCounts",
+          "lineNumber": 350
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "['joined', 'pending', 'following'].includes",
+          "lineNumber": 351
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "ClubFollow.find({\r\n      user: userId,\r\n      status: 'following',\r\n    })\r\n      .populate('club')\r\n      .sort",
+          "lineNumber": 354
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "ClubFollow.find({\r\n      user: userId,\r\n      status: 'following',\r\n    })\r\n      .populate",
+          "lineNumber": 354
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "ClubFollow.find",
+          "lineNumber": 354
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "follows.map(formatClubForFollowList).filter",
+          "lineNumber": 364
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "follows.map",
+          "lineNumber": 364
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "ClubMembership.find({\r\n    user: userId,\r\n    status,\r\n  })\r\n    .populate('club')\r\n    .sort",
+          "lineNumber": 371
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "ClubMembership.find({\r\n    user: userId,\r\n    status,\r\n  })\r\n    .populate",
+          "lineNumber": 371
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "ClubMembership.find",
+          "lineNumber": 371
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "memberships.map(formatClubForMembershipList).filter",
+          "lineNumber": 381
+        },
+        {
+          "caller": "getMyClubs",
+          "callee": "memberships.map",
+          "lineNumber": 381
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 16,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/services/email.service.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 177,
+      "nonEmptyLines": 159,
+      "functions": [
+        {
+          "name": "getTransporter",
+          "startLine": 8,
+          "endLine": 33,
+          "params": []
+        },
+        {
+          "name": "buildOtpDigitBoxes",
+          "startLine": 35,
+          "endLine": 41,
+          "params": [
+            "otp"
+          ]
+        },
+        {
+          "name": "buildEmailShell",
+          "startLine": 43,
+          "endLine": 76,
+          "params": []
+        },
+        {
+          "name": "writeDevOtp",
+          "startLine": 78,
+          "endLine": 86,
+          "params": [
+            "otp"
+          ]
+        },
+        {
+          "name": "sendMail",
+          "startLine": 88,
+          "endLine": 107,
+          "params": []
+        },
+        {
+          "name": "sendOtpEmail",
+          "startLine": 109,
+          "endLine": 137,
+          "params": [
+            "email",
+            "fullname",
+            "otp"
+          ]
+        },
+        {
+          "name": "sendResetEmail",
+          "startLine": 139,
+          "endLine": 175,
+          "params": [
+            "email",
+            "fullname",
+            "otp"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getTransporter",
+          "callee": "nodemailer.createTransport",
+          "lineNumber": 10
+        },
+        {
+          "caller": "getTransporter",
+          "callee": "console.log",
+          "lineNumber": 20
+        },
+        {
+          "caller": "getTransporter",
+          "callee": "nodemailer.createTestAccount",
+          "lineNumber": 21
+        },
+        {
+          "caller": "getTransporter",
+          "callee": "nodemailer.createTransport",
+          "lineNumber": 24
+        },
+        {
+          "caller": "buildOtpDigitBoxes",
+          "callee": "otp.split('').map((digit) =>\r\n    `<td width=\"44\" height=\"52\" align=\"center\" valign=\"middle\" style=\"background-color:#faf8f6;border:1px solid #e0c0b2;border-radius:8px;font-size:24px;font-weight:600;color:#1e293b;font-family:Consolas,'Courier New',monospace;\">${digit}</td>`\r\n  ).join",
+          "lineNumber": 37
+        },
+        {
+          "caller": "buildOtpDigitBoxes",
+          "callee": "otp.split('').map",
+          "lineNumber": 37
+        },
+        {
+          "caller": "buildOtpDigitBoxes",
+          "callee": "otp.split",
+          "lineNumber": 37
+        },
+        {
+          "caller": "writeDevOtp",
+          "callee": "path.join",
+          "lineNumber": 80
+        },
+        {
+          "caller": "writeDevOtp",
+          "callee": "fs.existsSync",
+          "lineNumber": 81
+        },
+        {
+          "caller": "writeDevOtp",
+          "callee": "fs.mkdirSync",
+          "lineNumber": 81
+        },
+        {
+          "caller": "writeDevOtp",
+          "callee": "fs.writeFileSync",
+          "lineNumber": 82
+        },
+        {
+          "caller": "writeDevOtp",
+          "callee": "path.join",
+          "lineNumber": 82
+        },
+        {
+          "caller": "writeDevOtp",
+          "callee": "console.error",
+          "lineNumber": 84
+        },
+        {
+          "caller": "sendMail",
+          "callee": "getTransporter",
+          "lineNumber": 89
+        },
+        {
+          "caller": "sendMail",
+          "callee": "transporter.sendMail",
+          "lineNumber": 92
+        },
+        {
+          "caller": "sendMail",
+          "callee": "console.log",
+          "lineNumber": 100
+        },
+        {
+          "caller": "sendMail",
+          "callee": "console.log",
+          "lineNumber": 101
+        },
+        {
+          "caller": "sendMail",
+          "callee": "console.log",
+          "lineNumber": 102
+        },
+        {
+          "caller": "sendMail",
+          "callee": "nodemailer.getTestMessageUrl",
+          "lineNumber": 102
+        },
+        {
+          "caller": "sendMail",
+          "callee": "console.log",
+          "lineNumber": 103
+        },
+        {
+          "caller": "sendOtpEmail",
+          "callee": "writeDevOtp",
+          "lineNumber": 110
+        },
+        {
+          "caller": "sendOtpEmail",
+          "callee": "buildOtpDigitBoxes",
+          "lineNumber": 112
+        },
+        {
+          "caller": "sendOtpEmail",
+          "callee": "buildEmailShell",
+          "lineNumber": 113
+        },
+        {
+          "caller": "sendOtpEmail",
+          "callee": "sendMail",
+          "lineNumber": 132
+        },
+        {
+          "caller": "sendResetEmail",
+          "callee": "writeDevOtp",
+          "lineNumber": 140
+        },
+        {
+          "caller": "sendResetEmail",
+          "callee": "encodeURIComponent",
+          "lineNumber": 142
+        },
+        {
+          "caller": "sendResetEmail",
+          "callee": "buildOtpDigitBoxes",
+          "lineNumber": 143
+        },
+        {
+          "caller": "sendResetEmail",
+          "callee": "buildEmailShell",
+          "lineNumber": 144
+        },
+        {
+          "caller": "sendResetEmail",
+          "callee": "sendMail",
+          "lineNumber": 170
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/services/event.service.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 135,
+      "nonEmptyLines": 112,
+      "functions": [
+        {
+          "name": "createEvent",
+          "startLine": 7,
+          "endLine": 51,
+          "params": [
+            "user",
+            "body"
+          ]
+        },
+        {
+          "name": "getPendingEvents",
+          "startLine": 53,
+          "endLine": 59,
+          "params": []
+        },
+        {
+          "name": "updateEventStatus",
+          "startLine": 61,
+          "endLine": 83,
+          "params": [
+            "eventId"
+          ]
+        },
+        {
+          "name": "getApprovedEvents",
+          "startLine": 85,
+          "endLine": 108,
+          "params": []
+        },
+        {
+          "name": "getEventById",
+          "startLine": 110,
+          "endLine": 127,
+          "params": [
+            "eventId"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "createEvent",
+          "callee": "isValidEventVenue",
+          "lineNumber": 24
+        },
+        {
+          "caller": "createEvent",
+          "callee": "Event.create",
+          "lineNumber": 31
+        },
+        {
+          "caller": "createEvent",
+          "callee": "Math.max",
+          "lineNumber": 40
+        },
+        {
+          "caller": "createEvent",
+          "callee": "Number",
+          "lineNumber": 40
+        },
+        {
+          "caller": "getPendingEvents",
+          "callee": "Event.find({ status: 'pending' })\r\n    .populate('createdBy', 'fullname email studentId')\r\n    .sort",
+          "lineNumber": 54
+        },
+        {
+          "caller": "getPendingEvents",
+          "callee": "Event.find({ status: 'pending' })\r\n    .populate",
+          "lineNumber": 54
+        },
+        {
+          "caller": "getPendingEvents",
+          "callee": "Event.find",
+          "lineNumber": 54
+        },
+        {
+          "caller": "updateEventStatus",
+          "callee": "['approved', 'rejected'].includes",
+          "lineNumber": 62
+        },
+        {
+          "caller": "updateEventStatus",
+          "callee": "Event.findById",
+          "lineNumber": 66
+        },
+        {
+          "caller": "updateEventStatus",
+          "callee": "event.save",
+          "lineNumber": 77
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "Event.find(query)\r\n    .populate('createdBy', 'fullname email')\r\n    .sort",
+          "lineNumber": 91
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "Event.find(query)\r\n    .populate",
+          "lineNumber": 91
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "Event.find",
+          "lineNumber": 91
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "getRegisteredEventIds",
+          "lineNumber": 97
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "events.map",
+          "lineNumber": 101
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "event.toObject",
+          "lineNumber": 102
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "registeredSet.has",
+          "lineNumber": 103
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "String",
+          "lineNumber": 103
+        },
+        {
+          "caller": "getApprovedEvents",
+          "callee": "enrichEventWithPricing",
+          "lineNumber": 104
+        },
+        {
+          "caller": "getEventById",
+          "callee": "Event.findOne({ _id: eventId, status: 'approved' })\r\n    .populate",
+          "lineNumber": 111
+        },
+        {
+          "caller": "getEventById",
+          "callee": "Event.findOne",
+          "lineNumber": 111
+        },
+        {
+          "caller": "getEventById",
+          "callee": "event.toObject",
+          "lineNumber": 118
+        },
+        {
+          "caller": "getEventById",
+          "callee": "getRegisteredEventIds",
+          "lineNumber": 120
+        },
+        {
+          "caller": "getEventById",
+          "callee": "ids.includes",
+          "lineNumber": 121
+        },
+        {
+          "caller": "getEventById",
+          "callee": "String",
+          "lineNumber": 121
+        },
+        {
+          "caller": "getEventById",
+          "callee": "enrichEventWithPricing",
+          "lineNumber": 126
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 0,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/services/registration.service.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 214,
+      "nonEmptyLines": 181,
+      "functions": [
+        {
+          "name": "formatEventForMyEvents",
+          "startLine": 16,
+          "endLine": 48,
+          "params": [
+            "registration"
+          ]
+        },
+        {
+          "name": "assertEventRegisterable",
+          "startLine": 50,
+          "endLine": 66,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "registerForEvent",
+          "startLine": 68,
+          "endLine": 135,
+          "params": [
+            "user",
+            "eventId"
+          ]
+        },
+        {
+          "name": "cancelRegistration",
+          "startLine": 137,
+          "endLine": 164,
+          "params": [
+            "userId",
+            "eventId"
+          ]
+        },
+        {
+          "name": "getRegisteredEventIds",
+          "startLine": 166,
+          "endLine": 173,
+          "params": [
+            "userId"
+          ]
+        },
+        {
+          "name": "getMyEvents",
+          "startLine": 175,
+          "endLine": 207,
+          "params": [
+            "userId"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatEventForMyEvents",
+          "callee": "Number.isNaN",
+          "lineNumber": 21
+        },
+        {
+          "caller": "formatEventForMyEvents",
+          "callee": "start.getTime",
+          "lineNumber": 21
+        },
+        {
+          "caller": "formatEventForMyEvents",
+          "callee": "start.toLocaleDateString",
+          "lineNumber": 23
+        },
+        {
+          "caller": "formatEventForMyEvents",
+          "callee": "start.toLocaleTimeString",
+          "lineNumber": 23
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "Event.findById",
+          "lineNumber": 69
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "assertEventRegisterable",
+          "lineNumber": 70
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "getListPrice",
+          "lineNumber": 72
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "calculateTicketAmount",
+          "lineNumber": 73
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "hasStudentTicketPrivilege",
+          "lineNumber": 74
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "EventRegistration.findOne",
+          "lineNumber": 76
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "Object.assign",
+          "lineNumber": 92
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "registration.save",
+          "lineNumber": 93
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "EventRegistration.create",
+          "lineNumber": 95
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "Math.min",
+          "lineNumber": 103
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "event.save",
+          "lineNumber": 104
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "syncEventToGoogleCalendar",
+          "lineNumber": 106
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "registration.save",
+          "lineNumber": 109
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "EventRegistration.findById(registration._id)\r\n    .populate",
+          "lineNumber": 112
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "EventRegistration.findById",
+          "lineNumber": 112
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "formatVnd",
+          "lineNumber": 119
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "registration.event.toObject",
+          "lineNumber": 123
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "formatEventForMyEvents",
+          "lineNumber": 128
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "enrichEventWithPricing",
+          "lineNumber": 129
+        },
+        {
+          "caller": "registerForEvent",
+          "callee": "Boolean",
+          "lineNumber": 130
+        },
+        {
+          "caller": "cancelRegistration",
+          "callee": "EventRegistration.findOne",
+          "lineNumber": 138
+        },
+        {
+          "caller": "cancelRegistration",
+          "callee": "registration.save",
+          "lineNumber": 153
+        },
+        {
+          "caller": "cancelRegistration",
+          "callee": "removeEventFromGoogleCalendar",
+          "lineNumber": 155
+        },
+        {
+          "caller": "cancelRegistration",
+          "callee": "Event.findById",
+          "lineNumber": 157
+        },
+        {
+          "caller": "cancelRegistration",
+          "callee": "Math.max",
+          "lineNumber": 159
+        },
+        {
+          "caller": "cancelRegistration",
+          "callee": "event.save",
+          "lineNumber": 160
+        },
+        {
+          "caller": "getRegisteredEventIds",
+          "callee": "EventRegistration.find({\r\n    user: userId,\r\n    status: 'registered',\r\n  }).select",
+          "lineNumber": 167
+        },
+        {
+          "caller": "getRegisteredEventIds",
+          "callee": "EventRegistration.find",
+          "lineNumber": 167
+        },
+        {
+          "caller": "getRegisteredEventIds",
+          "callee": "registrations.map",
+          "lineNumber": 172
+        },
+        {
+          "caller": "getRegisteredEventIds",
+          "callee": "String",
+          "lineNumber": 172
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "EventRegistration.find({ user: userId })\r\n    .populate('event')\r\n    .sort",
+          "lineNumber": 178
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "EventRegistration.find({ user: userId })\r\n    .populate",
+          "lineNumber": 178
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "EventRegistration.find",
+          "lineNumber": 178
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "registrations\r\n    .map(formatEventForMyEvents)\r\n    .filter",
+          "lineNumber": 182
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "registrations\r\n    .map",
+          "lineNumber": 182
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "mapped.filter",
+          "lineNumber": 187
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "mapped.filter",
+          "lineNumber": 192
+        },
+        {
+          "caller": "getMyEvents",
+          "callee": "mapped.filter",
+          "lineNumber": 202
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 0,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/services/review.service.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 164,
+      "nonEmptyLines": 134,
+      "functions": [
+        {
+          "name": "formatEventDate",
+          "startLine": 7,
+          "endLine": 15,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "formatPendingItem",
+          "startLine": 17,
+          "endLine": 30,
+          "params": [
+            "registration"
+          ]
+        },
+        {
+          "name": "formatCompletedItem",
+          "startLine": 32,
+          "endLine": 47,
+          "params": [
+            "review"
+          ]
+        },
+        {
+          "name": "isEligibleForReview",
+          "startLine": 49,
+          "endLine": 58,
+          "params": [
+            "registration"
+          ]
+        },
+        {
+          "name": "updateEventRatingStats",
+          "startLine": 60,
+          "endLine": 79,
+          "params": [
+            "eventId"
+          ]
+        },
+        {
+          "name": "getEventReviews",
+          "startLine": 81,
+          "endLine": 116,
+          "params": [
+            "userId"
+          ]
+        },
+        {
+          "name": "submitReview",
+          "startLine": 118,
+          "endLine": 158,
+          "params": [
+            "userId",
+            "eventId"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "formatEventDate",
+          "callee": "Number.isNaN",
+          "lineNumber": 9
+        },
+        {
+          "caller": "formatEventDate",
+          "callee": "start.getTime",
+          "lineNumber": 9
+        },
+        {
+          "caller": "formatEventDate",
+          "callee": "start.toLocaleDateString",
+          "lineNumber": 10
+        },
+        {
+          "caller": "formatPendingItem",
+          "callee": "String",
+          "lineNumber": 22
+        },
+        {
+          "caller": "formatPendingItem",
+          "callee": "String",
+          "lineNumber": 23
+        },
+        {
+          "caller": "formatPendingItem",
+          "callee": "String",
+          "lineNumber": 24
+        },
+        {
+          "caller": "formatPendingItem",
+          "callee": "formatEventDate",
+          "lineNumber": 26
+        },
+        {
+          "caller": "formatCompletedItem",
+          "callee": "String",
+          "lineNumber": 37
+        },
+        {
+          "caller": "formatCompletedItem",
+          "callee": "String",
+          "lineNumber": 38
+        },
+        {
+          "caller": "formatCompletedItem",
+          "callee": "formatEventDate",
+          "lineNumber": 40
+        },
+        {
+          "caller": "isEligibleForReview",
+          "callee": "Number.isNaN",
+          "lineNumber": 55
+        },
+        {
+          "caller": "isEligibleForReview",
+          "callee": "end.getTime",
+          "lineNumber": 55
+        },
+        {
+          "caller": "updateEventRatingStats",
+          "callee": "EventReview.aggregate",
+          "lineNumber": 61
+        },
+        {
+          "caller": "updateEventRatingStats",
+          "callee": "String",
+          "lineNumber": 62
+        },
+        {
+          "caller": "updateEventRatingStats",
+          "callee": "Event.findByIdAndUpdate",
+          "lineNumber": 75
+        },
+        {
+          "caller": "updateEventRatingStats",
+          "callee": "Math.round",
+          "lineNumber": 76
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "EventRegistration.find({ user: userId })\r\n    .populate('event')\r\n    .sort",
+          "lineNumber": 84
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "EventRegistration.find({ user: userId })\r\n    .populate",
+          "lineNumber": 84
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "EventRegistration.find",
+          "lineNumber": 84
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "registrations.filter",
+          "lineNumber": 88
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "isEligibleForReview",
+          "lineNumber": 88
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "eligible.map",
+          "lineNumber": 89
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "EventReview.find({\r\n    user: userId,\r\n    event: { $in: eligibleEventIds },\r\n  }).select",
+          "lineNumber": 91
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "EventReview.find",
+          "lineNumber": 91
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "existingReviews.map",
+          "lineNumber": 96
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "String",
+          "lineNumber": 96
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "eligible\r\n    .filter((r) => !reviewedEventIds.has(String(r.event._id)))\r\n    .map(formatPendingItem)\r\n    .filter",
+          "lineNumber": 98
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "eligible\r\n    .filter((r) => !reviewedEventIds.has(String(r.event._id)))\r\n    .map",
+          "lineNumber": 98
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "eligible\r\n    .filter",
+          "lineNumber": 98
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "reviewedEventIds.has",
+          "lineNumber": 99
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "String",
+          "lineNumber": 99
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "EventReview.find({ user: userId })\r\n    .populate('event')\r\n    .sort",
+          "lineNumber": 103
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "EventReview.find({ user: userId })\r\n    .populate",
+          "lineNumber": 103
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "EventReview.find",
+          "lineNumber": 103
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "completedReviews.map(formatCompletedItem).filter",
+          "lineNumber": 107
+        },
+        {
+          "caller": "getEventReviews",
+          "callee": "completedReviews.map",
+          "lineNumber": 107
+        },
+        {
+          "caller": "submitReview",
+          "callee": "Number",
+          "lineNumber": 119
+        },
+        {
+          "caller": "submitReview",
+          "callee": "Number.isInteger",
+          "lineNumber": 120
+        },
+        {
+          "caller": "submitReview",
+          "callee": "EventRegistration.findOne({\r\n    user: userId,\r\n    event: eventId,\r\n  }).populate",
+          "lineNumber": 124
+        },
+        {
+          "caller": "submitReview",
+          "callee": "EventRegistration.findOne",
+          "lineNumber": 124
+        },
+        {
+          "caller": "submitReview",
+          "callee": "isEligibleForReview",
+          "lineNumber": 129
+        },
+        {
+          "caller": "submitReview",
+          "callee": "EventReview.findOne",
+          "lineNumber": 133
+        },
+        {
+          "caller": "submitReview",
+          "callee": "EventReview.create",
+          "lineNumber": 138
+        },
+        {
+          "caller": "submitReview",
+          "callee": "(comment || '').trim",
+          "lineNumber": 142
+        },
+        {
+          "caller": "submitReview",
+          "callee": "registration.save",
+          "lineNumber": 147
+        },
+        {
+          "caller": "submitReview",
+          "callee": "updateEventRatingStats",
+          "lineNumber": 150
+        },
+        {
+          "caller": "submitReview",
+          "callee": "EventReview.findById(review._id).populate",
+          "lineNumber": 152
+        },
+        {
+          "caller": "submitReview",
+          "callee": "EventReview.findById",
+          "lineNumber": 152
+        },
+        {
+          "caller": "submitReview",
+          "callee": "formatCompletedItem",
+          "lineNumber": 156
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/utils/AppError.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 9,
+      "nonEmptyLines": 8,
+      "classes": [
+        {
+          "name": "AppError",
+          "startLine": 1,
+          "endLine": 7,
+          "methods": [
+            "constructor"
+          ],
+          "properties": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "constructor",
+          "callee": "super",
+          "lineNumber": 3
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "BE/src/utils/asyncHandler.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 5,
+      "nonEmptyLines": 4,
+      "functions": [
+        {
+          "name": "asyncHandler",
+          "startLine": 1,
+          "endLine": 3,
+          "params": [
+            "fn"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "asyncHandler",
+          "callee": "Promise.resolve(fn(req, res, next)).catch",
+          "lineNumber": 2
+        },
+        {
+          "caller": "asyncHandler",
+          "callee": "Promise.resolve",
+          "lineNumber": 2
+        },
+        {
+          "caller": "asyncHandler",
+          "callee": "fn",
+          "lineNumber": 2
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/utils/jwt.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "signToken",
+          "startLine": 6,
+          "endLine": 13,
+          "params": [
+            "user"
+          ]
+        },
+        {
+          "name": "verifyToken",
+          "startLine": 15,
+          "endLine": 15,
+          "params": [
+            "token"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "signToken",
+          "callee": "jwt.sign",
+          "lineNumber": 8
+        },
+        {
+          "caller": "signToken",
+          "callee": "email.trim().toLowerCase",
+          "lineNumber": 9
+        },
+        {
+          "caller": "signToken",
+          "callee": "email.trim",
+          "lineNumber": 9
+        },
+        {
+          "caller": "verifyToken",
+          "callee": "jwt.verify",
+          "lineNumber": 15
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "BE/src/utils/otpStore.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 13,
+      "functions": [
+        {
+          "name": "generateOtp",
+          "startLine": 7,
+          "endLine": 7,
+          "params": []
+        },
+        {
+          "name": "isExpired",
+          "startLine": 9,
+          "endLine": 9,
+          "params": [
+            "entry"
+          ]
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "generateOtp",
+          "callee": "Math.floor(100000 + Math.random() * 900000).toString",
+          "lineNumber": 7
+        },
+        {
+          "caller": "generateOtp",
+          "callee": "Math.floor",
+          "lineNumber": 7
+        },
+        {
+          "caller": "generateOtp",
+          "callee": "Math.random",
+          "lineNumber": 7
+        },
+        {
+          "caller": "isExpired",
+          "callee": "Date.now",
+          "lineNumber": 9
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

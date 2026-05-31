@@ -3,13 +3,16 @@
  *
  * Chạy:
  *   node seed-club.js
- *   node seed-club.js <email> <password> [fullname]
+ *   node seed-club.js <email> <password> [fullname] [clubSlug]
+ *
+ * Hoặc biến môi trường: CLUB_EMAIL, CLUB_PASSWORD, CLUB_FULLNAME, CLUB_SLUG
  */
 require('dotenv').config();
 const bcrypt = require('bcrypt');
 const connectDB = require('./src/config/db');
 const User = require('./src/models/User');
 const SchoolMember = require('./src/models/SchoolMember');
+const Club = require('./src/models/Club');
 
 const email = (
   process.argv[2]
@@ -19,6 +22,7 @@ const email = (
 
 const password = process.argv[3] || process.env.CLUB_PASSWORD || 'TestPass123!';
 const fullname = process.argv[4] || process.env.CLUB_FULLNAME || 'Nguyễn Văn Tuân';
+const clubSlug = process.argv[5] || process.env.CLUB_SLUG || 'fu-dever';
 
 const seedClubManager = async () => {
   await connectDB();
@@ -30,21 +34,23 @@ const seedClubManager = async () => {
   if (member) {
     member.role = role;
     await member.save();
-    console.log('Đã cập nhật SchoolMember → club_manager');
+    console.log('Đã cập nhật SchoolMember → role: club_manager');
   } else {
     await SchoolMember.create({ email, role, studentId: '' });
-    console.log('Đã thêm SchoolMember whitelist.');
+    console.log('Đã thêm email vào SchoolMember whitelist.');
   }
 
   let user = await User.findOne({ email });
   if (user) {
     user.role = role;
     user.fullname = fullname;
-    user.passwordHash = passwordHash;
-    user.authProvider = 'local';
     user.campus = user.campus || 'FPT University Da Nang';
+    if (password) {
+      user.passwordHash = passwordHash;
+      user.authProvider = 'local';
+    }
     await user.save();
-    console.log('Đã cập nhật user → club_manager + mật khẩu local');
+    console.log('Đã cập nhật user hiện có → role: club_manager');
   } else {
     user = await User.create({
       fullname,
@@ -57,7 +63,14 @@ const seedClubManager = async () => {
       campus: 'FPT University Da Nang',
       studentId: '',
     });
-    console.log('Đã tạo user club_manager mới.');
+    console.log('Đã tạo tài khoản quản lý CLB mới.');
+  }
+
+  const club = await Club.findOne({ slug: clubSlug });
+  if (club) {
+    console.log(`CLB liên kết: ${club.name} (${club.slug})`);
+  } else {
+    console.log(`⚠ Không tìm thấy CLB slug "${clubSlug}". Chạy \`node seed-clubs.js\` nếu cần dữ liệu CLB.`);
   }
 
   console.log('====================================');
@@ -65,6 +78,7 @@ const seedClubManager = async () => {
   console.log('Mật khẩu: ', password);
   console.log('Role:     ', user.role);
   console.log('Fullname: ', user.fullname);
+  console.log('CLB slug: ', clubSlug);
   console.log('====================================');
   console.log('Đăng nhập FE → /quan-ly-clb');
 

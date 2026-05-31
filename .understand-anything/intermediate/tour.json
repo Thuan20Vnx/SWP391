@@ -1,0 +1,83 @@
+[
+  {
+    "order": 1,
+    "title": "Tổng quan dự án",
+    "description": "Bắt đầu với README.md để nắm bối cảnh dự án SWP391 F-Events — nền tảng quản lý sự kiện cộng đồng sinh viên FPT. Dù tài liệu gốc còn tối giản, đây là điểm xuất phát trước khi đi sâu vào mã nguồn frontend React và backend Express.",
+    "nodeIds": ["document:README.md"]
+  },
+  {
+    "order": 2,
+    "title": "Điểm vào Frontend",
+    "description": "Khung HTML gốc nạp module main.jsx vào #root, khởi tạo SPA FPT Students Community với meta SEO tiếng Việt. File main.jsx mount React DOM, import stylesheet toàn cục và render ứng dụng — đây là cửa ngõ client-side trước khi Router định tuyến các trang CTSV và Admin.",
+    "nodeIds": ["file:FE/index.html", "file:FE/src/main.jsx"]
+  },
+  {
+    "order": 3,
+    "title": "Định tuyến và phân quyền",
+    "description": "App.jsx là thành phần gốc React Router: định nghĩa toàn bộ tuyến đường, bảo vệ phiên đăng nhập theo vai trò và hiển thị toast toàn cục. Các route /ctsv/* và /admin/* cho luồng sự kiện trường được khai báo tại đây, quyết định ai được truy cập form tạo sự kiện, trang duyệt hay xuất bản.",
+    "nodeIds": ["file:FE/src/App.jsx"],
+    "languageLesson": "React Router 7 dùng nested routes và route guards qua wrapper component để kiểm tra JWT và role trước khi render trang con."
+  },
+  {
+    "order": 4,
+    "title": "Khởi động Backend",
+    "description": "server.js là điểm khởi động Express: kết nối MongoDB rồi lắng nghe cổng từ biến môi trường. app.js cấu hình middleware CORS, JSON body, mount các route API và xử lý lỗi — mọi request từ ctsvApi.js và adminApi.js đều đi qua pipeline này.",
+    "nodeIds": ["file:BE/server.js", "file:BE/src/app.js"]
+  },
+  {
+    "order": 5,
+    "title": "Workflow trạng thái sự kiện",
+    "description": "Hai file eventWorkflow.js ở BE và FE định nghĩa chung máy trạng thái sự kiện cấp trường: nháp → chờ admin duyệt → đã duyệt → xuất bản. Các helper như canCtsvPublishSchoolEvent và isSchoolEventPendingAdmin đồng bộ quy tắc nghiệp vụ giữa form CTSV, trang admin và API backend.",
+    "nodeIds": ["file:BE/src/constants/eventWorkflow.js", "file:FE/src/constants/eventWorkflow.js"],
+    "languageLesson": "Pattern 'Code First mirror': BE và FE giữ cùng hằng số trạng thái để UI và API không lệch nhau khi kiểm tra điều kiện chuyển trạng thái."
+  },
+  {
+    "order": 6,
+    "title": "Mô hình dữ liệu Event",
+    "description": "Schema Mongoose Event.js là trung tâm dữ liệu cho toàn bộ luồng CTSV: lưu category, venue, workflow status, diễn giả và loại vé. Validation tại model đảm bảo sự kiện chỉ chuyển trạng thái hợp lệ theo quy tắc đã định nghĩa ở bước trước.",
+    "nodeIds": ["file:BE/src/models/Event.js"]
+  },
+  {
+    "order": 7,
+    "title": "Layout portal CTSV",
+    "description": "CtsvLayout.jsx bọc toàn bộ trang portal CTSV: xác thực vai trò cán bộ, render sidebar điều hướng, header/footer và vùng nội dung con. Mọi bước tạo sự kiện, duyệt danh sách và xuất bản thông báo đều nằm trong khung layout này.",
+    "nodeIds": ["file:FE/src/layouts/CtsvLayout.jsx"]
+  },
+  {
+    "order": 8,
+    "title": "Tạo sự kiện trường",
+    "description": "CtsvEventCreate.jsx là form phức tạp cho cán bộ CTSV nhập thông tin sự kiện: vé, diễn giả, banner và lưu nháp. Tiện ích schoolEventDraft.js lưu bản nháp cục bộ để tránh mất dữ liệu khi soạn thảo — đây là bước đầu tiên trong chuỗi create → duyệt → publish.",
+    "nodeIds": ["file:FE/src/pages/ctsv/CtsvEventCreate.jsx", "file:FE/src/utils/schoolEventDraft.js"]
+  },
+  {
+    "order": 9,
+    "title": "API kết nối CTSV",
+    "description": "Lớp ctsvApi.js tập trung mọi lời gọi HTTP từ frontend CTSV sang backend, còn ctsv.routes.js xử lý route Express tương ứng cho sự kiện, thông báo, đối tác và đề xuất. Khi cán bộ gửi form tạo sự kiện, request đi từ ctsvApi → ctsv.routes → model Event với trạng thái chờ duyệt.",
+    "nodeIds": ["file:FE/src/services/ctsvApi.js", "file:BE/src/routes/ctsv.routes.js"]
+  },
+  {
+    "order": 10,
+    "title": "Logic nghiệp vụ sự kiện",
+    "description": "event.service.js triển khai logic backend: tạo đề xuất, liệt kê sự kiện pending/approved, cập nhật trạng thái duyệt hoặc từ chối. Service này là cầu nối giữa route handler và schema Event, đảm bảo chuyển trạng thái tuân thủ workflow trước khi admin hoặc CTSV thao tác tiếp.",
+    "nodeIds": ["file:BE/src/services/event.service.js"]
+  },
+  {
+    "order": 11,
+    "title": "Admin phê duyệt sự kiện",
+    "description": "Sau khi CTSV gửi sự kiện, AdminSchoolEventApprovals.jsx hiển thị danh sách chờ duyệt ICPDP; adminApi.js gọi admin.routes.js để approve hoặc reject. Đây là bước trung gian bắt buộc — sự kiện chỉ được publish khi admin chấp thuận và trạng thái chuyển sang approved.",
+    "nodeIds": ["file:FE/src/pages/admin/AdminSchoolEventApprovals.jsx", "file:FE/src/services/adminApi.js", "file:BE/src/routes/admin.routes.js"]
+  },
+  {
+    "order": 12,
+    "title": "Xuất bản thông báo",
+    "description": "Khi sự kiện đã được duyệt, CtsvAnnouncementPublish.jsx cho phép cán bộ CTSV soạn thảo, xem trước và xuất bản thông báo liên kết với sự kiện — hoàn tất chuỗi create → admin approve → publish. Trang hỗ trợ lưu nháp thông báo và kiểm tra điều kiện publish qua helper eventWorkflow.",
+    "nodeIds": ["file:FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx"]
+  },
+  {
+    "order": 13,
+    "title": "Cấu hình môi trường",
+    "description": "File .env.example liệt kê biến môi trường cần thiết để chạy backend: MongoDB, JWT secret, SMTP Gmail và Google OAuth/Calendar. Sao chép và điền giá trị phù hợp trước khi khởi động server.js — thiếu cấu hình DB hoặc JWT sẽ khiến toàn bộ luồng xác thực và lưu sự kiện không hoạt động.",
+    "nodeIds": ["config:BE/.env.example"],
+    "languageLesson": "Biến môi trường tách cấu hình nhạy cảm khỏi mã nguồn; dotenv nạp chúng vào process.env khi server khởi động ở môi trường local."
+  }
+]

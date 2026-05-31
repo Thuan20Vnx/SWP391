@@ -1,0 +1,28 @@
+{
+  "projectRoot": "c:/Users/Thuan/OneDrive/Documents/SWP391_Project/SWP391-1",
+  "batchFiles": [
+    {
+      "path": "FE/README.md",
+      "language": "markdown",
+      "sizeLines": 16,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "FE/index.html",
+      "language": "html",
+      "sizeLines": 18,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "FE/package.json",
+      "language": "json",
+      "sizeLines": 30,
+      "fileCategory": "config"
+    }
+  ],
+  "batchImportData": {
+    "FE/README.md": [],
+    "FE/index.html": [],
+    "FE/package.json": []
+  }
+}

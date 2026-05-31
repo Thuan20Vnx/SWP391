@@ -58,7 +58,12 @@ import ClubManagement from './pages/ClubManagement';
 import EventManagementDetail from './pages/EventManagementDetail';
 
 import { ToastContainer } from './components/Toast';
-import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole, isClubManagerRole } from './utils/auth';
+import PartnerLayout from './layouts/PartnerLayout';
+import PartnerHome from './pages/PartnerHome';
+import PartnerDashboard from './pages/partner/PartnerDashboard';
+import PartnerProfileSettings from './pages/partner/PartnerProfileSettings';
+import PartnerPlaceholder from './pages/partner/PartnerPlaceholder';
+import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole, isClubManagerRole, isPartnerRole } from './utils/auth';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import './index.css';
 
@@ -83,10 +88,18 @@ const IcpdpProtectedRoute = () => {
   return <Outlet />;
 };
 
+const PartnerProtectedRoute = () => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (!isPartnerRole()) return <Navigate to="/" replace />;
+  return <Outlet />;
+};
+
 const PublicHomeRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (isLoggedIn) {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
+    if (isPartnerRole()) return <Navigate to="/partner" replace />;
     if (isClubManagerRole()) return <Navigate to="/quan-ly-clb" replace />;
     if (isCtsvRole()) return <Navigate to="/ctsv" replace />;
     if (isAdminRole()) return <Navigate to="/admin" replace />;
@@ -156,13 +169,29 @@ function App() {
               <Route path="profile" element={<IcpdpProfile showToast={showToast} />} />
             </Route>
           </Route>
+
+          <Route path="/partner" element={<PartnerProtectedRoute />}>
+            <Route element={<PartnerLayout showToast={showToast} />}>
+              <Route index element={<PartnerHome showToast={showToast} />} />
+              <Route path="dashboard" element={<PartnerDashboard />} />
+              <Route path="profile" element={<PartnerProfileSettings showToast={showToast} />} />
+              <Route path="events" element={<PartnerPlaceholder pageKey="events" />} />
+              <Route path="events/:id" element={<PartnerPlaceholder pageKey="events" />} />
+              <Route path="contracts" element={<PartnerPlaceholder pageKey="contracts" />} />
+              <Route path="analytics" element={<PartnerPlaceholder pageKey="analytics" />} />
+              <Route path="proposals/create" element={<PartnerPlaceholder pageKey="proposals/create" />} />
+            </Route>
+          </Route>
+
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/login" element={<Login showToast={showToast} />} />
           <Route
             path="/profile"
             element={
               <ProtectedRoute>
-                {isCtsvRole() ? (
+                {isPartnerRole() ? (
+                  <Navigate to="/partner/profile" replace />
+                ) : isCtsvRole() ? (
                   <Navigate to="/ctsv/profile" replace />
                 ) : (
                   <Profile showToast={showToast} />
