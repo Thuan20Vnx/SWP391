@@ -8946,9 +8946,11 @@ body {
   margin-left: 0;
 }
 
-.ctsv-portal-header--with-search .header-search-box .search-input {
+.ctsv-portal-header--with-search .header-search-box .search-input,
+.partner-portal-header .header-search-box .search-input {
   height: 40px;
   font-size: 0.9375rem;
+  border-radius: 20px !important;
 }
 
 .ctsv-portal-header .profile-info-text {
