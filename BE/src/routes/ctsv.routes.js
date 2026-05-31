@@ -660,7 +660,12 @@ router.get('/partners/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
     }
     const contracts = await Contract.find({ partnerId: partner._id });
-    return res.json({ success: true, partner, contracts });
+    const PartnerEventRequest = require('../models/PartnerEventRequest');
+    const eventRequest = await PartnerEventRequest.findOne({
+      partnerId: partner._id,
+      status: { $nin: ['draft', 'cancelled', 'deleted'] }
+    }).sort({ updatedAt: -1 });
+    return res.json({ success: true, partner, contracts, eventRequest: eventRequest || null });
   } catch (error) {
     console.error('ctsv partner detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -733,6 +738,12 @@ router.patch('/partners/:id/approve', requireCtsvApprove, async (req, res) => {
     partner.ctsvApprovedAt = new Date();
     partner.rejectionReason = '';
     await partner.save();
+
+    const PartnerEventRequest = require('../models/PartnerEventRequest');
+    await PartnerEventRequest.updateMany(
+      { partnerId: partner._id, status: { $in: ['pending', 'info_requested'] } },
+      { $set: { status: 'approved' } }
+    );
     return res.json({
       success: true,
       partner,
@@ -791,6 +802,12 @@ router.patch('/partners/:id/request-info', requireCtsvApprove, async (req, res) 
     partner.supplementReason = reason;
     partner.rejectionReason = '';
     await partner.save();
+
+    const PartnerEventRequest = require('../models/PartnerEventRequest');
+    await PartnerEventRequest.updateMany(
+      { partnerId: partner._id, status: { $in: ['pending', 'approved'] } },
+      { $set: { status: 'info_requested', supplementReason: reason } }
+    );
     return res.json({ success: true, partner });
   } catch (error) {
     console.error('ctsv partner request-info:', error);
