@@ -140,3 +140,64 @@ export const ICPDP_MOCK_REPORTS = [
     reportPhase: 'ended'
   }
 ];
+
+export const ICPDP_PERFORMANCE = [
+  { name: 'Đề xuất duyệt đúng hạn', rate: 95 },
+  { name: 'CLB hoạt động tích cực', rate: 82 },
+  { name: 'Báo cáo nộp đúng hạn', rate: 75 }
+];
+
+export const ICPDP_RECENT_ACTIVITY = [
+  { id: 1, text: 'Duyệt đề xuất "Đêm nhạc Acoustic"', time: '2 giờ trước' },
+  { id: 2, text: 'Tiếp nhận báo cáo từ CLB Lập trình', time: '5 giờ trước' },
+  { id: 3, text: 'Hệ thống cập nhật lịch sự kiện tháng 6', time: '1 ngày trước' }
+];
+
+/* ── Profile & Settings Mocks ── */
+export const loadIcpdpProfile = () => {
+  try {
+    const saved = localStorage.getItem('icpdp_profile');
+    if (saved) return JSON.parse(saved);
+  } catch {
+    /* ignore */
+  }
+  return {
+    fullname: localStorage.getItem('userFullname') || 'Cán bộ IC-PDP',
+    email: 'icpdp@fpt.edu.vn',
+    department: 'Ban Công tác Đảng và Đoàn thể',
+    title: 'Cán bộ Quản lý Câu lạc bộ',
+    phone: '0988123456',
+    about: 'Phụ trách xét duyệt và quản lý các hoạt động của Câu lạc bộ sinh viên tại cơ sở.'
+  };
+};
+
+export const saveIcpdpProfile = (data) => {
+  localStorage.setItem('icpdp_profile', JSON.stringify(data));
+  if (data.fullname) localStorage.setItem('userFullname', data.fullname);
+};
+
+export const loadIcpdpNotificationPrefs = () => {
+  try {
+    const saved = localStorage.getItem('icpdp_notif_prefs');
+    if (saved) return JSON.parse(saved);
+  } catch {
+    /* ignore */
+  }
+  return {
+    proposalSubmitted: true,
+    eventApprovedByCtsv: true,
+    reportSubmitted: true,
+    systemAlerts: false
+  };
+};
+
+export const saveIcpdpNotificationPrefs = (data) => {
+  localStorage.setItem('icpdp_notif_prefs', JSON.stringify(data));
+};
+
+export const changeIcpdpPassword = (currentPassword, newPassword) =>
+  fetch(`${API_BASE}/api/user/change-password`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ currentPassword, newPassword })
+  }).then(parseJson);

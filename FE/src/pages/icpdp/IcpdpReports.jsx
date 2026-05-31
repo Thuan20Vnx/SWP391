@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpReports, ICPDP_MOCK_REPORTS } from '../../services/icpdpApi';
 import { statusClass } from '../../utils/eventStatus';

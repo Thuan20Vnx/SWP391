@@ -35,17 +35,14 @@
   color: var(--icpdp-accent) !important;
 }
 
-.icpdp-sidebar-header::after {
-  content: 'IC-PDP Portal';
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--icpdp-accent-light);
-  margin-top: 4px;
-  padding: 0 20px;
-  opacity: 0.8;
+.icpdp-sidebar-header {
+  justify-content: center;
+  padding: 12px 0 24px;
+}
+
+.icpdp-sidebar-header .ctsv-sidebar-logo {
+  height: 34px;
+  object-fit: contain;
 }
 
 /* ── Hamburger override ── */
@@ -397,4 +394,578 @@
 [data-theme="dark"] .icpdp-view-banner {
   background: rgba(242, 111, 33, 0.1);
   border-color: rgba(242, 111, 33, 0.2);
+}
+
+/* ── ICPDP Profile Menu ── */
+.icpdp-role-badge {
+  background: var(--icpdp-accent-bg);
+  color: var(--icpdp-accent);
+  border: 1px solid rgba(242, 111, 33, 0.2);
+}
+
+/* ── ICPDP Profile Settings Overrides ── */
+.icpdp-app-shell .partner-settings-nav-item.active {
+  background: var(--icpdp-accent-bg-strong);
+  color: var(--icpdp-accent-dark);
+  border-left-color: var(--icpdp-accent);
+}
+.icpdp-app-shell .partner-settings-nav-item:hover {
+  background: var(--icpdp-accent-bg);
+}
+
+.icpdp-app-shell .notif-switch input:checked + .slider {
+  background-color: var(--icpdp-accent);
+}
+
+.icpdp-app-shell .notif-switch input:focus + .slider {
+  box-shadow: 0 0 1px var(--icpdp-accent);
+}
+
+/* ── Premium background gradient (same pattern as Partner) ── */
+.icpdp-app-shell .ctsv-portal-body {
+  background: linear-gradient(180deg, #fffaf7 0%, #ffffff 200px);
+}
+.icpdp-app-shell .ctsv-portal-body:has(.hero-banner-slider) {
+  background: #ffffff;
+}
+
+/* ── Filter submit button ── */
+.icpdp-app-shell .filter-submit-btn {
+  background: var(--icpdp-accent);
+}
+.icpdp-app-shell .filter-submit-btn:hover {
+  background: var(--icpdp-accent-dark);
+}
+
+/* ── Event detail fill bar ── */
+.icpdp-app-shell .ctsv-ed-fill-progress {
+  background: var(--icpdp-gradient);
+}
+.icpdp-app-shell .ctsv-ed-ticket-card--accent {
+  border-color: var(--icpdp-accent);
+  background: var(--icpdp-accent-bg);
+}
+.icpdp-app-shell .ctsv-ed-banner {
+  border-color: rgba(242, 111, 33, 0.25);
+  background: var(--icpdp-accent-bg);
+}
+.icpdp-app-shell .ctsv-ed-banner-icon {
+  color: var(--icpdp-accent);
+}
+
+/* ── Proposal Detail — Notes Section ── */
+.icpdp-proposal-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.icpdp-proposal-note-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+.icpdp-proposal-note-card--danger {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.icpdp-proposal-note-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+.icpdp-proposal-note-card--danger .icpdp-proposal-note-label {
+  color: #ef4444;
+}
+
+.icpdp-proposal-note-card p {
+  font-size: 0.88rem;
+  color: #334155;
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* ── Action Panel polish ── */
+.icpdp-action-panel__desc {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+
+.icpdp-action-panel__buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* ── Button spinner ── */
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: icpdp-spin 0.6s linear infinite;
+  vertical-align: -2px;
+}
+
+@keyframes icpdp-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Quick-card link style ── */
+.icpdp-app-shell .ctsv-dash-quick-card:hover {
+  border-color: var(--icpdp-accent-light);
+  box-shadow: 0 6px 20px rgba(242, 111, 33, 0.08);
+}
+
+/* ── Performance section accent overrides ── */
+.icpdp-app-shell .partner-perf-ring__value {
+  color: var(--icpdp-accent);
+}
+.icpdp-app-shell .partner-perf-bar-fill {
+  background: var(--icpdp-gradient);
+}
+.icpdp-app-shell .partner-activity-dot {
+  background: var(--icpdp-accent);
+}
+
+/* ── Outline button accent ── */
+.icpdp-app-shell .ctsv-dash-btn--outline {
+  color: var(--icpdp-accent);
+  border-color: var(--icpdp-accent);
+}
+.icpdp-app-shell .ctsv-dash-btn--outline:hover {
+  background: var(--icpdp-accent-bg);
+}
+
+/* ── Footer portal accent ── */
+.icpdp-portal-footer .footer-logo-img {
+  filter: drop-shadow(0 2px 6px rgba(242, 111, 33, 0.12));
+}
+
+/* ── Dark theme: all new elements ── */
+[data-theme="dark"] .icpdp-app-shell .ctsv-portal-body {
+  background: linear-gradient(180deg, #1a1512 0%, #0f172a 200px);
+}
+
+[data-theme="dark"] .icpdp-proposal-note-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+[data-theme="dark"] .icpdp-proposal-note-card--danger {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+[data-theme="dark"] .icpdp-proposal-note-card p {
+  color: #cbd5e1;
+}
+[data-theme="dark"] .icpdp-proposal-notes {
+  border-top-color: #334155;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Settings Page — FULL PREMIUM LAYOUT
+   (Shared by IcpdpProfileSettings & PartnerProfileSettings)
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Page Header ── */
+.partner-settings-header {
+  margin-bottom: 28px;
+}
+.partner-settings-header__title h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+.partner-settings-header__title p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Two-column Layout ── */
+.partner-settings-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+@media (max-width: 768px) {
+  .partner-settings-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* ── Sidebar Navigation ── */
+.partner-settings-sidebar {
+  position: sticky;
+  top: 24px;
+}
+.partner-settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+@media (max-width: 768px) {
+  .partner-settings-nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+}
+
+.partner-settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #475569;
+  border: none;
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.partner-settings-nav-item:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+.partner-settings-nav-item.active {
+  background: rgba(242, 111, 33, 0.08);
+  color: #d95e17;
+  font-weight: 600;
+  border-left-color: #f26f21;
+}
+
+/* ── Content Panel ── */
+.partner-settings-content {
+  min-width: 0;
+}
+
+.partner-settings-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.partner-settings-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 28px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.partner-settings-panel__head h2 {
+  font-size: 1.12rem;
+  font-weight: 650;
+  color: #0f172a;
+  margin: 0;
+}
+.partner-settings-panel__head p {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin: 4px 0 0;
+}
+
+.partner-settings-panel__body {
+  padding: 24px 28px 28px;
+}
+
+/* ── Profile View (Read-only) ── */
+.partner-profile-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.profile-view-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.profile-view-row:last-child {
+  border-bottom: none;
+}
+.profile-view-row > span {
+  flex: 0 0 140px;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.profile-view-row > strong {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+.profile-view-row > p {
+  font-size: 0.88rem;
+  color: #475569;
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* ── Form Styles ── */
+.partner-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+/* ── Notification Toggles ── */
+.notif-toggle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.notif-toggle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.notif-toggle-item:last-child {
+  border-bottom: none;
+}
+.notif-toggle-item:hover {
+  background: rgba(242, 111, 33, 0.02);
+}
+
+.notif-toggle-info {
+  flex: 1;
+  min-width: 0;
+}
+.notif-toggle-info strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 3px;
+}
+.notif-toggle-info span {
+  display: block;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+/* ── Toggle Switch ── */
+.notif-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.notif-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.notif-switch .slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #cbd5e1;
+  border-radius: 26px;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+.notif-switch .slider::before {
+  content: '';
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.25s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+.notif-switch input:checked + .slider {
+  background-color: #f26f21;
+}
+.notif-switch input:checked + .slider::before {
+  transform: translateX(22px);
+}
+.notif-switch input:focus + .slider {
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Settings Page — DARK THEME
+   ═══════════════════════════════════════════════════════ */
+[data-theme="dark"] .partner-settings-header__title h1 {
+  color: #e2e8f0;
+}
+[data-theme="dark"] .partner-settings-header__title p {
+  color: #94a3b8;
+}
+[data-theme="dark"] .partner-settings-nav {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+[data-theme="dark"] .partner-settings-nav-item {
+  color: #94a3b8;
+}
+[data-theme="dark"] .partner-settings-nav-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+}
+[data-theme="dark"] .partner-settings-nav-item.active {
+  background: rgba(242, 111, 33, 0.12);
+  color: #f89e6c;
+}
+[data-theme="dark"] .partner-settings-panel {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+}
+[data-theme="dark"] .partner-settings-panel__head {
+  border-bottom-color: #334155;
+}
+[data-theme="dark"] .partner-settings-panel__head h2 {
+  color: #e2e8f0;
+}
+[data-theme="dark"] .profile-view-row {
+  border-bottom-color: #334155;
+}
+[data-theme="dark"] .profile-view-row > strong {
+  color: #e2e8f0;
+}
+[data-theme="dark"] .profile-view-row > p {
+  color: #94a3b8;
+}
+[data-theme="dark"] .form-group label {
+  color: #94a3b8;
+}
+[data-theme="dark"] .notif-toggle-item {
+  border-bottom-color: #334155;
+}
+[data-theme="dark"] .notif-toggle-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+[data-theme="dark"] .notif-toggle-info strong {
+  color: #e2e8f0;
+}
+[data-theme="dark"] .notif-toggle-info span {
+  color: #64748b;
+}
+[data-theme="dark"] .notif-switch .slider {
+  background-color: #475569;
+}
+
+/* ── Password Input with Toggle ── */
+.ctsv-password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ctsv-password-input-wrapper .ctsv-input {
+  padding-right: 40px; /* Make room for the toggle button */
+}
+
+.ctsv-password-toggle {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.ctsv-password-toggle:hover {
+  color: var(--icpdp-accent);
+  background: var(--icpdp-accent-bg);
+}
+
+.ctsv-password-toggle:focus-visible {
+  outline: 2px solid var(--icpdp-accent);
+  outline-offset: 2px;
+}
+
+[data-theme="dark"] .ctsv-password-toggle {
+  color: #64748b;
+}
+
+[data-theme="dark"] .ctsv-password-toggle:hover {
+  color: #f89e6c;
+  background: rgba(255, 255, 255, 0.04);
 }
