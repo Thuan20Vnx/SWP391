@@ -21,6 +21,13 @@ export const AdminMenuIcon = ({ type }) => {
           <rect x="3" y="13" width="8" height="8" rx="1.5" />
         </svg>
       );
+    case 'profile':
+      return (
+        <svg {...iconProps}>
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 20c1.5-3.5 4.5-5.5 7-5.5s5.5 2 7 5.5" />
+        </svg>
+      );
     case 'accounts':
       return (
         <svg {...iconProps}>
