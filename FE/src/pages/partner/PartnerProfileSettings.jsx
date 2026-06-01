@@ -306,7 +306,7 @@ const PartnerProfileSettings = ({ showToast }) => {
 
   const [sectionOpen, setSectionOpen] = useState({
 
-    company: true,
+    company: false,
 
     security: false,
 
