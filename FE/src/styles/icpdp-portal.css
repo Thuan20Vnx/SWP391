@@ -55,23 +55,7 @@
   background: var(--icpdp-accent-bg) !important;
 }
 
-/* ── Header pill override ── */
-.icpdp-pill.nav-link-ctsv-pill {
-  background: var(--icpdp-accent) !important;
-  color: #fff !important;
-  border-color: var(--icpdp-accent) !important;
-}
-.icpdp-pill.nav-link-ctsv-pill:hover {
-  background: var(--icpdp-accent-dark) !important;
-  border-color: var(--icpdp-accent-dark) !important;
-  color: #fff !important;
-}
-.icpdp-pill.nav-link-ctsv-pill.is-current {
-  background: var(--icpdp-accent-dark) !important;
-  border-color: var(--icpdp-accent-dark) !important;
-  color: #fff !important;
-  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.25) !important;
-}
+/* ── Header pill — same underline style as nav-link (see index.css) ── */
 
 /* ── Hero / Dashboard accent ── */
 /* Removed solid gradient override so the hero uses the clean default background, making orange buttons visible */.icpdp-app-shell .ctsv-dash-btn--primary,
