@@ -3817,8 +3817,8 @@ body {
   }
 
   .ctsv-portal-layout .ctsv-header-nav .nav-link-ctsv-pill {
-    margin-top: 8px;
-    align-self: flex-start;
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0ebe6;
   }
 
   .ctsv-header-nav-toggle {
@@ -8980,38 +8980,45 @@ body {
   cursor: pointer;
 }
 
-/* CTSV — highlight cam chủ đạo */
+/* Portal header — role shortcut tab (underline like nav-link, no filled pill) */
 .nav-link-ctsv-pill {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 6px 14px !important;
-  border-radius: 999px;
-  background: rgba(242, 111, 33, 0.1);
-  border: 1.5px solid var(--primary);
-  color: var(--primary) !important;
-  font-weight: 800 !important;
-  font-size: 0.78rem !important;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  box-shadow: 0 2px 8px rgba(242, 111, 33, 0.18);
-}
-
-.nav-link-ctsv-pill::after {
-  display: none !important;
+  padding: 6px 0 !important;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-nav);
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  letter-spacing: normal;
+  text-transform: none;
+  box-shadow: none;
+  position: relative;
 }
 
 .nav-link-ctsv-pill:hover {
-  background: rgba(242, 111, 33, 0.18);
-  color: var(--primary-hover) !important;
-  border-color: var(--primary-hover);
+  color: var(--primary) !important;
+  background: transparent;
+  border: none;
 }
 
 .nav-link-ctsv-pill.is-current {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(242, 111, 33, 0.4);
+  color: var(--primary) !important;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.nav-link-ctsv-pill.is-current::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary);
+  border-radius: 99px;
 }
 
 /* Hero CTSV — bo góc */
