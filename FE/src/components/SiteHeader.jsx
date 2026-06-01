@@ -8,7 +8,7 @@ import HeaderNotificationPanel from './HeaderNotificationPanel';
 import { getRoleLabel } from '../utils/role';
 import useUserProfile, { clearUserProfileCache } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
-import { getUserRole, isAdminRole, normalizeRole, isClubManagerRole } from '../utils/auth';
+import { getUserRole, isAdminRole, normalizeRole, isClubManagerRole, clearSession } from '../utils/auth';
 import '../styles/admin-menu.css';
 
 const BASE_NAV_ITEMS = [
@@ -110,9 +110,7 @@ const SiteHeader = ({
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('authToken');
+    clearSession();
     clearUserProfileCache();
     dispatchAuthChanged();
     setProfilePopupOpen(false);

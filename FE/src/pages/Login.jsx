@@ -76,19 +76,6 @@ const Login = ({ showToast }) => {
         })
         .catch(() => {});
 
-      // Save this real account to googleAccounts in localStorage so it appears in the chooser list next time
-      const saved = localStorage.getItem('googleAccounts');
-      let accounts = saved ? JSON.parse(saved) : [];
-      if (!accounts.some(acc => acc.email.toLowerCase() === email.toLowerCase())) {
-        accounts.push({ email: email.toLowerCase(), name: name });
-        localStorage.setItem('googleAccounts', JSON.stringify(accounts));
-      }
-
-      if (params.get('needs_calendar') === '1' && token) {
-        window.location.href = `${API_BASE}/api/auth/google/calendar?token=${encodeURIComponent(token)}`;
-        return;
-      }
-
       dispatchAuthChanged();
       navigate('/', { replace: true });
     } else if (authStatus === 'error') {
