@@ -49,6 +49,7 @@ const eventRegistrationSchema = new mongoose.Schema({
 eventRegistrationSchema.index({ user: 1, event: 1 }, { unique: true });
 eventRegistrationSchema.index({ user: 1, status: 1 });
 eventRegistrationSchema.index({ event: 1, status: 1 });
+eventRegistrationSchema.index({ event: 1, registeredAt: -1 });
 
 const EventRegistration = mongoose.model('EventRegistration', eventRegistrationSchema);
 

@@ -5,7 +5,8 @@ import { API_BASE, getAuthHeaders } from '../utils/api';
 import { startGoogleLogin } from '../utils/googleAuth';
 import { cacheUserProfile } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
-import { getHomePathForRole, normalizeRole } from '../utils/auth';
+import { getHomePathForRole, normalizeRole, isCtsvRole } from '../utils/auth';
+import { resetCtsvSidebarOnLogin } from '../components/ctsv/ctsvNavConfig';
 import { resolveUserAvatar } from '../utils/image';
 import defaultAvatar from '../constants/defaultAvatar';
 
@@ -72,6 +73,9 @@ const Login = ({ showToast }) => {
         .then(d => {
           if (d.success && d.user) {
             persistProfileFromUser(d.user);
+            if (isCtsvRole(normalizeRole(d.user.role))) {
+              resetCtsvSidebarOnLogin();
+            }
           }
         })
         .catch(() => {});
@@ -190,7 +194,11 @@ const Login = ({ showToast }) => {
           }
 
           dispatchAuthChanged();
-          navigate(getHomePathForRole(normalizeRole(data.user?.role)));
+          const role = normalizeRole(data.user?.role);
+          if (isCtsvRole(role)) {
+            resetCtsvSidebarOnLogin();
+          }
+          navigate(getHomePathForRole(role));
         } else {
           setValidFields(prev => ({ ...prev, password: false }));
           setErrors(prev => ({ ...prev, password: true }));

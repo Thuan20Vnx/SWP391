@@ -35,6 +35,103 @@ export const HEADER_NOTIFICATIONS = [
   },
 ];
 
+export const CLUB_HEADER_NOTIFICATIONS = [
+  {
+    id: 'c1',
+    title: 'Sự kiện đã được duyệt',
+    body: 'Đề xuất sự kiện "Xuân Nhân đánh PickleBall" đã được phòng CTSV phê duyệt.',
+    time: 'Vừa xong',
+    unread: true,
+    tone: 'success',
+    link: '/quan-ly-clb',
+  },
+  {
+    id: 'c2',
+    title: 'Sự kiện bị từ chối',
+    body: 'Đề xuất sự kiện "Liinh yêu Thuận" bị từ chối. Lý do: Nội dung không phù hợp.',
+    time: '12 phút trước',
+    unread: true,
+    tone: 'alert',
+    link: '/quan-ly-clb',
+  },
+  {
+    id: 'c3',
+    title: 'Sự kiện đang chờ duyệt',
+    body: 'Đề xuất "Hiệp Cầu Hôn Lệ" đã được gửi thành công và đang chờ CTSV xét duyệt.',
+    time: '1 giờ trước',
+    unread: false,
+    tone: 'warning',
+    link: '/quan-ly-clb',
+  },
+  {
+    id: 'c4',
+    title: 'Cập nhật trạng thái',
+    body: 'Sự kiện "Thuận và Linh múa cột" đã được cập nhật thông tin.',
+    time: 'Hôm qua',
+    unread: false,
+    tone: 'info',
+    link: '/quan-ly-clb',
+  },
+];
+
+/** Thông báo CTSV — toàn trường, admin, đối tác, đề xuất CLB */
+export const CTSV_HEADER_NOTIFICATIONS = [
+  {
+    id: 'ctsv-a1',
+    title: 'Thông báo toàn trường',
+    body: 'Phòng CTSV vừa phát hành thông báo lịch thi cuối kỳ Summer 2026 trên cổng sinh viên.',
+    time: 'Vừa xong',
+    unread: true,
+    tone: 'info',
+    link: '/ctsv/announcements/publish',
+  },
+  {
+    id: 'ctsv-a2',
+    title: 'Admin đã chấp nhận sự kiện',
+    body: 'Sự kiện cấp trường "FPT Techday 2026" đã được Admin phê duyệt — sẵn sàng publish.',
+    time: '15 phút trước',
+    unread: true,
+    tone: 'success',
+    link: '/ctsv/events',
+  },
+  {
+    id: 'ctsv-a3',
+    title: 'Admin từ chối đề xuất',
+    body: 'Admin từ chối đề xuất tài trợ "Workshop AI cơ bản" — cần bổ sung ngân sách và lịch trình.',
+    time: '45 phút trước',
+    unread: true,
+    tone: 'alert',
+    link: '/ctsv/partners',
+  },
+  {
+    id: 'ctsv-a4',
+    title: 'Đơn đối tác mới',
+    body: 'Công ty TNHH Thực phẩm Xanh Việt gửi đề xuất tài trợ "FPT Green Campus Day 2026".',
+    time: '1 giờ trước',
+    unread: true,
+    tone: 'warning',
+    link: '/ctsv/partners',
+  },
+  {
+    id: 'ctsv-a5',
+    title: 'Đề xuất CLB chờ duyệt',
+    body: '3 đề xuất sự kiện từ CLB (IC-PDP đã duyệt nội bộ) đang chờ CTSV xét duyệt cuối.',
+    time: '2 giờ trước',
+    unread: false,
+    tone: 'warning',
+    link: '/ctsv/events',
+  },
+  {
+    id: 'ctsv-a6',
+    title: 'Cập nhật hệ thống',
+    body: 'Admin bật chế độ bảo trì nhẹ lúc 02:00 — không ảnh hưởng portal CTSV.',
+    time: 'Hôm qua',
+    unread: false,
+    tone: 'info',
+    link: '/ctsv/dashboard',
+  },
+];
+
 export const ADMIN_HEADER_NOTIFICATIONS = [
   {
     id: 'a1',
@@ -43,6 +140,7 @@ export const ADMIN_HEADER_NOTIFICATIONS = [
     time: 'Vừa xong',
     unread: true,
     tone: 'info',
+    link: '/admin/accounts',
   },
   {
     id: 'a2',
@@ -51,6 +149,7 @@ export const ADMIN_HEADER_NOTIFICATIONS = [
     time: '30 phút trước',
     unread: true,
     tone: 'success',
+    link: '/admin/system',
   },
   {
     id: 'a3',
@@ -59,5 +158,86 @@ export const ADMIN_HEADER_NOTIFICATIONS = [
     time: '2 giờ trước',
     unread: false,
     tone: 'warning',
+    link: '/admin/events',
+  },
+];
+
+/** Thông báo đối tác — đề xuất, hợp đồng, phê duyệt */
+export const PARTNER_HEADER_NOTIFICATIONS = [
+  {
+    id: 'p1',
+    title: 'Đề xuất đã gửi CTSV',
+    body: 'Đề xuất "FPT Green Campus Day 2026" đang chờ phòng CTSV xét duyệt.',
+    time: 'Vừa xong',
+    unread: true,
+    tone: 'info',
+    link: '/partner/proposals/create',
+  },
+  {
+    id: 'p2',
+    title: 'CTSV đã phê duyệt',
+    body: 'Sự kiện đối tác của bạn đã được CTSV chấp nhận — chờ Admin phê duyệt cuối.',
+    time: '25 phút trước',
+    unread: true,
+    tone: 'success',
+    link: '/partner/events',
+  },
+  {
+    id: 'p3',
+    title: 'Hợp đồng cần ký',
+    body: 'Hợp đồng tài trợ sự kiện đang chờ bạn xác nhận điều khoản.',
+    time: '1 giờ trước',
+    unread: true,
+    tone: 'warning',
+    link: '/partner/contracts',
+  },
+  {
+    id: 'p4',
+    title: 'Thông báo từ Nhà trường',
+    body: 'CTSV vừa phát hành thông báo mới trên cổng sinh viên — xem tại mục Tin tức.',
+    time: 'Hôm qua',
+    unread: false,
+    tone: 'info',
+    link: '/announcements',
+  },
+];
+
+/** Thông báo IC-PDP — đề xuất CLB nội bộ */
+export const ICPDP_HEADER_NOTIFICATIONS = [
+  {
+    id: 'i1',
+    title: 'Đề xuất mới từ CLB',
+    body: 'CLB Pickleball gửi đề xuất sự kiện "Xuân Nhân đánh PickleBall" cần duyệt nội bộ.',
+    time: 'Vừa xong',
+    unread: true,
+    tone: 'warning',
+    link: '/icpdp/proposals',
+  },
+  {
+    id: 'i2',
+    title: 'Đã duyệt nội bộ',
+    body: 'Đề xuất "Workshop AI cơ bản" đã được IC-PDP duyệt — đang chờ CTSV.',
+    time: '40 phút trước',
+    unread: true,
+    tone: 'success',
+    link: '/icpdp/proposals',
+  },
+  {
+    id: 'i3',
+    title: 'CTSV từ chối đề xuất',
+    body: 'Đề xuất "Liinh yêu Thuận" bị CTSV từ chối. Vui lòng thông báo CLB bổ sung nội dung.',
+    time: '2 giờ trước',
+    unread: false,
+    tone: 'alert',
+    link: '/icpdp/events',
+  },
+  {
+    id: 'i4',
+    title: 'Lịch sự kiện CLB',
+    body: '3 sự kiện CLB sắp diễn ra trong 2 tuần tới — kiểm tra lịch IC-PDP.',
+    time: 'Hôm qua',
+    unread: false,
+    tone: 'info',
+    link: '/icpdp/calendar',
   },
 ];

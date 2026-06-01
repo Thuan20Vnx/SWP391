@@ -90,6 +90,15 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
+userSchema.index({ role: 1, createdAt: -1 });
+userSchema.index(
+  { googleId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { googleId: { $exists: true, $type: 'string', $gt: '' } }
+  }
+);
+
 // ============================================================
 // Static: Detect role & studentId from SchoolMember Whitelist
 // ============================================================
@@ -97,13 +106,10 @@ userSchema.statics.detectRole = async function (email) {
   if (!email) return { role: 'guest', studentId: '' };
 
   const normalizedEmail = email.trim().toLowerCase();
-  const escapedEmail = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   try {
     const SchoolMember = mongoose.model('SchoolMember');
-    const member = await SchoolMember.findOne({
-      email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') },
-    });
+    const member = await SchoolMember.findOne({ email: normalizedEmail });
     
     if (member) {
       const role = member.role ? member.role.toLowerCase() : 'guest';

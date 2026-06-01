@@ -79,9 +79,13 @@ const CtsvEventList = () => {
           setEvents(list);
           return list;
         })
-        .catch(() => {
+        .catch((err) => {
           setEvents(MOCK_EVENTS);
-          showToast?.('Dùng dữ liệu demo — kiểm tra BE đang chạy.', 'info');
+          const msg =
+            err?.status === 401
+              ? 'Phiên đăng nhập hết hạn — vui lòng đăng nhập lại.'
+              : 'Dùng dữ liệu demo — kiểm tra BE đang chạy.';
+          showToast?.(msg, err?.status === 401 ? 'error' : 'info');
           return MOCK_EVENTS;
         })
         .finally(() => setLoading(false));

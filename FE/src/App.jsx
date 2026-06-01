@@ -12,7 +12,12 @@ import CtsvProposalList from './pages/ctsv/CtsvProposalList';
 import CtsvProposalDetail from './pages/ctsv/CtsvProposalDetail';
 import CtsvPartnerList from './pages/ctsv/CtsvPartnerList';
 import CtsvPartnerDetail from './pages/ctsv/CtsvPartnerDetail';
-import CtsvAnnouncementPublish from './pages/ctsv/CtsvAnnouncementPublish';
+import CtsvAnnouncementPublish, {
+  AdminAnnouncementManage,
+  IcpdpAnnouncementManage,
+  ClubAnnouncementManage,
+  PartnerAnnouncementManage
+} from './pages/ctsv/CtsvAnnouncementPublish';
 import CtsvCalendar from './pages/ctsv/CtsvCalendar';
 import CtsvReports from './pages/ctsv/CtsvReports';
 import CtsvReportDetail from './pages/ctsv/CtsvReportDetail';
@@ -55,6 +60,7 @@ import Announcements from './pages/Announcements';
 import AnnouncementDetail from './pages/AnnouncementDetail';
 import StaticPage from './pages/StaticPage';
 import ClubManagement from './pages/ClubManagement';
+import ClubAnnouncementsPage from './pages/ClubAnnouncementsPage';
 import EventManagementDetail from './pages/EventManagementDetail';
 
 import { ToastContainer } from './components/Toast';
@@ -62,7 +68,12 @@ import PartnerLayout from './layouts/PartnerLayout';
 import PartnerHome from './pages/PartnerHome';
 import PartnerDashboard from './pages/partner/PartnerDashboard';
 import PartnerProfileSettings from './pages/partner/PartnerProfileSettings';
-import PartnerPlaceholder from './pages/partner/PartnerPlaceholder';
+import PartnerEventList from './pages/partner/PartnerEventList';
+import PartnerEventDetail from './pages/partner/PartnerEventDetail';
+import PartnerContractList from './pages/partner/PartnerContractList';
+import PartnerAnalytics from './pages/partner/PartnerAnalytics';
+import PartnerReportDetail from './pages/partner/PartnerReportDetail';
+import PartnerProposalCreate from './pages/partner/PartnerProposalCreate';
 import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole, isClubManagerRole, isPartnerRole } from './utils/auth';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import './index.css';
@@ -99,7 +110,7 @@ const PublicHomeRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (isLoggedIn) {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
-    if (isPartnerRole()) return <Navigate to="/partner" replace />;
+    if (isPartnerRole()) return <Navigate to="/partner/dashboard" replace />;
     if (isClubManagerRole()) return <Navigate to="/quan-ly-clb" replace />;
     if (isCtsvRole()) return <Navigate to="/ctsv" replace />;
     if (isAdminRole()) return <Navigate to="/admin" replace />;
@@ -167,19 +178,23 @@ function App() {
               <Route path="calendar" element={<IcpdpCalendar />} />
               <Route path="reports" element={<IcpdpReports />} />
               <Route path="profile" element={<IcpdpProfile showToast={showToast} />} />
+              <Route path="announcements" element={<IcpdpAnnouncementManage />} />
             </Route>
           </Route>
 
           <Route path="/partner" element={<PartnerProtectedRoute />}>
             <Route element={<PartnerLayout showToast={showToast} />}>
-              <Route index element={<PartnerHome showToast={showToast} />} />
+              <Route index element={<Navigate to="/partner/dashboard" replace />} />
+              <Route path="home" element={<PartnerHome showToast={showToast} />} />
               <Route path="dashboard" element={<PartnerDashboard />} />
               <Route path="profile" element={<PartnerProfileSettings showToast={showToast} />} />
-              <Route path="events" element={<PartnerPlaceholder pageKey="events" />} />
-              <Route path="events/:id" element={<PartnerPlaceholder pageKey="events" />} />
-              <Route path="contracts" element={<PartnerPlaceholder pageKey="contracts" />} />
-              <Route path="analytics" element={<PartnerPlaceholder pageKey="analytics" />} />
-              <Route path="proposals/create" element={<PartnerPlaceholder pageKey="proposals/create" />} />
+              <Route path="events" element={<PartnerEventList />} />
+              <Route path="events/:id" element={<PartnerEventDetail />} />
+              <Route path="contracts" element={<PartnerContractList />} />
+              <Route path="analytics" element={<PartnerAnalytics />} />
+              <Route path="analytics/:id" element={<PartnerReportDetail />} />
+              <Route path="proposals/create" element={<PartnerProposalCreate />} />
+              <Route path="announcements" element={<PartnerAnnouncementManage />} />
             </Route>
           </Route>
 
@@ -221,6 +236,14 @@ function App() {
             }
           />
           <Route
+            path="/quan-ly-clb/announcements"
+            element={
+              <ProtectedRoute>
+                <ClubAnnouncementsPage showToast={showToast} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/quan-ly-clb/su-kien/:id"
             element={
               <ProtectedRoute>
@@ -247,6 +270,7 @@ function App() {
               <Route path="partners" element={<AdminPartners />} />
               <Route path="partners/approvals" element={<AdminPartnerApprovals showToast={showToast} />} />
               <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="announcements" element={<AdminAnnouncementManage />} />
             </Route>
           </Route>
           <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
