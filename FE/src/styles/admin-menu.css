@@ -1,192 +1,239 @@
-/* Admin drawer menu — Figma SWP391_2 */
+/* Admin portal — giao diện giống CTSV home (ảnh mẫu) */
 
+.admin-app-shell .admin-shell-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-app-shell .admin-page.admin-layout,
+.admin-app-shell .admin-shell-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Nội dung full-width: sidebar đóng → tràn 2 bên; sidebar mở → thu theo vùng main (flex) */
+.admin-app-shell .admin-main,
+.admin-app-shell .admin-event-requests,
+.admin-app-shell main.admin-main {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: clamp(20px, 2.5vw, 36px);
+  padding-right: clamp(20px, 2.5vw, 36px);
+  box-sizing: border-box;
+}
+
+.admin-app-shell .admin-partners-page,
+.admin-app-shell .admin-acc-page,
+.admin-app-shell .admin-sys-page,
+.admin-app-shell .admin-data-page,
+.admin-app-shell .admin-dashboard-grid,
+.admin-app-shell .admin-placeholder {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.admin-app-shell .admin-partners-page {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.admin-app-shell .home-footer {
+  width: 100%;
+}
+
+.admin-app-shell .home-footer .footer-top-columns {
+  max-width: none;
+  padding-left: clamp(20px, 2.5vw, 36px);
+  padding-right: clamp(20px, 2.5vw, 36px);
+}
+
+/* Nút X luôn hiển thị trong sidebar (mọi kích thước màn hình) */
+.admin-app-shell .admin-sidebar-close-btn {
+  display: flex;
+}
+
+/* Click vùng ngoài menu để đóng — mobile: phủ toàn màn; desktop: chỉ vùng nội dung */
+.admin-app-shell .admin-sidebar-backdrop,
+.admin-public-shell .admin-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 215;
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+@media (min-width: 1024px) {
+  .admin-app-shell.sidebar-open .admin-sidebar-backdrop,
+  .admin-public-shell.sidebar-open .admin-sidebar-backdrop {
+    display: block !important;
+    left: 280px;
+    right: 0;
+    width: auto;
+    background: transparent;
+  }
+
+  .admin-app-shell.sidebar-open .ctsv-sidebar,
+  .admin-public-shell.sidebar-open .ctsv-sidebar {
+    z-index: 220;
+  }
+}
+
+/* Shell trang công khai — sidebar đẩy nội dung (giống /admin) */
+.admin-public-shell.ctsv-app-shell {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.admin-public-shell .public-shell-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.admin-public-shell .home-header.site-header,
+.admin-public-shell .admin-home-header {
+  width: 100%;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.admin-public-shell .admin-header-container {
+  max-width: none;
+  width: 100%;
+}
+
+.admin-public-shell.sidebar-open .site-header__logo-group .logo-img,
+.admin-home-header--sidebar-open .site-header__logo-group .logo-img {
+  display: none;
+}
+
+.admin-public-shell.sidebar-open .site-header__logo-group,
+.admin-home-header--sidebar-open .site-header__logo-group {
+  gap: 0;
+}
+
+/* Header admin — dùng chung class SiteHeader (trang chủ), chỉ bổ sung sidebar */
+.admin-home-header {
+  z-index: 100;
+  width: 100%;
+}
+
+.admin-app-shell .admin-header-container {
+  max-width: none;
+  width: 100%;
+}
+
+/* Nút menu sidebar (thêm trước logo group) */
+.admin-header-menu-btn.admin-hamburger-btn {
+  display: flex;
+  flex-shrink: 0;
+  margin-right: 0;
+}
+
+/* Mở sidebar: ẩn logo trên header (logo nằm trong sidebar) */
+.admin-home-header--sidebar-open .admin-header-logo-img,
+.admin-app-shell.sidebar-open .admin-header-logo-img {
+  display: none;
+}
+
+.admin-home-header--sidebar-open .site-header__logo-group,
+.admin-app-shell.sidebar-open .admin-home-header .site-header__logo-group {
+  gap: 0;
+}
+
+.admin-app-shell .admin-shell-main {
+  width: 100%;
+}
+
+/* Hamburger trên SiteHeader (trang ngoài /admin) */
 .admin-hamburger-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   margin-right: 8px;
   padding: 0;
-  border: 2px solid rgba(99, 102, 241, 0.35);
-  border-radius: 10px;
-  background: #fff;
-  color: #f26f21;
+  border: 1px solid #e8dfd8;
+  border-radius: 8px;
+  background: #f5f3f1;
+  color: var(--text-main);
   cursor: pointer;
   flex-shrink: 0;
-  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .admin-hamburger-btn:hover {
-  border-color: #f26f21;
-  background: rgba(242, 111, 33, 0.06);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
-.admin-drawer-backdrop {
+@media (max-width: 768px) {
+  .admin-home-header .profile-info-text {
+    display: none;
+  }
+
+  .admin-home-header .profile-display-card {
+    padding-left: 0;
+    border-left: none;
+  }
+}
+
+/* Drawer fallback (trang chưa bọc PublicAdminShell) */
+.admin-drawer-root {
   position: fixed;
   inset: 0;
-  background: rgba(37, 25, 19, 0.35);
-  z-index: 200;
+  z-index: 1250;
+  pointer-events: none;
 }
 
-.admin-drawer {
-  position: fixed;
-  top: 0;
+.admin-drawer-root .admin-drawer-backdrop {
+  display: block !important;
+  inset: 0;
   left: 0;
-  bottom: 0;
-  width: min(320px, 88vw);
-  background: #fff;
-  border-radius: 0 16px 16px 0;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
-  z-index: 201;
+  background: rgba(15, 23, 42, 0.45);
+  pointer-events: auto;
+}
+
+.admin-drawer-root .admin-sidebar--overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 280px;
+  max-width: 85vw;
+  height: 100vh;
+  height: 100dvh;
+  background: #ffffff;
+  border-right: 1px solid #e8dfd8;
   display: flex;
   flex-direction: column;
-  padding: 20px 16px 16px;
-  animation: admin-drawer-in 0.22s ease-out;
+  padding: 16px 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+  pointer-events: auto;
 }
 
-@keyframes admin-drawer-in {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.admin-drawer__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0e8e2;
-}
-
-.admin-drawer__brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.admin-drawer__logo {
-  height: 36px;
-  width: auto;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.admin-drawer__title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #251913;
-  white-space: nowrap;
-}
-
-.admin-drawer__close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  color: #584238;
-  cursor: pointer;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-.admin-drawer__close:hover {
-  background: #fafafa;
-}
-
-.admin-drawer__nav {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.admin-drawer__link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  text-decoration: none;
-  color: #251913;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.admin-drawer__link svg {
-  color: #f26f21;
-  flex-shrink: 0;
-}
-
-.admin-drawer__link:hover {
-  background: #fff7ed;
-}
-
-.admin-drawer__link--active {
-  background: #f26f21;
-  color: #fff;
-}
-
-.admin-drawer__link--active svg {
-  color: #fff;
-}
-
-.admin-drawer__footer {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid #f0e8e2;
-  background: linear-gradient(180deg, rgba(255, 247, 237, 0) 0%, rgba(255, 247, 237, 0.6) 100%);
-  border-radius: 12px;
-  padding: 16px 12px 8px;
-}
-
-.admin-drawer__user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.admin-drawer__avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #e0c0b2;
-}
-
-.admin-drawer__name {
-  margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: #251913;
-}
-
-.admin-drawer__logout {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  background: none;
-  color: #f26f21;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 4px 0;
-}
-
-.admin-drawer__logout:hover {
-  text-decoration: underline;
+.admin-drawer-root .admin-sidebar--overlay.admin-sidebar--open {
+  transform: translateX(0);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
 }
