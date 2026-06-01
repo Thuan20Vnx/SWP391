@@ -111,7 +111,7 @@ const PublicHomeRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (isLoggedIn) {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
-    if (isPartnerRole()) return <Navigate to="/partner/dashboard" replace />;
+    if (isPartnerRole()) return <Navigate to="/partner" replace />;
     if (isClubManagerRole()) return <Navigate to="/quan-ly-clb" replace />;
     if (isCtsvRole()) return <Navigate to="/ctsv" replace />;
     if (isAdminRole()) return <Navigate to="/admin" replace />;
@@ -207,12 +207,19 @@ function App() {
 
           <Route path="/partner" element={<PartnerProtectedRoute />}>
             <Route element={<PartnerLayout showToast={showToast} />}>
-              <Route index element={<Navigate to="/partner/dashboard" replace />} />
-              <Route path="home" element={<PartnerHome showToast={showToast} />} />
+              <Route index element={<PartnerHome showToast={showToast} />} />
+              <Route path="home" element={<Navigate to="/partner" replace />} />
               <Route path="dashboard" element={<PartnerDashboard />} />
               <Route path="profile" element={<PartnerProfileSettings showToast={showToast} />} />
               <Route path="events" element={<PartnerEventList />} />
               <Route path="events/:id" element={<PartnerEventDetail />} />
+              <Route path="join/events" element={<Navigate to="/partner" replace />} />
+              <Route
+                path="join/events/:eventId"
+                element={
+                  <EventDetail showToast={showToast} embedded backPath="/partner/announcements" />
+                }
+              />
               <Route path="contracts" element={<PartnerContractList />} />
               <Route path="analytics" element={<PartnerAnalytics />} />
               <Route path="analytics/:id" element={<PartnerReportDetail />} />
@@ -225,7 +232,7 @@ function App() {
                     showToast={showToast}
                     embedded
                     listPath="/partner/announcements"
-                    eventBasePath="/events"
+                    eventBasePath="/partner/join/events"
                   />
                 }
               />

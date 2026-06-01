@@ -13,7 +13,9 @@ const NAV_LINKS = [
   {
     to: '/partner/events',
     label: 'Sự kiện',
-    match: (path) => path === '/partner/events' || path.startsWith('/partner/events/')
+    match: (path) =>
+      (path === '/partner/events' || path.startsWith('/partner/events/')) &&
+      !path.startsWith('/partner/join/events')
   },
   {
     to: '/partner/contracts',
@@ -36,6 +38,7 @@ const PARTNER_MENU_ROUTES = {
 
 const resolveActiveMenuItem = (pathname) => {
   if (pathname.startsWith('/partner/profile')) return 'profile';
+  if (pathname.startsWith('/partner/join/events')) return '';
   if (pathname.startsWith('/partner/events')) return 'events';
   if (pathname.startsWith('/partner/contracts')) return 'contracts';
   return '';

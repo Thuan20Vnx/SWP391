@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import EventTicketModal from '../components/EventTicketModal';
 import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { mapApiEventToDetail } from '../data/eventDetailData';
 import { formatVnd } from '../utils/ticketPricing';
+import { buildTicketFromDetailEvent } from '../utils/eventTicket';
 
 const CalendarIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="20" fill="currentColor" aria-hidden="true">
@@ -50,13 +53,23 @@ const MailIcon = () => (
   </svg>
 );
 
-const EventDetail = ({ showToast }) => {
+const EventDetail = ({ showToast, embedded = false, backPath = '/events' }) => {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [registerLoading, setRegisterLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [registerConfirmOpen, setRegisterConfirmOpen] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [ticketData, setTicketData] = useState(null);
+  const [registrationId, setRegistrationId] = useState(null);
   const { isLoggedIn, userProfile } = useUserProfile();
+
+  const holderName = useMemo(
+    () => userProfile.fullname || localStorage.getItem('userFullname') || localStorage.getItem('userEmail') || '',
+    [userProfile.fullname]
+  );
 
   useEffect(() => {
     setLoading(true);
@@ -82,7 +95,17 @@ const EventDetail = ({ showToast }) => {
       .finally(() => setLoading(false));
   }, [eventId, isLoggedIn, userProfile.role]);
 
-  const handleRegister = async () => {
+  const openTicket = () => {
+    if (!event) return;
+    setTicketData(
+      buildTicketFromDetailEvent(event, {
+        holderName,
+        registrationId,
+      })
+    );
+  };
+
+  const handlePrimaryAction = () => {
     if (!event) return;
 
     if (event.eventState === 'expired') {
@@ -99,7 +122,7 @@ const EventDetail = ({ showToast }) => {
     }
 
     if (event.isRegistered) {
-      showToast?.('Mở vé điện tử sự kiện (đang phát triển).', 'success');
+      openTicket();
       return;
     }
 
@@ -107,6 +130,12 @@ const EventDetail = ({ showToast }) => {
       showToast?.('Sự kiện đã hết chỗ.', 'error');
       return;
     }
+
+    setRegisterConfirmOpen(true);
+  };
+
+  const handleConfirmRegister = async () => {
+    if (!event) return;
 
     setRegisterLoading(true);
     try {
@@ -121,12 +150,60 @@ const EventDetail = ({ showToast }) => {
         return;
       }
 
-      setEvent(mapApiEventToDetail({ ...data.event, isRegistered: true }));
+      const nextRegistrationId = data.registration?.id || data.registration?._id;
+      if (nextRegistrationId) {
+        setRegistrationId(nextRegistrationId);
+      }
+
+      const updatedEvent = mapApiEventToDetail({ ...data.event, isRegistered: true });
+      setEvent(updatedEvent);
+      setRegisterConfirmOpen(false);
       showToast?.(data.message || 'Đăng ký sự kiện thành công!', 'success');
+      setTicketData(
+        buildTicketFromDetailEvent(updatedEvent, {
+          holderName,
+          registrationId: nextRegistrationId,
+        })
+      );
     } catch {
       showToast?.('Không thể kết nối máy chủ. Vui lòng thử lại.', 'error');
     } finally {
       setRegisterLoading(false);
+    }
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!event) return;
+
+    setCancelLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/events/${event.id}/register`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast?.(data.message || 'Không thể hủy đăng ký.', 'error');
+        return;
+      }
+
+      setRegistrationId(null);
+      setTicketData(null);
+      setCancelConfirmOpen(false);
+      showToast?.(data.message || 'Đã hủy đăng ký sự kiện.', 'success');
+
+      const refreshRes = await fetch(`${API_BASE}/api/events/${event.id}`, {
+        headers: getAuthHeaders(false),
+      });
+      const refreshData = await refreshRes.json();
+      if (refreshRes.ok && refreshData.success && refreshData.event) {
+        setEvent(mapApiEventToDetail(refreshData.event));
+      }
+    } catch {
+      showToast?.('Không thể kết nối máy chủ. Vui lòng thử lại.', 'error');
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -153,35 +230,46 @@ const EventDetail = ({ showToast }) => {
   };
 
   if (loading) {
+    const loadingBody = (
+      <main className="event-detail-page__loading">
+        <span className="btn-spinner events-page__spinner" />
+      </main>
+    );
+    if (embedded) {
+      return <div className="event-detail-page event-detail-page--embedded">{loadingBody}</div>;
+    }
     return (
       <div className="event-detail-page home-layout">
         <SiteHeader activeNav="events" searchPlaceholder="Tìm kiếm sự kiện..." />
-        <main className="event-detail-page__loading">
-          <span className="btn-spinner events-page__spinner" />
-        </main>
+        {loadingBody}
       </div>
     );
   }
 
   if (!event) {
+    const notFoundBody = (
+      <main className="event-detail-page__not-found">
+        <h1>Không tìm thấy sự kiện</h1>
+        <button type="button" className="event-detail-page__back-link" onClick={() => navigate(backPath)}>
+          ← Quay lại
+        </button>
+      </main>
+    );
+    if (embedded) {
+      return <div className="event-detail-page event-detail-page--embedded">{notFoundBody}</div>;
+    }
     return (
       <div className="event-detail-page home-layout">
         <SiteHeader activeNav="events" searchPlaceholder="Tìm kiếm sự kiện..." />
-        <main className="event-detail-page__not-found">
-          <h1>Không tìm thấy sự kiện</h1>
-          <Link to="/events" className="event-detail-page__back-link">← Quay lại danh sách sự kiện</Link>
-        </main>
+        {notFoundBody}
       </div>
     );
   }
 
   const statusClass = `event-detail-page__status event-detail-page__status--${event.registrationStatus.tone}`;
 
-  return (
-    <div className="event-detail-page home-layout">
-      <SiteHeader activeNav="events" searchPlaceholder="Tìm kiếm sự kiện..." />
-
-      <main className="event-detail-page__main">
+  const detailMain = (
+    <main className="event-detail-page__main">
         <div className="event-detail-page__grid">
           <section className="event-detail-page__hero">
             <img src={event.thumbnail} alt="" className="event-detail-page__hero-img" />
@@ -344,7 +432,7 @@ const EventDetail = ({ showToast }) => {
                 </div>
                 {event.studentPrivilegeApplied && (
                   <p className="event-detail-page__student-privilege">
-                    Sinh viên được miễn phí tất cả vé sự kiện
+                    Bạn được miễn phí tham gia sự kiện này
                   </p>
                 )}
                 {!event.studentPrivilegeApplied && event.listPrice > 0 && event.amountDue > 0 && (
@@ -366,11 +454,21 @@ const EventDetail = ({ showToast }) => {
               <button
                 type="button"
                 className="event-detail-page__register-btn"
-                disabled={event.primaryDisabled || registerLoading}
-                onClick={handleRegister}
+                disabled={(event.primaryDisabled && !event.isRegistered) || registerLoading}
+                onClick={handlePrimaryAction}
               >
                 {registerLoading ? 'Đang xử lý...' : event.primaryActionLabel}
               </button>
+              {event.isRegistered && event.eventState !== 'expired' && (
+                <button
+                  type="button"
+                  className="event-detail-page__cancel-btn"
+                  disabled={cancelLoading}
+                  onClick={() => setCancelConfirmOpen(true)}
+                >
+                  {cancelLoading ? 'Đang hủy...' : 'Hủy đăng ký'}
+                </button>
+              )}
               <div className="event-detail-page__share">
                 <p>Chia sẻ sự kiện</p>
                 <div className="event-detail-page__share-actions">
@@ -389,7 +487,59 @@ const EventDetail = ({ showToast }) => {
           </aside>
         </div>
       </main>
+  );
 
+  const dialogs = (
+    <>
+      <ConfirmDialog
+        open={registerConfirmOpen}
+        title="Xác nhận đăng ký"
+        message={event ? `Bạn có chắc muốn đăng ký tham gia "${event.title}"?` : ''}
+        confirmLabel="Đăng ký"
+        cancelLabel="Hủy"
+        loading={registerLoading}
+        onConfirm={handleConfirmRegister}
+        onCancel={() => !registerLoading && setRegisterConfirmOpen(false)}
+      />
+      <ConfirmDialog
+        open={cancelConfirmOpen}
+        title="Hủy đăng ký"
+        message={event ? `Bạn có chắc muốn hủy đăng ký sự kiện "${event.title}"?` : ''}
+        confirmLabel="Hủy đăng ký"
+        cancelLabel="Giữ lại"
+        danger
+        loading={cancelLoading}
+        onConfirm={handleConfirmCancel}
+        onCancel={() => !cancelLoading && setCancelConfirmOpen(false)}
+      />
+      <EventTicketModal
+        open={Boolean(ticketData)}
+        ticket={ticketData}
+        onClose={() => setTicketData(null)}
+      />
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="event-detail-page event-detail-page--embedded">
+        <button type="button" className="announcements-detail-back" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate(backPath))}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor" />
+          </svg>
+          Quay lại
+        </button>
+        {detailMain}
+        {dialogs}
+      </div>
+    );
+  }
+
+  return (
+    <div className="event-detail-page home-layout">
+      <SiteHeader activeNav="events" searchPlaceholder="Tìm kiếm sự kiện..." />
+      {detailMain}
+      {dialogs}
       <SiteFooter />
     </div>
   );

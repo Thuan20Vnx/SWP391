@@ -115,7 +115,7 @@ const registerForEvent = async (user, eventId) => {
 
   let message = 'Đăng ký sự kiện thành công!';
   if (studentPrivilegeApplied) {
-    message = 'Đăng ký thành công! Sinh viên được miễn phí vé.';
+    message = 'Đăng ký thành công! Bạn được miễn phí vé.';
   } else if (amountPaid > 0) {
     message = `Mua vé thành công (${formatVnd(amountPaid)}). Vé điện tử đã được xác nhận.`;
   }
