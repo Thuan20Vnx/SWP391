@@ -325,6 +325,11 @@
   margin: 0 auto;
 }
 
+.announcements-detail-page--embedded {
+  max-width: min(1080px, 100%);
+  padding: 8px 4px 24px;
+}
+
 .announcements-detail-back {
   display: inline-flex;
   align-items: center;
