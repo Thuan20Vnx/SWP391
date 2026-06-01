@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ChatbotFloating from '../components/ChatbotFloating';
-import SiteHeader from '../components/SiteHeader';
+import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import useUserProfile from '../hooks/useUserProfile';
@@ -172,14 +172,13 @@ const Home = ({ showToast }) => {
   }, [events]);
 
   return (
+    <PublicAdminShell
+      activeNav="home"
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
+      onSearchKeyDown={handleNavSearch}
+    >
     <div className="home-layout">
-      <SiteHeader
-        activeNav="home"
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearchKeyDown={handleNavSearch}
-      />
-
       {/* 2. Hero Banner Slider (Figma 38:1158) */}
       <section className="hero-banner-slider">
         {sliderData.map((slide, index) => (
@@ -395,6 +394,7 @@ const Home = ({ showToast }) => {
 
       <SiteFooter />
     </div>
+    </PublicAdminShell>
   );
 };
 
