@@ -15243,6 +15243,50 @@ body {
   color: #94a3b8;
 }
 
+.announce-notice-category-chip--info.announce-target-chip--active {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #2563eb;
+}
+
+.announce-notice-category-chip--action.announce-target-chip--active {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #d97706;
+}
+
+.announce-notice-category-chip--urgent.announce-target-chip--active {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #dc2626;
+}
+
+.ctsv-announce-notice-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.ctsv-announce-notice-pill--info {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.ctsv-announce-notice-pill--action {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.ctsv-announce-notice-pill--urgent {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
 @media (max-width: 640px) {
   .ctsv-announce-history-item {
     flex-wrap: wrap;

@@ -16,6 +16,7 @@ export const loadAnnouncementDraft = (portalRole = 'ctsv') => {
       image: String(data.image || ''),
       imageFileName: String(data.imageFileName || ''),
       targetRoles: Array.isArray(data.targetRoles) ? data.targetRoles : ['all'],
+      noticeCategory: String(data.noticeCategory || 'info'),
       savedAt: data.savedAt || null
     };
   } catch {
@@ -31,6 +32,7 @@ export const saveAnnouncementDraft = (form, portalRole = 'ctsv') => {
     image: form.image ?? '',
     imageFileName: form.imageFileName ?? '',
     targetRoles: form.targetRoles ?? ['all'],
+    noticeCategory: form.noticeCategory ?? 'info',
     savedAt: Date.now()
   };
   try {

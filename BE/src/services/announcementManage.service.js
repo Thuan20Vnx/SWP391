@@ -8,6 +8,11 @@ const {
   ANNOUNCEMENT_PUBLISHER_ROLES
 } = require('../constants/announcementTargets');
 const { isEventLinkableForAnnouncement } = require('../utils/announcementEvents');
+const {
+  normalizeNoticeCategory,
+  getNoticeCategoryLabel,
+  getNoticeCategoryTone
+} = require('../constants/announcementNoticeCategories');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -17,6 +22,7 @@ const formatManageAnnouncement = (doc) => {
     ...doc,
     id,
     targetRoles: resolveDocTargetRoles(doc),
+    noticeCategory: normalizeNoticeCategory(doc.noticeCategory),
     publishedAt: doc.publishedAt || doc.published_at || null
   };
 };
@@ -48,7 +54,15 @@ const canManageDoc = (doc, role, authEmail) => {
   return String(doc.publishedByEmail || '').toLowerCase() === String(authEmail || '').toLowerCase();
 };
 
-const validatePayload = async ({ title, content, image, eventId, targetRoles, publisherRole }) => {
+const validatePayload = async ({
+  title,
+  content,
+  image,
+  eventId,
+  targetRoles,
+  noticeCategory,
+  publisherRole
+}) => {
   if (!title?.trim()) {
     const err = new Error('Tiêu đề thông báo là bắt buộc!');
     err.status = 400;
@@ -80,7 +94,10 @@ const validatePayload = async ({ title, content, image, eventId, targetRoles, pu
       throw err;
     }
   }
-  return roles;
+  return {
+    targetRoles: roles,
+    noticeCategory: normalizeNoticeCategory(noticeCategory)
+  };
 };
 
 const listAnnouncements = async (authEmail) => {
@@ -96,7 +113,7 @@ const listAnnouncements = async (authEmail) => {
 
 const createAnnouncement = async (authEmail, body) => {
   const { role } = await resolvePublisherContext(authEmail);
-  const targetRoles = await validatePayload({ ...body, publisherRole: role });
+  const { targetRoles, noticeCategory } = await validatePayload({ ...body, publisherRole: role });
   const doc = await Announcement.create({
     title: body.title.trim(),
     content: body.content.trim(),
@@ -104,6 +121,7 @@ const createAnnouncement = async (authEmail, body) => {
     image: body.image || '',
     imageFileName: body.imageFileName?.trim() || '',
     targetRoles,
+    noticeCategory,
     publishedByEmail: authEmail,
     publishedByRole: role,
     publishedAt: new Date(),
@@ -126,12 +144,13 @@ const updateAnnouncement = async (authEmail, id, body) => {
     err.status = 403;
     throw err;
   }
-  const targetRoles = await validatePayload({
+  const { targetRoles, noticeCategory } = await validatePayload({
     title: body.title ?? doc.title,
     content: body.content ?? doc.content,
     image: body.image ?? doc.image,
     eventId: body.eventId !== undefined ? body.eventId : doc.eventId,
     targetRoles: body.targetRoles ?? resolveDocTargetRoles(doc),
+    noticeCategory: body.noticeCategory ?? doc.noticeCategory,
     publisherRole: role
   });
   doc.title = body.title?.trim() || doc.title;
@@ -140,6 +159,7 @@ const updateAnnouncement = async (authEmail, id, body) => {
   if (body.image !== undefined) doc.image = body.image || '';
   if (body.imageFileName !== undefined) doc.imageFileName = body.imageFileName?.trim() || '';
   doc.targetRoles = targetRoles;
+  doc.noticeCategory = noticeCategory;
   await doc.save();
   return formatManageAnnouncement(doc.toObject());
 };

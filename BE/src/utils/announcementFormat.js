@@ -1,5 +1,10 @@
 const { normalizeEventCategory } = require('../constants/eventCategories');
 const { resolveDocTargetRoles, viewerMatchesTargets } = require('../constants/announcementTargets');
+const {
+  normalizeNoticeCategory,
+  getNoticeCategoryLabel,
+  getNoticeCategoryTone
+} = require('../constants/announcementNoticeCategories');
 
 /** Bao gồm schema mới (isPublished/isHidden) và bản ghi seed legacy (published_at, deleted_at). */
 const PUBLIC_ANNOUNCEMENT_FILTER = {
@@ -123,6 +128,8 @@ const formatPublicAnnouncement = (doc, userMap, options = {}) => {
   const id = doc._id?.toString?.() || String(doc._id);
   const publishedAt = resolvePublishedAt(doc);
   const publisher = resolvePublisherFields(doc, userMap, options);
+  const noticeCategory = normalizeNoticeCategory(doc.noticeCategory);
+  const notificationTone = getNoticeCategoryTone(noticeCategory);
   return {
     id,
     title: doc.title,
@@ -139,11 +146,14 @@ const formatPublicAnnouncement = (doc, userMap, options = {}) => {
     publishedAt,
     publishedAtLabel: formatAbsolutePublishedAt(publishedAt),
     category: resolveCategoryLabel(doc),
+    noticeCategory,
+    noticeCategoryLabel: getNoticeCategoryLabel(noticeCategory),
     image: doc.image || '',
     eventId: doc.eventId?._id?.toString?.() || doc.eventId?.toString?.() || null,
     eventTitle: doc.eventId?.title || null,
-    important: Boolean(doc.eventId) || doc.type === 'event' || Boolean(doc.is_pinned),
-    urgent: false,
+    important: noticeCategory === 'action' || noticeCategory === 'urgent' || Boolean(doc.eventId) || doc.type === 'event' || Boolean(doc.is_pinned),
+    urgent: noticeCategory === 'urgent',
+    notificationTone,
     targetRoles: resolveDocTargetRoles(doc),
   };
 };

@@ -461,6 +461,21 @@
   color: #b45309;
 }
 
+.announcements-detail__badge--notice-info {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.announcements-detail__badge--notice-action {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.announcements-detail__badge--notice-urgent {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
 .announcements-detail__title {
   margin: 0 0 14px;
   font-size: clamp(1.625rem, 3.2vw, 2.125rem);
