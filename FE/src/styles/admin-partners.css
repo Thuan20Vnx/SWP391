@@ -6,6 +6,11 @@
   padding: 8px 0 40px;
 }
 
+.admin-app-shell .admin-partners-page {
+  max-width: none;
+  margin: 0;
+}
+
 .admin-partners-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;

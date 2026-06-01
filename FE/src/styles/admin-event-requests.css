@@ -7,6 +7,11 @@
   box-sizing: border-box;
 }
 
+.admin-app-shell .admin-event-requests {
+  max-width: none;
+  margin: 0;
+}
+
 .admin-event-requests__header {
   margin-bottom: 24px;
 }
