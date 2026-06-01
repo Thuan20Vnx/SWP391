@@ -469,14 +469,7 @@ const googleCallback = async (code) => {
   }
 
   const authToken = signToken(user);
-  let redirectUrl = `${CLIENT_ORIGIN}/login?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`;
-
-  const userWithCalendar = await User.findOne({ email: email.toLowerCase() })
-    .select('+googleCalendarRefreshToken');
-  const canLinkCalendar = GOOGLE_CLIENT_SECRET && GOOGLE_CLIENT_SECRET !== 'mock';
-  if (canLinkCalendar && !userWithCalendar?.googleCalendarRefreshToken) {
-    redirectUrl += '&needs_calendar=1';
-  }
+  const redirectUrl = `${CLIENT_ORIGIN}/login?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`;
 
   return { redirectUrl };
 };
