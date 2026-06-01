@@ -18,7 +18,9 @@ import {
   ANNOUNCEMENT_TARGET_ALL,
   formatTargetRolesLabel,
   getAnnouncementDetailPath,
+  getDefaultTargetRolesForPublisher,
   getPortalEventDetailPath,
+  normalizeTargetsForPublisher,
   PORTAL_ANNOUNCEMENT_CONFIG
 } from '../../constants/announcementTargets';
 import { NOTICE_CATEGORY_INFO, getNoticeCategoryLabel } from '../../constants/announcementNoticeCategories';
@@ -120,9 +122,10 @@ const hasDraftContent = (draft) =>
   !!(draft && (draft.title || draft.content || draft.eventId || draft.image));
 
 const readInitialDraftState = (portalRole) => {
+  const defaultTargets = getDefaultTargetRolesForPublisher(portalRole);
   const draft = loadAnnouncementDraft(portalRole);
   if (!hasDraftContent(draft)) {
-    return { form: EMPTY_FORM, savedAt: null, hadDraft: false };
+    return { form: { ...EMPTY_FORM, targetRoles: defaultTargets }, savedAt: null, hadDraft: false };
   }
   return {
     form: {
@@ -131,7 +134,7 @@ const readInitialDraftState = (portalRole) => {
       eventId: draft.eventId,
       image: draft.image,
       imageFileName: draft.imageFileName,
-      targetRoles: draft.targetRoles?.length ? draft.targetRoles : [ANNOUNCEMENT_TARGET_ALL],
+      targetRoles: normalizeTargetsForPublisher(portalRole, draft.targetRoles),
       noticeCategory: draft.noticeCategory || NOTICE_CATEGORY_INFO
     },
     savedAt: draft.savedAt,
@@ -346,7 +349,7 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
       const payload = {
         title: form.title.trim(),
         content: form.content.trim(),
-        targetRoles: form.targetRoles,
+        targetRoles: normalizeTargetsForPublisher(portalRole, form.targetRoles),
         noticeCategory: form.noticeCategory,
         eventId: canLinkEvents && form.eventId ? form.eventId : undefined,
         image: form.image || undefined,
@@ -360,7 +363,7 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
         await createManagedAnnouncement(payload);
         showToast?.('Đã phát hành thông báo!', 'success');
       }
-      setForm(EMPTY_FORM);
+      setForm({ ...EMPTY_FORM, targetRoles: getDefaultTargetRolesForPublisher(portalRole) });
       clearAnnouncementDraft(portalRole);
       setDraftSavedAt(null);
       await refreshAnnouncements();
@@ -427,7 +430,7 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
       eventId: announcement.eventId?._id || announcement.eventId || '',
       image: announcement.image || '',
       imageFileName: announcement.imageFileName || '',
-      targetRoles: announcement.targetRoles?.length ? announcement.targetRoles : [ANNOUNCEMENT_TARGET_ALL],
+      targetRoles: normalizeTargetsForPublisher(portalRole, announcement.targetRoles),
       noticeCategory: announcement.noticeCategory || NOTICE_CATEGORY_INFO
     });
     setComposeOpen(true);
@@ -436,7 +439,7 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
 
   const cancelEdit = () => {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, targetRoles: getDefaultTargetRolesForPublisher(portalRole) });
     clearAnnouncementDraft(portalRole);
     setDraftSavedAt(null);
   };
