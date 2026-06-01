@@ -1,30 +1,31 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import defaultAvatar from '../constants/defaultAvatar';
-import { API_BASE, getAuthHeaders, getEventHeaders } from '../utils/api';
+import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../utils/api';
 import SiteHeader from '../components/SiteHeader';
-import { CLUB_HEADER_NOTIFICATIONS } from '../data/headerNotificationsData';
+import ClubProfileUpdate from '../components/ClubProfileUpdate';
+import ClubSidebarAside from '../components/club/ClubSidebarAside';
+import {
+  CLUB_NAV_ITEMS,
+  isClubDesktop,
+  persistClubSidebarOpen,
+  readClubSidebarPref
+} from '../components/club/clubNavConfig';
+import { resolveUserAvatar } from '../utils/image';
+import '../styles/club-portal.css';
 import './ClubManagement.css';
-
-const NAV_ITEMS = [
-  { key: 'profile', label: 'Cập nhật hồ sơ CLB', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor" /></svg> },
-  { key: 'create', label: 'Tạo đề xuất sự kiện', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" /></svg> },
-  { key: 'list', label: 'Danh sách Sự kiện quản lý', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 10h3v7H4zM10.5 10h3v7h-3zM2 19h20v3H2zM17 10h3v7h-3zM12 3L2 8h20L12 3z" fill="currentColor" /></svg> },
-  { key: 'participants', label: 'Quản lý người tham gia', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor" /></svg> },
-  { key: 'report', label: 'Báo cáo sau sự kiện', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="currentColor" /></svg> },
-  { key: 'notifications', label: 'Thông báo xét duyệt', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" fill="currentColor" /></svg> },
-  { key: 'dashboard', label: 'Dashboard Thống kê số liệu', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor" /></svg> },
-];
 
 const ClubManagement = ({ showToast }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [userProfile, setUserProfile] = useState({ fullname: '', course: 'K18', picture: defaultAvatar, role: '' });
-  const [activeNav, setActiveNav] = useState('list');
+  const [activeNav, setActiveNav] = useState(() => {
+    const saved = sessionStorage.getItem('clb_active_nav');
+    return saved && CLUB_NAV_ITEMS.some((item) => item.key === saved) ? saved : 'list';
+  });
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(readClubSidebarPref);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [rejectModalData, setRejectModalData] = useState(null);
   const [createStep, setCreateStep] = useState(1);
@@ -47,7 +48,11 @@ const ClubManagement = ({ showToast }) => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null); // ID của row đang mở dropdown
-  const totalEvents = 24;
+  const totalEvents = events.length;
+
+  useEffect(() => {
+    sessionStorage.setItem('clb_active_nav', activeNav);
+  }, [activeNav]);
 
   const eventNotifications = useMemo(() => {
     return events
@@ -119,7 +124,12 @@ const ClubManagement = ({ showToast }) => {
           if (data?.user) {
             const u = data.user;
             const role = u.role || '';
-            setUserProfile({ fullname: u.fullname || '', course: u.course || 'K18', picture: u.picture || defaultAvatar, role });
+            setUserProfile({
+              fullname: u.fullname || '',
+              course: u.course || 'K18',
+              picture: resolveUserAvatar(u, defaultAvatar),
+              role
+            });
             if (role && role !== 'club_manager') {
               showToast('Bạn không có quyền truy cập trang quản lý CLB!', 'error');
               localStorage.setItem('userRole', role);
@@ -134,11 +144,19 @@ const ClubManagement = ({ showToast }) => {
   }, [navigate, showToast]);
 
   const fetchMyEvents = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setLoadingEvents(false);
+      setEvents([]);
+      showToast('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.', 'error');
+      return;
+    }
+
     setLoadingEvents(true);
     try {
       const res = await fetch(`${API_BASE}/api/events/my`, { headers: getEventHeaders(false) });
-      const data = await res.json();
-      if (data.success && Array.isArray(data.events)) {
+      const { ok, data } = await parseApiResponse(res);
+      if (ok && data.success && Array.isArray(data.events)) {
         setEvents(data.events);
       } else {
         console.error('fetchMyEvents:', res.status, data);
@@ -148,6 +166,7 @@ const ClubManagement = ({ showToast }) => {
     } catch (err) {
       console.error('Lỗi tải sự kiện:', err);
       showToast('Không kết nối được server. Kiểm tra BE đang chạy port 5000.', 'error');
+      setEvents([]);
     } finally {
       setLoadingEvents(false);
     }
@@ -251,98 +270,63 @@ const ClubManagement = ({ showToast }) => {
     }
   };
 
-  const handleLogout = () => {
-    ['isLoggedIn', 'userEmail', 'authToken', 'userRole'].forEach(k => localStorage.removeItem(k));
-    navigate('/');
-  };
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((prev) => {
+      const next = !prev;
+      persistClubSidebarOpen(next);
+      return next;
+    });
+  }, []);
+
+  const closeSidebar = useCallback(() => {
+    setSidebarOpen(false);
+    persistClubSidebarOpen(false);
+  }, []);
+
+  const handleNavSelect = useCallback((key) => {
+    setActiveNav(key);
+    if (key === 'create') setShowCreateModal(true);
+    if (key === 'notifications') {
+      const now = Date.now();
+      setLastSeenNotifs(now);
+      localStorage.setItem('clb_last_seen_notifs', now.toString());
+    }
+  }, []);
+
+  const shellClass = `ctsv-app-shell club-app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
 
   return (
-    <div className="clb-page">
-      {/* TOP NAVBAR */}
-      <SiteHeader activeNav="club-manage" />
+    <div className={shellClass}>
+      {!isClubDesktop() && sidebarOpen && (
+        <button type="button" className="ctsv-drawer-backdrop" onClick={closeSidebar} aria-label="Đóng menu" />
+      )}
 
-      {/* MAIN LAYOUT: Sidebar + Content */}
-      <div className="clb-layout">
+      <ClubSidebarAside
+        sidebarOpen={sidebarOpen}
+        onClose={closeSidebar}
+        userProfile={userProfile}
+        activeNav={activeNav}
+        onNavSelect={handleNavSelect}
+        hasNewNotifs={hasNewNotifs}
+      />
 
-        {/* SIDEBAR */}
-        <aside className={`clb-sidebar ${sidebarOpen ? 'clb-sidebar--open' : 'clb-sidebar--closed'}`}>
-          {/* CLB Identity Card */}
-          <div className="clb-sidebar-header">
-            <div className="clb-identity-card">
-              <div className="clb-identity-icon">
-                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" fill="#f26f21" /></svg>
-              </div>
-              <span className="clb-identity-name">Câu lạc bộ FU-DEVER</span>
-            </div>
-          </div>
+      <div className="ctsv-shell-main">
+        <div className="clb-page">
+          <SiteHeader
+            activeNav="club-manage"
+            onTogglePortalSidebar={toggleSidebar}
+            portalSidebarOpen={sidebarOpen}
+          />
 
-          <div className="clb-sidebar-divider" />
+          <main className="clb-main">
+          {activeNav === 'profile' && (
+            <ClubProfileUpdate
+              showToast={showToast}
+              sidebarOpen={sidebarOpen}
+              onToggleSidebar={toggleSidebar}
+            />
+          )}
 
-          {/* Navigation */}
-          <nav className="clb-sidebar-nav">
-            {/* Group 1 */}
-            <div className="clb-nav-group">
-              {NAV_ITEMS.slice(0, 1).map(item => (
-                <button
-                  key={item.key}
-                  className={`clb-nav-item ${activeNav === item.key ? 'clb-nav-item--active' : ''}`}
-                  onClick={() => { 
-                    setActiveNav(item.key); 
-                    if (item.key === 'create') setShowCreateModal(true);
-                    if (item.key === 'notifications') {
-                      const now = Date.now();
-                      setLastSeenNotifs(now);
-                      localStorage.setItem('clb_last_seen_notifs', now.toString());
-                    }
-                  }}
-                >
-                  <span className="clb-nav-icon">{item.icon}</span>
-                  <span className="clb-nav-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {item.label}
-                    {item.key === 'notifications' && hasNewNotifs && (
-                      <span style={{ width: '8px', height: '8px', backgroundColor: '#ef4444', borderRadius: '50%', display: 'inline-block' }}></span>
-                    )}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <div className="clb-sidebar-divider" />
-
-            {/* Group 2 */}
-            <div className="clb-nav-group">
-              {NAV_ITEMS.slice(1, 4).map(item => (
-                <button
-                  key={item.key}
-                  className={`clb-nav-item ${activeNav === item.key ? 'clb-nav-item--active' : ''}`}
-                  onClick={() => { setActiveNav(item.key); if (item.key === 'create') setShowCreateModal(true); }}
-                >
-                  <span className="clb-nav-icon">{item.icon}</span>
-                  <span className="clb-nav-label">{item.label}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="clb-sidebar-divider" />
-
-            {/* Group 3 */}
-            <div className="clb-nav-group">
-              {NAV_ITEMS.slice(4).map(item => (
-                <button
-                  key={item.key}
-                  className={`clb-nav-item ${activeNav === item.key ? 'clb-nav-item--active' : ''}`}
-                  onClick={() => setActiveNav(item.key)}
-                >
-                  <span className="clb-nav-icon">{item.icon}</span>
-                  <span className="clb-nav-label">{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </nav>
-        </aside>
-
-        {/* MAIN CONTENT */}
-        <main className="clb-main">
           {activeNav === 'list' && (
             <>
               <div className="clb-page-header">
@@ -681,7 +665,8 @@ const ClubManagement = ({ showToast }) => {
               </div>
             </div>
           )}
-        </main>
+          </main>
+        </div>
       </div>
     </div>
   );

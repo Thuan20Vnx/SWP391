@@ -1,0 +1,52 @@
+/* Club sidebar — đồng bộ CTSV, giữ header SiteHeader */
+
+.club-app-shell {
+  --club-accent: #f26f21;
+  --club-accent-bg: rgba(242, 111, 33, 0.08);
+  --club-accent-bg-strong: rgba(242, 111, 33, 0.15);
+}
+
+.club-app-shell .ctsv-shell-main {
+  min-width: 0;
+}
+
+.club-app-shell .clb-page {
+  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.club-sidebar .ctsv-nav-link.active,
+.club-sidebar .club-nav-link.active {
+  background: var(--club-accent-bg-strong) !important;
+  color: var(--club-accent) !important;
+}
+
+.club-sidebar .ctsv-nav-link.active .ctsv-nav-icon,
+.club-sidebar .club-nav-link.active .ctsv-nav-icon {
+  color: var(--club-accent) !important;
+}
+
+.club-sidebar .ctsv-nav-link:hover {
+  background: var(--club-accent-bg) !important;
+}
+
+.club-nav-link {
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.club-nav-unread-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  vertical-align: middle;
+}

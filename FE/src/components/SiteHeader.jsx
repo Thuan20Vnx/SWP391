@@ -9,6 +9,7 @@ import { getRoleLabel } from '../utils/role';
 import useUserProfile, { clearUserProfileCache } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import { getUserRole, isAdminRole, normalizeRole, isClubManagerRole, clearSession } from '../utils/auth';
+import CtsvHamburgerButton from './ctsv/CtsvHamburgerButton';
 import '../styles/admin-menu.css';
 
 const BASE_NAV_ITEMS = [
@@ -36,6 +37,8 @@ const SiteHeader = ({
   searchValue = '',
   onSearchChange,
   onSearchKeyDown,
+  onTogglePortalSidebar,
+  portalSidebarOpen = false,
 }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -133,6 +136,11 @@ const SiteHeader = ({
               <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
             </svg>
           </button>
+        ) : onTogglePortalSidebar ? (
+          <CtsvHamburgerButton
+            onClick={onTogglePortalSidebar}
+            ariaLabel={portalSidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
+          />
         ) : (
           <button
             type="button"

@@ -80,6 +80,22 @@ const CtsvNavIcon = ({ type }) => {
           <path d="M5 19V9M12 19V5M19 19v-7" />
         </svg>
       );
+    case 'participants':
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8" r="2.5" />
+          <circle cx="16" cy="9" r="2" />
+          <path d="M4 19c.8-2.5 2.8-4 5-4s4.2 1.5 5 4" />
+          <path d="M14 19c.5-1.5 1.8-2.5 3.5-2.5" />
+        </svg>
+      );
+    case 'notifications':
+      return (
+        <svg {...common}>
+          <path d="M12 5a3 3 0 0 1 3 3v3.5l1.8 2.2H7.2L9 11.5V8a3 3 0 0 1 3-3z" />
+          <path d="M10 18.5h4" />
+        </svg>
+      );
     default:
       return (
         <svg {...common}>

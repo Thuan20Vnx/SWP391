@@ -9,6 +9,20 @@ const clubController = require('../controllers/club.controller');
 const router = express.Router();
 
 router.get('/', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubs));
+
+router.get(
+  '/manage/profile',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.getManagedClubProfile)
+);
+router.patch(
+  '/manage/profile',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.updateManagedClubProfile)
+);
+
 router.get('/:slug', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubBySlug));
 
 router.post(
