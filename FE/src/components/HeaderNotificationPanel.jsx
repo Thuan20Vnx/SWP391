@@ -18,6 +18,7 @@ import {
 } from '../data/headerNotificationsData';
 
 import { fetchPublicAnnouncements } from '../services/announcementApi';
+import { getAnnouncementDetailPathForNotifRole } from '../constants/announcementTargets';
 
 import {
 
@@ -190,40 +191,23 @@ const HeaderNotificationPanel = ({
 
 
   const loadPublicAnnouncements = useCallback(async () => {
-
     try {
-
       const list = applyReadState(await fetchPublicAnnouncements(8));
-
       setItems(
-
         list.map((a) => ({
-
           id: a.id,
-
           title: a.title,
-
           body: a.excerpt,
-
           time: a.time,
-
           unread: a.unread,
-
           tone: a.important ? 'warning' : 'info',
-
-          link: `/announcements/${a.id}`,
-
+          link: getAnnouncementDetailPathForNotifRole(role, a.id),
         })),
-
       );
-
     } catch {
-
       setItems([]);
-
     }
-
-  }, []);
+  }, [role]);
 
 
 

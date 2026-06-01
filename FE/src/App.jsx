@@ -61,6 +61,7 @@ import AnnouncementDetail from './pages/AnnouncementDetail';
 import StaticPage from './pages/StaticPage';
 import ClubManagement from './pages/ClubManagement';
 import ClubAnnouncementsPage from './pages/ClubAnnouncementsPage';
+import ClubAnnouncementDetailPage from './pages/ClubAnnouncementDetailPage';
 import EventManagementDetail from './pages/EventManagementDetail';
 
 import { ToastContainer } from './components/Toast';
@@ -155,6 +156,17 @@ function App() {
               <Route path="partners" element={<CtsvPartnerList />} />
               <Route path="partners/:id" element={<CtsvPartnerDetail />} />
               <Route path="announcements/publish" element={<CtsvAnnouncementPublish />} />
+              <Route
+                path="announcements/:id"
+                element={
+                  <AnnouncementDetail
+                    showToast={showToast}
+                    embedded
+                    listPath="/ctsv/announcements/publish"
+                    eventBasePath="/ctsv/events"
+                  />
+                }
+              />
               <Route path="calendar" element={<CtsvCalendar />} />
               <Route path="reports" element={<CtsvReports />} />
               <Route path="reports/:id" element={<CtsvReportDetail />} />
@@ -174,6 +186,17 @@ function App() {
               <Route path="reports" element={<IcpdpReports />} />
               <Route path="profile" element={<IcpdpProfile showToast={showToast} />} />
               <Route path="announcements" element={<IcpdpAnnouncementManage />} />
+              <Route
+                path="announcements/:id"
+                element={
+                  <AnnouncementDetail
+                    showToast={showToast}
+                    embedded
+                    listPath="/icpdp/announcements"
+                    eventBasePath="/icpdp/events"
+                  />
+                }
+              />
             </Route>
           </Route>
 
@@ -189,6 +212,17 @@ function App() {
               <Route path="analytics" element={<PartnerPlaceholder pageKey="analytics" />} />
               <Route path="proposals/create" element={<PartnerPlaceholder pageKey="proposals/create" />} />
               <Route path="announcements" element={<PartnerAnnouncementManage />} />
+              <Route
+                path="announcements/:id"
+                element={
+                  <AnnouncementDetail
+                    showToast={showToast}
+                    embedded
+                    listPath="/partner/announcements"
+                    eventBasePath="/events"
+                  />
+                }
+              />
             </Route>
           </Route>
 
@@ -238,6 +272,14 @@ function App() {
             }
           />
           <Route
+            path="/quan-ly-clb/announcements/:id"
+            element={
+              <ProtectedRoute>
+                <ClubAnnouncementDetailPage showToast={showToast} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/quan-ly-clb/su-kien/:id"
             element={
               <ProtectedRoute>
@@ -265,6 +307,17 @@ function App() {
               <Route path="partners/approvals" element={<AdminPartnerApprovals showToast={showToast} />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="announcements" element={<AdminAnnouncementManage />} />
+              <Route
+                path="announcements/:id"
+                element={
+                  <AnnouncementDetail
+                    showToast={showToast}
+                    embedded
+                    listPath="/admin/announcements"
+                    eventBasePath="/admin/events"
+                  />
+                }
+              />
             </Route>
           </Route>
           <Route path="/dashboard" element={<Navigate to="/profile" replace />} />

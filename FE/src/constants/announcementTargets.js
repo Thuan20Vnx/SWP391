@@ -45,6 +45,50 @@ export const toggleTargetSelection = (current, value) => {
   return [...withoutAll, value];
 };
 
+export const getAnnouncementDetailPath = (portalRole, id) => {
+  const annId = String(id || '').trim();
+  if (!annId) return '/announcements';
+  switch (portalRole) {
+    case 'admin':
+      return `/admin/announcements/${annId}`;
+    case 'ctsv':
+      return `/ctsv/announcements/${annId}`;
+    case 'icpdp':
+      return `/icpdp/announcements/${annId}`;
+    case 'club_manager':
+      return `/quan-ly-clb/announcements/${annId}`;
+    case 'partner':
+      return `/partner/announcements/${annId}`;
+    default:
+      return `/announcements/${annId}`;
+  }
+};
+
+export const getAnnouncementListPathForPortal = (portalRole) => {
+  const config = PORTAL_ANNOUNCEMENT_CONFIG[portalRole];
+  return config?.manageLink || '/announcements';
+};
+
+export const getPortalEventDetailPath = (portalRole, eventId) => {
+  const id = String(eventId || '').trim();
+  if (!id) return null;
+  if (portalRole === 'ctsv') return `/ctsv/events/${id}`;
+  if (portalRole === 'icpdp') return `/icpdp/events/${id}`;
+  return `/events/${id}`;
+};
+
+/** Đường dẫn chi tiết thông báo theo role header notification */
+export const getAnnouncementDetailPathForNotifRole = (notifRole, id) => {
+  const map = {
+    admin: 'admin',
+    ctsv: 'ctsv',
+    club: 'club_manager',
+    partner: 'partner',
+    icpdp: 'icpdp',
+  };
+  return getAnnouncementDetailPath(map[notifRole] || null, id);
+};
+
 export const PORTAL_ANNOUNCEMENT_CONFIG = {
   admin: {
     eyebrow: 'Truyền thông Admin',

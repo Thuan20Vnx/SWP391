@@ -16,8 +16,11 @@ import TargetAudiencePicker from '../../components/announcements/TargetAudienceP
 import {
   ANNOUNCEMENT_TARGET_ALL,
   formatTargetRolesLabel,
+  getAnnouncementDetailPath,
+  getPortalEventDetailPath,
   PORTAL_ANNOUNCEMENT_CONFIG
 } from '../../constants/announcementTargets';
+import { useCloseOnClickOutside } from '../../hooks/useCloseOnClickOutside';
 import {
   clearAnnouncementDraft,
   formatDraftSavedLabel,
@@ -161,6 +164,8 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
   const [sortBy, setSortBy] = useState('newest');
   const [expandedId, setExpandedId] = useState(null);
   const [composeOpen, setComposeOpen] = useState(initialDraft.hadDraft);
+  const [openActionMenuId, setOpenActionMenuId] = useState(null);
+  const actionMenuWrapRef = useRef(null);
   const draftReadyRef = useRef(false);
   const draftRestoreToastShownRef = useRef(false);
   const showToastRef = useRef(showToast);
@@ -168,6 +173,8 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
   const bannerInputRef = useRef(null);
 
   showToastRef.current = showToast;
+
+  useCloseOnClickOutside(actionMenuWrapRef, Boolean(openActionMenuId), () => setOpenActionMenuId(null));
 
   const linkableEvents = useMemo(
     () => events.filter(isAnnouncementLinkableEvent),
@@ -1018,21 +1025,9 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
                     </div>
                   </div>
                   <div className="ctsv-announce-history-actions">
-                    {!a.isHidden && (
-                      <button
-                        type="button"
-                        className="ctsv-announce-history-btn ctsv-announce-history-btn--edit"
-                        onClick={() => startEditAnnouncement(a)}
-                        disabled={actionLoading || submitting}
-                        title="Sửa thông báo"
-                        aria-label="Sửa thông báo"
-                      >
-                        <CtsvActionIcon type="edit" />
-                      </button>
-                    )}
                     {evId && canLinkEvents && (
                       <Link
-                        to={`/ctsv/events/${evId}`}
+                        to={getPortalEventDetailPath(portalRole, evId)}
                         className="ctsv-announce-history-btn ctsv-announce-history-btn--event"
                         title="Xem sự kiện"
                         aria-label="Xem sự kiện"
@@ -1040,28 +1035,81 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
                         <CtsvActionIcon type="event" />
                       </Link>
                     )}
-                    {!a.isHidden && (
+                    <Link
+                      to={getAnnouncementDetailPath(portalRole, annId)}
+                      className="ctsv-announce-history-btn ctsv-announce-history-btn--detail"
+                      title="Chi tiết thông báo"
+                      aria-label="Chi tiết thông báo"
+                    >
+                      <CtsvActionIcon type="detail" />
+                    </Link>
+                    <div
+                      className="ctsv-announce-history-more"
+                      ref={openActionMenuId === annId ? actionMenuWrapRef : undefined}
+                    >
                       <button
                         type="button"
-                        className="ctsv-announce-history-btn ctsv-announce-history-btn--hide"
-                        onClick={() => openListConfirm('hide', a)}
+                        className={`ctsv-announce-history-btn ctsv-announce-history-btn--more${openActionMenuId === annId ? ' is-open' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenActionMenuId(openActionMenuId === annId ? null : annId);
+                        }}
                         disabled={actionLoading || submitting}
-                        title="Ẩn thông báo"
-                        aria-label="Ẩn thông báo"
+                        title="Thêm thao tác"
+                        aria-label="Thêm thao tác"
+                        aria-expanded={openActionMenuId === annId}
+                        aria-haspopup="menu"
                       >
-                        <CtsvActionIcon type="hide" />
+                        <CtsvActionIcon type="more" />
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      className="ctsv-announce-history-btn ctsv-announce-history-btn--delete"
-                      onClick={() => openListConfirm('delete', a)}
-                      disabled={actionLoading || submitting}
-                      title="Xóa thông báo"
-                      aria-label="Xóa thông báo"
-                    >
-                      <CtsvActionIcon type="delete" />
-                    </button>
+                      {openActionMenuId === annId && (
+                        <div className="ctsv-announce-kebab-menu" role="menu" onClick={(e) => e.stopPropagation()}>
+                          {!a.isHidden && (
+                            <button
+                              type="button"
+                              className="ctsv-announce-kebab-item"
+                              role="menuitem"
+                              onClick={() => {
+                                setOpenActionMenuId(null);
+                                startEditAnnouncement(a);
+                              }}
+                              disabled={actionLoading || submitting}
+                            >
+                              <CtsvActionIcon type="edit" size={16} />
+                              Sửa thông báo
+                            </button>
+                          )}
+                          {!a.isHidden && (
+                            <button
+                              type="button"
+                              className="ctsv-announce-kebab-item"
+                              role="menuitem"
+                              onClick={() => {
+                                setOpenActionMenuId(null);
+                                openListConfirm('hide', a);
+                              }}
+                              disabled={actionLoading || submitting}
+                            >
+                              <CtsvActionIcon type="hide" size={16} />
+                              Ẩn thông báo
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="ctsv-announce-kebab-item ctsv-announce-kebab-item--danger"
+                            role="menuitem"
+                            onClick={() => {
+                              setOpenActionMenuId(null);
+                              openListConfirm('delete', a);
+                            }}
+                            disabled={actionLoading || submitting}
+                          >
+                            <CtsvActionIcon type="delete" size={16} />
+                            Xóa thông báo
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </li>
               );
