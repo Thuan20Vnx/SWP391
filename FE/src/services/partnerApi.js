@@ -176,10 +176,7 @@ export const updatePartnerUserProfile = async (body) => {
   return parseJson(res);
 };
 
-export const fetchPartnerStats = () =>
-  partnerFetch('/stats').catch(() =>
-    Promise.resolve({ stats: PARTNER_MOCK_STATS, activity: PARTNER_RECENT_ACTIVITY })
-  );
+export const fetchPartnerStats = () => partnerFetch('/stats');
 
 export const fetchPartnerEvents = (params = {}) => {
   const qs = new URLSearchParams();
@@ -187,22 +184,14 @@ export const fetchPartnerEvents = (params = {}) => {
     if (v && v !== 'Tất cả') qs.set(k, v);
   });
   const q = qs.toString();
-  return partnerFetch(`/events${q ? `?${q}` : ''}`).catch(() =>
-    Promise.resolve({ events: PARTNER_MOCK_EVENTS })
-  );
+  return partnerFetch(`/events${q ? `?${q}` : ''}`);
 };
 
 export const fetchPartnerEvent = (id) => partnerFetch(`/events/${id}`);
 
-export const fetchPartnerContracts = () =>
-  partnerFetch('/contracts').catch(() =>
-    Promise.resolve({ contracts: PARTNER_MOCK_CONTRACTS })
-  );
+export const fetchPartnerContracts = () => partnerFetch('/contracts');
 
-export const fetchPartnerReports = () =>
-  partnerFetch('/reports').catch(() =>
-    Promise.resolve({ reports: PARTNER_MOCK_REPORTS })
-  );
+export const fetchPartnerReports = () => partnerFetch('/reports');
 
 export const fetchPartnerReportDetail = (id) => partnerFetch(`/reports/${id}`);
 

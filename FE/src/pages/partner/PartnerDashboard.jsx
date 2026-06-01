@@ -37,28 +37,38 @@ const QUICK_ACTIONS = [
 
 const PartnerDashboard = () => {
   const navigate = useNavigate();
-  const { userProfile } = useOutletContext() || {};
+  const { userProfile, showToast } = useOutletContext() || {};
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(PARTNER_MOCK_STATS);
+  const [stats, setStats] = useState([]);
   const [events, setEvents] = useState([]);
   const [activity, setActivity] = useState([]);
   const [partnerStatus, setPartnerStatus] = useState(null);
+  const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setApiError(false);
 
     Promise.all([
-      fetchPartnerStats().catch(() => ({ stats: PARTNER_MOCK_STATS, activity: [] })),
-      fetchPartnerEvents().catch(() => ({ events: PARTNER_MOCK_EVENTS })),
-      fetchPartnerMe().catch(() => ({ partner: null }))
+      fetchPartnerStats(),
+      fetchPartnerEvents(),
+      fetchPartnerMe()
     ])
       .then(([statsRes, eventsRes, meRes]) => {
         if (cancelled) return;
-        setStats(statsRes.stats?.length ? statsRes.stats : PARTNER_MOCK_STATS);
-        setEvents(eventsRes.events?.length ? eventsRes.events : PARTNER_MOCK_EVENTS);
-        setActivity(statsRes.activity?.length ? statsRes.activity : []);
+        setStats(statsRes.stats || []);
+        setEvents(eventsRes.events || []);
+        setActivity(statsRes.activity || []);
         setPartnerStatus(meRes.partner?.status || null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setApiError(true);
+        setStats(PARTNER_MOCK_STATS);
+        setEvents(PARTNER_MOCK_EVENTS);
+        setActivity([]);
+        showToast?.('Không kết nối được API đối tác — kiểm tra backend đang chạy.', 'error');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -67,7 +77,7 @@ const PartnerDashboard = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showToast]);
 
   const recentEvents = useMemo(() => events.slice(0, 4), [events]);
   const upcomingCount = useMemo(
@@ -87,13 +97,13 @@ const PartnerDashboard = () => {
       .filter((item) => item.name)
       .slice(0, 5);
 
-    const items = fromEvents.length ? fromEvents : PARTNER_PERFORMANCE;
+    const items = fromEvents.length ? fromEvents : apiError ? PARTNER_PERFORMANCE : [];
     const avgCheckIn = items.length
       ? Math.round(items.reduce((sum, item) => sum + item.rate, 0) / items.length)
       : 0;
 
     return { items, avgCheckIn };
-  }, [events]);
+  }, [events, apiError]);
 
   const checkInTone =
     performanceData.avgCheckIn >= 80 ? 'high' : performanceData.avgCheckIn >= 50 ? 'mid' : 'low';
@@ -210,14 +220,19 @@ const PartnerDashboard = () => {
               </div>
             </div>
             <p className="partner-perf-card__footnote">
-              {events.length > 0
-                ? `Dựa trên ${events.length} sự kiện trong tài khoản`
-                : 'Chưa có sự kiện — hiển thị dữ liệu mẫu'}
+              {apiError
+                ? 'Dữ liệu mẫu — backend chưa phản hồi'
+                : events.length > 0
+                  ? `Dựa trên ${events.length} sự kiện trong tài khoản`
+                  : 'Chưa có sự kiện — tạo đề xuất mới để bắt đầu'}
             </p>
           </div>
 
           <div className="partner-perf-card partner-perf-card--bars">
             <h3 className="partner-perf-card__title">Hiệu suất theo sự kiện</h3>
+            {performanceData.items.length === 0 ? (
+              <p className="partner-perf-card__footnote">Chưa có dữ liệu hiệu suất.</p>
+            ) : (
             <div className="partner-perf-bar-list">
               {performanceData.items.map((item, index) => (
                 <div key={item.name} className="partner-perf-bar-row">
@@ -237,6 +252,7 @@ const PartnerDashboard = () => {
                 </div>
               ))}
             </div>
+            )}
           </div>
         </div>
       </section>

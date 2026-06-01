@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
-import { fetchIcpdpEvents, fetchIcpdpStats, ICPDP_MOCK_EVENTS, ICPDP_MOCK_STATS } from '../services/icpdpApi';
+import { fetchIcpdpEvents, fetchIcpdpStats, ICPDP_MOCK_STATS } from '../services/icpdpApi';
 import { getCtsvEventAccess, isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
 import { statusClass } from '../utils/eventStatus';
 
@@ -91,8 +91,8 @@ const IcpdpHome = ({ showToast }) => {
     }
   ];
 
-  const [events, setEvents] = useState(ICPDP_MOCK_EVENTS);
-  const [filteredEvents, setFilteredEvents] = useState(ICPDP_MOCK_EVENTS);
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [stats, setStats] = useState(ICPDP_MOCK_STATS);
 
   useEffect(() => {
@@ -102,13 +102,14 @@ const IcpdpHome = ({ showToast }) => {
 
     fetchIcpdpEvents()
       .then((d) => {
-        const list = d.events?.length ? d.events : ICPDP_MOCK_EVENTS;
+        const list = d.events || [];
         setEvents(list);
         setFilteredEvents(list);
       })
       .catch(() => {
-        setEvents(ICPDP_MOCK_EVENTS);
-        setFilteredEvents(ICPDP_MOCK_EVENTS);
+        setEvents([]);
+        setFilteredEvents([]);
+        showToast?.('Không tải được sự kiện — kiểm tra backend và đăng nhập lại.', 'error');
       });
   }, []);
 

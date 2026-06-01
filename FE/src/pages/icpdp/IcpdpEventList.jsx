@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import AppSelect from '../../components/ui/AppSelect';
-import { fetchIcpdpEvents, ICPDP_MOCK_EVENTS } from '../../services/icpdpApi';
+import { fetchIcpdpEvents } from '../../services/icpdpApi';
 import { statusClass } from '../../utils/eventStatus';
 
 const TIME_FILTERS = [
@@ -31,11 +31,18 @@ const SOURCE_FILTERS = [
 
 const STATUS_FILTERS = [
   { value: '', label: 'Tất cả trạng thái' },
-  { value: 'published', label: 'Đã xuất bản (Publish)' },
   { value: 'approved', label: 'Mở đăng ký' },
   { value: 'live', label: 'Đang diễn ra' },
-  { value: 'ended', label: 'Đã kết thúc' }
+  { value: 'ended', label: 'Đã kết thúc' },
+  { value: 'pending_icpdp', label: 'Chờ ICPDP' },
+  { value: 'pending_ctsv', label: 'Chờ CTSV' }
 ];
+
+const matchesStatusFilter = (statusKey, filter) => {
+  if (!filter) return true;
+  if (filter === 'published') return statusKey === 'approved' || statusKey === 'live';
+  return statusKey === filter;
+};
 
 const IconCalendar = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -98,9 +105,13 @@ const IcpdpEventList = () => {
       .then((d) => {
         setEvents(d.events || []);
       })
-      .catch(() => {
-        setEvents(ICPDP_MOCK_EVENTS);
-        showToast?.('Dùng dữ liệu demo.', 'info');
+      .catch((err) => {
+        setEvents([]);
+        const msg =
+          err.status === 401 || err.status === 403
+            ? 'Phiên đăng nhập hết hạn — vui lòng đăng xuất và đăng nhập lại.'
+            : 'Không tải được sự kiện — kiểm tra backend đang chạy.';
+        showToast?.(msg, 'error');
       })
       .finally(() => {
         setLoading(false);
@@ -120,7 +131,9 @@ const IcpdpEventList = () => {
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return events.filter((ev) => {
-      if (q && !ev.title.toLowerCase().includes(q) && !ev.location.toLowerCase().includes(q)) {
+      const title = (ev.title || '').toLowerCase();
+      const location = (ev.location || '').toLowerCase();
+      if (q && !title.includes(q) && !location.includes(q)) {
         return false;
       }
       if (categoryFilter !== 'Tất cả' && ev.category !== categoryFilter) {
@@ -130,7 +143,7 @@ const IcpdpEventList = () => {
         const sourceMap = { 'Cấp trường': 'school', 'Đối tác': 'partner', 'Câu lạc bộ': 'club' };
         if (ev.source !== sourceMap[sourceFilter]) return false;
       }
-      if (statusFilter && ev.statusKey !== statusFilter) {
+      if (!matchesStatusFilter(ev.statusKey, statusFilter)) {
         return false;
       }
       return true;
@@ -216,7 +229,11 @@ const IcpdpEventList = () => {
             </svg>
           </span>
           <h2>Không tìm thấy sự kiện</h2>
-          <p>Thử đổi từ khóa hoặc bộ lọc thời gian, chủ đề.</p>
+          <p>
+            {events.length === 0
+              ? 'Chưa có sự kiện trong hệ thống hoặc không tải được dữ liệu. Chạy `node seed-events.js` trong thư mục BE nếu DB trống.'
+              : 'Thử đổi từ khóa hoặc bộ lọc thời gian, chủ đề.'}
+          </p>
           <button type="button" className="ctsv-events-filter-btn" onClick={() => {
             setSearchQuery('');
             setTimeFilter('Tất cả');
