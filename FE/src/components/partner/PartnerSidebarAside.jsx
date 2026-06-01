@@ -13,7 +13,6 @@ const PartnerSidebarAside = ({
   sidebarOpen,
   onClose,
   userProfile,
-  onLogout,
   pathname
 }) => {
   const renderNavItems = () => {
@@ -63,9 +62,6 @@ const PartnerSidebarAside = ({
           <p className="ctsv-sidebar-role">{getRoleDisplayLabel(getUserRole())}</p>
         </div>
       </div>
-      <button type="button" className="ctsv-sidebar-logout partner-sidebar-logout" onClick={onLogout}>
-        Đăng xuất
-      </button>
     </aside>
   );
 };

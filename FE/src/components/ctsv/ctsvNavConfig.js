@@ -19,7 +19,7 @@ export const readSidebarPref = () => {
   } catch {
     /* ignore */
   }
-  return window.innerWidth >= 1024;
+  return false;
 };
 
 export const persistSidebarOpen = (open) => {
@@ -28,6 +28,11 @@ export const persistSidebarOpen = (open) => {
   } catch {
     /* ignore */
   }
+};
+
+/** Gọi sau khi đăng nhập CTSV — sidebar đóng mặc định. */
+export const resetCtsvSidebarOnLogin = () => {
+  persistSidebarOpen(false);
 };
 
 export const isCtsvDesktop = () => window.matchMedia('(min-width: 1024px)').matches;

@@ -23,8 +23,6 @@ import {
 import { API_BASE, getAuthHeaders } from '../utils/api';
 
 import { getUserRole, isCtsvRole, normalizeRole } from '../utils/auth';
-
-import { logoutWithConfirm } from '../utils/logout';
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { resolveUserAvatar } from '../utils/image';
 
@@ -117,20 +115,6 @@ const CtsvLayout = ({ showToast }) => {
 
 
 
-  const handleLogout = () => {
-
-    logoutWithConfirm(navigate, {
-
-      showToast,
-
-      toastMessage: 'Đã đăng xuất tài khoản CTSV.'
-
-    });
-
-  };
-
-
-
   const shellClass = `ctsv-app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
 
 
@@ -164,8 +148,6 @@ const CtsvLayout = ({ showToast }) => {
         onClose={closeSidebar}
 
         userProfile={userProfile}
-
-        onLogout={handleLogout}
 
         pathname={location.pathname}
 
