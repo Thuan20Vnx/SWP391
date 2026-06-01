@@ -4,12 +4,16 @@ import CtsvNavIcon from '../../components/ctsv/CtsvNavIcon';
 import PortalDashHero from '../../components/portal/PortalDashHero';
 import {
   fetchPartnerEvents,
+  fetchPartnerMe,
   fetchPartnerStats,
   PARTNER_MOCK_EVENTS,
   PARTNER_MOCK_STATS,
-  PARTNER_RECENT_ACTIVITY,
   PARTNER_PERFORMANCE
 } from '../../services/partnerApi';
+import {
+  PARTNER_STATUS_LABEL,
+  PARTNER_STATUS_TONE
+} from '../../utils/partnerDisplay';
 import { statusClass } from '../../utils/eventStatus';
 
 const STAT_STYLES = [
@@ -22,7 +26,7 @@ const STAT_STYLES = [
 const QUICK_ACTIONS = [
   {
     path: '/partner/proposals/create',
-    label: 'Tạo đề xuất mới',
+    label: 'Tạo sự kiện mới',
     desc: 'Gửi đề xuất sự kiện tài trợ',
     icon: 'create'
   },
@@ -33,23 +37,38 @@ const QUICK_ACTIONS = [
 
 const PartnerDashboard = () => {
   const navigate = useNavigate();
-  const { userProfile } = useOutletContext() || {};
+  const { userProfile, showToast } = useOutletContext() || {};
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(PARTNER_MOCK_STATS);
+  const [stats, setStats] = useState([]);
   const [events, setEvents] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [partnerStatus, setPartnerStatus] = useState(null);
+  const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setApiError(false);
 
     Promise.all([
-      fetchPartnerStats().catch(() => ({ stats: PARTNER_MOCK_STATS })),
-      fetchPartnerEvents().catch(() => ({ events: PARTNER_MOCK_EVENTS }))
+      fetchPartnerStats(),
+      fetchPartnerEvents(),
+      fetchPartnerMe()
     ])
-      .then(([statsRes, eventsRes]) => {
+      .then(([statsRes, eventsRes, meRes]) => {
         if (cancelled) return;
-        setStats(statsRes.stats?.length ? statsRes.stats : PARTNER_MOCK_STATS);
-        setEvents(eventsRes.events?.length ? eventsRes.events : PARTNER_MOCK_EVENTS);
+        setStats(statsRes.stats || []);
+        setEvents(eventsRes.events || []);
+        setActivity(statsRes.activity || []);
+        setPartnerStatus(meRes.partner?.status || null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setApiError(true);
+        setStats(PARTNER_MOCK_STATS);
+        setEvents(PARTNER_MOCK_EVENTS);
+        setActivity([]);
+        showToast?.('Không kết nối được API đối tác — kiểm tra backend đang chạy.', 'error');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -58,13 +77,36 @@ const PartnerDashboard = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showToast]);
 
   const recentEvents = useMemo(() => events.slice(0, 4), [events]);
   const upcomingCount = useMemo(
     () => events.filter((ev) => ev.statusKey === 'approved').length,
     [events]
   );
+
+  const performanceData = useMemo(() => {
+    const fromEvents = events
+      .map((ev) => {
+        const total = ev.totalTickets || ev.capacity || 0;
+        const remaining = ev.remainingTickets ?? Math.max(0, total - (ev.registeredCount || 0));
+        const registered = ev.registeredCount ?? Math.max(0, total - remaining);
+        const rate = total > 0 ? Math.round((registered / total) * 100) : 0;
+        return { name: ev.title, rate };
+      })
+      .filter((item) => item.name)
+      .slice(0, 5);
+
+    const items = fromEvents.length ? fromEvents : apiError ? PARTNER_PERFORMANCE : [];
+    const avgCheckIn = items.length
+      ? Math.round(items.reduce((sum, item) => sum + item.rate, 0) / items.length)
+      : 0;
+
+    return { items, avgCheckIn };
+  }, [events, apiError]);
+
+  const checkInTone =
+    performanceData.avgCheckIn >= 80 ? 'high' : performanceData.avgCheckIn >= 50 ? 'mid' : 'low';
 
   return (
     <div className="ctsv-dashboard">
@@ -76,7 +118,7 @@ const PartnerDashboard = () => {
         actions={
           <>
             <Link to="/partner/proposals/create" className="ctsv-dash-btn ctsv-dash-btn--primary">
-              Tạo đề xuất mới
+              Tạo sự kiện mới
             </Link>
             <Link to="/partner/contracts" className="ctsv-dash-btn ctsv-dash-btn--ghost">
               Xem hợp đồng
@@ -85,13 +127,25 @@ const PartnerDashboard = () => {
         }
       />
 
+      {partnerStatus && (
+        <div className={`ctsv-pd-banner ctsv-pd-banner--${PARTNER_STATUS_TONE[partnerStatus] || 'info'}`} style={{ marginBottom: 16 }}>
+          Trạng thái hồ sơ: <strong>{PARTNER_STATUS_LABEL[partnerStatus] || partnerStatus}</strong>
+          {partnerStatus === 'info_requested' && (
+            <>
+              {' '}
+              — <Link to="/partner/proposals/create">Bổ sung hồ sơ ngay</Link>
+            </>
+          )}
+        </div>
+      )}
+
       <Link to="/partner/proposals/create" className="ctsv-dash-create-card">
         <span className="ctsv-dash-create-card__icon">
           <CtsvNavIcon type="create" />
         </span>
         <span className="ctsv-dash-create-card__body">
-          <strong>Tạo đề xuất sự kiện mới</strong>
-          <span>Gửi đề xuất tài trợ hoặc đồng tổ chức sự kiện — CTSV sẽ xem xét và phê duyệt.</span>
+          <strong>Tạo sự kiện mới</strong>
+          <span>Soạn đơn tạo sự kiện đầy đủ — CTSV sẽ nhận và xem xét yêu cầu.</span>
         </span>
         <span className="ctsv-dash-create-card__arrow" aria-hidden>
           <svg viewBox="0 0 24 24" width="22" height="22">
@@ -132,27 +186,73 @@ const PartnerDashboard = () => {
       </section>
 
       <section className="partner-perf-section" aria-label="Hiệu suất">
-        <div className="partner-perf-grid">
-          <div className="partner-perf-card">
-            <h3 className="partner-perf-card__title">Tỷ lệ check-in</h3>
-            <div className="partner-perf-ring">
-              <span className="partner-perf-ring__value">88%</span>
-              <span className="partner-perf-ring__label">Trung bình các sự kiện gần đây</span>
-            </div>
+        <div className="partner-perf-section__head">
+          <div>
+            <h2 className="partner-perf-section__title">Hiệu suất chiến dịch</h2>
+            <p className="partner-perf-section__desc">Tỷ lệ lấp đầy vé và mức độ tham dự các sự kiện tài trợ</p>
           </div>
-          <div className="partner-perf-card">
-            <h3 className="partner-perf-card__title">Hiệu suất sự kiện</h3>
-            {PARTNER_PERFORMANCE.map((item) => (
-              <div key={item.name} className="partner-perf-bar-row">
-                <div className="partner-perf-bar-head">
-                  <span>{item.name}</span>
-                  <strong>{item.rate}%</strong>
-                </div>
-                <div className="partner-perf-bar-track">
-                  <div className="partner-perf-bar-fill" style={{ width: `${item.rate}%` }} />
-                </div>
+          <Link to="/partner/analytics" className="partner-perf-section__link">
+            Xem báo cáo chi tiết
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor" />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="partner-perf-grid">
+          <div className="partner-perf-card partner-perf-card--ring">
+            <h3 className="partner-perf-card__title">Tỷ lệ lấp đầy vé</h3>
+            <div className={`partner-perf-ring partner-perf-ring--${checkInTone}`}>
+              <svg className="partner-perf-ring__svg" viewBox="0 0 128 128" aria-hidden>
+                <circle className="partner-perf-ring__track" cx="64" cy="64" r="54" />
+                <circle
+                  className="partner-perf-ring__progress"
+                  cx="64"
+                  cy="64"
+                  r="54"
+                  strokeDasharray={339.292}
+                  strokeDashoffset={339.292 - (339.292 * performanceData.avgCheckIn) / 100}
+                />
+              </svg>
+              <div className="partner-perf-ring__center">
+                <span className="partner-perf-ring__value">{performanceData.avgCheckIn}%</span>
+                <span className="partner-perf-ring__label">Trung bình</span>
               </div>
-            ))}
+            </div>
+            <p className="partner-perf-card__footnote">
+              {apiError
+                ? 'Dữ liệu mẫu — backend chưa phản hồi'
+                : events.length > 0
+                  ? `Dựa trên ${events.length} sự kiện trong tài khoản`
+                  : 'Chưa có sự kiện — tạo đề xuất mới để bắt đầu'}
+            </p>
+          </div>
+
+          <div className="partner-perf-card partner-perf-card--bars">
+            <h3 className="partner-perf-card__title">Hiệu suất theo sự kiện</h3>
+            {performanceData.items.length === 0 ? (
+              <p className="partner-perf-card__footnote">Chưa có dữ liệu hiệu suất.</p>
+            ) : (
+            <div className="partner-perf-bar-list">
+              {performanceData.items.map((item, index) => (
+                <div key={item.name} className="partner-perf-bar-row">
+                  <div className="partner-perf-bar-head">
+                    <span className="partner-perf-bar-rank">{index + 1}</span>
+                    <span className="partner-perf-bar-name" title={item.name}>
+                      {item.name}
+                    </span>
+                    <strong className="partner-perf-bar-pct">{item.rate}%</strong>
+                  </div>
+                  <div className="partner-perf-bar-track" aria-hidden>
+                    <div
+                      className={`partner-perf-bar-fill partner-perf-bar-fill--${index % 3}`}
+                      style={{ width: `${Math.min(100, Math.max(0, item.rate))}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            )}
           </div>
         </div>
       </section>
@@ -241,7 +341,7 @@ const PartnerDashboard = () => {
               </div>
             </div>
             <ul className="partner-activity-list">
-              {PARTNER_RECENT_ACTIVITY.map((item) => (
+              {(activity.length ? activity : [{ id: 0, text: 'Chưa có hoạt động gần đây.', time: '' }]).map((item) => (
                 <li key={item.id} className="partner-activity-item">
                   <span className="partner-activity-dot" aria-hidden />
                   <div>
