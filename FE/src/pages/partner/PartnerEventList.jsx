@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import AppSelect from '../../components/ui/AppSelect';
-import { fetchPartnerEvents, PARTNER_MOCK_EVENTS } from '../../services/partnerApi';
+import { fetchPartnerEvents } from '../../services/partnerApi';
 import { statusClass } from '../../utils/eventStatus';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
 
@@ -62,10 +62,14 @@ const PartnerEventList = () => {
           setEvents(list);
           return list;
         })
-        .catch(() => {
-          setEvents(PARTNER_MOCK_EVENTS);
-          showToast?.('Dùng dữ liệu demo — kiểm tra BE đang chạy.', 'info');
-          return PARTNER_MOCK_EVENTS;
+        .catch((err) => {
+          setEvents([]);
+          const msg =
+            err.status === 401 || err.status === 403
+              ? 'Phiên đăng nhập hết hạn — vui lòng đăng xuất và đăng nhập lại.'
+              : 'Không tải được sự kiện — kiểm tra backend đang chạy.';
+          showToast?.(msg, 'error');
+          return [];
         })
         .finally(() => setLoading(false));
     },

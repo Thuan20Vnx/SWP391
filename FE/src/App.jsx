@@ -104,7 +104,7 @@ const PublicHomeRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (isLoggedIn) {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
-    if (isPartnerRole()) return <Navigate to="/partner" replace />;
+    if (isPartnerRole()) return <Navigate to="/partner/dashboard" replace />;
     if (isClubManagerRole()) return <Navigate to="/quan-ly-clb" replace />;
     if (isCtsvRole()) return <Navigate to="/ctsv" replace />;
     if (isAdminRole()) return <Navigate to="/admin" replace />;
@@ -177,7 +177,8 @@ function App() {
 
           <Route path="/partner" element={<PartnerProtectedRoute />}>
             <Route element={<PartnerLayout showToast={showToast} />}>
-              <Route index element={<PartnerHome showToast={showToast} />} />
+              <Route index element={<Navigate to="/partner/dashboard" replace />} />
+              <Route path="home" element={<PartnerHome showToast={showToast} />} />
               <Route path="dashboard" element={<PartnerDashboard />} />
               <Route path="profile" element={<PartnerProfileSettings showToast={showToast} />} />
               <Route path="events" element={<PartnerEventList />} />

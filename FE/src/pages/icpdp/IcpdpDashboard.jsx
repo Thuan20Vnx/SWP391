@@ -38,15 +38,20 @@ const IcpdpDashboard = () => {
 
     Promise.all([
       fetchIcpdpStats().catch(() => ({ stats: ICPDP_MOCK_STATS })),
-      fetchIcpdpEvents().catch(() => ({ events: ICPDP_MOCK_EVENTS })),
+      fetchIcpdpEvents().catch(() => ({ events: [] })),
       fetchIcpdpProposals({ status: 'pending_icpdp' }).catch(() => ({ proposals: [] }))
     ])
       .then(([statsRes, eventsRes, proposalsRes]) => {
         if (cancelled) return;
         setStats(statsRes.stats?.length ? statsRes.stats : ICPDP_MOCK_STATS);
-        const list = eventsRes.events?.length ? eventsRes.events : ICPDP_MOCK_EVENTS;
+        const list = eventsRes.events || [];
         setEvents(list);
         setPendingProposals((proposalsRes.proposals || []).slice(0, 5));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setEvents([]);
+        setPendingProposals([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
