@@ -68,12 +68,7 @@ import PartnerLayout from './layouts/PartnerLayout';
 import PartnerHome from './pages/PartnerHome';
 import PartnerDashboard from './pages/partner/PartnerDashboard';
 import PartnerProfileSettings from './pages/partner/PartnerProfileSettings';
-import PartnerEventList from './pages/partner/PartnerEventList';
-import PartnerEventDetail from './pages/partner/PartnerEventDetail';
-import PartnerContractList from './pages/partner/PartnerContractList';
-import PartnerAnalytics from './pages/partner/PartnerAnalytics';
-import PartnerReportDetail from './pages/partner/PartnerReportDetail';
-import PartnerProposalCreate from './pages/partner/PartnerProposalCreate';
+import PartnerPlaceholder from './pages/partner/PartnerPlaceholder';
 import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole, isClubManagerRole, isPartnerRole } from './utils/auth';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import './index.css';
@@ -188,12 +183,11 @@ function App() {
               <Route path="home" element={<PartnerHome showToast={showToast} />} />
               <Route path="dashboard" element={<PartnerDashboard />} />
               <Route path="profile" element={<PartnerProfileSettings showToast={showToast} />} />
-              <Route path="events" element={<PartnerEventList />} />
-              <Route path="events/:id" element={<PartnerEventDetail />} />
-              <Route path="contracts" element={<PartnerContractList />} />
-              <Route path="analytics" element={<PartnerAnalytics />} />
-              <Route path="analytics/:id" element={<PartnerReportDetail />} />
-              <Route path="proposals/create" element={<PartnerProposalCreate />} />
+              <Route path="events" element={<PartnerPlaceholder pageKey="events" />} />
+              <Route path="events/:id" element={<PartnerPlaceholder pageKey="events" />} />
+              <Route path="contracts" element={<PartnerPlaceholder pageKey="contracts" />} />
+              <Route path="analytics" element={<PartnerPlaceholder pageKey="analytics" />} />
+              <Route path="proposals/create" element={<PartnerPlaceholder pageKey="proposals/create" />} />
               <Route path="announcements" element={<PartnerAnnouncementManage />} />
             </Route>
           </Route>
