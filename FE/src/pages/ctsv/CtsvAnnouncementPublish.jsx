@@ -13,6 +13,7 @@ import {
 } from '../../services/announcementManageApi';
 import { fetchCtsvAnnouncementLinkableEvents } from '../../services/ctsvApi';
 import TargetAudiencePicker from '../../components/announcements/TargetAudiencePicker';
+import NoticeCategoryPicker from '../../components/announcements/NoticeCategoryPicker';
 import {
   ANNOUNCEMENT_TARGET_ALL,
   formatTargetRolesLabel,
@@ -20,6 +21,7 @@ import {
   getPortalEventDetailPath,
   PORTAL_ANNOUNCEMENT_CONFIG
 } from '../../constants/announcementTargets';
+import { NOTICE_CATEGORY_INFO, getNoticeCategoryLabel } from '../../constants/announcementNoticeCategories';
 import { useCloseOnClickOutside } from '../../hooks/useCloseOnClickOutside';
 import {
   clearAnnouncementDraft,
@@ -46,7 +48,8 @@ const EMPTY_FORM = {
   eventId: '',
   image: '',
   imageFileName: '',
-  targetRoles: [ANNOUNCEMENT_TARGET_ALL]
+  targetRoles: [ANNOUNCEMENT_TARGET_ALL],
+  noticeCategory: NOTICE_CATEGORY_INFO
 };
 
 const CATEGORY_FILTERS = [
@@ -128,7 +131,8 @@ const readInitialDraftState = (portalRole) => {
       eventId: draft.eventId,
       image: draft.image,
       imageFileName: draft.imageFileName,
-      targetRoles: draft.targetRoles?.length ? draft.targetRoles : [ANNOUNCEMENT_TARGET_ALL]
+      targetRoles: draft.targetRoles?.length ? draft.targetRoles : [ANNOUNCEMENT_TARGET_ALL],
+      noticeCategory: draft.noticeCategory || NOTICE_CATEGORY_INFO
     },
     savedAt: draft.savedAt,
     hadDraft: true
@@ -343,6 +347,7 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
         title: form.title.trim(),
         content: form.content.trim(),
         targetRoles: form.targetRoles,
+        noticeCategory: form.noticeCategory,
         eventId: canLinkEvents && form.eventId ? form.eventId : undefined,
         image: form.image || undefined,
         imageFileName: form.imageFileName || undefined
@@ -422,7 +427,8 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
       eventId: announcement.eventId?._id || announcement.eventId || '',
       image: announcement.image || '',
       imageFileName: announcement.imageFileName || '',
-      targetRoles: announcement.targetRoles?.length ? announcement.targetRoles : [ANNOUNCEMENT_TARGET_ALL]
+      targetRoles: announcement.targetRoles?.length ? announcement.targetRoles : [ANNOUNCEMENT_TARGET_ALL],
+      noticeCategory: announcement.noticeCategory || NOTICE_CATEGORY_INFO
     });
     setComposeOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -668,6 +674,12 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
               portalRole={portalRole}
               value={form.targetRoles}
               onChange={(targetRoles) => setForm((f) => ({ ...f, targetRoles }))}
+              disabled={submitting}
+            />
+
+            <NoticeCategoryPicker
+              value={form.noticeCategory}
+              onChange={(noticeCategory) => setForm((f) => ({ ...f, noticeCategory }))}
               disabled={submitting}
             />
 
@@ -990,6 +1002,9 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
                       <h3>{a.title}</h3>
                       <span className={`ctsv-announce-cat-pill ctsv-announce-cat-pill--${cat}`}>
                         {ANNOUNCEMENT_CATEGORY_LABELS[cat] || cat}
+                      </span>
+                      <span className={`ctsv-announce-notice-pill ctsv-announce-notice-pill--${a.noticeCategory || 'info'}`}>
+                        {getNoticeCategoryLabel(a.noticeCategory)}
                       </span>
                     </div>
                     <p>{isExpanded ? a.content : excerpt(a.content)}</p>

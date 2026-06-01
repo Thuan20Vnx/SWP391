@@ -200,7 +200,8 @@ const HeaderNotificationPanel = ({
           body: a.excerpt,
           time: a.time,
           unread: a.unread,
-          tone: a.important ? 'warning' : 'info',
+          tone: a.notificationTone || (a.urgent ? 'alert' : a.important ? 'warning' : 'info'),
+          toneLabel: a.noticeCategoryLabel || null,
           link: getAnnouncementDetailPathForNotifRole(role, a.id),
         })),
       );
@@ -475,7 +476,7 @@ const HeaderNotificationPanel = ({
 
                         <span className={`header-notif-item__chip header-notif-item__chip--${item.tone || 'info'}`}>
 
-                          {toneMeta.label}
+                          {item.toneLabel || toneMeta.label}
 
                         </span>
 

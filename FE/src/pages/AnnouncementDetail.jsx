@@ -4,6 +4,7 @@ import AnnouncementsLayout from '../components/AnnouncementsLayout';
 import { fetchPublicAnnouncement } from '../services/announcementApi';
 import { markAnnouncementRead } from '../utils/announcementReadState';
 import { getPublisherRoleTone } from '../utils/announcementPublisher';
+import { getNoticeCategoryLabel } from '../constants/announcementNoticeCategories';
 
 const getInitials = (name) => {
   const parts = String(name || '?').trim().split(/\s+/).filter(Boolean);
@@ -140,6 +141,8 @@ const AnnouncementDetail = ({
 
   const roleLabel = announcement.publisherRoleLabel || announcement.sender || 'Trường';
   const roleTone = getPublisherRoleTone(announcement.publishedByRole || roleLabel);
+  const noticeLabel = getNoticeCategoryLabel(announcement.noticeCategory);
+  const noticeKey = announcement.noticeCategory || 'info';
   const publisherName = announcement.publisherName || 'Ban quản trị';
   const publisherAvatar = String(announcement.publisherAvatar || '').trim();
   const showAvatarPhoto = Boolean(publisherAvatar) && !avatarError;
@@ -165,9 +168,12 @@ const AnnouncementDetail = ({
         <div className="announcements-detail__shell">
           <header className="announcements-detail__intro">
             <div className="announcements-detail__badges">
-              <span className="announcements-detail__badge announcements-detail__badge--category">
-                {announcement.category}
-              </span>
+                <span className="announcements-detail__badge announcements-detail__badge--category">
+                  {announcement.category}
+                </span>
+                <span className={`announcements-detail__badge announcements-detail__badge--notice announcements-detail__badge--notice-${noticeKey}`}>
+                  {noticeLabel}
+                </span>
               {announcement.important && (
                 <span className="announcements-detail__badge announcements-detail__badge--important">
                   Quan trọng
