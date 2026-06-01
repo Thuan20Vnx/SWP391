@@ -21,7 +21,7 @@ const PUBLISHER_ALLOWED_TARGETS = {
   ctsv: ANNOUNCEMENT_TARGETS,
   icpdp: [ANNOUNCEMENT_TARGET_ALL, 'student', 'club_manager', 'icpdp', 'ctsv'],
   club_manager: [ANNOUNCEMENT_TARGET_ALL, 'guest', 'student', 'club_manager'],
-  partner: [ANNOUNCEMENT_TARGET_ALL, 'guest', 'student', 'partner']
+  partner: ['ctsv']
 };
 
 const normalizeTargetRole = (value) => {
