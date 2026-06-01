@@ -624,27 +624,31 @@
 }
 
 .partner-profile-collapse-panel.is-open .partner-profile-collapse-panel-inner {
-  padding: 0 24px 24px;
+  padding: 18px 24px 20px;
   border-top: 1px solid #f1f5f9;
 }
 
 .partner-profile-collapse-panel-inner > .partner-profile-card__desc {
-  margin-top: 16px;
+  margin-top: 0;
+}
+
+.partner-profile-collapse-panel-inner form > .partner-company-logo-row:first-child {
+  margin-top: 0;
 }
 
 .partner-company-logo-row {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 }
 
 .partner-user-avatar-row {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 }
 
@@ -667,9 +671,9 @@
 }
 
 .partner-company-logo-preview {
-  width: 72px;
-  height: 72px;
-  border-radius: 14px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   border: 1px dashed #cbd5e1;
   background: #f8fafc;
   display: flex;
@@ -698,6 +702,11 @@
   object-fit: cover;
 }
 
+.partner-company-logo-preview svg {
+  width: 24px;
+  height: 24px;
+}
+
 .partner-company-logo-preview__overlay {
   position: absolute;
   inset: 0;
@@ -718,16 +727,17 @@
 
 .partner-company-logo-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  gap: 6px 8px;
   flex: 1;
   min-width: 0;
-  padding-top: 2px;
 }
 
 .partner-company-logo-actions .partner-btn-outline {
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 10px;
   border-radius: 8px;
   font-size: 0.8125rem;
@@ -737,10 +747,12 @@
 }
 
 .partner-company-logo-actions span {
+  flex: 1 1 100%;
+  margin: 0;
   font-size: 0.75rem;
   color: #94a3b8;
-  line-height: 1.45;
-  max-width: 420px;
+  line-height: 1.4;
+  max-width: 100%;
 }
 
 .partner-form-grid {
