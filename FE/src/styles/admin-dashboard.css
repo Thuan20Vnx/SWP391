@@ -16,6 +16,12 @@
   box-sizing: border-box;
 }
 
+/* Trong shell admin: full-width, không căn giữa */
+.admin-app-shell .admin-main {
+  max-width: none;
+  margin: 0;
+}
+
 .admin-dashboard-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -1660,12 +1666,7 @@
   text-decoration: none;
 }
 
-.admin-layout .site-header__search {
-  flex: 1;
-  min-width: 120px;
-  max-width: 480px;
-  margin: 0 12px;
-}
+/* Header admin dùng site-header__search — cùng kích thước trang chủ */
 
 .admin-placeholder {
   max-width: 640px;
