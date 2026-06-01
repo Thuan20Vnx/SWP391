@@ -182,6 +182,12 @@ const eventSchema = new mongoose.Schema(
 
 eventSchema.index({ status: 1, startDate: 1 });
 eventSchema.index({ category: 1, status: 1 });
+eventSchema.index({ source: 1, status: 1, startDate: -1 });
+eventSchema.index({ partnerId: 1, startDate: -1 });
+eventSchema.index({ createdBy: 1, createdAt: -1 });
+eventSchema.index({ isHidden: 1, status: 1, startDate: 1 });
+eventSchema.index({ source: 1, status: 1, ctsvSubmittedAt: -1 });
+eventSchema.index({ source: 1, status: 1, moderationRequestedAt: -1 });
 
 eventSchema.virtual('fillPercent').get(function () {
   const cap = this.capacity || this.totalTickets || 0;

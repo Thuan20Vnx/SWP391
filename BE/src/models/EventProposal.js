@@ -35,6 +35,9 @@ const eventProposalSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+eventProposalSchema.index({ status: 1, createdAt: -1 });
+eventProposalSchema.index({ submittedByEmail: 1, createdAt: -1 });
+
 const EventProposal = mongoose.model('EventProposal', eventProposalSchema);
 
 module.exports = EventProposal;

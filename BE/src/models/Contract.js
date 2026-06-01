@@ -20,6 +20,9 @@ const contractSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+contractSchema.index({ partnerId: 1, createdAt: -1 });
+contractSchema.index({ status: 1, createdAt: -1 });
+
 const Contract = mongoose.model('Contract', contractSchema);
 
 module.exports = Contract;

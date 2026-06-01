@@ -12,6 +12,7 @@ import { cacheUserProfile } from '../hooks/useUserProfile';
 import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileApi';
 import { isCtsvRole, normalizeRole } from '../utils/auth';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
+import CtsvProfilePasswordSection from '../components/ctsv/CtsvProfilePasswordSection';
 
 const Profile = ({ showToast, embedded = false }) => {
   const navigate = useNavigate();
@@ -338,6 +339,54 @@ const Profile = ({ showToast, embedded = false }) => {
     });
   };
 
+  const renderAvatarCard = () => (
+    <div className={`profile-card avatar-card${embedded ? ' ctsv-profile-avatar-card' : ''}`}>
+      {embedded && <h2 className="profile-card-title">Ảnh đại diện</h2>}
+      <div className={`avatar-card-content${embedded ? ' ctsv-profile-avatar-body' : ''}`}>
+        <div className="profile-avatar-container">
+          <img className="large-profile-avatar" id="profile-avatar-img" src={displayAvatar} alt="Avatar lớn" />
+          <label htmlFor="avatar-upload-input" className="btn-avatar-edit-pencil" title="Thay đổi ảnh đại diện">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </label>
+          <input
+            type="file"
+            id="avatar-upload-input"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleAvatarChange}
+          />
+        </div>
+        {embedded ? (
+          <div className="ctsv-profile-avatar-info">
+            <p className="ctsv-profile-avatar-name">{profileData.fullname || '—'}</p>
+            <p className="ctsv-profile-avatar-role">{getRoleLabel(userRole)}</p>
+            <p className="ctsv-profile-avatar-email">{profileData.email}</p>
+            <button
+              type="button"
+              className="btn-upload-avatar"
+              disabled={avatarSaving || avatarCropOpen}
+              onClick={() => document.getElementById('avatar-upload-input').click()}
+            >
+              {avatarSaving ? 'Đang lưu...' : avatarCropOpen ? 'Đang chỉnh sửa...' : 'Thay đổi ảnh đại diện'}
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="btn-upload-avatar"
+            disabled={avatarSaving || avatarCropOpen}
+            onClick={() => document.getElementById('avatar-upload-input').click()}
+          >
+            {avatarSaving ? 'Đang lưu...' : avatarCropOpen ? 'Đang chỉnh sửa...' : 'Thay đổi ảnh đại diện'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   const profileContent = (
     <div className={`dashboard-content-wrapper${embedded ? ' ctsv-profile-content' : ''}`}>
       <div className={`profile-grid${embedded ? ' ctsv-profile-grid' : ''}`}>
@@ -349,58 +398,34 @@ const Profile = ({ showToast, embedded = false }) => {
           </div>
         ) : (
         <>
-        {/* Left Column (Avatar & Clubs) */}
-        <div className="profile-left-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className={`profile-card avatar-card${embedded ? ' ctsv-profile-avatar-card' : ''}`}>
-            <div className="avatar-card-content">
-              <div className="profile-avatar-container">
-                <img className="large-profile-avatar" id="profile-avatar-img" src={displayAvatar} alt="Avatar lớn" />
-                <label htmlFor="avatar-upload-input" className="btn-avatar-edit-pencil" title="Thay đổi ảnh đại diện">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                  </svg>
-                </label>
-                <input
-                  type="file"
-                  id="avatar-upload-input"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handleAvatarChange}
-                />
+        {embedded ? (
+          renderAvatarCard()
+        ) : (
+          <div className="profile-left-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {renderAvatarCard()}
+            <div className="profile-card clubs-card">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary)' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Câu lạc bộ của tôi</span>
               </div>
-              <button
-                type="button"
-                className="btn-upload-avatar"
-                disabled={avatarSaving || avatarCropOpen}
-                onClick={() => document.getElementById('avatar-upload-input').click()}
-              >
-                {avatarSaving ? 'Đang lưu...' : avatarCropOpen ? 'Đang chỉnh sửa...' : 'Thay đổi ảnh đại diện'}
-              </button>
+              <div className="tag-list">
+                <span className="club-tag">FU-DEVIES</span>
+                <span className="club-tag">Minori Japanese Club</span>
+                <span className="club-tag">DreamTeam</span>
+              </div>
             </div>
           </div>
+        )}
 
-          {!embedded && (
-          <div className="profile-card clubs-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary)' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              <span>Câu lạc bộ của tôi</span>
-            </div>
-            <div className="tag-list">
-              <span className="club-tag">FU-DEVIES</span>
-              <span className="club-tag">Minori Japanese Club</span>
-              <span className="club-tag">DreamTeam</span>
-            </div>
-          </div>
-          )}
-        </div>
-
-        <div className="profile-right-column" ref={profileSectionRef}>
+        <div
+          className={embedded ? 'ctsv-profile-main-column' : 'profile-right-column'}
+          ref={profileSectionRef}
+        >
           <form
             id="profile-edit-form"
             onSubmit={handleProfileSubmit}
@@ -452,7 +477,7 @@ const Profile = ({ showToast, embedded = false }) => {
                       <label htmlFor="profile-email">Email</label>
                       <input type="email" id="profile-email" value={profileData.email} readOnly />
                     </div>
-                    <div className="profile-input-group">
+                    <div className={`profile-input-group${isCtsvEmbedded ? ' profile-form-grid-full' : ''}`}>
                       <label htmlFor="user-phone">Số điện thoại</label>
                       <input
                         type="tel"
@@ -676,6 +701,8 @@ const Profile = ({ showToast, embedded = false }) => {
                     </div>
                   </div>
           </form>
+
+          {isCtsvEmbedded && <CtsvProfilePasswordSection showToast={showToast} />}
         </div>
         </>
         )}

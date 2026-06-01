@@ -6,7 +6,8 @@ export const ICPDP_NAV_ITEMS = [
   { path: '/icpdp/proposals', label: 'Duyệt đề xuất CLB', section: 'QUẢN LÝ CLB', icon: 'publish' },
   { path: '/icpdp/events', label: 'Xem sự kiện', icon: 'calendar' },
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
-  { path: '/icpdp/reports', label: 'Báo cáo sau SK', icon: 'reports' }
+  { path: '/icpdp/reports', label: 'Báo cáo sau SK', icon: 'reports' },
+  { path: '/icpdp/announcements', label: 'Thông báo CLB', icon: 'announce' }
 ];
 
 export const readIcpdpSidebarPref = () => {
@@ -43,6 +44,9 @@ export const isIcpdpNavActive = (path, pathname) => {
   }
   if (path === '/icpdp/proposals') {
     return pathname === '/icpdp/proposals' || pathname.startsWith('/icpdp/proposals/');
+  }
+  if (path === '/icpdp/announcements') {
+    return pathname.startsWith('/icpdp/announcements');
   }
   return pathname === path || pathname.startsWith(`${path}/`);
 };

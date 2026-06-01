@@ -114,7 +114,8 @@ const getApprovedEvents = async ({ category, user } = {}) => {
 
   const events = await Event.find(query)
     .populate('createdBy', 'fullname email')
-    .sort({ startDate: 1 });
+    .sort({ startDate: 1 })
+    .limit(300);
 
   let registeredSet = new Set();
   if (user?._id) {
@@ -145,11 +146,16 @@ const getEventById = async (eventId, { user } = {}) => {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
 
-  const registrations = await EventRegistration.find({ event: eventId })
-    .populate('user', 'fullname studentId email');
-
-  const registeredCount = registrations.filter((r) => r.status !== 'cancelled').length;
-  const checkinCount = registrations.filter((r) => r.status === 'attended').length;
+  const [registeredCount, checkinCount, registrations] = await Promise.all([
+    EventRegistration.countDocuments({ event: eventId, status: { $ne: 'cancelled' } }),
+    EventRegistration.countDocuments({ event: eventId, status: 'attended' }),
+    isOwner
+      ? EventRegistration.find({ event: eventId })
+          .populate('user', 'fullname studentId email')
+          .sort({ registeredAt: -1 })
+          .limit(200)
+      : Promise.resolve([])
+  ]);
 
   const doc = event.toObject();
   doc.registeredCount = registeredCount;

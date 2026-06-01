@@ -12,3 +12,22 @@ export const formatAnnouncementEventLabel = (ev) => {
   if (ev?.source === 'school') return `${title} (Cấp trường)`;
   return title;
 };
+
+export const ANNOUNCEMENT_CATEGORY_LABELS = {
+  general: 'Thông báo chung',
+  school: 'Sự kiện cấp trường',
+  partner: 'Sự kiện đối tác',
+  hidden: 'Đã ẩn',
+};
+
+/** Phân loại thông báo để lọc danh mục trên portal CTSV. */
+export const resolveAnnouncementCategory = (announcement, eventSourceById = {}) => {
+  if (announcement?.isHidden) return 'hidden';
+  const evId = announcement?.eventId?._id || announcement?.eventId;
+  if (!evId) return 'general';
+  const source =
+    announcement?.eventId?.source || eventSourceById[String(evId)] || 'general';
+  if (source === 'school') return 'school';
+  if (source === 'partner') return 'partner';
+  return 'general';
+};

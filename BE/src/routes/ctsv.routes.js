@@ -185,7 +185,7 @@ router.get('/events', async (req, res) => {
 // GET /api/ctsv/events/calendar — toàn bộ sự kiện (mọi trạng thái, mọi nguồn)
 router.get('/events/calendar', async (req, res) => {
   try {
-    const events = await Event.find({}).sort({ startDate: 1 });
+    const events = await Event.find({}).sort({ startDate: 1 }).limit(500);
     return res.json({
       success: true,
       events: events.map(formatEvent)
@@ -627,7 +627,7 @@ router.get('/partners', async (req, res) => {
         { category: re }
       ];
     }
-    const partners = await Partner.find(filter).sort({ createdAt: -1 }).lean();
+    const partners = await Partner.find(filter).sort({ createdAt: -1 }).limit(200).lean();
     const ids = partners.map((p) => p._id);
     const contracts = ids.length
       ? await Contract.find({ partnerId: { $in: ids } }).sort({ createdAt: -1 }).lean()
@@ -837,8 +837,8 @@ router.get('/announcements', async (req, res) => {
   try {
     const list = await Announcement.find()
       .sort({ publishedAt: -1 })
-      .limit(50)
-      .populate('eventId', 'title')
+      .limit(200)
+      .populate('eventId', 'title source category')
       .lean();
     const announcements = list.map((doc) => ({
       ...doc,

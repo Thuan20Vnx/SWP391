@@ -90,6 +90,59 @@ const IconTicket = () => (
   </svg>
 );
 
+const IconChevronDown = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden>
+    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const EVENT_STATE_LABELS = {
+  active: 'Đang hoạt động',
+  postponed: 'Đang hoãn',
+  expired: 'Đã kết thúc',
+  cancelled: 'Đã hủy'
+};
+
+const formatDateTimeValue = (value) => {
+  if (!value) return null;
+  try {
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(value));
+  } catch {
+    return null;
+  }
+};
+
+const CollapsibleActionSection = ({ id, title, hint, open, onToggle, children }) => (
+  <section className="ctsv-ed-collapse-card">
+    <button
+      type="button"
+      className="ctsv-ed-collapse-toggle"
+      aria-expanded={open}
+      aria-controls={id}
+      onClick={onToggle}
+    >
+      <div className="ctsv-ed-collapse-toggle-main">
+        <h2>{title}</h2>
+        {hint && <p>{hint}</p>}
+      </div>
+      <span className={`ctsv-ed-collapse-chevron${open ? ' is-open' : ''}`} aria-hidden>
+        <IconChevronDown />
+      </span>
+    </button>
+    <div id={id} className={`ctsv-ed-collapse-panel${open ? ' is-open' : ''}`}>
+      <div className="ctsv-ed-collapse-panel-inner">
+        <div className="ctsv-ed-actions-body">{children}</div>
+      </div>
+    </div>
+  </section>
+);
+
 const CtsvEventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -101,6 +154,8 @@ const CtsvEventDetail = () => {
   const [moderationConfirm, setModerationConfirm] = useState(null);
   const [moderationLoading, setModerationLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('info');
+  const [manageOpen, setManageOpen] = useState(false);
+  const [ctsvActionsOpen, setCtsvActionsOpen] = useState(false);
   const isCtsvOnly = getUserRole() === 'ctsv';
 
   useEffect(() => {
@@ -245,6 +300,15 @@ const CtsvEventDetail = () => {
   const showOpenEditFormLink =
     access.canManage && event.source === 'school' && canEditSchoolEvent && !moderationPending;
 
+  const endDateLabel = formatDateTimeValue(event.endDate);
+  const adminApprovedLabel = formatDateTimeValue(event.adminApprovedAt);
+  const visibilityLabel = event.isHidden
+    ? 'Đang ẩn'
+    : event.eventState === 'postponed'
+      ? 'Hoãn — vẫn hiển thị'
+      : 'Hiển thị công khai';
+  const eventStateLabel = EVENT_STATE_LABELS[event.eventState] || event.eventState || '—';
+
   return (
     <div className="ctsv-ed-page">
       <Link to="/ctsv/events" className="ctsv-ed-back">
@@ -386,80 +450,179 @@ const CtsvEventDetail = () => {
       <div className="ctsv-ed-content">
         {activeTab === 'info' && (
           <div className="ctsv-ed-panel">
-            <h2 className="ctsv-ed-panel-title">Mô tả sự kiện</h2>
-            <p className="ctsv-ed-description">
-              {event.description?.trim() || 'Chưa có mô tả chi tiết cho sự kiện này.'}
-            </p>
-            <div className="ctsv-ed-info-grid">
-              <div className="ctsv-ed-info-card">
-                <span className="ctsv-ed-info-label">Nguồn tổ chức</span>
-                <strong>{source.label}</strong>
-              </div>
-              <div className="ctsv-ed-info-card">
-                <span className="ctsv-ed-info-label">Danh mục</span>
-                <strong>{getCategoryDisplayLabel(event.category)}</strong>
-              </div>
-              <div className="ctsv-ed-info-card">
-                <span className="ctsv-ed-info-label">Loại sự kiện</span>
-                <strong>{event.eventType || '—'}</strong>
-              </div>
-              <div className="ctsv-ed-info-card">
-                <span className="ctsv-ed-info-label">Hình thức</span>
-                <strong>{formatLabel(event.format)}</strong>
-              </div>
-              {event.campus && (
-                <div className="ctsv-ed-info-card">
-                  <span className="ctsv-ed-info-label">Campus</span>
-                  <strong>{event.campus}</strong>
+            <h2 className="ctsv-ed-panel-title">Thông tin sự kiện</h2>
+
+            <div className="ctsv-ed-info-quick">
+              <article className="ctsv-ed-info-quick-item">
+                <span className="ctsv-ed-info-quick-icon" aria-hidden>
+                  <IconCalendar />
+                </span>
+                <div>
+                  <span className="ctsv-ed-info-quick-label">Thời gian</span>
+                  <strong>
+                    {event.date}
+                    {event.time ? ` · ${event.time}` : ''}
+                  </strong>
+                  {endDateLabel && (
+                    <span className="ctsv-ed-info-quick-sub">Kết thúc: {endDateLabel}</span>
+                  )}
                 </div>
-              )}
-              {event.duration && (
-                <div className="ctsv-ed-info-card">
-                  <span className="ctsv-ed-info-label">Thời lượng</span>
-                  <strong>{event.duration}</strong>
+              </article>
+              <article className="ctsv-ed-info-quick-item">
+                <span className="ctsv-ed-info-quick-icon" aria-hidden>
+                  <IconPin />
+                </span>
+                <div>
+                  <span className="ctsv-ed-info-quick-label">Địa điểm</span>
+                  <strong>{event.location?.trim() || 'Chưa cập nhật'}</strong>
+                  {event.campus && <span className="ctsv-ed-info-quick-sub">{event.campus}</span>}
                 </div>
-              )}
-              {event.expectedAttendees > 0 && (
-                <div className="ctsv-ed-info-card">
-                  <span className="ctsv-ed-info-label">Dự kiến tham dự</span>
-                  <strong>{event.expectedAttendees.toLocaleString('vi-VN')} người</strong>
+              </article>
+              <article className="ctsv-ed-info-quick-item">
+                <span className="ctsv-ed-info-quick-icon" aria-hidden>
+                  <IconTicket />
+                </span>
+                <div>
+                  <span className="ctsv-ed-info-quick-label">Hình thức</span>
+                  <strong>{formatLabel(event.format)}</strong>
+                  {event.duration && (
+                    <span className="ctsv-ed-info-quick-sub">{event.duration}</span>
+                  )}
                 </div>
-              )}
-              {eventSpeakers.length > 0 && (
-                <div className="ctsv-ed-info-card ctsv-ed-info-card--speaker">
-                  <span className="ctsv-ed-info-label">Diễn giả / Khách mời</span>
-                  <div className="ctsv-ed-speaker-list">
-                    {eventSpeakers.map((sp) => (
-                      <div key={`${sp.name}-${sp.role}`} className="ctsv-ed-speaker">
-                        {sp.avatar ? (
-                          <img src={sp.avatar} alt="" className="ctsv-ed-speaker-avatar" />
-                        ) : (
-                          <span className="ctsv-ed-speaker-avatar ctsv-ed-speaker-avatar--fallback" aria-hidden>
-                            {sp.name.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                        <div className="ctsv-ed-speaker-text">
-                          <strong>{sp.name}</strong>
-                          {sp.role && <span>{sp.role}</span>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              </article>
+              <article className="ctsv-ed-info-quick-item">
+                <span className="ctsv-ed-info-quick-icon ctsv-ed-info-quick-icon--status" aria-hidden>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                </span>
+                <div>
+                  <span className="ctsv-ed-info-quick-label">Trạng thái</span>
+                  <strong>{eventStateLabel}</strong>
+                  <span className="ctsv-ed-info-quick-sub">{visibilityLabel}</span>
                 </div>
-              )}
-              {event.agenda?.trim() && (
-                <div className="ctsv-ed-info-card ctsv-ed-info-card--wide">
-                  <span className="ctsv-ed-info-label">Chương trình / Agenda</span>
-                  <strong className="ctsv-ed-info-multiline">{event.agenda}</strong>
-                </div>
-              )}
-              {event.ctsvNote && (
-                <div className="ctsv-ed-info-card ctsv-ed-info-card--wide">
-                  <span className="ctsv-ed-info-label">Ghi chú CTSV</span>
-                  <strong>{event.ctsvNote}</strong>
-                </div>
-              )}
+              </article>
             </div>
+
+            <div className="ctsv-ed-info-section">
+              <h3 className="ctsv-ed-info-section-title">Mô tả</h3>
+              <p className="ctsv-ed-description">
+                {event.description?.trim() || 'Chưa có mô tả chi tiết cho sự kiện này.'}
+              </p>
+            </div>
+
+            <div className="ctsv-ed-info-section">
+              <h3 className="ctsv-ed-info-section-title">Chi tiết tổ chức</h3>
+              <div className="ctsv-ed-info-grid">
+                <div className="ctsv-ed-info-card">
+                  <span className="ctsv-ed-info-label">Nguồn tổ chức</span>
+                  <strong>{source.label}</strong>
+                </div>
+                <div className="ctsv-ed-info-card">
+                  <span className="ctsv-ed-info-label">Danh mục</span>
+                  <strong>{getCategoryDisplayLabel(event.category)}</strong>
+                </div>
+                <div className="ctsv-ed-info-card">
+                  <span className="ctsv-ed-info-label">Loại sự kiện</span>
+                  <strong>{event.eventType || '—'}</strong>
+                </div>
+                <div className="ctsv-ed-info-card">
+                  <span className="ctsv-ed-info-label">Trạng thái phê duyệt</span>
+                  <strong>{event.status}</strong>
+                </div>
+                {event.expectedAttendees > 0 && (
+                  <div className="ctsv-ed-info-card">
+                    <span className="ctsv-ed-info-label">Dự kiến tham dự</span>
+                    <strong>{event.expectedAttendees.toLocaleString('vi-VN')} người</strong>
+                  </div>
+                )}
+                <div className="ctsv-ed-info-card">
+                  <span className="ctsv-ed-info-label">Sức chứa / vé</span>
+                  <strong>{stats.total.toLocaleString('vi-VN')} vé</strong>
+                </div>
+                {event.source === 'partner' && event.partnerId && (
+                  <div className="ctsv-ed-info-card ctsv-ed-info-card--wide">
+                    <span className="ctsv-ed-info-label">Đối tác</span>
+                    <Link to={`/ctsv/partners/${event.partnerId}`} className="ctsv-ed-link-secondary">
+                      Xem hồ sơ đối tác →
+                    </Link>
+                  </div>
+                )}
+                {eventSpeakers.length > 0 && (
+                  <div className="ctsv-ed-info-card ctsv-ed-info-card--wide ctsv-ed-info-card--speaker">
+                    <span className="ctsv-ed-info-label">Diễn giả / Khách mời</span>
+                    <div className="ctsv-ed-speaker-list">
+                      {eventSpeakers.map((sp) => (
+                        <div key={`${sp.name}-${sp.role}`} className="ctsv-ed-speaker">
+                          {sp.avatar ? (
+                            <img src={sp.avatar} alt="" className="ctsv-ed-speaker-avatar" />
+                          ) : (
+                            <span className="ctsv-ed-speaker-avatar ctsv-ed-speaker-avatar--fallback" aria-hidden>
+                              {sp.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                          <div className="ctsv-ed-speaker-text">
+                            <strong>{sp.name}</strong>
+                            {sp.role && <span>{sp.role}</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {event.agenda?.trim() && (
+                  <div className="ctsv-ed-info-card ctsv-ed-info-card--wide">
+                    <span className="ctsv-ed-info-label">Chương trình / Agenda</span>
+                    <strong className="ctsv-ed-info-multiline">{event.agenda}</strong>
+                  </div>
+                )}
+                {event.ctsvNote && (
+                  <div className="ctsv-ed-info-card ctsv-ed-info-card--wide">
+                    <span className="ctsv-ed-info-label">Ghi chú CTSV</span>
+                    <strong className="ctsv-ed-info-multiline">{event.ctsvNote}</strong>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {(event.createdByEmail ||
+              event.ctsvSubmittedByEmail ||
+              event.adminApprovedByEmail ||
+              event.approvedByEmail) && (
+              <div className="ctsv-ed-info-section">
+                <h3 className="ctsv-ed-info-section-title">Phê duyệt & phụ trách</h3>
+                <div className="ctsv-ed-info-grid">
+                  {event.createdByEmail && (
+                    <div className="ctsv-ed-info-card">
+                      <span className="ctsv-ed-info-label">Người tạo</span>
+                      <strong>{event.createdByEmail}</strong>
+                    </div>
+                  )}
+                  {event.ctsvSubmittedByEmail && (
+                    <div className="ctsv-ed-info-card">
+                      <span className="ctsv-ed-info-label">CTSV gửi duyệt</span>
+                      <strong>{event.ctsvSubmittedByEmail}</strong>
+                    </div>
+                  )}
+                  {event.adminApprovedByEmail && (
+                    <div className="ctsv-ed-info-card">
+                      <span className="ctsv-ed-info-label">Admin phê duyệt</span>
+                      <strong>{event.adminApprovedByEmail}</strong>
+                      {adminApprovedLabel && (
+                        <span className="ctsv-ed-info-card-meta">{adminApprovedLabel}</span>
+                      )}
+                    </div>
+                  )}
+                  {event.approvedByEmail && (
+                    <div className="ctsv-ed-info-card">
+                      <span className="ctsv-ed-info-label">CTSV phê duyệt</span>
+                      <strong>{event.approvedByEmail}</strong>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -526,8 +689,13 @@ const CtsvEventDetail = () => {
       )}
 
       {showSchoolModeration && (
-        <section className="ctsv-ed-actions ctsv-ed-moderation">
-          <h2 className="ctsv-ed-panel-title">Quản lý sự kiện này</h2>
+        <CollapsibleActionSection
+          id="ctsv-ed-manage-panel"
+          title="Quản lý sự kiện này"
+          hint="Hủy, hoãn, ẩn hoặc yêu cầu chỉnh sửa — bấm mũi tên để mở form thao tác."
+          open={manageOpen}
+          onToggle={() => setManageOpen((v) => !v)}
+        >
           <p className="ctsv-ed-moderation-hint">
             Trước và sau publish đều được. Hủy, ẩn và chỉnh sửa (mọi trạng thái) cần Admin duyệt. Hoãn do thời tiết áp dụng ngay.
           </p>
@@ -570,12 +738,17 @@ const CtsvEventDetail = () => {
               Yêu cầu ẩn
             </button>
           </div>
-        </section>
+        </CollapsibleActionSection>
       )}
 
       {showCtsvActions && (
-        <section className="ctsv-ed-actions">
-          <h2 className="ctsv-ed-panel-title">Thao tác CTSV</h2>
+        <CollapsibleActionSection
+          id="ctsv-ed-actions-panel"
+          title="Thao tác CTSV"
+          hint="Phê duyệt, từ chối hoặc publish sự kiện."
+          open={ctsvActionsOpen}
+          onToggle={() => setCtsvActionsOpen((v) => !v)}
+        >
           {showPartnerActions && (
             <textarea
               className="ctsv-textarea ctsv-ed-note"
@@ -605,7 +778,7 @@ const CtsvEventDetail = () => {
               </button>
             )}
           </div>
-        </section>
+        </CollapsibleActionSection>
       )}
 
       <ConfirmDialog
