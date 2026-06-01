@@ -56,21 +56,6 @@
   background: var(--partner-accent-bg) !important;
 }
 
-.partner-pill.nav-link-ctsv-pill {
-  background: var(--partner-accent) !important;
-  color: #fff !important;
-  border-color: var(--partner-accent) !important;
-}
-.partner-pill.nav-link-ctsv-pill:hover,
-.partner-pill.nav-link-ctsv-pill.is-current {
-  background: var(--partner-accent-dark) !important;
-  border-color: var(--partner-accent-dark) !important;
-  color: #fff !important;
-}
-.partner-pill.nav-link-ctsv-pill.is-current {
-  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.25) !important;
-}
-
 .partner-role-label {
   color: var(--partner-accent) !important;
 }
