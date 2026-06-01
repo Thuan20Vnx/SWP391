@@ -634,16 +634,16 @@
 
 .partner-company-logo-row {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 14px;
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 .partner-user-avatar-row {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 14px;
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
@@ -719,12 +719,28 @@
 .partner-company-logo-actions {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 6px;
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.partner-company-logo-actions .partner-btn-outline {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .partner-company-logo-actions span {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #94a3b8;
+  line-height: 1.45;
+  max-width: 420px;
 }
 
 .partner-form-grid {
