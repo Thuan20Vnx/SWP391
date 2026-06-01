@@ -18,7 +18,20 @@ export const PUBLISHER_ALLOWED_TARGETS = {
   ctsv: Object.keys(ANNOUNCEMENT_TARGET_LABELS),
   icpdp: [ANNOUNCEMENT_TARGET_ALL, 'student', 'club_manager', 'icpdp', 'ctsv'],
   club_manager: [ANNOUNCEMENT_TARGET_ALL, 'guest', 'student', 'club_manager'],
-  partner: [ANNOUNCEMENT_TARGET_ALL, 'guest', 'student', 'partner']
+  partner: ['ctsv']
+};
+
+export const getDefaultTargetRolesForPublisher = (portalRole) => {
+  const allowed = getAllowedTargetsForPublisher(portalRole);
+  if (portalRole === 'partner') return ['ctsv'];
+  return allowed.includes(ANNOUNCEMENT_TARGET_ALL) ? [ANNOUNCEMENT_TARGET_ALL] : [...allowed];
+};
+
+export const normalizeTargetsForPublisher = (portalRole, roles) => {
+  if (portalRole === 'partner') return ['ctsv'];
+  const allowed = getAllowedTargetsForPublisher(portalRole);
+  const selected = normalizeSelectedTargets(roles).filter((r) => allowed.includes(r));
+  return selected.length ? selected : getDefaultTargetRolesForPublisher(portalRole);
 };
 
 export const getAllowedTargetsForPublisher = (portalRole) =>
@@ -121,8 +134,8 @@ export const PORTAL_ANNOUNCEMENT_CONFIG = {
   partner: {
     eyebrow: 'Truyền thông đối tác',
     title: 'Thông báo đối tác',
-    subtitle: 'Gửi thông báo về sự kiện và hoạt động tới sinh viên và khách.',
-    publishLabel: 'Gửi thông báo',
+    subtitle: 'Gửi thông báo trực tiếp tới Phòng CTSV (phê duyệt, bổ sung hồ sơ, cập nhật sự kiện).',
+    publishLabel: 'Gửi tới CTSV',
     manageLink: '/partner/announcements'
   }
 };
