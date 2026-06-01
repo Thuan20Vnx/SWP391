@@ -51,6 +51,12 @@ const clubSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    coverPositionY: {
+      type: Number,
+      default: 50,
+      min: 0,
+      max: 100,
+    },
     description: {
       type: String,
       required: true,
@@ -95,6 +101,74 @@ const clubSchema = new mongoose.Schema(
       type: String,
       enum: ['approval', 'open'],
       default: 'approval',
+    },
+    shortName: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 40,
+    },
+    activityField: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 80,
+    },
+    scale: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 60,
+    },
+    president: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 120,
+    },
+    hotline: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 20,
+    },
+    email: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 120,
+    },
+    facebook: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 200,
+    },
+    website: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 200,
+    },
+    slogan: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 160,
+    },
+    logoImage: {
+      type: String,
+      default: '',
+    },
+    foundedDate: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    managedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
     },
   },
   { timestamps: true }

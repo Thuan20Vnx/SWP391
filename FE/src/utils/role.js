@@ -7,6 +7,7 @@ export const getRoleLabel = (role, course) => {
   if (r === 'staff') return 'Cán bộ FPT';
   if (r === 'ctsv') return 'Phòng CTSV';
   if (r === 'icpdp') return 'Phòng ICPDP';
+  if (r === 'club_manager') return 'Quản lý CLB';
   if (r === 'club') return 'Câu lạc bộ';
   return 'Khách';
 };
