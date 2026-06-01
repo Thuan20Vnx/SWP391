@@ -18,7 +18,7 @@ body {
 }
 
 /* Glassmorphism Header */
-.ctsv-portal-header, .icpdp-header, .portal-header {
+.ctsv-portal-header, .partner-portal-header, .icpdp-header, .portal-header {
   background: var(--glass-bg) !important;
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
@@ -54,11 +54,19 @@ button, .ctsv-btn-primary, .ctsv-dash-btn--primary, .icpdp-proposal-card__action
 }
 
 /* Inputs and Selects Focus Polish */
-input, select, textarea, .app-select-trigger, .ctsv-events-search {
+input:not(.search-input):not(.ctsv-events-search-input),
+select,
+textarea,
+.app-select-trigger,
+.ctsv-events-search {
   transition: all 0.3s ease !important;
   border-radius: 12px !important;
 }
-input:focus, select:focus, textarea:focus, .app-select-trigger:focus, .ctsv-events-search:focus-within {
+input:not(.search-input):not(.ctsv-events-search-input):focus,
+select:focus,
+textarea:focus,
+.app-select-trigger:focus,
+.ctsv-events-search:focus-within {
   box-shadow: 0 0 0 4px rgba(242, 111, 33, 0.12) !important;
   border-color: var(--primary) !important;
   transform: translateY(-1px);
