@@ -30,6 +30,8 @@ const SiteHeader = ({
   searchValue = '',
   onSearchChange,
   onSearchKeyDown,
+  adminSidebarOpen = false,
+  onAdminSidebarToggle,
 }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -52,10 +54,19 @@ const SiteHeader = ({
     ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM]
     : BASE_NAV_ITEMS;
 
+  const isAdminPortal = isAdminRoute && showAdminMenu;
+  const sidebarControlled =
+    showAdminMenu && !isAdminPortal && typeof onAdminSidebarToggle === 'function';
+  const menuOpen = sidebarControlled ? adminSidebarOpen : adminDrawerOpen;
+  const toggleAdminMenu = sidebarControlled
+    ? onAdminSidebarToggle
+    : () => setAdminDrawerOpen((v) => !v);
+
   useEffect(() => {
-    setAdminDrawerOpen(false);
+    if (!sidebarControlled) setAdminDrawerOpen(false);
     setNotifOpen(false);
-  }, [pathname]);
+    setProfilePopupOpen(false);
+  }, [pathname, sidebarControlled]);
 
   useEffect(() => {
     if (!profilePopupOpen) return undefined;
@@ -111,21 +122,32 @@ const SiteHeader = ({
 
   return (
     <>
-    <header className={`home-header site-header${showAdminMenu ? ' site-header--admin' : ''}`}>
+    <header
+      className={`home-header site-header${showAdminMenu ? ' site-header--admin' : ''}${
+        menuOpen && showAdminMenu && !isAdminPortal ? ' admin-home-header--sidebar-open' : ''
+      }`}
+    >
       <div className="header-container site-header__container">
-        {showAdminMenu ? (
+        {showAdminMenu && !isAdminPortal ? (
           <button
             type="button"
             className="admin-hamburger-btn"
-            onClick={() => setAdminDrawerOpen((v) => !v)}
-            aria-label="Mở menu quản trị"
-            aria-expanded={adminDrawerOpen}
+            onClick={toggleAdminMenu}
+            aria-label={menuOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'}
+            aria-expanded={menuOpen}
           >
             <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
+              {menuOpen ? (
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                  fill="currentColor"
+                />
+              ) : (
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
+              )}
             </svg>
           </button>
-        ) : (
+        ) : !isAdminPortal ? (
           <button
             type="button"
             className="mobile-hamburger-btn"
@@ -136,7 +158,7 @@ const SiteHeader = ({
               <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
             </svg>
           </button>
-        )}
+        ) : null}
 
         <div className="header-logo site-header__logo-group">
           <img
@@ -274,7 +296,7 @@ const SiteHeader = ({
       </div>
     </header>
 
-    {showAdminMenu && (
+    {showAdminMenu && !isAdminPortal && !sidebarControlled && (
       <AdminDrawerMenu
         open={adminDrawerOpen}
         onClose={() => setAdminDrawerOpen(false)}
