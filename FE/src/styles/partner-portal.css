@@ -551,6 +551,87 @@
   line-height: 1.5;
 }
 
+.partner-profile-card--collapse {
+  padding: 0;
+  overflow: hidden;
+}
+
+.partner-profile-collapse-toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 24px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.partner-profile-collapse-toggle:hover {
+  background: #f8fafc;
+}
+
+.partner-profile-collapse-toggle-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.partner-profile-collapse-toggle-main .partner-profile-card__title {
+  margin: 0 0 4px;
+}
+
+.partner-profile-card__desc--toggle {
+  margin: 0;
+}
+
+.partner-profile-collapse-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: #64748b;
+  background: #f1f5f9;
+  transition: transform 0.2s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.partner-profile-collapse-toggle:hover .partner-profile-collapse-chevron {
+  color: var(--partner-accent, #f26f21);
+  background: rgba(242, 111, 33, 0.1);
+}
+
+.partner-profile-collapse-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.partner-profile-collapse-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.partner-profile-collapse-panel.is-open {
+  grid-template-rows: 1fr;
+}
+
+.partner-profile-collapse-panel-inner {
+  overflow: hidden;
+}
+
+.partner-profile-collapse-panel.is-open .partner-profile-collapse-panel-inner {
+  padding: 0 24px 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.partner-profile-collapse-panel-inner > .partner-profile-card__desc {
+  margin-top: 16px;
+}
+
 .partner-company-logo-row {
   display: flex;
   align-items: center;
