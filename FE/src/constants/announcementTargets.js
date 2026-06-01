@@ -87,6 +87,7 @@ export const getPortalEventDetailPath = (portalRole, eventId) => {
   if (!id) return null;
   if (portalRole === 'ctsv') return `/ctsv/events/${id}`;
   if (portalRole === 'icpdp') return `/icpdp/events/${id}`;
+  if (portalRole === 'partner') return `/partner/join/events/${id}`;
   return `/events/${id}`;
 };
 

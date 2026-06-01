@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import AppSelect from '../../components/ui/AppSelect';
+import PartnerCampusEventsSection from '../../components/partner/PartnerCampusEventsSection';
 import { fetchPartnerEvents } from '../../services/partnerApi';
 import { statusClass } from '../../utils/eventStatus';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
@@ -208,6 +209,13 @@ const PartnerEventList = () => {
           ))}
         </div>
       )}
+
+      <PartnerCampusEventsSection
+        showToast={showToast}
+        title="Tất cả sự kiện"
+        description="Đăng ký tham gia các sự kiện campus đang mở — miễn phí vé cho đối tác."
+        className="partner-events-campus-block"
+      />
     </div>
   );
 };

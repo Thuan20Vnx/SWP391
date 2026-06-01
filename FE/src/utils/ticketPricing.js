@@ -1,4 +1,4 @@
-const STUDENT_FREE_ROLES = new Set(['student', 'staff']);
+const STUDENT_FREE_ROLES = new Set(['student', 'staff', 'partner']);
 
 export const hasStudentTicketPrivilege = (role) =>
   STUDENT_FREE_ROLES.has(String(role || '').toLowerCase());

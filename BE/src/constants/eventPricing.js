@@ -1,7 +1,7 @@
-const STUDENT_FREE_ROLES = new Set(['student', 'staff']);
+const STUDENT_FREE_ROLES = new Set(['student', 'staff', 'partner']);
 
 /** Roles được phép đăng ký / tham gia sự kiện */
-const EVENT_PARTICIPANT_ROLES = ['student', 'staff', 'guest'];
+const EVENT_PARTICIPANT_ROLES = ['student', 'staff', 'guest', 'partner'];
 
 const formatVnd = (amount) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
@@ -32,7 +32,6 @@ const getPrimaryActionLabel = ({ amountDue, listPrice, isRegistered, eventState 
   if (eventState === 'postponed') return 'Xem chi tiết';
   if (isRegistered) return 'Xem vé';
   if (amountDue > 0) return 'Mua vé';
-  if (listPrice > 0) return 'Mua vé';
   return 'Đăng ký ngay';
 };
 
