@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { approveCtsvProposal, fetchCtsvProposals } from '../services/ctsvApi';
+import { API_BASE, getAuthHeaders } from '../utils/api';
 import { isAdminRole, isCtsvRole, normalizeRole } from '../utils/auth';
+import ProposalTicketsTable from '../components/admin/ProposalTicketsTable';
 import '../styles/admin-dashboard.css';
 
 const formatDateTime = (value) => {
@@ -11,6 +14,7 @@ const formatDateTime = (value) => {
 
 const AdminDashboard = ({ showToast }) => {
   const [events, setEvents] = useState([]);
+  const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
@@ -23,15 +27,20 @@ const AdminDashboard = ({ showToast }) => {
     setLoading(true);
     const email = localStorage.getItem('userEmail');
 
-    fetch('http://localhost:5000/api/events/pending', {
-      headers: { 'x-user-email': email },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setEvents(data.events || []);
+    Promise.all([
+      fetch(`${API_BASE}/api/events/pending`, {
+        headers: { ...getAuthHeaders(), 'x-user-email': email || '' },
+      }).then((res) => res.json()),
+      fetchCtsvProposals().catch(() => ({ success: false, proposals: [] })),
+    ])
+      .then(([eventData, proposalData]) => {
+        if (eventData.success) {
+          setEvents(eventData.events || []);
         } else {
-          showToast(data.message || 'Lỗi tải danh sách', 'error');
+          showToast(eventData.message || 'Lỗi tải danh sách sự kiện', 'error');
+        }
+        if (proposalData.success) {
+          setProposals(proposalData.proposals || []);
         }
         setLoading(false);
       })
@@ -93,6 +102,21 @@ const AdminDashboard = ({ showToast }) => {
     setRejectReason('');
   };
 
+  const handleApproveProposal = async (proposalId) => {
+    setActingId(proposalId);
+    try {
+      await approveCtsvProposal(proposalId);
+      setProposals((prev) => prev.filter((p) => p.id !== proposalId));
+      showToast('Đã phê duyệt đề xuất — sự kiện đã được tạo.', 'success');
+    } catch (err) {
+      showToast(err.message || 'Không thể phê duyệt đề xuất', 'error');
+    } finally {
+      setActingId(null);
+    }
+  };
+
+  const pendingTotal = events.length + proposals.length;
+
   if (!canAccess) return null;
 
   return (
@@ -107,7 +131,7 @@ const AdminDashboard = ({ showToast }) => {
           </div>
           {!loading && (
             <span className="admin-events-page__count" aria-live="polite">
-              {events.length} đề xuất chờ duyệt
+              {pendingTotal} mục chờ duyệt
             </span>
           )}
         </div>
@@ -118,12 +142,86 @@ const AdminDashboard = ({ showToast }) => {
           <span className="btn-spinner admin-events-page__spinner" aria-hidden="true" />
           <p>Đang tải danh sách đề xuất...</p>
         </div>
-      ) : events.length === 0 ? (
+      ) : pendingTotal === 0 ? (
         <div className="admin-events-empty">
           <p className="admin-events-empty__title">Không có đề xuất nào đang chờ duyệt</p>
-          <p className="admin-events-empty__hint">Khi CLB gửi đề xuất mới, danh sách sẽ hiển thị tại đây.</p>
+          <p className="admin-events-empty__hint">
+            Chạy <code>node seed-ctsv-demo.js</code> trong thư mục BE để có dữ liệu demo, hoặc đợi CLB gửi đề xuất mới.
+          </p>
         </div>
       ) : (
+        <>
+        {proposals.length > 0 && (
+          <section className="admin-events-section">
+            <h2 className="admin-events-section__title">Đề xuất từ CLB ({proposals.length})</h2>
+            <ul className="admin-proposal-list">
+              {proposals.map((proposal, index) => {
+                const proposalId = proposal.id;
+                const isBusy = actingId === proposalId;
+                return (
+                  <li key={proposalId} className="admin-proposal-card">
+                    <div className="admin-proposal-card__head">
+                      <div className="admin-proposal-card__head-main">
+                        <span className="admin-proposal-card__index">#{index + 1}</span>
+                        <h2 className="admin-proposal-card__title">{proposal.title}</h2>
+                      </div>
+                      <span className="admin-proposal-card__badge">{proposal.status || 'Chờ duyệt'}</span>
+                    </div>
+                    <div className="admin-proposal-card__body">
+                      <div className="admin-proposal-card__details" style={{ padding: '0 20px 16px' }}>
+                        <dl className="admin-proposal-meta">
+                          <div className="admin-proposal-meta__row">
+                            <dt>CLB</dt>
+                            <dd>{proposal.clubName || '—'}</dd>
+                          </div>
+                          <div className="admin-proposal-meta__row">
+                            <dt>Địa điểm</dt>
+                            <dd>{proposal.location || '—'}</dd>
+                          </div>
+                          <div className="admin-proposal-meta__row">
+                            <dt>Thời gian</dt>
+                            <dd>
+                              {proposal.date || '—'} {proposal.time || ''}
+                            </dd>
+                          </div>
+                          <div className="admin-proposal-meta__row">
+                            <dt>Tổng vé</dt>
+                            <dd>{proposal.totalTickets != null ? proposal.totalTickets : '—'}</dd>
+                          </div>
+                        </dl>
+                        <ProposalTicketsTable
+                          ticketTypes={proposal.ticketTypes}
+                          ticketPrice={proposal.ticketPrice}
+                        />
+                        {proposal.description?.trim() ? (
+                          <div className="admin-proposal-card__desc">
+                            <p className="admin-proposal-card__desc-label">Mô tả</p>
+                            <p className="admin-proposal-card__desc-text">{proposal.description}</p>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                    <footer className="admin-proposal-card__footer">
+                      <div className="admin-proposal-card__actions">
+                        <button
+                          type="button"
+                          className="admin-proposal-btn admin-proposal-btn--approve"
+                          disabled={isBusy || actingId !== null}
+                          onClick={() => handleApproveProposal(proposalId)}
+                        >
+                          {isBusy ? 'Đang xử lý...' : 'Phê duyệt'}
+                        </button>
+                      </div>
+                    </footer>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+        {events.length > 0 && (
+          <section className="admin-events-section">
+            <h2 className="admin-events-section__title">Sự kiện chờ duyệt ({events.length})</h2>
         <ul className="admin-proposal-list">
           {events.map((event, index) => {
             const eventId = event._id;
@@ -199,6 +297,11 @@ const AdminDashboard = ({ showToast }) => {
                       </div>
                     </dl>
 
+                    <ProposalTicketsTable
+                      ticketTypes={event.ticketTypes}
+                      ticketPrice={event.ticketPrice}
+                    />
+
                     <div className="admin-proposal-card__desc">
                       <p className="admin-proposal-card__desc-label">Mô tả sự kiện</p>
                       <p className="admin-proposal-card__desc-text">
@@ -267,6 +370,9 @@ const AdminDashboard = ({ showToast }) => {
             );
           })}
         </ul>
+          </section>
+        )}
+        </>
       )}
     </main>
   );

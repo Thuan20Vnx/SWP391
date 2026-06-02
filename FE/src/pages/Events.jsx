@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
-import SiteHeader from '../components/SiteHeader';
+import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getAuthHeaders } from '../utils/api';
@@ -118,17 +118,16 @@ const Events = ({ showToast }) => {
   };
 
   return (
+    <PublicAdminShell
+      activeNav="events"
+      searchPlaceholder="Tìm kiếm sự kiện..."
+      searchValue={searchQuery}
+      onSearchChange={(value) => {
+        setSearchQuery(value);
+        setVisibleCount(PAGE_SIZE);
+      }}
+    >
     <div className="events-page home-layout">
-      <SiteHeader
-        activeNav="events"
-        searchPlaceholder="Tìm kiếm sự kiện..."
-        searchValue={searchQuery}
-        onSearchChange={(value) => {
-          setSearchQuery(value);
-          setVisibleCount(PAGE_SIZE);
-        }}
-      />
-
       <main className="events-page__main">
         <section className="events-page__hero">
           <h1>Khám phá sự kiện tại FPT</h1>
@@ -233,6 +232,7 @@ const Events = ({ showToast }) => {
         </svg>
       </button>
     </div>
+    </PublicAdminShell>
   );
 };
 

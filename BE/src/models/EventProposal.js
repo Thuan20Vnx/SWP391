@@ -1,5 +1,16 @@
 const mongoose = require('mongoose');
 
+const ticketTypeSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: '' },
+    priceType: { type: String, enum: ['free', 'paid'], default: 'free' },
+    priceAmount: { type: Number, default: 0 },
+    qty: { type: Number, default: 0 },
+    audience: { type: String, default: 'SV FPT' }
+  },
+  { _id: false }
+);
+
 const PROPOSAL_STATUSES = [
   'draft',
   'pending_icpdp',
@@ -18,6 +29,9 @@ const eventProposalSchema = new mongoose.Schema(
     endDate: { type: Date },
     location: { type: String, default: '' },
     totalTickets: { type: Number, default: 100 },
+    ticketPrice: { type: Number, default: 0, min: 0 },
+    ticketTypes: { type: [ticketTypeSchema], default: [] },
+    expectedAttendees: { type: Number, default: 0 },
     image: { type: String, default: '' },
     clubId: { type: String, default: '' },
     clubName: { type: String, default: '' },

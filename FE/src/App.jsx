@@ -52,6 +52,7 @@ import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminPartners from './pages/admin/AdminPartners';
 import AdminAccountsControl from './pages/admin/AdminAccountsControl';
 import AdminSchoolEventApprovals from './pages/admin/AdminSchoolEventApprovals';
+import AdminEventRequests from './pages/admin/AdminEventRequests';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
 import Schedule from './pages/Schedule';
@@ -124,7 +125,12 @@ const AdminAreaGuard = () => {
 
   if (!isLoggedIn) return <Navigate to="/login" replace />;
   if (isAdminRole()) return <Outlet />;
-  if (isCtsvRole() && pathname.startsWith('/admin/events')) return <Outlet />;
+  if (
+    isCtsvRole() &&
+    (pathname.startsWith('/admin/events') || pathname.startsWith('/admin/event-requests'))
+  ) {
+    return <Outlet />;
+  }
   return <Navigate to="/" replace />;
 };
 
@@ -312,6 +318,7 @@ function App() {
               <Route index element={<AdminMonitoringDashboard />} />
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
               <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />
+              <Route path="event-requests" element={<AdminEventRequests showToast={showToast} />} />
               <Route path="accounts" element={<AdminAccountsControl />} />
               <Route path="system" element={<AdminSystemControl />} />
               <Route path="data" element={<AdminDataMaintenance />} />

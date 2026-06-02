@@ -104,3 +104,29 @@ export const rejectAdminModeration = (id, reason = '') =>
     method: 'PATCH',
     body: JSON.stringify({ reason })
   });
+
+export const fetchAdminEventRequests = async ({ status = 'pending', type = 'all' } = {}) => {
+  const params = new URLSearchParams({ status, type });
+  const res = await fetch(`${API_BASE}/api/admin/event-requests?${params}`, {
+    headers: getAuthHeaders(false),
+  });
+  return parseJson(res);
+};
+
+export const approveAdminEventRequest = async (id, adminNote = '') => {
+  const res = await fetch(`${API_BASE}/api/admin/event-requests/${id}/approve`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ adminNote }),
+  });
+  return parseJson(res);
+};
+
+export const rejectAdminEventRequest = async (id, adminNote = '') => {
+  const res = await fetch(`${API_BASE}/api/admin/event-requests/${id}/reject`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ adminNote }),
+  });
+  return parseJson(res);
+};

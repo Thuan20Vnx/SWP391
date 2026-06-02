@@ -6,6 +6,14 @@ const { normalizeEventCategory } = require('../constants/eventCategories');
 const { SCHOOL_EVENT_PUBLIC_STATUSES } = require('../constants/eventWorkflow');
 const { getRegisteredEventIds } = require('./registration.service');
 const { enrichEventWithPricing } = require('../constants/eventPricing');
+const {
+  normalizeTicketTypes,
+  deriveTicketPriceFromTypes,
+  totalQtyFromTypes
+} = require('../utils/ticketTypes');
+
+/** Trạng thái chờ duyệt (đồng bộ với luồng CTSV / CLB) */
+const PENDING_EVENT_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'revision'];
 
 const createEvent = async (user, body) => {
   const {
@@ -18,9 +26,17 @@ const createEvent = async (user, body) => {
     location,
     capacity,
     ticketPrice,
+    ticketTypes,
     speaker,
     agenda,
   } = body;
+
+  const normalizedTickets = normalizeTicketTypes(ticketTypes);
+  const resolvedTicketPrice =
+    Math.max(0, Number(ticketPrice) || 0) || deriveTicketPriceFromTypes(normalizedTickets);
+  const resolvedCapacity = Math.max(1, Number(capacity) || 0);
+  const resolvedTotalTickets =
+    totalQtyFromTypes(normalizedTickets) || resolvedCapacity;
 
   if (!title || !startDate || !location || !capacity) {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
@@ -38,12 +54,14 @@ const createEvent = async (user, body) => {
     title,
     description: description || 'Chưa có mô tả',
     thumbnail: thumbnail || undefined,
-    category: normalizeEventCategory(category || 'Workshop'),
+    category: normalizeEventCategory(category || 'Khác'),
     startDate,
     endDate,
     location,
-    capacity,
-    ticketPrice: Math.max(0, Number(ticketPrice) || 0),
+    capacity: resolvedCapacity,
+    totalTickets: resolvedTotalTickets,
+    ticketPrice: resolvedTicketPrice,
+    ticketTypes: normalizedTickets,
     registeredCount: 0,
     eventState: 'active',
     createdBy: user._id,
@@ -82,7 +100,7 @@ const deleteMyEvent = async (eventId, user) => {
 };
 
 const getPendingEvents = async () => {
-  const events = await Event.find({ status: 'pending' })
+  const events = await Event.find({ status: { $in: PENDING_EVENT_STATUSES } })
     .populate('createdBy', 'fullname email studentId')
     .sort({ createdAt: -1 });
 
@@ -98,6 +116,10 @@ const updateEventStatus = async (eventId, { status, rejectionReason }) => {
 
   if (!event) {
     throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+
+  if (!PENDING_EVENT_STATUSES.includes(event.status)) {
+    throw new AppError('Sự kiện không ở trạng thái chờ duyệt!', 400);
   }
 
   event.status = status;
@@ -116,7 +138,8 @@ const updateEventStatus = async (eventId, { status, rejectionReason }) => {
 const getApprovedEvents = async ({ category, user } = {}) => {
   const query = {
     status: { $in: SCHOOL_EVENT_PUBLIC_STATUSES },
-    isHidden: { $ne: true }
+    isHidden: { $ne: true },
+    isDeleted: { $ne: true },
   };
   if (category && category !== 'all') {
     query.category = category;
