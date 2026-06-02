@@ -9,7 +9,12 @@
     "seed": "node seed.js",
     "seed:events": "node seed-events.js",
     "seed:clubs": "node seed-clubs.js",
-    "seed:reviews": "node seed-event-reviews.js"
+    "seed:reviews": "node seed-event-reviews.js",
+    "db:audit": "node scripts/db-health.js",
+    "db:sync-indexes": "node scripts/db-health.js --sync",
+    "db:repair-counts": "node scripts/db-health.js --repair-counts",
+    "db:cleanup-orphans": "node scripts/db-health.js --cleanup-orphans",
+    "db:cleanup-orphans:dry": "node scripts/db-health.js --cleanup-orphans --dry-run"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

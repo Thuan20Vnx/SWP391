@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { key: 'participants', label: 'Quản lý người tham gia', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor" /></svg> },
   { key: 'report', label: 'Báo cáo sau sự kiện', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="currentColor" /></svg> },
   { key: 'notifications', label: 'Thông báo xét duyệt', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" fill="currentColor" /></svg> },
+  { key: 'announcements', label: 'Đăng thông báo CLB', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="currentColor" /></svg>, external: '/quan-ly-clb/announcements' },
   { key: 'dashboard', label: 'Dashboard Thống kê số liệu', icon: <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor" /></svg> },
 ];
 
@@ -286,8 +287,12 @@ const ClubManagement = ({ showToast }) => {
                 <button
                   key={item.key}
                   className={`clb-nav-item ${activeNav === item.key ? 'clb-nav-item--active' : ''}`}
-                  onClick={() => { 
-                    setActiveNav(item.key); 
+                  onClick={() => {
+                    if (item.external) {
+                      navigate(item.external);
+                      return;
+                    }
+                    setActiveNav(item.key);
                     if (item.key === 'create') setShowCreateModal(true);
                     if (item.key === 'notifications') {
                       const now = Date.now();
@@ -315,7 +320,14 @@ const ClubManagement = ({ showToast }) => {
                 <button
                   key={item.key}
                   className={`clb-nav-item ${activeNav === item.key ? 'clb-nav-item--active' : ''}`}
-                  onClick={() => { setActiveNav(item.key); if (item.key === 'create') setShowCreateModal(true); }}
+                  onClick={() => {
+                    if (item.external) {
+                      navigate(item.external);
+                      return;
+                    }
+                    setActiveNav(item.key);
+                    if (item.key === 'create') setShowCreateModal(true);
+                  }}
                 >
                   <span className="clb-nav-icon">{item.icon}</span>
                   <span className="clb-nav-label">{item.label}</span>
@@ -331,7 +343,13 @@ const ClubManagement = ({ showToast }) => {
                 <button
                   key={item.key}
                   className={`clb-nav-item ${activeNav === item.key ? 'clb-nav-item--active' : ''}`}
-                  onClick={() => setActiveNav(item.key)}
+                  onClick={() => {
+                    if (item.external) {
+                      navigate(item.external);
+                      return;
+                    }
+                    setActiveNav(item.key);
+                  }}
                 >
                   <span className="clb-nav-icon">{item.icon}</span>
                   <span className="clb-nav-label">{item.label}</span>

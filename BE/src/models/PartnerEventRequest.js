@@ -43,7 +43,7 @@ const speakerSchema = new mongoose.Schema(
 
 const partnerEventRequestSchema = new mongoose.Schema(
   {
-    partnerEmail: { type: String, required: true, trim: true, lowercase: true, index: true },
+    partnerEmail: { type: String, required: true, trim: true, lowercase: true },
     partnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', default: null },
     status: {
       type: String,
@@ -84,6 +84,9 @@ const partnerEventRequestSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+partnerEventRequestSchema.index({ partnerEmail: 1, status: 1, updatedAt: -1 });
+partnerEventRequestSchema.index({ partnerId: 1, status: 1, updatedAt: -1 });
 
 const PartnerEventRequest = mongoose.model('PartnerEventRequest', partnerEventRequestSchema);
 

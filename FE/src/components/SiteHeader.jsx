@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import fptLogo from '../assets/fpt_logo.png';
 import defaultAvatar from '../constants/defaultAvatar';
 import ProfileSidebarMenu from './ProfileSidebarMenu';
 import AdminDrawerMenu from './admin/AdminDrawerMenu';
-import HeaderNotificationPanel from './HeaderNotificationPanel';
+import NotificationBell from './NotificationBell';
 import { getRoleLabel } from '../utils/role';
 import useUserProfile, { clearUserProfileCache } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import { getUserRole, isAdminRole, normalizeRole, isClubManagerRole, clearSession } from '../utils/auth';
+import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
 import '../styles/admin-menu.css';
 
 const BASE_NAV_ITEMS = [
@@ -43,6 +44,7 @@ const SiteHeader = ({
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
   const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const profileRef = useRef(null);
   const { isLoggedIn, userProfile, profileLoading } = useUserProfile();
 
   const role = normalizeRole(userProfile.role || getUserRole());
@@ -63,6 +65,7 @@ const SiteHeader = ({
 
   useEffect(() => {
     setAdminDrawerOpen(false);
+    setProfilePopupOpen(false);
     setNotifOpen(false);
   }, [pathname]);
 
@@ -77,10 +80,7 @@ const SiteHeader = ({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [profilePopupOpen]);
 
-  const handleToggleNotifications = () => {
-    setProfilePopupOpen(false);
-    setNotifOpen((prev) => !prev);
-  };
+  useCloseOnClickOutside(profileRef, profilePopupOpen, () => setProfilePopupOpen(false));
 
   const handleOpenProfilePopup = () => {
     if (!isLoggedIn) {
@@ -187,25 +187,15 @@ const SiteHeader = ({
         </div>
 
         <div className="header-actions">
-          <div className="header-notif-wrap">
-            <button
-              type="button"
-              className={`notif-bell-btn${notifOpen ? ' notif-bell-btn--open' : ''}`}
-              aria-label="Thông báo"
-              aria-expanded={notifOpen}
-              onClick={handleToggleNotifications}
-            >
-              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" fill="currentColor" />
-              </svg>
-              <span className="notif-badge" />
-            </button>
-            <HeaderNotificationPanel
-              open={notifOpen}
-              onClose={() => setNotifOpen(false)}
-              isAdmin={isAdminRoute && showAdminMenu}
-            />
-          </div>
+          <NotificationBell
+            open={notifOpen}
+            onOpenChange={(open) => {
+              setNotifOpen(open);
+              if (open) setProfilePopupOpen(false);
+            }}
+            isAdmin={isAdminRoute && showAdminMenu}
+            isClub={showClubManagerNav && !isAdminRoute}
+          />
 
           <div className="auth-profile-wrapper">
             {isLoggedIn ? (
@@ -218,7 +208,7 @@ const SiteHeader = ({
                   <div className="profile-avatar-circle profile-skeleton profile-skeleton--avatar" />
                 </div>
               ) : (
-                <div className="profile-display-card">
+                <div className="profile-display-card" ref={profileRef}>
                   <button
                     type="button"
                     className={`profile-display-card-link ${profilePopupOpen ? 'profile-display-card-link--open' : ''}`}
