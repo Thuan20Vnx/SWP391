@@ -32,7 +32,7 @@ import IcpdpEventList from './pages/icpdp/IcpdpEventList';
 import IcpdpEventDetail from './pages/icpdp/IcpdpEventDetail';
 import IcpdpCalendar from './pages/icpdp/IcpdpCalendar';
 import IcpdpReports from './pages/icpdp/IcpdpReports';
-import IcpdpProfile from './pages/icpdp/IcpdpProfile';
+import IcpdpProfileSettings from './pages/icpdp/IcpdpProfileSettings';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
@@ -188,7 +188,7 @@ function App() {
               <Route path="events/:id" element={<IcpdpEventDetail />} />
               <Route path="calendar" element={<IcpdpCalendar />} />
               <Route path="reports" element={<IcpdpReports />} />
-              <Route path="profile" element={<IcpdpProfile showToast={showToast} />} />
+              <Route path="profile" element={<IcpdpProfileSettings showToast={showToast} />} />
               <Route path="announcements" element={<IcpdpAnnouncementManage />} />
               <Route
                 path="announcements/:id"
