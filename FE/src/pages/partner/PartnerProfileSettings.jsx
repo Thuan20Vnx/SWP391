@@ -112,6 +112,64 @@ const PartnerToggle = ({ checked, onChange, label, desc }) => (
 
 
 
+const IconChevronDown = () => (
+
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden>
+
+    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+
+  </svg>
+
+);
+
+
+
+const PartnerProfileCollapseSection = ({ id, title, desc, open, onToggle, children }) => (
+
+  <section className="partner-profile-card partner-profile-card--collapse">
+
+    <button
+
+      type="button"
+
+      className="partner-profile-collapse-toggle"
+
+      aria-expanded={open}
+
+      aria-controls={id}
+
+      onClick={onToggle}
+
+    >
+
+      <div className="partner-profile-collapse-toggle-main">
+
+        <h2 className="partner-profile-card__title">{title}</h2>
+
+        {desc && <p className="partner-profile-card__desc partner-profile-card__desc--toggle">{desc}</p>}
+
+      </div>
+
+      <span className={`partner-profile-collapse-chevron${open ? ' is-open' : ''}`} aria-hidden>
+
+        <IconChevronDown />
+
+      </span>
+
+    </button>
+
+    <div id={id} className={`partner-profile-collapse-panel${open ? ' is-open' : ''}`}>
+
+      <div className="partner-profile-collapse-panel-inner">{children}</div>
+
+    </div>
+
+  </section>
+
+);
+
+
+
 const EMPTY_COMPANY = {
 
   companyName: '',
@@ -245,6 +303,24 @@ const PartnerProfileSettings = ({ showToast }) => {
   const [cropFileName, setCropFileName] = useState('');
 
   const [cropTarget, setCropTarget] = useState(null);
+
+  const [sectionOpen, setSectionOpen] = useState({
+
+    company: false,
+
+    security: false,
+
+    notifications: false
+
+  });
+
+
+
+  const toggleSection = (key) => {
+
+    setSectionOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  };
 
 
 
@@ -1016,17 +1092,19 @@ const PartnerProfileSettings = ({ showToast }) => {
 
 
 
-        <section className="partner-profile-card">
+        <PartnerProfileCollapseSection
 
-          <h2 className="partner-profile-card__title">Thông tin doanh nghiệp</h2>
+          id="partner-profile-company-panel"
 
-          <p className="partner-profile-card__desc">
+          title="Thông tin doanh nghiệp"
 
-            Thông tin hiển thị trên hợp đồng tài trợ và hồ sơ đối tác với FPT University.
+          desc="Thông tin hiển thị trên hợp đồng tài trợ và hồ sơ đối tác với FPT University."
 
-          </p>
+          open={sectionOpen.company}
 
+          onToggle={() => toggleSection('company')}
 
+        >
 
           <form onSubmit={handleSaveCompany}>
 
@@ -1264,17 +1342,23 @@ const PartnerProfileSettings = ({ showToast }) => {
 
           </form>
 
-        </section>
+        </PartnerProfileCollapseSection>
 
 
 
-        <section className="partner-profile-card">
+        <PartnerProfileCollapseSection
 
-          <h2 className="partner-profile-card__title">Bảo mật</h2>
+          id="partner-profile-security-panel"
 
-          <p className="partner-profile-card__desc">Đổi mật khẩu đăng nhập tài khoản đối tác.</p>
+          title="Bảo mật"
 
+          desc="Đổi mật khẩu đăng nhập tài khoản đối tác."
 
+          open={sectionOpen.security}
+
+          onToggle={() => toggleSection('security')}
+
+        >
 
           {isGoogleLogin ? (
 
@@ -1372,17 +1456,23 @@ const PartnerProfileSettings = ({ showToast }) => {
 
           )}
 
-        </section>
+        </PartnerProfileCollapseSection>
 
 
 
-        <section className="partner-profile-card">
+        <PartnerProfileCollapseSection
 
-          <h2 className="partner-profile-card__title">Cấu hình thông báo</h2>
+          id="partner-profile-notifications-panel"
 
-          <p className="partner-profile-card__desc">Chọn loại thông báo bạn muốn nhận qua email và hệ thống.</p>
+          title="Cấu hình thông báo"
 
+          desc="Chọn loại thông báo bạn muốn nhận qua email và hệ thống."
 
+          open={sectionOpen.notifications}
+
+          onToggle={() => toggleSection('notifications')}
+
+        >
 
           {NOTIFICATION_OPTIONS.map((opt) => (
 
@@ -1414,7 +1504,7 @@ const PartnerProfileSettings = ({ showToast }) => {
 
           </div>
 
-        </section>
+        </PartnerProfileCollapseSection>
 
       </div>
 

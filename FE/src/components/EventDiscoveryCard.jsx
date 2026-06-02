@@ -107,7 +107,7 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
           <div className="event-discovery-card__price">
             <span className="event-discovery-card__price-label">{priceLabel}</span>
             {studentPrivilegeApplied && (
-              <span className="event-discovery-card__price-badge">Ưu đãi sinh viên</span>
+              <span className="event-discovery-card__price-badge">Miễn phí</span>
             )}
           </div>
         )}
