@@ -58,8 +58,14 @@ const createEvent = async (user, body) => {
   };
 };
 
+const MY_EVENTS_LIST_FIELDS =
+  'title category startDate endDate location capacity registeredCount status eventState rejectionReason moderationReason ticketPrice speaker createdAt updatedAt createdBy';
+
 const getMyEvents = async (user) => {
-  const events = await Event.find({ createdBy: user._id }).sort({ createdAt: -1 });
+  const events = await Event.find({ createdBy: user._id })
+    .select(MY_EVENTS_LIST_FIELDS)
+    .sort({ createdAt: -1 })
+    .lean();
   return { events };
 };
 

@@ -382,6 +382,85 @@ const getMyClubs = async (userId, tab = 'joined') => {
   };
 };
 
+const MANAGED_CLUB_SLUG = 'fu-dever';
+
+const ALLOWED_PROFILE_FIELDS = [
+  'name',
+  'shortName',
+  'category',
+  'activityField',
+  'founded',
+  'foundedDate',
+  'scale',
+  'president',
+  'hotline',
+  'email',
+  'facebook',
+  'website',
+  'slogan',
+  'description',
+  'coverImage',
+  'coverPositionY',
+  'logoImage',
+  'logoText',
+  'logoColor',
+];
+
+const getManagedClubProfile = async (userId) => {
+  let club = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
+
+  if (!club) {
+    throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
+  }
+
+  if (club.managedBy && String(club.managedBy) !== String(userId)) {
+    throw new AppError('Bạn không có quyền quản lý hồ sơ CLB này.', 403);
+  }
+
+  if (!club.managedBy) {
+    club.managedBy = userId;
+    await club.save();
+  }
+
+  return { club };
+};
+
+const updateManagedClubProfile = async (userId, payload = {}) => {
+  const club = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
+
+  if (!club) {
+    throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
+  }
+
+  if (club.managedBy && String(club.managedBy) !== String(userId)) {
+    throw new AppError('Bạn không có quyền cập nhật hồ sơ CLB này.', 403);
+  }
+
+  ALLOWED_PROFILE_FIELDS.forEach((field) => {
+    if (payload[field] !== undefined) {
+      club[field] = payload[field];
+    }
+  });
+
+  if (payload.coverPositionY !== undefined && payload.coverPositionY !== null) {
+    const y = Number(payload.coverPositionY);
+    club.coverPositionY = Number.isFinite(y)
+      ? Math.min(100, Math.max(0, Math.round(y * 10) / 10))
+      : 50;
+  }
+
+  if (!club.managedBy) {
+    club.managedBy = userId;
+  }
+
+  await club.save();
+
+  return {
+    message: 'Đã cập nhật hồ sơ câu lạc bộ thành công!',
+    club,
+  };
+};
+
 module.exports = {
   getClubs,
   getClubBySlug,
@@ -391,4 +470,7 @@ module.exports = {
   cancelJoinClub,
   approveMembership,
   getMyClubs,
+  getManagedClubProfile,
+  updateManagedClubProfile,
+  MANAGED_CLUB_SLUG,
 };
