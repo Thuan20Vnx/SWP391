@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import CtsvNavIcon from '../../components/ctsv/CtsvNavIcon';
 import PortalDashHero from '../../components/portal/PortalDashHero';
@@ -7,7 +7,9 @@ import {
   fetchIcpdpProposals,
   fetchIcpdpStats,
   ICPDP_MOCK_EVENTS,
-  ICPDP_MOCK_STATS
+  ICPDP_MOCK_STATS,
+  ICPDP_PERFORMANCE,
+  ICPDP_RECENT_ACTIVITY
 } from '../../services/icpdpApi';
 import { isPendingApproval, statusClass } from '../../utils/eventStatus';
 
@@ -134,6 +136,32 @@ const IcpdpDashboard = () => {
         </div>
       </section>
 
+      <section className="partner-perf-section" aria-label="Hiệu suất quản lý">
+        <div className="partner-perf-grid">
+          <div className="partner-perf-card">
+            <h3 className="partner-perf-card__title">Tỷ lệ duyệt đúng hạn</h3>
+            <div className="partner-perf-ring">
+              <span className="partner-perf-ring__value" style={{ color: 'var(--icpdp-accent)' }}>95%</span>
+              <span className="partner-perf-ring__label">Trung bình 30 ngày qua</span>
+            </div>
+          </div>
+          <div className="partner-perf-card">
+            <h3 className="partner-perf-card__title">Đánh giá chung</h3>
+            {ICPDP_PERFORMANCE.map((item) => (
+              <div key={item.name} className="partner-perf-bar-row">
+                <div className="partner-perf-bar-head">
+                  <span>{item.name}</span>
+                  <strong>{item.rate}%</strong>
+                </div>
+                <div className="partner-perf-bar-track">
+                  <div className="partner-perf-bar-fill" style={{ width: `${item.rate}%`, background: 'var(--icpdp-accent)' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="ctsv-dash-quick" aria-label="Thao tác nhanh">
         <div className="ctsv-dash-section-head">
           <h2>Thao tác nhanh</h2>
@@ -257,6 +285,26 @@ const IcpdpDashboard = () => {
             <Link to="/icpdp/proposals" className="ctsv-dash-side-link">
               Xem tất cả đề xuất →
             </Link>
+          </section>
+
+          <section className="ctsv-dash-panel">
+            <div className="ctsv-dash-panel__head">
+              <div>
+                <h2>Hoạt động gần đây</h2>
+                <p>Nhật ký hoạt động hệ thống</p>
+              </div>
+            </div>
+            <ul className="partner-activity-list">
+              {ICPDP_RECENT_ACTIVITY.map((item) => (
+                <li key={item.id} className="partner-activity-item">
+                  <span className="partner-activity-dot" aria-hidden style={{ background: 'var(--icpdp-accent)' }} />
+                  <div>
+                    {item.text}
+                    <span className="partner-activity-time">{item.time}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
 
           <section className="ctsv-dash-panel ctsv-dash-panel--compact">

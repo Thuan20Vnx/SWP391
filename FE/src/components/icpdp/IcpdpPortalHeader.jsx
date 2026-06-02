@@ -5,8 +5,8 @@ import { getRoleDisplayLabel, getUserRole } from '../../utils/auth';
 import { logoutWithConfirm } from '../../utils/logout';
 import { useCloseOnClickOutside } from '../../hooks/useCloseOnClickOutside';
 import CtsvHamburgerButton from '../ctsv/CtsvHamburgerButton';
-import CtsvProfileMenu from '../ctsv/CtsvProfileMenu';
 import NotificationBell from '../NotificationBell';
+import IcpdpProfileMenu from './IcpdpProfileMenu';
 
 const NAV_LINKS = [
   { to: '/icpdp', label: 'Trang chủ', match: (path) => path === '/icpdp' },
@@ -191,7 +191,7 @@ const IcpdpPortalHeader = ({
                     role="presentation"
                   />
                   <div className="profile-menu-dropdown" role="menu" aria-label="Menu tài khoản IC-PDP">
-                    <CtsvProfileMenu
+                    <IcpdpProfileMenu
                       activeItem={activeMenuItem}
                       userProfile={userProfile}
                       roleLabel={roleLabel}
