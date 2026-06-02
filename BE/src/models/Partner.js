@@ -39,6 +39,9 @@ const partnerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+partnerSchema.index({ status: 1, createdAt: -1 });
+partnerSchema.index({ email: 1, createdAt: -1 });
+
 const Partner = mongoose.model('Partner', partnerSchema);
 
 module.exports = Partner;

@@ -8898,14 +8898,14 @@ body {
 .ctsv-portal-header .header-container {
   flex-wrap: nowrap;
   justify-content: flex-start;
-  gap: 20px;
+  gap: 16px;
   min-width: 0;
 }
 
 .ctsv-portal-header .ctsv-header-start {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 28px;
   flex-shrink: 0;
   min-width: 0;
 }
@@ -8920,7 +8920,8 @@ body {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 14px;
+  gap: 22px;
+  margin-left: 8px;
   min-width: 0;
 }
 
@@ -8928,6 +8929,14 @@ body {
   white-space: nowrap;
   flex-shrink: 0;
   font-size: 0.875rem;
+  padding: 10px 2px;
+  letter-spacing: 0.01em;
+}
+
+.ctsv-portal-header .nav-link-ctsv-pill {
+  margin-left: 4px;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
 }
 
 .ctsv-portal-header .header-actions {
