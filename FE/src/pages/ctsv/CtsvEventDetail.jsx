@@ -8,7 +8,7 @@ import {
   revisionCtsvEvent,
   requestCtsvEventModeration
 } from '../../services/ctsvApi';
-import { getUserRole } from '../../utils/auth';
+import { getUserRole, canCtsvFinalApprove } from '../../utils/auth';
 import { getCtsvEventAccess } from '../../utils/ctsvEventAccess';
 import { statusClass } from '../../utils/eventStatus';
 import { resolveEventSpeakers } from '../../constants/eventSpeaker';
@@ -157,6 +157,7 @@ const CtsvEventDetail = () => {
   const [manageOpen, setManageOpen] = useState(false);
   const [ctsvActionsOpen, setCtsvActionsOpen] = useState(false);
   const isCtsvOnly = getUserRole() === 'ctsv';
+  const canFinalApprove = canCtsvFinalApprove(getUserRole());
 
   useEffect(() => {
     fetchCtsvEvent(id)
@@ -180,8 +181,8 @@ const CtsvEventDetail = () => {
   }, [event]);
 
   const handleApprove = async () => {
-    if (!isCtsvOnly) {
-      showToast?.('Chỉ cán bộ CTSV mới được phê duyệt cuối.', 'error');
+    if (!canFinalApprove) {
+      showToast?.('Bạn không có quyền phê duyệt sự kiện.', 'error');
       return;
     }
     try {

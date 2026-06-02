@@ -51,8 +51,11 @@ export const isPartnerRole = (role = getUserRole()) => normalizeRole(role) === U
 export const isClubManagerRole = (role = getUserRole()) =>
   normalizeRole(role) === USER_ROLES.CLUB_MANAGER;
 
-export const canCtsvFinalApprove = (role = getUserRole()) =>
-  normalizeRole(role) === USER_ROLES.CTSV;
+/** Phê duyệt cuối sự kiện / đề xuất (CTSV hoặc Admin) */
+export const canCtsvFinalApprove = (role = getUserRole()) => {
+  const r = normalizeRole(role);
+  return r === USER_ROLES.CTSV || r === USER_ROLES.ADMIN;
+};
 
 export const getHomePathForRole = (role = getUserRole()) => {
   const r = normalizeRole(role);

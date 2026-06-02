@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
+const { EVENT_CATEGORIES, normalizeEventCategory } = require('../constants/eventCategories');
 const { EVENT_CAMPUS, EVENT_VENUES } = require('../constants/eventVenues');
-const { EVENT_CATEGORIES } = require('../constants/eventCategories');
 const { syncPrimarySpeakerFields } = require('../constants/eventSpeaker');
 const { EVENT_STATUSES } = require('../constants/eventWorkflow');
 
@@ -175,7 +175,9 @@ const eventSchema = new mongoose.Schema(
       ref: 'EventProposal',
       default: null
     },
-    expectedRevenue: { type: Number, default: 0 }
+    expectedRevenue: { type: Number, default: 0 },
+    isHidden: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
@@ -198,6 +200,10 @@ eventSchema.virtual('fillPercent').get(function () {
 eventSchema.virtual('remainingTickets').get(function () {
   const cap = this.capacity || this.totalTickets || 0;
   return Math.max(0, cap - (this.registeredCount || 0));
+});
+
+eventSchema.pre('validate', function () {
+  this.category = normalizeEventCategory(this.category);
 });
 
 eventSchema.pre('save', function () {

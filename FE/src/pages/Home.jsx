@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import SiteHeader from '../components/SiteHeader';
+import ChatbotFloating from '../components/ChatbotFloating';
+import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import AppSelect from '../components/ui/AppSelect';
 
@@ -32,13 +33,6 @@ const Home = ({ showToast }) => {
 
   // Active Hero Slider Index
   const [activeSlide, setActiveSlide] = useState(0);
-
-  // AI Chatbot State
-  const [chatbotOpen, setChatbotOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'bot', text: 'Xin chào! Tôi là trợ lý ảo F-Events. Bạn cần tôi giúp gì hôm nay?' }
-  ]);
-  const [chatInput, setChatInput] = useState('');
 
   // Event Data State — loaded from API
   const [events, setEvents] = useState([]);
@@ -192,44 +186,14 @@ const Home = ({ showToast }) => {
     setFilteredEvents(result);
   }, [events]);
 
-  // Chatbot Send Message Logic
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-
-    const userMsg = chatInput.trim();
-    setChatMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
-    setChatInput('');
-
-    // Simulate AI response
-    setTimeout(() => {
-      let botResponse = 'Tôi rất muốn hỗ trợ bạn, tuy nhiên tính năng AI đang được tích hợp thêm. Bạn có muốn tìm các sự kiện Công nghệ hay Âm nhạc sắp tới không?';
-      const lowercase = userMsg.toLowerCase();
-      if (lowercase.includes('f-fest') || lowercase.includes('nhạc') || lowercase.includes('fest')) {
-        botResponse = 'Sự kiện F-Fest: Giai điệu mùa hè sẽ diễn ra vào ngày 20/05 lúc 19:00 tại Hội trường A, FPT Tower. Hiện tại chỉ còn 15 vé trống thôi đó!';
-      } else if (lowercase.includes('prompt') || lowercase.includes('ai') || lowercase.includes('workshop')) {
-        botResponse = 'Workshop "Làm chủ Prompt Engineering với AI" được tổ chức vào ngày 22/05 lúc 14:00 tại Phòng Lab 402 Gamma. Nhanh tay đăng ký nhé!';
-      } else if (lowercase.includes('profile') || lowercase.includes('hồ sơ') || lowercase.includes('trang cá nhân')) {
-        botResponse = 'Bạn có thể mở menu tài khoản bằng cách nhấp vào hình đại diện ở góc trên bên phải — menu sẽ hiện ra ngay tại trang chủ.';
-      } else if (lowercase.includes('đăng ký') || lowercase.includes('vé')) {
-        botResponse = 'Để đăng ký sự kiện, bạn chỉ cần bấm nút "Đăng ký ngay" trên thẻ sự kiện. Hệ thống sẽ tự động gửi QR vé về tài khoản của bạn!';
-      } else if (lowercase.includes('hello') || lowercase.includes('chào') || lowercase.includes('hi')) {
-        botResponse = 'Xin chào! Tôi có thể giúp gì cho bạn về các sự kiện của sinh viên FPT?';
-      }
-
-      setChatMessages(prev => [...prev, { sender: 'bot', text: botResponse }]);
-    }, 1000);
-  };
-
   return (
+    <PublicAdminShell
+      activeNav="home"
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
+      onSearchKeyDown={handleNavSearch}
+    >
     <div className="home-layout">
-      <SiteHeader
-        activeNav="home"
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearchKeyDown={handleNavSearch}
-      />
-
       {/* 2. Hero Banner Slider (Figma 38:1158) */}
       <section className="hero-banner-slider">
         {sliderData.map((slide, index) => (
@@ -433,67 +397,11 @@ const Home = ({ showToast }) => {
         )}
       </main>
 
-      {/* 5. Floating AI Chatbot FAB (Figma 38:1433) */}
-      <div className="chatbot-floating-wrapper">
-        {/* Chat window panel */}
-        {chatbotOpen && (
-          <div className="chatbot-window">
-            <div className="chat-window-header">
-              <div className="chat-header-user">
-                <div className="chat-avatar-circle">AI</div>
-                <div>
-                  <h4>Trợ lý ảo F-Events</h4>
-                  <span className="online-indicator">Hoạt động</span>
-                </div>
-              </div>
-              <button className="chat-close-btn" onClick={() => setChatbotOpen(false)} aria-label="Đóng chat">
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="chat-messages-container">
-              {chatMessages.map((msg, i) => (
-                <div key={i} className={`chat-message-bubble ${msg.sender === 'user' ? 'message-user' : 'message-bot'}`}>
-                  {msg.text}
-                </div>
-              ))}
-            </div>
-
-            <form className="chat-input-form" onSubmit={handleSendMessage}>
-              <input
-                type="text"
-                placeholder="Nhập câu hỏi của bạn..."
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                className="chat-input-field"
-              />
-              <button type="submit" className="chat-send-btn" aria-label="Gửi">
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor" />
-                </svg>
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* FAB Button */}
-        <button
-          className={`chatbot-fab-btn ${chatbotOpen ? 'fab-active' : ''}`}
-          onClick={() => setChatbotOpen(!chatbotOpen)}
-        >
-          <span className="fab-icon">
-            <svg viewBox="0 0 24 24" width="26" height="26">
-              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" fill="currentColor" />
-            </svg>
-          </span>
-          <span className="fab-text">Bạn cần giúp gì?</span>
-        </button>
-      </div>
+      <ChatbotFloating context="home" />
 
       <SiteFooter />
     </div>
+    </PublicAdminShell>
   );
 };
 

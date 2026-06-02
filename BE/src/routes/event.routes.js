@@ -6,6 +6,7 @@ const authorizeEventParticipant = require('../middleware/authorizeEventParticipa
 const optionalAuth = require('../middleware/optionalAuth');
 const optionalAuthorize = require('../middleware/optionalAuthorize');
 const eventController = require('../controllers/event.controller');
+const eventChangeRequestController = require('../controllers/eventChangeRequest.controller');
 const registrationController = require('../controllers/registration.controller');
 const reviewController = require('../controllers/review.controller');
 
@@ -16,6 +17,13 @@ router.get('/my', authMiddleware, authorize('club_manager', 'student', 'staff'),
 router.get('/pending', authorize('ctsv', 'admin'), asyncHandler(eventController.getPendingEvents));
 router.put('/:id/status', authorize('ctsv', 'admin'), asyncHandler(eventController.updateEventStatus));
 router.delete('/:id', authMiddleware, authorize('club_manager', 'student', 'staff'), asyncHandler(eventController.deleteMyEvent));
+
+router.post(
+  '/:id/change-requests',
+  authMiddleware,
+  authorize('student', 'staff', 'club_manager'),
+  asyncHandler(eventChangeRequestController.create)
+);
 
 router.post(
   '/:id/register',

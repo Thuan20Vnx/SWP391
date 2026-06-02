@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ClubDiscoveryCard from '../components/ClubDiscoveryCard';
-import SiteHeader from '../components/SiteHeader';
+import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import {
@@ -81,14 +81,13 @@ const Clubs = ({ showToast }) => {
   };
 
   return (
+    <PublicAdminShell
+      activeNav="clubs"
+      searchPlaceholder="Tìm kiếm câu lạc bộ..."
+      searchValue={headerSearch}
+      onSearchChange={handleHeaderSearchChange}
+    >
     <div className="clubs-page home-layout">
-      <SiteHeader
-        activeNav="clubs"
-        searchPlaceholder="Tìm kiếm câu lạc bộ..."
-        searchValue={headerSearch}
-        onSearchChange={handleHeaderSearchChange}
-      />
-
       <main className="clubs-page__main">
         <section className="clubs-page__hero">
           <div className="clubs-page__hero-content">
@@ -249,6 +248,7 @@ const Clubs = ({ showToast }) => {
         Bạn cần giúp gì?
       </button>
     </div>
+    </PublicAdminShell>
   );
 };
 
