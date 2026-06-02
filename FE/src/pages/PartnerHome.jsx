@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
+import PartnerCampusEventsSection from '../components/partner/PartnerCampusEventsSection';
 import {
   fetchPartnerEvents,
   fetchPartnerStats,
@@ -248,7 +249,7 @@ const PartnerHome = ({ showToast }) => {
       <main className="recommended-section ctsv-home-live-section">
         <div className="recommended-header-row">
           <div className="recommended-title-container">
-            <h2>Sự kiện đang tổ chức</h2>
+            <h2>Sự kiện tài trợ của tôi</h2>
             <p className="ctsv-home-section-desc">
               Các sự kiện do doanh nghiệp bạn tài trợ hoặc đồng tổ chức cùng FPT University.
             </p>
@@ -275,6 +276,12 @@ const PartnerHome = ({ showToast }) => {
           </div>
         )}
       </main>
+
+      <PartnerCampusEventsSection
+        showToast={showToast}
+        title="Tất cả sự kiện"
+        description="Khám phá và đăng ký tham gia mọi sự kiện đang mở tại campus — đối tác được miễn phí vé."
+      />
 
       <main className="recommended-section ctsv-home-managed-section">
         <div className="recommended-header-row">

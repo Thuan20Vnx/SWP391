@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 import { getRoleDisplayLabel, getUserRole } from '../../utils/auth';
 import { logoutWithConfirm } from '../../utils/logout';
+import { useCloseOnClickOutside } from '../../hooks/useCloseOnClickOutside';
 import CtsvHamburgerButton from '../ctsv/CtsvHamburgerButton';
+import NotificationBell from '../NotificationBell';
 import PartnerProfileMenu from './PartnerProfileMenu';
 
 const NAV_LINKS = [
@@ -11,12 +13,19 @@ const NAV_LINKS = [
   {
     to: '/partner/events',
     label: 'Sự kiện',
-    match: (path) => path === '/partner/events' || path.startsWith('/partner/events/')
+    match: (path) =>
+      (path === '/partner/events' || path.startsWith('/partner/events/')) &&
+      !path.startsWith('/partner/join/events')
   },
   {
     to: '/partner/contracts',
     label: 'Hợp đồng',
     match: (path) => path.startsWith('/partner/contracts')
+  },
+  {
+    to: '/partner/announcements',
+    label: 'Tin tức',
+    match: (path) => path.startsWith('/partner/announcements')
   }
 ];
 
@@ -29,6 +38,7 @@ const PARTNER_MENU_ROUTES = {
 
 const resolveActiveMenuItem = (pathname) => {
   if (pathname.startsWith('/partner/profile')) return 'profile';
+  if (pathname.startsWith('/partner/join/events')) return '';
   if (pathname.startsWith('/partner/events')) return 'events';
   if (pathname.startsWith('/partner/contracts')) return 'contracts';
   return '';
@@ -48,13 +58,18 @@ const PartnerPortalHeader = ({
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const profileRef = useRef(null);
   const path = location.pathname;
   const activeMenuItem = useMemo(() => resolveActiveMenuItem(path), [path]);
   const roleLabel = getRoleDisplayLabel(getUserRole());
 
   useEffect(() => {
     setProfilePopupOpen(false);
+    setNotifOpen(false);
   }, [path]);
+
+  useCloseOnClickOutside(profileRef, profilePopupOpen, () => setProfilePopupOpen(false));
 
   const handleLogout = () => {
     setProfilePopupOpen(false);
@@ -146,28 +161,25 @@ const PartnerPortalHeader = ({
             </svg>
           </button>
 
-          <button
-            type="button"
-            className="notif-bell-btn"
-            onClick={() => showToast?.('Có cập nhật mới về đề xuất sự kiện của bạn.', 'info')}
-            aria-label="Thông báo"
-          >
-            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
-              <path
-                d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"
-                fill="currentColor"
-              />
-            </svg>
-            <span className="notif-badge" />
-          </button>
+          <NotificationBell
+            open={notifOpen}
+            onOpenChange={(open) => {
+              setNotifOpen(open);
+              if (open) setProfilePopupOpen(false);
+            }}
+            isPartner
+          />
 
-          <div className="auth-profile-wrapper">
+          <div className="auth-profile-wrapper" ref={profileRef}>
             <div className="profile-display-card">
               <button
                 type="button"
                 className={`profile-display-card-link ${profilePopupOpen ? 'profile-display-card-link--open' : ''}`}
                 title="Mở menu tài khoản đối tác"
-                onClick={() => setProfilePopupOpen((v) => !v)}
+                onClick={() => {
+                  setNotifOpen(false);
+                  setProfilePopupOpen((v) => !v);
+                }}
                 aria-expanded={profilePopupOpen}
                 aria-haspopup="menu"
               >

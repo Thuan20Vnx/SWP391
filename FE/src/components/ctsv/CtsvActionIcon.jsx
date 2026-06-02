@@ -40,6 +40,29 @@ const CtsvActionIcon = ({ type, size = 18 }) => {
           <path d="M10 11v6M14 11v6" />
         </svg>
       );
+    case 'edit':
+      return (
+        <svg {...common}>
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+        </svg>
+      );
+    case 'detail':
+      return (
+        <svg {...common}>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6" />
+          <path d="M9 13h6M9 17h4" />
+        </svg>
+      );
+    case 'more':
+      return (
+        <svg {...common} fill="currentColor" stroke="none">
+          <circle cx="12" cy="5" r="1.5" />
+          <circle cx="12" cy="12" r="1.5" />
+          <circle cx="12" cy="19" r="1.5" />
+        </svg>
+      );
     default:
       return null;
   }
