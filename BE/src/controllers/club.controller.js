@@ -43,6 +43,16 @@ const approveMembership = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const getManagedClubProfile = async (req, res) => {
+  const result = await clubService.getManagedClubProfile(req.user._id);
+  res.status(200).json({ success: true, ...result });
+};
+
+const updateManagedClubProfile = async (req, res) => {
+  const result = await clubService.updateManagedClubProfile(req.user._id, req.body);
+  res.status(200).json({ success: true, ...result });
+};
+
 module.exports = {
   getClubs,
   getClubBySlug,
@@ -51,4 +61,6 @@ module.exports = {
   joinClub,
   cancelJoinClub,
   approveMembership,
+  getManagedClubProfile,
+  updateManagedClubProfile,
 };
