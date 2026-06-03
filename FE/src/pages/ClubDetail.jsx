@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
+import PublicAdminShell from '../layouts/PublicAdminShell';
 import ClubUpcomingEventCard from '../components/ClubUpcomingEventCard';
 import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { getUserRole, isAdminRole } from '../utils/auth';
 import { CLUB_SAMPLE_DATA } from '../data/clubDiscoveryData';
 import { getClubDetailById, mapApiClubToDetail, FU_DEVER_DETAIL } from '../data/clubDetailData';
+import '../styles/admin-public-pages.css';
 
 const RocketIcon = () => (
   <svg viewBox="0 0 24 24" width="28" height="28" fill="#f26f21" aria-hidden="true">
@@ -33,7 +36,8 @@ const ClubDetail = ({ showToast }) => {
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
-  const { isLoggedIn } = useUserProfile();
+  const { isLoggedIn, userProfile } = useUserProfile();
+  const isAdminViewer = isLoggedIn && isAdminRole(userProfile.role || getUserRole());
 
   useEffect(() => {
     setLoading(true);
@@ -174,18 +178,15 @@ const ClubDetail = ({ showToast }) => {
     joinLoading || club.membershipStatus === 'member' || club.membershipStatus === 'pending';
 
   const handleEventAction = (event) => {
+    if (isAdminViewer && event.id) {
+      navigate(`/events/${event.id}`);
+      return;
+    }
     showToast?.(`${event.primaryLabel}: ${event.title}`, 'success');
   };
 
-  return (
-    <div className="club-detail-page home-layout">
-      <SiteHeader
-        activeNav="clubs"
-        searchPlaceholder="Tìm kiếm câu lạc bộ..."
-        searchValue={headerSearch}
-        onSearchChange={setHeaderSearch}
-      />
-
+  const pageBody = (
+    <>
       <section className="club-detail-page__hero">
         <div className="club-detail-page__banner">
           <img src={club.bannerImage} alt="" className="club-detail-page__banner-img" />
@@ -215,22 +216,50 @@ const ClubDetail = ({ showToast }) => {
                 </p>
               </div>
               <div className="club-detail-page__actions">
-                <button
-                  type="button"
-                  className={`club-detail-page__btn club-detail-page__btn--outline ${club.isFollowing ? 'is-active' : ''}`}
-                  onClick={handleFollow}
-                  disabled={followLoading}
-                >
-                  {followLoading ? 'Đang xử lý...' : club.isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
-                </button>
-                <button
-                  type="button"
-                  className="club-detail-page__btn club-detail-page__btn--primary"
-                  onClick={handleJoin}
-                  disabled={joinDisabled}
-                >
-                  {joinButtonLabel()}
-                </button>
+                {isAdminViewer ? (
+                  <div className="club-detail-page__admin-actions">
+                    <button
+                      type="button"
+                      className="club-detail-page__btn club-detail-page__btn--outline"
+                      onClick={() => navigate('/admin/data')}
+                    >
+                      Chỉnh sửa dữ liệu
+                    </button>
+                    <button
+                      type="button"
+                      className="club-detail-page__btn club-detail-page__btn--primary"
+                      onClick={() => navigate('/announcements')}
+                    >
+                      Gửi thông báo
+                    </button>
+                    <button
+                      type="button"
+                      className="club-detail-page__btn club-detail-page__btn--outline"
+                      onClick={() => navigate('/admin/accounts')}
+                    >
+                      Quản lý tài khoản
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className={`club-detail-page__btn club-detail-page__btn--outline ${club.isFollowing ? 'is-active' : ''}`}
+                      onClick={handleFollow}
+                      disabled={followLoading}
+                    >
+                      {followLoading ? 'Đang xử lý...' : club.isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                    </button>
+                    <button
+                      type="button"
+                      className="club-detail-page__btn club-detail-page__btn--primary"
+                      onClick={handleJoin}
+                      disabled={joinDisabled}
+                    >
+                      {joinButtonLabel()}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -320,6 +349,36 @@ const ClubDetail = ({ showToast }) => {
       </main>
 
       <SiteFooter />
+    </>
+  );
+
+  if (isAdminViewer) {
+    return (
+      <PublicAdminShell
+        activeNav="home"
+        searchPlaceholder="Tìm CLB, cơ sở, danh mục..."
+        searchValue={headerSearch}
+        onSearchChange={setHeaderSearch}
+      >
+        <div className="club-detail-page home-layout">
+          <div className="club-detail-page__admin-back">
+            <Link to="/">← Quay lại Trang chủ</Link>
+          </div>
+          {pageBody}
+        </div>
+      </PublicAdminShell>
+    );
+  }
+
+  return (
+    <div className="club-detail-page home-layout">
+      <SiteHeader
+        activeNav="clubs"
+        searchPlaceholder="Tìm kiếm câu lạc bộ..."
+        searchValue={headerSearch}
+        onSearchChange={setHeaderSearch}
+      />
+      {pageBody}
     </div>
   );
 };

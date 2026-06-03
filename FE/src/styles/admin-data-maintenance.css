@@ -96,7 +96,7 @@
 
 .admin-data-tab:hover {
   color: #f26f21;
-  background: #f9fafb;
+  background: #ffffff;
 }
 
 .admin-data-tab--active {
@@ -206,7 +206,7 @@
   font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
   letter-spacing: 0.02em;
   color: #475569;
-  background: #f1f5f9;
+  background: #ffffff;
   padding: 5px 10px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
@@ -452,7 +452,7 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  background: #ffffff;
   border: 1px solid #fed7aa;
   flex-shrink: 0;
 }
@@ -476,7 +476,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   color: #c2410c;
-  background: #fff7ed;
+  background: #ffffff;
   padding: 4px 10px;
   border-radius: 8px;
   border: 1px solid #fed7aa;
@@ -503,7 +503,7 @@
 }
 
 .admin-data-status--ready {
-  background: #f0fdf4;
+  background: #ffffff;
   color: #15803d;
   border: 1px solid #bbf7d0;
 }
@@ -514,7 +514,7 @@
 }
 
 .admin-data-status--maintenance {
-  background: #fff7ed;
+  background: #ffffff;
   color: #c2410c;
   border: 1px solid #fed7aa;
 }
@@ -549,7 +549,7 @@
 }
 
 .admin-data-icon-btn:hover {
-  background: #fff7ed;
+  background: #ffffff;
   border-color: #f26f21;
   transform: scale(1.04);
 }
@@ -559,7 +559,7 @@
 }
 
 .admin-data-icon-btn--danger:hover {
-  background: #fef2f2;
+  background: #ffffff;
   border-color: #fca5a5;
 }
 
@@ -611,7 +611,7 @@
 .admin-data-page-arrow:hover:not(:disabled) {
   border-color: #f26f21;
   color: #f26f21;
-  background: #fff7ed;
+  background: #ffffff;
 }
 
 .admin-data-page-arrow:disabled {

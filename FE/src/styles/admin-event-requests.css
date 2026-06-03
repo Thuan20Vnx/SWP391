@@ -63,7 +63,7 @@
 }
 
 .admin-event-requests__chip--active {
-  background: #fff5ef;
+  background: #ffffff;
   border-color: #f26f21;
   color: #c2410c;
 }
@@ -85,7 +85,7 @@
 
 .admin-event-requests__empty code {
   font-size: 0.8125rem;
-  background: #faf6f3;
+  background: #ffffff;
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -138,32 +138,32 @@
 }
 
 .admin-event-request-badge--edit {
-  background: #eff6ff;
+  background: #ffffff;
   color: #1d4ed8;
 }
 
 .admin-event-request-badge--hide {
-  background: #fef3c7;
+  background: #ffffff;
   color: #b45309;
 }
 
 .admin-event-request-badge--delete {
-  background: #fee2e2;
+  background: #ffffff;
   color: #b91c1c;
 }
 
 .admin-event-request-badge--pending {
-  background: #fff5ef;
+  background: #ffffff;
   color: #c2410c;
 }
 
 .admin-event-request-badge--done {
-  background: #ecfdf5;
+  background: #ffffff;
   color: #047857;
 }
 
 .admin-event-request-badge--rejected {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
 }
 
@@ -176,7 +176,7 @@
 .admin-event-request-reason {
   margin: 0;
   padding: 12px 14px;
-  background: #faf6f3;
+  background: #ffffff;
   border-radius: 10px;
   font-size: 0.875rem;
   line-height: 1.55;
@@ -222,7 +222,7 @@
 
 .admin-event-request-diff__col--new {
   border-color: #fed7aa;
-  background: #fffbf7;
+  background: #ffffff;
 }
 
 .admin-event-request-diff__col ul {

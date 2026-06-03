@@ -3,7 +3,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import AdminActivityLogModal from '../components/admin/AdminActivityLogModal';
 import AdminMetricDetailModal from '../components/admin/AdminMetricDetailModal';
 import { ADMIN_ACTIVITY_PREVIEW_COUNT } from '../data/adminDashboardData';
-import useAdminDashboardLiveData from '../hooks/useAdminDashboardLiveData';
+import useAdminDashboardStats from '../hooks/useAdminDashboardStats';
 import { getUserRole, isAdminRole } from '../utils/auth';
 import { formatAdminDateTime } from '../utils/adminLiveTime';
 import '../styles/admin-dashboard.css';
@@ -34,27 +34,141 @@ const AdminMonitoringDashboard = () => {
   const role = getUserRole();
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [detailModal, setDetailModal] = useState(null);
-  const live = useAdminDashboardLiveData();
-  const {
-    activityLogs,
-    trafficSparkline,
-    trafficOverview,
-    revenueOverview,
-    systemOverall,
-    systemServices,
-    monthlyPerformance,
-    chartSummary,
-    peakMonthIndex,
-    metricDetailMap,
-  } = live;
+  const { stats, loading, error, reload } = useAdminDashboardStats();
 
-  const previewLogs = activityLogs.slice(0, ADMIN_ACTIVITY_PREVIEW_COUNT);
-  const maxSpark = useMemo(() => Math.max(...trafficSparkline), [trafficSparkline]);
-  const maxBar = useMemo(
-    () => Math.max(...monthlyPerformance.map((m) => m.value)),
-    [monthlyPerformance],
-  );
-  const clockLabel = formatAdminDateTime(live.now);
+  const dashboardView = useMemo(() => {
+    if (!stats) return null;
+
+    const monthlyPerformance = stats.monthlyPerformance || [];
+    const maxBar = Math.max(1, ...monthlyPerformance.map((m) => m.value));
+    const trafficSparkline = monthlyPerformance.map((m) => m.value);
+    const maxSpark = Math.max(1, ...trafficSparkline);
+
+    const activityLogs = (stats.activityLogs || []).map((log) => ({
+      ...log,
+      tone: log.tone === 'warning' ? 'danger' : log.tone || 'default',
+      time: formatAdminDateTime(new Date(log.time)),
+      dateKey: formatAdminDateTime(new Date(log.time)).split(',')[0],
+    }));
+
+    const trafficOverview = {
+      active: stats.users?.total || 0,
+      live: {
+        pill: 'Live',
+        title: 'Tài khoản',
+        hint: `Cập nhật ${formatAdminDateTime(new Date(stats.checkedAt))}`,
+      },
+      compare: {
+        trend: `+${stats.registrations?.thisMonth || 0}`,
+        direction: 'up',
+        label: 'Đăng ký tháng này',
+        reference: 'Lượt đăng ký sự kiện trong tháng hiện tại',
+      },
+      sparklineCaption: 'Sự kiện tạo (6 tháng)',
+      peak: {
+        value: stats.chartSummary?.peak?.value || 0,
+        time: stats.chartSummary?.peak?.label || '—',
+      },
+      metrics: [
+        { id: 'pending', label: 'Sự kiện chờ duyệt', value: String(stats.events?.pending || 0) },
+        { id: 'partners', label: 'Đối tác chờ Admin', value: String(stats.partners?.pendingAdmin || 0) },
+        { id: 'regs', label: 'Tổng đăng ký vé', value: (stats.registrations?.total || 0).toLocaleString('vi-VN') },
+      ],
+      channels: [
+        { id: 'students', label: 'Sinh viên', percent: stats.users?.total ? Math.round(((stats.users.students || 0) / stats.users.total) * 100) : 0 },
+        { id: 'other', label: 'Khác', percent: stats.users?.total ? Math.round((((stats.users.total || 0) - (stats.users.students || 0)) / stats.users.total) * 100) : 0 },
+      ],
+    };
+
+    const revenueOverview = {
+      total: stats.revenue?.totalFormatted || '0',
+      currency: stats.revenue?.currency || 'VND',
+      trend: stats.revenue?.trend || '0%',
+      trendCaption: 'so với tháng trước',
+      previousMonth: stats.revenue?.previousMonthFormatted || '0 VND',
+      goal: {
+        label: 'Doanh thu tháng này',
+        percent: stats.revenue?.total
+          ? Math.min(100, Math.round(((stats.revenue.thisMonth || 0) / stats.revenue.total) * 100))
+          : 0,
+        target: stats.revenue?.thisMonthFormatted || '0 VND',
+      },
+      metrics: [
+        { id: 'events', label: 'Sự kiện đã duyệt', value: String(stats.events?.approved || 0) },
+        { id: 'live', label: 'Đang diễn ra', value: String(stats.events?.live || 0) },
+        { id: 'ann', label: 'Thông báo', value: String(stats.announcements?.total || 0) },
+      ],
+      breakdown: [
+        { id: 'school', label: 'Chờ Admin duyệt', amount: `${stats.events?.pendingAdmin || 0} đơn`, percent: stats.events?.total ? Math.round(((stats.events.pendingAdmin || 0) / stats.events.total) * 100) : 0 },
+        { id: 'prop', label: 'Đề xuất CLB', amount: `${stats.proposals?.pendingTotal || 0} đơn`, percent: stats.events?.total ? Math.round(((stats.proposals?.pendingTotal || 0) / Math.max(stats.events.total, 1)) * 100) : 0 },
+      ],
+    };
+
+    const systemOverall = {
+      status: stats.system?.status || 'stable',
+      label: stats.system?.label || 'ỔN ĐỊNH',
+      uptime: stats.system?.status === 'stable' ? '99.9%' : '—',
+      uptimeCaption: 'uptime 30 ngày',
+      lastCheck: `Kiểm tra lúc ${formatAdminDateTime(new Date(stats.checkedAt))}`,
+    };
+
+    const systemServices = [
+      { id: 'db', name: 'MongoDB', provider: stats.system?.database, metric: stats.users?.total, metricLabel: 'tài khoản', status: 'ok', statusLabel: 'Kết nối' },
+      { id: 'api', name: 'API Server', provider: 'Express', metric: stats.events?.total, metricLabel: 'sự kiện', status: 'ok', statusLabel: 'Hoạt động' },
+    ];
+
+    const metricDetailMap = {
+      traffic: {
+        title: 'Chi tiết hoạt động',
+        subtitle: 'Dữ liệu từ MongoDB',
+        summary: trafficOverview.metrics.map((m) => ({ label: m.label, value: m.value })),
+        columns: ['Chỉ số', 'Giá trị'],
+        rows: trafficOverview.metrics.map((m, i) => ({ id: String(i), label: m.label, value: m.value })),
+      },
+      revenue: {
+        title: 'Chi tiết doanh thu',
+        subtitle: 'Ước tính từ giá vé × lượt đăng ký',
+        summary: [
+          { label: 'Tổng', value: `${stats.revenue?.totalFormatted} VND` },
+          { label: 'Tháng này', value: `${stats.revenue?.thisMonthFormatted} VND` },
+        ],
+        columns: ['Hạng mục', 'Giá trị'],
+        rows: revenueOverview.breakdown.map((r, i) => ({ id: String(i), label: r.label, value: r.amount })),
+      },
+      performance: {
+        title: 'Sự kiện theo tháng',
+        subtitle: stats.chartSummary?.period,
+        summary: [
+          { label: 'Trung bình', value: String(stats.chartSummary?.avg) },
+          { label: 'Cao nhất', value: `${stats.chartSummary?.peak?.label} · ${stats.chartSummary?.peak?.value}` },
+        ],
+        columns: ['Tháng', 'Số sự kiện'],
+        rows: monthlyPerformance.map((m, i) => ({
+          id: String(i),
+          label: m.month,
+          value: String(m.value),
+        })),
+      },
+    };
+
+    return {
+      activityLogs,
+      trafficSparkline,
+      trafficOverview,
+      revenueOverview,
+      systemOverall,
+      systemServices,
+      monthlyPerformance,
+      chartSummary: stats.chartSummary,
+      peakMonthIndex: stats.peakMonthIndex ?? 0,
+      metricDetailMap,
+      maxSpark,
+      maxBar,
+    };
+  }, [stats]);
+
+  const previewLogs = (dashboardView?.activityLogs || []).slice(0, ADMIN_ACTIVITY_PREVIEW_COUNT);
+  const clockLabel = stats?.checkedAt ? formatAdminDateTime(new Date(stats.checkedAt)) : '—';
 
   const openDetail = (variant) => setDetailModal(variant);
   const closeDetail = () => setDetailModal(null);
@@ -69,13 +183,51 @@ const AdminMonitoringDashboard = () => {
   useEffect(() => {
     if (!isAdminRole(role)) {
       showToast?.('Bạn không có quyền truy cập trang quản trị!', 'error');
-      navigate('/profile');
+      navigate('/admin');
     }
   }, [role, navigate, showToast]);
+
+  useEffect(() => {
+    if (error) showToast?.(error, 'error');
+  }, [error, showToast]);
 
   if (!isAdminRole(role)) {
     return null;
   }
+
+  if (loading && !dashboardView) {
+    return (
+      <main className="admin-main">
+        <p className="admin-page-header__clock">Đang tải thống kê từ máy chủ…</p>
+      </main>
+    );
+  }
+
+  if (!dashboardView) {
+    return (
+      <main className="admin-main">
+        <p className="admin-page-header__clock">Không có dữ liệu thống kê.</p>
+        <button type="button" className="admin-panel__link" onClick={reload}>
+          Thử lại
+        </button>
+      </main>
+    );
+  }
+
+  const {
+    trafficSparkline,
+    trafficOverview,
+    revenueOverview,
+    systemOverall,
+    systemServices,
+    monthlyPerformance,
+    chartSummary,
+    peakMonthIndex,
+    metricDetailMap,
+    activityLogs,
+    maxSpark,
+    maxBar,
+  } = dashboardView;
 
   return (
     <main className="admin-main">
@@ -99,7 +251,7 @@ const AdminMonitoringDashboard = () => {
             onKeyDown={(e) => handleCardKeyDown(e, 'traffic')}
           >
             <div className="admin-stat-card__head">
-              <p className="admin-stat-card__label">Lưu lượng truy cập hiện tại</p>
+              <p className="admin-stat-card__label">Tổng quan người dùng & hoạt động</p>
               <span className="admin-stat-card__action">
                 <StatIconTraffic />
                 <span className="admin-stat-card__hint">Xem chi tiết</span>
@@ -288,20 +440,20 @@ const AdminMonitoringDashboard = () => {
             <div className="admin-chart-header">
               <span className="admin-panel__detail-hint">Nhấn để xem bảng chi tiết</span>
               <div>
-                <h2 className="admin-panel__title admin-panel__title--flush">Hiệu suất vận hành hệ thống theo tháng</h2>
+                <h2 className="admin-panel__title admin-panel__title--flush">Sự kiện tạo mới theo tháng</h2>
                 <p className="admin-chart-header__sub">
-                  {chartSummary.period} · Chỉ số hiệu suất (%) · {clockLabel}
+                  {chartSummary.period} · Số sự kiện · {clockLabel}
                 </p>
               </div>
               <div className="admin-chart-kpis" aria-label="Tóm tắt biểu đồ">
                 <div className="admin-chart-kpis__item">
                   <span className="admin-chart-kpis__label">Trung bình</span>
-                  <span className="admin-chart-kpis__value">{chartSummary.avg}%</span>
+                  <span className="admin-chart-kpis__value">{chartSummary.avg}</span>
                 </div>
                 <div className="admin-chart-kpis__item admin-chart-kpis__item--peak">
                   <span className="admin-chart-kpis__label">Cao nhất</span>
                   <span className="admin-chart-kpis__value">
-                    {chartSummary.peak.label} · {chartSummary.peak.value}%
+                    {chartSummary.peak.label} · {chartSummary.peak.value} sự kiện
                   </span>
                 </div>
                 <div className="admin-chart-kpis__item admin-chart-kpis__item--growth">
@@ -331,11 +483,11 @@ const AdminMonitoringDashboard = () => {
                       key={item.label}
                       className={`admin-bar-chart__col${index === peakMonthIndex ? ' admin-bar-chart__col--peak' : ''}`}
                     >
-                      <span className="admin-bar-chart__value-label">{item.value}%</span>
+                      <span className="admin-bar-chart__value-label">{item.value}</span>
                       <div
                         className="admin-bar-chart__bar"
                         style={{ height: `${(item.value / maxBar) * 200}px` }}
-                        title={`${item.month}: ${item.value}%`}
+                        title={`${item.month}: ${item.value} sự kiện`}
                       />
                       <span className="admin-bar-chart__x">{item.label}</span>
                       <span className="admin-bar-chart__month">{item.month}</span>
@@ -346,7 +498,7 @@ const AdminMonitoringDashboard = () => {
               <div className="admin-chart-legend" aria-hidden="true">
                 <span className="admin-chart-legend__item">
                   <span className="admin-chart-legend__swatch admin-chart-legend__swatch--primary" />
-                  Hiệu suất tháng
+                  Sự kiện / tháng
                 </span>
                 <span className="admin-chart-legend__item">
                   <span className="admin-chart-legend__swatch admin-chart-legend__swatch--peak" />

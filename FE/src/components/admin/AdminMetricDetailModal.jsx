@@ -32,6 +32,10 @@ const AdminMetricDetailModal = ({ variant, open, onClose, detailMap = {} }) => {
   if (!open || !config) return null;
 
   const renderCell = (row, colIndex) => {
+    if (row.label !== undefined && row.value !== undefined) {
+      return colIndex === 0 ? row.label : row.value;
+    }
+
     if (variant === 'traffic') {
       const values = [
         row.time,
@@ -95,43 +99,45 @@ const AdminMetricDetailModal = ({ variant, open, onClose, detailMap = {} }) => {
           </button>
         </header>
 
-        <div className="admin-detail-summary">
-          {config.summary.map((item) => (
-            <div key={item.label} className="admin-detail-summary__item">
-              <span className="admin-detail-summary__label">{item.label}</span>
-              <span className="admin-detail-summary__value">{item.value}</span>
-            </div>
-          ))}
-        </div>
+        <div className="admin-log-modal__body">
+          <div className="admin-detail-summary">
+            {config.summary.map((item) => (
+              <div key={item.label} className="admin-detail-summary__item">
+                <span className="admin-detail-summary__label">{item.label}</span>
+                <span className="admin-detail-summary__value">{item.value}</span>
+              </div>
+            ))}
+          </div>
 
-        <div className="admin-log-modal__table-wrap admin-detail-modal__table-wrap">
-          <table className="admin-log-table admin-detail-table">
-            <thead>
-              <tr>
-                {config.columns.map((col) => (
-                  <th key={col}>{col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {config.rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={row.highlight ? 'admin-detail-table__row--highlight' : undefined}
-                >
-                  {config.columns.map((col, colIndex) => (
-                    <td key={col} data-label={col}>
-                      {renderCell(row, colIndex)}
-                    </td>
+          <div className="admin-log-modal__table-wrap admin-detail-modal__table-wrap">
+            <table className="admin-log-table admin-detail-table">
+              <thead>
+                <tr>
+                  {config.columns.map((col) => (
+                    <th key={col}>{col}</th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {config.rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className={row.highlight ? 'admin-detail-table__row--highlight' : undefined}
+                  >
+                    {config.columns.map((col, colIndex) => (
+                      <td key={col} data-label={col}>
+                        {renderCell(row, colIndex)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <footer className="admin-log-modal__footer">
-          <p className="admin-detail-modal__hint">Dữ liệu mô phỏng · Sẽ kết nối API khi triển khai backend</p>
+          <p className="admin-detail-modal__hint">Dữ liệu tổng hợp từ MongoDB · Cập nhật theo thời gian thực khi tải lại trang</p>
           <button type="button" className="admin-log-modal__btn-close" onClick={onClose}>
             Đóng
           </button>

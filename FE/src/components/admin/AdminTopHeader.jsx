@@ -7,26 +7,12 @@ import HeaderNotificationPanel from '../HeaderNotificationPanel';
 import useUserProfile, { clearUserProfileCache } from '../../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../../utils/authEvents';
 import { getRoleLabel } from '../../utils/role';
+import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../../data/adminPublicNav';
 import '../../styles/admin-menu.css';
 
-const NAV_ITEMS = [
-  { key: 'home', label: 'Trang chủ', to: '/' },
-  { key: 'events', label: 'Sự kiện', to: '/events' },
-  { key: 'clubs', label: 'Câu lạc bộ', to: '/clubs' },
-  { key: 'news', label: 'Tin tức', to: '/announcements' },
-  { key: 'admin', label: 'Quản trị viên', to: '/admin' },
-];
+const NAV_ITEMS = ADMIN_PUBLIC_NAV_ITEMS;
 
-const isNavActive = (key, pathname) => {
-  if (key === 'admin') {
-    return pathname === '/admin' || pathname.startsWith('/admin/');
-  }
-  if (key === 'home') return pathname === '/';
-  if (key === 'events') return pathname.startsWith('/events');
-  if (key === 'clubs') return pathname.startsWith('/clubs');
-  if (key === 'news') return pathname.startsWith('/announcements');
-  return false;
-};
+const isNavActive = isAdminPublicNavActive;
 
 const AdminTopHeader = ({
   searchPlaceholder = 'Tìm kiếm tài khoản, mã lệnh, log hệ thống...',
@@ -72,12 +58,12 @@ const AdminTopHeader = ({
   const handleProfileMenuAction = (action) => {
     setProfilePopupOpen(false);
     const routes = {
-      profile: '/profile',
+      profile: '/admin/profile',
       'browse-events': '/events',
-      settings: '/settings',
-      schedule: '/schedule',
-      'my-clubs': '/my-clubs',
-      'my-events': '/my-events',
+      settings: '/admin/system',
+      schedule: '/admin',
+      'my-clubs': '/admin/partners',
+      'my-events': '/admin/events',
     };
     if (routes[action]) navigate(routes[action]);
   };

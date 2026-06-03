@@ -2,8 +2,8 @@
 
 .club-app-shell {
   --club-accent: #f26f21;
-  --club-accent-bg: rgba(242, 111, 33, 0.08);
-  --club-accent-bg-strong: rgba(242, 111, 33, 0.15);
+  --club-accent-bg: #ffffff;
+  --club-accent-bg-strong: #ffffff;
 }
 
 .club-app-shell .ctsv-shell-main {

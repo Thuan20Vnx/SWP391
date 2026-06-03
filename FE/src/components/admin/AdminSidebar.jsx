@@ -8,7 +8,6 @@ import { AdminMenuIcon } from './AdminMenuIcons';
 
 const AdminSidebar = ({
   open,
-  onClose,
   pathname,
   userProfile,
   overlay = false,
@@ -54,21 +53,8 @@ const AdminSidebar = ({
 
   return (
     <aside className={asideClass} aria-hidden={!open} aria-label="Menu quản trị">
-      <div className="ctsv-sidebar-header admin-sidebar-header">
+      <div className="ctsv-sidebar-header">
         <img src={FE_LOGO} alt={FE_LOGO_ALT} className="ctsv-sidebar-logo" />
-        <button
-          type="button"
-          className={`ctsv-sidebar-close admin-sidebar-close-btn${overlay ? ' admin-sidebar-close-btn--always' : ''}`}
-          onClick={onClose}
-          aria-label="Đóng menu"
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-              fill="currentColor"
-            />
-          </svg>
-        </button>
       </div>
       <nav className="ctsv-sidebar-nav">{renderNavItems()}</nav>
       <div className="ctsv-sidebar-footer">

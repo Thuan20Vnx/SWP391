@@ -16,6 +16,14 @@ const COPY = {
     placeholder: 'Ví dụ: Bổ sung hợp đồng dự thảo, MST doanh nghiệp…',
     confirm: 'Gửi yêu cầu bổ sung',
     danger: false
+  },
+  proposalReject: {
+    title: 'Từ chối đề xuất sự kiện',
+    subtitle: 'Nhập lý do để CLB nắm được và chỉnh sửa trước khi gửi lại đề xuất.',
+    label: 'Lý do từ chối',
+    placeholder: 'Nhập lý do từ chối đề xuất…',
+    confirm: 'Xác nhận từ chối',
+    danger: true
   }
 };
 

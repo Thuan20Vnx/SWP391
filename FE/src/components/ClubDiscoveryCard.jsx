@@ -7,7 +7,7 @@ const MembersIcon = () => (
   </svg>
 );
 
-const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid' }) => {
+const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'Khám phá ngay' }) => {
   const categoryColor = getCategoryColor(club.category);
   const { featuredEvent } = club;
 
@@ -60,7 +60,7 @@ const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid' }) => {
           className="club-discovery-card__cta"
           onClick={() => onExplore?.(club)}
         >
-          Khám phá ngay
+          {exploreLabel}
         </button>
       </div>
     </article>

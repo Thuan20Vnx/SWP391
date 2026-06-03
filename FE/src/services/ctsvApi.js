@@ -72,6 +72,9 @@ export const fetchCtsvProposal = (id) => ctsvFetch(`/proposals/${id}`);
 export const approveCtsvProposal = (id, note = '') =>
   ctsvFetch(`/proposals/${id}/approve`, { method: 'PATCH', body: JSON.stringify({ note }) });
 
+export const icpdpApproveProposal = (id, note = '') =>
+  ctsvFetch(`/proposals/${id}/icpdp-approve`, { method: 'PATCH', body: JSON.stringify({ note }) });
+
 export const rejectCtsvProposal = (id, reason = '') =>
   ctsvFetch(`/proposals/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });
 
