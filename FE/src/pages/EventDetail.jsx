@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
+import PublicAdminShell from '../layouts/PublicAdminShell';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import EventTicketModal from '../components/EventTicketModal';
 import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { getUserRole, isAdminRole } from '../utils/auth';
 import { mapApiEventToDetail } from '../data/eventDetailData';
 import { formatVnd } from '../utils/ticketPricing';
 import { buildTicketFromDetailEvent } from '../utils/eventTicket';
+import '../styles/admin-public-pages.css';
 
 const CalendarIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="20" fill="currentColor" aria-hidden="true">
@@ -53,7 +56,7 @@ const MailIcon = () => (
   </svg>
 );
 
-const EventDetail = ({ showToast, embedded = false, backPath = '/events' }) => {
+const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOnly: readOnlyProp = false }) => {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
@@ -65,6 +68,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events' }) => {
   const [ticketData, setTicketData] = useState(null);
   const [registrationId, setRegistrationId] = useState(null);
   const { isLoggedIn, userProfile } = useUserProfile();
+  const readOnly = readOnlyProp || (isLoggedIn && isAdminRole(userProfile.role || getUserRole()));
 
   const holderName = useMemo(
     () => userProfile.fullname || localStorage.getItem('userFullname') || localStorage.getItem('userEmail') || '',
@@ -407,6 +411,33 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events' }) => {
           </div>
 
           <aside className="event-detail-page__sidebar">
+            {readOnly ? (
+              <div className="event-detail-page__admin-info-card">
+                <h3>Thông tin quản trị</h3>
+                <div className="event-detail-page__admin-info-row">
+                  <span>Trạng thái</span>
+                  <strong>{event.registrationStatus.label}</strong>
+                </div>
+                <div className="event-detail-page__admin-info-row">
+                  <span>Đăng ký</span>
+                  <strong>{event.registeredCount}/{event.capacity} slot</strong>
+                </div>
+                <div className="event-detail-page__admin-info-row">
+                  <span>Giá vé</span>
+                  <strong>{event.priceLabel}</strong>
+                </div>
+                <div className="event-detail-page__admin-info-row">
+                  <span>Hạn đăng ký</span>
+                  <strong>{event.registrationDeadline}</strong>
+                </div>
+                <p style={{ margin: '12px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  Chế độ xem — Admin không đăng ký tham gia từ trang này.
+                </p>
+                <Link to="/admin/events" className="event-detail-page__admin-portal-link">
+                  Mở trong portal duyệt sự kiện
+                </Link>
+              </div>
+            ) : (
             <div className="event-detail-page__register-card">
               <div className="event-detail-page__register-head">
                 <span className={statusClass}>{event.registrationStatus.label}</span>
@@ -484,12 +515,13 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events' }) => {
                 </div>
               </div>
             </div>
+            )}
           </aside>
         </div>
       </main>
   );
 
-  const dialogs = (
+  const dialogs = readOnly ? null : (
     <>
       <ConfirmDialog
         open={registerConfirmOpen}
@@ -532,6 +564,17 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events' }) => {
         {detailMain}
         {dialogs}
       </div>
+    );
+  }
+
+  if (readOnly) {
+    return (
+      <PublicAdminShell activeNav="events" searchPlaceholder="Tìm kiếm sự kiện...">
+        <div className="event-detail-page home-layout">
+          {detailMain}
+        </div>
+        <SiteFooter />
+      </PublicAdminShell>
     );
   }
 

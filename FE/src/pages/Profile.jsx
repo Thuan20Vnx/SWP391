@@ -10,7 +10,7 @@ import { logoutWithConfirm } from '../utils/logout';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import { cacheUserProfile } from '../hooks/useUserProfile';
 import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileApi';
-import { isCtsvRole, normalizeRole } from '../utils/auth';
+import { isAdminRole, isCtsvRole, normalizeRole } from '../utils/auth';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
 import CtsvProfilePasswordSection from '../components/ctsv/CtsvProfilePasswordSection';
 
@@ -144,6 +144,7 @@ const Profile = ({ showToast, embedded = false }) => {
   const displayAvatar = avatar || defaultAvatar;
   const profilePageTitle = 'Thông tin cá nhân';
   const isCtsvEmbedded = embedded && isCtsvRole(userRole);
+  const isAdminEmbedded = embedded && isAdminRole(userRole);
 
   const handleNavigateProfile = (e) => {
     e.preventDefault();
@@ -389,7 +390,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
   const profileContent = (
     <div className={`dashboard-content-wrapper${embedded ? ' ctsv-profile-content' : ''}`}>
-      <div className={`profile-grid${embedded ? ' ctsv-profile-grid' : ''}`}>
+      <div className={embedded ? 'ctsv-profile-grid' : 'profile-grid'}>
         {profileLoading ? (
           <div className="profile-page-loading" aria-busy="true" aria-label="Đang tải hồ sơ">
             <div className="profile-skeleton profile-skeleton--avatar-lg" />
@@ -477,7 +478,7 @@ const Profile = ({ showToast, embedded = false }) => {
                       <label htmlFor="profile-email">Email</label>
                       <input type="email" id="profile-email" value={profileData.email} readOnly />
                     </div>
-                    <div className={`profile-input-group${isCtsvEmbedded ? ' profile-form-grid-full' : ''}`}>
+                    <div className="profile-input-group">
                       <label htmlFor="user-phone">Số điện thoại</label>
                       <input
                         type="tel"
@@ -671,7 +672,7 @@ const Profile = ({ showToast, embedded = false }) => {
                             padding: '10px 16px',
                             borderRadius: '8px',
                             border: '1.5px solid #cbd5e1',
-                            backgroundColor: '#f8fafc',
+                            backgroundColor: '#ffffff',
                             color: '#475569',
                             fontWeight: '600',
                             cursor: 'pointer',
@@ -682,11 +683,11 @@ const Profile = ({ showToast, embedded = false }) => {
                             transition: 'var(--transition-fast)'
                           }}
                           onMouseOver={(e) => {
-                            e.currentTarget.style.backgroundColor = '#f1f5f9';
+                            e.currentTarget.style.backgroundColor = '#ffffff';
                             e.currentTarget.style.color = 'var(--text-main)';
                           }}
                           onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = '#f8fafc';
+                            e.currentTarget.style.backgroundColor = '#ffffff';
                             e.currentTarget.style.color = '#475569';
                           }}
                         >
@@ -730,9 +731,15 @@ const Profile = ({ showToast, embedded = false }) => {
         <div className="ctsv-page ctsv-profile-page">
           <header className="ctsv-profile-hero">
             <div className="ctsv-profile-hero-text">
-              <span className="ctsv-profile-eyebrow">Hồ sơ cán bộ</span>
+              <span className="ctsv-profile-eyebrow">
+                {isAdminEmbedded ? 'Hồ sơ quản trị' : 'Hồ sơ cán bộ'}
+              </span>
               <h1>{profilePageTitle}</h1>
-              <p>Quản lý thông tin cá nhân và liên hệ của cán bộ CTSV.</p>
+              <p>
+                {isAdminEmbedded
+                  ? 'Quản lý thông tin tài khoản Admin trong cổng quản trị.'
+                  : 'Quản lý thông tin cá nhân và liên hệ của cán bộ CTSV.'}
+              </p>
             </div>
           </header>
           {profileContent}

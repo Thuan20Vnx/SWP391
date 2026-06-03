@@ -81,19 +81,19 @@ const CtsvProfilePasswordSection = ({ showToast }) => {
               </p>
             ) : (
               <form className="ctsv-profile-password-form" onSubmit={handlePasswordSubmit}>
-                <div className="profile-input-group">
-                  <label htmlFor="ctsv-current-password">Mật khẩu hiện tại</label>
-                  <input
-                    id="ctsv-current-password"
-                    type="password"
-                    placeholder="Nhập mật khẩu hiện tại"
-                    value={pwForm.currentPassword}
-                    onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))}
-                    autoComplete="current-password"
-                    disabled={loading}
-                  />
-                </div>
                 <div className="profile-form-grid">
+                  <div className="profile-input-group profile-form-grid-full">
+                    <label htmlFor="ctsv-current-password">Mật khẩu hiện tại</label>
+                    <input
+                      id="ctsv-current-password"
+                      type="password"
+                      placeholder="Nhập mật khẩu hiện tại"
+                      value={pwForm.currentPassword}
+                      onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))}
+                      autoComplete="current-password"
+                      disabled={loading}
+                    />
+                  </div>
                   <div className="profile-input-group">
                     <label htmlFor="ctsv-new-password">Mật khẩu mới</label>
                     <input

@@ -5,10 +5,11 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  background: #ffffff;
 }
 
-.admin-app-shell .admin-page.admin-layout,
-.admin-app-shell .admin-shell-content {
+.admin-app-shell .admin-layout.admin-shell-content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -18,6 +19,22 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  background: #ffffff;
+}
+
+.admin-app-shell .admin-shell-content > .admin-main,
+.admin-app-shell .admin-shell-content > main.admin-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-app-shell .admin-shell-content > .home-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.admin-app-shell .admin-shell-content > .chatbot-floating-wrapper {
+  flex-shrink: 0;
 }
 
 /* Nội dung full-width: sidebar đóng → tràn 2 bên; sidebar mở → thu theo vùng main (flex) */
@@ -58,11 +75,6 @@
   max-width: none;
   padding-left: clamp(20px, 2.5vw, 36px);
   padding-right: clamp(20px, 2.5vw, 36px);
-}
-
-/* Nút X luôn hiển thị trong sidebar (mọi kích thước màn hình) */
-.admin-app-shell .admin-sidebar-close-btn {
-  display: flex;
 }
 
 /* Click vùng ngoài menu để đóng — mobile: phủ toàn màn; desktop: chỉ vùng nội dung */
@@ -174,7 +186,7 @@
   padding: 0;
   border: 1px solid #e8dfd8;
   border-radius: 8px;
-  background: #f5f3f1;
+  background: #ffffff;
   color: var(--text-main);
   cursor: pointer;
   flex-shrink: 0;

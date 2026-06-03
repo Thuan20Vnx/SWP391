@@ -1,5 +1,6 @@
 const adminService = require('../services/admin.service');
 const adminDataService = require('../services/admin.data.service');
+const adminDashboardService = require('../services/admin.dashboard.service');
 
 const listAccounts = async (req, res) => {
   const result = await adminService.listAccounts({
@@ -41,6 +42,11 @@ const getDataOverview = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const getDashboardStats = async (req, res) => {
+  const stats = await adminDashboardService.getDashboardStats();
+  res.status(200).json({ success: true, stats });
+};
+
 module.exports = {
   listAccounts,
   getAccount,
@@ -49,4 +55,5 @@ module.exports = {
   updateAccountStatus,
   deleteAccount,
   getDataOverview,
+  getDashboardStats,
 };

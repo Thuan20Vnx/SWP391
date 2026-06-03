@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import AdminAccountActionBar from '../../components/admin/AdminAccountActionBar';
 import AdminAccountEditModal from '../../components/admin/AdminAccountEditModal';
 import AdminAccountViewModal from '../../components/admin/AdminAccountViewModal';
@@ -47,9 +47,14 @@ const StatusToggle = ({ active, onChange, label }) => (
 
 const AdminAccountsControl = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showToast, adminSearch = '' } = useOutletContext() || {};
   const role = getUserRole();
-  const [roleFilter, setRoleFilter] = useState('all');
+  const initialRole = searchParams.get('role');
+  const validInitialRole = ADMIN_ACCOUNT_ROLE_FILTERS.some((t) => t.key === initialRole)
+    ? initialRole
+    : 'all';
+  const [roleFilter, setRoleFilter] = useState(validInitialRole);
   const [page, setPage] = useState(1);
   const [accounts, setAccounts] = useState([]);
   const [total, setTotal] = useState(0);

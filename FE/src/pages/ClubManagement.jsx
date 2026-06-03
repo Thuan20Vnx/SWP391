@@ -612,7 +612,7 @@ const ClubManagement = ({ showToast }) => {
                   <p style={{ textAlign: 'center', color: '#94a3b8', padding: '32px 0' }}>Chưa có thông báo nào.</p>
                 ) : (
                   eventNotifications.map(notif => (
-                    <div key={notif.id} style={{ display: 'flex', gap: '16px', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', background: notif.unread ? '#f8fafc' : '#fff', transition: 'background 0.2s' }}>
+                    <div key={notif.id} style={{ display: 'flex', gap: '16px', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#ffffff', transition: 'background 0.2s' }}>
                       <div style={{ flexShrink: 0, marginTop: '2px' }}>
                         {notif.tone === 'success' && <svg viewBox="0 0 24 24" width="28" height="28" fill="#22c55e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>}
                         {notif.tone === 'alert' && <svg viewBox="0 0 24 24" width="28" height="28" fill="#ef4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>}
@@ -661,7 +661,7 @@ const ClubManagement = ({ showToast }) => {
                   <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                   Phản hồi từ Ban cán bộ
                 </h3>
-                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '16px', borderRadius: '8px', color: '#991b1b', lineHeight: '1.5', fontSize: '0.95rem', marginTop: '16px' }}>
+                <div style={{ background: '#ffffff', border: '1px solid #fca5a5', padding: '16px', borderRadius: '8px', color: '#991b1b', lineHeight: '1.5', fontSize: '0.95rem', marginTop: '16px' }}>
                   {rejectModalData.reason}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>

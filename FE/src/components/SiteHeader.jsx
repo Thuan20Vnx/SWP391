@@ -11,6 +11,7 @@ import { dispatchAuthChanged } from '../utils/authEvents';
 import { getUserRole, isAdminRole, normalizeRole, isClubManagerRole, clearSession } from '../utils/auth';
 import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
 import CtsvHamburgerButton from './ctsv/CtsvHamburgerButton';
+import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../data/adminPublicNav';
 import '../styles/admin-menu.css';
 
 const BASE_NAV_ITEMS = [
@@ -19,12 +20,6 @@ const BASE_NAV_ITEMS = [
   { key: 'clubs', label: 'Câu lạc bộ', to: '/clubs' },
   { key: 'news', label: 'Tin tức', to: '/announcements' },
 ];
-
-const ADMIN_NAV_ITEM = {
-  key: 'admin',
-  label: 'Quản trị viên',
-  to: '/admin',
-};
 
 const CLUB_MANAGER_NAV_ITEM = {
   key: 'club-manage',
@@ -63,7 +58,7 @@ const SiteHeader = ({
       : 'Tìm kiếm sự kiện...');
 
   const navItems = showAdminMenu
-    ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM]
+    ? ADMIN_PUBLIC_NAV_ITEMS
     : showClubManagerNav
       ? [...BASE_NAV_ITEMS, CLUB_MANAGER_NAV_ITEM]
       : BASE_NAV_ITEMS;
@@ -107,15 +102,25 @@ const SiteHeader = ({
   const handleProfileMenuAction = (action) => {
     setProfilePopupOpen(false);
 
-    const routes = {
-      profile: '/profile',
-      'browse-events': '/events',
-      settings: '/settings',
-      schedule: '/schedule',
-      'my-clubs': isClubManagerRole() ? '/quan-ly-clb' : '/my-clubs',
-      'club-manage': '/quan-ly-clb',
-      'my-events': '/my-events',
-    };
+    const routes = isAdminPortal
+      ? {
+          profile: '/admin/profile',
+          'browse-events': '/events',
+          settings: '/admin/system',
+          schedule: '/admin',
+          'my-clubs': '/admin/partners',
+          'club-manage': '/admin/partners',
+          'my-events': '/admin/events',
+        }
+      : {
+          profile: '/profile',
+          'browse-events': '/events',
+          settings: '/settings',
+          schedule: '/schedule',
+          'my-clubs': isClubManagerRole() ? '/quan-ly-clb' : '/my-clubs',
+          'club-manage': '/quan-ly-clb',
+          'my-events': '/my-events',
+        };
 
     if (routes[action]) {
       navigate(routes[action]);
@@ -190,7 +195,11 @@ const SiteHeader = ({
               <Link
                 key={item.key}
                 to={item.to}
-                className={`nav-link ${activeNav === item.key ? 'active' : ''}`}
+                className={`nav-link ${
+                  showAdminMenu
+                    ? (isAdminPublicNavActive(item.key, pathname) ? 'active' : '')
+                    : (activeNav === item.key ? 'active' : '')
+                }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}

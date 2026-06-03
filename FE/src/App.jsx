@@ -78,7 +78,12 @@ import PartnerReportDetail from './pages/partner/PartnerReportDetail';
 import PartnerProposalCreate from './pages/partner/PartnerProposalCreate';
 import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole, isClubManagerRole, isPartnerRole } from './utils/auth';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
+import AdminFptSystem from './pages/admin/public/AdminFptSystem';
+import AdminPublicAnnouncements from './pages/admin/public/AdminPublicAnnouncements';
+import PublicAdminShell from './layouts/PublicAdminShell';
+import SiteFooter from './components/SiteFooter';
 import './index.css';
+import './styles/admin-public-pages.css';
 
 initThemeFromStorage();
 
@@ -114,9 +119,41 @@ const PublicHomeRoute = ({ showToast }) => {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
     if (isPartnerRole()) return <Navigate to="/partner/dashboard" replace />;
     if (isCtsvRole()) return <Navigate to="/ctsv" replace />;
-    if (isAdminRole()) return <Navigate to="/admin" replace />;
+    if (isAdminRole()) return <AdminFptSystem showToast={showToast} />;
   }
   return <Home showToast={showToast} />;
+};
+
+const PublicClubsRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (isLoggedIn && isAdminRole()) return <Navigate to="/" replace />;
+  return <Clubs showToast={showToast} />;
+};
+
+const PublicAnnouncementsRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (isAdminRole()) return <AdminPublicAnnouncements showToast={showToast} />;
+  return <Announcements showToast={showToast} />;
+};
+
+const PublicAnnouncementDetailRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (isAdminRole()) {
+    return (
+      <PublicAdminShell activeNav="news">
+        <AnnouncementDetail
+          showToast={showToast}
+          embedded
+          listPath="/announcements"
+          eventBasePath="/events"
+        />
+        <SiteFooter />
+      </PublicAdminShell>
+    );
+  }
+  return <AnnouncementDetail showToast={showToast} />;
 };
 
 const AdminAreaGuard = () => {
@@ -271,7 +308,7 @@ function App() {
 
           <Route path="/events" element={<Events showToast={showToast} />} />
           <Route path="/events/:eventId" element={<EventDetail showToast={showToast} />} />
-          <Route path="/clubs" element={<Clubs showToast={showToast} />} />
+          <Route path="/clubs" element={<PublicClubsRoute showToast={showToast} />} />
           <Route path="/clubs/:clubId" element={<ClubDetail showToast={showToast} />} />
           <Route
             path="/quan-ly-clb"
@@ -316,6 +353,7 @@ function App() {
           <Route path="/admin" element={<AdminAreaGuard />}>
             <Route element={<AdminLayout showToast={showToast} />}>
               <Route index element={<AdminMonitoringDashboard />} />
+              <Route path="profile" element={<Profile showToast={showToast} embedded />} />
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
               <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />
               <Route path="event-requests" element={<AdminEventRequests showToast={showToast} />} />
@@ -374,19 +412,11 @@ function App() {
           />
           <Route
             path="/announcements"
-            element={
-              <ProtectedRoute>
-                <Announcements showToast={showToast} />
-              </ProtectedRoute>
-            }
+            element={<PublicAnnouncementsRoute showToast={showToast} />}
           />
           <Route
             path="/announcements/:id"
-            element={
-              <ProtectedRoute>
-                <AnnouncementDetail showToast={showToast} />
-              </ProtectedRoute>
-            }
+            element={<PublicAnnouncementDetailRoute showToast={showToast} />}
           />
 
           <Route path="/terms" element={<StaticPage pageKey="terms" />} />

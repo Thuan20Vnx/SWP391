@@ -88,7 +88,7 @@
 .admin-data-select__trigger:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .admin-data-select__value {
@@ -147,12 +147,12 @@
 }
 
 .admin-data-select__option:hover {
-  background: #f8fafc;
+  background: #ffffff;
   color: #1a120e;
 }
 
 .admin-data-select__option--active {
-  background: #fff7ed;
+  background: #ffffff;
   color: #c2410c;
 }
 
@@ -201,7 +201,7 @@
 
 .admin-data-input:disabled,
 .admin-data-textarea:disabled {
-  background: #f8fafc;
+  background: #ffffff;
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -269,12 +269,12 @@
 
 .admin-data-check-card:hover {
   border-color: #cbd5e1;
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .admin-data-check-card--checked {
   border-color: #f26f21;
-  background: #fff7ed;
+  background: #ffffff;
   box-shadow: 0 0 0 1px rgba(242, 111, 33, 0.15);
 }
 
@@ -353,7 +353,7 @@
   padding: 0;
   border: none;
   border-radius: 999px;
-  background: #e2e8f0;
+  background: #ffffff;
   cursor: pointer;
   transition: background 0.2s ease;
 }
@@ -511,7 +511,7 @@
   width: 40px;
   height: 40px;
   border: none;
-  background: #f8fafc;
+  background: #ffffff;
   border-radius: 10px;
   color: #64748b;
   cursor: pointer;
@@ -519,7 +519,7 @@
 }
 
 .admin-data-modal__close:hover:not(:disabled) {
-  background: #fff7ed;
+  background: #ffffff;
   color: #f26f21;
 }
 
@@ -590,7 +590,7 @@
 .admin-data-detail__tags li {
   padding: 6px 12px;
   border-radius: 999px;
-  background: #fff7ed;
+  background: #ffffff;
   border: 1px solid #fed7aa;
   font-size: 0.8125rem;
   font-weight: 600;

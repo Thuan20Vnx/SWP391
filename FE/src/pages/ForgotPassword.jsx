@@ -136,7 +136,7 @@ const ForgotPassword = ({ showToast }) => {
           </header>
 
           {googleBlocked && (
-            <div style={{ marginBottom: '12px', padding: '12px 14px', borderRadius: '10px', background: '#fff7ed', border: '1px solid #fdba74', color: '#9a3412', fontSize: '14px', lineHeight: 1.5 }}>
+            <div style={{ marginBottom: '12px', padding: '12px 14px', borderRadius: '10px', background: '#ffffff', border: '1px solid #fdba74', color: '#9a3412', fontSize: '14px', lineHeight: 1.5 }}>
               {googleBlockedMsg}
               <div style={{ marginTop: '8px' }}>
                 <Link to="/login" className="accent-link" style={{ fontWeight: 700 }}>
@@ -190,7 +190,7 @@ const ForgotPassword = ({ showToast }) => {
             </button>
 
             {isCounting && (
-              <div style={{ marginTop: '20px', textAlign: 'center', background: '#fdf2eb', padding: '16px', borderRadius: '12px', border: '1px solid #f9b691' }}>
+              <div style={{ marginTop: '20px', textAlign: 'center', background: '#ffffff', padding: '16px', borderRadius: '12px', border: '1px solid #f9b691' }}>
                 <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '8px', lineHeight: '1.4' }}>
                   Bạn đã nhận được email khôi phục? Nhấp vào liên kết dưới đây để tới trang xác minh và đặt lại mật khẩu mới:
                 </p>

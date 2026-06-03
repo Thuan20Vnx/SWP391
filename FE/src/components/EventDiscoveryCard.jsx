@@ -13,7 +13,7 @@ const LocationIcon = () => (
   </svg>
 );
 
-const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
+const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction, viewOnly = false }) => {
   const {
     title,
     thumbnail,
@@ -112,8 +112,8 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
           </div>
         )}
 
-        <div className={`event-discovery-card__actions ${isPostponed ? 'is-single' : ''}`}>
-          {!isPostponed && (
+        <div className={`event-discovery-card__actions ${isPostponed || viewOnly ? 'is-single' : ''}`}>
+          {!isPostponed && !viewOnly && (
             <button
               type="button"
               className="event-discovery-card__btn event-discovery-card__btn--outline"
@@ -125,12 +125,12 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
           <button
             type="button"
             className={`event-discovery-card__btn event-discovery-card__btn--primary ${
-              isExpired ? 'is-disabled' : ''
-            } ${isPostponed ? 'is-full' : ''}`}
-            disabled={isExpired}
-            onClick={() => onPrimaryAction?.(event)}
+              isExpired && !viewOnly ? 'is-disabled' : ''
+            } ${isPostponed || viewOnly ? 'is-full' : ''}`}
+            disabled={isExpired && !viewOnly}
+            onClick={() => (viewOnly ? onDetail?.(event) : onPrimaryAction?.(event))}
           >
-            {primaryLabel}
+            {viewOnly ? 'Xem chi tiết' : primaryLabel}
           </button>
         </div>
       </div>

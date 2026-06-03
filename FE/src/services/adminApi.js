@@ -77,6 +77,8 @@ export const fetchAdminDataOverview = async () => {
   return parseJson(res);
 };
 
+export const fetchAdminDashboardStats = () => adminFetch('/dashboard/stats');
+
 export const deleteAdminAccount = async (id) => {
   const res = await fetch(`${API_BASE}/api/admin/accounts/${id}`, {
     method: 'DELETE',

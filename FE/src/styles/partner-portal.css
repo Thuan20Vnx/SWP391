@@ -14,7 +14,7 @@
 
 /* Nền trắng cam nhẹ cho trang nội bộ (không phải trang chủ) */
 .partner-app-shell .partner-portal-inner {
-  background: linear-gradient(180deg, #fffaf7 0%, #ffffff 180px) !important;
+  background: #ffffff !important;
 }
 
 .partner-app-shell .ctsv-portal-body:has(.hero-banner-slider) {
@@ -67,7 +67,7 @@
   background: var(--partner-accent-dark);
 }
 .partner-app-shell .hero-tag-badge {
-  background: rgba(242, 111, 33, 0.25);
+  background: #ffffff;
   border-color: rgba(242, 111, 33, 0.4);
 }
 
@@ -339,7 +339,7 @@
 .partner-perf-bar-track {
   height: 8px;
   border-radius: 999px;
-  background: #f1f5f9;
+  background: #ffffff;
   overflow: hidden;
 }
 
@@ -392,11 +392,11 @@
 }
 .partner-btn-outline--danger {
   color: #dc2626;
-  background: #fef2f2;
+  background: #ffffff;
   border-color: #fecaca;
 }
 .partner-btn-outline--danger:hover {
-  background: #fee2e2;
+  background: #ffffff;
 }
 .partner-field input:focus,
 .partner-field textarea:focus {
@@ -556,7 +556,7 @@
 }
 
 .partner-profile-collapse-toggle:hover {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .partner-profile-collapse-toggle-main {
@@ -581,13 +581,13 @@
   height: 36px;
   border-radius: 10px;
   color: #64748b;
-  background: #f1f5f9;
+  background: #ffffff;
   transition: transform 0.2s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .partner-profile-collapse-toggle:hover .partner-profile-collapse-chevron {
   color: var(--partner-accent, #f26f21);
-  background: rgba(242, 111, 33, 0.1);
+  background: #ffffff;
 }
 
 .partner-profile-collapse-chevron.is-open {
@@ -642,7 +642,7 @@
   height: 88px;
   border-radius: 50%;
   border: 2px solid #e2e8f0;
-  background: #f8fafc;
+  background: #ffffff;
   overflow: hidden;
   flex-shrink: 0;
   padding: 0;
@@ -660,7 +660,7 @@
   height: 56px;
   border-radius: 12px;
   border: 1px dashed #cbd5e1;
-  background: #f8fafc;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -775,7 +775,7 @@
 }
 
 .partner-field input:disabled {
-  background: #f8fafc;
+  background: #ffffff;
   color: #64748b;
   cursor: not-allowed;
 }

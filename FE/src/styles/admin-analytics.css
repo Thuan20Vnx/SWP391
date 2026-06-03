@@ -39,7 +39,7 @@
 
 .admin-analytics-period__btn:hover {
   color: #f26f21;
-  background: #fff7ed;
+  background: #ffffff;
 }
 
 .admin-analytics-period__btn--active {
@@ -67,7 +67,7 @@
 .admin-analytics-export:hover {
   border-color: #f26f21;
   color: #f26f21;
-  background: #fff7ed;
+  background: #ffffff;
 }
 
 .admin-analytics-kpis {
@@ -141,7 +141,7 @@
 
 .admin-analytics-star-bars__track {
   height: 10px;
-  background: #f1f5f9;
+  background: #ffffff;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -199,7 +199,7 @@
 
 .admin-analytics-cat-list__track {
   height: 8px;
-  background: #f1f5f9;
+  background: #ffffff;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -288,7 +288,7 @@
   text-transform: uppercase;
   color: #000000;
   border-bottom: 1px solid #e5e7eb;
-  background: #fafafa;
+  background: #ffffff;
 }
 
 .admin-analytics-table tbody td {
@@ -319,7 +319,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   color: #475569;
-  background: #f1f5f9;
+  background: #ffffff;
   padding: 4px 8px;
   border-radius: 6px;
 }

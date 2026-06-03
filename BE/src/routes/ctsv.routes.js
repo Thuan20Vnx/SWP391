@@ -4,6 +4,7 @@ const authMiddleware = require('../middleware/auth');
 const {
   requireCtsvPortal,
   requireCtsvApprove,
+  requireProposalModerate,
   requireIcpdpOrCtsv
 } = require('../middleware/requireRole');
 const Event = require('../models/Event');
@@ -333,11 +334,23 @@ router.patch('/events/:id/approve', requireCtsvApprove, async (req, res) => {
 });
 
 // PATCH /api/ctsv/events/:id/reject
-router.patch('/events/:id/reject', requireCtsvApprove, async (req, res) => {
+router.patch('/events/:id/reject', requireProposalModerate, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
+    }
+    if (req.userRole === 'icpdp' && event.status !== 'pending_icpdp') {
+      return res.status(403).json({
+        success: false,
+        message: 'ICPDP chỉ từ chối được sự kiện đang chờ ICPDP duyệt!'
+      });
+    }
+    if (req.userRole !== 'icpdp' && event.source === 'school') {
+      return res.status(400).json({
+        success: false,
+        message: 'Sự kiện cấp trường cần Admin phê duyệt trên trang quản trị.'
+      });
     }
     event.status = 'rejected';
     event.rejectionReason = req.body.reason || req.body.note || '';
@@ -587,14 +600,32 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
   }
 });
 
-router.patch('/proposals/:id/reject', requireCtsvApprove, async (req, res) => {
+router.patch('/proposals/:id/reject', requireProposalModerate, async (req, res) => {
   try {
     const proposal = await EventProposal.findById(req.params.id);
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đề xuất!' });
     }
+    const reason = req.body.reason || req.body.note || '';
+    if (!String(reason).trim()) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập lý do từ chối!' });
+    }
+    if (req.userRole === 'icpdp') {
+      if (proposal.status !== 'pending_icpdp') {
+        return res.status(403).json({
+          success: false,
+          message: 'ICPDP chỉ từ chối được đề xuất đang chờ ICPDP duyệt!'
+        });
+      }
+      proposal.icpdpNote = reason;
+    } else if (!['pending_ctsv', 'pending_icpdp', 'revision'].includes(proposal.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đề xuất không ở trạng thái có thể từ chối!'
+      });
+    }
     proposal.status = 'rejected';
-    proposal.rejectionReason = req.body.reason || req.body.note || '';
+    proposal.rejectionReason = reason;
     await proposal.save();
     return res.json({ success: true, proposal: formatProposal(proposal) });
   } catch (error) {

@@ -22,6 +22,7 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
   const [dateFilter, setDateFilter] = useState('all');
   const [actorFilter, setActorFilter] = useState('all');
   const [openMenu, setOpenMenu] = useState(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const dateOptions = useMemo(() => {
     const dates = [...new Set(logs.map((log) => getLogDate(log)).filter(Boolean))];
@@ -112,6 +113,7 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
       setDateFilter('all');
       setActorFilter('all');
       setOpenMenu(null);
+      setFiltersOpen(false);
     }
   }, [open]);
 
@@ -139,88 +141,98 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
           </button>
         </header>
 
-        <div className="admin-log-modal__filters">
-          <div className="admin-log-filters-card">
-            <div className="admin-log-filters-card__top">
-              <p className="admin-log-filters-card__title">
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                  <path
-                    d="M4 6h16M7 12h10M10 18h4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                Bộ lọc tìm kiếm
-              </p>
-              {hasActiveFilters && (
-                <button type="button" className="admin-log-filter-reset" onClick={resetFilters}>
-                  Xóa bộ lọc
-                </button>
-              )}
-            </div>
+        <div className="admin-log-modal__body">
+          <div className="admin-log-modal__toolbar">
+            <button
+              type="button"
+              className={`admin-log-modal__filters-toggle${filtersOpen ? ' admin-log-modal__filters-toggle--open' : ''}`}
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((prev) => !prev)}
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path
+                  d="M4 6h16M7 12h10M10 18h4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              {filtersOpen ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
+              {hasActiveFilters ? <span className="admin-log-modal__filters-badge">Đang lọc</span> : null}
+            </button>
+            {hasActiveFilters && (
+              <button type="button" className="admin-log-filter-reset" onClick={resetFilters}>
+                Xóa bộ lọc
+              </button>
+            )}
+          </div>
 
-            <div className="admin-log-search">
-              <span className="admin-log-search__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18">
-                  <path
-                    d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </span>
-              <input
-                type="search"
-                className="admin-log-search__input"
-                placeholder="Tìm theo nội dung, người thực hiện, thời gian..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+          {filtersOpen && (
+            <div className="admin-log-modal__filters">
+              <div className="admin-log-filters-card">
+                <div className="admin-log-filters-card__row admin-log-filters-card__row--search">
+                  <div className="admin-log-search">
+                    <span className="admin-log-search__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="18" height="18">
+                        <path
+                          d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      type="search"
+                      className="admin-log-search__input"
+                      placeholder="Tìm theo nội dung, người thực hiện, thời gian..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="admin-log-filter-advanced">
+                    <AdminFilterDropdown
+                      label="Ngày"
+                      menuId="date"
+                      value={dateFilter}
+                      options={dateSelectOptions}
+                      onChange={setDateFilter}
+                      menuOpen={openMenu === 'date'}
+                      onMenuToggle={setOpenMenu}
+                    />
+                    <AdminFilterDropdown
+                      label="Người thực hiện"
+                      menuId="actor"
+                      value={actorFilter}
+                      options={actorSelectOptions}
+                      onChange={setActorFilter}
+                      menuOpen={openMenu === 'actor'}
+                      onMenuToggle={setOpenMenu}
+                    />
+                  </div>
+                </div>
 
-            <div className="admin-log-filter-group">
-              <span className="admin-log-filter-label">Loại hoạt động</span>
-              <div className="admin-log-filter-tabs" role="tablist" aria-label="Lọc theo loại">
-                {TYPE_FILTERS.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={typeFilter === item.key}
-                    className={`admin-log-filter-tab${typeFilter === item.key ? ' admin-log-filter-tab--active' : ''}`}
-                    onClick={() => setTypeFilter(item.key)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                <div className="admin-log-filter-group">
+                  <span className="admin-log-filter-label">Loại hoạt động</span>
+                  <div className="admin-log-filter-tabs" role="tablist" aria-label="Lọc theo loại">
+                    {TYPE_FILTERS.map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        role="tab"
+                        aria-selected={typeFilter === item.key}
+                        className={`admin-log-filter-tab${typeFilter === item.key ? ' admin-log-filter-tab--active' : ''}`}
+                        onClick={() => setTypeFilter(item.key)}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
+          )}
 
-            <div className="admin-log-filter-advanced">
-              <AdminFilterDropdown
-                label="Ngày"
-                menuId="date"
-                value={dateFilter}
-                options={dateSelectOptions}
-                onChange={setDateFilter}
-                menuOpen={openMenu === 'date'}
-                onMenuToggle={setOpenMenu}
-              />
-              <AdminFilterDropdown
-                label="Người thực hiện"
-                menuId="actor"
-                value={actorFilter}
-                options={actorSelectOptions}
-                onChange={setActorFilter}
-                menuOpen={openMenu === 'actor'}
-                onMenuToggle={setOpenMenu}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="admin-log-modal__table-wrap">
+          <div className="admin-log-modal__table-wrap">
           {filteredLogs.length === 0 ? (
             <div className="admin-log-empty">
               <p>Không có bản ghi phù hợp với bộ lọc hiện tại.</p>
@@ -257,9 +269,13 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
               </tbody>
             </table>
           )}
+          </div>
         </div>
 
         <footer className="admin-log-modal__footer">
+          <p className="admin-log-modal__footer-hint">
+            {filteredLogs.length > 0 ? 'Cuộn trong bảng để xem toàn bộ nhật ký.' : null}
+          </p>
           <button type="button" className="admin-log-modal__btn-close" onClick={onClose}>
             Đóng
           </button>

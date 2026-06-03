@@ -30,6 +30,7 @@ router.put('/accounts/:id', adminOnly, asyncHandler(adminController.updateAccoun
 router.patch('/accounts/:id/status', adminOnly, asyncHandler(adminController.updateAccountStatus));
 router.delete('/accounts/:id', adminOnly, asyncHandler(adminController.deleteAccount));
 router.get('/data/overview', adminOnly, asyncHandler(adminController.getDataOverview));
+router.get('/dashboard/stats', adminOnly, asyncHandler(adminController.getDashboardStats));
 
 router.get('/event-requests', adminOrCtsv, asyncHandler(eventChangeRequestController.list));
 router.get('/event-requests/:id', adminOrCtsv, asyncHandler(eventChangeRequestController.getById));
@@ -77,7 +78,7 @@ router.patch('/partners/:id/approve', async (req, res) => {
   }
 });
 
-router.patch('/partners/:id/reject', async (req, res) => {
+router.patch('/partners/:id/reject', adminOnly, async (req, res) => {
   try {
     const reason = String(req.body.reason || '').trim();
     if (!reason) {

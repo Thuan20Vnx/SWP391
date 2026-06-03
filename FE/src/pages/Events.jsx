@@ -5,6 +5,7 @@ import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { getUserRole, isAdminRole } from '../utils/auth';
 import {
   CATEGORY_FILTERS,
   STATE_FILTERS,
@@ -29,6 +30,7 @@ const Events = ({ showToast }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { isLoggedIn, userProfile } = useUserProfile();
+  const isAdminViewer = isLoggedIn && isAdminRole(userProfile.role || getUserRole());
 
   useEffect(() => {
     setLoading(true);
@@ -127,11 +129,15 @@ const Events = ({ showToast }) => {
         setVisibleCount(PAGE_SIZE);
       }}
     >
-    <div className="events-page home-layout">
+    <div className={`events-page home-layout${isAdminViewer ? ' events-page--admin-view' : ''}`}>
       <main className="events-page__main">
         <section className="events-page__hero">
-          <h1>Khám phá sự kiện tại FPT</h1>
-          <p>Tìm kiếm và tham gia những sự kiện sôi động nhất dành cho cộng đồng FPT</p>
+          <h1>{isAdminViewer ? 'Danh sách sự kiện toàn sàn' : 'Khám phá sự kiện tại FPT'}</h1>
+          <p>
+            {isAdminViewer
+              ? 'Xem chi tiết sự kiện trên nền tảng — chế độ quản trị chỉ xem, không đăng ký tham gia.'
+              : 'Tìm kiếm và tham gia những sự kiện sôi động nhất dành cho cộng đồng FPT'}
+          </p>
         </section>
 
         <section className="events-page__state-filters" aria-label="Lọc theo trạng thái">
@@ -197,7 +203,8 @@ const Events = ({ showToast }) => {
                 key={event.id}
                 event={event}
                 onDetail={handleDetail}
-                onPrimaryAction={handleRegister}
+                onPrimaryAction={isAdminViewer ? handleDetail : handleRegister}
+                viewOnly={isAdminViewer}
               />
             ))}
           </section>

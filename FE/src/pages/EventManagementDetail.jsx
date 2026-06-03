@@ -193,7 +193,7 @@ const EventManagementDetail = ({ showToast }) => {
                           <td style={{fontWeight: '500', color: '#334155'}}>{mssv}</td>
                           <td>
                             <div className="ev-st-name-cell">
-                              <div className="ev-st-avatar" style={{backgroundColor: '#e2e8f0', color: '#64748b'}}>{avatarCode}</div>
+                              <div className="ev-st-avatar" style={{backgroundColor: '#ffffff', color: '#64748b'}}>{avatarCode}</div>
                               {name}
                             </div>
                           </td>
