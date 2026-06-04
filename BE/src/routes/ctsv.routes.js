@@ -34,6 +34,7 @@ const {
   deriveTicketPriceFromTypes,
   totalQtyFromTypes
 } = require('../utils/ticketTypes');
+const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -53,6 +54,7 @@ const pickSchoolEventFields = (body) => {
     format,
     speakers,
     agenda,
+    learningOutcomes,
     expectedAttendees,
     ticketTypes
   } = body;
@@ -93,6 +95,7 @@ const pickSchoolEventFields = (body) => {
     speakerRole: primarySpeaker?.role || '',
     speakerAvatar: primarySpeaker?.avatar || '',
     agenda: agenda || '',
+    learningOutcomes: normalizeLearningOutcomes(learningOutcomes),
     expectedAttendees: Number(expectedAttendees) || 0,
     ticketTypes: normalizeTicketTypes(ticketTypes)
   };
@@ -566,6 +569,7 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
     const event = await Event.create({
       title: proposal.title,
       description: proposal.description,
+      learningOutcomes: Array.isArray(proposal.learningOutcomes) ? proposal.learningOutcomes : [],
       category: normalizeEventCategory(proposal.category),
       startDate: proposal.startDate,
       endDate: proposal.endDate,
@@ -699,13 +703,24 @@ router.get('/partners/:id', async (req, res) => {
     if (!partner) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
     }
+    const { resolvePartnerAvatarForAdmin } = require('../utils/partnerAvatar');
+    const { ensurePrimaryPartnerMember, listPartnerMembers } = require('../services/partnerMember.service');
+    await ensurePrimaryPartnerMember(partner);
+    const partnerPayload = await resolvePartnerAvatarForAdmin(partner);
+    const members = await listPartnerMembers(partner._id);
     const contracts = await Contract.find({ partnerId: partner._id });
     const PartnerEventRequest = require('../models/PartnerEventRequest');
     const eventRequest = await PartnerEventRequest.findOne({
       partnerId: partner._id,
       status: { $nin: ['draft', 'cancelled', 'deleted'] }
     }).sort({ updatedAt: -1 });
-    return res.json({ success: true, partner, contracts, eventRequest: eventRequest || null });
+    return res.json({
+      success: true,
+      partner: partnerPayload,
+      members,
+      contracts,
+      eventRequest: eventRequest || null
+    });
   } catch (error) {
     console.error('ctsv partner detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -752,6 +767,8 @@ router.post('/partners', requireCtsvApprove, async (req, res) => {
         status: 'pending'
       });
     }
+    const { ensurePrimaryPartnerMember } = require('../services/partnerMember.service');
+    await ensurePrimaryPartnerMember(partner);
     return res.status(201).json({ success: true, partner });
   } catch (error) {
     console.error('ctsv create partner:', error);

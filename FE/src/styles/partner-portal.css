@@ -687,6 +687,17 @@
   object-fit: cover;
 }
 
+.partner-company-logo-preview--banner {
+  width: 96px;
+  height: 54px;
+  border-radius: 8px;
+}
+
+.partner-company-logo-preview--banner img {
+  object-fit: contain;
+  background: #f8fafc;
+}
+
 .partner-company-logo-preview svg {
   width: 24px;
   height: 24px;

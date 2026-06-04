@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import AdminCoreDataDetailModal from '../../components/admin/AdminCoreDataDetailModal';
 import AdminCategoryDeclareModal from '../../components/admin/AdminCategoryDeclareModal';
 import AdminClubDeclareModal from '../../components/admin/AdminClubDeclareModal';
@@ -101,10 +101,13 @@ const IconChevronRight = () => (
 
 const AdminDataMaintenance = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showToast } = useOutletContext() || {};
   const role = getUserRole();
+  const tabFromUrl = searchParams.get('tab');
+  const initialTab = ADMIN_DATA_TABS.some((t) => t.id === tabFromUrl) ? tabFromUrl : 'facilities';
 
-  const [activeTab, setActiveTab] = useState('facilities');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [page, setPage] = useState(1);
   const [facilities, setFacilities] = useState(() => loadStoredList(STORAGE_KEYS.facilities, DEFAULT_FACILITIES));
   const [categories, setCategories] = useState(() => loadStoredList(STORAGE_KEYS.categories, DEFAULT_CATEGORIES));
@@ -121,6 +124,12 @@ const AdminDataMaintenance = () => {
       navigate('/profile');
     }
   }, [role, navigate, showToast]);
+
+  useEffect(() => {
+    if (tabFromUrl && ADMIN_DATA_TABS.some((t) => t.id === tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
 
   useEffect(() => {
     setPage(1);

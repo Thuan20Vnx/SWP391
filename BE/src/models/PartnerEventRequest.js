@@ -71,6 +71,7 @@ const partnerEventRequestSchema = new mongoose.Schema(
     location: { type: String, default: '' },
     campus: { type: String, default: '' },
     agenda: { type: String, default: '' },
+    learningOutcomes: { type: [String], default: [] },
     expectedAttendees: { type: Number, default: 0 },
     image: { type: String, default: '' },
     bannerFileName: { type: String, default: '' },

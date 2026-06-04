@@ -20,6 +20,12 @@ import {
 } from '../../constants/eventSpeaker';
 import { CTSV_CATEGORY_OPTIONS, normalizeEventCategory } from '../../constants/eventCategories';
 import { canCtsvEditSchoolEvent } from '../../constants/eventWorkflow';
+import EventIntroFields from '../../components/events/EventIntroFields';
+import {
+  DEFAULT_LEARNING_OUTCOME_ROWS,
+  learningOutcomesToFormRows,
+  normalizeLearningOutcomesForSave,
+} from '../../utils/eventIntro';
 
 const TICKET_AUDIENCE_OPTIONS = ['SV FPT', 'Khách ngoài trường', 'Tất cả'];
 
@@ -165,7 +171,8 @@ const mapEventToForm = (event) => ({
   location: event.location || '',
   expectedAttendees: event.expectedAttendees ? String(event.expectedAttendees) : '',
   agenda: event.agenda || '',
-  image: event.image || ''
+  image: event.image || '',
+  learningOutcomes: learningOutcomesToFormRows(event),
 });
 
 const mapEventToTickets = (event) => {
@@ -203,12 +210,15 @@ const EMPTY_FORM = {
   location: '',
   expectedAttendees: '',
   agenda: '',
-  image: ''
+  image: '',
+  learningOutcomes: [...DEFAULT_LEARNING_OUTCOME_ROWS],
 };
 
 const CtsvEventCreate = () => {
   const { id: editEventId } = useParams();
   const location = useLocation();
+  const portalBase = location.pathname.startsWith('/icpdp') ? '/icpdp' : '/ctsv';
+  const eventsBase = `${portalBase}/events`;
   const isEditMode = Boolean(editEventId && location.pathname.endsWith('/edit'));
   const navigate = useNavigate();
   const { showToast } = useOutletContext() || {};
@@ -236,7 +246,7 @@ const CtsvEventCreate = () => {
         const event = data.event;
         if (!canCtsvEditSchoolEvent(event)) {
           showToast?.('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 'error');
-          navigate(`/ctsv/events/${editEventId}`);
+          navigate(`${eventsBase}/${editEventId}`);
           return;
         }
         setForm(mapEventToForm(event));
@@ -246,10 +256,10 @@ const CtsvEventCreate = () => {
       })
       .catch((err) => {
         showToast?.(err.message || 'Không tải được sự kiện.', 'error');
-        navigate('/ctsv/events');
+        navigate(eventsBase);
       })
       .finally(() => setLoadingEvent(false));
-  }, [isEditMode, editEventId, navigate, showToast]);
+  }, [isEditMode, editEventId, navigate, showToast, eventsBase]);
 
   useEffect(() => {
     if (isEditMode) return;
@@ -266,7 +276,10 @@ const CtsvEventCreate = () => {
       ...EMPTY_FORM,
       ...draft.form,
       expectedAttendees: draft.form.expectedAttendees ?? '',
-      category: normalizeEventCategory(draft.form.category)
+      category: normalizeEventCategory(draft.form.category),
+      learningOutcomes: Array.isArray(draft.form.learningOutcomes)
+        ? draft.form.learningOutcomes
+        : [...DEFAULT_LEARNING_OUTCOME_ROWS],
     });
     if (draft.tickets?.length) setTickets(draft.tickets);
     if (draft.speakers?.length) {
@@ -305,6 +318,30 @@ const CtsvEventCreate = () => {
       return;
     }
     setForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const updateLearningOutcome = (index, value) => {
+    setForm((f) => {
+      const rows = [...(f.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS)];
+      rows[index] = value;
+      return { ...f, learningOutcomes: rows };
+    });
+  };
+
+  const addLearningOutcome = () => {
+    setForm((f) => ({
+      ...f,
+      learningOutcomes: [...(f.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS), ''],
+    }));
+  };
+
+  const removeLearningOutcome = (index) => {
+    setForm((f) => {
+      const rows = [...(f.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS)];
+      if (rows.length <= 1) return f;
+      rows.splice(index, 1);
+      return { ...f, learningOutcomes: rows };
+    });
   };
 
   const updateSpeaker = (id, field, value) => {
@@ -488,6 +525,16 @@ const CtsvEventCreate = () => {
       setConfirmAction(null);
       return;
     }
+    if (!form.description.trim()) {
+      showToast?.('Vui lòng nhập mô tả trong phần Giới thiệu sự kiện.', 'error');
+      setConfirmAction(null);
+      return;
+    }
+    if (normalizeLearningOutcomesForSave(form.learningOutcomes).length === 0) {
+      showToast?.('Vui lòng thêm ít nhất một mục trong “Bạn sẽ học được gì?”.', 'error');
+      setConfirmAction(null);
+      return;
+    }
     if (parseExpectedAttendees(form.expectedAttendees) == null) {
       setExpectedAttendeesError(true);
       showToast?.('Vui lòng nhập số lượng tham dự dự kiến (tối thiểu 1).', 'error');
@@ -541,6 +588,7 @@ const CtsvEventCreate = () => {
       format: form.format,
       speakers: speakerPayload,
       agenda: form.agenda,
+      learningOutcomes: normalizeLearningOutcomesForSave(form.learningOutcomes),
       expectedAttendees: parsedExpected,
       ticketTypes
     };
@@ -561,7 +609,7 @@ const CtsvEventCreate = () => {
             : 'Đã gửi đơn tổ chức sự kiện. Chờ Admin phê duyệt.'),
         'success'
       );
-      navigate(`/ctsv/events/${res.event.id}`);
+      navigate(`${eventsBase}/${res.event.id}`);
     } catch (err) {
       showToast?.(err.message, 'error');
     } finally {
@@ -571,7 +619,7 @@ const CtsvEventCreate = () => {
   };
 
   const draftLabel = formatDraftSavedLabel(draftSavedAt);
-  const cancelPath = isEditMode ? `/ctsv/events/${editEventId}` : '/ctsv/events';
+  const cancelPath = isEditMode ? `${eventsBase}/${editEventId}` : eventsBase;
 
   if (loadingEvent) {
     return (
@@ -609,11 +657,11 @@ const CtsvEventCreate = () => {
       />
 
       <nav className="ctsv-breadcrumb" aria-label="Breadcrumb">
-        <Link to="/ctsv/events">Quản lý sự kiện</Link>
+        <Link to={eventsBase}>Quản lý sự kiện</Link>
         <span className="ctsv-breadcrumb-sep">/</span>
         {isEditMode ? (
           <>
-            <Link to={`/ctsv/events/${editEventId}`}>Chi tiết sự kiện</Link>
+            <Link to={`${eventsBase}/${editEventId}`}>Chi tiết sự kiện</Link>
             <span className="ctsv-breadcrumb-sep">/</span>
             <span>Chỉnh sửa</span>
           </>
@@ -623,11 +671,19 @@ const CtsvEventCreate = () => {
       </nav>
 
       <header className="ctsv-create-header">
-        <h1>{isEditMode ? 'CHỈNH SỬA SỰ KIỆN CẤP TRƯỜNG' : 'TẠO SỰ KIỆN CẤP TRƯỜNG'}</h1>
+        <h1>
+          {isEditMode
+            ? 'CHỈNH SỬA SỰ KIỆN CẤP TRƯỜNG'
+            : portalBase === '/icpdp'
+              ? 'TẠO SỰ KIỆN CẤP TRƯỜNG (IC-PDP)'
+              : 'TẠO SỰ KIỆN CẤP TRƯỜNG'}
+        </h1>
         <p className="ctsv-muted">
           {isEditMode
             ? 'Cập nhật thông tin và gửi lại Admin phê duyệt trước khi publish.'
-            : 'Điền thông tin chi tiết và gửi đơn tổ chức. Admin sẽ phê duyệt trước khi mở đăng ký.'}
+            : portalBase === '/icpdp'
+              ? 'Điền giới thiệu sự kiện và gửi đơn tổ chức. Admin sẽ phê duyệt trước khi mở đăng ký.'
+              : 'Điền thông tin chi tiết và gửi đơn tổ chức. Admin sẽ phê duyệt trước khi mở đăng ký.'}
         </p>
         {draftLabel && (
           <p className="ctsv-create-draft-status" aria-live="polite">
@@ -674,26 +730,6 @@ const CtsvEventCreate = () => {
                 />
               </Field>
             </div>
-            <div className="ctsv-field">
-              <div className="ctsv-field-label-row">
-                <span className="ctsv-field-label">Mô tả sự kiện</span>
-                <button
-                  type="button"
-                  className="ctsv-ai-link"
-                  onClick={() => showToast?.('Tính năng AI đang phát triển.', 'info')}
-                >
-                  AI Tối ưu mô tả
-                </button>
-              </div>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={onChange}
-                className="ctsv-textarea"
-                rows={4}
-                placeholder="Buổi workshop chia sẻ kiến thức nền tảng..."
-              />
-            </div>
             <div className="ctsv-form-row-2">
               <Field label="Ngày tổ chức" required>
                 <input type="date" name="eventDate" value={form.eventDate} onChange={onChange} className="ctsv-input" required />
@@ -709,6 +745,17 @@ const CtsvEventCreate = () => {
             </div>
           </div>
         </section>
+
+        <EventIntroFields
+          description={form.description}
+          learningOutcomes={form.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS}
+          onDescriptionChange={onChange}
+          onLearningOutcomeChange={updateLearningOutcome}
+          onAddLearningOutcome={addLearningOutcome}
+          onRemoveLearningOutcome={removeLearningOutcome}
+          showAiOptimize
+          onAiOptimize={() => showToast?.('Tính năng AI đang phát triển.', 'info')}
+        />
 
         <section className="ctsv-form-section">
           <SectionTitle>Lịch trình &amp; Địa điểm</SectionTitle>

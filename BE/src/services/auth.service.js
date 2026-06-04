@@ -31,6 +31,7 @@ const {
   MOCK_GOOGLE_NAME,
 } = require('../config/env');
 const { verifyToken } = require('../utils/jwt');
+const { assertLoginAllowed } = require('./systemSettings.service');
 
 const sanitizeUser = (user) => User.sanitizeUser(user);
 
@@ -92,6 +93,7 @@ const login = async ({ email, password }) => {
   }
 
   await User.syncAndPersistUserProfile(user);
+  await assertLoginAllowed(user);
 
   return {
     message: 'Đăng nhập thành công!',
@@ -392,6 +394,7 @@ const googleLogin = async ({ token, email, name, isMock, picture }) => {
       googlePicture,
     }));
     user = await User.findOne({ email: googleEmail.toLowerCase() });
+    await assertLoginAllowed(user);
 
     return {
       message: 'Đăng nhập bằng Google thành công!',
@@ -406,6 +409,7 @@ const googleLogin = async ({ token, email, name, isMock, picture }) => {
     picture: googlePicture,
     googleId,
   });
+  await assertLoginAllowed(newUser);
 
   return {
     message: 'Tự động tạo tài khoản và đăng nhập thành công!',

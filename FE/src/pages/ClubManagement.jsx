@@ -14,6 +14,11 @@ import {
 import { resolveUserAvatar } from '../utils/image';
 import '../styles/club-portal.css';
 import './ClubManagement.css';
+import EventIntroFields from '../components/events/EventIntroFields';
+import {
+  DEFAULT_LEARNING_OUTCOME_ROWS,
+  normalizeLearningOutcomesForSave,
+} from '../utils/eventIntro';
 
 const ClubManagement = ({ showToast }) => {
   const navigate = useNavigate();
@@ -44,7 +49,8 @@ const ClubManagement = ({ showToast }) => {
     endTime: '',
     speaker: '',
     agenda: '',
-    ticketPrice: ''
+    ticketPrice: '',
+    learningOutcomes: [...DEFAULT_LEARNING_OUTCOME_ROWS],
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null); // ID của row đang mở dropdown
@@ -213,6 +219,16 @@ const ClubManagement = ({ showToast }) => {
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
+    if (createStep === 2) {
+      if (!newEvent.description.trim()) {
+        showToast('Vui lòng nhập mô tả trong phần Giới thiệu sự kiện.', 'error');
+        return;
+      }
+      if (normalizeLearningOutcomesForSave(newEvent.learningOutcomes).length === 0) {
+        showToast('Vui lòng thêm ít nhất một mục trong “Bạn sẽ học được gì?”.', 'error');
+        return;
+      }
+    }
     if (createStep < 4) {
       setCreateStep(s => s + 1);
       return;
@@ -242,6 +258,7 @@ const ClubManagement = ({ showToast }) => {
         thumbnail: newEvent.thumbnail,
         speaker: newEvent.speaker,
         agenda: newEvent.agenda,
+        learningOutcomes: normalizeLearningOutcomesForSave(newEvent.learningOutcomes),
         location: newEvent.location,
         capacity: parseInt(newEvent.maxSlots),
         category: newEvent.category || 'Workshop',
@@ -260,7 +277,23 @@ const ClubManagement = ({ showToast }) => {
         showToast('Đề xuất sự kiện đã được gửi duyệt!', 'success');
         setActiveNav('list');
         setCreateStep(1);
-        setNewEvent({ title: '', category: '', description: '', maxSlots: 100, location: 'Tầng 5 tòa Alpha', isPaid: false, thumbnail: '', startDate: '', startTime: '', endDate: '', endTime: '', speaker: '', agenda: '', ticketPrice: '' });
+        setNewEvent({
+          title: '',
+          category: '',
+          description: '',
+          maxSlots: 100,
+          location: 'Tầng 5 tòa Alpha',
+          isPaid: false,
+          thumbnail: '',
+          startDate: '',
+          startTime: '',
+          endDate: '',
+          endTime: '',
+          speaker: '',
+          agenda: '',
+          ticketPrice: '',
+          learningOutcomes: [...DEFAULT_LEARNING_OUTCOME_ROWS],
+        });
         fetchMyEvents();
       } else {
         showToast(data.message || 'Tạo sự kiện thất bại!', 'error');
@@ -496,14 +529,45 @@ const ClubManagement = ({ showToast }) => {
                 </div>
               )}
               {createStep === 2 && (
-                <div className="clb-form-step">
-                  <div className="clb-form-group">
-                    <label>Mô tả chi tiết</label>
-                    <textarea placeholder="Mô tả mục tiêu, đối tượng tham gia và quyền lợi..." value={newEvent.description} onChange={e => setNewEvent(p => ({ ...p, description: e.target.value }))} rows={4} className="clb-input clb-textarea" />
-                  </div>
+                <div className="clb-form-step clb-form-step--intro">
+                  <EventIntroFields
+                    description={newEvent.description}
+                    learningOutcomes={newEvent.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS}
+                    onDescriptionChange={(e) =>
+                      setNewEvent((p) => ({ ...p, description: e.target.value }))
+                    }
+                    onLearningOutcomeChange={(index, value) =>
+                      setNewEvent((p) => {
+                        const rows = [...(p.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS)];
+                        rows[index] = value;
+                        return { ...p, learningOutcomes: rows };
+                      })
+                    }
+                    onAddLearningOutcome={() =>
+                      setNewEvent((p) => ({
+                        ...p,
+                        learningOutcomes: [...(p.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS), ''],
+                      }))
+                    }
+                    onRemoveLearningOutcome={(index) =>
+                      setNewEvent((p) => {
+                        const rows = [...(p.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS)];
+                        if (rows.length <= 1) return p;
+                        rows.splice(index, 1);
+                        return { ...p, learningOutcomes: rows };
+                      })
+                    }
+                    descriptionRequired
+                  />
                   <div className="clb-form-group">
                     <label>Chương trình dự kiến (Agenda)</label>
-                    <textarea placeholder="Lịch trình cụ thể của sự kiện..." value={newEvent.agenda} onChange={e => setNewEvent(p => ({ ...p, agenda: e.target.value }))} rows={4} className="clb-input clb-textarea" />
+                    <textarea
+                      placeholder="Lịch trình cụ thể của sự kiện..."
+                      value={newEvent.agenda}
+                      onChange={(e) => setNewEvent((p) => ({ ...p, agenda: e.target.value }))}
+                      rows={4}
+                      className="clb-input clb-textarea"
+                    />
                   </div>
                 </div>
               )}

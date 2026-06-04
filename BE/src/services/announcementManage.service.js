@@ -22,6 +22,8 @@ const formatManageAnnouncement = (doc) => {
     ...doc,
     id,
     targetRoles: resolveDocTargetRoles(doc),
+    targetPartnerId: doc.targetPartnerId?.toString?.() || doc.targetPartnerId || null,
+    targetPartnerEmail: doc.targetPartnerEmail || '',
     noticeCategory: normalizeNoticeCategory(doc.noticeCategory),
     publishedAt: doc.publishedAt || doc.published_at || null
   };
@@ -121,6 +123,8 @@ const createAnnouncement = async (authEmail, body) => {
     image: body.image || '',
     imageFileName: body.imageFileName?.trim() || '',
     targetRoles,
+    targetPartnerId: body.targetPartnerId || null,
+    targetPartnerEmail: body.targetPartnerEmail?.trim()?.toLowerCase() || '',
     noticeCategory,
     publishedByEmail: authEmail,
     publishedByRole: role,

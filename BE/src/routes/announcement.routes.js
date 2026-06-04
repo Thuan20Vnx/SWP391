@@ -82,7 +82,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
 
 
-    const filtered = filterAnnouncementsForViewer(list, viewerRole).slice(0, limit);
+    const filtered = filterAnnouncementsForViewer(list, viewerRole, req.authEmail).slice(0, limit);
 
     const userMap = await loadPublisherUserMap(filtered);
 
@@ -140,7 +140,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
 
 
-    if (!doc || !filterAnnouncementsForViewer([doc], viewerRole).length) {
+    if (!doc || !filterAnnouncementsForViewer([doc], viewerRole, req.authEmail).length) {
 
       return res.status(404).json({
 

@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 import defaultAvatar from '../../constants/defaultAvatar';
-import { ADMIN_NAV_ITEMS } from '../../data/adminNavItems';
-import { getRoleDisplayLabel, getUserRole } from '../../utils/auth';
+import { ADMIN_NAV_ITEMS, ICPDP_ADMIN_NAV_ITEMS } from '../../data/adminNavItems';
+import { getRoleDisplayLabel, getUserRole, isIcpdpRole } from '../../utils/auth';
 import { AdminMenuIcon } from './AdminMenuIcons';
 
 const AdminSidebar = ({
@@ -18,10 +18,12 @@ const AdminSidebar = ({
     return pathname === item.path || pathname.startsWith(`${item.path}/`);
   };
 
+  const navItems = isIcpdpRole() ? ICPDP_ADMIN_NAV_ITEMS : ADMIN_NAV_ITEMS;
+
   const renderNavItems = () => {
     const out = [];
     let lastSection = null;
-    ADMIN_NAV_ITEMS.forEach((item) => {
+    navItems.forEach((item) => {
       if (item.section && item.section !== lastSection) {
         lastSection = item.section;
         out.push(

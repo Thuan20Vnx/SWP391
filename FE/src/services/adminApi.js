@@ -17,11 +17,38 @@ const adminFetch = (path, options = {}) =>
 export const fetchAdminPartners = (status = 'pending_admin') =>
   adminFetch(`/partners?status=${encodeURIComponent(status)}`);
 
+export const fetchAdminPartner = (id) =>
+  adminFetch(`/partners/${encodeURIComponent(String(id).replace(/^partner-/, ''))}`);
+
+export const requestAdminPartnerTermination = (id, reason) =>
+  adminFetch(`/partners/${encodeURIComponent(String(id).replace(/^partner-/, ''))}/request-termination`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason }),
+  });
+
+export const sendAdminPartnerNotice = (id, body) =>
+  adminFetch(`/partners/${encodeURIComponent(String(id).replace(/^partner-/, ''))}/send-notice`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
 export const approveAdminPartner = (id) =>
   adminFetch(`/partners/${id}/approve`, { method: 'PATCH', body: '{}' });
 
 export const rejectAdminPartner = (id, reason = '') =>
   adminFetch(`/partners/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+
+export const addAdminPartnerMember = (partnerId, body) =>
+  adminFetch(`/partners/${encodeURIComponent(String(partnerId).replace(/^partner-/, ''))}/members`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+export const removeAdminPartnerMember = (partnerId, memberId) =>
+  adminFetch(
+    `/partners/${encodeURIComponent(String(partnerId).replace(/^partner-/, ''))}/members/${encodeURIComponent(memberId)}`,
+    { method: 'DELETE' },
+  );
 
 export const fetchAdminAccounts = async ({ page = 1, limit = 10, role = 'all', search = '' }) => {
   const params = new URLSearchParams({
@@ -79,6 +106,15 @@ export const fetchAdminDataOverview = async () => {
 
 export const fetchAdminDashboardStats = () => adminFetch('/dashboard/stats');
 
+export const fetchAdminUnitEvents = ({ unitType, unitId, scope = 'unit' } = {}) => {
+  const params = new URLSearchParams({ scope });
+  if (scope === 'unit' && unitType && unitId) {
+    params.set('unitType', unitType);
+    params.set('unitId', unitId);
+  }
+  return adminFetch(`/unit-events?${params}`);
+};
+
 export const deleteAdminAccount = async (id) => {
   const res = await fetch(`${API_BASE}/api/admin/accounts/${id}`, {
     method: 'DELETE',
@@ -130,5 +166,18 @@ export const rejectAdminEventRequest = async (id, adminNote = '') => {
     headers: getAuthHeaders(),
     body: JSON.stringify({ adminNote }),
   });
+  return parseJson(res);
+};
+
+export const fetchSystemConfig = () => adminFetch('/system-config');
+
+export const updateSystemMaintenance = (payload) =>
+  adminFetch('/system-config', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+
+export const fetchPublicSystemStatus = async () => {
+  const res = await fetch(`${API_BASE}/api/system/status`);
   return parseJson(res);
 };

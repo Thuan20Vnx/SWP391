@@ -2,6 +2,7 @@ const Partner = require('../models/Partner');
 const PartnerEventRequest = require('../models/PartnerEventRequest');
 const Contract = require('../models/Contract');
 const AppError = require('../utils/AppError');
+const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 
 const MAX_IMAGE_LEN = 4_500_000;
 const MAX_ATTACHMENT_LEN = 2_000_000;
@@ -79,6 +80,7 @@ const buildPayload = (body = {}) => {
     location: body.location?.trim() || '',
     campus: body.campus?.trim() || '',
     agenda: body.agenda?.trim() || '',
+    learningOutcomes: normalizeLearningOutcomes(body.learningOutcomes),
     expectedAttendees: Number(body.expectedAttendees) || 0,
     image: body.image || '',
     bannerFileName: body.bannerFileName?.trim() || '',
@@ -124,6 +126,8 @@ const saveDraft = async (email, body) => {
   return doc;
 };
 
+const { ensurePrimaryPartnerMember } = require('./partnerMember.service');
+
 const syncPartnerRecord = async (email, payload, status = 'pending') => {
   const normalized = normalizeEmail(email);
   let partner = await Partner.findOne({ email: normalized, status: { $ne: 'rejected' } }).sort({
@@ -163,6 +167,7 @@ const syncPartnerRecord = async (email, payload, status = 'pending') => {
       await contract.save();
     }
   }
+  await ensurePrimaryPartnerMember(partner);
   return partner;
 };
 

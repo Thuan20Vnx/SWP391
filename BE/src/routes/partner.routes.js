@@ -238,6 +238,9 @@ router.post('/proposals', async (req, res) => {
       status: 'pending'
     });
 
+    const { ensurePrimaryPartnerMember } = require('../services/partnerMember.service');
+    await ensurePrimaryPartnerMember(partner);
+
     return res.status(201).json({
       success: true,
       partner,

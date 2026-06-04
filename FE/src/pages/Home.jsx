@@ -21,6 +21,7 @@ const HOME_CATEGORY_FILTERS = [
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import useUserProfile from '../hooks/useUserProfile';
 import { mapApiEventToHomeCard, filterActiveDiscoveryEvents } from '../data/eventDiscoveryData';
+import SystemMaintenanceBanner from '../components/SystemMaintenanceBanner';
 
 const Home = ({ showToast }) => {
   const navigate = useNavigate();
@@ -194,6 +195,7 @@ const Home = ({ showToast }) => {
       onSearchKeyDown={handleNavSearch}
     >
     <div className="home-layout">
+      <SystemMaintenanceBanner />
       {/* 2. Hero Banner Slider (Figma 38:1158) */}
       <section className="hero-banner-slider">
         {sliderData.map((slide, index) => (

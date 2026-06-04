@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import BannerCropModal from './ctsv/BannerCropModal';
+import AvatarCropModal from './profile/AvatarCropModal';
 import { API_BASE, getAuthHeaders, parseApiResponse } from '../utils/api';
+import { openImageFilePicker } from '../utils/imageFilePicker';
 
 const ACTIVITY_FIELDS = [
   'Học thuật & Công nghệ',
@@ -39,16 +42,6 @@ const compressDataUrl = (dataUrl, maxSize, quality = 0.82) =>
     };
     img.onerror = () => reject(new Error('Không nén được ảnh'));
     img.src = dataUrl;
-  });
-
-const compressImageFile = (file, maxSize, quality = 0.82) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Không đọc được ảnh'));
-    reader.onload = () => {
-      compressDataUrl(reader.result, maxSize, quality).then(resolve).catch(reject);
-    };
-    reader.readAsDataURL(file);
   });
 
 const normalizeCoverPositionY = (value) => {
@@ -151,6 +144,7 @@ const ProfileCoverSection = ({
   onCoverFileChange,
   onLogoFileChange,
   onPickCover,
+  onRecropCover,
 }) => (
   <section className={`clb-profile-visual${isEditing ? ' clb-profile-visual--edit' : ''}`}>
     <div
@@ -185,12 +179,25 @@ const ProfileCoverSection = ({
                 fill="currentColor"
               />
             </svg>
-            Thay đổi ảnh bìa
+            Tải ảnh bìa (16:9)
           </button>
+          {data.coverImage && data.coverImage !== DEFAULT_COVER && (
+            <button
+              type="button"
+              className="clb-profile-cover-btn clb-profile-cover-btn--secondary"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRecropCover?.();
+              }}
+            >
+              Chỉnh sửa khung ảnh
+            </button>
+          )}
           <input
             ref={coverInputRef}
             type="file"
-            accept="image/*"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
             hidden
             onChange={onCoverFileChange}
           />
@@ -247,6 +254,12 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
   const coverInputRef = useRef(null);
   const logoInputRef = useRef(null);
   const coverDragRef = useRef({ active: false, startY: 0, startPos: 50 });
+  const [bannerCropOpen, setBannerCropOpen] = useState(false);
+  const [bannerCropSrc, setBannerCropSrc] = useState('');
+  const [bannerCropFileName, setBannerCropFileName] = useState('');
+  const [logoCropOpen, setLogoCropOpen] = useState(false);
+  const [logoCropSrc, setLogoCropSrc] = useState('');
+  const [logoCropFileName, setLogoCropFileName] = useState('');
 
   const loadProfile = useCallback(async (signal) => {
     setLoading(true);
@@ -291,24 +304,58 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const readImageFile = async (file, field) => {
-    if (!file) return;
-    if (file.size > 8 * 1024 * 1024) {
-      showToast('Kích thước ảnh không được vượt quá 8MB!', 'error');
+  const openBannerCrop = (src, name = 'club-cover.jpg') => {
+    if (!src) return;
+    setBannerCropSrc(src);
+    setBannerCropFileName(name);
+    setBannerCropOpen(true);
+  };
+
+  const openLogoCrop = (src, name = 'club-logo.jpg') => {
+    if (!src) return;
+    setLogoCropSrc(src);
+    setLogoCropFileName(name);
+    setLogoCropOpen(true);
+  };
+
+  const handleCoverFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const dataUrl = await openImageFilePicker(file, {
+      onError: (msg) => msg && showToast(msg, 'error'),
+    });
+    if (dataUrl) openBannerCrop(dataUrl, file?.name);
+  };
+
+  const handleLogoFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const dataUrl = await openImageFilePicker(file, {
+      onError: (msg) => msg && showToast(msg, 'error'),
+    });
+    if (dataUrl) openLogoCrop(dataUrl, file?.name);
+  };
+
+  const onBannerCropConfirm = (dataUrl) => {
+    setBannerCropOpen(false);
+    setBannerCropSrc('');
+    if (!dataUrl) {
+      showToast('Không xử lý được ảnh bìa. Vui lòng thử lại.', 'error');
       return;
     }
+    setForm((prev) => ({ ...prev, coverImage: dataUrl, coverPositionY: 50 }));
+    showToast('Đã áp dụng ảnh bìa (tỷ lệ 16:9).', 'success');
+  };
 
-    try {
-      const maxSize = field === 'logoImage' ? 512 : 1600;
-      const dataUrl = await compressImageFile(file, maxSize);
-      if (field === 'coverImage') {
-        setForm((prev) => ({ ...prev, coverImage: dataUrl, coverPositionY: 50 }));
-      } else {
-        setForm((prev) => ({ ...prev, [field]: dataUrl }));
-      }
-    } catch {
-      showToast('Không xử lý được ảnh. Hãy thử file khác.', 'error');
+  const onLogoCropConfirm = (dataUrl) => {
+    setLogoCropOpen(false);
+    setLogoCropSrc('');
+    if (!dataUrl) {
+      showToast('Không xử lý được logo. Vui lòng thử lại.', 'error');
+      return;
     }
+    setForm((prev) => ({ ...prev, logoImage: dataUrl }));
+    showToast('Đã áp dụng logo CLB (tỷ lệ 1:1).', 'success');
   };
 
   const handleCoverPointerDown = (e) => {
@@ -338,14 +385,13 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
     }
   };
 
-  const handleCoverFileChange = (e) => {
-    readImageFile(e.target.files?.[0], 'coverImage');
-    e.target.value = '';
-  };
-
-  const handleLogoFileChange = (e) => {
-    readImageFile(e.target.files?.[0], 'logoImage');
-    e.target.value = '';
+  const handleRecropCover = () => {
+    const src = form.coverImage;
+    if (!src || src === DEFAULT_COVER) {
+      coverInputRef.current?.click();
+      return;
+    }
+    openBannerCrop(src, bannerCropFileName || 'club-cover.jpg');
   };
 
   const handleCancelEdit = () => {
@@ -524,6 +570,7 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
             onCoverFileChange={handleCoverFileChange}
             onLogoFileChange={handleLogoFileChange}
             onPickCover={() => coverInputRef.current?.click()}
+            onRecropCover={handleRecropCover}
           />
 
           <section className="clb-profile-card">
@@ -730,6 +777,28 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
           </div>
         </form>
       )}
+
+      <BannerCropModal
+        open={bannerCropOpen}
+        imageSrc={bannerCropSrc}
+        fileName={bannerCropFileName}
+        onConfirm={onBannerCropConfirm}
+        onCancel={() => {
+          setBannerCropOpen(false);
+          setBannerCropSrc('');
+        }}
+      />
+
+      <AvatarCropModal
+        open={logoCropOpen}
+        imageSrc={logoCropSrc}
+        fileName={logoCropFileName}
+        onConfirm={onLogoCropConfirm}
+        onCancel={() => {
+          setLogoCropOpen(false);
+          setLogoCropSrc('');
+        }}
+      />
     </div>
   );
 };

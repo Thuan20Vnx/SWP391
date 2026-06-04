@@ -66,10 +66,17 @@ const canPublisherUseTargets = (publisherRole, targetRoles) => {
   return normalized.every((t) => allowed.includes(t));
 };
 
-const viewerMatchesTargets = (viewerRole, doc) => {
+const viewerMatchesTargets = (viewerRole, doc, viewerEmail = '') => {
   const targets = resolveDocTargetRoles(doc);
-  if (targets.includes(ANNOUNCEMENT_TARGET_ALL)) return true;
   const role = normalizeTargetRole(viewerRole) || 'guest';
+  const targetedEmail = String(doc?.targetPartnerEmail || '').trim().toLowerCase();
+
+  if (targetedEmail) {
+    if (role !== 'partner') return false;
+    return String(viewerEmail || '').trim().toLowerCase() === targetedEmail;
+  }
+
+  if (targets.includes(ANNOUNCEMENT_TARGET_ALL)) return true;
   return targets.includes(role);
 };
 

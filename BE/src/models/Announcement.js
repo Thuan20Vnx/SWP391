@@ -11,6 +11,9 @@ const announcementSchema = new mongoose.Schema(
     targetRoles: { type: [String], default: ['all'] },
     /** Doanh mục: info | action | urgent */
     noticeCategory: { type: String, default: 'info' },
+    /** Email đối tác nhận riêng (admin gửi tới một đối tác cụ thể) */
+    targetPartnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', default: null },
+    targetPartnerEmail: { type: String, default: '', trim: true, lowercase: true },
     publishedByEmail: { type: String, default: '' },
     publishedByRole: { type: String, default: '' },
     publishedAt: { type: Date, default: Date.now },

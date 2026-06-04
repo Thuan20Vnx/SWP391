@@ -158,6 +158,14 @@ html.dark .nav-hub__item--active {
   color: var(--primary);
 }
 
+html.dark .nav-hub__item-hint {
+  color: var(--text-tertiary);
+}
+
+html.dark .nav-hub__item--active .nav-hub__item-hint {
+  color: rgba(242, 111, 33, 0.65);
+}
+
 html.dark .nav-hub__footer {
   border-top-color: var(--surface-border);
   background: var(--surface-muted);

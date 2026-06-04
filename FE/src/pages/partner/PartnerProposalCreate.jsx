@@ -43,6 +43,11 @@ import {
   mapRequestToState,
   parseExpectedAttendees
 } from './partnerEventFormUtils';
+import EventIntroFields from '../../components/events/EventIntroFields';
+import {
+  DEFAULT_LEARNING_OUTCOME_ROWS,
+  normalizeLearningOutcomesForSave,
+} from '../../utils/eventIntro';
 
 const FORMAT_OPTIONS = [
   { value: 'campus', label: 'Tại campus' },
@@ -264,6 +269,30 @@ const PartnerProposalCreate = () => {
       return;
     }
     setForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const updateLearningOutcome = (index, value) => {
+    setForm((f) => {
+      const rows = [...(f.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS)];
+      rows[index] = value;
+      return { ...f, learningOutcomes: rows };
+    });
+  };
+
+  const addLearningOutcome = () => {
+    setForm((f) => ({
+      ...f,
+      learningOutcomes: [...(f.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS), ''],
+    }));
+  };
+
+  const removeLearningOutcome = (index) => {
+    setForm((f) => {
+      const rows = [...(f.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS)];
+      if (rows.length <= 1) return f;
+      rows.splice(index, 1);
+      return { ...f, learningOutcomes: rows };
+    });
   };
 
   const onExpectedAttendeesBlur = () => {
@@ -565,6 +594,14 @@ const PartnerProposalCreate = () => {
     }
     if (!form.title.trim() || !form.eventDate) {
       showToast?.('Vui lòng điền tên sự kiện và ngày tổ chức.', 'error');
+      return false;
+    }
+    if (!form.description.trim()) {
+      showToast?.('Vui lòng nhập mô tả trong phần Giới thiệu sự kiện.', 'error');
+      return false;
+    }
+    if (normalizeLearningOutcomesForSave(form.learningOutcomes).length === 0) {
+      showToast?.('Vui lòng thêm ít nhất một mục trong “Bạn sẽ học được gì?”.', 'error');
       return false;
     }
     if (parseExpectedAttendees(form.expectedAttendees) == null) {
@@ -920,7 +957,7 @@ const PartnerProposalCreate = () => {
         </section>
 
         <section className="ctsv-form-section">
-          <SectionTitle>Thông tin sự kiện</SectionTitle>
+          <SectionTitle>Thông tin cơ bản</SectionTitle>
           <div className="ctsv-form-section-body">
             <Field label="Tên sự kiện" required>
               <input
@@ -953,28 +990,25 @@ const PartnerProposalCreate = () => {
                 />
               </Field>
             </div>
-            <div className="ctsv-field">
-              <div className="ctsv-field-label-row">
-                <span className="ctsv-field-label">Mô tả sự kiện</span>
-                <button
-                  type="button"
-                  className="ctsv-ai-link"
-                  disabled={isReadOnly || aiLoading}
-                  onClick={handleOptimizeDescription}
-                >
-                  {aiLoading ? 'Đang tối ưu…' : 'AI Tối ưu mô tả'}
-                </button>
-              </div>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={onChange}
-                className="ctsv-textarea"
-                rows={4}
-                placeholder="Mục tiêu, quy mô, đối tượng tham gia..."
-                disabled={isReadOnly}
-              />
-            </div>
+          </div>
+        </section>
+
+        <EventIntroFields
+          description={form.description}
+          learningOutcomes={form.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS}
+          onDescriptionChange={onChange}
+          onLearningOutcomeChange={updateLearningOutcome}
+          onAddLearningOutcome={addLearningOutcome}
+          onRemoveLearningOutcome={removeLearningOutcome}
+          disabled={isReadOnly}
+          showAiOptimize
+          onAiOptimize={handleOptimizeDescription}
+          aiLoading={aiLoading}
+        />
+
+        <section className="ctsv-form-section">
+          <SectionTitle>Thời gian &amp; địa điểm</SectionTitle>
+          <div className="ctsv-form-section-body">
             <div className="ctsv-form-row-2">
               <Field label="Ngày tổ chức" required>
                 <input
