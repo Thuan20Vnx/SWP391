@@ -152,6 +152,21 @@ router.patch('/system-config', adminOrIcpdp, asyncHandler(async (req, res) => {
   res.json({ success: true, config, message: 'Đã cập nhật cấu hình bảo trì' });
 }));
 
+router.get('/events/calendar', adminOnly, async (req, res) => {
+  try {
+    const events = await Event.find({ isDeleted: { $ne: true } })
+      .sort({ startDate: 1 })
+      .limit(500);
+    return res.json({
+      success: true,
+      events: events.map(formatEvent),
+    });
+  } catch (error) {
+    console.error('admin calendar:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
 router.get('/accounts', adminOnly, asyncHandler(adminController.listAccounts));
 router.post('/accounts', adminOnly, asyncHandler(adminController.createAccount));
 router.get('/accounts/:id', adminOnly, asyncHandler(adminController.getAccount));

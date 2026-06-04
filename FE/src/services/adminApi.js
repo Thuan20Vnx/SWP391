@@ -14,6 +14,8 @@ const adminFetch = (path, options = {}) =>
     headers: { ...getAuthHeaders(), ...options.headers }
   }).then(parseJson);
 
+export const fetchAdminCalendar = () => adminFetch('/events/calendar');
+
 export const fetchAdminPartners = (status = 'pending_admin') =>
   adminFetch(`/partners?status=${encodeURIComponent(status)}`);
 

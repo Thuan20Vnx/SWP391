@@ -1,5 +1,5 @@
 import React from 'react';
-import { isClubManagerRole } from '../utils/auth';
+import { isAdminRole, isClubManagerRole } from '../utils/auth';
 import {
   NavHubCtaButton,
   NavHubFooter,
@@ -19,38 +19,49 @@ const ProfileSidebarMenu = ({
 }) => {
   const go = (action, label) => () => onMenuAction?.(action, label);
   const clubAction = isClubManagerRole() ? 'club-manage' : 'my-clubs';
+  const showClubItem = !isAdminRole();
+
+  const menuItems = [
+    <NavHubItem
+      key="profile"
+      active={activeItem === 'profile'}
+      label="Hồ sơ"
+      hint="Thông tin cá nhân"
+      icon={<NavHubIcon>{navIcons.profile}</NavHubIcon>}
+      onClick={go('profile', 'Hồ sơ')}
+    />,
+  ];
+
+  if (showClubItem) {
+    menuItems.push(
+      <NavHubItem
+        key="clubs"
+        active={activeItem === clubAction || activeItem === 'my-clubs'}
+        label={isClubManagerRole() ? 'Quản lý CLB' : 'CLB của tôi'}
+        hint={isClubManagerRole() ? 'Ban quản trị' : 'Theo dõi & tham gia'}
+        icon={<NavHubIcon>{navIcons.clubs}</NavHubIcon>}
+        onClick={go(clubAction, 'CLB')}
+      />,
+    );
+  }
+
+  menuItems.push(
+    <NavHubItem
+      key="schedule"
+      active={activeItem === 'schedule'}
+      label="Lịch của tôi"
+      hint="Sự kiện đã đăng ký"
+      icon={<NavHubIcon>{navIcons.calendar}</NavHubIcon>}
+      onClick={go('schedule', 'Lịch của tôi')}
+    />,
+  );
 
   return (
     <div className="nav-hub nav-hub--compact">
       <NavHubHeader userProfile={userProfile} fallbackName="Người dùng" />
 
       <NavHubMenuSection
-        items={[
-          <NavHubItem
-            key="profile"
-            active={activeItem === 'profile'}
-            label="Hồ sơ"
-            hint="Thông tin cá nhân"
-            icon={<NavHubIcon>{navIcons.profile}</NavHubIcon>}
-            onClick={go('profile', 'Hồ sơ')}
-          />,
-          <NavHubItem
-            key="clubs"
-            active={activeItem === clubAction || activeItem === 'my-clubs'}
-            label={isClubManagerRole() ? 'Quản lý CLB' : 'CLB của tôi'}
-            hint={isClubManagerRole() ? 'Ban quản trị' : 'Theo dõi & tham gia'}
-            icon={<NavHubIcon>{navIcons.clubs}</NavHubIcon>}
-            onClick={go(clubAction, 'CLB')}
-          />,
-          <NavHubItem
-            key="schedule"
-            active={activeItem === 'schedule'}
-            label="Lịch của tôi"
-            hint="Sự kiện đã đăng ký"
-            icon={<NavHubIcon>{navIcons.calendar}</NavHubIcon>}
-            onClick={go('schedule', 'Lịch của tôi')}
-          />,
-        ]}
+        items={menuItems}
         cta={
           <NavHubCtaButton
             icon={<NavHubIcon size={16}>{navIcons.qr}</NavHubIcon>}

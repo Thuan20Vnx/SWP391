@@ -44,6 +44,7 @@ import ClubDetail from './pages/ClubDetail';
 import CreateEvent from './pages/CreateEvent';
 import AdminLayout from './layouts/AdminLayout';
 import AdminMonitoringDashboard from './pages/AdminMonitoringDashboard';
+import AdminCalendar from './pages/admin/AdminCalendar';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminPartnerApprovals from './pages/admin/AdminPartnerApprovals';
 import AdminSystemControl from './pages/admin/AdminSystemControl';
@@ -405,6 +406,7 @@ function App() {
           <Route path="/admin" element={<AdminAreaGuard />}>
             <Route element={<AdminLayout showToast={showToast} />}>
               <Route index element={<AdminMonitoringDashboard />} />
+              <Route path="calendar" element={<AdminCalendar />} />
               <Route path="profile" element={<Profile showToast={showToast} embedded />} />
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
               <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />

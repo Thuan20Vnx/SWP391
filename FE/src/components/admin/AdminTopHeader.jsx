@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import fptLogo from '../../assets/fpt_logo.png';
 import defaultAvatar from '../../constants/defaultAvatar';
-import ProfileSidebarMenu from '../ProfileSidebarMenu';
+import AdminProfileMenu from './AdminProfileMenu';
 import HeaderNotificationPanel from '../HeaderNotificationPanel';
 import useUserProfile, { clearUserProfileCache } from '../../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../../utils/authEvents';
@@ -59,11 +59,12 @@ const AdminTopHeader = ({
     setProfilePopupOpen(false);
     const routes = {
       profile: '/admin/profile',
-      'browse-events': '/events',
+      calendar: '/admin/calendar',
+      partners: '/admin/partners',
+      events: '/admin/events',
       settings: '/admin/system',
-      schedule: '/admin',
-      'my-clubs': '/admin/partners',
-      'my-events': '/admin/events',
+      'fpt-system': '/',
+      'browse-events': '/events',
     };
     if (routes[action]) navigate(routes[action]);
   };
@@ -203,7 +204,7 @@ const AdminTopHeader = ({
                         role="presentation"
                       />
                       <div className="profile-menu-dropdown" role="menu" aria-label="Menu tài khoản">
-                        <ProfileSidebarMenu
+                        <AdminProfileMenu
                           activeItem=""
                           userProfile={userProfile}
                           onMenuAction={handleProfileMenuAction}

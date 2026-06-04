@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import fptLogo from '../assets/fpt_logo.png';
 import defaultAvatar from '../constants/defaultAvatar';
 import ProfileSidebarMenu from './ProfileSidebarMenu';
+import AdminProfileMenu from './admin/AdminProfileMenu';
 import AdminDrawerMenu from './admin/AdminDrawerMenu';
 import NotificationBell from './NotificationBell';
 import { getRoleLabel } from '../utils/role';
@@ -102,15 +103,15 @@ const SiteHeader = ({
   const handleProfileMenuAction = (action) => {
     setProfilePopupOpen(false);
 
-    const routes = isAdminPortal
+    const routes = isAdminRole(role) || isAdminPortal
       ? {
           profile: '/admin/profile',
-          'browse-events': '/events',
+          calendar: '/admin/calendar',
+          partners: '/admin/partners',
+          events: '/admin/events',
           settings: '/admin/system',
-          schedule: '/admin',
-          'my-clubs': '/admin/partners',
-          'club-manage': '/admin/partners',
-          'my-events': '/admin/events',
+          'fpt-system': '/',
+          'browse-events': '/events',
         }
       : {
           profile: '/profile',
@@ -288,12 +289,21 @@ const SiteHeader = ({
                         role="menu"
                         aria-label="Menu tài khoản"
                       >
-                        <ProfileSidebarMenu
-                          activeItem=""
-                          userProfile={userProfile}
-                          onMenuAction={handleProfileMenuAction}
-                          onLogout={handleLogout}
-                        />
+                        {isAdminRole(role) ? (
+                          <AdminProfileMenu
+                            activeItem=""
+                            userProfile={userProfile}
+                            onMenuAction={handleProfileMenuAction}
+                            onLogout={handleLogout}
+                          />
+                        ) : (
+                          <ProfileSidebarMenu
+                            activeItem=""
+                            userProfile={userProfile}
+                            onMenuAction={handleProfileMenuAction}
+                            onLogout={handleLogout}
+                          />
+                        )}
                       </div>
                     </>
                   )}
