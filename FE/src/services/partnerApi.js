@@ -268,6 +268,7 @@ export const buildPartnerEventRequestPayload = ({
     location: form.location,
     campus: form.campus,
     agenda: form.agenda,
+    learningOutcomes: (form.learningOutcomes || []).filter((s) => String(s).trim()),
     expectedAttendees: Number(form.expectedAttendees) || 0,
     image: form.image,
     bannerFileName,

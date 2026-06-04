@@ -8,8 +8,13 @@ const adminRoutes = require('./admin.routes');
 const partnerRoutes = require('./partner.routes');
 const announcementRoutes = require('./announcement.routes');
 const announcementManageRoutes = require('./announcementManage.routes');
+const systemRoutes = require('./system.routes');
+const maintenanceGate = require('../middleware/maintenanceGate');
 
 const router = express.Router();
+
+router.use('/system', systemRoutes);
+router.use(maintenanceGate);
 
 router.use('/auth', authRoutes);
 router.use('/user', userRoutes);

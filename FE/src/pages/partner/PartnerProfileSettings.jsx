@@ -2,15 +2,16 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { Link } from 'react-router-dom';
 
+import BannerCropModal from '../../components/ctsv/BannerCropModal';
 import AvatarCropModal from '../../components/profile/AvatarCropModal';
+import { openImageFilePicker } from '../../utils/imageFilePicker';
+import ProfilePasswordSection from '../../components/profile/ProfilePasswordSection';
 
 import defaultAvatar from '../../constants/defaultAvatar';
 
 import { cacheUserProfile } from '../../hooks/useUserProfile';
 
 import {
-
-  changePartnerPassword,
 
   fetchPartnerMe,
 
@@ -258,10 +259,6 @@ const PartnerProfileSettings = ({ showToast }) => {
 
   const companyLogoInputRef = useRef(null);
 
-  const isGoogleLogin = localStorage.getItem('loginMethod') === 'google';
-
-
-
   const [user, setUser] = useState(() => normalizeUser({ fullname: localStorage.getItem('userFullname') || '' }));
 
   const [company, setCompany] = useState(() => normalizeCompany(mapPartnerToCompanyForm(null)));
@@ -282,20 +279,6 @@ const PartnerProfileSettings = ({ showToast }) => {
 
 
 
-  const [pwForm, setPwForm] = useState({
-
-    currentPassword: '',
-
-    newPassword: '',
-
-    confirmPassword: ''
-
-  });
-
-  const [pwLoading, setPwLoading] = useState(false);
-
-
-
   const [cropOpen, setCropOpen] = useState(false);
 
   const [cropSrc, setCropSrc] = useState('');
@@ -307,8 +290,6 @@ const PartnerProfileSettings = ({ showToast }) => {
   const [sectionOpen, setSectionOpen] = useState({
 
     company: false,
-
-    security: false,
 
     notifications: false
 
@@ -390,58 +371,47 @@ const PartnerProfileSettings = ({ showToast }) => {
 
 
 
-  const openImagePicker = (target) => {
-
+  const openCropEditor = async (fileOrSrc, fileName, target) => {
+    if (typeof fileOrSrc === 'string') {
+      setCropTarget(target);
+      setCropSrc(fileOrSrc);
+      setCropFileName(fileName || (target === 'company' ? 'company-cover.jpg' : 'avatar.jpg'));
+      setCropOpen(true);
+      return;
+    }
+    const dataUrl = await openImageFilePicker(fileOrSrc, {
+      onError: (msg) => msg && showToast?.(msg, 'error'),
+    });
+    if (!dataUrl) return;
     setCropTarget(target);
-
-    if (target === 'user') userAvatarInputRef.current?.click();
-
-    else companyLogoInputRef.current?.click();
-
+    setCropSrc(dataUrl);
+    setCropFileName(fileOrSrc?.name || (target === 'company' ? 'company-cover.jpg' : 'avatar.jpg'));
+    setCropOpen(true);
   };
 
-
+  const openImagePicker = (target) => {
+    if (target === 'user') {
+      if (user.avatar) {
+        openCropEditor(user.avatar, 'avatar.jpg', 'user');
+        return;
+      }
+      setCropTarget('user');
+      userAvatarInputRef.current?.click();
+      return;
+    }
+    if (company.logo) {
+      openCropEditor(company.logo, 'company-cover.jpg', 'company');
+      return;
+    }
+    setCropTarget('company');
+    companyLogoInputRef.current?.click();
+  };
 
   const handleImageUpload = (e) => {
-
     const file = e.target.files?.[0];
-
     e.target.value = '';
-
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-
-      showToast?.('Vui lòng chọn file ảnh (PNG, JPG).', 'error');
-
-      return;
-
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-
-      showToast?.('Kích thước ảnh tối đa là 5MB.', 'error');
-
-      return;
-
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-
-      setCropSrc(reader.result);
-
-      setCropFileName(file.name);
-
-      setCropOpen(true);
-
-    };
-
-    reader.onerror = () => showToast?.('Không thể đọc tệp ảnh.', 'error');
-
-    reader.readAsDataURL(file);
-
+    if (!file || !cropTarget) return;
+    openCropEditor(file, file.name, cropTarget);
   };
 
 
@@ -808,64 +778,6 @@ const PartnerProfileSettings = ({ showToast }) => {
 
 
 
-  const handlePasswordSubmit = async (e) => {
-
-    e.preventDefault();
-
-    const { currentPassword, newPassword, confirmPassword } = pwForm;
-
-
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-
-      showToast?.('Vui lòng điền đầy đủ thông tin mật khẩu.', 'error');
-
-      return;
-
-    }
-
-    if (newPassword.length < 6) {
-
-      showToast?.('Mật khẩu mới phải có ít nhất 6 ký tự.', 'error');
-
-      return;
-
-    }
-
-    if (newPassword !== confirmPassword) {
-
-      showToast?.('Xác nhận mật khẩu không khớp.', 'error');
-
-      return;
-
-    }
-
-
-
-    setPwLoading(true);
-
-    try {
-
-      await changePartnerPassword(currentPassword, newPassword);
-
-      setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-
-      showToast?.('Đổi mật khẩu thành công.', 'success');
-
-    } catch (err) {
-
-      showToast?.(err.message || 'Đổi mật khẩu thất bại.', 'error');
-
-    } finally {
-
-      setPwLoading(false);
-
-    }
-
-  };
-
-
-
   const displayUserAvatar = user.avatar || defaultAvatar;
 
 
@@ -1114,11 +1026,11 @@ const PartnerProfileSettings = ({ showToast }) => {
 
                 type="button"
 
-                className="partner-company-logo-preview partner-company-logo-preview--clickable"
+                className="partner-company-logo-preview partner-company-logo-preview--banner partner-company-logo-preview--clickable"
 
                 onClick={() => openImagePicker('company')}
 
-                title="Thay đổi logo công ty"
+                title="Thay đổi ảnh đại diện công ty (16:9)"
 
                 disabled={logoSaving}
 
@@ -1166,7 +1078,11 @@ const PartnerProfileSettings = ({ showToast }) => {
 
                 >
 
-                  {logoSaving ? 'Đang lưu logo...' : company.logo ? 'Đổi logo công ty' : 'Tải logo công ty'}
+                  {logoSaving
+                    ? 'Đang lưu...'
+                    : company.logo
+                      ? 'Đổi ảnh công ty (16:9)'
+                      : 'Tải ảnh công ty (16:9)'}
 
                 </button>
 
@@ -1190,7 +1106,9 @@ const PartnerProfileSettings = ({ showToast }) => {
 
                 )}
 
-                <span>Logo doanh nghiệp — lưu ngay sau khi cắt/chỉnh (khác ảnh đại diện cá nhân)</span>
+                <span>
+                  Ảnh đại diện công ty tỷ lệ 16:9 — bắt buộc cắt/chỉnh trước khi lưu (khác ảnh cá nhân 1:1)
+                </span>
 
                 <input
 
@@ -1346,117 +1264,11 @@ const PartnerProfileSettings = ({ showToast }) => {
 
 
 
-        <PartnerProfileCollapseSection
-
-          id="partner-profile-security-panel"
-
-          title="Bảo mật"
-
-          desc="Đổi mật khẩu đăng nhập tài khoản đối tác."
-
-          open={sectionOpen.security}
-
-          onToggle={() => toggleSection('security')}
-
-        >
-
-          {isGoogleLogin ? (
-
-            <p className="partner-profile-card__desc">
-
-              Tài khoản đăng nhập bằng Google không hỗ trợ đổi mật khẩu tại đây.
-
-            </p>
-
-          ) : (
-
-            <form onSubmit={handlePasswordSubmit}>
-
-              <div className="partner-form-grid">
-
-                <div className="partner-field partner-field--full">
-
-                  <label htmlFor="currentPassword">Mật khẩu hiện tại</label>
-
-                  <input
-
-                    id="currentPassword"
-
-                    type="password"
-
-                    value={pwForm.currentPassword}
-
-                    onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))}
-
-                    placeholder="Nhập mật khẩu hiện tại"
-
-                    autoComplete="current-password"
-
-                  />
-
-                </div>
-
-                <div className="partner-field">
-
-                  <label htmlFor="newPassword">Mật khẩu mới</label>
-
-                  <input
-
-                    id="newPassword"
-
-                    type="password"
-
-                    value={pwForm.newPassword}
-
-                    onChange={(e) => setPwForm((p) => ({ ...p, newPassword: e.target.value }))}
-
-                    placeholder="Ít nhất 6 ký tự"
-
-                    autoComplete="new-password"
-
-                  />
-
-                </div>
-
-                <div className="partner-field">
-
-                  <label htmlFor="confirmPassword">Xác nhận mật khẩu</label>
-
-                  <input
-
-                    id="confirmPassword"
-
-                    type="password"
-
-                    value={pwForm.confirmPassword}
-
-                    onChange={(e) => setPwForm((p) => ({ ...p, confirmPassword: e.target.value }))}
-
-                    placeholder="Nhập lại mật khẩu mới"
-
-                    autoComplete="new-password"
-
-                  />
-
-                </div>
-
-              </div>
-
-              <div className="partner-profile-actions">
-
-                <button type="submit" className="partner-btn-primary" disabled={pwLoading}>
-
-                  {pwLoading ? 'Đang lưu...' : 'Đổi mật khẩu'}
-
-                </button>
-
-              </div>
-
-            </form>
-
-          )}
-
-        </PartnerProfileCollapseSection>
+        <ProfilePasswordSection
+          showToast={showToast}
+          idPrefix="partner"
+          description="Đổi mật khẩu đăng nhập tài khoản đối tác."
+        />
 
 
 
@@ -1510,18 +1322,20 @@ const PartnerProfileSettings = ({ showToast }) => {
 
       )}
 
-      <AvatarCropModal
-
-        open={cropOpen}
-
+      <BannerCropModal
+        open={cropOpen && cropTarget === 'company'}
         imageSrc={cropSrc}
-
         fileName={cropFileName}
-
         onConfirm={handleCropConfirm}
-
         onCancel={handleCropCancel}
+      />
 
+      <AvatarCropModal
+        open={cropOpen && cropTarget === 'user'}
+        imageSrc={cropSrc}
+        fileName={cropFileName}
+        onConfirm={handleCropConfirm}
+        onCancel={handleCropCancel}
       />
 
     </div>

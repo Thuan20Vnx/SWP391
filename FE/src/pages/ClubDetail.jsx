@@ -220,15 +220,8 @@ const ClubDetail = ({ showToast }) => {
                   <div className="club-detail-page__admin-actions">
                     <button
                       type="button"
-                      className="club-detail-page__btn club-detail-page__btn--outline"
-                      onClick={() => navigate('/admin/data')}
-                    >
-                      Chỉnh sửa dữ liệu
-                    </button>
-                    <button
-                      type="button"
                       className="club-detail-page__btn club-detail-page__btn--primary"
-                      onClick={() => navigate('/announcements')}
+                      onClick={() => navigate('/admin/announcements')}
                     >
                       Gửi thông báo
                     </button>
@@ -292,11 +285,13 @@ const ClubDetail = ({ showToast }) => {
               <h2>Ban chủ nhiệm</h2>
               <div className="club-detail-page__board">
                 {club.board.map((member) => (
-                  <div key={member.name} className="club-detail-page__board-card">
-                    <img src={member.avatar} alt={member.name} />
-                    <strong>{member.name}</strong>
-                    <span>{member.role}</span>
-                  </div>
+                  <article key={member.name} className="club-detail-page__board-card">
+                    <div className="club-detail-page__board-avatar">
+                      <img src={member.avatar} alt={member.name} loading="lazy" />
+                    </div>
+                    <strong className="club-detail-page__board-name">{member.name}</strong>
+                    <span className="club-detail-page__board-role">{member.role}</span>
+                  </article>
                 ))}
               </div>
             </section>

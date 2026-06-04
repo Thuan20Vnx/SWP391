@@ -158,8 +158,8 @@ const formatPublicAnnouncement = (doc, userMap, options = {}) => {
   };
 };
 
-const filterAnnouncementsForViewer = (docs, viewerRole) =>
-  (docs || []).filter((doc) => viewerMatchesTargets(viewerRole || 'guest', doc));
+const filterAnnouncementsForViewer = (docs, viewerRole, viewerEmail = '') =>
+  (docs || []).filter((doc) => viewerMatchesTargets(viewerRole || 'guest', doc, viewerEmail));
 
 module.exports = {
   PUBLIC_ANNOUNCEMENT_FILTER,

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminFptDeptCard from '../../../components/admin/AdminFptDeptCard';
+import AdminFptNotifBell from '../../../components/admin/AdminFptNotifBell';
 import AdminFptUnitCard from '../../../components/admin/AdminFptUnitCard';
 import AppSelect from '../../../components/ui/AppSelect';
 import PublicAdminShell from '../../../layouts/PublicAdminShell';
@@ -167,15 +168,19 @@ const AdminFptSystem = ({ showToast }) => {
   };
 
   const handleUnitDetail = (unit) => {
+    if (unit.isDepartment && unit.type) {
+      navigate(`/dept/${unit.type}`);
+      return;
+    }
     navigate(unit.detailLink || unit.link || '/');
   };
 
-  const handleUnitManage = (unit) => {
-    navigate(unit.manageLink || '/admin/data');
+  const handleUnitApprove = (unit) => {
+    navigate(unit.approveLink || unit.manageLink || '/admin/events');
   };
 
-  const handleNotify = () => {
-    navigate('/admin/announcements');
+  const handleUnitManage = (unit) => {
+    navigate(unit.manageLink || '/admin/events');
   };
 
   return (
@@ -309,6 +314,7 @@ const AdminFptSystem = ({ showToast }) => {
                       <h2>Đơn vị điều phối</h2>
                       <p>CTSV và IC-PDP — quản lý cấp trường trên nền tảng F-Events</p>
                     </div>
+                    <AdminFptNotifBell className="admin-fpt-section__notif" />
                   </header>
                   <div className="admin-fpt-section__depts">
                     {visibleDepartments.map((unit) => (
@@ -317,7 +323,6 @@ const AdminFptSystem = ({ showToast }) => {
                         unit={unit}
                         onDetail={handleUnitDetail}
                         onManage={handleUnitManage}
-                        onNotify={handleNotify}
                       />
                     ))}
                   </div>
@@ -348,6 +353,7 @@ const AdminFptSystem = ({ showToast }) => {
                         Phê duyệt ({summary.pendingPartners})
                       </button>
                     )}
+                    <AdminFptNotifBell className="admin-fpt-section__notif" />
                   </header>
 
                   {loading ? (
@@ -367,8 +373,7 @@ const AdminFptSystem = ({ showToast }) => {
                             key={unit.id}
                             unit={unit}
                             onDetail={handleUnitDetail}
-                            onManage={handleUnitManage}
-                            onNotify={handleNotify}
+                            onApprove={handleUnitApprove}
                           />
                         ))}
                       </div>
@@ -395,6 +400,7 @@ const AdminFptSystem = ({ showToast }) => {
                           : `${filteredClubs.length} CLB${searchQuery ? ` · "${searchQuery}"` : ''}`}
                       </p>
                     </div>
+                    <AdminFptNotifBell className="admin-fpt-section__notif" />
                   </header>
 
                   {loading ? (
@@ -411,8 +417,7 @@ const AdminFptSystem = ({ showToast }) => {
                             key={unit.id}
                             unit={unit}
                             onDetail={handleUnitDetail}
-                            onManage={handleUnitManage}
-                            onNotify={handleNotify}
+                            onApprove={handleUnitApprove}
                           />
                         ))}
                       </div>

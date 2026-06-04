@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react-router-dom';
 
 import Home from './pages/Home';
 import CtsvHome from './pages/CtsvHome';
@@ -47,7 +47,6 @@ import AdminMonitoringDashboard from './pages/AdminMonitoringDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminPartnerApprovals from './pages/admin/AdminPartnerApprovals';
 import AdminSystemControl from './pages/admin/AdminSystemControl';
-import AdminDataMaintenance from './pages/admin/AdminDataMaintenance';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminPartners from './pages/admin/AdminPartners';
 import AdminAccountsControl from './pages/admin/AdminAccountsControl';
@@ -76,9 +75,23 @@ import PartnerContractList from './pages/partner/PartnerContractList';
 import PartnerAnalytics from './pages/partner/PartnerAnalytics';
 import PartnerReportDetail from './pages/partner/PartnerReportDetail';
 import PartnerProposalCreate from './pages/partner/PartnerProposalCreate';
-import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole, isClubManagerRole, isPartnerRole } from './utils/auth';
+import {
+  getHomePathForRole,
+  getUserRole,
+  isCtsvRole,
+  isAdminRole,
+  isIcpdpRole,
+  isClubManagerRole,
+  isPartnerRole,
+} from './utils/auth';
+import SystemMaintenanceGate from './components/SystemMaintenanceGate';
+import SystemMaintenanceBanner from './components/SystemMaintenanceBanner';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import AdminFptSystem from './pages/admin/public/AdminFptSystem';
+import AdminPartnerDetail from './pages/admin/public/AdminPartnerDetail';
+import AdminFptDeptDetail from './pages/admin/public/AdminFptDeptDetail';
+import AdminFptUnitNotify from './pages/admin/public/AdminFptUnitNotify';
+import AdminFptUnitEvents from './pages/admin/AdminFptUnitEvents';
 import AdminPublicAnnouncements from './pages/admin/public/AdminPublicAnnouncements';
 import PublicAdminShell from './layouts/PublicAdminShell';
 import SiteFooter from './components/SiteFooter';
@@ -130,6 +143,35 @@ const PublicClubsRoute = ({ showToast }) => {
   return <Clubs showToast={showToast} />;
 };
 
+const PublicDeptDetailRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (!isAdminRole()) return <Navigate to="/" replace />;
+  return <AdminFptDeptDetail showToast={showToast} />;
+};
+
+const PublicUnitNotifyRoute = () => {
+  const { unitType, unitId } = useParams();
+  const [searchParams] = useSearchParams();
+  const qs = searchParams.toString();
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (!isAdminRole()) return <Navigate to="/" replace />;
+  return (
+    <Navigate
+      to={`/admin/unit-notify/${unitType}/${unitId}${qs ? `?${qs}` : ''}`}
+      replace
+    />
+  );
+};
+
+const PublicPartnerDetailRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (!isAdminRole()) return <Navigate to="/" replace />;
+  return <AdminPartnerDetail showToast={showToast} />;
+};
+
 const PublicAnnouncementsRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (!isLoggedIn) return <Navigate to="/login" replace />;
@@ -162,6 +204,7 @@ const AdminAreaGuard = () => {
 
   if (!isLoggedIn) return <Navigate to="/login" replace />;
   if (isAdminRole()) return <Outlet />;
+  if (isIcpdpRole() && pathname.startsWith('/admin/system')) return <Outlet />;
   if (
     isCtsvRole() &&
     (pathname.startsWith('/admin/events') || pathname.startsWith('/admin/event-requests'))
@@ -187,6 +230,7 @@ function App() {
     <Router>
       <div className="app-root">
         <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
+        <SystemMaintenanceGate>
         <Routes>
           <Route path="/" element={<PublicHomeRoute showToast={showToast} />} />
 
@@ -228,6 +272,8 @@ function App() {
               <Route path="proposals" element={<IcpdpProposalList />} />
               <Route path="proposals/:id" element={<IcpdpProposalDetail />} />
               <Route path="events" element={<IcpdpEventList />} />
+              <Route path="events/create" element={<CtsvEventCreate />} />
+              <Route path="events/:id/edit" element={<CtsvEventCreate />} />
               <Route path="events/:id" element={<IcpdpEventDetail />} />
               <Route path="calendar" element={<IcpdpCalendar />} />
               <Route path="reports" element={<IcpdpReports />} />
@@ -310,6 +356,12 @@ function App() {
           <Route path="/events/:eventId" element={<EventDetail showToast={showToast} />} />
           <Route path="/clubs" element={<PublicClubsRoute showToast={showToast} />} />
           <Route path="/clubs/:clubId" element={<ClubDetail showToast={showToast} />} />
+          <Route path="/dept/:deptType" element={<PublicDeptDetailRoute showToast={showToast} />} />
+          <Route path="/partners/:partnerId" element={<PublicPartnerDetailRoute showToast={showToast} />} />
+          <Route
+            path="/unit-notify/:unitType/:unitId"
+            element={<PublicUnitNotifyRoute showToast={showToast} />}
+          />
           <Route
             path="/quan-ly-clb"
             element={
@@ -359,11 +411,12 @@ function App() {
               <Route path="event-requests" element={<AdminEventRequests showToast={showToast} />} />
               <Route path="accounts" element={<AdminAccountsControl />} />
               <Route path="system" element={<AdminSystemControl />} />
-              <Route path="data" element={<AdminDataMaintenance />} />
               <Route path="partners" element={<AdminPartners />} />
               <Route path="partners/approvals" element={<AdminPartnerApprovals showToast={showToast} />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="announcements" element={<AdminAnnouncementManage />} />
+              <Route path="unit-events/:unitType/:unitId" element={<AdminFptUnitEvents />} />
+              <Route path="unit-notify/:unitType/:unitId" element={<AdminFptUnitNotify />} />
               <Route
                 path="announcements/:id"
                 element={
@@ -426,6 +479,7 @@ function App() {
 
           <Route path="*" element={<Navigate to={getHomePathForRole(getUserRole())} replace />} />
         </Routes>
+        </SystemMaintenanceGate>
       </div>
     </Router>
   );

@@ -1,4 +1,8 @@
 import { createEmptySpeakerRow } from '../../constants/eventSpeaker';
+import {
+  DEFAULT_LEARNING_OUTCOME_ROWS,
+  learningOutcomesToFormRows,
+} from '../../utils/eventIntro';
 
 export const TICKET_AUDIENCE_OPTIONS = ['SV FPT', 'Khách ngoài trường', 'Tất cả'];
 export const BANNER_MAX_BYTES = 5 * 1024 * 1024;
@@ -43,7 +47,8 @@ export const EMPTY_EVENT_FORM = {
   campus: 'FPT University',
   expectedAttendees: '',
   agenda: '',
-  image: ''
+  image: '',
+  learningOutcomes: [...DEFAULT_LEARNING_OUTCOME_ROWS],
 };
 
 export const parseExpectedAttendees = (value) => {
@@ -117,7 +122,8 @@ export const mapRequestToState = (req) => ({
     campus: req.campus || 'FPT University',
     expectedAttendees: req.expectedAttendees ? String(req.expectedAttendees) : '',
     agenda: req.agenda || '',
-    image: req.image || ''
+    image: req.image || '',
+    learningOutcomes: learningOutcomesToFormRows(req),
   },
   tickets:
     req.ticketTypes?.length > 0

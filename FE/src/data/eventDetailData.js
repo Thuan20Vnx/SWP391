@@ -188,7 +188,10 @@ export const mapApiEventToDetail = (event) => {
     campus: event.campus,
     description: event.description,
     descriptionParagraphs: splitDescription(event.description),
-    learningOutcomes: DEFAULT_LEARNING,
+    learningOutcomes:
+      Array.isArray(event.learningOutcomes) && event.learningOutcomes.length > 0
+        ? event.learningOutcomes
+        : DEFAULT_LEARNING,
     agenda: buildAgenda(event.startDate, event.endDate, event.title),
     speakers: mapSpeakersForDetail(event),
     source: event.source || 'club',

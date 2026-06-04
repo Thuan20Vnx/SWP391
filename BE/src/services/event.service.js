@@ -11,6 +11,7 @@ const {
   deriveTicketPriceFromTypes,
   totalQtyFromTypes
 } = require('../utils/ticketTypes');
+const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 
 /** Trạng thái chờ duyệt (đồng bộ với luồng CTSV / CLB) */
 const PENDING_EVENT_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'revision'];
@@ -29,6 +30,7 @@ const createEvent = async (user, body) => {
     ticketTypes,
     speaker,
     agenda,
+    learningOutcomes,
   } = body;
 
   const normalizedTickets = normalizeTicketTypes(ticketTypes);
@@ -68,6 +70,7 @@ const createEvent = async (user, body) => {
     status: 'pending',
     speaker: speaker || undefined,
     agenda: agenda || undefined,
+    learningOutcomes: normalizeLearningOutcomes(learningOutcomes),
   });
 
   return {

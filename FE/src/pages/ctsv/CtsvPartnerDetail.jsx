@@ -15,8 +15,8 @@ import {
   PARTNER_STATUS_TONE,
   formatPartnerDate,
   formatVnd,
-  partnerInitials
 } from '../../utils/partnerDisplay';
+import PartnerAvatar from '../../components/partner/PartnerAvatar';
 
 const CTSV_CAN_ACT = ['pending', 'info_requested'];
 
@@ -129,7 +129,7 @@ const CtsvPartnerDetail = () => {
         </div>
 
         <div className="ctsv-pd-contact-card">
-          <span className="ctsv-pd-avatar">{partnerInitials(partner.name)}</span>
+          <PartnerAvatar partner={partner} className="ctsv-pd-avatar" />
           <div>
             <strong>{partner.representative || '—'}</strong>
             <span>{repRole}</span>

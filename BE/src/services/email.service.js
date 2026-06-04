@@ -202,8 +202,50 @@ const sendActivationEmail = async (email, fullname, password) => {
   });
 };
 
+const sendPartnerTerminationEmail = async ({ to, partnerName, reason, adminEmail }) => {
+  const htmlContent = buildEmailShell({
+    title: 'Yêu cầu hủy hợp tác',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Thông báo từ Admin F-Events</p>
+      <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Yêu cầu hủy hợp tác</h1>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;">Kính gửi <strong>${partnerName}</strong>,</p>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;">Admin (<strong>${adminEmail || 'F-Events'}</strong>) đã gửi yêu cầu hủy hợp tác trên hệ thống F-Events.</p>
+      <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#1e293b;">Lý do:</p>
+      <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#334155;background:#faf8f6;border:1px solid #e8ddd6;border-radius:8px;padding:12px 14px;">${reason}</p>
+      <p style="margin:0;font-size:13px;line-height:20px;color:#8a7b72;">Vui lòng đăng nhập cổng đối tác để xem thông báo chi tiết và phản hồi nếu cần.</p>
+    `,
+  });
+
+  return sendMail({
+    to,
+    subject: `[F-Events] Yêu cầu hủy hợp tác — ${partnerName}`,
+    html: htmlContent,
+  });
+};
+
+const sendPartnerAdminNoticeEmail = async ({ to, partnerName, title, content, adminEmail }) => {
+  const htmlContent = buildEmailShell({
+    title: title || 'Thông báo từ Admin',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Thông báo Admin → ${partnerName}</p>
+      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">${title}</h1>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;white-space:pre-wrap;">${content}</p>
+      <p style="margin:0;font-size:13px;line-height:20px;color:#8a7b72;">Gửi bởi ${adminEmail || 'Admin F-Events'}.</p>
+    `,
+  });
+
+  return sendMail({
+    to,
+    subject: `[F-Events] ${title}`,
+    html: htmlContent,
+  });
+};
+
 module.exports = {
   sendOtpEmail,
   sendActivationEmail,
   sendMailInBackground,
+  sendMail,
+  sendPartnerTerminationEmail,
+  sendPartnerAdminNoticeEmail,
 };

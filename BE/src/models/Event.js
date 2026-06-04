@@ -158,6 +158,7 @@ const eventSchema = new mongoose.Schema(
     speakerAvatar: { type: String, default: '' },
     speakers: { type: [speakerSchema], default: [] },
     agenda: { type: String, default: '' },
+    learningOutcomes: { type: [String], default: [] },
     expectedAttendees: { type: Number, default: 50 },
     ticketTypes: { type: [ticketTypeSchema], default: [] },
     source: {

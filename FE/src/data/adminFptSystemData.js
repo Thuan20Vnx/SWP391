@@ -50,8 +50,9 @@ const DEPT_TEMPLATE = {
       'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80',
     tags: ['ctsv', 'công tác sinh viên', 'phê duyệt', 'đối tác'],
     manageLink: '/admin/events',
-    manageLabel: 'Duyệt sự kiện',
-    detailLink: '/admin/accounts?role=ctsv',
+    manageLabel: 'Quản lý sự kiện',
+    detailLink: '/dept/ctsv',
+    notifyLink: '/admin/announcements',
     accountsRole: 'ctsv',
   },
   icpdp: {
@@ -66,7 +67,8 @@ const DEPT_TEMPLATE = {
     tags: ['icpdp', 'quốc tế', 'đề xuất', 'clb'],
     manageLink: '/admin/event-requests',
     manageLabel: 'Yêu cầu sự kiện',
-    detailLink: '/admin/accounts?role=icpdp',
+    detailLink: '/dept/icpdp',
+    notifyLink: '/admin/announcements',
     accountsRole: 'icpdp',
   },
 };
@@ -95,11 +97,14 @@ export const mapPartnerToFptUnit = (partner) => ({
   coverImage: partner.logo || '',
   logoText: partner.logoText,
   logoColor: '#059669',
-  detailLink:
+  detailLink: `/partners/${partner._id}`,
+  manageLink:
     partner.status === 'pending_admin'
-      ? '/admin/partners/approvals'
+      ? `/partners/${partner._id}`
       : '/admin/partners',
-  manageLink: '/admin/partners',
+  manageLabel: partner.status === 'pending_admin' ? 'Phê duyệt' : 'Quản lý đối tác',
+  approveLink: `/admin/unit-events/partner/${partner._id}?name=${encodeURIComponent(partner.name || '')}`,
+  notifyLink: `/admin/unit-notify/partner/${partner._id}?name=${encodeURIComponent(partner.name || '')}`,
   approvalLink: '/admin/partners/approvals',
   tags: [partner.category, partner.proposedEventTitle].filter(Boolean),
   createdAt: partner.createdAt,
@@ -117,8 +122,12 @@ export const mapClubToFptUnit = (club) => ({
   logoText: club.logoText,
   logoColor: club.logoColor,
   detailLink: `/clubs/${club.id}`,
-  manageLink: '/admin/data',
+  manageLink: `/clubs/${club.id}`,
+  manageLabel: 'Xem CLB',
+  approveLink: `/admin/unit-events/clb/${encodeURIComponent(club.id)}?name=${encodeURIComponent(club.name || '')}`,
+  notifyLink: `/admin/unit-notify/clb/${encodeURIComponent(club.id)}?name=${encodeURIComponent(club.name || '')}`,
   link: `/clubs/${club.id}`,
+  clubSlug: club.id,
   tags: [...(club.tags || []), club.category].filter(Boolean),
 });
 

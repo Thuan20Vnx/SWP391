@@ -7,7 +7,7 @@ const formatMembers = (count) => {
   return String(count);
 };
 
-const AdminFptUnitCard = ({ unit, onDetail, onManage, onNotify }) => {
+const AdminFptUnitCard = ({ unit, onDetail, onApprove }) => {
   const meta = FPT_TYPE_META[unit.type] || FPT_TYPE_META.clb;
   const members = unit.type === 'clb' ? formatMembers(unit.memberCount) : null;
   const isPartner = unit.type === 'partner';
@@ -42,7 +42,7 @@ const AdminFptUnitCard = ({ unit, onDetail, onManage, onNotify }) => {
         {unit.subtitle && <p className="admin-fpt-unit-card__subtitle">{unit.subtitle}</p>}
         <p className="admin-fpt-unit-card__desc">{unit.description}</p>
 
-        <div className="admin-fpt-unit-card__actions">
+        <div className="admin-fpt-unit-card__actions admin-fpt-unit-card__actions--dual">
           <button
             type="button"
             className="admin-fpt-unit-card__btn admin-fpt-unit-card__btn--primary"
@@ -53,16 +53,9 @@ const AdminFptUnitCard = ({ unit, onDetail, onManage, onNotify }) => {
           <button
             type="button"
             className="admin-fpt-unit-card__btn admin-fpt-unit-card__btn--ghost"
-            onClick={() => onManage?.(unit)}
+            onClick={() => onApprove?.(unit)}
           >
-            {isPartner ? 'Quản lý đối tác' : 'Quản lý'}
-          </button>
-          <button
-            type="button"
-            className="admin-fpt-unit-card__btn admin-fpt-unit-card__btn--ghost"
-            onClick={() => onNotify?.(unit)}
-          >
-            Thông báo
+            Quản lý sự kiện
           </button>
         </div>
       </div>

@@ -939,6 +939,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
+.clb-profile-cover-btn--secondary {
+  right: 16px;
+  bottom: 56px;
+  border: 1px solid #e2e8f0;
+}
+
 .clb-profile-cover-btn:hover {
   background: #fff;
 }

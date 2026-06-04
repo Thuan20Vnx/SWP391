@@ -1,7 +1,7 @@
 import React from 'react';
 import { FPT_TYPE_META } from '../../data/adminFptSystemData';
 
-const AdminFptDeptCard = ({ unit, onDetail, onManage, onNotify }) => {
+const AdminFptDeptCard = ({ unit, onDetail, onManage }) => {
   const meta = FPT_TYPE_META[unit.type] || FPT_TYPE_META.ctsv;
 
   return (
@@ -25,7 +25,7 @@ const AdminFptDeptCard = ({ unit, onDetail, onManage, onNotify }) => {
 
         <p className="admin-fpt-dept-card__desc">{unit.description}</p>
 
-        <div className="admin-fpt-dept-card__actions">
+        <div className="admin-fpt-dept-card__actions admin-fpt-dept-card__actions--dual">
           <button
             type="button"
             className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--primary"
@@ -39,13 +39,6 @@ const AdminFptDeptCard = ({ unit, onDetail, onManage, onNotify }) => {
             onClick={() => onManage?.(unit)}
           >
             {unit.manageLabel}
-          </button>
-          <button
-            type="button"
-            className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--ghost"
-            onClick={() => onNotify?.(unit)}
-          >
-            Thông báo
           </button>
         </div>
       </div>

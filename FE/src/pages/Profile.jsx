@@ -12,7 +12,7 @@ import { cacheUserProfile } from '../hooks/useUserProfile';
 import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileApi';
 import { isAdminRole, isCtsvRole, normalizeRole } from '../utils/auth';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
-import CtsvProfilePasswordSection from '../components/ctsv/CtsvProfilePasswordSection';
+import ProfilePasswordSection from '../components/profile/ProfilePasswordSection';
 
 const Profile = ({ showToast, embedded = false }) => {
   const navigate = useNavigate();
@@ -143,8 +143,21 @@ const Profile = ({ showToast, embedded = false }) => {
 
   const displayAvatar = avatar || defaultAvatar;
   const profilePageTitle = 'Thông tin cá nhân';
-  const isCtsvEmbedded = embedded && isCtsvRole(userRole);
+  const isCtsvEmbedded = embedded && isCtsvRole(userRole) && !isAdminRole(userRole);
   const isAdminEmbedded = embedded && isAdminRole(userRole);
+
+  const profileFormTitle = isCtsvEmbedded
+    ? 'Thông tin liên hệ & chuyên môn'
+    : isAdminEmbedded
+      ? 'Thông tin cá nhân'
+      : 'Thông tin cá nhân & Sở thích';
+
+  const passwordDescription = (() => {
+    const role = normalizeRole(userRole);
+    if (role === 'admin') return 'Cập nhật mật khẩu đăng nhập tài khoản quản trị viên.';
+    if (role === 'ctsv') return 'Cập nhật mật khẩu đăng nhập tài khoản cán bộ CTSV.';
+    return 'Cập nhật mật khẩu đăng nhập tài khoản của bạn.';
+  })();
 
   const handleNavigateProfile = (e) => {
     e.preventDefault();
@@ -434,7 +447,7 @@ const Profile = ({ showToast, embedded = false }) => {
             style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
           >
             <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>
-              {isCtsvEmbedded ? 'Thông tin liên hệ & chuyên môn' : 'Thông tin cá nhân & Sở thích'}
+              {profileFormTitle}
             </h2>
 
                   <div className="profile-form-grid">
@@ -703,7 +716,13 @@ const Profile = ({ showToast, embedded = false }) => {
                   </div>
           </form>
 
-          {isCtsvEmbedded && <CtsvProfilePasswordSection showToast={showToast} />}
+          {!profileLoading && (
+            <ProfilePasswordSection
+              showToast={showToast}
+              description={passwordDescription}
+              idPrefix={isAdminEmbedded ? 'admin' : isCtsvEmbedded ? 'ctsv' : 'student'}
+            />
+          )}
         </div>
         </>
         )}
