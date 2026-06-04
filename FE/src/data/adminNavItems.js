@@ -9,6 +9,7 @@ export const ICPDP_ADMIN_NAV_ITEMS = [
 export const ADMIN_NAV_ITEMS = [
   { path: '/admin', label: 'Bảng điều khiển', icon: 'dashboard', end: true },
   { path: '/admin/profile', label: 'Hồ sơ', icon: 'profile' },
+  { path: '/admin/calendar', label: 'Lịch sự kiện', icon: 'calendar' },
   { section: 'QUẢN TRỊ' },
   { path: '/admin/accounts', label: 'Kiểm soát tài khoản', icon: 'accounts' },
   { path: '/admin/system', label: 'Kiểm soát hệ thống', icon: 'system' },
