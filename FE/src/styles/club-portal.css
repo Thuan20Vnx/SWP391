@@ -49,23 +49,16 @@
   vertical-align: middle;
 }
 
-/* Chuyển nhượng Chủ nhiệm — đồng bộ clb-profile-form */
+/* Chuyển nhượng Chủ nhiệm — toggle và panel là 2 card riêng */
 .clb-chairman-transfer {
-  margin-top: 1.5rem;
-  background: #fff;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 1.25rem;
 }
 
-.clb-profile-form .clb-chairman-transfer--compact {
-  margin-top: 0;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
-  border-top: 1px solid #e2e8f0;
+.clb-chairman-transfer--compact {
+  margin-top: 1.25rem;
 }
 
 .clb-chairman-transfer__toggle {
@@ -74,8 +67,10 @@
   justify-content: space-between;
   width: 100%;
   padding: 1rem 1.25rem;
-  border: none;
-  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
   cursor: pointer;
   text-align: left;
   gap: 1rem;
@@ -85,22 +80,8 @@
   background: #f8fafc;
 }
 
-.clb-chairman-transfer__toggle-main {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.875rem;
-}
-
-.clb-chairman-transfer__badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: #e2e8f0;
-  color: #475569;
-  flex-shrink: 0;
+.clb-chairman-transfer__toggle-text {
+  min-width: 0;
 }
 
 .clb-chairman-transfer__title {
@@ -127,8 +108,11 @@
 }
 
 .clb-chairman-transfer__panel {
-  padding: 0 1.25rem 1.25rem;
-  border-top: 1px solid #e2e8f0;
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
 }
 
 .clb-chairman-transfer__alert {

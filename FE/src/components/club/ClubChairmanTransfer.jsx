@@ -45,22 +45,23 @@ const ClubChairmanTransfer = ({ showToast, compact = false, onTransferred }) => 
   };
 
   return (
-    <section className={className} id="club-chairman-transfer">
-      <button type="button" className="clb-chairman-transfer__toggle" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded} aria-controls="club-chairman-transfer-panel">
-        <div className="clb-chairman-transfer__toggle-main">
-          <span className="clb-chairman-transfer__badge" aria-hidden>
-            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor" /></svg>
-          </span>
-          <div>
-            <h2 className="clb-chairman-transfer__title">Chuyển nhượng Chủ nhiệm CLB</h2>
-            <p className="clb-chairman-transfer__subtitle">Chuyển quyền quản lý CLB — yêu cầu xác nhận 2 lần.</p>
-          </div>
+    <div className={className} id="club-chairman-transfer">
+      <button
+        type="button"
+        className="clb-chairman-transfer__toggle"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        aria-controls="club-chairman-transfer-panel"
+      >
+        <div className="clb-chairman-transfer__toggle-text">
+          <h2 className="clb-chairman-transfer__title">Chuyển nhượng Chủ nhiệm CLB</h2>
+          <p className="clb-chairman-transfer__subtitle">Chuyển quyền quản lý CLB — yêu cầu xác nhận 2 lần.</p>
         </div>
         <ChevronIcon open={expanded} />
       </button>
 
       {expanded && (
-        <div id="club-chairman-transfer-panel" className="clb-chairman-transfer__panel">
+        <section id="club-chairman-transfer-panel" className="clb-chairman-transfer__panel" aria-label="Form chuyển nhượng Chủ nhiệm">
           <div className="clb-chairman-transfer__alert">
             <strong>Lưu ý quan trọng</strong>
             <p>Sau khi chuyển nhượng, bạn sẽ <em>mất quyền quản lý CLB</em>. Người nhận phải có tài khoản email trường.</p>
@@ -85,7 +86,7 @@ const ClubChairmanTransfer = ({ showToast, compact = false, onTransferred }) => 
               Tiếp tục xác nhận lần 2
             </button>
           </form>
-        </div>
+        </section>
       )}
 
       <ConfirmDialog
@@ -99,7 +100,7 @@ const ClubChairmanTransfer = ({ showToast, compact = false, onTransferred }) => 
         onCancel={() => !submitting && setConfirmOpen(false)}
         onConfirm={executeTransfer}
       />
-    </section>
+    </div>
   );
 };
 
