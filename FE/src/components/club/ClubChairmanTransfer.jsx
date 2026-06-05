@@ -64,16 +64,21 @@ const ClubChairmanTransfer = ({ showToast, compact = false, onTransferred }) => 
         <section id="club-chairman-transfer-panel" className="clb-chairman-transfer__panel" aria-label="Form chuyển nhượng Chủ nhiệm">
           <div className="clb-chairman-transfer__alert">
             <strong>Lưu ý quan trọng</strong>
-            <p>Sau khi chuyển nhượng, bạn sẽ <em>mất quyền quản lý CLB</em>. Người nhận phải có tài khoản email trường.</p>
+            <p>
+              Sau khi chuyển nhượng, bạn sẽ <em>mất quyền quản lý CLB</em>. Người nhận phải có tài khoản email trong trường
+              (Vì sinh viên K19 trở đi dùng mail cá nhân rồi).
+            </p>
           </div>
           <form className="clb-chairman-transfer__form" onSubmit={handleSubmit}>
-            <div className="clb-profile-field">
-              <label htmlFor="transfer-email">Email người nhận *</label>
-              <input id="transfer-email" type="email" className="clb-input" placeholder="sv@fpt.edu.vn" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="clb-profile-field">
-              <label htmlFor="transfer-president">Tên hiển thị Chủ nhiệm (tuỳ chọn)</label>
-              <input id="transfer-president" type="text" className="clb-input" placeholder="Nguyễn Văn A" value={presidentName} onChange={(e) => setPresidentName(e.target.value)} />
+            <div className="clb-chairman-transfer__field-row">
+              <div className="clb-profile-field">
+                <label htmlFor="transfer-email">Email người nhận *</label>
+                <input id="transfer-email" type="email" className="clb-input" placeholder="sv@fpt.edu.vn" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              </div>
+              <div className="clb-profile-field">
+                <label htmlFor="transfer-president">Tên hiển thị Chủ nhiệm (tuỳ chọn)</label>
+                <input id="transfer-president" type="text" className="clb-input" placeholder="Nguyễn Văn A" value={presidentName} onChange={(e) => setPresidentName(e.target.value)} />
+              </div>
             </div>
             <div className="clb-chairman-transfer__steps">
               <p className="clb-chairman-transfer__steps-label">Xác nhận bước 1 / 2</p>
