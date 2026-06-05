@@ -31,8 +31,8 @@ const ClubSidebarAside = ({
       }
 
       const linkClass = isClubNavActive(item.key, activeNav)
-        ? 'ctsv-nav-link club-nav-link active'
-        : 'ctsv-nav-link club-nav-link';
+        ? 'ctsv-nav-link active'
+        : 'ctsv-nav-link';
 
       out.push(
         <button

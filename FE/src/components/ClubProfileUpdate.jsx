@@ -556,6 +556,8 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
               {display.description?.trim() ? display.description : 'Chưa cập nhật'}
             </p>
           </section>
+
+          <ClubChairmanTransfer showToast={showToast} compact onTransferred={() => window.location.reload()} />
         </div>
       ) : (
         <form className="clb-profile-form" onSubmit={handleSubmit}>
@@ -777,10 +779,6 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
             </button>
           </div>
         </form>
-      )}
-
-      {!isEditing && (
-        <ClubChairmanTransfer showToast={showToast} compact onTransferred={() => window.location.reload()} />
       )}
 
       <BannerCropModal
