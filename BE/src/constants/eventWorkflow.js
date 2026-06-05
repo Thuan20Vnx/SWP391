@@ -94,6 +94,18 @@ const buildSchoolEventSubmitMeta = (authEmail) => ({
   adminApprovedAt: null
 });
 
+const resolveSchoolOrganizerRole = (userRole) =>
+  userRole === 'icpdp' ? 'icpdp' : 'ctsv';
+
+const canRoleManageSchoolEvent = (event, userRole) => {
+  if (!event || event.source !== 'school') return false;
+  if (userRole === 'admin') return true;
+  const org = event.schoolOrganizerRole || 'ctsv';
+  if (userRole === 'icpdp') return org === 'icpdp';
+  if (userRole === 'ctsv') return org === 'ctsv';
+  return false;
+};
+
 const buildSchoolEventAdminApproveMeta = (authEmail) => ({
   status: SCHOOL_EVENT_APPROVED_STATUS,
   approvedByEmail: authEmail || '',
@@ -115,5 +127,7 @@ module.exports = {
   canCtsvEditSchoolEvent,
   shouldResubmitSchoolEventForAdmin,
   buildSchoolEventSubmitMeta,
-  buildSchoolEventAdminApproveMeta
+  buildSchoolEventAdminApproveMeta,
+  resolveSchoolOrganizerRole,
+  canRoleManageSchoolEvent
 };

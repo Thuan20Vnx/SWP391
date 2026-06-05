@@ -29,6 +29,7 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction, viewOnly = false
     registered,
     priceLabel,
     studentPrivilegeApplied,
+    organizerLabel,
   } = event;
 
   const fillPercent = getFillPercent(filledSlots, totalSlots);
@@ -75,42 +76,61 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction, viewOnly = false
       </div>
 
       <div className="event-discovery-card__body">
-        <h3 className="event-discovery-card__title">{title}</h3>
-
-        <div className="event-discovery-card__meta">
-          <div className="event-discovery-card__meta-row">
-            <CalendarIcon />
-            <span>{dateLabel}</span>
-          </div>
-          <div className="event-discovery-card__meta-row">
-            <LocationIcon />
-            <span className="event-discovery-card__location">{location}</span>
-          </div>
-        </div>
-
-        {showProgress && (
-          <div className="event-discovery-card__progress">
-            <div className="event-discovery-card__progress-labels">
-              <span>{filledSlots}/{totalSlots} slot</span>
-              <span className={isExpired ? 'is-muted' : 'is-accent'}>{fillPercent}%</span>
-            </div>
-            <div className="event-discovery-card__progress-track">
-              <div
-                className={`event-discovery-card__progress-fill ${isExpired ? 'is-full' : ''}`}
-                style={{ width: `${fillPercent}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {priceLabel && !isPostponed && (
-          <div className="event-discovery-card__price">
-            <span className="event-discovery-card__price-label">{priceLabel}</span>
-            {studentPrivilegeApplied && (
-              <span className="event-discovery-card__price-badge">Miễn phí</span>
+        <div className="event-discovery-card__body-main">
+          <div className="event-discovery-card__head">
+            <h3 className="event-discovery-card__title">{title}</h3>
+            {organizerLabel && (
+              <span className="event-discovery-card__organizer">{organizerLabel}</span>
             )}
           </div>
-        )}
+
+          <div className="event-discovery-card__meta">
+            <div className="event-discovery-card__meta-chip">
+              <span className="event-discovery-card__meta-icon" aria-hidden="true">
+                <CalendarIcon />
+              </span>
+              <span className="event-discovery-card__meta-text">{dateLabel}</span>
+            </div>
+            <div className="event-discovery-card__meta-chip">
+              <span className="event-discovery-card__meta-icon" aria-hidden="true">
+                <LocationIcon />
+              </span>
+              <span className="event-discovery-card__meta-text event-discovery-card__location">
+                {location}
+              </span>
+            </div>
+          </div>
+
+          {(showProgress || (priceLabel && !isPostponed)) && (
+            <div className="event-discovery-card__info-panel">
+              {showProgress && (
+                <div className="event-discovery-card__progress">
+                  <div className="event-discovery-card__progress-labels">
+                    <span className="event-discovery-card__progress-slot">
+                      <strong>{filledSlots}</strong>/{totalSlots} chỗ
+                    </span>
+                    <span className={isExpired ? 'is-muted' : 'is-accent'}>{fillPercent}% đã đăng ký</span>
+                  </div>
+                  <div className="event-discovery-card__progress-track">
+                    <div
+                      className={`event-discovery-card__progress-fill ${isExpired ? 'is-full' : ''}`}
+                      style={{ width: `${Math.max(fillPercent, fillPercent > 0 ? 4 : 0)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {priceLabel && !isPostponed && (
+                <div className="event-discovery-card__price">
+                  <span className="event-discovery-card__price-label">{priceLabel}</span>
+                  {studentPrivilegeApplied && (
+                    <span className="event-discovery-card__price-badge">Ưu đãi SV</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className={`event-discovery-card__actions ${isPostponed || viewOnly ? 'is-single' : ''}`}>
           {!isPostponed && !viewOnly && (

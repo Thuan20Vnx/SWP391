@@ -386,8 +386,28 @@ html.dark .event-discovery-card__title {
   color: var(--text-heading);
 }
 
-html.dark .event-discovery-card__meta-row {
-  color: var(--text-muted);
+html.dark .event-discovery-card__body {
+  background: linear-gradient(180deg, var(--surface-hover) 0%, var(--bg-card) 100%);
+  border-top-color: var(--surface-border);
+}
+
+html.dark .event-discovery-card__meta-chip,
+html.dark .event-discovery-card__info-panel {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+}
+
+html.dark .event-discovery-card__meta-text {
+  color: var(--text-main);
+}
+
+html.dark .event-discovery-card__meta-icon {
+  background: rgba(242, 111, 33, 0.15);
+}
+
+html.dark .event-discovery-card__actions {
+  background: var(--bg-card);
+  border-top-color: var(--surface-border);
 }
 
 html.dark .event-discovery-card__progress-track {

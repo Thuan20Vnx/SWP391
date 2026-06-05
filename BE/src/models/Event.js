@@ -166,6 +166,12 @@ const eventSchema = new mongoose.Schema(
       enum: ['club', 'school', 'partner'],
       default: 'club'
     },
+    /** Đơn vị gửi đơn sự kiện cấp trường (CTSV hoặc IC-PDP) */
+    schoolOrganizerRole: {
+      type: String,
+      enum: ['ctsv', 'icpdp'],
+      default: 'ctsv'
+    },
     partnerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Partner',

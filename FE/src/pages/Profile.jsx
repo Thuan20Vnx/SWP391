@@ -13,6 +13,7 @@ import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileAp
 import { isAdminRole, isCtsvRole, normalizeRole } from '../utils/auth';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
 import ProfilePasswordSection from '../components/profile/ProfilePasswordSection';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 
 const Profile = ({ showToast, embedded = false }) => {
   const navigate = useNavigate();
@@ -786,8 +787,8 @@ const Profile = ({ showToast, embedded = false }) => {
             onClick={() => navigate('/')}
           >
             <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
-              alt="FEvents Logo"
+              src={FE_LOGO}
+              alt={FE_LOGO_ALT}
               style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
             />
           </div>
@@ -891,8 +892,8 @@ const Profile = ({ showToast, embedded = false }) => {
                 <div className="footer-info">
                   <a href="#" className="footer-logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
                     <img
-                      src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
-                      alt="FEvents Logo"
+                      src={FE_LOGO}
+                      alt={FE_LOGO_ALT}
                       style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
                     />
                   </a>

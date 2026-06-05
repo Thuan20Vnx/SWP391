@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
+import AppSelect from '../components/ui/AppSelect';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import useUserProfile from '../hooks/useUserProfile';
@@ -9,11 +10,13 @@ import { getUserRole, isAdminRole } from '../utils/auth';
 import {
   CATEGORY_FILTERS,
   STATE_FILTERS,
+  ORGANIZER_FILTERS,
   FIGMA_SAMPLE_EVENTS,
   mapApiEventToCard,
   filterEventsByCategory,
   filterEventsBySearch,
   filterEventsByState,
+  filterEventsByOrganizer,
   sortEventsByStatePriority,
 } from '../data/eventDiscoveryData';
 
@@ -21,11 +24,22 @@ const PAGE_SIZE = 6;
 const USE_FIGMA_FALLBACK = false;
 const DEFAULT_STATE_FILTER = 'open';
 
+const ORGANIZER_SELECT_OPTIONS = ORGANIZER_FILTERS.map((f) => ({
+  value: f.id,
+  label: f.label,
+}));
+
+const CATEGORY_SELECT_OPTIONS = CATEGORY_FILTERS.map((f) => ({
+  value: f.id,
+  label: f.label,
+}));
+
 const Events = ({ showToast }) => {
   const navigate = useNavigate();
   const [events, setEvents] = useState(USE_FIGMA_FALLBACK ? FIGMA_SAMPLE_EVENTS : []);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [organizerFilter, setOrganizerFilter] = useState('all');
   const [stateFilter, setStateFilter] = useState(DEFAULT_STATE_FILTER);
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -55,13 +69,24 @@ const Events = ({ showToast }) => {
 
   const filteredEvents = useMemo(() => {
     let result = filterEventsByState(events, stateFilter);
+    result = filterEventsByOrganizer(result, organizerFilter);
     result = filterEventsByCategory(result, activeFilter);
     result = filterEventsBySearch(result, searchQuery);
     return sortEventsByStatePriority(result);
-  }, [events, stateFilter, activeFilter, searchQuery]);
+  }, [events, stateFilter, organizerFilter, activeFilter, searchQuery]);
 
   const visibleEvents = filteredEvents.slice(0, visibleCount);
   const hasMore = visibleCount < filteredEvents.length;
+
+  const hasSecondaryFilters = organizerFilter !== 'all' || activeFilter !== 'all';
+
+  const resetFilters = () => {
+    setActiveFilter('all');
+    setOrganizerFilter('all');
+    setStateFilter(DEFAULT_STATE_FILTER);
+    setSearchQuery('');
+    setVisibleCount(PAGE_SIZE);
+  };
 
   const handleRegister = async (event) => {
     if (event.cardState === 'postponed') {
@@ -140,36 +165,66 @@ const Events = ({ showToast }) => {
           </p>
         </section>
 
-        <section className="events-page__state-filters" aria-label="Lọc theo trạng thái">
-          {STATE_FILTERS.map((filter) => (
-            <button
-              key={filter.id}
-              type="button"
-              className={`events-page__state-pill ${stateFilter === filter.id ? 'is-active' : ''}`}
-              onClick={() => {
-                setStateFilter(filter.id);
-                setVisibleCount(PAGE_SIZE);
-              }}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </section>
+        <section className="events-page__filter-bar" aria-label="Bộ lọc sự kiện">
+          <div className="events-page__filter-bar-main">
+            <div className="events-page__state-filters" role="group" aria-label="Trạng thái">
+              {STATE_FILTERS.map((filter) => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  className={`events-page__state-pill ${stateFilter === filter.id ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setStateFilter(filter.id);
+                    setVisibleCount(PAGE_SIZE);
+                  }}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
 
-        <section className="events-page__filters" aria-label="Lọc theo chủ đề">
-          {CATEGORY_FILTERS.map((filter) => (
-            <button
-              key={filter.id}
-              type="button"
-              className={`events-page__filter-pill ${activeFilter === filter.id ? 'is-active' : ''}`}
-              onClick={() => {
-                setActiveFilter(filter.id);
-                setVisibleCount(PAGE_SIZE);
-              }}
-            >
-              {filter.label}
-            </button>
-          ))}
+            <div className="events-page__filter-dropdowns">
+              <div className="events-page__filter-field">
+                <span className="events-page__filter-field-label" id="events-organizer-filter-label">
+                  Tổ chức
+                </span>
+                <AppSelect
+                  id="events-organizer-filter"
+                  aria-labelledby="events-organizer-filter-label"
+                  value={organizerFilter}
+                  onChange={(e) => {
+                    setOrganizerFilter(e.target.value);
+                    setVisibleCount(PAGE_SIZE);
+                  }}
+                  options={ORGANIZER_SELECT_OPTIONS}
+                  fullWidth={false}
+                  className="events-page__filter-select"
+                />
+              </div>
+              <div className="events-page__filter-field">
+                <span className="events-page__filter-field-label" id="events-category-filter-label">
+                  Chủ đề
+                </span>
+                <AppSelect
+                  id="events-category-filter"
+                  aria-labelledby="events-category-filter-label"
+                  value={activeFilter}
+                  onChange={(e) => {
+                    setActiveFilter(e.target.value);
+                    setVisibleCount(PAGE_SIZE);
+                  }}
+                  options={CATEGORY_SELECT_OPTIONS}
+                  fullWidth={false}
+                  className="events-page__filter-select"
+                />
+              </div>
+              {hasSecondaryFilters && (
+                <button type="button" className="events-page__filter-clear" onClick={resetFilters}>
+                  Xóa lọc
+                </button>
+              )}
+            </div>
+          </div>
         </section>
 
         {loading ? (
@@ -182,22 +237,14 @@ const Events = ({ showToast }) => {
               {stateFilter === 'expired' && 'Chưa có sự kiện đã kết thúc trong bộ lọc này.'}
               {stateFilter === 'postponed' && 'Không có sự kiện bị hoãn.'}
               {stateFilter === 'open' && 'Không có sự kiện đang mở đăng ký.'}
+              {organizerFilter !== 'all' && ' Thử đổi bộ lọc đơn vị tổ chức hoặc chủ đề.'}
             </p>
-            <button
-              type="button"
-              className="events-page__reset-btn"
-              onClick={() => {
-                setActiveFilter('all');
-                setStateFilter(DEFAULT_STATE_FILTER);
-                setSearchQuery('');
-                setVisibleCount(PAGE_SIZE);
-              }}
-            >
+            <button type="button" className="events-page__reset-btn" onClick={resetFilters}>
               Xóa bộ lọc
             </button>
           </div>
         ) : (
-          <section className="events-page__grid">
+          <section className="event-discovery-grid">
             {visibleEvents.map((event) => (
               <EventDiscoveryCard
                 key={event.id}

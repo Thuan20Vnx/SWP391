@@ -28,6 +28,8 @@ import IcpdpHome from './pages/IcpdpHome';
 import IcpdpDashboard from './pages/icpdp/IcpdpDashboard';
 import IcpdpProposalList from './pages/icpdp/IcpdpProposalList';
 import IcpdpProposalDetail from './pages/icpdp/IcpdpProposalDetail';
+import IcpdpClubRegistrationList from './pages/icpdp/IcpdpClubRegistrationList';
+import IcpdpClubRegistrationDetail from './pages/icpdp/IcpdpClubRegistrationDetail';
 import IcpdpEventList from './pages/icpdp/IcpdpEventList';
 import IcpdpEventDetail from './pages/icpdp/IcpdpEventDetail';
 import IcpdpCalendar from './pages/icpdp/IcpdpCalendar';
@@ -272,6 +274,8 @@ function App() {
               <Route path="dashboard" element={<IcpdpDashboard />} />
               <Route path="proposals" element={<IcpdpProposalList />} />
               <Route path="proposals/:id" element={<IcpdpProposalDetail />} />
+              <Route path="club-registrations" element={<IcpdpClubRegistrationList />} />
+              <Route path="club-registrations/:id" element={<IcpdpClubRegistrationDetail />} />
               <Route path="events" element={<IcpdpEventList />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
               <Route path="events/:id/edit" element={<CtsvEventCreate />} />
@@ -407,6 +411,8 @@ function App() {
             <Route element={<AdminLayout showToast={showToast} />}>
               <Route index element={<AdminMonitoringDashboard />} />
               <Route path="calendar" element={<AdminCalendar />} />
+              <Route path="icpdp/club-registrations" element={<IcpdpClubRegistrationList />} />
+              <Route path="icpdp/club-registrations/:id" element={<IcpdpClubRegistrationDetail />} />
               <Route path="profile" element={<Profile showToast={showToast} embedded />} />
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
               <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />
@@ -478,6 +484,8 @@ function App() {
           <Route path="/privacy" element={<StaticPage pageKey="privacy" />} />
           <Route path="/support" element={<StaticPage pageKey="support" />} />
           <Route path="/contact" element={<StaticPage pageKey="contact" />} />
+          <Route path="/guide" element={<StaticPage pageKey="guide" />} />
+          <Route path="/cookies" element={<StaticPage pageKey="cookies" />} />
 
           <Route path="*" element={<Navigate to={getHomePathForRole(getUserRole())} replace />} />
         </Routes>

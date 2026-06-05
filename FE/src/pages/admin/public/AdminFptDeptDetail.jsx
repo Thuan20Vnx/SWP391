@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import AdminFptNotifBell from '../../../components/admin/AdminFptNotifBell';
 import PublicAdminShell from '../../../layouts/PublicAdminShell';
 import SiteFooter from '../../../components/SiteFooter';
-import { fetchAdminAccounts } from '../../../services/adminApi';
+import { fetchAdminAccounts, fetchClubRegistrations } from '../../../services/adminApi';
 import { buildDepartmentUnits, FPT_TYPE_META } from '../../../data/adminFptSystemData';
 import { getAccountInitials } from '../../../data/adminAccountsData';
 import '../../../styles/admin-public-pages.css';
@@ -22,6 +22,10 @@ const AdminFptDeptDetail = ({ showToast }) => {
   const [accounts, setAccounts] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [clubRegistrations, setClubRegistrations] = useState([]);
+  const [clubRegsLoading, setClubRegsLoading] = useState(false);
+  const isIcpdpDept = deptType === 'icpdp';
+  const clubRegListPath = unit?.clubRegistrationLink || '/admin/icpdp/club-registrations';
 
   useEffect(() => {
     if (!unit?.accountsRole) {
@@ -37,6 +41,15 @@ const AdminFptDeptDetail = ({ showToast }) => {
       .catch(() => showToast?.('Không tải được danh sách tài khoản.', 'error'))
       .finally(() => setLoading(false));
   }, [unit?.accountsRole, showToast]);
+
+  useEffect(() => {
+    if (!isIcpdpDept) return;
+    setClubRegsLoading(true);
+    fetchClubRegistrations({ status: 'pending_icpdp' })
+      .then((res) => setClubRegistrations((res.registrations || []).slice(0, 5)))
+      .catch(() => setClubRegistrations([]))
+      .finally(() => setClubRegsLoading(false));
+  }, [isIcpdpDept]);
 
   if (!unit) {
     return (
@@ -71,10 +84,19 @@ const AdminFptDeptDetail = ({ showToast }) => {
                 <button
                   type="button"
                   className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--primary"
-                  onClick={() => navigate(unit.manageLink)}
+                  onClick={() => navigate(isIcpdpDept ? clubRegListPath : unit.manageLink)}
                 >
-                  {unit.manageLabel}
+                  {isIcpdpDept ? 'Duyệt CLB mới' : unit.manageLabel}
                 </button>
+                {isIcpdpDept && (
+                  <button
+                    type="button"
+                    className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--ghost"
+                    onClick={() => navigate('/admin/event-requests')}
+                  >
+                    Yêu cầu sự kiện
+                  </button>
+                )}
                 <button
                   type="button"
                   className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--ghost"
@@ -131,6 +153,57 @@ const AdminFptDeptDetail = ({ showToast }) => {
               Quản lý tất cả tài khoản {meta.label} →
             </button>
           </section>
+
+          {isIcpdpDept && (
+            <section className="admin-fpt-dept-detail__club-approvals">
+              <header>
+                <h2>Duyệt CLB mới</h2>
+                <p>
+                  {clubRegsLoading
+                    ? 'Đang tải...'
+                    : clubRegistrations.length > 0
+                      ? `${clubRegistrations.length} đơn đang chờ IC-PDP xét duyệt`
+                      : 'Không có đơn thành lập CLB đang chờ'}
+                </p>
+              </header>
+
+              {clubRegsLoading ? (
+                <p className="admin-partner-detail__muted">Đang tải danh sách...</p>
+              ) : clubRegistrations.length === 0 ? (
+                <p className="admin-partner-detail__muted">
+                  Sinh viên có thể gửi đơn thành lập CLB qua API — hiện chưa có đơn chờ duyệt.
+                </p>
+              ) : (
+                <ul className="admin-fpt-dept-detail__club-reg-list">
+                  {clubRegistrations.map((reg) => (
+                    <li key={reg.id}>
+                      <div>
+                        <strong>{reg.clubName}</strong>
+                        <span>
+                          {reg.category} · {reg.president}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className="admin-fpt-dept-detail__club-reg-btn"
+                        onClick={() => navigate(`${clubRegListPath}/${reg.id}`)}
+                      >
+                        Xét duyệt
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <button
+                type="button"
+                className="admin-fpt-dept-detail__manage-link"
+                onClick={() => navigate(clubRegListPath)}
+              >
+                Xem tất cả đơn đăng ký CLB →
+              </button>
+            </section>
+          )}
         </main>
         <SiteFooter />
       </div>

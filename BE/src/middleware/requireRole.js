@@ -3,6 +3,7 @@ const { normalizeRole, resolveUserRole } = require('../utils/role');
 
 const CTSV_PORTAL_ROLES = ['ctsv', 'icpdp', 'admin'];
 const CTSV_APPROVE_ROLES = ['ctsv', 'admin'];
+const SCHOOL_EVENT_SUBMIT_ROLES = ['ctsv', 'admin', 'icpdp'];
 const PROPOSAL_MODERATE_ROLES = ['ctsv', 'admin', 'icpdp'];
 const ICPDP_APPROVE_ROLES = ['icpdp', 'ctsv'];
 
@@ -36,6 +37,7 @@ const ADMIN_ROLES = ['admin'];
 
 const requireCtsvPortal = requireRole(CTSV_PORTAL_ROLES);
 const requireCtsvApprove = requireRole(CTSV_APPROVE_ROLES);
+const requireSchoolEventSubmit = requireRole(SCHOOL_EVENT_SUBMIT_ROLES);
 const requireProposalModerate = requireRole(PROPOSAL_MODERATE_ROLES);
 const requireIcpdpOrCtsv = requireRole(ICPDP_APPROVE_ROLES);
 const requireAdmin = requireRole(ADMIN_ROLES);
@@ -44,11 +46,13 @@ module.exports = {
   requireRole,
   requireCtsvPortal,
   requireCtsvApprove,
+  requireSchoolEventSubmit,
   requireProposalModerate,
   requireIcpdpOrCtsv,
   requireAdmin,
   CTSV_PORTAL_ROLES,
   CTSV_APPROVE_ROLES,
+  SCHOOL_EVENT_SUBMIT_ROLES,
   PROPOSAL_MODERATE_ROLES,
   ADMIN_ROLES
 };

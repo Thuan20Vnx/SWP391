@@ -144,7 +144,7 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
             <p>Hiện chưa có sự kiện nào đang mở đăng ký.</p>
           </div>
         ) : (
-          <div className="events-page__grid partner-campus-events-grid">
+          <div className="event-discovery-grid partner-campus-events-grid">
             {events.map((ev) => (
               <EventDiscoveryCard
                 key={ev.id}

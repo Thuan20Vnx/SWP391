@@ -3,7 +3,8 @@ export const ICPDP_SIDEBAR_KEY = 'icpdpSidebarOpen';
 export const ICPDP_NAV_ITEMS = [
   { path: '/icpdp/dashboard', label: 'Bảng điều khiển', icon: 'dashboard' },
   { path: '/icpdp/profile', label: 'Hồ sơ', icon: 'profile' },
-  { path: '/icpdp/proposals', label: 'Duyệt đề xuất CLB', section: 'QUẢN LÝ CLB', icon: 'publish' },
+  { path: '/icpdp/proposals', label: 'Duyệt đề xuất sự kiện', section: 'QUẢN LÝ CLB', icon: 'publish' },
+  { path: '/icpdp/club-registrations', label: 'Duyệt thành lập CLB', icon: 'accounts' },
   { path: '/icpdp/events', label: 'Xem sự kiện', icon: 'calendar' },
   { path: '/icpdp/events/create', label: 'Tạo sự kiện cấp trường', section: 'SỰ KIỆN', icon: 'create' },
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
@@ -54,6 +55,13 @@ export const isIcpdpNavActive = (path, pathname) => {
   }
   if (path === '/icpdp/proposals') {
     return pathname === '/icpdp/proposals' || pathname.startsWith('/icpdp/proposals/');
+  }
+  if (path === '/icpdp/club-registrations') {
+    return (
+      pathname === '/icpdp/club-registrations' ||
+      pathname.startsWith('/icpdp/club-registrations/') ||
+      pathname.startsWith('/admin/icpdp/club-registrations')
+    );
   }
   if (path === '/icpdp/announcements') {
     return pathname.startsWith('/icpdp/announcements');

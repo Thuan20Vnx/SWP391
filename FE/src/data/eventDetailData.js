@@ -42,8 +42,21 @@ const SCHOOL_ORGANIZER = {
     'Sự kiện cấp trường do Phòng Công tác Sinh viên (CTSV) FPT University tổ chức, phục vụ toàn thể sinh viên.',
 };
 
+const ICPDP_ORGANIZER = {
+  kind: 'school',
+  name: 'Ban IC-PDP',
+  slug: null,
+  logo: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=200&q=80',
+  memberCount: null,
+  eventsHeld: null,
+  description:
+    'Sự kiện cấp trường do Ban IC-PDP (Quản lý câu lạc bộ & hoạt động ngoại khóa) tổ chức.',
+};
+
 const resolveEventOrganizer = (event) => {
-  if (event?.source === 'school') return SCHOOL_ORGANIZER;
+  if (event?.source === 'school') {
+    return event?.schoolOrganizerRole === 'icpdp' ? ICPDP_ORGANIZER : SCHOOL_ORGANIZER;
+  }
   if (event?.source === 'partner') {
     return {
       kind: 'partner',
@@ -195,6 +208,7 @@ export const mapApiEventToDetail = (event) => {
     agenda: buildAgenda(event.startDate, event.endDate, event.title),
     speakers: mapSpeakersForDetail(event),
     source: event.source || 'club',
+    schoolOrganizerRole: event.schoolOrganizerRole || 'ctsv',
     organizer: resolveEventOrganizer(event),
     capacity,
     registeredCount,

@@ -251,13 +251,15 @@
   transition: all 0.2s;
 }
 .icpdp-status-chip:hover {
-  border-color: var(--icpdp-accent-light);
-  color: var(--icpdp-accent);
+  border-color: var(--icpdp-accent-light, #fdba74);
+  color: var(--icpdp-accent, #ea580c);
 }
 .icpdp-status-chip.is-active {
-  background: var(--icpdp-accent);
-  border-color: var(--icpdp-accent);
-  color: #fff;
+  background: #fff;
+  border: 2px solid var(--icpdp-accent, #f26f21);
+  color: var(--icpdp-accent, #ea580c);
+  font-weight: 600;
+  box-shadow: none;
 }
 
 /* ── Detail page actions panel ── */

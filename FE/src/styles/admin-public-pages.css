@@ -1095,6 +1095,96 @@
   text-decoration: underline;
 }
 
+.admin-fpt-dept-detail__club-approvals {
+  margin-top: 28px;
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid #e8dfd8;
+  background: #fff;
+}
+
+.admin-fpt-dept-detail__club-approvals header h2 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.admin-fpt-dept-detail__club-approvals header p {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.admin-fpt-dept-detail__club-reg-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-fpt-dept-detail__club-reg-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #efe8e3;
+  background: #faf8f6;
+}
+
+.admin-fpt-dept-detail__club-reg-list li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-fpt-dept-detail__club-reg-list strong {
+  font-size: 0.95rem;
+}
+
+.admin-fpt-dept-detail__club-reg-list span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.admin-fpt-dept-detail__club-reg-btn {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-fpt-dept-detail__club-reg-btn:hover {
+  background: #6d28d9;
+}
+
+.icpdp-club-reg-card__desc {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.icpdp-club-reg-actions {
+  margin-top: 0;
+}
+
+.icpdp-club-reg-actions__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 .admin-fpt-notif-bell--inline {
   display: inline-flex;
 }

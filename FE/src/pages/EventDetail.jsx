@@ -384,7 +384,9 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                     </div>
                   )}
                   {event.organizer.kind === 'school' && (
-                    <span className="event-detail-page__organizer-badge">Cấp trường · CTSV</span>
+                    <span className="event-detail-page__organizer-badge">
+                      Cấp trường · {event.schoolOrganizerRole === 'icpdp' ? 'IC-PDP' : 'CTSV'}
+                    </span>
                   )}
                 </div>
                 <p>{event.organizer.description}</p>

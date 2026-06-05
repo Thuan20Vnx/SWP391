@@ -65,8 +65,9 @@ const DEPT_TEMPLATE = {
     coverImage:
       'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80',
     tags: ['icpdp', 'quốc tế', 'đề xuất', 'clb'],
-    manageLink: '/admin/event-requests',
-    manageLabel: 'Yêu cầu sự kiện',
+    manageLink: '/admin/icpdp/club-registrations',
+    manageLabel: 'Duyệt CLB mới',
+    clubRegistrationLink: '/admin/icpdp/club-registrations',
     detailLink: '/dept/icpdp',
     notifyLink: '/admin/announcements',
     accountsRole: 'icpdp',
