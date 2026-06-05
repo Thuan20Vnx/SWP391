@@ -65,8 +65,7 @@ const ClubChairmanTransfer = ({ showToast, compact = false, onTransferred }) => 
           <div className="clb-chairman-transfer__alert">
             <strong>Lưu ý quan trọng</strong>
             <p>
-              Sau khi chuyển nhượng, bạn sẽ <em>mất quyền quản lý CLB</em>. Người nhận phải có tài khoản email trong trường
-              (Vì sinh viên K19 trở đi dùng mail cá nhân rồi).
+              Sau khi chuyển nhượng, bạn sẽ <em>mất quyền quản lý CLB</em>. Người nhận phải có tài khoản email trong trường.
             </p>
           </div>
           <form className="clb-chairman-transfer__form" onSubmit={handleSubmit}>
