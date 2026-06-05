@@ -515,6 +515,7 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
       </header>
 
       {!isEditing ? (
+        <>
         <div className="clb-profile-form">
           <ProfileCoverSection data={display} isEditing={false} />
 
@@ -556,9 +557,9 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
               {display.description?.trim() ? display.description : 'Chưa cập nhật'}
             </p>
           </section>
-
-          <ClubChairmanTransfer showToast={showToast} compact onTransferred={() => window.location.reload()} />
         </div>
+        <ClubChairmanTransfer showToast={showToast} compact onTransferred={() => window.location.reload()} />
+        </>
       ) : (
         <form className="clb-profile-form" onSubmit={handleSubmit}>
           <ProfileCoverSection
