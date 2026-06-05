@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { API_BASE, getEventHeaders } from '../utils/api';
 import SiteHeader from '../components/SiteHeader';
 import './EventManagementDetail.css';
+import EventQrScannerPanel from '../components/events/EventQrScannerPanel';
 
 
 const EventManagementDetail = ({ showToast }) => {
@@ -144,6 +145,7 @@ const EventManagementDetail = ({ showToast }) => {
           <button className={`ev-tab ${activeTab === 'danh-sach' ? 'active' : ''}`} onClick={() => setActiveTab('danh-sach')}>Danh sách Sinh viên</button>
           <button className={`ev-tab ${activeTab === 'huy-ve' ? 'active' : ''}`} onClick={() => setActiveTab('huy-ve')}>Yêu cầu hủy vé</button>
           <button className={`ev-tab ${activeTab === 'bao-cao' ? 'active' : ''}`} onClick={() => setActiveTab('bao-cao')}>Báo cáo & Minh chứng</button>
+          <button className={`ev-tab ${activeTab === 'qr-scanner' ? 'active' : ''}`} onClick={() => setActiveTab('qr-scanner')}>Quét QR</button>
         </div>
 
         {/* Tab Content */}
@@ -230,7 +232,11 @@ const EventManagementDetail = ({ showToast }) => {
             </div>
           )}
           
-          {activeTab !== 'danh-sach' && (
+          {activeTab === 'qr-scanner' && id && (
+            <EventQrScannerPanel eventId={id} showToast={showToast} />
+          )}
+
+          {activeTab !== 'danh-sach' && activeTab !== 'qr-scanner' && (
             <div className="ev-empty-tab">
               <p>Nội dung đang được cập nhật cho phần <strong>{activeTab}</strong></p>
             </div>

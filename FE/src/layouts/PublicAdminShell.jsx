@@ -2,74 +2,59 @@ import React, { useCallback, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import AdminTopHeader from '../components/admin/AdminTopHeader';
+import ClubPublicSidebar from '../components/club/ClubPublicSidebar';
+import { persistClubPublicSidebarOpen, readClubPublicSidebarPref } from '../components/club/clubNavConfig';
 import SiteHeader from '../components/SiteHeader';
 import useUserProfile from '../hooks/useUserProfile';
-import { getUserRole, isAdminRole, normalizeRole } from '../utils/auth';
+import { getUserRole, isAdminRole, isClubManagerRole, normalizeRole } from '../utils/auth';
 import { readSidebarPref, writeSidebarPref } from '../utils/adminSidebarStorage';
 import '../styles/admin-menu.css';
+import '../styles/club-portal.css';
 
-/**
- * Shell giống AdminLayout cho trang công khai (Trang chủ, Sự kiện, CLB, Tin tức):
- * sidebar mở → nội dung thu; đóng → tràn full width.
- */
 const PublicAdminShell = ({ children, ...headerProps }) => {
   const { pathname } = useLocation();
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = normalizeRole(userProfile.role || getUserRole());
   const showAdminMenu = isLoggedIn && isAdminRole(role);
+  const showClubShell = isLoggedIn && isClubManagerRole(role) && !showAdminMenu;
 
-  const [sidebarOpen, setSidebarOpen] = useState(readSidebarPref);
+  const [adminSidebarOpen, setAdminSidebarOpen] = useState(readSidebarPref);
+  const [clubSidebarOpen, setClubSidebarOpen] = useState(readClubPublicSidebarPref);
 
-  const toggleSidebar = useCallback(() => {
-    setSidebarOpen((prev) => {
-      const next = !prev;
-      writeSidebarPref(next);
-      return next;
-    });
+  const toggleAdminSidebar = useCallback(() => {
+    setAdminSidebarOpen((prev) => { const next = !prev; writeSidebarPref(next); return next; });
   }, []);
-
-  const closeSidebar = useCallback(() => {
-    setSidebarOpen(false);
-    writeSidebarPref(false);
+  const closeAdminSidebar = useCallback(() => { setAdminSidebarOpen(false); writeSidebarPref(false); }, []);
+  const toggleClubSidebar = useCallback(() => {
+    setClubSidebarOpen((prev) => { const next = !prev; persistClubPublicSidebarOpen(next); return next; });
   }, []);
+  const closeClubSidebar = useCallback(() => { setClubSidebarOpen(false); persistClubPublicSidebarOpen(false); }, []);
 
-  if (!showAdminMenu) {
+  if (!showAdminMenu && !showClubShell) {
+    return (<><SiteHeader {...headerProps} />{children}</>);
+  }
+
+  if (showClubShell) {
+    const shellClass = `ctsv-app-shell club-app-shell club-public-shell${clubSidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
     return (
-      <>
-        <SiteHeader {...headerProps} />
-        {children}
-      </>
+      <div className={shellClass}>
+        {clubSidebarOpen && <button type="button" className="ctsv-drawer-backdrop" onClick={closeClubSidebar} aria-label="Đóng menu" />}
+        <ClubPublicSidebar open={clubSidebarOpen} pathname={pathname} userProfile={userProfile} onClose={closeClubSidebar} />
+        <div className="ctsv-shell-main">
+          <SiteHeader {...headerProps} onTogglePortalSidebar={toggleClubSidebar} portalSidebarOpen={clubSidebarOpen} />
+          {children}
+        </div>
+      </div>
     );
   }
 
-  const shellClass = `ctsv-app-shell admin-app-shell admin-public-shell${
-    sidebarOpen ? ' sidebar-open' : ' sidebar-closed'
-  }`;
-
+  const shellClass = `ctsv-app-shell admin-app-shell admin-public-shell${adminSidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
   return (
     <div className={shellClass}>
-      {sidebarOpen && (
-        <button
-          type="button"
-          className="ctsv-drawer-backdrop admin-sidebar-backdrop"
-          onClick={closeSidebar}
-          aria-label="Đóng menu"
-        />
-      )}
-
-      <AdminSidebar
-        open={sidebarOpen}
-        onClose={closeSidebar}
-        pathname={pathname}
-        userProfile={userProfile}
-      />
-
+      {adminSidebarOpen && <button type="button" className="ctsv-drawer-backdrop admin-sidebar-backdrop" onClick={closeAdminSidebar} aria-label="Đóng menu" />}
+      <AdminSidebar open={adminSidebarOpen} onClose={closeAdminSidebar} pathname={pathname} userProfile={userProfile} />
       <div className="ctsv-shell-main admin-shell-main public-shell-main">
-        <AdminTopHeader
-          {...headerProps}
-          sidebarToggle={toggleSidebar}
-          sidebarOpen={sidebarOpen}
-        />
+        <AdminTopHeader {...headerProps} sidebarToggle={toggleAdminSidebar} sidebarOpen={adminSidebarOpen} />
         {children}
       </div>
     </div>

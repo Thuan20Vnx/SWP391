@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import fptLogo from '../assets/fpt_logo.png';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 import defaultAvatar from '../constants/defaultAvatar';
 import ProfileSidebarMenu from './ProfileSidebarMenu';
 import AdminProfileMenu from './admin/AdminProfileMenu';
@@ -136,78 +136,65 @@ const SiteHeader = ({
     navigate('/');
   };
 
+  const hasShellSidebar = Boolean(onTogglePortalSidebar) || (showAdminMenu && !isAdminPortal);
+  const sidebarLogoCollapsed = portalSidebarOpen || (showAdminMenu && !isAdminPortal && menuOpen);
+
+  const renderNav = () => (
+    <nav className={`header-nav site-header__nav ctsv-header-nav${mobileMenuOpen ? ' mobile-active' : ''}`} aria-label="Điều hướng chính">
+      {navItems.map((item) => (
+        <Link
+          key={item.key}
+          to={item.to}
+          className={`nav-link ${showAdminMenu ? (isAdminPublicNavActive(item.key, pathname) ? 'active' : '') : (activeNav === item.key ? 'active' : '')}`}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
+
+  const renderLogo = (collapsed = false) => (
+    <div className={`header-logo ctsv-header-logo site-header__logo${collapsed ? ' is-collapsed' : ''}`} onClick={() => navigate('/')} role="presentation">
+      <img src={FE_LOGO} alt={FE_LOGO_ALT} className="logo-img" />
+    </div>
+  );
+
   return (
     <>
     <header
-      className={`home-header site-header${showAdminMenu ? ' site-header--admin' : ''}${
-        menuOpen && showAdminMenu && !isAdminPortal ? ' admin-home-header--sidebar-open' : ''
-      }`}
+      className={`home-header site-header${showAdminMenu ? ' site-header--admin' : ''}${hasShellSidebar ? ' site-header--with-shell' : ''}${sidebarLogoCollapsed ? ' site-header--sidebar-open' : ''}${menuOpen && showAdminMenu && !isAdminPortal ? ' admin-home-header--sidebar-open' : ''}`}
     >
       <div className="header-container site-header__container">
-        {showAdminMenu && !isAdminPortal ? (
-          <button
-            type="button"
-            className="admin-hamburger-btn"
-            onClick={toggleAdminMenu}
-            aria-label={menuOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'}
-            aria-expanded={menuOpen}
-          >
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-              {menuOpen ? (
-                <path
-                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                  fill="currentColor"
-                />
+        {hasShellSidebar ? (
+          <div className="ctsv-header-start site-header__start">
+            <div className="ctsv-header-brand">
+              {onTogglePortalSidebar ? (
+                <CtsvHamburgerButton onClick={onTogglePortalSidebar} ariaLabel={portalSidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'} />
               ) : (
-                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
+                <button type="button" className="admin-hamburger-btn" onClick={toggleAdminMenu} aria-label={menuOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'} aria-expanded={menuOpen}>
+                  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                    {menuOpen ? <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor" /> : <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />}
+                  </svg>
+                </button>
               )}
-            </svg>
-          </button>
-        ) : onTogglePortalSidebar ? (
-          <CtsvHamburgerButton
-            onClick={onTogglePortalSidebar}
-            ariaLabel={portalSidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
-          />
-        ) : !isAdminPortal ? (
-          <button
-            type="button"
-            className="mobile-hamburger-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Mở menu"
-          >
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
-            </svg>
-          </button>
-        ) : null}
-
-        <div className="header-logo site-header__logo-group">
-          <img
-            src={fptLogo}
-            alt="F Events Logo"
-            className="logo-img"
-            onClick={() => navigate('/')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
-          />
-          <nav className={`header-nav site-header__nav ${mobileMenuOpen ? 'mobile-active' : ''}`}>
-            {navItems.map((item) => (
-              <Link
-                key={item.key}
-                to={item.to}
-                className={`nav-link ${
-                  showAdminMenu
-                    ? (isAdminPublicNavActive(item.key, pathname) ? 'active' : '')
-                    : (activeNav === item.key ? 'active' : '')
-                }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
+              {renderLogo(sidebarLogoCollapsed)}
+            </div>
+            {renderNav()}
+          </div>
+        ) : (
+          <>
+            {!isAdminPortal && (
+              <button type="button" className="mobile-hamburger-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Mở menu">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" /></svg>
+              </button>
+            )}
+            <div className="header-logo site-header__logo-group">
+              {renderLogo(false)}
+              {renderNav()}
+            </div>
+          </>
+        )}
 
         <div className="header-search-box site-header__search">
           <span className="search-icon-inside">

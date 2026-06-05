@@ -50,3 +50,233 @@
   border-radius: 50%;
   vertical-align: middle;
 }
+
+/* Chuyển nhượng Chủ nhiệm — palette trung tính */
+.clb-chairman-transfer {
+  margin-top: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.clb-chairman-transfer--compact {
+  margin-top: 2rem;
+}
+
+.clb-chairman-transfer__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  gap: 1rem;
+}
+
+.clb-chairman-transfer__toggle:hover {
+  background: #f1f5f9;
+}
+
+.clb-chairman-transfer__toggle-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+}
+
+.clb-chairman-transfer__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #e2e8f0;
+  color: #475569;
+  flex-shrink: 0;
+}
+
+.clb-chairman-transfer__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.clb-chairman-transfer__subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.clb-chairman-transfer__chevron {
+  color: #64748b;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.clb-chairman-transfer__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.clb-chairman-transfer__panel {
+  padding: 0 1.25rem 1.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.clb-chairman-transfer__alert {
+  margin: 1rem 0;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.clb-chairman-transfer__alert strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #1e293b;
+}
+
+.clb-chairman-transfer__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 480px;
+}
+
+.clb-chairman-transfer__steps {
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+}
+
+.clb-chairman-transfer__steps-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.clb-chairman-transfer__confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.clb-btn-danger {
+  align-self: flex-start;
+  padding: 0.65rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  background: #475569;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clb-btn-danger:hover:not(:disabled) {
+  background: #334155;
+}
+
+.clb-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* QR scanner panel */
+.ev-qr-scanner-panel {
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.ev-qr-scanner-panel__intro h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.ev-qr-scanner-panel__intro p {
+  margin: 0 0 1.25rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.ev-qr-scanner-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ev-qr-scanner-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .ev-qr-scanner-form__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ev-qr-field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.ev-qr-grants-list h4 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.ev-qr-grants {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ev-qr-grant-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.ev-qr-grant-meta,
+.ev-qr-grant-expiry {
+  display: block;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.ev-qr-empty {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}

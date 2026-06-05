@@ -66,6 +66,7 @@ import ClubManagement from './pages/ClubManagement';
 import ClubAnnouncementsPage from './pages/ClubAnnouncementsPage';
 import ClubAnnouncementDetailPage from './pages/ClubAnnouncementDetailPage';
 import EventManagementDetail from './pages/EventManagementDetail';
+import QrScanPage from './pages/QrScanPage';
 
 import { ToastContainer } from './components/Toast';
 import PartnerLayout from './layouts/PartnerLayout';
@@ -396,6 +397,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <EventManagementDetail showToast={showToast} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quet-qr"
+            element={
+              <ProtectedRoute>
+                <QrScanPage showToast={showToast} />
               </ProtectedRoute>
             }
           />

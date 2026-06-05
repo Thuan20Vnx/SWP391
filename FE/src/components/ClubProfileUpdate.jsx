@@ -3,6 +3,7 @@ import BannerCropModal from './ctsv/BannerCropModal';
 import AvatarCropModal from './profile/AvatarCropModal';
 import { API_BASE, getAuthHeaders, parseApiResponse } from '../utils/api';
 import { openImageFilePicker } from '../utils/imageFilePicker';
+import ClubChairmanTransfer from './club/ClubChairmanTransfer';
 
 const ACTIVITY_FIELDS = [
   'Học thuật & Công nghệ',
@@ -776,6 +777,10 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
             </button>
           </div>
         </form>
+      )}
+
+      {!isEditing && (
+        <ClubChairmanTransfer showToast={showToast} compact onTransferred={() => window.location.reload()} />
       )}
 
       <BannerCropModal

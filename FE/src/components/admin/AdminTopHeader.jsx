@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import fptLogo from '../../assets/fpt_logo.png';
+import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 import defaultAvatar from '../../constants/defaultAvatar';
 import AdminProfileMenu from './AdminProfileMenu';
 import HeaderNotificationPanel from '../HeaderNotificationPanel';
@@ -79,38 +79,37 @@ const AdminTopHeader = ({
     navigate('/');
   };
 
+  const homePath = pathname.startsWith('/admin') ? '/admin' : '/';
+
   return (
     <header
-      className={`home-header site-header site-header--admin admin-home-header${
-        sidebarOpen ? ' admin-home-header--sidebar-open' : ''
+      className={`home-header site-header site-header--admin site-header--with-shell admin-home-header${
+        sidebarOpen ? ' admin-home-header--sidebar-open site-header--sidebar-open' : ''
       }`}
     >
       <div className="header-container site-header__container admin-header-container">
-        <button
-          type="button"
-          className="admin-hamburger-btn admin-header-menu-btn"
-          onClick={sidebarToggle}
-          aria-label={sidebarOpen ? 'Ẩn menu quản trị' : 'Hiện menu quản trị'}
-          aria-expanded={sidebarOpen}
-        >
-          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
-            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
-          </svg>
-        </button>
-
-        <div className="header-logo site-header__logo-group">
-          <img
-            src={fptLogo}
-            alt="F Events Logo"
-            className="logo-img admin-header-logo-img"
-            onClick={() => navigate(pathname.startsWith('/admin') ? '/admin' : '/')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') navigate(pathname.startsWith('/admin') ? '/admin' : '/');
-            }}
-          />
-          <nav className="header-nav site-header__nav" aria-label="Điều hướng">
+        <div className="ctsv-header-start site-header__start">
+          <div className="ctsv-header-brand">
+            <button
+              type="button"
+              className="admin-hamburger-btn admin-header-menu-btn"
+              onClick={sidebarToggle}
+              aria-label={sidebarOpen ? 'Ẩn menu quản trị' : 'Hiện menu quản trị'}
+              aria-expanded={sidebarOpen}
+            >
+              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
+              </svg>
+            </button>
+            <div
+              className={`header-logo ctsv-header-logo site-header__logo${sidebarOpen ? ' is-collapsed' : ''}`}
+              onClick={() => navigate(homePath)}
+              role="presentation"
+            >
+              <img src={FE_LOGO} alt={FE_LOGO_ALT} className="logo-img admin-header-logo-img" />
+            </div>
+          </div>
+          <nav className="header-nav site-header__nav ctsv-header-nav" aria-label="Điều hướng">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.key}

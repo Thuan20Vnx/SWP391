@@ -4,6 +4,7 @@ import defaultAvatar from '../constants/defaultAvatar';
 import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../utils/api';
 import SiteHeader from '../components/SiteHeader';
 import ClubProfileUpdate from '../components/ClubProfileUpdate';
+import ClubChairmanTransfer from '../components/club/ClubChairmanTransfer';
 import ClubSidebarAside from '../components/club/ClubSidebarAside';
 import {
   CLUB_NAV_ITEMS,
@@ -365,6 +366,12 @@ const ClubManagement = ({ showToast }) => {
             />
           )}
 
+          {activeNav === 'transfer-chairman' && (
+            <div className="clb-transfer-chairman-page" style={{ width: '100%', maxWidth: '720px', margin: '0 auto' }}>
+              <ClubChairmanTransfer showToast={showToast} onTransferred={() => navigate('/')} />
+            </div>
+          )}
+
           {activeNav === 'list' && (
             <>
               <div className="clb-page-header">
@@ -655,20 +662,9 @@ const ClubManagement = ({ showToast }) => {
 
           {activeNav === 'notifications' && (
             <div className="clb-notifications-view" style={{ width: '100%', maxWidth: '900px', margin: '0 auto', background: '#fff', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-                <button 
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="clb-sidebar-toggle-btn"
-                  style={{ marginRight: '16px' }}
-                >
-                  <svg viewBox="0 0 24 24" width="24" height="24">
-                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
-                  </svg>
-                </button>
-                <div>
-                  <h2 className="clb-modal-title" style={{ margin: 0 }}>THÔNG BÁO XÉT DUYỆT</h2>
-                  <p className="clb-modal-subtitle" style={{ margin: '4px 0 0 0' }}>Trạng thái phê duyệt các sự kiện của câu lạc bộ.</p>
-                </div>
+              <div style={{ marginBottom: '24px' }}>
+                <h2 className="clb-modal-title" style={{ margin: 0 }}>THÔNG BÁO XÉT DUYỆT</h2>
+                <p className="clb-modal-subtitle" style={{ margin: '4px 0 0 0' }}>Trạng thái phê duyệt các sự kiện của câu lạc bộ.</p>
               </div>
 
               <div className="clb-notifications-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

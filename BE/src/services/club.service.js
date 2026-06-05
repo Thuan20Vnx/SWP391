@@ -406,8 +406,58 @@ const ALLOWED_PROFILE_FIELDS = [
   'logoColor',
 ];
 
+const findClubManagedBy = async (userId) => {
+  let club = await Club.findOne({ managedBy: userId });
+  if (!club) club = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
+  return club;
+};
+
+const transferClubChairman = async (currentUserId, payload = {}) => {
+  const club = await findClubManagedBy(currentUserId);
+  if (!club) throw new AppError('Không tìm thấy CLB bạn đang quản lý.', 404);
+  if (club.managedBy && String(club.managedBy) !== String(currentUserId)) {
+    throw new AppError('Bạn không có quyền chuyển nhượng chủ nhiệm CLB này.', 403);
+  }
+  const targetEmail = String(payload.targetEmail || payload.email || '').trim().toLowerCase();
+  if (!targetEmail) throw new AppError('Vui lòng nhập email sinh viên nhận chuyển nhượng.', 400);
+  if (payload.confirm !== true && payload.confirm !== 'true') {
+    throw new AppError('Vui lòng xác nhận chuyển nhượng (confirm: true).', 400);
+  }
+  const User = require('../models/User');
+  const SchoolMember = require('../models/SchoolMember');
+  const targetUser = await User.findOne({ email: targetEmail });
+  if (!targetUser) throw new AppError('Không tìm thấy tài khoản với email đã nhập.', 404);
+  if (String(targetUser._id) === String(currentUserId)) {
+    throw new AppError('Không thể chuyển nhượng cho chính bạn.', 400);
+  }
+  if (!['student', 'staff'].includes(targetUser.role)) {
+    throw new AppError('Người nhận phải là sinh viên hoặc cán bộ trường.', 400);
+  }
+  const previousManagerId = club.managedBy || currentUserId;
+  const previousUser = await User.findById(previousManagerId);
+  club.managedBy = targetUser._id;
+  club.president = String(payload.presidentName || payload.president || targetUser.fullname || '').trim();
+  await club.save();
+  targetUser.role = 'club_manager';
+  await targetUser.save();
+  await SchoolMember.updateOne({ email: targetUser.email }, { $set: { role: 'club_manager' } }, { upsert: true });
+  if (previousUser && String(previousUser._id) !== String(targetUser._id)) {
+    const otherClubs = await Club.countDocuments({ managedBy: previousUser._id, _id: { $ne: club._id } });
+    if (otherClubs === 0 && previousUser.role === 'club_manager') {
+      previousUser.role = 'student';
+      await previousUser.save();
+      await SchoolMember.updateOne({ email: previousUser.email }, { $set: { role: 'student' } });
+    }
+  }
+  return {
+    message: `Đã chuyển nhượng chủ nhiệm CLB cho ${targetUser.fullname}.`,
+    club,
+    newManager: { id: String(targetUser._id), fullname: targetUser.fullname, email: targetUser.email },
+  };
+};
+
 const getManagedClubProfile = async (userId) => {
-  let club = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
+  let club = await findClubManagedBy(userId);
 
   if (!club) {
     throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
@@ -426,7 +476,7 @@ const getManagedClubProfile = async (userId) => {
 };
 
 const updateManagedClubProfile = async (userId, payload = {}) => {
-  const club = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
+  const club = await findClubManagedBy(userId);
 
   if (!club) {
     throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
@@ -472,5 +522,7 @@ module.exports = {
   getMyClubs,
   getManagedClubProfile,
   updateManagedClubProfile,
+  transferClubChairman,
+  findClubManagedBy,
   MANAGED_CLUB_SLUG,
 };
