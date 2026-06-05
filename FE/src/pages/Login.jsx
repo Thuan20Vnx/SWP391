@@ -244,7 +244,7 @@ const Login = ({ showToast }) => {
           {/* Logo F-Events */}
           <div className="login-logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0px' }}>
             <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
+              src={fptLogo}
               alt="F-Events Logo"
               style={{ width: '115px', height: '64px', objectFit: 'contain' }}
             />

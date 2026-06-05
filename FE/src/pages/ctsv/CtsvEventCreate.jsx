@@ -5,6 +5,7 @@ import AvatarCropModal from '../../components/profile/AvatarCropModal';
 import AppSelect from '../../components/ui/AppSelect';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { createCtsvEvent, fetchCtsvEvent, updateCtsvEvent } from '../../services/ctsvApi';
+import { createIcpdpSchoolEvent, updateIcpdpSchoolEvent } from '../../services/icpdpApi';
 import {
   clearSchoolEventDraft,
   formatDraftSavedLabel,
@@ -19,7 +20,7 @@ import {
   resolveEventSpeakers
 } from '../../constants/eventSpeaker';
 import { CTSV_CATEGORY_OPTIONS, normalizeEventCategory } from '../../constants/eventCategories';
-import { canCtsvEditSchoolEvent } from '../../constants/eventWorkflow';
+import { canEditSchoolEventForPortal } from '../../constants/eventWorkflow';
 import EventIntroFields from '../../components/events/EventIntroFields';
 import {
   DEFAULT_LEARNING_OUTCOME_ROWS,
@@ -218,6 +219,7 @@ const CtsvEventCreate = () => {
   const { id: editEventId } = useParams();
   const location = useLocation();
   const portalBase = location.pathname.startsWith('/icpdp') ? '/icpdp' : '/ctsv';
+  const portalRole = portalBase === '/icpdp' ? 'icpdp' : 'ctsv';
   const eventsBase = `${portalBase}/events`;
   const isEditMode = Boolean(editEventId && location.pathname.endsWith('/edit'));
   const navigate = useNavigate();
@@ -244,8 +246,13 @@ const CtsvEventCreate = () => {
     fetchCtsvEvent(editEventId)
       .then((data) => {
         const event = data.event;
-        if (!canCtsvEditSchoolEvent(event)) {
-          showToast?.('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 'error');
+        if (!canEditSchoolEventForPortal(event, portalRole)) {
+          showToast?.(
+            event?.ctsvEditUnlocked === false
+              ? 'Cần Admin phê duyệt yêu cầu chỉnh sửa trước khi mở form.'
+              : 'Bạn không có quyền chỉnh sửa sự kiện do đơn vị khác gửi.',
+            'error'
+          );
           navigate(`${eventsBase}/${editEventId}`);
           return;
         }
@@ -259,7 +266,7 @@ const CtsvEventCreate = () => {
         navigate(eventsBase);
       })
       .finally(() => setLoadingEvent(false));
-  }, [isEditMode, editEventId, navigate, showToast, eventsBase]);
+  }, [isEditMode, editEventId, navigate, showToast, eventsBase, portalRole]);
 
   useEffect(() => {
     if (isEditMode) return;
@@ -596,8 +603,12 @@ const CtsvEventCreate = () => {
     setSubmitting(true);
     try {
       const res = isEditMode
-        ? await updateCtsvEvent(editEventId, payload)
-        : await createCtsvEvent(payload);
+        ? portalRole === 'icpdp'
+          ? await updateIcpdpSchoolEvent(editEventId, payload)
+          : await updateCtsvEvent(editEventId, payload)
+        : portalRole === 'icpdp'
+          ? await createIcpdpSchoolEvent(payload)
+          : await createCtsvEvent(payload);
       if (!isEditMode) {
         clearSchoolEventDraft();
         setDraftSavedAt(null);

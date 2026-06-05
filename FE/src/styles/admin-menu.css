@@ -66,6 +66,33 @@
   margin-right: auto;
 }
 
+/* Trang CTSV/ICPDP render trực tiếp trong admin shell — căn giữa như .ctsv-portal-body */
+.admin-app-shell .admin-shell-content > .ctsv-events-page,
+.admin-app-shell .admin-shell-content > .ctsv-ed-page,
+.admin-app-shell .admin-shell-content > .ctsv-calendar-page,
+.admin-app-shell .admin-shell-content > .admin-icpdp-club-reg-page {
+  width: 100%;
+  max-width: var(--home-content-max, 1280px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(20px, 2.5vw, 36px);
+  padding-right: clamp(20px, 2.5vw, 36px);
+  box-sizing: border-box;
+}
+
+.admin-app-shell .admin-icpdp-club-reg-page {
+  --icpdp-accent: #f26f21;
+  --icpdp-accent-light: #fdba74;
+}
+
+.admin-app-shell .admin-icpdp-club-reg-page .icpdp-proposals-grid {
+  width: 100%;
+}
+
+.admin-app-shell .admin-icpdp-club-reg-page .icpdp-status-filters {
+  flex-wrap: wrap;
+}
+
 .admin-app-shell .admin-partners-page,
 .admin-app-shell .admin-acc-page,
 .admin-app-shell .admin-sys-page,
@@ -134,6 +161,18 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+
+/* Trang chủ / Sự kiện — cùng max-width & padding khi có menu admin */
+.admin-public-shell .recommended-section,
+.admin-public-shell .events-page__main {
+  width: 100%;
+  max-width: var(--home-content-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--home-content-padding);
+  padding-right: var(--home-content-padding);
+  box-sizing: border-box;
 }
 
 .admin-public-shell .home-header.site-header,

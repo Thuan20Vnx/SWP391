@@ -14,6 +14,7 @@ export const statusClass = (status, statusKey) => {
   const key = statusKey || '';
   const label = (status || '').toUpperCase();
   if (key === 'rejected' || label.includes('TỪ CHỐI')) return 'status-danger';
+  if (key === 'revision' || label.includes('CHỈNH SỬA')) return 'status-warning';
   if (key === 'pending_ctsv' || key === 'pending_icpdp' || key === 'pending_admin' || label.includes('CHỜ') || label.includes('PENDING')) {
     return 'status-warning';
   }

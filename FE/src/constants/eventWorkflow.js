@@ -53,5 +53,14 @@ export const canCtsvPublishSchoolEvent = (event) =>
 export const canCtsvEditSchoolEvent = (event) =>
   event?.source === 'school' && event?.ctsvEditUnlocked === true;
 
+/** Chỉnh sửa sự kiện cấp trường theo đơn vị gửi đơn (CTSV / IC-PDP) */
+export const canEditSchoolEventForPortal = (event, portalRole = 'ctsv') => {
+  if (!canCtsvEditSchoolEvent(event)) return false;
+  const org = event?.schoolOrganizerRole || 'ctsv';
+  if (portalRole === 'icpdp') return org === 'icpdp';
+  if (portalRole === 'admin') return true;
+  return org === 'ctsv';
+};
+
 export const isSchoolEventPendingAdmin = (event) =>
   event?.source === 'school' && event?.statusKey === SCHOOL_EVENT_SUBMIT_STATUS;

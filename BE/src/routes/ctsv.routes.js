@@ -4,6 +4,7 @@ const authMiddleware = require('../middleware/auth');
 const {
   requireCtsvPortal,
   requireCtsvApprove,
+  requireSchoolEventSubmit,
   requireProposalModerate,
   requireIcpdpOrCtsv
 } = require('../middleware/requireRole');
@@ -20,6 +21,8 @@ const {
   buildSchoolEventSubmitMeta,
   canCtsvEditSchoolEvent,
   shouldResubmitSchoolEventForAdmin,
+  resolveSchoolOrganizerRole,
+  canRoleManageSchoolEvent,
   SCHOOL_EVENT_SUBMIT_STATUS
 } = require('../constants/eventWorkflow');
 const { getCtsvReportDetail, appendDemoToReportList } = require('../services/ctsvReport.service');
@@ -208,8 +211,8 @@ router.get('/events/:id', async (req, res) => {
   }
 });
 
-// POST /api/ctsv/events — tạo sự kiện cấp trường
-router.post('/events', requireCtsvApprove, async (req, res) => {
+// POST /api/ctsv/events — tạo sự kiện cấp trường (CTSV / IC-PDP / Admin)
+router.post('/events', requireSchoolEventSubmit, async (req, res) => {
   try {
     const data = pickSchoolEventFields(req.body);
 
@@ -217,11 +220,14 @@ router.post('/events', requireCtsvApprove, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Tiêu đề và ngày bắt đầu là bắt buộc!' });
     }
 
+    const schoolOrganizerRole = resolveSchoolOrganizerRole(req.userRole);
+
     const event = await Event.create({
       ...data,
       startDate: new Date(data.startDate),
       endDate: data.endDate ? new Date(data.endDate) : undefined,
       source: 'school',
+      schoolOrganizerRole,
       createdByEmail: req.authEmail,
       ...buildSchoolEventSubmitMeta(req.authEmail)
     });
@@ -257,7 +263,7 @@ router.post('/events', requireCtsvApprove, async (req, res) => {
 });
 
 // PUT /api/ctsv/events/:id — cập nhật sự kiện cấp trường (đầy đủ trường form)
-router.put('/events/:id', requireCtsvApprove, async (req, res) => {
+router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
@@ -271,6 +277,13 @@ router.put('/events/:id', requireCtsvApprove, async (req, res) => {
 
     if (event.source !== 'school') {
       return res.status(403).json({ success: false, message: 'Chỉ cập nhật sự kiện cấp trường!' });
+    }
+
+    if (!canRoleManageSchoolEvent(event, req.userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền chỉnh sửa sự kiện do đơn vị khác gửi.'
+      });
     }
 
     if (!canCtsvEditSchoolEvent(event)) {
@@ -384,7 +397,7 @@ router.patch('/events/:id/request-revision', requireCtsvApprove, async (req, res
 });
 
 // PATCH /api/ctsv/events/:id/publish — chuyển approved -> live
-router.patch('/events/:id/publish', requireCtsvApprove, async (req, res) => {
+router.patch('/events/:id/publish', requireSchoolEventSubmit, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
@@ -392,6 +405,12 @@ router.patch('/events/:id/publish', requireCtsvApprove, async (req, res) => {
     }
     if (event.source !== 'school') {
       return res.status(400).json({ success: false, message: 'Chỉ publish sự kiện cấp trường!' });
+    }
+    if (!canRoleManageSchoolEvent(event, req.userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền publish sự kiện do đơn vị khác gửi.'
+      });
     }
     if (event.status !== 'approved') {
       return res.status(400).json({

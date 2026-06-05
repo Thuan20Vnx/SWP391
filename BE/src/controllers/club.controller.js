@@ -1,4 +1,5 @@
 const clubService = require('../services/club.service');
+const clubRegistrationService = require('../services/clubRegistration.service');
 
 const getClubs = async (req, res) => {
   const result = await clubService.getClubs({
@@ -53,6 +54,23 @@ const updateManagedClubProfile = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const submitClubRegistration = async (req, res) => {
+  try {
+    const registration = await clubRegistrationService.createRegistration(req.body, {
+      email: req.authEmail,
+      userId: req.user?._id,
+    });
+    res.status(201).json({
+      success: true,
+      registration,
+      message: 'Đã gửi đơn thành lập CLB — chờ IC-PDP xét duyệt.',
+    });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+};
+
 module.exports = {
   getClubs,
   getClubBySlug,
@@ -63,4 +81,5 @@ module.exports = {
   approveMembership,
   getManagedClubProfile,
   updateManagedClubProfile,
+  submitClubRegistration,
 };

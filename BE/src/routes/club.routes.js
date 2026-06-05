@@ -10,6 +10,13 @@ const router = express.Router();
 
 router.get('/', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubs));
 
+router.post(
+  '/registrations',
+  authMiddleware,
+  authorize('student', 'staff', 'club_manager'),
+  asyncHandler(clubController.submitClubRegistration)
+);
+
 router.get(
   '/manage/profile',
   authMiddleware,

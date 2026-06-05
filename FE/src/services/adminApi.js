@@ -183,3 +183,35 @@ export const fetchPublicSystemStatus = async () => {
   const res = await fetch(`${API_BASE}/api/system/status`);
   return parseJson(res);
 };
+
+export const fetchClubRegistrationsPendingCount = () =>
+  adminFetch('/club-registrations/pending-count');
+
+export const fetchClubRegistrations = (params = {}) => {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v) qs.set(k, v);
+  });
+  const q = qs.toString();
+  return adminFetch(`/club-registrations${q ? `?${q}` : ''}`);
+};
+
+export const fetchClubRegistration = (id) => adminFetch(`/club-registrations/${id}`);
+
+export const approveClubRegistration = (id, note = '') =>
+  adminFetch(`/club-registrations/${id}/approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const rejectClubRegistration = (id, reason = '') =>
+  adminFetch(`/club-registrations/${id}/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason }),
+  });
+
+export const requestClubRegistrationRevision = (id, note = '') =>
+  adminFetch(`/club-registrations/${id}/revision`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });

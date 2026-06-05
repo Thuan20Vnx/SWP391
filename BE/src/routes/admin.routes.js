@@ -16,6 +16,7 @@ const {
   addPartnerMember,
   deactivatePartnerMember,
 } = require('../services/partnerMember.service');
+const clubRegistrationService = require('../services/clubRegistration.service');
 const Contract = require('../models/Contract');
 const Event = require('../models/Event');
 const EventProposal = require('../models/EventProposal');
@@ -163,6 +164,90 @@ router.get('/events/calendar', adminOnly, async (req, res) => {
     });
   } catch (error) {
     console.error('admin calendar:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/club-registrations/pending-count', adminOrIcpdp, async (req, res) => {
+  try {
+    const count = await clubRegistrationService.countPending();
+    return res.json({ success: true, count });
+  } catch (error) {
+    console.error('club-registrations count:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/club-registrations', adminOrIcpdp, async (req, res) => {
+  try {
+    const registrations = await clubRegistrationService.listRegistrations({
+      status: req.query.status || '',
+      q: req.query.q || '',
+    });
+    return res.json({ success: true, registrations });
+  } catch (error) {
+    console.error('club-registrations list:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/club-registrations/:id', adminOrIcpdp, async (req, res) => {
+  try {
+    const registration = await clubRegistrationService.getRegistrationById(req.params.id);
+    return res.json({ success: true, registration });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('club-registrations detail:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/club-registrations/:id/approve', adminOrIcpdp, async (req, res) => {
+  try {
+    const result = await clubRegistrationService.approveRegistration(req.params.id, {
+      note: req.body.note || '',
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({ success: true, ...result, message: 'Đã phê duyệt — CLB mới đã được tạo!' });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('club-registrations approve:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/club-registrations/:id/reject', adminOrIcpdp, async (req, res) => {
+  try {
+    const registration = await clubRegistrationService.rejectRegistration(req.params.id, {
+      reason: req.body.reason || req.body.note || '',
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({ success: true, registration });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('club-registrations reject:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/club-registrations/:id/revision', adminOrIcpdp, async (req, res) => {
+  try {
+    const registration = await clubRegistrationService.requestRevision(req.params.id, {
+      note: req.body.note || '',
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({ success: true, registration });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('club-registrations revision:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

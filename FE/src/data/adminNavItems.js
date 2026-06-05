@@ -1,6 +1,9 @@
 /** Menu sidebar khi ICPDP vào /admin/system */
 export const ICPDP_ADMIN_NAV_ITEMS = [
   { path: '/icpdp', label: 'Về cổng IC-PDP', icon: 'dashboard' },
+  { section: 'QUẢN LÝ CLB' },
+  { path: '/icpdp/club-registrations', label: 'Duyệt thành lập CLB', icon: 'accounts' },
+  { path: '/icpdp/proposals', label: 'Duyệt đề xuất sự kiện', icon: 'events' },
   { section: 'HỆ THỐNG' },
   { path: '/admin/system', label: 'Bảo trì hệ thống', icon: 'system' },
 ];

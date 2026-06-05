@@ -68,6 +68,7 @@ const formatEvent = (doc) => {
     expectedAttendees: o.expectedAttendees ?? 0,
     ticketTypes: o.ticketTypes || [],
     source: o.source || 'club',
+    schoolOrganizerRole: o.schoolOrganizerRole || 'ctsv',
     partnerId: o.partnerId?.toString?.() || o.partnerId || null,
     managedByCtsv: o.source === 'school',
     createdByEmail: o.createdByEmail,

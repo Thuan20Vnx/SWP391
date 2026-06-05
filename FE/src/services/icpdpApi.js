@@ -35,6 +35,12 @@ export const fetchIcpdpEvents = (params = {}) => {
 
 export const fetchIcpdpEvent = (id) => icpdpFetch(`/events/${id}`);
 
+export const createIcpdpSchoolEvent = (body) =>
+  icpdpFetch('/events', { method: 'POST', body: JSON.stringify(body) });
+
+export const updateIcpdpSchoolEvent = (id, body) =>
+  icpdpFetch(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+
 /* ── Calendar ── */
 export const fetchIcpdpCalendar = () => icpdpFetch('/events/calendar');
 
