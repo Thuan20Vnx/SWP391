@@ -139,7 +139,7 @@ const Profile = ({ showToast, embedded = false }) => {
   };
 
   const handleScanClick = () => {
-    showToast('Tính năng quét QR check-in đang được phát triển.', 'info');
+    navigate('/quet-qr');
   };
 
   const displayAvatar = avatar || defaultAvatar;

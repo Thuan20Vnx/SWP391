@@ -187,15 +187,7 @@
   width: 100%;
 }
 
-.admin-public-shell.sidebar-open .site-header__logo-group .logo-img,
-.admin-home-header--sidebar-open .site-header__logo-group .logo-img {
-  display: none;
-}
-
-.admin-public-shell.sidebar-open .site-header__logo-group,
-.admin-home-header--sidebar-open .site-header__logo-group {
-  gap: 0;
-}
+/* Logo ẩn bằng .ctsv-header-logo.is-collapsed (animation), không dùng display:none */
 
 /* Header admin — dùng chung class SiteHeader (trang chủ), chỉ bổ sung sidebar */
 .admin-home-header {
@@ -215,15 +207,30 @@
   margin-right: 0;
 }
 
-/* Mở sidebar: ẩn logo trên header (logo nằm trong sidebar) */
-.admin-home-header--sidebar-open .admin-header-logo-img,
-.admin-app-shell.sidebar-open .admin-header-logo-img {
-  display: none;
+/* club_manager public shell */
+.club-public-shell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
 }
 
-.admin-home-header--sidebar-open .site-header__logo-group,
-.admin-app-shell.sidebar-open .admin-home-header .site-header__logo-group {
-  gap: 0;
+.club-public-shell .ctsv-shell-main {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.site-header--with-shell .site-header__container {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+.site-header--with-shell .site-header__start {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 @media (min-width: 1024px) {

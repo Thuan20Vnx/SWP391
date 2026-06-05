@@ -29,6 +29,12 @@ router.patch(
   authorize('club_manager'),
   asyncHandler(clubController.updateManagedClubProfile)
 );
+router.post(
+  '/manage/transfer-chairman',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.transferClubChairman)
+);
 
 router.get('/:slug', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubBySlug));
 

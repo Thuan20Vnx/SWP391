@@ -7304,7 +7304,7 @@ body {
     gap: 0;
   }
 
-  .site-header__nav {
+  .site-header:not(.site-header--with-shell) .site-header__nav {
     display: none;
   }
 

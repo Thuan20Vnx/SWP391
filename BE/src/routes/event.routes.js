@@ -9,6 +9,7 @@ const eventController = require('../controllers/event.controller');
 const eventChangeRequestController = require('../controllers/eventChangeRequest.controller');
 const registrationController = require('../controllers/registration.controller');
 const reviewController = require('../controllers/review.controller');
+const qrScannerController = require('../controllers/qrScanner.controller');
 
 const router = express.Router();
 
@@ -42,6 +43,37 @@ router.post(
   authMiddleware,
   authorize('student', 'staff'),
   asyncHandler(reviewController.submitReview)
+);
+
+router.get(
+  '/scanner/my-events',
+  authMiddleware,
+  authorize('student', 'staff', 'club_manager', 'ctsv', 'icpdp', 'admin'),
+  asyncHandler(qrScannerController.myScannerEvents)
+);
+router.get(
+  '/:id/scanner-grants',
+  authMiddleware,
+  authorize('club_manager', 'ctsv', 'icpdp', 'admin'),
+  asyncHandler(qrScannerController.listGrants)
+);
+router.post(
+  '/:id/scanner-grants',
+  authMiddleware,
+  authorize('club_manager', 'ctsv', 'icpdp', 'admin'),
+  asyncHandler(qrScannerController.createGrant)
+);
+router.delete(
+  '/:id/scanner-grants/:grantId',
+  authMiddleware,
+  authorize('club_manager', 'ctsv', 'icpdp', 'admin'),
+  asyncHandler(qrScannerController.revokeGrant)
+);
+router.post(
+  '/:id/scan',
+  authMiddleware,
+  authorize('student', 'staff', 'club_manager', 'ctsv', 'icpdp', 'admin'),
+  asyncHandler(qrScannerController.scanRegistration)
 );
 
 router.get('/:id', optionalAuth, optionalAuthorize, asyncHandler(eventController.getEventById));

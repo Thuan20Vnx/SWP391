@@ -55,7 +55,7 @@ const StudentDashboardLayout = ({
   };
 
   const handleScanClick = () => {
-    showToast?.('Tính năng quét QR check-in đang được phát triển.', 'info');
+    navigate('/quet-qr');
   };
 
   const displayAvatar = profileData.picture || defaultAvatar;

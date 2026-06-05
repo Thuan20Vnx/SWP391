@@ -4,6 +4,7 @@ import { fetchIcpdpEvent } from '../../services/icpdpApi';
 import { statusClass } from '../../utils/eventStatus';
 import { resolveEventSpeakers } from '../../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
+import EventQrScannerPanel from '../../components/events/EventQrScannerPanel';
 
 const SOURCE_META = {
   school: { label: 'Cấp trường', tone: 'school' },
@@ -13,7 +14,8 @@ const SOURCE_META = {
 
 const TABS = [
   { id: 'info', label: 'Thông tin' },
-  { id: 'tickets', label: 'Vé' }
+  { id: 'tickets', label: 'Vé' },
+  { id: 'qr-scanner', label: 'Quét QR' },
 ];
 
 const IconCalendar = () => (
@@ -295,6 +297,12 @@ const IcpdpEventDetail = () => {
                 </ul>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'qr-scanner' && id && (
+          <div className="ctsv-ed-panel">
+            <EventQrScannerPanel eventId={id} showToast={showToast} />
           </div>
         )}
       </div>

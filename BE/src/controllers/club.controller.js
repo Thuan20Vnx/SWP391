@@ -54,6 +54,11 @@ const updateManagedClubProfile = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const transferClubChairman = async (req, res) => {
+  const result = await clubService.transferClubChairman(req.user._id, req.body);
+  res.status(200).json({ success: true, ...result });
+};
+
 const submitClubRegistration = async (req, res) => {
   try {
     const registration = await clubRegistrationService.createRegistration(req.body, {
@@ -81,5 +86,6 @@ module.exports = {
   approveMembership,
   getManagedClubProfile,
   updateManagedClubProfile,
+  transferClubChairman,
   submitClubRegistration,
 };

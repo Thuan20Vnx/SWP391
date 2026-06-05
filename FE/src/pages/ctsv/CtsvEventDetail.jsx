@@ -20,6 +20,7 @@ import {
 } from '../../constants/eventModeration';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import EventQrScannerPanel from '../../components/events/EventQrScannerPanel';
 
 const MODERATION_CONFIRM = {
   edit: {
@@ -156,6 +157,7 @@ const CtsvEventDetail = () => {
   const [activeTab, setActiveTab] = useState('info');
   const [manageOpen, setManageOpen] = useState(false);
   const [ctsvActionsOpen, setCtsvActionsOpen] = useState(false);
+  const [qrScannerOpen, setQrScannerOpen] = useState(false);
   const isCtsvOnly = getUserRole() === 'ctsv';
   const canFinalApprove = canCtsvFinalApprove(getUserRole());
 
@@ -781,6 +783,16 @@ const CtsvEventDetail = () => {
           </div>
         </CollapsibleActionSection>
       )}
+
+      <CollapsibleActionSection
+        id="ctsv-ed-qr-scanner-panel"
+        title="Cấp quyền quét QR"
+        hint="Cấp cho sinh viên quét check-in / check-out tại sự kiện."
+        open={qrScannerOpen}
+        onToggle={() => setQrScannerOpen((v) => !v)}
+      >
+        <EventQrScannerPanel eventId={id} showToast={showToast} />
+      </CollapsibleActionSection>
 
       <ConfirmDialog
         open={Boolean(moderationConfirm && moderationConfirmConfig)}
