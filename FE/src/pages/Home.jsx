@@ -256,7 +256,7 @@ const Home = ({ showToast }) => {
     <div className="home-layout">
       <SystemMaintenanceBanner />
       {/* 2. Hero Banner Slider (Figma 38:1158) */}
-      <section className="hero-banner-slider">
+      <section className={`hero-banner-slider${slideCount > 1 ? ' hero-banner-slider--nav' : ''}`}>
         {heroSlides.map((slide, index) => (
           <div
             key={slide.eventId || index}
