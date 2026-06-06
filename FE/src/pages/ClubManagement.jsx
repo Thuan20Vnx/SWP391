@@ -1,21 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import defaultAvatar from '../constants/defaultAvatar';
-import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../utils/api';
-import SiteHeader from '../components/SiteHeader';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { API_BASE, getEventHeaders, parseApiResponse } from '../utils/api';
 import ClubProfileUpdate from '../components/ClubProfileUpdate';
 import ClubChairmanTransfer from '../components/club/ClubChairmanTransfer';
 import ClubDashboardPanel from '../components/club/ClubDashboardPanel';
 import ClubParticipantsPanel from '../components/club/ClubParticipantsPanel';
-import ClubSidebarAside from '../components/club/ClubSidebarAside';
-import {
-  CLUB_NAV_ITEMS,
-  isClubDesktop,
-  persistClubSidebarOpen,
-  readClubSidebarPref
-} from '../components/club/clubNavConfig';
-import { resolveUserAvatar } from '../utils/image';
-import '../styles/club-portal.css';
 import './ClubManagement.css';
 import EventIntroFields from '../components/events/EventIntroFields';
 import {
@@ -23,21 +12,24 @@ import {
   normalizeLearningOutcomesForSave,
 } from '../utils/eventIntro';
 
-const ClubManagement = ({ showToast }) => {
+const ClubManagement = () => {
   const navigate = useNavigate();
-  const [userProfile, setUserProfile] = useState({ fullname: '', course: 'K18', picture: defaultAvatar, role: '' });
-  const [activeNav, setActiveNav] = useState(() => {
-    const saved = sessionStorage.getItem('clb_active_nav');
-    return saved && CLUB_NAV_ITEMS.some((item) => item.key === saved) ? saved : 'list';
-  });
-  const [events, setEvents] = useState([]);
+  const {
+    showToast,
+    userProfile,
+    activeNav,
+    setActiveNav,
+    events = [],
+    setEvents,
+    lastSeenNotifs,
+    sidebarOpen,
+    toggleSidebar,
+  } = useOutletContext();
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(readClubSidebarPref);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [rejectModalData, setRejectModalData] = useState(null);
   const [createStep, setCreateStep] = useState(1);
-  const [lastSeenNotifs, setLastSeenNotifs] = useState(() => parseInt(localStorage.getItem('clb_last_seen_notifs') || '0', 10));
   const [newEvent, setNewEvent] = useState({ 
     title: '', 
     category: '', 
@@ -58,10 +50,6 @@ const ClubManagement = ({ showToast }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null); // ID của row đang mở dropdown
   const totalEvents = events.length;
-
-  useEffect(() => {
-    sessionStorage.setItem('clb_active_nav', activeNav);
-  }, [activeNav]);
 
   const eventNotifications = useMemo(() => {
     return events
@@ -108,8 +96,6 @@ const ClubManagement = ({ showToast }) => {
       });
   }, [events, lastSeenNotifs]);
 
-  const hasNewNotifs = eventNotifications.some(n => n.unread);
-
   // Đóng dropdown khi click ra ngoài
   useEffect(() => {
     const handleOutsideClick = () => setOpenMenuId(null);
@@ -117,46 +103,16 @@ const ClubManagement = ({ showToast }) => {
     return () => document.removeEventListener('click', handleOutsideClick);
   }, []);
 
-  // Fetch user profile + fetch events from API
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
-      showToast('Vui lòng đăng nhập để tiếp tục!', 'error');
-      navigate('/login');
-      return;
-    }
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data?.user) {
-            const u = data.user;
-            const role = u.role || '';
-            setUserProfile({
-              fullname: u.fullname || '',
-              course: u.course || 'K18',
-              picture: resolveUserAvatar(u, defaultAvatar),
-              role
-            });
-            if (role && role !== 'club_manager') {
-              showToast('Bạn không có quyền truy cập trang quản lý CLB!', 'error');
-              localStorage.setItem('userRole', role);
-              navigate('/');
-            }
-          }
-        })
-        .catch(() => {});
-    }
-    // Load events from API
     fetchMyEvents();
-  }, [navigate, showToast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchMyEvents = async () => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       setLoadingEvents(false);
-      setEvents([]);
+      setEvents?.([]);
       showToast('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.', 'error');
       return;
     }
@@ -166,16 +122,16 @@ const ClubManagement = ({ showToast }) => {
       const res = await fetch(`${API_BASE}/api/events/my`, { headers: getEventHeaders(false) });
       const { ok, data } = await parseApiResponse(res);
       if (ok && data.success && Array.isArray(data.events)) {
-        setEvents(data.events);
+        setEvents?.(data.events);
       } else {
         console.error('fetchMyEvents:', res.status, data);
         showToast(data.message || 'Không tải được danh sách sự kiện. Hãy restart backend.', 'error');
-        setEvents([]);
+        setEvents?.([]);
       }
     } catch (err) {
       console.error('Lỗi tải sự kiện:', err);
       showToast('Không kết nối được server. Kiểm tra BE đang chạy port 5000.', 'error');
-      setEvents([]);
+      setEvents?.([]);
     } finally {
       setLoadingEvents(false);
     }
@@ -306,60 +262,8 @@ const ClubManagement = ({ showToast }) => {
     }
   };
 
-  const toggleSidebar = useCallback(() => {
-    setSidebarOpen((prev) => {
-      const next = !prev;
-      persistClubSidebarOpen(next);
-      return next;
-    });
-  }, []);
-
-  const closeSidebar = useCallback(() => {
-    setSidebarOpen(false);
-    persistClubSidebarOpen(false);
-  }, []);
-
-  const handleNavSelect = useCallback((key) => {
-    const item = CLUB_NAV_ITEMS.find((nav) => nav.key === key);
-    if (item?.external) {
-      navigate(item.external);
-      return;
-    }
-    setActiveNav(key);
-    if (key === 'create') setShowCreateModal(true);
-    if (key === 'notifications') {
-      const now = Date.now();
-      setLastSeenNotifs(now);
-      localStorage.setItem('clb_last_seen_notifs', now.toString());
-    }
-  }, [navigate]);
-
-  const shellClass = `ctsv-app-shell club-app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
-
   return (
-    <div className={shellClass}>
-      {!isClubDesktop() && sidebarOpen && (
-        <button type="button" className="ctsv-drawer-backdrop" onClick={closeSidebar} aria-label="Đóng menu" />
-      )}
-
-      <ClubSidebarAside
-        sidebarOpen={sidebarOpen}
-        onClose={closeSidebar}
-        userProfile={userProfile}
-        activeNav={activeNav}
-        onNavSelect={handleNavSelect}
-        hasNewNotifs={hasNewNotifs}
-      />
-
-      <div className="ctsv-shell-main">
-        <div className="clb-page">
-          <SiteHeader
-            activeNav="club-manage"
-            onTogglePortalSidebar={toggleSidebar}
-            portalSidebarOpen={sidebarOpen}
-          />
-
-          <main className="clb-main">
+    <>
           {activeNav === 'profile' && (
             <ClubProfileUpdate
               showToast={showToast}
@@ -747,10 +651,7 @@ const ClubManagement = ({ showToast }) => {
               </div>
             </div>
           )}
-          </main>
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 

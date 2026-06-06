@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../constants/defaultAvatar';
 import SiteHeader from '../components/SiteHeader';
 import ClubSidebarAside from '../components/club/ClubSidebarAside';
@@ -8,13 +8,15 @@ import {
   isClubDesktop,
   persistClubSidebarOpen,
   readClubSidebarPref,
+  resolveClubActiveNav,
 } from '../components/club/clubNavConfig';
-import { API_BASE, getAuthHeaders } from '../utils/api';
+import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../utils/api';
 import { resolveUserAvatar } from '../utils/image';
 import '../styles/club-portal.css';
 
-const ClubPortalShell = ({ activeNav, children, showToast, hasNewNotifs = false }) => {
+const ClubManagerLayout = ({ showToast }) => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [userProfile, setUserProfile] = useState({
     fullname: '',
     course: 'K18',
@@ -22,6 +24,20 @@ const ClubPortalShell = ({ activeNav, children, showToast, hasNewNotifs = false 
     role: '',
   });
   const [sidebarOpen, setSidebarOpen] = useState(readClubSidebarPref);
+  const [activeNav, setActiveNav] = useState(() => resolveClubActiveNav(pathname));
+  const [events, setEvents] = useState([]);
+  const [lastSeenNotifs, setLastSeenNotifs] = useState(() =>
+    parseInt(localStorage.getItem('clb_last_seen_notifs') || '0', 10)
+  );
+
+  useEffect(() => {
+    setActiveNav(resolveClubActiveNav(pathname));
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!pathname.startsWith('/quan-ly-clb') || pathname.startsWith('/quan-ly-clb/announcements')) return;
+    sessionStorage.setItem('clb_active_nav', activeNav);
+  }, [activeNav, pathname]);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -50,7 +66,23 @@ const ClubPortalShell = ({ activeNav, children, showToast, hasNewNotifs = false 
         }
       })
       .catch(() => {});
+
+    fetch(`${API_BASE}/api/events/my`, { headers: getEventHeaders(false) })
+      .then((res) => parseApiResponse(res))
+      .then(({ ok, data }) => {
+        if (ok && data.success && Array.isArray(data.events)) setEvents(data.events);
+      })
+      .catch(() => {});
   }, [navigate, showToast]);
+
+  const hasNewNotifs = useMemo(() => {
+    return events
+      .filter((ev) => ev.status && ev.status !== 'draft')
+      .some((ev) => {
+        const raw = new Date(ev.updatedAt || ev.createdAt || 0).getTime();
+        return raw > lastSeenNotifs;
+      });
+  }, [events, lastSeenNotifs]);
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => {
@@ -66,14 +98,27 @@ const ClubPortalShell = ({ activeNav, children, showToast, hasNewNotifs = false 
   }, []);
 
   const handleNavSelect = useCallback((key) => {
-    const item = CLUB_NAV_ITEMS.find((nav) => nav.key === key);
-    if (item?.external) {
-      if (key !== activeNav) navigate(item.external);
+    if (key === 'announcements') {
+      if (pathname !== '/quan-ly-clb/announcements' && !pathname.startsWith('/quan-ly-clb/announcements/')) {
+        navigate('/quan-ly-clb/announcements');
+      }
+      setActiveNav('announcements');
       return;
     }
+
+    setActiveNav(key);
     sessionStorage.setItem('clb_active_nav', key);
-    navigate('/quan-ly-clb');
-  }, [activeNav, navigate]);
+
+    if (key === 'notifications') {
+      const now = Date.now();
+      setLastSeenNotifs(now);
+      localStorage.setItem('clb_last_seen_notifs', now.toString());
+    }
+
+    if (pathname !== '/quan-ly-clb') {
+      navigate('/quan-ly-clb');
+    }
+  }, [navigate, pathname]);
 
   const shellClass = `ctsv-app-shell club-app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
 
@@ -99,11 +144,26 @@ const ClubPortalShell = ({ activeNav, children, showToast, hasNewNotifs = false 
             onTogglePortalSidebar={toggleSidebar}
             portalSidebarOpen={sidebarOpen}
           />
-          <main className="clb-main">{children}</main>
+          <main className="clb-main">
+            <Outlet
+              context={{
+                showToast,
+                userProfile,
+                activeNav,
+                setActiveNav,
+                events,
+                setEvents,
+                lastSeenNotifs,
+                setLastSeenNotifs,
+                sidebarOpen,
+                toggleSidebar,
+              }}
+            />
+          </main>
         </div>
       </div>
     </div>
   );
 };
 
-export default ClubPortalShell;
+export default ClubManagerLayout;
