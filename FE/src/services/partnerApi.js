@@ -1,4 +1,5 @@
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { buildCoreEventPayload } from '../utils/eventFormState';
 
 const COMPANY_STORAGE_KEY = 'fevents_partner_company';
 const NOTIFY_STORAGE_KEY = 'fevents_partner_notifications';
@@ -229,21 +230,13 @@ export const deletePartnerEventRequest = (id) =>
 export const buildPartnerEventRequestPayload = ({
   company,
   form,
-  tickets,
-  speakers,
   benefits,
   partnerMessage,
   attachments,
   bannerFileName,
   requestId
 }) => {
-  const totalTickets = tickets.reduce((s, t) => s + (Number(t.qty) || 0), 0);
-  const startDate =
-    form.eventDate && form.startTime
-      ? `${form.eventDate}T${form.startTime}`
-      : form.eventDate
-        ? `${form.eventDate}T09:00`
-        : '';
+  const core = buildCoreEventPayload(form);
 
   return {
     requestId: requestId || undefined,
@@ -253,34 +246,31 @@ export const buildPartnerEventRequestPayload = ({
     representativeTitle: company.representativeTitle,
     phone: company.phone,
     address: company.address,
-    category: form.category,
+    category: core.category,
     expectedSponsorAmount: Number(company.expectedSponsorAmount) || 0,
     benefits: benefits.filter((b) => b.trim()),
     partnerMessage,
     attachments,
-    title: form.title,
-    proposedEventTitle: form.title,
-    eventType: form.eventType,
-    description: form.description,
-    startDate,
-    duration: form.duration,
-    format: form.format,
-    location: form.location,
-    campus: form.campus,
-    agenda: form.agenda,
-    learningOutcomes: (form.learningOutcomes || []).filter((s) => String(s).trim()),
-    expectedAttendees: Number(form.expectedAttendees) || 0,
-    image: form.image,
+    title: core.title,
+    proposedEventTitle: core.title,
+    eventType: core.eventType,
+    description: core.description,
+    registrationStartDate: core.registrationStartDate,
+    registrationEndDate: core.registrationEndDate,
+    startDate: core.startDate,
+    endDate: core.endDate,
+    duration: core.duration,
+    format: core.format,
+    location: core.location,
+    campus: 'FPT University',
+    agenda: core.agenda,
+    learningOutcomes: core.learningOutcomes,
+    expectedAttendees: core.expectedAttendees,
+    image: core.image,
     bannerFileName,
-    totalTickets,
-    ticketTypes: tickets.map((t) => ({
-      name: t.name,
-      priceType: t.priceType,
-      priceAmount: t.priceType === 'paid' ? Number(String(t.priceAmount).replace(/\D/g, '')) || 0 : 0,
-      qty: Number(t.qty) || 0,
-      audience: t.audience
-    })),
-    speakers: speakers.map((s) => ({ name: s.name, role: s.role, avatar: s.avatar }))
+    totalTickets: core.totalTickets,
+    ticketTypes: core.ticketTypes,
+    speakers: core.speakers
   };
 };
 

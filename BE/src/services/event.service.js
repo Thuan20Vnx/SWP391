@@ -22,6 +22,8 @@ const createEvent = async (user, body) => {
     description,
     thumbnail,
     category,
+    registrationStartDate,
+    registrationEndDate,
     startDate,
     endDate,
     location,
@@ -40,7 +42,7 @@ const createEvent = async (user, body) => {
   const resolvedTotalTickets =
     totalQtyFromTypes(normalizedTickets) || resolvedCapacity;
 
-  if (!title || !startDate || !location || !capacity) {
+  if (!title || !registrationStartDate || !startDate || !location || !capacity) {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
   }
 
@@ -57,6 +59,8 @@ const createEvent = async (user, body) => {
     description: description || 'Chưa có mô tả',
     thumbnail: thumbnail || undefined,
     category: normalizeEventCategory(category || 'Khác'),
+    registrationStartDate: registrationStartDate || null,
+    registrationEndDate: registrationEndDate || null,
     startDate,
     endDate,
     location,
@@ -100,6 +104,77 @@ const deleteMyEvent = async (eventId, user) => {
   }
   await Event.findByIdAndDelete(eventId);
   return { message: 'Đã xóa sự kiện thành công!' };
+};
+
+const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'revision', 'pending_ctsv', 'pending_icpdp'];
+
+const updateMyEvent = async (eventId, user, body) => {
+  const event = await Event.findById(eventId);
+  if (!event) throw new AppError('Không tìm thấy sự kiện!', 404);
+  if (String(event.createdBy) !== String(user._id)) {
+    throw new AppError('Bạn không có quyền chỉnh sửa sự kiện này!', 403);
+  }
+  if (!EDITABLE_CLUB_STATUSES.includes(event.status)) {
+    throw new AppError('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 400);
+  }
+
+  const {
+    title,
+    description,
+    thumbnail,
+    category,
+    registrationStartDate,
+    registrationEndDate,
+    startDate,
+    endDate,
+    location,
+    capacity,
+    ticketPrice,
+    ticketTypes,
+    speaker,
+    agenda,
+    learningOutcomes,
+  } = body;
+
+  const normalizedTickets = normalizeTicketTypes(ticketTypes);
+  const resolvedTicketPrice =
+    Math.max(0, Number(ticketPrice) || 0) || deriveTicketPriceFromTypes(normalizedTickets);
+  const resolvedCapacity = Math.max(1, Number(capacity) || event.capacity || 100);
+  const resolvedTotalTickets = totalQtyFromTypes(normalizedTickets) || resolvedCapacity;
+
+  if (!title || !registrationStartDate || !startDate || !location || !capacity) {
+    throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
+  }
+
+  event.title = title;
+  event.description = description || 'Chưa có mô tả';
+  if (thumbnail) event.thumbnail = thumbnail;
+  event.category = normalizeEventCategory(category || event.category);
+  event.registrationStartDate = registrationStartDate || null;
+  event.registrationEndDate = registrationEndDate || null;
+  event.startDate = startDate;
+  event.endDate = endDate;
+  event.location = location;
+  event.capacity = resolvedCapacity;
+  event.totalTickets = resolvedTotalTickets;
+  event.ticketPrice = resolvedTicketPrice;
+  if (normalizedTickets.length) event.ticketTypes = normalizedTickets;
+  if (speaker !== undefined) event.speaker = speaker;
+  if (agenda !== undefined) event.agenda = agenda;
+  if (learningOutcomes !== undefined) {
+    event.learningOutcomes = normalizeLearningOutcomes(learningOutcomes);
+  }
+  if (event.status === 'rejected') {
+    event.status = 'pending';
+    event.rejectionReason = '';
+    event.moderationReason = '';
+  }
+
+  await event.save();
+  return {
+    message: 'Đã cập nhật đề xuất sự kiện và gửi lại duyệt!',
+    event,
+  };
 };
 
 const getPendingEvents = async () => {
@@ -197,8 +272,10 @@ const getEventById = async (eventId, { user } = {}) => {
   doc.registeredCount = registeredCount;
   doc.checkinCount = checkinCount;
   doc.reach = doc.reach || 0;
-  doc.rating = doc.rating || 0;
-  doc.ratingCount = doc.ratingCount || 0;
+  doc.rating = doc.averageRating ?? 0;
+  doc.ratingCount = doc.reviewCount ?? 0;
+  doc.averageRating = doc.averageRating ?? 0;
+  doc.reviewCount = doc.reviewCount ?? 0;
 
   if (user?._id) {
     const ids = await getRegisteredEventIds(user._id);
@@ -211,6 +288,9 @@ const getEventById = async (eventId, { user } = {}) => {
     _id: r._id,
     status: r.status === 'attended' ? 'checked-in' : r.status,
     createdAt: r.createdAt,
+    cancelledAt: r.cancelledAt || null,
+    checkedInAt: r.checkedInAt || null,
+    checkedOutAt: r.checkedOutAt || null,
     student: r.user,
   }));
 
@@ -224,6 +304,7 @@ module.exports = {
   createEvent,
   getMyEvents,
   deleteMyEvent,
+  updateMyEvent,
   getPendingEvents,
   updateEventStatus,
   getApprovedEvents,

@@ -46,11 +46,15 @@ const pickSchoolEventFields = (body) => {
     title,
     description,
     category,
+    registrationStartDate,
+    registrationEndDate,
     startDate,
     endDate,
     location,
     totalTickets,
+    capacity,
     image,
+    thumbnail,
     bannerFileName,
     eventType,
     duration,
@@ -59,7 +63,8 @@ const pickSchoolEventFields = (body) => {
     agenda,
     learningOutcomes,
     expectedAttendees,
-    ticketTypes
+    ticketTypes,
+    ticketPrice
   } = body;
 
   if (image && image.length > MAX_IMAGE_DATA_LEN) {
@@ -78,17 +83,23 @@ const pickSchoolEventFields = (body) => {
   }
 
   const primarySpeaker = normalizedSpeakers[0];
+  const resolvedTickets = Number(totalTickets) || Number(capacity) || 100;
+  const bannerImage = image || thumbnail || '';
 
   return {
     title: title?.trim(),
     description: description || '',
     category: normalizeEventCategory(category || 'Khác'),
+    registrationStartDate,
+    registrationEndDate,
     startDate,
     endDate,
     location: location || '',
-    totalTickets: totalTickets || 100,
-    capacity: totalTickets || 100,
-    image: image || '',
+    totalTickets: resolvedTickets,
+    capacity: resolvedTickets,
+    ticketPrice: Number(ticketPrice) || 0,
+    image: bannerImage,
+    thumbnail: bannerImage,
     bannerFileName: bannerFileName || '',
     eventType: eventType || '',
     duration: duration || '',
@@ -216,14 +227,19 @@ router.post('/events', requireSchoolEventSubmit, async (req, res) => {
   try {
     const data = pickSchoolEventFields(req.body);
 
-    if (!data.title || !data.startDate) {
-      return res.status(400).json({ success: false, message: 'Tiêu đề và ngày bắt đầu là bắt buộc!' });
+    if (!data.title || !data.registrationStartDate || !data.startDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tiêu đề, thời gian đăng ký và thời gian sự kiện là bắt buộc!'
+      });
     }
 
     const schoolOrganizerRole = resolveSchoolOrganizerRole(req.userRole);
 
     const event = await Event.create({
       ...data,
+      registrationStartDate: new Date(data.registrationStartDate),
+      registrationEndDate: data.registrationEndDate ? new Date(data.registrationEndDate) : undefined,
       startDate: new Date(data.startDate),
       endDate: data.endDate ? new Date(data.endDate) : undefined,
       source: 'school',
@@ -271,8 +287,11 @@ router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
     }
 
     const data = pickSchoolEventFields(req.body);
-    if (!data.title || !data.startDate) {
-      return res.status(400).json({ success: false, message: 'Tiêu đề và ngày bắt đầu là bắt buộc!' });
+    if (!data.title || !data.registrationStartDate || !data.startDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tiêu đề, thời gian đăng ký và thời gian sự kiện là bắt buộc!'
+      });
     }
 
     if (event.source !== 'school') {
@@ -295,6 +314,10 @@ router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
 
     Object.assign(event, {
       ...data,
+      registrationStartDate: new Date(data.registrationStartDate),
+      registrationEndDate: data.registrationEndDate
+        ? new Date(data.registrationEndDate)
+        : event.registrationEndDate,
       startDate: new Date(data.startDate),
       endDate: data.endDate ? new Date(data.endDate) : event.endDate
     });

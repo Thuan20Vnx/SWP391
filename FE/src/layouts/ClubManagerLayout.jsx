@@ -155,8 +155,6 @@ const ClubManagerLayout = ({ showToast }) => {
                 setEvents,
                 lastSeenNotifs,
                 setLastSeenNotifs,
-                sidebarOpen,
-                toggleSidebar,
               }}
             />
           </main>

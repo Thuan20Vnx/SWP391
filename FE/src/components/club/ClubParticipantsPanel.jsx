@@ -8,6 +8,13 @@ const STATUS_LABEL = {
   cancelled: 'Đã hủy',
 };
 
+const STATUS_TONE = {
+  registered: 'registered',
+  'checked-in': 'checked-in',
+  attended: 'checked-in',
+  cancelled: 'cancelled',
+};
+
 const ClubParticipantsPanel = ({ events, showToast, onViewEvent }) => {
   const eligibleEvents = useMemo(
     () => events.filter((e) => e.status === 'approved'),
@@ -121,42 +128,59 @@ const ClubParticipantsPanel = ({ events, showToast, onViewEvent }) => {
           )}
 
           <div className="clb-table-wrapper">
-            <table className="clb-table">
-              <thead>
-                <tr>
-                  <th>HỌ TÊN</th>
-                  <th>MSSV</th>
-                  <th>EMAIL</th>
-                  <th>TRẠNG THÁI</th>
-                  <th>THỜI GIAN ĐK</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={5} className="clb-panel-empty-cell">Đang tải...</td></tr>
-                ) : filtered.length === 0 ? (
-                  <tr><td colSpan={5} className="clb-panel-empty-cell">Chưa có người tham gia cho sự kiện này.</td></tr>
-                ) : (
-                  filtered.map((row) => {
-                    const s = row.student || {};
-                    const registeredAt = row.createdAt || row.registeredAt;
-                    return (
-                      <tr key={row._id}>
-                        <td><span className="clb-event-name">{s.fullname || '—'}</span></td>
-                        <td><span className="clb-category-text">{s.studentId || '—'}</span></td>
-                        <td><span className="clb-date-text">{s.email || '—'}</span></td>
-                        <td><span className="clb-category-text">{STATUS_LABEL[row.status] || row.status || '—'}</span></td>
-                        <td>
-                          <span className="clb-date-text">
-                            {registeredAt ? new Date(registeredAt).toLocaleString('vi-VN') : '—'}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+            <div className="clb-table-scroll">
+              <table className="clb-table">
+                <thead>
+                  <tr>
+                    <th>HỌ TÊN</th>
+                    <th>MSSV</th>
+                    <th>EMAIL</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>THỜI GIAN ĐK</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={5} className="clb-panel-empty-cell">Đang tải...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan={5} className="clb-panel-empty-cell">Chưa có người tham gia cho sự kiện này.</td></tr>
+                  ) : (
+                    filtered.map((row) => {
+                      const s = row.student || {};
+                      const registeredAt = row.createdAt || row.registeredAt;
+                      const statusKey = row.status;
+                      const statusLabel = STATUS_LABEL[statusKey] || statusKey || '—';
+                      const statusTone = STATUS_TONE[statusKey] || 'registered';
+                      const regDate = registeredAt ? new Date(registeredAt) : null;
+                      return (
+                        <tr key={row._id}>
+                          <td><span className="clb-event-name">{s.fullname || '—'}</span></td>
+                          <td><span className="clb-table-chip">{s.studentId || '—'}</span></td>
+                          <td><span className="clb-date-text">{s.email || '—'}</span></td>
+                          <td>
+                            {statusKey ? (
+                              <span className={`clb-table-status clb-table-status--${statusTone}`}>{statusLabel}</span>
+                            ) : (
+                              <span className="clb-date-text">—</span>
+                            )}
+                          </td>
+                          <td>
+                            {regDate ? (
+                              <div className="clb-table-date">
+                                <strong>{regDate.toLocaleDateString('vi-VN')}</strong>
+                                <span>{regDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                              </div>
+                            ) : (
+                              <span className="clb-date-text">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}

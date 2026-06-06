@@ -64,6 +64,8 @@ const partnerEventRequestSchema = new mongoose.Schema(
     title: { type: String, default: '', trim: true },
     eventType: { type: String, default: 'Hội thảo & Workshop' },
     description: { type: String, default: '' },
+    registrationStartDate: { type: Date, default: null },
+    registrationEndDate: { type: Date, default: null },
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
     duration: { type: String, default: '' },

@@ -244,7 +244,7 @@ const ProfileCoverSection = ({
   </section>
 );
 
-const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
+const ClubProfileUpdate = ({ showToast }) => {
   const [form, setForm] = useState(emptyProfile);
   const [savedForm, setSavedForm] = useState(emptyProfile);
   const [loading, setLoading] = useState(true);
@@ -473,16 +473,6 @@ const ClubProfileUpdate = ({ showToast, sidebarOpen, onToggleSidebar }) => {
   return (
     <div className="clb-profile-view">
       <div className="clb-profile-topbar">
-        <button
-          type="button"
-          className="clb-sidebar-toggle-btn"
-          onClick={onToggleSidebar}
-          title={sidebarOpen ? 'Đóng sidebar' : 'Mở sidebar'}
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
-          </svg>
-        </button>
         <nav className="clb-profile-breadcrumb" aria-label="Breadcrumb">
           <span>Quản lý CLB</span>
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">

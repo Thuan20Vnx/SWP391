@@ -150,7 +150,7 @@ const DashboardSidebarNav = ({
           <rect x="3" y="14" width="7" height="7" rx="1" />
           <path d="M14 14h.01M18 14h.01M14 18h.01M18 18h.01M21 14v4h-4" />
         </svg>
-        <span>Quét mã tham gia</span>
+        <span>Check-in tại sự kiện</span>
       </button>
     </nav>
   );

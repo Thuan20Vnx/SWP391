@@ -73,6 +73,8 @@ const buildPayload = (body = {}) => {
     title: body.title?.trim() || body.proposedEventTitle?.trim() || '',
     eventType: body.eventType?.trim() || 'Hội thảo & Workshop',
     description: body.description?.trim() || '',
+    registrationStartDate: body.registrationStartDate ? new Date(body.registrationStartDate) : null,
+    registrationEndDate: body.registrationEndDate ? new Date(body.registrationEndDate) : null,
     startDate: body.startDate ? new Date(body.startDate) : null,
     endDate: body.endDate ? new Date(body.endDate) : null,
     duration: body.duration?.trim() || '',
@@ -176,8 +178,11 @@ const submitRequest = async (email, body) => {
   const payload = buildPayload(body);
   if (!payload.companyName) throw new AppError('Tên doanh nghiệp là bắt buộc!', 400);
   if (!payload.title) throw new AppError('Tên sự kiện là bắt buộc!', 400);
+  if (!payload.registrationStartDate || Number.isNaN(payload.registrationStartDate.getTime())) {
+    throw new AppError('Thời gian bắt đầu đăng ký là bắt buộc!', 400);
+  }
   if (!payload.startDate || Number.isNaN(payload.startDate.getTime())) {
-    throw new AppError('Ngày tổ chức là bắt buộc!', 400);
+    throw new AppError('Thời gian bắt đầu sự kiện là bắt buộc!', 400);
   }
 
   let doc =

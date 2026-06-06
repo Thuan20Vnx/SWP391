@@ -380,15 +380,8 @@ function App() {
             <Route index element={<ClubManagement />} />
             <Route path="announcements" element={<ClubAnnouncementsPage />} />
             <Route path="announcements/:id" element={<ClubAnnouncementDetailPage />} />
+            <Route path="su-kien/:id" element={<EventManagementDetail />} />
           </Route>
-          <Route
-            path="/quan-ly-clb/su-kien/:id"
-            element={
-              <ProtectedRoute>
-                <EventManagementDetail showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/quet-qr"
             element={

@@ -48,6 +48,14 @@ const eventSchema = new mongoose.Schema(
       enum: EVENT_CATEGORIES,
       default: 'Công nghệ'
     },
+    registrationStartDate: {
+      type: Date,
+      default: null
+    },
+    registrationEndDate: {
+      type: Date,
+      default: null
+    },
     startDate: {
       type: Date,
       required: true
@@ -184,7 +192,11 @@ const eventSchema = new mongoose.Schema(
     },
     expectedRevenue: { type: Number, default: 0 },
     isHidden: { type: Boolean, default: false },
-    isDeleted: { type: Boolean, default: false }
+    isDeleted: { type: Boolean, default: false },
+    checkinQrToken: { type: String, default: '' },
+    checkinQrExpiresAt: { type: Date, default: null },
+    checkoutQrToken: { type: String, default: '' },
+    checkoutQrExpiresAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

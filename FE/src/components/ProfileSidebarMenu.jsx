@@ -65,8 +65,8 @@ const ProfileSidebarMenu = ({
         cta={
           <NavHubCtaButton
             icon={<NavHubIcon size={16}>{navIcons.qr}</NavHubIcon>}
-            label="Quét QR check-in"
-            onClick={go('scan', 'Quét QR')}
+            label="Check-in tại sự kiện"
+            onClick={go('scan', 'Check-in tại sự kiện')}
           />
         }
       />
