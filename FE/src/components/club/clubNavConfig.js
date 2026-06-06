@@ -44,6 +44,7 @@ export const isClubNavActive = (key, activeNav) => activeNav === key;
 
 export const resolveClubActiveNav = (pathname) => {
   if (pathname.startsWith('/quan-ly-clb/announcements')) return 'announcements';
+  if (pathname.startsWith('/quan-ly-clb/su-kien')) return 'list';
   try {
     const saved = sessionStorage.getItem('clb_active_nav');
     if (saved && CLUB_NAV_ITEMS.some((item) => item.key === saved)) return saved;

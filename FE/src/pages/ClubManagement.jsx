@@ -1,19 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { API_BASE, getEventHeaders, parseApiResponse } from '../utils/api';
 import ClubProfileUpdate from '../components/ClubProfileUpdate';
 import ClubChairmanTransfer from '../components/club/ClubChairmanTransfer';
 import ClubDashboardPanel from '../components/club/ClubDashboardPanel';
 import ClubParticipantsPanel from '../components/club/ClubParticipantsPanel';
 import './ClubManagement.css';
-import EventIntroFields from '../components/events/EventIntroFields';
-import {
-  DEFAULT_LEARNING_OUTCOME_ROWS,
-  normalizeLearningOutcomesForSave,
-} from '../utils/eventIntro';
+import EventProposalForm from '../components/events/EventProposalForm';
+import { EMPTY_EVENT_FORM, mapApiEventToForm } from '../utils/eventFormState';
 
 const ClubManagement = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     showToast,
     userProfile,
@@ -22,33 +20,19 @@ const ClubManagement = () => {
     events = [],
     setEvents,
     lastSeenNotifs,
-    sidebarOpen,
-    toggleSidebar,
   } = useOutletContext();
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [rejectModalData, setRejectModalData] = useState(null);
-  const [createStep, setCreateStep] = useState(1);
-  const [newEvent, setNewEvent] = useState({ 
-    title: '', 
-    category: '', 
-    description: '', 
-    maxSlots: 100, 
-    location: 'Tầng 5 tòa Alpha', 
-    isPaid: false,
-    thumbnail: '',
-    startDate: '',
-    startTime: '',
-    endDate: '',
-    endTime: '',
-    speaker: '',
-    agenda: '',
-    ticketPrice: '',
-    learningOutcomes: [...DEFAULT_LEARNING_OUTCOME_ROWS],
-  });
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [editReturnTo, setEditReturnTo] = useState(null);
+  const [eventForm, setEventForm] = useState(EMPTY_EVENT_FORM);
+  const [eventFormKey, setEventFormKey] = useState(0);
+  const [submittingEvent, setSubmittingEvent] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null); // ID của row đang mở dropdown
+  const [bannerFileName, setBannerFileName] = useState('');
   const totalEvents = events.length;
 
   const eventNotifications = useMemo(() => {
@@ -108,6 +92,29 @@ const ClubManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const editId = location.state?.editEventId;
+    const returnTo = location.state?.returnTo || null;
+    if (!editId) return;
+    setEditingEventId(editId);
+    setEditReturnTo(returnTo);
+    setActiveNav('create');
+    fetch(`${API_BASE}/api/events/${editId}`, { headers: getEventHeaders(false) })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.event) {
+          setEventForm(mapApiEventToForm(data.event));
+          setBannerFileName(data.event.bannerFileName || 'event-banner.jpg');
+          setEventFormKey((k) => k + 1);
+        } else {
+          showToast?.(data.message || 'Không tải được sự kiện để chỉnh sửa.', 'error');
+        }
+      })
+      .catch(() => showToast?.('Lỗi khi tải sự kiện.', 'error'));
+    navigate(location.pathname, { replace: true, state: {} });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.editEventId]);
+
   const fetchMyEvents = async () => {
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -138,9 +145,9 @@ const ClubManagement = () => {
   };
 
   const getStatusLabel = (status) => {
-    if (status === 'approved') return { label: 'Đã duyệt', cls: 'clb-status-active' };
-    if (status === 'pending') return { label: 'Chờ duyệt', cls: 'clb-status-pending' };
-    return { label: 'Từ chối', cls: 'clb-status-ended' };
+    if (status === 'approved') return { label: 'Đã duyệt', tone: 'approved' };
+    if (status === 'pending') return { label: 'Chờ duyệt', tone: 'pending' };
+    return { label: 'Từ chối', tone: 'rejected' };
   };
 
   const handleDeleteEvent = async (id) => {
@@ -161,115 +168,69 @@ const ClubManagement = () => {
       showToast('Lỗi kết nối server!', 'error');
     }
   };
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        showToast('Kích thước ảnh không được vượt quá 5MB!', 'error');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewEvent(prev => ({ ...prev, thumbnail: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleCreateSubmit = async (e) => {
-    e.preventDefault();
-    if (createStep === 2) {
-      if (!newEvent.description.trim()) {
-        showToast('Vui lòng nhập mô tả trong phần Giới thiệu sự kiện.', 'error');
-        return;
-      }
-      if (normalizeLearningOutcomesForSave(newEvent.learningOutcomes).length === 0) {
-        showToast('Vui lòng thêm ít nhất một mục trong “Bạn sẽ học được gì?”.', 'error');
-        return;
-      }
-    }
-    if (createStep < 4) {
-      setCreateStep(s => s + 1);
-      return;
-    }
-
+  const handleClubEventSubmit = async (body) => {
+    setSubmittingEvent(true);
     try {
-      if (!newEvent.startDate || !newEvent.startTime) {
-        showToast('Vui lòng nhập ngày và giờ bắt đầu!', 'error');
-        setCreateStep(3);
-        return;
-      }
-      
-      const startDateTime = new Date(`${newEvent.startDate}T${newEvent.startTime}:00`);
-      let endDateTime = null;
-      if (newEvent.endDate && newEvent.endTime) {
-        endDateTime = new Date(`${newEvent.endDate}T${newEvent.endTime}:00`);
-        if (endDateTime <= startDateTime) {
-          showToast('Thời gian kết thúc phải sau thời gian bắt đầu!', 'error');
-          setCreateStep(3);
-          return;
-        }
-      }
-
-      const body = {
-        title: newEvent.title,
-        description: newEvent.description || 'Chưa có mô tả',
-        thumbnail: newEvent.thumbnail,
-        speaker: newEvent.speaker,
-        agenda: newEvent.agenda,
-        learningOutcomes: normalizeLearningOutcomesForSave(newEvent.learningOutcomes),
-        location: newEvent.location,
-        capacity: parseInt(newEvent.maxSlots),
-        category: newEvent.category || 'Workshop',
-        startDate: startDateTime.toISOString(),
-        endDate: endDateTime ? endDateTime.toISOString() : undefined,
-        ticketPrice: newEvent.isPaid ? parseInt(newEvent.ticketPrice) || 0 : 0
+      const payload = {
+        title: body.title,
+        description: body.description,
+        thumbnail: body.thumbnail,
+        speaker: body.speaker,
+        agenda: body.agenda,
+        learningOutcomes: body.learningOutcomes,
+        location: body.location,
+        capacity: body.capacity,
+        category: body.category,
+        registrationStartDate: body.registrationStartDate,
+        registrationEndDate: body.registrationEndDate,
+        startDate: body.startDate,
+        endDate: body.endDate,
+        ticketPrice: body.ticketPrice,
+        ticketTypes: body.ticketTypes,
+        totalTickets: body.totalTickets,
       };
-
-      const res = await fetch(`${API_BASE}/api/events`, {
-        method: 'POST',
+      const endpoint = editingEventId
+        ? `${API_BASE}/api/events/${editingEventId}`
+        : `${API_BASE}/api/events`;
+      const res = await fetch(endpoint, {
+        method: editingEventId ? 'PUT' : 'POST',
         headers: getEventHeaders(true),
-        body: JSON.stringify(body)
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) {
-        showToast('Đề xuất sự kiện đã được gửi duyệt!', 'success');
-        setActiveNav('list');
-        setCreateStep(1);
-        setNewEvent({
-          title: '',
-          category: '',
-          description: '',
-          maxSlots: 100,
-          location: 'Tầng 5 tòa Alpha',
-          isPaid: false,
-          thumbnail: '',
-          startDate: '',
-          startTime: '',
-          endDate: '',
-          endTime: '',
-          speaker: '',
-          agenda: '',
-          ticketPrice: '',
-          learningOutcomes: [...DEFAULT_LEARNING_OUTCOME_ROWS],
-        });
+        showToast(
+          editingEventId ? 'Đã cập nhật và gửi lại duyệt!' : 'Đề xuất sự kiện đã được gửi duyệt!',
+          'success'
+        );
+        const returnTo = editReturnTo;
+        setEditingEventId(null);
+        setEditReturnTo(null);
+        setBannerFileName('');
+        setEventForm(EMPTY_EVENT_FORM);
+        setEventFormKey((k) => k + 1);
         fetchMyEvents();
+        if (returnTo) {
+          navigate(returnTo);
+        } else {
+          setActiveNav('list');
+        }
       } else {
         showToast(data.message || 'Tạo sự kiện thất bại!', 'error');
+        throw new Error(data.message);
       }
     } catch (err) {
-      showToast('Lỗi kết nối server!', 'error');
+      if (!err.message) showToast('Lỗi kết nối server!', 'error');
+      throw err;
+    } finally {
+      setSubmittingEvent(false);
     }
   };
 
   return (
     <>
           {activeNav === 'profile' && (
-            <ClubProfileUpdate
-              showToast={showToast}
-              sidebarOpen={sidebarOpen}
-              onToggleSidebar={toggleSidebar}
-            />
+            <ClubProfileUpdate showToast={showToast} />
           )}
 
           {activeNav === 'transfer-chairman' && (
@@ -285,83 +246,93 @@ const ClubManagement = () => {
                   <h1 className="clb-page-title">DANH SÁCH SỰ KIỆN QUẢN LÝ</h1>
                   <p className="clb-page-subtitle">Chào mừng trở lại, <strong>{userProfile.fullname || 'Manager'}</strong>. Bạn đang quản lý <strong>{events.length}</strong> sự kiện.</p>
                 </div>
-                <button className="clb-create-btn" onClick={() => { setActiveNav('create'); setCreateStep(1); }}>
+                <button
+                  className="clb-create-btn"
+                  onClick={() => {
+                    setEditingEventId(null);
+                    setEditReturnTo(null);
+                    setActiveNav('create');
+                  }}
+                >
                   <svg viewBox="0 0 24 24" width="18" height="18"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" /></svg>
                   Tạo sự kiện mới
                 </button>
               </div>
 
               <div className="clb-table-wrapper">
-                <table className="clb-table">
-                  <thead>
-                    <tr>
-                      <th>TÊN SỰ KIỆN</th>
-                      <th>THỂ LOẠI</th>
-                      <th>THỜI GIAN</th>
-                      <th>SỐ SLOT</th>
-                      <th>TRẠNG THÁI</th>
-                      <th>HÀNH ĐỘNG</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loadingEvents ? (
-                      <tr><td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#94a3b8' }}>Đang tải...</td></tr>
-                    ) : events.length === 0 ? (
-                      <tr><td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#94a3b8' }}>Chưa có sự kiện nào. Tạo sự kiện đầu tiên của bạn!</td></tr>
-                    ) : events.map(ev => {
-                      const { label, cls } = getStatusLabel(ev.status);
-                      const startDate = ev.startDate ? new Date(ev.startDate).toLocaleDateString('vi-VN') : '--';
-                      const startTime = ev.startDate ? new Date(ev.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--';
-                      return (
-                        <tr key={ev._id}>
-                          <td><span className="clb-event-name">{ev.title}</span></td>
-                          <td><span className="clb-category-text">{ev.category || 'Workshop'}</span></td>
-                          <td><span className="clb-date-text">{startDate} - {startTime}</span></td>
-                          <td>
-                            <div className="clb-slot-cell">
-                              {(() => {
-                                const reg = ev.registeredCount || 0;
-                                const cap = ev.capacity || 0;
-                                const pct = cap > 0 ? Math.min(100, Math.round((reg / cap) * 100)) : 0;
-                                return (
-                                  <>
-                                    <span className="clb-slot-nums" style={{ color: '#f26f21' }}>{reg}/{cap}</span>
-                                    <div className="clb-slot-bar-bg">
-                                      <div className="clb-slot-bar-fill" style={{ width: `${pct}%`, background: '#f26f21' }} />
-                                    </div>
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span className={`clb-status-badge ${cls}`}><span className="clb-status-dot"></span>{label}</span>
-                            </div>
-                          </td>                          <td style={{ position: 'relative' }}>
-                            <button
-                              className="clb-action-btn"
-                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === ev._id ? null : ev._id); }}
-                            >
-                              <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="5" r="1.5" fill="currentColor" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /><circle cx="12" cy="19" r="1.5" fill="currentColor" /></svg>
-                            </button>
-                            {openMenuId === ev._id && (
-                              <div className="clb-dropdown-menu" onClick={e => e.stopPropagation()}>
-                                <button
-                                  className="clb-dropdown-item"
-                                  onClick={() => { navigate(`/quan-ly-clb/su-kien/${ev._id}`); setOpenMenuId(null); }}
-                                >
-                                  <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/></svg>
-                                  Xem chi tiết
-                                </button>
+                <div className="clb-table-scroll">
+                  <table className="clb-table">
+                    <thead>
+                      <tr>
+                        <th>TÊN SỰ KIỆN</th>
+                        <th>THỂ LOẠI</th>
+                        <th>THỜI GIAN</th>
+                        <th>SỐ SLOT</th>
+                        <th>TRẠNG THÁI</th>
+                        <th className="clb-table-col-action">HÀNH ĐỘNG</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loadingEvents ? (
+                        <tr><td colSpan={6} className="clb-panel-empty-cell">Đang tải...</td></tr>
+                      ) : events.length === 0 ? (
+                        <tr><td colSpan={6} className="clb-panel-empty-cell">Chưa có sự kiện nào. Tạo sự kiện đầu tiên của bạn!</td></tr>
+                      ) : events.map(ev => {
+                        const { label, tone } = getStatusLabel(ev.status);
+                        const startDate = ev.startDate ? new Date(ev.startDate).toLocaleDateString('vi-VN') : '--';
+                        const startTime = ev.startDate ? new Date(ev.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--';
+                        const reg = ev.registeredCount || 0;
+                        const cap = ev.capacity || 0;
+                        const pct = cap > 0 ? Math.min(100, Math.round((reg / cap) * 100)) : 0;
+                        return (
+                          <tr key={ev._id}>
+                            <td><span className="clb-event-name">{ev.title}</span></td>
+                            <td><span className="clb-table-chip">{ev.category || 'Workshop'}</span></td>
+                            <td>
+                              <div className="clb-table-date">
+                                <strong>{startDate}</strong>
+                                <span>{startTime}</span>
                               </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            </td>
+                            <td>
+                              <div className="clb-slot-cell">
+                                <span className="clb-slot-nums">{reg}/{cap}</span>
+                                <div className="clb-slot-bar-bg">
+                                  <div className="clb-slot-bar-fill" style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`clb-table-status clb-table-status--${tone}`}>{label}</span>
+                            </td>
+                            <td className="clb-table-col-action">
+                              <button
+                                type="button"
+                                className="clb-action-btn"
+                                aria-label="Tùy chọn sự kiện"
+                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === ev._id ? null : ev._id); }}
+                              >
+                                <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="5" r="1.5" fill="currentColor" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /><circle cx="12" cy="19" r="1.5" fill="currentColor" /></svg>
+                              </button>
+                              {openMenuId === ev._id && (
+                                <div className="clb-dropdown-menu" onClick={e => e.stopPropagation()}>
+                                  <button
+                                    type="button"
+                                    className="clb-dropdown-item"
+                                    onClick={() => { navigate(`/quan-ly-clb/su-kien/${ev._id}`); setOpenMenuId(null); }}
+                                  >
+                                    <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/></svg>
+                                    Xem chi tiết
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
                 <div className="clb-pagination">
                   <span className="clb-pagination-info">1-{events.length} trong tổng số {totalEvents}</span>
                   <div className="clb-pagination-btns">
@@ -378,190 +349,30 @@ const ClubManagement = () => {
           )}
 
           {activeNav === 'create' && (
-            <div className="clb-create-view" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', background: '#fff', borderRadius: '16px', padding: '40px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-                <button 
-                  onClick={() => setActiveNav('list')}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', marginRight: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%' }}
-                >
-                  <svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/></svg>
-                </button>
-                <div>
-                  <h2 className="clb-modal-title" style={{ margin: 0 }}>TẠO ĐỀ XUẤT SỰ KIỆN MỚI</h2>
-                  <p className="clb-modal-subtitle" style={{ margin: '4px 0 0 0' }}>Vui lòng điền đầy đủ thông tin để gửi xét duyệt tới Ban cán bộ IC-PDP.</p>
-                </div>
-              </div>
-
-              <div className="clb-steps">
-                {['THÔNG TIN CHUNG', 'NỘI DUNG', 'THỜI GIAN & ĐỊA ĐIỂM', 'GỬI DUYỆT'].map((step, i) => (
-                  <div key={i} className={`clb-step ${createStep === i + 1 ? 'active' : createStep > i + 1 ? 'done' : ''}`}>
-                    <div className="clb-step-circle">{createStep > i + 1 ? '✓' : i + 1}</div>
-                    <span className="clb-step-label">{step}</span>
-                    {i < 3 && <div className="clb-step-line"></div>}
-                  </div>
-                ))}
-              </div>
-
-            <form onSubmit={handleCreateSubmit} className="clb-modal-form">
-              {createStep === 1 && (
-                <div className="clb-form-step">
-                  <div className="clb-form-row">
-                    <div className="clb-form-group">
-                      <label>Tên Sự Kiện <span className="clb-required">*</span></label>
-                      <input type="text" placeholder="Vd: Workshop Lập trình Flutter" value={newEvent.title} onChange={e => setNewEvent(p => ({ ...p, title: e.target.value }))} required className="clb-input" />
-                    </div>
-                    <div className="clb-form-group">
-                      <label>Thể Loại <span className="clb-required">*</span></label>
-                      <select value={newEvent.category} onChange={e => setNewEvent(p => ({ ...p, category: e.target.value }))} required className="clb-input">
-                        <option value="">Chọn thể loại</option>
-                        <option value="Workshop">Workshop</option>
-                        <option value="Công nghệ">Công nghệ</option>
-                        <option value="Thể thao">Thể thao</option>
-                        <option value="Âm nhạc">Âm nhạc</option>
-                        <option value="Khác">Khác</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="clb-form-row">
-                    <div className="clb-form-group">
-                      <label>Ảnh Banner (Thumbnail)</label>
-                      <input type="file" accept="image/*" onChange={handleImageUpload} className="clb-input" style={{ padding: '7px' }} />
-                      {newEvent.thumbnail && (
-                        <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0', height: '100px' }}>
-                          <img src={newEvent.thumbnail} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                      )}
-                    </div>
-                    <div className="clb-form-group">
-                      <label>Diễn Giả / Khách Mời</label>
-                      <input type="text" placeholder="Tên diễn giả..." value={newEvent.speaker} onChange={e => setNewEvent(p => ({ ...p, speaker: e.target.value }))} className="clb-input" />
-                    </div>
-                  </div>
-                </div>
-              )}
-              {createStep === 2 && (
-                <div className="clb-form-step clb-form-step--intro">
-                  <EventIntroFields
-                    description={newEvent.description}
-                    learningOutcomes={newEvent.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS}
-                    onDescriptionChange={(e) =>
-                      setNewEvent((p) => ({ ...p, description: e.target.value }))
-                    }
-                    onLearningOutcomeChange={(index, value) =>
-                      setNewEvent((p) => {
-                        const rows = [...(p.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS)];
-                        rows[index] = value;
-                        return { ...p, learningOutcomes: rows };
-                      })
-                    }
-                    onAddLearningOutcome={() =>
-                      setNewEvent((p) => ({
-                        ...p,
-                        learningOutcomes: [...(p.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS), ''],
-                      }))
-                    }
-                    onRemoveLearningOutcome={(index) =>
-                      setNewEvent((p) => {
-                        const rows = [...(p.learningOutcomes || DEFAULT_LEARNING_OUTCOME_ROWS)];
-                        if (rows.length <= 1) return p;
-                        rows.splice(index, 1);
-                        return { ...p, learningOutcomes: rows };
-                      })
-                    }
-                    descriptionRequired
-                  />
-                  <div className="clb-form-group">
-                    <label>Chương trình dự kiến (Agenda)</label>
-                    <textarea
-                      placeholder="Lịch trình cụ thể của sự kiện..."
-                      value={newEvent.agenda}
-                      onChange={(e) => setNewEvent((p) => ({ ...p, agenda: e.target.value }))}
-                      rows={4}
-                      className="clb-input clb-textarea"
-                    />
-                  </div>
-                </div>
-              )}
-              {createStep === 3 && (
-                <div className="clb-form-step">
-                  <div className="clb-form-row">
-                    <div className="clb-form-group">
-                      <label>Ngày Bắt Đầu <span className="clb-required">*</span></label>
-                      <input type="date" value={newEvent.startDate} onChange={e => setNewEvent(p => ({ ...p, startDate: e.target.value }))} required className="clb-input" />
-                    </div>
-                    <div className="clb-form-group">
-                      <label>Giờ Bắt Đầu <span className="clb-required">*</span></label>
-                      <input type="time" value={newEvent.startTime} onChange={e => setNewEvent(p => ({ ...p, startTime: e.target.value }))} required className="clb-input" />
-                    </div>
-                  </div>
-                  <div className="clb-form-row">
-                    <div className="clb-form-group">
-                      <label>Ngày Kết Thúc</label>
-                      <input type="date" value={newEvent.endDate} onChange={e => setNewEvent(p => ({ ...p, endDate: e.target.value }))} className="clb-input" />
-                    </div>
-                    <div className="clb-form-group">
-                      <label>Giờ Kết Thúc</label>
-                      <input type="time" value={newEvent.endTime} onChange={e => setNewEvent(p => ({ ...p, endTime: e.target.value }))} className="clb-input" />
-                    </div>
-                  </div>
-                  <div className="clb-form-row">
-                    <div className="clb-form-group">
-                      <label>Số lượng vé tối đa</label>
-                      <input type="number" min="1" value={newEvent.maxSlots} onChange={e => setNewEvent(p => ({ ...p, maxSlots: e.target.value }))} className="clb-input" />
-                    </div>
-                    <div className="clb-form-group">
-                      <label>Địa điểm tổ chức</label>
-                      <select value={newEvent.location} onChange={e => setNewEvent(p => ({ ...p, location: e.target.value }))} className="clb-input">
-                        <option>Tầng 5 tòa Alpha</option>
-                        <option>Tầng 4 tòa Beta</option>
-                        <option>Sảnh tòa Beta</option>
-                        <option>Sảnh tòa Gamma</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="clb-form-group">
-                    <div className="clb-toggle-row">
-                      <div>
-                        <label className="clb-toggle-label">Sự kiện có phí</label>
-                        <p style={{ fontSize: '0.85rem', color: '#9ca3af', margin: 0 }}>Bán vé tham dự</p>
-                      </div>
-                      <div className={`clb-toggle ${newEvent.isPaid ? 'on' : ''}`} onClick={() => setNewEvent(p => ({ ...p, isPaid: !p.isPaid }))}></div>
-                    </div>
-                    {newEvent.isPaid && (
-                      <div className="clb-form-row" style={{ marginTop: '12px' }}>
-                        <div className="clb-form-group" style={{ marginBottom: 0 }}>
-                          <label>Giá vé (VNĐ) <span className="clb-required">*</span></label>
-                          <input type="number" min="1000" step="1000" placeholder="Vd: 50000" value={newEvent.ticketPrice} onChange={e => setNewEvent(p => ({ ...p, ticketPrice: e.target.value }))} required={newEvent.isPaid} className="clb-input" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {createStep === 4 && (
-                <div className="clb-form-step">
-                  <div className="clb-confirm-box">
-                    <div className="clb-confirm-icon">📋</div>
-                    <h3>Xác nhận gửi đề xuất</h3>
-                    <p>Sự kiện sẽ được gửi tới Ban cán bộ IC-PDP. Thời gian duyệt 1-3 ngày làm việc.</p>
-                    <div className="clb-confirm-details">
-                      <div className="clb-confirm-row"><span>Tên sự kiện:</span><strong>{newEvent.title || 'Chưa nhập'}</strong></div>
-                      <div className="clb-confirm-row"><span>Thể loại:</span><strong>{newEvent.category || 'Chưa chọn'}</strong></div>
-                      <div className="clb-confirm-row"><span>Thời gian:</span><strong>{newEvent.startTime && newEvent.startDate ? `${newEvent.startTime} ${newEvent.startDate}` : 'Chưa nhập'}</strong></div>
-                      <div className="clb-confirm-row"><span>Số slot:</span><strong>{newEvent.maxSlots}</strong></div>
-                      <div className="clb-confirm-row"><span>Địa điểm:</span><strong>{newEvent.location}</strong></div>
-                      <div className="clb-confirm-row"><span>Có phí:</span><strong>{newEvent.isPaid ? `${Number(newEvent.ticketPrice || 0).toLocaleString('vi-VN')} VNĐ` : 'Miễn phí'}</strong></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="clb-modal-actions">
-                {createStep > 1 && <button type="button" className="clb-btn-secondary" onClick={() => setCreateStep(s => s - 1)}>Quay lại</button>}
-                {createStep < 4 && <button type="button" className="clb-btn-secondary" onClick={() => { setActiveNav('list'); showToast('Đã lưu bản nháp!', 'info'); }}>Lưu bản nháp</button>}
-                <button type="submit" className="clb-btn-primary">{createStep === 4 ? 'Gửi duyệt' : 'Tiếp tục Bước ' + (createStep + 1)}</button>
-              </div>
-            </form>
-          </div>
+            <EventProposalForm
+              key={eventFormKey}
+              role="club"
+              showToast={showToast}
+              editingId={editingEventId}
+              isEditMode={Boolean(editingEventId)}
+              form={eventForm}
+              onFormChange={setEventForm}
+              bannerFileName={bannerFileName}
+              onBannerFileNameChange={setBannerFileName}
+              submitting={submittingEvent}
+              onCancel={() => {
+                const returnTo = editReturnTo;
+                setEditingEventId(null);
+                setEditReturnTo(null);
+                if (returnTo) {
+                  navigate(returnTo);
+                } else {
+                  setActiveNav('list');
+                }
+              }}
+              onDraftSave={() => showToast('Đã lưu bản nháp!', 'info')}
+              onSubmit={handleClubEventSubmit}
+            />
           )}
 
           {activeNav === 'participants' && (
@@ -651,6 +462,7 @@ const ClubManagement = () => {
               </div>
             </div>
           )}
+
     </>
   );
 };

@@ -139,12 +139,14 @@ const SiteHeader = ({
   };
 
   const hasShellSidebar = Boolean(onTogglePortalSidebar) || (showAdminMenu && !isAdminPortal);
-  const sidebarLogoCollapsed = portalSidebarOpen || (showAdminMenu && !isAdminPortal && menuOpen);
-  const searchCollapsed = sidebarLogoCollapsed && !searchExpanded && !searchValue.trim();
+  const portalSidebarActive = Boolean(onTogglePortalSidebar) && portalSidebarOpen;
+  const adminMenuOpen = showAdminMenu && !isAdminPortal && menuOpen;
+  const sidebarLogoCollapsed = portalSidebarActive || adminMenuOpen;
+  const searchCollapsed = adminMenuOpen && !searchExpanded && !searchValue.trim();
 
   useEffect(() => {
-    if (!sidebarLogoCollapsed) setSearchExpanded(false);
-  }, [sidebarLogoCollapsed]);
+    if (!adminMenuOpen) setSearchExpanded(false);
+  }, [adminMenuOpen]);
 
   useEffect(() => {
     if (searchExpanded && searchInputRef.current) {

@@ -60,44 +60,50 @@ const ClubDashboardPanel = ({ events, loadingEvents, userProfile, onViewEvent })
               <p className="clb-panel-empty">Chưa có sự kiện nào. Tạo đề xuất đầu tiên từ sidebar.</p>
             ) : (
               <div className="clb-table-wrapper">
-                <table className="clb-table">
-                  <thead>
-                    <tr>
-                      <th>TÊN SỰ KIỆN</th>
-                      <th>ĐĂNG KÝ</th>
-                      <th>TRẠNG THÁI</th>
-                      <th>HÀNH ĐỘNG</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentEvents.map((ev) => {
-                      const reg = ev.registeredCount || 0;
-                      const cap = ev.capacity || 0;
-                      const pct = cap > 0 ? Math.min(100, Math.round((reg / cap) * 100)) : 0;
-                      const statusLabel =
-                        ev.status === 'approved' ? 'Đã duyệt' : ev.status === 'pending' ? 'Chờ duyệt' : 'Từ chối';
-                      return (
-                        <tr key={ev._id}>
-                          <td><span className="clb-event-name">{ev.title}</span></td>
-                          <td>
-                            <div className="clb-slot-cell">
-                              <span className="clb-slot-nums">{reg}/{cap}</span>
-                              <div className="clb-slot-bar-bg">
-                                <div className="clb-slot-bar-fill" style={{ width: `${pct}%` }} />
+                <div className="clb-table-scroll">
+                  <table className="clb-table">
+                    <thead>
+                      <tr>
+                        <th>TÊN SỰ KIỆN</th>
+                        <th>ĐĂNG KÝ</th>
+                        <th>TRẠNG THÁI</th>
+                        <th className="clb-table-col-action">HÀNH ĐỘNG</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentEvents.map((ev) => {
+                        const reg = ev.registeredCount || 0;
+                        const cap = ev.capacity || 0;
+                        const pct = cap > 0 ? Math.min(100, Math.round((reg / cap) * 100)) : 0;
+                        const statusLabel =
+                          ev.status === 'approved' ? 'Đã duyệt' : ev.status === 'pending' ? 'Chờ duyệt' : 'Từ chối';
+                        const statusTone =
+                          ev.status === 'approved' ? 'approved' : ev.status === 'pending' ? 'pending' : 'rejected';
+                        return (
+                          <tr key={ev._id}>
+                            <td><span className="clb-event-name">{ev.title}</span></td>
+                            <td>
+                              <div className="clb-slot-cell">
+                                <span className="clb-slot-nums">{reg}/{cap}</span>
+                                <div className="clb-slot-bar-bg">
+                                  <div className="clb-slot-bar-fill" style={{ width: `${pct}%` }} />
+                                </div>
                               </div>
-                            </div>
-                          </td>
-                          <td><span className="clb-category-text">{statusLabel}</span></td>
-                          <td>
-                            <button type="button" className="clb-btn-secondary clb-btn-sm" onClick={() => onViewEvent?.(ev._id)}>
-                              Chi tiết
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            </td>
+                            <td>
+                              <span className={`clb-table-status clb-table-status--${statusTone}`}>{statusLabel}</span>
+                            </td>
+                            <td className="clb-table-col-action">
+                              <button type="button" className="clb-btn-secondary clb-btn-sm" onClick={() => onViewEvent?.(ev._id)}>
+                                Chi tiết
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </section>

@@ -1,13 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { API_BASE, getEventHeaders } from '../utils/api';
-import SiteHeader from '../components/SiteHeader';
+import { downloadStudentsExcel } from '../utils/exportStudentsExcel';
+import {
+  formatEventRating,
+  getCheckinProgress,
+  getReachWeekDelta,
+  getRegistrationProgress,
+} from '../utils/eventBentoStats';
 import './EventManagementDetail.css';
-import EventQrScannerPanel from '../components/events/EventQrScannerPanel';
+import BentoStarRating from '../components/events/BentoStarRating';
+import EventOverviewPanel from '../components/events/EventOverviewPanel';
+import EventCancelRequestsPanel from '../components/events/EventCancelRequestsPanel';
+import EventReportPanel from '../components/events/EventReportPanel';
+import EventQrGeneratePanel from '../components/events/EventQrGeneratePanel';
 
 
-const EventManagementDetail = ({ showToast }) => {
+const getEventStatusMeta = (status) => {
+  if (status === 'approved') return { label: 'Đã duyệt', tone: 'approved' };
+  if (status === 'pending') return { label: 'Chờ duyệt', tone: 'pending' };
+  if (status === 'rejected') return { label: 'Từ chối', tone: 'rejected' };
+  return { label: 'Đang chạy', tone: 'live' };
+};
+
+const EventManagementDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { showToast } = useOutletContext();
   
   const [activeTab, setActiveTab] = useState('danh-sach');
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,11 +57,29 @@ const EventManagementDetail = ({ showToast }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const statusMeta = getEventStatusMeta(eventData?.status);
+  const rejectionReason =
+    eventData?.rejectionReason?.trim() ||
+    eventData?.moderationReason?.trim() ||
+    '';
+  const isRejected = eventData?.status === 'rejected';
+
+  const registrationProgress = useMemo(
+    () => getRegistrationProgress(eventData?.registeredCount, eventData?.capacity),
+    [eventData?.registeredCount, eventData?.capacity]
+  );
+  const checkinProgress = useMemo(
+    () => getCheckinProgress(eventData?.checkinCount, eventData?.registeredCount),
+    [eventData?.checkinCount, eventData?.registeredCount]
+  );
+  const ratingStats = useMemo(() => formatEventRating(eventData), [eventData]);
+  const reachDelta = useMemo(() => getReachWeekDelta(eventData), [eventData]);
+  const reachDeltaLabel = reachDelta > 0 ? `+${reachDelta}%` : `${reachDelta}%`;
+  const reachDeltaTone = reachDelta > 0 ? 'up' : reachDelta < 0 ? 'down' : 'flat';
   
   return (
-    <div className="event-detail-page">
-      <SiteHeader activeNav="club-manage" />
-
+    <div className="ev-detail-content">
       <main className="ev-detail-main">
         {/* Breadcrumbs */}
         <div className="ev-breadcrumbs">
@@ -59,24 +96,57 @@ const EventManagementDetail = ({ showToast }) => {
 
         {/* Page Header */}
         <div className="ev-header-block">
-          <div className="ev-header-left">
-            <div className="ev-title-row">
-              <h1 className="ev-title">QUẢN LÝ SỰ KIỆN: {eventData ? eventData.title.toUpperCase() : 'ĐANG TẢI...'}</h1>
-              <span className="ev-status-badge">{eventData?.status === 'approved' ? 'Đã duyệt' : eventData?.status === 'pending' ? 'Chờ duyệt' : 'Đang chạy'}</span>
+          <div className="ev-header-top">
+            <div className="ev-header-main">
+              <div className="ev-header-label-row">
+                <span className="ev-header-label">Quản lý sự kiện</span>
+                <span className={`ev-status-badge ev-status-badge--${statusMeta.tone}`}>{statusMeta.label}</span>
+              </div>
+              <h1 className="ev-title">{eventData?.title || 'Đang tải...'}</h1>
+              <p className="ev-subtitle">
+                Mã sự kiện: EVT-{eventData ? eventData._id.substring(eventData._id.length - 6).toUpperCase() : '...'}
+                <span className="ev-subtitle-sep">·</span>
+                Ngày tạo: {eventData ? new Date(eventData.createdAt || eventData.startDate).toLocaleDateString('vi-VN') : '...'}
+              </p>
             </div>
-            <p className="ev-subtitle">
-              Mã sự kiện: EVT-{eventData ? eventData._id.substring(eventData._id.length - 6).toUpperCase() : '...'} | 
-              Ngày tạo: {eventData ? new Date(eventData.createdAt || eventData.startDate).toLocaleDateString('vi-VN') : '...'}
-            </p>
-          </div>
-          <div className="ev-header-actions">
-            <button className="ev-btn-outline" onClick={() => showToast('Chỉnh sửa thông tin!', 'info')}>Chỉnh sửa thông tin</button>
-            <button className="ev-btn-outline" onClick={() => showToast('Đang tải xuống!', 'info')}>Tải danh sách SV (Excel)</button>
-            <button className="ev-btn-primary" onClick={() => showToast('Tạo QR thành công!', 'success')}>
-              Tạo QR Điểm Danh AI
-              <svg viewBox="0 0 24 24" width="18" height="18" style={{marginLeft: '8px'}}><path d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm13-2h3v2h-3zm-5 0h3v2h-3zm3 3h3v2h-3zm-3 3h3v2h-3zm3 3h3v2h-3zm-5-3h3v2h-3z" fill="currentColor"/></svg>
+            <div className="ev-header-actions">
+            <button
+              className="ev-btn-outline"
+              onClick={() =>
+                navigate('/quan-ly-clb', {
+                  state: { editEventId: id, returnTo: `/quan-ly-clb/su-kien/${id}` },
+                })
+              }
+            >
+              Chỉnh sửa thông tin
             </button>
+            <button
+              className="ev-btn-outline"
+              onClick={() => {
+                if (!students.length) {
+                  showToast('Chưa có sinh viên đăng ký để xuất file.', 'info');
+                  return;
+                }
+                downloadStudentsExcel(students, eventData?.title || 'su-kien');
+                showToast('Đã tải danh sách sinh viên.', 'success');
+              }}
+            >
+              Tải danh sách SV (Excel)
+            </button>
+            <button type="button" className="ev-btn-primary ev-btn-qr" onClick={() => setActiveTab('ma-qr')}>
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm13-2h3v2h-3zm-5 0h3v2h-3zm3 3h3v2h-3zm-3 3h3v2h-3zm3 3h3v2h-3zm-5-3h3v2h-3z" fill="currentColor"/></svg>
+              Mã QR check-in/out
+            </button>
+            </div>
           </div>
+          {isRejected && (
+            <div className="ev-rejection-reason">
+              <span className="ev-rejection-reason__label">Lý do từ chối</span>
+              <p className="ev-rejection-reason__text">
+                {rejectionReason || 'Không có lý do cụ thể.'}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Bento Grid Stats */}
@@ -90,9 +160,12 @@ const EventManagementDetail = ({ showToast }) => {
               <span className="ev-bento-num">{eventData?.registeredCount || 0}</span> <span className="ev-bento-total">/ {eventData ? eventData.capacity : '...'}</span>
             </div>
             <div className="ev-bento-progress-bar">
-              <div className="ev-bento-progress-fill" style={{ width: '90%' }}></div>
+              <div
+                className={`ev-bento-progress-fill ev-bento-progress-fill--${registrationProgress.tone}`}
+                style={{ width: `${registrationProgress.pct}%` }}
+              />
             </div>
-            <p className="ev-bento-desc">Đạt 90% mục tiêu</p>
+            <p className="ev-bento-desc">{registrationProgress.label}</p>
           </div>
 
           <div className="ev-bento-card">
@@ -103,10 +176,13 @@ const EventManagementDetail = ({ showToast }) => {
             <div className="ev-bento-value">
               <span className="ev-bento-num">{eventData?.checkinCount || 0}</span> <span className="ev-bento-total">/ {eventData?.registeredCount || 0} sinh viên</span>
             </div>
-            <div className="ev-bento-progress-bar">
-              <div className="ev-bento-progress-fill" style={{ width: '71%', background: '#334155' }}></div>
+            <div className="ev-bento-progress-bar ev-bento-progress-bar--checkin">
+              <div
+                className={`ev-bento-progress-fill ev-bento-progress-fill--checkin-${checkinProgress.tone}`}
+                style={{ width: `${checkinProgress.pct}%` }}
+              />
             </div>
-            <p className="ev-bento-desc">Cập nhật: 2 phút trước</p>
+            <p className="ev-bento-desc">{checkinProgress.label}</p>
           </div>
 
           <div className="ev-bento-card">
@@ -115,13 +191,14 @@ const EventManagementDetail = ({ showToast }) => {
               <svg viewBox="0 0 24 24" width="20" height="20" fill="#eab308"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
             </div>
             <div className="ev-bento-value">
-              <span className="ev-bento-num">{eventData?.rating || '0.0'}</span> 
-              <span className="ev-bento-stars">
-                {[1,2,3,4].map(s => <svg key={s} viewBox="0 0 24 24" width="16" height="16" fill="#eab308"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>)}
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="#eab308"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4V6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"/></svg>
-              </span>
+              <span className="ev-bento-num">{ratingStats.label}</span>
+              <BentoStarRating value={ratingStats.value} />
             </div>
-            <p className="ev-bento-desc" style={{marginTop: '24px'}}>Từ {eventData?.ratingCount || 0} lượt phản hồi</p>
+            <p className="ev-bento-desc ev-bento-desc--spaced">
+              {ratingStats.count > 0
+                ? `Từ ${ratingStats.count} lượt phản hồi`
+                : 'Chưa có lượt phản hồi'}
+            </p>
           </div>
 
           <div className="ev-bento-card">
@@ -132,9 +209,18 @@ const EventManagementDetail = ({ showToast }) => {
             <div className="ev-bento-value">
               <span className="ev-bento-num">{eventData?.reach || 0}</span>
             </div>
-            <p className="ev-bento-desc" style={{marginTop: '24px', display: 'flex', alignItems: 'center', gap: '4px'}}>
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="#22c55e"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg>
-              <span style={{color: '#22c55e', fontWeight: '500'}}>12%</span> so với tuần trước
+            <p className={`ev-bento-desc ev-bento-desc--spaced ev-bento-desc--delta ev-bento-desc--delta-${reachDeltaTone}`}>
+              {reachDelta > 0 && (
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                  <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z" fill="currentColor" />
+                </svg>
+              )}
+              {reachDelta < 0 && (
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                  <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" fill="currentColor" />
+                </svg>
+              )}
+              <span className="ev-bento-delta-value">{reachDeltaLabel}</span> so với tuần trước
             </p>
           </div>
         </div>
@@ -145,7 +231,7 @@ const EventManagementDetail = ({ showToast }) => {
           <button className={`ev-tab ${activeTab === 'danh-sach' ? 'active' : ''}`} onClick={() => setActiveTab('danh-sach')}>Danh sách Sinh viên</button>
           <button className={`ev-tab ${activeTab === 'huy-ve' ? 'active' : ''}`} onClick={() => setActiveTab('huy-ve')}>Yêu cầu hủy vé</button>
           <button className={`ev-tab ${activeTab === 'bao-cao' ? 'active' : ''}`} onClick={() => setActiveTab('bao-cao')}>Báo cáo & Minh chứng</button>
-          <button className={`ev-tab ${activeTab === 'qr-scanner' ? 'active' : ''}`} onClick={() => setActiveTab('qr-scanner')}>Quét QR</button>
+          <button className={`ev-tab ${activeTab === 'ma-qr' ? 'active' : ''}`} onClick={() => setActiveTab('ma-qr')}>Mã QR check-in/out</button>
         </div>
 
         {/* Tab Content */}
@@ -232,14 +318,20 @@ const EventManagementDetail = ({ showToast }) => {
             </div>
           )}
           
-          {activeTab === 'qr-scanner' && id && (
-            <EventQrScannerPanel eventId={id} showToast={showToast} />
+          {activeTab === 'tong-quan' && (
+            <EventOverviewPanel event={eventData} />
           )}
 
-          {activeTab !== 'danh-sach' && activeTab !== 'qr-scanner' && (
-            <div className="ev-empty-tab">
-              <p>Nội dung đang được cập nhật cho phần <strong>{activeTab}</strong></p>
-            </div>
+          {activeTab === 'huy-ve' && (
+            <EventCancelRequestsPanel students={students} />
+          )}
+
+          {activeTab === 'bao-cao' && (
+            <EventReportPanel event={eventData} students={students} />
+          )}
+
+          {activeTab === 'ma-qr' && id && (
+            <EventQrGeneratePanel eventId={id} showToast={showToast} />
           )}
         </div>
       </main>

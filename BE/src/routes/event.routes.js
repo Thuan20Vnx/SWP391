@@ -18,6 +18,7 @@ router.get('/my', authMiddleware, authorize('club_manager', 'student', 'staff'),
 router.get('/pending', authorize('ctsv', 'admin'), asyncHandler(eventController.getPendingEvents));
 router.put('/:id/status', authorize('ctsv', 'admin'), asyncHandler(eventController.updateEventStatus));
 router.delete('/:id', authMiddleware, authorize('club_manager', 'student', 'staff'), asyncHandler(eventController.deleteMyEvent));
+router.put('/:id', authMiddleware, authorize('club_manager', 'student', 'staff'), asyncHandler(eventController.updateMyEvent));
 
 router.post(
   '/:id/change-requests',
@@ -46,34 +47,22 @@ router.post(
 );
 
 router.get(
-  '/scanner/my-events',
-  authMiddleware,
-  authorize('student', 'staff', 'club_manager', 'ctsv', 'icpdp', 'admin'),
-  asyncHandler(qrScannerController.myScannerEvents)
-);
-router.get(
-  '/:id/scanner-grants',
+  '/:id/station-qr',
   authMiddleware,
   authorize('club_manager', 'ctsv', 'icpdp', 'admin'),
-  asyncHandler(qrScannerController.listGrants)
+  asyncHandler(qrScannerController.getStationQr)
 );
 router.post(
-  '/:id/scanner-grants',
+  '/:id/station-qr',
   authMiddleware,
   authorize('club_manager', 'ctsv', 'icpdp', 'admin'),
-  asyncHandler(qrScannerController.createGrant)
-);
-router.delete(
-  '/:id/scanner-grants/:grantId',
-  authMiddleware,
-  authorize('club_manager', 'ctsv', 'icpdp', 'admin'),
-  asyncHandler(qrScannerController.revokeGrant)
+  asyncHandler(qrScannerController.generateStationQr)
 );
 router.post(
-  '/:id/scan',
+  '/:id/self-scan',
   authMiddleware,
-  authorize('student', 'staff', 'club_manager', 'ctsv', 'icpdp', 'admin'),
-  asyncHandler(qrScannerController.scanRegistration)
+  authorize('student', 'staff'),
+  asyncHandler(qrScannerController.selfScan)
 );
 
 router.get('/:id', optionalAuth, optionalAuthorize, asyncHandler(eventController.getEventById));
