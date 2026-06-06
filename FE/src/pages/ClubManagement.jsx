@@ -5,6 +5,8 @@ import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../
 import SiteHeader from '../components/SiteHeader';
 import ClubProfileUpdate from '../components/ClubProfileUpdate';
 import ClubChairmanTransfer from '../components/club/ClubChairmanTransfer';
+import ClubDashboardPanel from '../components/club/ClubDashboardPanel';
+import ClubParticipantsPanel from '../components/club/ClubParticipantsPanel';
 import ClubSidebarAside from '../components/club/ClubSidebarAside';
 import {
   CLUB_NAV_ITEMS,
@@ -413,10 +415,19 @@ const ClubManagement = ({ showToast }) => {
                           <td><span className="clb-date-text">{startDate} - {startTime}</span></td>
                           <td>
                             <div className="clb-slot-cell">
-                              <span className="clb-slot-nums" style={{ color: '#f26f21' }}>0/{ev.capacity}</span>
-                              <div className="clb-slot-bar-bg">
-                                <div className="clb-slot-bar-fill" style={{ width: '0%', background: '#f26f21' }}></div>
-                              </div>
+                              {(() => {
+                                const reg = ev.registeredCount || 0;
+                                const cap = ev.capacity || 0;
+                                const pct = cap > 0 ? Math.min(100, Math.round((reg / cap) * 100)) : 0;
+                                return (
+                                  <>
+                                    <span className="clb-slot-nums" style={{ color: '#f26f21' }}>{reg}/{cap}</span>
+                                    <div className="clb-slot-bar-bg">
+                                      <div className="clb-slot-bar-fill" style={{ width: `${pct}%`, background: '#f26f21' }} />
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </td>
                           <td>
@@ -647,6 +658,23 @@ const ClubManagement = ({ showToast }) => {
               </div>
             </form>
           </div>
+          )}
+
+          {activeNav === 'participants' && (
+            <ClubParticipantsPanel
+              events={events}
+              showToast={showToast}
+              onViewEvent={(eventId) => navigate(`/quan-ly-clb/su-kien/${eventId}`)}
+            />
+          )}
+
+          {activeNav === 'dashboard' && (
+            <ClubDashboardPanel
+              events={events}
+              loadingEvents={loadingEvents}
+              userProfile={userProfile}
+              onViewEvent={(eventId) => navigate(`/quan-ly-clb/su-kien/${eventId}`)}
+            />
           )}
 
           {activeNav === 'notifications' && (
