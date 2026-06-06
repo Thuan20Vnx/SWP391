@@ -1,10 +1,15 @@
 import React from 'react';
-import ClubPortalShell from '../layouts/ClubPortalShell';
+import { useOutletContext } from 'react-router-dom';
 import AnnouncementDetail from './AnnouncementDetail';
 
-const ClubAnnouncementDetailPage = ({ showToast }) => (
-  <ClubPortalShell activeNav="announcements" showToast={showToast}>
-    <div className="announcements-page__container" style={{ width: '100%', maxWidth: 'var(--home-content-max, 1280px)', margin: '0 auto' }}>
+const ClubAnnouncementDetailPage = () => {
+  const { showToast } = useOutletContext();
+
+  return (
+    <div
+      className="announcements-page__container"
+      style={{ width: '100%', maxWidth: 'var(--home-content-max, 1280px)', margin: '0 auto' }}
+    >
       <AnnouncementDetail
         showToast={showToast}
         embedded
@@ -12,7 +17,7 @@ const ClubAnnouncementDetailPage = ({ showToast }) => (
         eventBasePath="/events"
       />
     </div>
-  </ClubPortalShell>
-);
+  );
+};
 
 export default ClubAnnouncementDetailPage;

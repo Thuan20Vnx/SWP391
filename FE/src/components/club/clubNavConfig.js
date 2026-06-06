@@ -8,8 +8,8 @@ export const CLUB_NAV_ITEMS = [
   { key: 'list', label: 'Danh sách Sự kiện quản lý', icon: 'publish' },
   { key: 'participants', label: 'Quản lý người tham gia', icon: 'participants' },
   { key: 'report', label: 'Báo cáo sau sự kiện', section: 'THEO DÕI', icon: 'reports' },
-  { key: 'notifications', label: 'Thông báo xét duyệt', icon: 'notifications' },
-  { key: 'announcements', label: 'Đăng thông báo CLB', icon: 'announce', external: '/quan-ly-clb/announcements' },
+  { key: 'notifications', label: 'Thông báo xét duyệt', icon: 'approval' },
+  { key: 'announcements', label: 'Đăng thông báo CLB', icon: 'broadcast' },
   { key: 'dashboard', label: 'Dashboard Thống kê số liệu', icon: 'dashboard' },
 ];
 
@@ -41,3 +41,12 @@ export const persistClubPublicSidebarOpen = (open) => {
 
 export const isClubDesktop = () => window.matchMedia('(min-width: 1024px)').matches;
 export const isClubNavActive = (key, activeNav) => activeNav === key;
+
+export const resolveClubActiveNav = (pathname) => {
+  if (pathname.startsWith('/quan-ly-clb/announcements')) return 'announcements';
+  try {
+    const saved = sessionStorage.getItem('clb_active_nav');
+    if (saved && CLUB_NAV_ITEMS.some((item) => item.key === saved)) return saved;
+  } catch { /* ignore */ }
+  return 'list';
+};

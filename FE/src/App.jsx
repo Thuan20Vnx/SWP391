@@ -62,6 +62,7 @@ import EventReviews from './pages/EventReviews';
 import Announcements from './pages/Announcements';
 import AnnouncementDetail from './pages/AnnouncementDetail';
 import StaticPage from './pages/StaticPage';
+import ClubManagerLayout from './layouts/ClubManagerLayout';
 import ClubManagement from './pages/ClubManagement';
 import ClubAnnouncementsPage from './pages/ClubAnnouncementsPage';
 import ClubAnnouncementDetailPage from './pages/ClubAnnouncementDetailPage';
@@ -372,26 +373,14 @@ function App() {
             path="/quan-ly-clb"
             element={
               <ProtectedRoute>
-                <ClubManagement showToast={showToast} />
+                <ClubManagerLayout showToast={showToast} />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path="/quan-ly-clb/announcements"
-            element={
-              <ProtectedRoute>
-                <ClubAnnouncementsPage showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/quan-ly-clb/announcements/:id"
-            element={
-              <ProtectedRoute>
-                <ClubAnnouncementDetailPage showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
+          >
+            <Route index element={<ClubManagement />} />
+            <Route path="announcements" element={<ClubAnnouncementsPage />} />
+            <Route path="announcements/:id" element={<ClubAnnouncementDetailPage />} />
+          </Route>
           <Route
             path="/quan-ly-clb/su-kien/:id"
             element={
