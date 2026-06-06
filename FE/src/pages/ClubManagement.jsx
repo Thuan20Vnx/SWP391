@@ -375,20 +375,9 @@ const ClubManagement = ({ showToast }) => {
           {activeNav === 'list' && (
             <>
               <div className="clb-page-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <button
-                    className="clb-sidebar-toggle-btn"
-                    onClick={() => setSidebarOpen(prev => !prev)}
-                    title={sidebarOpen ? 'Đóng sidebar' : 'Mở sidebar'}
-                  >
-                    <svg viewBox="0 0 24 24" width="20" height="20">
-                      <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
-                    </svg>
-                  </button>
-                  <div>
-                    <h1 className="clb-page-title">DANH SÁCH SỰ KIỆN QUẢN LÝ</h1>
-                    <p className="clb-page-subtitle">Chào mừng trở lại, <strong>{userProfile.fullname || 'Manager'}</strong>. Bạn đang quản lý <strong>{events.length}</strong> sự kiện.</p>
-                  </div>
+                <div>
+                  <h1 className="clb-page-title">DANH SÁCH SỰ KIỆN QUẢN LÝ</h1>
+                  <p className="clb-page-subtitle">Chào mừng trở lại, <strong>{userProfile.fullname || 'Manager'}</strong>. Bạn đang quản lý <strong>{events.length}</strong> sự kiện.</p>
                 </div>
                 <button className="clb-create-btn" onClick={() => { setActiveNav('create'); setCreateStep(1); }}>
                   <svg viewBox="0 0 24 24" width="18" height="18"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" /></svg>
