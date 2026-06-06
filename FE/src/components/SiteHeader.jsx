@@ -45,7 +45,9 @@ const SiteHeader = ({
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
   const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
   const profileRef = useRef(null);
+  const searchInputRef = useRef(null);
   const { isLoggedIn, userProfile, profileLoading } = useUserProfile();
 
   const role = normalizeRole(userProfile.role || getUserRole());
@@ -138,6 +140,17 @@ const SiteHeader = ({
 
   const hasShellSidebar = Boolean(onTogglePortalSidebar) || (showAdminMenu && !isAdminPortal);
   const sidebarLogoCollapsed = portalSidebarOpen || (showAdminMenu && !isAdminPortal && menuOpen);
+  const searchCollapsed = sidebarLogoCollapsed && !searchExpanded && !searchValue.trim();
+
+  useEffect(() => {
+    if (!sidebarLogoCollapsed) setSearchExpanded(false);
+  }, [sidebarLogoCollapsed]);
+
+  useEffect(() => {
+    if (searchExpanded && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchExpanded]);
 
   const renderNav = () => (
     <nav className={`header-nav site-header__nav ctsv-header-nav${mobileMenuOpen ? ' mobile-active' : ''}`} aria-label="Điều hướng chính">
@@ -196,20 +209,39 @@ const SiteHeader = ({
           </>
         )}
 
-        <div className="header-search-box site-header__search">
-          <span className="search-icon-inside">
-            <svg viewBox="0 0 24 24" width="18" height="18">
-              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor" />
-            </svg>
-          </span>
-          <input
-            type="text"
-            placeholder={resolvedSearchPlaceholder}
-            value={searchValue}
-            onChange={(e) => onSearchChange?.(e.target.value)}
-            onKeyDown={onSearchKeyDown}
-            className="search-input site-header__search-input"
-          />
+        <div className={`header-search-box site-header__search${searchCollapsed ? ' site-header__search--collapsed' : ''}`}>
+          {searchCollapsed ? (
+            <button
+              type="button"
+              className="site-header__search-toggle"
+              onClick={() => setSearchExpanded(true)}
+              aria-label="Mở tìm kiếm"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor" />
+              </svg>
+            </button>
+          ) : (
+            <>
+              <span className="search-icon-inside">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                  <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor" />
+                </svg>
+              </span>
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder={resolvedSearchPlaceholder}
+                value={searchValue}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                onKeyDown={onSearchKeyDown}
+                onBlur={() => {
+                  if (sidebarLogoCollapsed && !searchValue.trim()) setSearchExpanded(false);
+                }}
+                className="search-input site-header__search-input"
+              />
+            </>
+          )}
         </div>
 
         <div className="header-actions">
