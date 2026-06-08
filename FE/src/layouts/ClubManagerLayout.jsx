@@ -4,13 +4,14 @@ import defaultAvatar from '../constants/defaultAvatar';
 import SiteHeader from '../components/SiteHeader';
 import ClubSidebarAside from '../components/club/ClubSidebarAside';
 import {
-  CLUB_NAV_ITEMS,
   isClubDesktop,
+  navigateClubNavItem,
   persistClubSidebarOpen,
   readClubSidebarPref,
   resolveClubActiveNav,
 } from '../components/club/clubNavConfig';
 import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../utils/api';
+import { ACTIVE_CLUB_CHANGED } from '../utils/activeManagedClub';
 import { resolveUserAvatar } from '../utils/image';
 import '../styles/club-portal.css';
 
@@ -66,14 +67,26 @@ const ClubManagerLayout = ({ showToast }) => {
         }
       })
       .catch(() => {});
+  }, [navigate, showToast]);
 
+  const loadEvents = useCallback(() => {
     fetch(`${API_BASE}/api/events/my`, { headers: getEventHeaders(false) })
       .then((res) => parseApiResponse(res))
       .then(({ ok, data }) => {
         if (ok && data.success && Array.isArray(data.events)) setEvents(data.events);
       })
       .catch(() => {});
-  }, [navigate, showToast]);
+  }, [setEvents]);
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
+
+  useEffect(() => {
+    const handleClubChanged = () => loadEvents();
+    window.addEventListener(ACTIVE_CLUB_CHANGED, handleClubChanged);
+    return () => window.removeEventListener(ACTIVE_CLUB_CHANGED, handleClubChanged);
+  }, [loadEvents]);
 
   const hasNewNotifs = useMemo(() => {
     return events
@@ -97,28 +110,29 @@ const ClubManagerLayout = ({ showToast }) => {
     persistClubSidebarOpen(false);
   }, []);
 
-  const handleNavSelect = useCallback((key) => {
-    if (key === 'announcements') {
-      if (pathname !== '/quan-ly-clb/announcements' && !pathname.startsWith('/quan-ly-clb/announcements/')) {
-        navigate('/quan-ly-clb/announcements');
+  const markNotificationsRead = useCallback(() => {
+    const now = Date.now();
+    setLastSeenNotifs(now);
+    localStorage.setItem('clb_last_seen_notifs', now.toString());
+  }, []);
+
+  const handleNavSelect = useCallback(
+    (key) => {
+      if (key === 'announcements') {
+        setActiveNav('announcements');
+      } else {
+        setActiveNav(key);
       }
-      setActiveNav('announcements');
-      return;
-    }
 
-    setActiveNav(key);
-    sessionStorage.setItem('clb_active_nav', key);
-
-    if (key === 'notifications') {
-      const now = Date.now();
-      setLastSeenNotifs(now);
-      localStorage.setItem('clb_last_seen_notifs', now.toString());
-    }
-
-    if (pathname !== '/quan-ly-clb') {
-      navigate('/quan-ly-clb');
-    }
-  }, [navigate, pathname]);
+      navigateClubNavItem({
+        key,
+        navigate,
+        pathname,
+        onNotificationsRead: key === 'notifications' ? markNotificationsRead : undefined,
+      });
+    },
+    [markNotificationsRead, navigate, pathname]
+  );
 
   const shellClass = `ctsv-app-shell club-app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
 

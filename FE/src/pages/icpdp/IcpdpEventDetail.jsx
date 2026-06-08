@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
-import { fetchIcpdpEvent } from '../../services/icpdpApi';
+import { fetchIcpdpEvent, icpdpApproveEventModeration, icpdpRejectEventModeration } from '../../services/icpdpApi';
 import { statusClass } from '../../utils/eventStatus';
 import { resolveEventSpeakers } from '../../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
+import { isIcpdpModerationPending } from '../../constants/clubEventModeration';
+import { MODERATION_ACTION_LABELS } from '../../constants/eventModeration';
 import EventQrGeneratePanel from '../../components/events/EventQrGeneratePanel';
 
 const SOURCE_META = {
@@ -44,6 +46,9 @@ const IcpdpEventDetail = () => {
   const { showToast } = useOutletContext() || {};
   const [event, setEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
+  const [modNote, setModNote] = useState('');
+  const [modRejectReason, setModRejectReason] = useState('');
+  const [modBusy, setModBusy] = useState(false);
 
   useEffect(() => {
     fetchIcpdpEvent(id)
@@ -87,6 +92,39 @@ const IcpdpEventDetail = () => {
 
   const source = SOURCE_META[event.source] || SOURCE_META.club;
   const eventSpeakers = resolveEventSpeakers(event);
+  const moderationPending = isIcpdpModerationPending(event);
+
+  const handleModApprove = async () => {
+    setModBusy(true);
+    try {
+      const data = await icpdpApproveEventModeration(id, modNote.trim());
+      setEvent(data.event);
+      setModNote('');
+      showToast?.(data.message || 'Đã duyệt yêu cầu.', 'success');
+    } catch (err) {
+      showToast?.(err.message || 'Duyệt thất bại.', 'error');
+    } finally {
+      setModBusy(false);
+    }
+  };
+
+  const handleModReject = async () => {
+    if (!modRejectReason.trim()) {
+      showToast?.('Vui lòng nhập lý do từ chối.', 'error');
+      return;
+    }
+    setModBusy(true);
+    try {
+      const data = await icpdpRejectEventModeration(id, modRejectReason.trim());
+      setEvent(data.event);
+      setModRejectReason('');
+      showToast?.(data.message || 'Đã từ chối yêu cầu.', 'info');
+    } catch (err) {
+      showToast?.(err.message || 'Từ chối thất bại.', 'error');
+    } finally {
+      setModBusy(false);
+    }
+  };
 
   return (
     <div className="ctsv-ed-page">
@@ -174,9 +212,65 @@ const IcpdpEventDetail = () => {
           </svg>
         </span>
         <p>
-          Chế độ chỉ xem: IC-PDP giám sát thông tin sự kiện và tiến độ đăng ký.
+          {moderationPending
+            ? 'CLB đã gửi yêu cầu hoãn/hủy — IC-PDP duyệt trước khi chuyển Admin.'
+            : 'Chế độ chỉ xem: IC-PDP giám sát thông tin sự kiện và tiến độ đăng ký.'}
         </p>
       </div>
+
+      {moderationPending && (
+        <section className="ctsv-ed-panel ctsv-ed-moderation-panel">
+          <h2 className="ctsv-ed-panel-title">
+            Duyệt yêu cầu {MODERATION_ACTION_LABELS[event.moderationAction] || 'điều phối'}
+          </h2>
+          <p className="ctsv-ed-moderation-hint">
+            CLB gửi: {event.moderationReason || '—'}
+            {event.moderationRequestedByEmail && (
+              <> · {event.moderationRequestedByEmail}</>
+            )}
+          </p>
+          <textarea
+            className="ctsv-textarea ctsv-ed-note"
+            placeholder="Ghi chú IC-PDP (tùy chọn khi duyệt)..."
+            value={modNote}
+            onChange={(e) => setModNote(e.target.value)}
+            rows={2}
+          />
+          <textarea
+            className="ctsv-textarea ctsv-ed-note"
+            placeholder="Lý do từ chối (bắt buộc nếu từ chối)..."
+            value={modRejectReason}
+            onChange={(e) => setModRejectReason(e.target.value)}
+            rows={2}
+          />
+          <div className="ctsv-action-buttons">
+            <button
+              type="button"
+              className="ctsv-btn-primary"
+              disabled={modBusy}
+              onClick={handleModApprove}
+            >
+              Duyệt — chuyển Admin
+            </button>
+            <button
+              type="button"
+              className="ctsv-btn-danger"
+              disabled={modBusy}
+              onClick={handleModReject}
+            >
+              Từ chối
+            </button>
+          </div>
+        </section>
+      )}
+
+      {event.eventState === 'postponed' && event.postponeReason && (
+        <div className="ctsv-ed-banner ctsv-ed-banner--info" role="status">
+          <p>
+            Sự kiện đang hoãn{event.postponeIsWeather ? ' (thời tiết)' : ''}: {event.postponeReason}
+          </p>
+        </div>
+      )}
 
       <div className="ctsv-ed-content">
         {activeTab === 'info' && (

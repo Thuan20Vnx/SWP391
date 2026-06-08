@@ -31,12 +31,14 @@ const NAV_LINKS = [
 
 const PARTNER_MENU_ROUTES = {
   profile: '/partner/profile',
+  settings: '/partner/settings',
   events: '/partner/events',
   contracts: '/partner/contracts',
   'create-proposal': '/partner/proposals/create'
 };
 
 const resolveActiveMenuItem = (pathname) => {
+  if (pathname.startsWith('/partner/settings')) return 'settings';
   if (pathname.startsWith('/partner/profile')) return 'profile';
   if (pathname.startsWith('/partner/join/events')) return '';
   if (pathname.startsWith('/partner/events')) return 'events';

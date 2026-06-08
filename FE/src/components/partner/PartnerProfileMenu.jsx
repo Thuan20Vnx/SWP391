@@ -6,6 +6,7 @@ import {
   NavHubIcon,
   NavHubItem,
   NavHubMenuSection,
+  NavHubSystemSection,
   navIcons,
 } from '../nav/NavHubPrimitives';
 
@@ -57,6 +58,19 @@ const PartnerProfileMenu = ({
             onClick={act('create-proposal')}
           />
         }
+      />
+
+      <NavHubSystemSection
+        items={[
+          <NavHubItem
+            key="settings"
+            active={activeItem === 'settings'}
+            label="Cài đặt"
+            hint="Bảo mật tài khoản"
+            icon={<NavHubIcon>{navIcons.settings}</NavHubIcon>}
+            onClick={act('settings')}
+          />,
+        ]}
       />
 
       <NavHubFooter onLogout={onLogout} />

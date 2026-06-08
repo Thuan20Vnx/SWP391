@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react-router-dom';
 
 import Home from './pages/Home';
-import CtsvHome from './pages/CtsvHome';
 import CtsvLayout from './layouts/CtsvLayout';
 import CtsvDashboard from './pages/ctsv/CtsvDashboard';
 import CtsvEventList from './pages/ctsv/CtsvEventList';
@@ -38,6 +37,7 @@ import IcpdpProfileSettings from './pages/icpdp/IcpdpProfileSettings';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
+import PortalSettingsView from './pages/PortalSettingsView';
 import Settings from './pages/Settings';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
@@ -136,7 +136,6 @@ const PublicHomeRoute = ({ showToast }) => {
   if (isLoggedIn) {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
     if (isPartnerRole()) return <Navigate to="/partner/dashboard" replace />;
-    if (isCtsvRole()) return <Navigate to="/ctsv" replace />;
     if (isAdminRole()) return <AdminFptSystem showToast={showToast} />;
   }
   return <Home showToast={showToast} />;
@@ -241,7 +240,7 @@ function App() {
 
           <Route path="/ctsv" element={<CtsvProtectedRoute />}>
             <Route element={<CtsvLayout showToast={showToast} />}>
-              <Route index element={<CtsvHome showToast={showToast} />} />
+              <Route index element={<Navigate to="/" replace />} />
               <Route path="dashboard" element={<CtsvDashboard />} />
               <Route path="events" element={<CtsvEventList />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
@@ -267,6 +266,7 @@ function App() {
               <Route path="reports" element={<CtsvReports />} />
               <Route path="reports/:id" element={<CtsvReportDetail />} />
               <Route path="profile" element={<CtsvProfile showToast={showToast} />} />
+              <Route path="settings" element={<PortalSettingsView showToast={showToast} role="ctsv" />} />
             </Route>
           </Route>
 
@@ -285,6 +285,7 @@ function App() {
               <Route path="calendar" element={<IcpdpCalendar />} />
               <Route path="reports" element={<IcpdpReports />} />
               <Route path="profile" element={<IcpdpProfileSettings showToast={showToast} />} />
+              <Route path="settings" element={<PortalSettingsView showToast={showToast} role="icpdp" />} />
               <Route path="announcements" element={<IcpdpAnnouncementManage />} />
               <Route
                 path="announcements/:id"
@@ -306,6 +307,7 @@ function App() {
               <Route path="home" element={<Navigate to="/partner" replace />} />
               <Route path="dashboard" element={<PartnerDashboard />} />
               <Route path="profile" element={<PartnerProfileSettings showToast={showToast} />} />
+              <Route path="settings" element={<PortalSettingsView showToast={showToast} role="partner" />} />
               <Route path="events" element={<PartnerEventList />} />
               <Route path="events/:id" element={<PartnerEventDetail />} />
               <Route path="join/events" element={<Navigate to="/partner" replace />} />
@@ -405,6 +407,7 @@ function App() {
               <Route path="icpdp/club-registrations" element={<IcpdpClubRegistrationList />} />
               <Route path="icpdp/club-registrations/:id" element={<IcpdpClubRegistrationDetail />} />
               <Route path="profile" element={<Profile showToast={showToast} embedded />} />
+              <Route path="settings" element={<PortalSettingsView showToast={showToast} role="admin" />} />
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
               <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />
               <Route path="event-requests" element={<AdminEventRequests showToast={showToast} />} />

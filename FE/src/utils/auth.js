@@ -31,6 +31,7 @@ export const clearSession = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('userRole');
   localStorage.removeItem('userFullname');
+  localStorage.removeItem('activeManagedClubId');
 };
 
 export const getUserRole = () => normalizeRole(localStorage.getItem('userRole'));
@@ -78,7 +79,7 @@ export const getHomePathForRole = (role = getUserRole()) => {
   if (r === USER_ROLES.ICPDP) return '/icpdp';
   if (isPartnerRole(r)) return '/partner/dashboard';
   if (isClubManagerRole(r)) return '/quan-ly-clb';
-  if (isCtsvRole(r)) return '/ctsv';
+  if (r === USER_ROLES.CTSV) return '/ctsv/dashboard';
   if (isAdminRole(r)) return '/admin';
   return '/';
 };

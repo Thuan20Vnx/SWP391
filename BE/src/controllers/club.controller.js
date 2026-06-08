@@ -44,18 +44,28 @@ const approveMembership = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const readActiveClubId = (req) => {
+  const raw = String(req.headers['x-managed-club-id'] || '').trim();
+  return raw || null;
+};
+
+const getManagedClubs = async (req, res) => {
+  const result = await clubService.getManagedClubs(req.user._id, readActiveClubId(req));
+  res.status(200).json({ success: true, ...result });
+};
+
 const getManagedClubProfile = async (req, res) => {
-  const result = await clubService.getManagedClubProfile(req.user._id);
+  const result = await clubService.getManagedClubProfile(req.user._id, readActiveClubId(req));
   res.status(200).json({ success: true, ...result });
 };
 
 const updateManagedClubProfile = async (req, res) => {
-  const result = await clubService.updateManagedClubProfile(req.user._id, req.body);
+  const result = await clubService.updateManagedClubProfile(req.user._id, req.body, readActiveClubId(req));
   res.status(200).json({ success: true, ...result });
 };
 
 const transferClubChairman = async (req, res) => {
-  const result = await clubService.transferClubChairman(req.user._id, req.body);
+  const result = await clubService.transferClubChairman(req.user._id, req.body, readActiveClubId(req));
   res.status(200).json({ success: true, ...result });
 };
 
@@ -87,5 +97,6 @@ module.exports = {
   getManagedClubProfile,
   updateManagedClubProfile,
   transferClubChairman,
+  getManagedClubs,
   submitClubRegistration,
 };

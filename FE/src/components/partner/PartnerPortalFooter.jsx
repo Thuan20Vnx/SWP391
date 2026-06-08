@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 
 const PartnerPortalFooter = () => {
@@ -9,7 +9,9 @@ const PartnerPortalFooter = () => {
     <footer className="home-footer ctsv-portal-footer partner-portal-footer">
       <div className="footer-top-columns">
         <div className="footer-branding-col">
-          <img src={FE_LOGO} alt={FE_LOGO_ALT} className="footer-logo-img" />
+          <Link to="/partner" className="footer-logo-link">
+            <img src={FE_LOGO} alt={FE_LOGO_ALT} className="footer-logo-img" />
+          </Link>
           <p className="footer-brand-desc">
             Nền tảng quản lý sự kiện chuyên nghiệp dành riêng cho hệ sinh thái FPT — kết nối doanh nghiệp với sinh viên tài năng.
           </p>

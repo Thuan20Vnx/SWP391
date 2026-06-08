@@ -1,4 +1,12 @@
-const escapeCell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+import * as XLSX from 'xlsx';
+
+const formatDateTime = (value) => {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 const statusLabel = (status) => {
   if (status === 'checked-in' || status === 'attended') return 'Đã check-in';
@@ -6,29 +14,49 @@ const statusLabel = (status) => {
   return 'Chưa check-in';
 };
 
-export function downloadStudentsExcel(students, eventTitle = 'su-kien') {
-  const header = ['MSSV', 'Họ và tên', 'Email', 'Thời gian đăng ký', 'Trạng thái vé'];
-  const rows = students.map((row) => {
+const sanitizeFileName = (value) =>
+  String(value || 'danh-sach-sv')
+    .replace(/[\\/:*?"<>|]/g, '')
+    .trim()
+    .slice(0, 50) || 'danh-sach-sv';
+
+export function downloadStudentsExcel(students, meta = {}) {
+  const eventTitle = meta.eventTitle || meta.title || '';
+  const clubName = meta.clubName || '';
+  const clubPresident = meta.clubPresident || meta.president || '';
+
+  const studentHeader = ['MSSV', 'Họ và tên', 'Email', 'Thời gian đăng ký', 'Trạng thái vé'];
+
+  const studentRows = students.map((row) => {
     const s = row.student || {};
     const registeredAt = row.createdAt || row.registeredAt;
     return [
       s.studentId || '',
       s.fullname || '',
       s.email || '',
-      registeredAt ? new Date(registeredAt).toLocaleString('vi-VN') : '',
+      formatDateTime(registeredAt),
       statusLabel(row.status),
     ];
   });
 
-  const csv = [header, ...rows].map((line) => line.map(escapeCell).join(',')).join('\r\n');
-  const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  const safeName = String(eventTitle).replace(/[^\w\u00C0-\u024F\s-]/g, '').trim().slice(0, 40) || 'danh-sach-sv';
-  link.href = url;
-  link.download = `${safeName}-danh-sach-sv.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  const sheetData = [
+    ['Tên sự kiện', eventTitle],
+    ['Tên câu lạc bộ', clubName],
+    ['Chủ nhiệm CLB', clubPresident],
+    studentHeader,
+    ...studentRows,
+  ];
+
+  const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+  worksheet['!cols'] = [
+    { wch: 18 },
+    { wch: 36 },
+    { wch: 30 },
+    { wch: 20 },
+    { wch: 16 },
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Danh sach SV');
+  XLSX.writeFile(workbook, `${sanitizeFileName(eventTitle)}-danh-sach-sv.xlsx`);
 }

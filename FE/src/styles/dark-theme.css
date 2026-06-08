@@ -510,13 +510,24 @@ html.dark .settings-shell {
 }
 
 html.dark .settings-sidebar {
-  background: var(--surface-muted);
-  border-color: var(--surface-border);
+  background: transparent;
+  border-color: transparent;
 }
 
-html.dark .settings-sidebar__item:hover,
-html.dark .settings-sidebar__item.is-active {
+html.dark .settings-sidebar__nav {
   background: var(--bg-card);
+  border-color: var(--surface-border);
+  box-shadow: var(--shadow-sm);
+}
+
+html.dark .settings-sidebar__item:hover {
+  background: var(--surface-muted);
+  color: var(--text-main);
+}
+
+html.dark .settings-sidebar__item.is-active {
+  background: rgba(242, 111, 33, 0.12);
+  color: var(--primary);
 }
 
 html.dark .settings-panel__content {

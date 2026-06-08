@@ -31,7 +31,12 @@ const {
   findLinkableAnnouncementEvents,
   isEventLinkableForAnnouncement
 } = require('../utils/announcementEvents');
-const { requestModeration } = require('../services/eventModeration.service');
+const {
+  requestModeration,
+  requestClubModeration,
+  approveIcpdpModeration,
+  rejectIcpdpModeration
+} = require('../services/eventModeration.service');
 const {
   normalizeTicketTypes,
   deriveTicketPriceFromTypes,
@@ -204,6 +209,26 @@ router.get('/events/calendar', async (req, res) => {
     });
   } catch (error) {
     console.error('ctsv calendar:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// GET /api/ctsv/events/moderation/pending-icpdp — yêu cầu hoãn/hủy CLB chờ IC-PDP
+router.get('/events/moderation/pending-icpdp', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const { ICPDP_MODERATION_PENDING_STATUSES } = require('../constants/eventModeration');
+    const events = await Event.find({
+      source: 'club',
+      status: { $in: ICPDP_MODERATION_PENDING_STATUSES }
+    })
+      .sort({ moderationRequestedAt: -1, updatedAt: -1 })
+      .lean();
+    return res.json({
+      success: true,
+      events: events.map((ev) => formatEvent(ev))
+    });
+  } catch (error) {
+    console.error('icpdp moderation list:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
@@ -473,6 +498,42 @@ router.patch('/events/:id/moderation', requireCtsvApprove, async (req, res) => {
   }
 });
 
+// PATCH /api/ctsv/events/:id/moderation/icpdp-approve
+router.patch('/events/:id/moderation/icpdp-approve', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const result = await approveIcpdpModeration(req.params.id, req.body?.note, req.authEmail);
+    return res.json({
+      success: true,
+      event: formatEvent(result.event),
+      message: result.message
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('icpdp moderation approve:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// PATCH /api/ctsv/events/:id/moderation/icpdp-reject
+router.patch('/events/:id/moderation/icpdp-reject', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const result = await rejectIcpdpModeration(req.params.id, req.body?.reason, req.authEmail);
+    return res.json({
+      success: true,
+      event: formatEvent(result.event),
+      message: result.message
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('icpdp moderation reject:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
 // GET /api/ctsv/reports — báo cáo sau / đang diễn ra (live, ended, đã qua ngày, eventState expired)
 router.get('/reports', async (req, res) => {
   try {
@@ -713,8 +774,25 @@ router.get('/partners', async (req, res) => {
         { category: re }
       ];
     }
-    const partners = await Partner.find(filter).sort({ createdAt: -1 }).limit(200).lean();
-    const ids = partners.map((p) => p._id);
+    const partners = await Partner.find(filter).sort({ updatedAt: -1, createdAt: -1 }).limit(200).lean();
+    const dedupedByEmail = new Map();
+    for (const partner of partners) {
+      const emailKey = String(partner.email || '').trim().toLowerCase() || String(partner._id);
+      const existing = dedupedByEmail.get(emailKey);
+      if (!existing) {
+        dedupedByEmail.set(emailKey, partner);
+        continue;
+      }
+      const existingTs = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+      const partnerTs = new Date(partner.updatedAt || partner.createdAt || 0).getTime();
+      if (partnerTs >= existingTs) {
+        dedupedByEmail.set(emailKey, partner);
+      }
+    }
+    const uniquePartners = Array.from(dedupedByEmail.values()).sort(
+      (a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
+    );
+    const ids = uniquePartners.map((p) => p._id);
     const contracts = ids.length
       ? await Contract.find({ partnerId: { $in: ids } }).sort({ createdAt: -1 }).lean()
       : [];
@@ -723,7 +801,7 @@ router.get('/partners', async (req, res) => {
       const key = String(c.partnerId);
       if (!contractByPartner[key]) contractByPartner[key] = c;
     }
-    const enriched = partners.map((p) => {
+    const enriched = uniquePartners.map((p) => {
       const contract = contractByPartner[String(p._id)];
       return {
         ...p,

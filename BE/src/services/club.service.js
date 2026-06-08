@@ -406,14 +406,49 @@ const ALLOWED_PROFILE_FIELDS = [
   'logoColor',
 ];
 
-const findClubManagedBy = async (userId) => {
-  let club = await Club.findOne({ managedBy: userId });
-  if (!club) club = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
-  return club;
+const findManagedClubs = async (userId) => {
+  const clubs = await Club.find({ managedBy: userId }).sort({ name: 1 });
+  if (clubs.length) return clubs;
+  const fallback = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
+  return fallback ? [fallback] : [];
 };
 
-const transferClubChairman = async (currentUserId, payload = {}) => {
-  const club = await findClubManagedBy(currentUserId);
+const formatManagedClubBrief = (club) => ({
+  id: String(club._id),
+  name: club.name || '',
+  slug: club.slug || '',
+  president: club.president || '',
+  logoText: club.logoText || '',
+});
+
+const resolveManagedClub = async (userId, activeClubId = null) => {
+  const clubs = await findManagedClubs(userId);
+  if (!clubs.length) return null;
+
+  if (activeClubId) {
+    const matched = clubs.find((club) => String(club._id) === String(activeClubId));
+    if (matched) return matched;
+  }
+
+  return clubs[0];
+};
+
+const findClubManagedBy = async (userId, activeClubId = null) =>
+  resolveManagedClub(userId, activeClubId);
+
+const getManagedClubs = async (userId, activeClubId = null) => {
+  const clubs = await findManagedClubs(userId);
+  const activeClub = await resolveManagedClub(userId, activeClubId);
+
+  return {
+    clubs: clubs.map(formatManagedClubBrief),
+    activeClubId: activeClub ? String(activeClub._id) : '',
+    activeClub: activeClub ? formatManagedClubBrief(activeClub) : null,
+  };
+};
+
+const transferClubChairman = async (currentUserId, payload = {}, activeClubId = null) => {
+  const club = await resolveManagedClub(currentUserId, activeClubId);
   if (!club) throw new AppError('Không tìm thấy CLB bạn đang quản lý.', 404);
   if (club.managedBy && String(club.managedBy) !== String(currentUserId)) {
     throw new AppError('Bạn không có quyền chuyển nhượng chủ nhiệm CLB này.', 403);
@@ -456,8 +491,8 @@ const transferClubChairman = async (currentUserId, payload = {}) => {
   };
 };
 
-const getManagedClubProfile = async (userId) => {
-  let club = await findClubManagedBy(userId);
+const getManagedClubProfile = async (userId, activeClubId = null) => {
+  const club = await resolveManagedClub(userId, activeClubId);
 
   if (!club) {
     throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
@@ -475,8 +510,8 @@ const getManagedClubProfile = async (userId) => {
   return { club };
 };
 
-const updateManagedClubProfile = async (userId, payload = {}) => {
-  const club = await findClubManagedBy(userId);
+const updateManagedClubProfile = async (userId, payload = {}, activeClubId = null) => {
+  const club = await resolveManagedClub(userId, activeClubId);
 
   if (!club) {
     throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
@@ -523,6 +558,9 @@ module.exports = {
   getManagedClubProfile,
   updateManagedClubProfile,
   transferClubChairman,
+  getManagedClubs,
   findClubManagedBy,
+  findManagedClubs,
+  resolveManagedClub,
   MANAGED_CLUB_SLUG,
 };

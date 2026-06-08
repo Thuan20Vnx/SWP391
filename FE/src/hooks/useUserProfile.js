@@ -3,6 +3,7 @@ import { API_BASE, getAuthHeaders } from '../utils/api';
 import { resolveUserAvatar } from '../utils/image';
 import defaultAvatar from '../constants/defaultAvatar';
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
+import { normalizeRole } from '../utils/auth';
 
 const PROFILE_CACHE_KEY = 'fevents_user_profile';
 
@@ -92,7 +93,7 @@ const useUserProfile = () => {
           role: u.role || 'guest',
         };
         setUserProfile(profile);
-        localStorage.setItem('userRole', profile.role);
+        localStorage.setItem('userRole', normalizeRole(profile.role));
         writeCachedProfile(profile);
       })
       .catch(() => {

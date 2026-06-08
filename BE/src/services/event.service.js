@@ -12,11 +12,12 @@ const {
   totalQtyFromTypes
 } = require('../utils/ticketTypes');
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
+const { findClubManagedBy, findManagedClubs, resolveManagedClub } = require('./club.service');
 
 /** Trạng thái chờ duyệt (đồng bộ với luồng CTSV / CLB) */
 const PENDING_EVENT_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'revision'];
 
-const createEvent = async (user, body) => {
+const createEvent = async (user, body, activeClubId = null) => {
   const {
     title,
     description,
@@ -47,6 +48,7 @@ const createEvent = async (user, body) => {
   }
 
   const isClubManager = user.role === 'club_manager';
+  const managedClub = isClubManager ? await resolveManagedClub(user._id, activeClubId) : null;
   if (!isClubManager && !isValidEventVenue(location)) {
     throw new AppError(
       'Địa điểm không hợp lệ. Chọn một trong: Sảnh tòa Gamma, Sảnh tòa Beta, Tầng 4 tòa Beta, Tầng 5 tòa Alpha.',
@@ -71,6 +73,7 @@ const createEvent = async (user, body) => {
     registeredCount: 0,
     eventState: 'active',
     createdBy: user._id,
+    clubId: managedClub?._id || null,
     status: 'pending',
     speaker: speaker || undefined,
     agenda: agenda || undefined,
@@ -86,8 +89,19 @@ const createEvent = async (user, body) => {
 const MY_EVENTS_LIST_FIELDS =
   'title category startDate endDate location capacity registeredCount status eventState rejectionReason moderationReason ticketPrice speaker createdAt updatedAt createdBy';
 
-const getMyEvents = async (user) => {
-  const events = await Event.find({ createdBy: user._id })
+const getMyEvents = async (user, activeClubId = null) => {
+  const query = { createdBy: user._id };
+
+  if (activeClubId && user.role === 'club_manager') {
+    const managedClubs = await findManagedClubs(user._id);
+    if (managedClubs.length > 1) {
+      query.clubId = activeClubId;
+    } else {
+      query.$or = [{ clubId: activeClubId }, { clubId: null }, { clubId: { $exists: false } }];
+    }
+  }
+
+  const events = await Event.find(query)
     .select(MY_EVENTS_LIST_FIELDS)
     .sort({ createdAt: -1 })
     .lean();
@@ -101,6 +115,9 @@ const deleteMyEvent = async (eventId, user) => {
   }
   if (String(event.createdBy) !== String(user._id)) {
     throw new AppError('Bạn không có quyền xóa sự kiện này!', 403);
+  }
+  if (event.status !== 'rejected') {
+    throw new AppError('Chỉ có thể xóa sự kiện ở trạng thái bị từ chối.', 400);
   }
   await Event.findByIdAndDelete(eventId);
   return { message: 'Đã xóa sự kiện thành công!' };
@@ -243,7 +260,7 @@ const getApprovedEvents = async ({ category, user } = {}) => {
   return { events: eventsWithRegistration };
 };
 
-const getEventById = async (eventId, { user } = {}) => {
+const getEventById = async (eventId, { user, activeClubId } = {}) => {
   const event = await Event.findById(eventId).populate('createdBy', 'fullname email studentId role');
 
   if (!event) {
@@ -282,6 +299,19 @@ const getEventById = async (eventId, { user } = {}) => {
     doc.isRegistered = ids.includes(String(event._id));
   } else {
     doc.isRegistered = false;
+  }
+
+  if (isOwner && doc.source === 'club') {
+    const ownerId = event.createdBy?._id || event.createdBy;
+    const club = await resolveManagedClub(user._id, activeClubId)
+      || (ownerId ? await resolveManagedClub(ownerId, activeClubId) : null);
+    if (club) {
+      doc.clubName = club.name || '';
+      doc.clubPresident = club.president || event.createdBy?.fullname || user.fullname || '';
+    } else {
+      doc.clubName = doc.clubName || '';
+      doc.clubPresident = event.createdBy?.fullname || user.fullname || '';
+    }
   }
 
   const students = registrations.map((r) => ({

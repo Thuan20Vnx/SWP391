@@ -115,6 +115,12 @@ const eventSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
+    moderationReasonCategory: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    icpdpNote: { type: String, default: '', trim: true },
     moderationRequestedByEmail: { type: String, default: '' },
     moderationRequestedAt: { type: Date, default: null },
     /** Admin đã duyệt yêu cầu chỉnh sửa — CTSV mới được mở form (một lần / đến khi lưu) */
@@ -129,6 +135,11 @@ const eventSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
+    },
+    clubId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Club',
+      default: null,
     },
     createdByEmail: { type: String, default: '' },
     approvedByEmail: { type: String, default: '' },
@@ -195,8 +206,10 @@ const eventSchema = new mongoose.Schema(
     isDeleted: { type: Boolean, default: false },
     checkinQrToken: { type: String, default: '' },
     checkinQrExpiresAt: { type: Date, default: null },
+    checkinAttendanceCode: { type: String, default: '' },
     checkoutQrToken: { type: String, default: '' },
     checkoutQrExpiresAt: { type: Date, default: null },
+    checkoutAttendanceCode: { type: String, default: '' },
   },
   { timestamps: true }
 );
@@ -206,6 +219,7 @@ eventSchema.index({ category: 1, status: 1 });
 eventSchema.index({ source: 1, status: 1, startDate: -1 });
 eventSchema.index({ partnerId: 1, startDate: -1 });
 eventSchema.index({ createdBy: 1, createdAt: -1 });
+eventSchema.index({ clubId: 1, createdAt: -1 });
 eventSchema.index({ isHidden: 1, status: 1, startDate: 1 });
 eventSchema.index({ source: 1, status: 1, ctsvSubmittedAt: -1 });
 eventSchema.index({ source: 1, status: 1, moderationRequestedAt: -1 });

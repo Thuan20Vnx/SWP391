@@ -11,6 +11,8 @@ export const SCHOOL_EVENT_PUBLIC_STATUSES = ['approved', 'live'];
 const NON_PUBLIC_STATUSES = [
   'cancelled',
   'hidden',
+  'pending_icpdp_cancel',
+  'pending_icpdp_postpone',
   'pending_cancel',
   'pending_hide',
   'pending_postpone',
@@ -39,6 +41,8 @@ export const SCHOOL_EVENT_STATUS_LABELS = {
   rejected: 'Từ chối',
   live: 'Đang diễn ra',
   ended: 'Đã kết thúc',
+  pending_icpdp_cancel: 'Chờ IC-PDP — Hủy',
+  pending_icpdp_postpone: 'Chờ IC-PDP — Hoãn',
   pending_cancel: 'Chờ Admin — Hủy',
   pending_hide: 'Chờ Admin — Ẩn',
   pending_postpone: 'Chờ Admin — Hoãn',

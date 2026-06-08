@@ -53,6 +53,7 @@ const Profile = ({ showToast, embedded = false }) => {
   // Form Orientation State
   const [orientation, setOrientation] = useState('');
   const [saveLoading, setSaveLoading] = useState(false);
+  const [favoriteClubs, setFavoriteClubs] = useState([]);
 
   // Load profile from Backend on mount
   useEffect(() => {
@@ -115,6 +116,20 @@ const Profile = ({ showToast, embedded = false }) => {
       })
       .finally(() => setProfileLoading(false));
   }, [navigate, showToast]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    fetch(`${API_BASE}/api/user/my-clubs?tab=following`, { headers: getAuthHeaders(false) })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.success && Array.isArray(data.clubs)) {
+          setFavoriteClubs(data.clubs.slice(0, 6));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Interests Checklist State
   const [interests, setInterests] = useState({
@@ -419,19 +434,27 @@ const Profile = ({ showToast, embedded = false }) => {
           <div className="profile-left-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {renderAvatarCard()}
             <div className="profile-card clubs-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary)' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span>Câu lạc bộ của tôi</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  <span>Câu lạc bộ yêu thích</span>
+                </div>
+                <Link to="/my-clubs" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                  Xem tất cả
+                </Link>
               </div>
               <div className="tag-list">
-                <span className="club-tag">FU-DEVIES</span>
-                <span className="club-tag">Minori Japanese Club</span>
-                <span className="club-tag">DreamTeam</span>
+                {favoriteClubs.length === 0 ? (
+                  <span className="club-tag club-tag--empty">Chưa có CLB yêu thích</span>
+                ) : (
+                  favoriteClubs.map((club) => (
+                    <Link key={club.id} to={`/clubs/${club.slug}`} className="club-tag">
+                      {club.name}
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -783,14 +806,12 @@ const Profile = ({ showToast, embedded = false }) => {
           {/* Logo */}
           <div
             className="sidebar-logo"
-            style={{ display: 'flex', justifyContent: 'center', padding: '12px 16px', cursor: 'pointer' }}
             onClick={() => navigate('/')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
           >
-            <img
-              src={FE_LOGO}
-              alt={FE_LOGO_ALT}
-              style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
-            />
+            <img src={FE_LOGO} alt={FE_LOGO_ALT} />
           </div>
 
           {/* User Profile Card */}

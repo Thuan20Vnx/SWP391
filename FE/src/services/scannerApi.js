@@ -28,6 +28,15 @@ export async function selfScanEvent(eventId, body) {
   return parseJson(res);
 }
 
+export async function selfScanByAttendanceCode(body) {
+  const res = await fetch(`${API_BASE}/api/events/attendance-code/scan`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(body),
+  });
+  return parseJson(res);
+}
+
 export async function transferClubChairman(body) {
   const res = await fetch(`${API_BASE}/api/clubs/manage/transfer-chairman`, {
     method: 'POST',

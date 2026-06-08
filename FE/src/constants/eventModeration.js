@@ -11,6 +11,11 @@ export const MODERATION_PENDING_STATUSES = [
   'pending_edit'
 ];
 
+export const ICPDP_MODERATION_PENDING_STATUSES = [
+  'pending_icpdp_cancel',
+  'pending_icpdp_postpone'
+];
+
 export const MODERATION_ACTION_LABELS = {
   cancel: 'Hủy sự kiện',
   hide: 'Ẩn sự kiện',
@@ -23,7 +28,11 @@ export const CTSV_MODERATABLE_STATUSES = ['pending_admin', 'approved', 'live', '
 export const canCtsvRequestModeration = (event) =>
   event?.source === 'school' &&
   CTSV_MODERATABLE_STATUSES.includes(event?.statusKey) &&
-  !MODERATION_PENDING_STATUSES.includes(event?.statusKey);
+  !MODERATION_PENDING_STATUSES.includes(event?.statusKey) &&
+  !ICPDP_MODERATION_PENDING_STATUSES.includes(event?.statusKey);
 
 export const isModerationPending = (event) =>
   MODERATION_PENDING_STATUSES.includes(event?.statusKey);
+
+export const isIcpdpModerationPending = (event) =>
+  ICPDP_MODERATION_PENDING_STATUSES.includes(event?.statusKey);

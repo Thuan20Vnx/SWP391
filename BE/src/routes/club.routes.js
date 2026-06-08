@@ -18,6 +18,12 @@ router.post(
 );
 
 router.get(
+  '/manage/clubs',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.getManagedClubs)
+);
+router.get(
   '/manage/profile',
   authMiddleware,
   authorize('club_manager'),
@@ -59,13 +65,13 @@ router.patch(
 router.post(
   '/:id/follow',
   authMiddleware,
-  authorize('student', 'staff'),
+  authorize('student', 'staff', 'club_manager'),
   asyncHandler(clubController.followClub)
 );
 router.delete(
   '/:id/follow',
   authMiddleware,
-  authorize('student', 'staff'),
+  authorize('student', 'staff', 'club_manager'),
   asyncHandler(clubController.unfollowClub)
 );
 

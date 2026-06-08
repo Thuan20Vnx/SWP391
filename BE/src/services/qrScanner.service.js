@@ -6,6 +6,8 @@ const AppError = require('../utils/AppError');
 
 const QR_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_QR_DURATION_MINUTES = 7 * 24 * 60;
+const ATTENDANCE_CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const ATTENDANCE_CODE_REGEX = /^[A-Za-z0-9]{6}$/;
 
 const parseDurationMinutes = (raw) => {
   if (typeof raw === 'number' && Number.isFinite(raw)) return Math.trunc(raw);
@@ -75,6 +77,51 @@ const isTokenActive = (token, expiresAt) => {
   return new Date(expiresAt) > new Date();
 };
 
+const normalizeAttendanceCode = (code) => String(code || '').trim().toUpperCase();
+
+const isValidAttendanceCodeFormat = (code) => ATTENDANCE_CODE_REGEX.test(normalizeAttendanceCode(code));
+
+const generateAttendanceCode = () => {
+  let code = '';
+  for (let i = 0; i < 6; i += 1) {
+    code += ATTENDANCE_CODE_CHARS[crypto.randomInt(0, ATTENDANCE_CODE_CHARS.length)];
+  }
+  return code;
+};
+
+const isAttendanceCodeInUse = async (code) => {
+  const existing = await Event.findOne({
+    isDeleted: false,
+    $or: [{ checkinAttendanceCode: code }, { checkoutAttendanceCode: code }],
+  }).select('checkinAttendanceCode checkoutAttendanceCode checkinQrToken checkinQrExpiresAt checkoutQrToken checkoutQrExpiresAt');
+
+  if (!existing) return false;
+
+  if (
+    existing.checkinAttendanceCode === code
+    && isTokenActive(existing.checkinQrToken, existing.checkinQrExpiresAt)
+  ) {
+    return true;
+  }
+
+  if (
+    existing.checkoutAttendanceCode === code
+    && isTokenActive(existing.checkoutQrToken, existing.checkoutQrExpiresAt)
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
+const generateUniqueAttendanceCode = async () => {
+  for (let attempt = 0; attempt < 25; attempt += 1) {
+    const code = generateAttendanceCode();
+    if (!(await isAttendanceCodeInUse(code))) return code;
+  }
+  throw new AppError('Không thể tạo mã điểm danh. Vui lòng thử lại.', 500);
+};
+
 const buildStationPayload = (eventId, action, token) => JSON.stringify({
   type: 'fpt-event-station',
   eventId: String(eventId),
@@ -82,13 +129,28 @@ const buildStationPayload = (eventId, action, token) => JSON.stringify({
   token,
 });
 
+const getStationCredentials = (event, action) => {
+  if (action === 'checkout') {
+    return {
+      token: event.checkoutQrToken,
+      expiresAt: event.checkoutQrExpiresAt,
+      attendanceCode: event.checkoutAttendanceCode,
+    };
+  }
+  return {
+    token: event.checkinQrToken,
+    expiresAt: event.checkinQrExpiresAt,
+    attendanceCode: event.checkinAttendanceCode,
+  };
+};
+
 const formatStationQr = (event, action) => {
-  const token = action === 'checkout' ? event.checkoutQrToken : event.checkinQrToken;
-  const expiresAt = action === 'checkout' ? event.checkoutQrExpiresAt : event.checkinQrExpiresAt;
+  const { token, expiresAt, attendanceCode } = getStationCredentials(event, action);
   return {
     action,
     active: isTokenActive(token, expiresAt),
     token: token || '',
+    attendanceCode: attendanceCode || '',
     expiresAt: expiresAt || null,
     payload: token ? buildStationPayload(event._id, action, token) : '',
   };
@@ -107,14 +169,17 @@ const generateStationQr = async (user, eventId, body = {}) => {
   const event = await assertCanManageEventQr(user, eventId);
   const action = body.action === 'checkout' ? 'checkout' : 'checkin';
   const token = crypto.randomBytes(24).toString('hex');
+  const attendanceCode = await generateUniqueAttendanceCode();
   const expiresAt = resolveQrExpiresAt(body);
 
   if (action === 'checkout') {
     event.checkoutQrToken = token;
     event.checkoutQrExpiresAt = expiresAt;
+    event.checkoutAttendanceCode = attendanceCode;
   } else {
     event.checkinQrToken = token;
     event.checkinQrExpiresAt = expiresAt;
+    event.checkinAttendanceCode = attendanceCode;
   }
   await event.save();
 
@@ -134,10 +199,58 @@ const formatRegistrationScan = (reg) => ({
 });
 
 const validateStationToken = (event, action, token) => {
-  const storedToken = action === 'checkout' ? event.checkoutQrToken : event.checkinQrToken;
-  const expiresAt = action === 'checkout' ? event.checkoutQrExpiresAt : event.checkinQrExpiresAt;
+  const { token: storedToken, expiresAt } = getStationCredentials(event, action);
   if (!storedToken || storedToken !== token) throw new AppError('Mã QR không hợp lệ hoặc đã hết hạn.', 400);
   if (!isTokenActive(storedToken, expiresAt)) throw new AppError('Mã QR đã hết hạn. Vui lòng yêu cầu BTC tạo mã mới.', 400);
+};
+
+const validateStationCode = (event, action, code) => {
+  const normalized = normalizeAttendanceCode(code);
+  const { token, expiresAt, attendanceCode } = getStationCredentials(event, action);
+  if (!attendanceCode || attendanceCode !== normalized) {
+    throw new AppError('Mã điểm danh không hợp lệ hoặc đã hết hạn.', 400);
+  }
+  if (!isTokenActive(token, expiresAt)) {
+    throw new AppError('Mã điểm danh đã hết hạn. Vui lòng yêu cầu BTC tạo mã mới.', 400);
+  }
+};
+
+const applySelfScanRegistration = async (user, event, action) => {
+  const registration = await EventRegistration.findOne({ user: user._id, event: event._id }).populate('user', 'fullname email studentId');
+  if (!registration) throw new AppError('Bạn chưa đăng ký sự kiện này.', 404);
+  if (registration.status === 'cancelled') throw new AppError('Vé đã bị hủy — không thể check-in.', 400);
+
+  const eventInfo = { id: String(event._id), title: event.title || '' };
+  const now = new Date();
+  if (action === 'checkin') {
+    if (registration.status === 'attended' && registration.checkedInAt) {
+      return {
+        message: 'Bạn đã check-in trước đó.',
+        event: eventInfo,
+        registration: formatRegistrationScan(registration),
+        duplicate: true,
+      };
+    }
+    registration.status = 'attended';
+    registration.checkedInAt = registration.checkedInAt || now;
+    await registration.save();
+    return {
+      message: 'Check-in thành công!',
+      event: eventInfo,
+      registration: formatRegistrationScan(registration),
+    };
+  }
+
+  if (!registration.checkedInAt && registration.status !== 'attended') {
+    throw new AppError('Bạn chưa check-in — không thể check-out.', 400);
+  }
+  registration.checkedOutAt = now;
+  await registration.save();
+  return {
+    message: 'Check-out thành công!',
+    event: eventInfo,
+    registration: formatRegistrationScan(registration),
+  };
 };
 
 const performSelfScan = async (user, eventId, body = {}) => {
@@ -146,34 +259,66 @@ const performSelfScan = async (user, eventId, body = {}) => {
 
   const action = body.action === 'checkout' ? 'checkout' : 'checkin';
   const token = String(body.token || '').trim();
-  if (!token) throw new AppError('Mã QR không hợp lệ.', 400);
-  validateStationToken(event, action, token);
+  const code = normalizeAttendanceCode(body.code || '');
 
-  const registration = await EventRegistration.findOne({ user: user._id, event: eventId }).populate('user', 'fullname email studentId');
-  if (!registration) throw new AppError('Bạn chưa đăng ký sự kiện này.', 404);
-  if (registration.status === 'cancelled') throw new AppError('Vé đã bị hủy — không thể check-in.', 400);
+  if (code) {
+    if (!isValidAttendanceCodeFormat(code)) throw new AppError('Mã điểm danh phải gồm 6 ký tự chữ và số.', 400);
+    validateStationCode(event, action, code);
+  } else if (token) {
+    validateStationToken(event, action, token);
+  } else {
+    throw new AppError('Mã QR hoặc mã điểm danh không hợp lệ.', 400);
+  }
 
-  const now = new Date();
-  if (action === 'checkin') {
-    if (registration.status === 'attended' && registration.checkedInAt) {
-      return { message: 'Bạn đã check-in trước đó.', registration: formatRegistrationScan(registration), duplicate: true };
+  return applySelfScanRegistration(user, event, action);
+};
+
+const findEventByAttendanceCode = async (code, action, user) => {
+  const normalized = normalizeAttendanceCode(code);
+  const field = action === 'checkout' ? 'checkoutAttendanceCode' : 'checkinAttendanceCode';
+  const events = await Event.find({ [field]: normalized, isDeleted: false });
+
+  const activeEvents = events.filter((event) => {
+    try {
+      validateStationCode(event, action, normalized);
+      return true;
+    } catch {
+      return false;
     }
-    registration.status = 'attended';
-    registration.checkedInAt = registration.checkedInAt || now;
-    await registration.save();
-    return { message: 'Check-in thành công!', registration: formatRegistrationScan(registration) };
+  });
+
+  if (activeEvents.length === 0) {
+    throw new AppError('Mã điểm danh không hợp lệ hoặc đã hết hạn.', 400);
   }
 
-  if (!registration.checkedInAt && registration.status !== 'attended') {
-    throw new AppError('Bạn chưa check-in — không thể check-out.', 400);
+  if (activeEvents.length === 1) return activeEvents[0];
+
+  const registeredEvents = [];
+  for (const event of activeEvents) {
+    const registration = await EventRegistration.findOne({ user: user._id, event: event._id });
+    if (registration && registration.status !== 'cancelled') registeredEvents.push(event);
   }
-  registration.checkedOutAt = now;
-  await registration.save();
-  return { message: 'Check-out thành công!', registration: formatRegistrationScan(registration) };
+
+  if (registeredEvents.length === 1) return registeredEvents[0];
+
+  throw new AppError('Mã điểm danh không xác định được sự kiện. Vui lòng liên hệ ban tổ chức.', 400);
+};
+
+const performSelfScanByCode = async (user, body = {}) => {
+  const action = body.action === 'checkout' ? 'checkout' : 'checkin';
+  const code = normalizeAttendanceCode(body.code || '');
+
+  if (!isValidAttendanceCodeFormat(code)) {
+    throw new AppError('Mã điểm danh phải gồm 6 ký tự chữ và số.', 400);
+  }
+
+  const event = await findEventByAttendanceCode(code, action, user);
+  return applySelfScanRegistration(user, event, action);
 };
 
 module.exports = {
   getStationQrCodes,
   generateStationQr,
   performSelfScan,
+  performSelfScanByCode,
 };
