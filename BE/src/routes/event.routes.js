@@ -7,6 +7,9 @@ const optionalAuth = require('../middleware/optionalAuth');
 const optionalAuthorize = require('../middleware/optionalAuthorize');
 const eventController = require('../controllers/event.controller');
 const eventChangeRequestController = require('../controllers/eventChangeRequest.controller');
+const { requestClubModeration } = require('../services/eventModeration.service');
+const { formatEvent } = require('../utils/eventFormat');
+const AppError = require('../utils/AppError');
 const registrationController = require('../controllers/registration.controller');
 const reviewController = require('../controllers/review.controller');
 const qrScannerController = require('../controllers/qrScanner.controller');
@@ -27,6 +30,35 @@ router.post(
   asyncHandler(eventChangeRequestController.create)
 );
 
+// PATCH /api/events/:id/moderation — CLB gửi yêu cầu hoãn/hủy (chờ IC-PDP → Admin)
+router.patch(
+  '/:id/moderation',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(async (req, res) => {
+    try {
+      const { action, reasonCategory, content } = req.body || {};
+      const result = await requestClubModeration(
+        req.params.id,
+        { action, reasonCategory, content },
+        req.authEmail,
+        req.user?._id
+      );
+      res.json({
+        success: true,
+        event: formatEvent(result.event),
+        message: result.message
+      });
+    } catch (error) {
+      if (error instanceof AppError || error.statusCode) {
+        res.status(error.statusCode || 400).json({ success: false, message: error.message });
+        return;
+      }
+      throw error;
+    }
+  })
+);
+
 router.post(
   '/:id/register',
   authMiddleware,
@@ -44,6 +76,13 @@ router.post(
   authMiddleware,
   authorize('student', 'staff'),
   asyncHandler(reviewController.submitReview)
+);
+
+router.post(
+  '/attendance-code/scan',
+  authMiddleware,
+  authorize('student', 'staff'),
+  asyncHandler(qrScannerController.selfScanByCode)
 );
 
 router.get(

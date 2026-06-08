@@ -130,11 +130,11 @@ const saveDraft = async (email, body) => {
 
 const { ensurePrimaryPartnerMember } = require('./partnerMember.service');
 
+const SELF_CANCEL_REASON = 'Đối tác đã hủy yêu cầu';
+
 const syncPartnerRecord = async (email, payload, status = 'pending') => {
   const normalized = normalizeEmail(email);
-  let partner = await Partner.findOne({ email: normalized, status: { $ne: 'rejected' } }).sort({
-    createdAt: -1
-  });
+  let partner = await Partner.findOne({ email: normalized }).sort({ updatedAt: -1, createdAt: -1 });
   const partnerData = {
     name: payload.companyName || payload.title || 'Đối tác',
     email: normalized,
@@ -160,7 +160,11 @@ const syncPartnerRecord = async (email, payload, status = 'pending') => {
       status: 'pending'
     });
   } else {
-    Object.assign(partner, partnerData);
+    Object.assign(partner, partnerData, {
+      status,
+      rejectionReason: status === 'rejected' ? partner.rejectionReason || '' : '',
+      supplementReason: status === 'pending' ? '' : partner.supplementReason
+    });
     await partner.save();
     const contract = await Contract.findOne({ partnerId: partner._id }).sort({ createdAt: -1 });
     if (contract) {
@@ -212,6 +216,16 @@ const submitRequest = async (email, body) => {
   const partner = await syncPartnerRecord(normalized, payload, 'pending');
   doc.partnerId = partner._id;
   await doc.save();
+
+  await PartnerEventRequest.updateMany(
+    {
+      partnerEmail: normalized,
+      _id: { $ne: doc._id },
+      status: { $in: ['cancelled', 'draft'] }
+    },
+    { $set: { status: 'deleted', deletedAt: new Date() } }
+  );
+
   return { request: doc, partner };
 };
 
@@ -227,9 +241,28 @@ const cancelRequest = async (email, requestId) => {
   await doc.save();
   if (doc.partnerId) {
     await Partner.findByIdAndUpdate(doc.partnerId, {
-      $set: { status: 'rejected', rejectionReason: 'Đối tác đã hủy yêu cầu' }
+      $set: { status: 'rejected', rejectionReason: SELF_CANCEL_REASON }
     });
   }
+  return doc;
+};
+
+const updatePendingRequest = async (email, requestId, body) => {
+  const doc = await PartnerEventRequest.findById(requestId);
+  if (!doc || doc.partnerEmail !== normalizeEmail(email)) {
+    throw new AppError('Không tìm thấy yêu cầu!', 404);
+  }
+  if (doc.status !== 'pending') {
+    throw new AppError('Chỉ chỉnh sửa yêu cầu đang chờ duyệt.', 400);
+  }
+  const payload = buildPayload(body);
+  if (!payload.companyName) throw new AppError('Tên doanh nghiệp là bắt buộc!', 400);
+  if (!payload.title) throw new AppError('Tên sự kiện là bắt buộc!', 400);
+  Object.assign(doc, payload);
+  await doc.save();
+  const partner = await syncPartnerRecord(email, payload, 'pending');
+  doc.partnerId = partner._id;
+  await doc.save();
   return doc;
 };
 
@@ -267,13 +300,43 @@ const deleteRequest = async (email, requestId) => {
   if (!doc || doc.partnerEmail !== normalizeEmail(email)) {
     throw new AppError('Không tìm thấy yêu cầu!', 404);
   }
-  if (!['approved', 'hidden'].includes(doc.status)) {
-    throw new AppError('Chỉ xóa yêu cầu đã được duyệt hoặc đang ẩn.', 400);
+  if (!['approved', 'hidden', 'cancelled'].includes(doc.status)) {
+    throw new AppError('Chỉ xóa yêu cầu đã duyệt, đang ẩn hoặc đã hủy.', 400);
   }
+  const wasCancelled = doc.status === 'cancelled';
+  const partnerId = doc.partnerId;
+  const partnerEmail = doc.partnerEmail;
+
   doc.status = 'deleted';
   doc.deletedAt = new Date();
   await doc.save();
+
+  if (wasCancelled && partnerId) {
+    const otherActive = await PartnerEventRequest.countDocuments({
+      partnerEmail,
+      status: { $nin: ['cancelled', 'deleted', 'draft'] }
+    });
+    if (otherActive === 0) {
+      const partner = await Partner.findById(partnerId);
+      if (partner?.status === 'rejected' && partner.rejectionReason === SELF_CANCEL_REASON) {
+        await Contract.deleteMany({ partnerId: partner._id });
+        await Partner.findByIdAndDelete(partner._id);
+      }
+    }
+  }
+
   return doc;
+};
+
+const listCancelledForEmail = async (email) => {
+  const normalized = normalizeEmail(email);
+  return PartnerEventRequest.find({
+    partnerEmail: normalized,
+    status: 'cancelled'
+  })
+    .sort({ updatedAt: -1 })
+    .limit(20)
+    .lean();
 };
 
 const supplementRequest = async (email, requestId, body) => {
@@ -302,8 +365,10 @@ module.exports = {
   saveDraft,
   submitRequest,
   cancelRequest,
+  updatePendingRequest,
   updateApprovedRequest,
   hideRequest,
   deleteRequest,
-  supplementRequest
+  supplementRequest,
+  listCancelledForEmail
 };

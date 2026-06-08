@@ -22,10 +22,12 @@ const {
   saveDraft,
   submitRequest,
   cancelRequest,
+  updatePendingRequest,
   updateApprovedRequest,
   hideRequest,
   deleteRequest,
-  supplementRequest
+  supplementRequest,
+  listCancelledForEmail
 } = require('../services/partnerEventRequest.service');
 
 router.use(authMiddleware);
@@ -269,7 +271,13 @@ router.get('/event-requests/active', async (req, res) => {
   try {
     const request = await getActiveRequestForEmail(req.authEmail);
     const draft = request?.status === 'draft' ? request : await getDraftForEmail(req.authEmail);
-    return res.json({ success: true, request: request || draft || null, draft: draft || null });
+    const cancelled = await listCancelledForEmail(req.authEmail);
+    return res.json({
+      success: true,
+      request: request || draft || null,
+      draft: draft || null,
+      cancelled
+    });
   } catch (error) {
     return handleError(res, error, 'partner event active');
   }
@@ -309,8 +317,20 @@ router.post('/event-requests/:id/cancel', async (req, res) => {
 
 router.patch('/event-requests/:id', async (req, res) => {
   try {
-    const request = await updateApprovedRequest(req.authEmail, req.params.id, req.body);
-    return res.json({ success: true, request, message: 'Đã cập nhật thông tin sự kiện.' });
+    const PartnerEventRequest = require('../models/PartnerEventRequest');
+    const existing = await PartnerEventRequest.findById(req.params.id);
+    if (!existing) {
+      throw new AppError('Không tìm thấy yêu cầu!', 404);
+    }
+    const request =
+      existing.status === 'pending'
+        ? await updatePendingRequest(req.authEmail, req.params.id, req.body)
+        : await updateApprovedRequest(req.authEmail, req.params.id, req.body);
+    const message =
+      existing.status === 'pending'
+        ? 'Đã cập nhật đơn đang chờ duyệt.'
+        : 'Đã cập nhật thông tin sự kiện.';
+    return res.json({ success: true, request, message });
   } catch (error) {
     return handleError(res, error, 'partner event update');
   }

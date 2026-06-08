@@ -150,4 +150,12 @@ export const navIcons = {
       <path d="M14 14h.01M18 14h.01M14 18h.01M18 18h.01M21 14v4h-4" />
     </>
   ),
+  switchClub: (
+    <>
+      <path d="M16 3h5v5" />
+      <path d="M8 21H3v-5" />
+      <path d="M21 8l-7 7" />
+      <path d="M3 16l7-7" />
+    </>
+  ),
 };

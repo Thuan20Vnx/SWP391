@@ -273,6 +273,8 @@ export const mapApiEventToCard = (event) => {
     studentPrivilegeApplied: event.studentPrivilegeApplied === true,
     source: event.source || 'club',
     schoolOrganizerRole: event.schoolOrganizerRole || 'ctsv',
+    status: event.status || '',
+    statusKey: event.statusKey || '',
     organizerType,
     organizerLabel,
     fromApi: true,

@@ -8,6 +8,7 @@ import EventTicketModal from '../components/EventTicketModal';
 import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { getUserRole, isAdminRole } from '../utils/auth';
+import { getCtsvPublicEventAccess, isPureCtsvStaff } from '../utils/publicEventStaffAccess';
 import { mapApiEventToDetail } from '../data/eventDetailData';
 import { formatVnd } from '../utils/ticketPricing';
 import { buildTicketFromDetailEvent } from '../utils/eventTicket';
@@ -68,7 +69,11 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
   const [ticketData, setTicketData] = useState(null);
   const [registrationId, setRegistrationId] = useState(null);
   const { isLoggedIn, userProfile } = useUserProfile();
-  const readOnly = readOnlyProp || (isLoggedIn && isAdminRole(userProfile.role || getUserRole()));
+  const role = userProfile.role || getUserRole();
+  const isAdminViewer = isLoggedIn && isAdminRole(role);
+  const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
+  const readOnly = readOnlyProp || isAdminViewer || isCtsvStaff;
+  const ctsvManageAccess = event && isCtsvStaff ? getCtsvPublicEventAccess(event) : null;
 
   const holderName = useMemo(
     () => userProfile.fullname || localStorage.getItem('userFullname') || localStorage.getItem('userEmail') || '',
@@ -433,11 +438,20 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                   <strong>{event.registrationDeadline}</strong>
                 </div>
                 <p style={{ margin: '12px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                  Chế độ xem — Admin không đăng ký tham gia từ trang này.
+                  {isCtsvStaff
+                    ? 'CTSV không đăng ký hoặc mua vé từ trang này — chỉ xem thông tin sự kiện.'
+                    : 'Chế độ xem — Admin không đăng ký tham gia từ trang này.'}
                 </p>
-                <Link to="/admin/events" className="event-detail-page__admin-portal-link">
-                  Mở trong portal duyệt sự kiện
-                </Link>
+                {isAdminViewer && (
+                  <Link to="/admin/events" className="event-detail-page__admin-portal-link">
+                    Mở trong portal duyệt sự kiện
+                  </Link>
+                )}
+                {ctsvManageAccess?.canManage && ctsvManageAccess.managePath && (
+                  <Link to={ctsvManageAccess.managePath} className="event-detail-page__admin-portal-link">
+                    {ctsvManageAccess.label} sự kiện
+                  </Link>
+                )}
               </div>
             ) : (
             <div className="event-detail-page__register-card">

@@ -6,6 +6,7 @@ import SiteFooter from '../components/SiteFooter';
 import AppSelect from '../components/ui/AppSelect';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
 import { getUserRole, isAdminRole } from '../utils/auth';
+import { isPureCtsvStaff, resolveDiscoveryCardProps } from '../utils/publicEventStaffAccess';
 
 const HOME_TIME_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -51,7 +52,9 @@ const Home = ({ showToast }) => {
   const [recommendTab, setRecommendTab] = useState('newest');
   const [heroAutoplayKey, setHeroAutoplayKey] = useState(0);
 
-  const isAdminViewer = isLoggedIn && isAdminRole(userProfile.role || getUserRole());
+  const role = userProfile.role || getUserRole();
+  const isAdminViewer = isLoggedIn && isAdminRole(role);
+  const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
 
   const resetHeroAutoplay = useCallback(() => {
     setHeroAutoplayKey((k) => k + 1);
@@ -445,15 +448,27 @@ const Home = ({ showToast }) => {
           </div>
         ) : filteredEvents.length > 0 ? (
           <section className="event-discovery-grid">
-            {filteredEvents.map((event) => (
-              <EventDiscoveryCard
-                key={event.id}
-                event={event}
-                onDetail={handleViewDetail}
-                onPrimaryAction={isAdminViewer ? handleViewDetail : handleRegister}
-                viewOnly={isAdminViewer}
-              />
-            ))}
+            {filteredEvents.map((event) => {
+              const cardProps = resolveDiscoveryCardProps({
+                event,
+                isCtsvStaff,
+                isAdminViewer,
+                onDetail: handleViewDetail,
+                onRegister: handleRegister,
+                onManageNavigate: (path) => navigate(path),
+              });
+              return (
+                <EventDiscoveryCard
+                  key={event.id}
+                  event={event}
+                  onDetail={cardProps.onDetail}
+                  onPrimaryAction={cardProps.onPrimaryAction}
+                  onManage={cardProps.onManage}
+                  manageLabel={cardProps.manageLabel}
+                  viewOnly={cardProps.viewOnly}
+                />
+              );
+            })}
           </section>
         ) : (
           <div className="no-events-card">

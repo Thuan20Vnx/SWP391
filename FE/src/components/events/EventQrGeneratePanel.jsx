@@ -160,7 +160,7 @@ const QrExpiryForm = ({ expiryMode, onModeChange, durationMinutes, onDurationCha
 
 
 
-const QrCard = ({ title, description, action, eventId, station, generating, onGenerate, onZoom }) => {
+const QrCard = ({ title, description, action, eventId, station, generating, onGenerate, onZoom, showToast }) => {
 
   const [qrUrl, setQrUrl] = useState('');
 
@@ -295,6 +295,44 @@ const QrCard = ({ title, description, action, eventId, station, generating, onGe
           Hết hạn: {new Date(station.expiresAt).toLocaleString('vi-VN')}
 
         </p>
+
+      )}
+
+      {station?.active && station?.attendanceCode && (
+
+        <div className="ev-qr-attendance-code">
+
+          <span className="ev-qr-attendance-code__label">Mã điểm danh</span>
+
+          <div className="ev-qr-attendance-code__row">
+
+            <code className="ev-qr-attendance-code__value">{station.attendanceCode}</code>
+
+            <button
+
+              type="button"
+
+              className="ev-btn-outline ev-btn-sm"
+
+              onClick={() => {
+
+                navigator.clipboard?.writeText(station.attendanceCode);
+
+                showToast?.('Đã sao chép mã điểm danh.', 'success');
+
+              }}
+
+            >
+
+              Sao chép
+
+            </button>
+
+          </div>
+
+          <p className="ev-qr-attendance-code__hint">Sinh viên có thể nhập mã này trên máy tính nếu không quét được QR.</p>
+
+        </div>
 
       )}
 
@@ -480,6 +518,8 @@ const EventQrGeneratePanel = ({ eventId, showToast }) => {
 
             Tạo mã QR và chiếu tại sự kiện. Sinh viên dùng điện thoại quét mã để tự check-in hoặc check-out.
 
+            Mỗi lần tạo QR sẽ kèm mã điểm danh 6 ký tự để sinh viên nhập trên máy tính.
+
             CLB, CTSV và IC-PDP không cần quét mã thay sinh viên.
 
           </p>
@@ -506,6 +546,8 @@ const EventQrGeneratePanel = ({ eventId, showToast }) => {
 
             onZoom={setZoomQr}
 
+            showToast={showToast}
+
           />
 
           <QrCard
@@ -525,6 +567,8 @@ const EventQrGeneratePanel = ({ eventId, showToast }) => {
             onGenerate={handleGenerate}
 
             onZoom={setZoomQr}
+
+            showToast={showToast}
 
           />
 

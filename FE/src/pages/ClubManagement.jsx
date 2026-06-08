@@ -5,6 +5,7 @@ import ClubProfileUpdate from '../components/ClubProfileUpdate';
 import ClubChairmanTransfer from '../components/club/ClubChairmanTransfer';
 import ClubDashboardPanel from '../components/club/ClubDashboardPanel';
 import ClubParticipantsPanel from '../components/club/ClubParticipantsPanel';
+import ClubEventReportsPanel from '../components/club/ClubEventReportsPanel';
 import './ClubManagement.css';
 import EventProposalForm from '../components/events/EventProposalForm';
 import { EMPTY_EVENT_FORM, mapApiEventToForm } from '../utils/eventFormState';
@@ -31,7 +32,6 @@ const ClubManagement = () => {
   const [eventFormKey, setEventFormKey] = useState(0);
   const [submittingEvent, setSubmittingEvent] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [openMenuId, setOpenMenuId] = useState(null); // ID của row đang mở dropdown
   const [bannerFileName, setBannerFileName] = useState('');
   const totalEvents = events.length;
 
@@ -79,13 +79,6 @@ const ClubManagement = () => {
         };
       });
   }, [events, lastSeenNotifs]);
-
-  // Đóng dropdown khi click ra ngoài
-  useEffect(() => {
-    const handleOutsideClick = () => setOpenMenuId(null);
-    document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
-  }, []);
 
   useEffect(() => {
     fetchMyEvents();
@@ -306,26 +299,36 @@ const ClubManagement = () => {
                               <span className={`clb-table-status clb-table-status--${tone}`}>{label}</span>
                             </td>
                             <td className="clb-table-col-action">
-                              <button
-                                type="button"
-                                className="clb-action-btn"
-                                aria-label="Tùy chọn sự kiện"
-                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === ev._id ? null : ev._id); }}
-                              >
-                                <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="5" r="1.5" fill="currentColor" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /><circle cx="12" cy="19" r="1.5" fill="currentColor" /></svg>
-                              </button>
-                              {openMenuId === ev._id && (
-                                <div className="clb-dropdown-menu" onClick={e => e.stopPropagation()}>
+                              <div className="clb-table-actions">
+                                <button
+                                  type="button"
+                                  className="clb-action-btn clb-action-btn--info"
+                                  title="Xem chi tiết"
+                                  aria-label={`Xem chi tiết ${ev.title}`}
+                                  onClick={() => navigate(`/quan-ly-clb/su-kien/${ev._id}`)}
+                                >
+                                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+                                    <path d="M12 10v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    <circle cx="12" cy="7.5" r="1.25" fill="currentColor" />
+                                  </svg>
+                                </button>
+                                {ev.status === 'rejected' ? (
                                   <button
                                     type="button"
-                                    className="clb-dropdown-item"
-                                    onClick={() => { navigate(`/quan-ly-clb/su-kien/${ev._id}`); setOpenMenuId(null); }}
+                                    className="clb-action-btn clb-action-btn--danger"
+                                    title="Xóa sự kiện"
+                                    aria-label={`Xóa sự kiện ${ev.title}`}
+                                    onClick={() => handleDeleteEvent(ev._id)}
                                   >
-                                    <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/></svg>
-                                    Xem chi tiết
+                                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                                      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    </svg>
                                   </button>
-                                </div>
-                              )}
+                                ) : (
+                                  <span className="clb-action-btn-spacer" aria-hidden="true" />
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -389,6 +392,16 @@ const ClubManagement = () => {
               loadingEvents={loadingEvents}
               userProfile={userProfile}
               onViewEvent={(eventId) => navigate(`/quan-ly-clb/su-kien/${eventId}`)}
+            />
+          )}
+
+          {activeNav === 'report' && (
+            <ClubEventReportsPanel
+              events={events}
+              loadingEvents={loadingEvents}
+              onViewReport={(eventId) =>
+                navigate(`/quan-ly-clb/su-kien/${eventId}?tab=bao-cao`)
+              }
             />
           )}
 

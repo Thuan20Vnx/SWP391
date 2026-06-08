@@ -564,7 +564,6 @@ router.patch('/school-events/:id/approve', async (req, res) => {
 router.get('/school-events/moderation', async (req, res) => {
   try {
     const events = await Event.find({
-      source: 'school',
       status: { $in: MODERATION_PENDING_STATUSES }
     })
       .sort({ moderationRequestedAt: -1, updatedAt: -1 })

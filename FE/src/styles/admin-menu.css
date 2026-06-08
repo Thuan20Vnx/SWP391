@@ -207,14 +207,16 @@
   margin-right: 0;
 }
 
-/* club_manager public shell */
-.club-public-shell {
+/* club_manager / CTSV public shell */
+.club-public-shell,
+.ctsv-public-shell {
   display: flex;
   width: 100%;
   min-height: 100vh;
 }
 
-.club-public-shell .ctsv-shell-main {
+.club-public-shell .ctsv-shell-main,
+.ctsv-public-shell .ctsv-shell-main {
   flex: 1 1 0%;
   min-width: 0;
 }

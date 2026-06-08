@@ -6,10 +6,19 @@ import ProfileSidebarMenu from './ProfileSidebarMenu';
 import AdminProfileMenu from './admin/AdminProfileMenu';
 import AdminDrawerMenu from './admin/AdminDrawerMenu';
 import NotificationBell from './NotificationBell';
+import ClubSwitchModal from './club/ClubSwitchModal';
 import { getRoleLabel } from '../utils/role';
 import useUserProfile, { clearUserProfileCache } from '../hooks/useUserProfile';
+import { useManagedClubs } from '../hooks/useManagedClubs';
 import { dispatchAuthChanged } from '../utils/authEvents';
-import { getUserRole, isAdminRole, normalizeRole, isClubManagerRole, clearSession } from '../utils/auth';
+import {
+  getUserRole,
+  isAdminRole,
+  normalizeRole,
+  isClubManagerRole,
+  clearSession,
+  USER_ROLES,
+} from '../utils/auth';
 import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
 import CtsvHamburgerButton from './ctsv/CtsvHamburgerButton';
 import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../data/adminPublicNav';
@@ -26,6 +35,14 @@ const CLUB_MANAGER_NAV_ITEM = {
   key: 'club-manage',
   label: 'Quản lý CLB',
   to: '/quan-ly-clb',
+  linkClass: 'nav-link-manager',
+};
+
+const CTSV_NAV_ITEM = {
+  key: 'ctsv-manage',
+  label: 'CTSV',
+  to: '/ctsv/dashboard',
+  linkClass: 'nav-link-ctsv-pill',
 };
 
 const SiteHeader = ({
@@ -46,13 +63,23 @@ const SiteHeader = ({
   const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [clubSwitchOpen, setClubSwitchOpen] = useState(false);
   const profileRef = useRef(null);
   const searchInputRef = useRef(null);
   const { isLoggedIn, userProfile, profileLoading } = useUserProfile();
 
-  const role = normalizeRole(userProfile.role || getUserRole());
+  const role = normalizeRole(getUserRole() || userProfile.role);
   const showAdminMenu = isLoggedIn && isAdminRole(role);
   const showClubManagerNav = isLoggedIn && isClubManagerRole(role);
+  const showCtsvNav = isLoggedIn && role === USER_ROLES.CTSV && !showAdminMenu;
+  const {
+    clubs: managedClubs,
+    activeClub,
+    switchClub,
+    loading: managedClubsLoading,
+    error: managedClubsError,
+    reload: reloadManagedClubs,
+  } = useManagedClubs(showClubManagerNav && !showAdminMenu, role);
   const isAdminRoute = pathname.startsWith('/admin');
   const resolvedSearchPlaceholder =
     searchPlaceholder
@@ -64,7 +91,16 @@ const SiteHeader = ({
     ? ADMIN_PUBLIC_NAV_ITEMS
     : showClubManagerNav
       ? [...BASE_NAV_ITEMS, CLUB_MANAGER_NAV_ITEM]
-      : BASE_NAV_ITEMS;
+      : showCtsvNav
+        ? [...BASE_NAV_ITEMS, CTSV_NAV_ITEM]
+        : BASE_NAV_ITEMS;
+
+  const isNavItemActive = (item) => {
+    if (showAdminMenu) return isAdminPublicNavActive(item.key, pathname);
+    if (item.key === 'ctsv-manage') return pathname.startsWith('/ctsv');
+    if (item.key === 'club-manage') return pathname.startsWith('/quan-ly-clb');
+    return activeNav === item.key;
+  };
 
   const isAdminPortal = isAdminRoute && showAdminMenu;
   const sidebarControlled =
@@ -99,10 +135,21 @@ const SiteHeader = ({
       return;
     }
     setNotifOpen(false);
-    setProfilePopupOpen((prev) => !prev);
+    setProfilePopupOpen((prev) => {
+      const next = !prev;
+      if (next && isClubManagerRole()) reloadManagedClubs();
+      return next;
+    });
   };
 
   const handleProfileMenuAction = (action) => {
+    if (action === 'switch-club') {
+      setProfilePopupOpen(false);
+      setClubSwitchOpen(true);
+      reloadManagedClubs();
+      return;
+    }
+
     setProfilePopupOpen(false);
 
     const routes = isAdminRole(role) || isAdminPortal
@@ -111,7 +158,7 @@ const SiteHeader = ({
           calendar: '/admin/calendar',
           partners: '/admin/partners',
           events: '/admin/events',
-          settings: '/admin/system',
+          settings: '/admin/settings',
           'fpt-system': '/',
           'browse-events': '/events',
         }
@@ -122,11 +169,30 @@ const SiteHeader = ({
           schedule: '/schedule',
           'my-clubs': isClubManagerRole() ? '/quan-ly-clb' : '/my-clubs',
           'club-manage': '/quan-ly-clb',
+          'ctsv-manage': '/ctsv/dashboard',
+          scan: '/quet-qr',
           'my-events': '/my-events',
         };
 
     if (routes[action]) {
       navigate(routes[action]);
+      return;
+    }
+
+    setProfilePopupOpen(false);
+  };
+
+  const handleSelectManagedClub = (clubId) => {
+    if (!clubId || clubId === activeClub?.id) {
+      setClubSwitchOpen(false);
+      setProfilePopupOpen(false);
+      return;
+    }
+    switchClub(clubId);
+    setClubSwitchOpen(false);
+    setProfilePopupOpen(false);
+    if (pathname.startsWith('/quan-ly-clb')) {
+      window.location.assign('/quan-ly-clb');
     }
   };
 
@@ -160,7 +226,7 @@ const SiteHeader = ({
         <Link
           key={item.key}
           to={item.to}
-          className={`nav-link ${showAdminMenu ? (isAdminPublicNavActive(item.key, pathname) ? 'active' : '') : (activeNav === item.key ? 'active' : '')}`}
+          className={`nav-link ${item.linkClass || ''} ${isNavItemActive(item) ? 'active' : ''}`.trim()}
           onClick={() => setMobileMenuOpen(false)}
         >
           {item.label}
@@ -323,6 +389,8 @@ const SiteHeader = ({
                             userProfile={userProfile}
                             onMenuAction={handleProfileMenuAction}
                             onLogout={handleLogout}
+                            activeClub={activeClub}
+                            showSwitchClub={isClubManagerRole(role)}
                           />
                         )}
                       </div>
@@ -347,6 +415,16 @@ const SiteHeader = ({
         onClose={() => setAdminDrawerOpen(false)}
       />
     )}
+
+    <ClubSwitchModal
+      open={clubSwitchOpen}
+      clubs={managedClubs}
+      activeClubId={activeClub?.id || ''}
+      loading={managedClubsLoading}
+      error={managedClubsError}
+      onClose={() => setClubSwitchOpen(false)}
+      onSelect={handleSelectManagedClub}
+    />
     </>
   );
 };

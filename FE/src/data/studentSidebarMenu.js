@@ -1,3 +1,5 @@
+import { isClubManagerRole } from '../utils/auth';
+
 export const studentMenuSections = [
   {
     items: [
@@ -8,7 +10,7 @@ export const studentMenuSections = [
     header: 'Sự kiện',
     items: [
       { key: 'my-events', label: 'Sự kiện của tôi', path: '/my-events', icon: 'folder' },
-      { key: 'my-clubs', label: 'Câu lạc bộ của tôi', path: '/my-clubs', icon: 'users' },
+      { key: 'my-clubs', label: 'Câu lạc bộ yêu thích', path: '/my-clubs', icon: 'users' },
       { key: 'schedule', label: 'Quản lý lịch trình', path: '/schedule', icon: 'calendar' },
     ],
   },
@@ -21,4 +23,17 @@ export const studentMenuSections = [
   },
 ];
 
-export const getSidebarMenuSections = () => studentMenuSections;
+export const getSidebarMenuSections = (role = null) => {
+  if (!isClubManagerRole(role)) {
+    return studentMenuSections;
+  }
+
+  return studentMenuSections.map((section) => ({
+    ...section,
+    items: section.items.map((item) => (
+      item.key === 'my-clubs'
+        ? { key: 'club-manage', label: 'Quản lý CLB', path: '/quan-ly-clb', icon: 'users' }
+        : item
+    )),
+  }));
+};

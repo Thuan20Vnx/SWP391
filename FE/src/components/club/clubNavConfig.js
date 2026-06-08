@@ -51,3 +51,39 @@ export const resolveClubActiveNav = (pathname) => {
   } catch { /* ignore */ }
   return 'list';
 };
+
+/** Sidebar cổng công khai — chỉ highlight khi đang ở /quan-ly-clb */
+export const resolveClubPublicActiveNav = (pathname) => {
+  if (!pathname.startsWith('/quan-ly-clb')) return '';
+  return resolveClubActiveNav(pathname);
+};
+
+/** Điều hướng sidebar CLB — dùng chung portal /quan-ly-clb và cổng công khai */
+export const navigateClubNavItem = ({
+  key,
+  navigate,
+  pathname,
+  onNotificationsRead,
+}) => {
+  if (key === 'announcements') {
+    if (
+      pathname !== '/quan-ly-clb/announcements' &&
+      !pathname.startsWith('/quan-ly-clb/announcements/')
+    ) {
+      navigate('/quan-ly-clb/announcements');
+    }
+    return;
+  }
+
+  try {
+    sessionStorage.setItem('clb_active_nav', key);
+  } catch { /* ignore */ }
+
+  if (key === 'notifications' && onNotificationsRead) {
+    onNotificationsRead();
+  }
+
+  if (pathname !== '/quan-ly-clb') {
+    navigate('/quan-ly-clb');
+  }
+};

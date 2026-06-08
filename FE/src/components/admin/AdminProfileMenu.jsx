@@ -71,8 +71,8 @@ const AdminProfileMenu = ({
           <NavHubItem
             key="settings"
             active={activeItem === 'settings'}
-            label="Kiểm soát hệ thống"
-            hint="Bảo trì & cấu hình"
+            label="Cài đặt tài khoản"
+            hint="Bảo mật, thông báo, giao diện"
             icon={<NavHubIcon>{navIcons.settings}</NavHubIcon>}
             onClick={act('settings')}
           />,

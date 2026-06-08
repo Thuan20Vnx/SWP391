@@ -62,6 +62,21 @@ export const icpdpApproveProposal = (id, note = '') =>
     body: JSON.stringify({ note })
   });
 
+export const fetchIcpdpPendingModerations = () =>
+  icpdpFetch('/events/moderation/pending-icpdp');
+
+export const icpdpApproveEventModeration = (id, note = '') =>
+  icpdpFetch(`/events/${id}/moderation/icpdp-approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note })
+  });
+
+export const icpdpRejectEventModeration = (id, reason = '') =>
+  icpdpFetch(`/events/${id}/moderation/icpdp-reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason })
+  });
+
 /* ── Mock data ── */
 export const ICPDP_MOCK_EVENTS = [
   {

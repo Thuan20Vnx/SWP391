@@ -16,6 +16,8 @@ const ProfileSidebarMenu = ({
   userProfile = null,
   onMenuAction,
   onLogout,
+  activeClub = null,
+  showSwitchClub = false,
 }) => {
   const go = (action, label) => () => onMenuAction?.(action, label);
   const clubAction = isClubManagerRole() ? 'club-manage' : 'my-clubs';
@@ -37,10 +39,23 @@ const ProfileSidebarMenu = ({
       <NavHubItem
         key="clubs"
         active={activeItem === clubAction || activeItem === 'my-clubs'}
-        label={isClubManagerRole() ? 'Quản lý CLB' : 'CLB của tôi'}
-        hint={isClubManagerRole() ? 'Ban quản trị' : 'Theo dõi & tham gia'}
+        label={isClubManagerRole() ? 'Quản lý CLB' : 'CLB yêu thích'}
+        hint={isClubManagerRole() ? 'Ban quản trị' : 'Danh sách đã lưu'}
         icon={<NavHubIcon>{navIcons.clubs}</NavHubIcon>}
         onClick={go(clubAction, 'CLB')}
+      />,
+    );
+  }
+
+  if (showSwitchClub) {
+    menuItems.push(
+      <NavHubItem
+        key="switch-club"
+        active={activeItem === 'switch-club'}
+        label="Đổi câu lạc bộ"
+        hint={activeClub?.name ? `Đang quản lý: ${activeClub.name}` : 'Chọn CLB khác'}
+        icon={<NavHubIcon>{navIcons.switchClub}</NavHubIcon>}
+        onClick={go('switch-club', 'Đổi câu lạc bộ')}
       />,
     );
   }

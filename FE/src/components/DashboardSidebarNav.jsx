@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { getSidebarMenuSections } from '../data/studentSidebarMenu';
+import { getUserRole } from '../utils/auth';
 
 const MenuIcon = ({ type }) => {
   const props = {
@@ -84,7 +85,7 @@ const DashboardSidebarNav = ({
   onProfileMenuItem,
   onNavigate,
 }) => {
-  const sections = getSidebarMenuSections();
+  const sections = getSidebarMenuSections(getUserRole());
 
   const handleItemClick = (item) => (event) => {
     event.preventDefault();

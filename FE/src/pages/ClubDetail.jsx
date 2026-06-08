@@ -35,7 +35,6 @@ const ClubDetail = ({ showToast }) => {
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
-  const [joinLoading, setJoinLoading] = useState(false);
   const { isLoggedIn, userProfile } = useUserProfile();
   const isAdminViewer = isLoggedIn && isAdminRole(userProfile.role || getUserRole());
 
@@ -93,7 +92,7 @@ const ClubDetail = ({ showToast }) => {
 
   const handleFollow = async () => {
     if (!isLoggedIn) {
-      showToast?.('Vui lòng đăng nhập để theo dõi CLB!', 'error');
+      showToast?.('Vui lòng đăng nhập để lưu CLB yêu thích!', 'error');
       setTimeout(() => navigate('/login'), 1200);
       return;
     }
@@ -110,12 +109,15 @@ const ClubDetail = ({ showToast }) => {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast?.(data.message || 'Không thể cập nhật theo dõi CLB.', 'error');
+        showToast?.(data.message || 'Không thể cập nhật CLB yêu thích.', 'error');
         return;
       }
 
       setClub((prev) => ({ ...prev, isFollowing: !isFollowing }));
-      showToast?.(data.message || (isFollowing ? 'Đã bỏ theo dõi CLB.' : 'Đã theo dõi CLB!'), 'success');
+      showToast?.(
+        data.message || (isFollowing ? 'Đã bỏ khỏi danh sách yêu thích.' : 'Đã thêm vào CLB yêu thích!'),
+        'success'
+      );
     } catch (err) {
       console.error(err);
       showToast?.('Không thể kết nối máy chủ.', 'error');
@@ -123,59 +125,6 @@ const ClubDetail = ({ showToast }) => {
       setFollowLoading(false);
     }
   };
-
-  const handleJoin = async () => {
-    if (!isLoggedIn) {
-      showToast?.('Vui lòng đăng nhập để tham gia CLB!', 'error');
-      setTimeout(() => navigate('/login'), 1200);
-      return;
-    }
-
-    if (club.membershipStatus === 'member') {
-      showToast?.('Bạn đã là thành viên CLB này.', 'info');
-      return;
-    }
-
-    if (club.membershipStatus === 'pending') {
-      showToast?.('Yêu cầu tham gia đang chờ duyệt.', 'info');
-      return;
-    }
-
-    setJoinLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/clubs/${clubApiId}/join`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        showToast?.(data.message || 'Không thể gửi yêu cầu tham gia.', 'error');
-        return;
-      }
-
-      setClub((prev) => ({
-        ...prev,
-        membershipStatus: data.membership?.status || data.club?.membershipStatus || 'pending',
-      }));
-      showToast?.(data.message || 'Đã gửi yêu cầu tham gia CLB!', 'success');
-    } catch (err) {
-      console.error(err);
-      showToast?.('Không thể kết nối máy chủ.', 'error');
-    } finally {
-      setJoinLoading(false);
-    }
-  };
-
-  const joinButtonLabel = () => {
-    if (joinLoading) return 'Đang xử lý...';
-    if (club.membershipStatus === 'member') return 'Đã tham gia';
-    if (club.membershipStatus === 'pending') return 'Đã gửi yêu cầu';
-    return 'Tham gia ngay';
-  };
-
-  const joinDisabled =
-    joinLoading || club.membershipStatus === 'member' || club.membershipStatus === 'pending';
 
   const handleEventAction = (event) => {
     if (isAdminViewer && event.id) {
@@ -234,24 +183,18 @@ const ClubDetail = ({ showToast }) => {
                     </button>
                   </div>
                 ) : (
-                  <>
-                    <button
-                      type="button"
-                      className={`club-detail-page__btn club-detail-page__btn--outline ${club.isFollowing ? 'is-active' : ''}`}
-                      onClick={handleFollow}
-                      disabled={followLoading}
-                    >
-                      {followLoading ? 'Đang xử lý...' : club.isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
-                    </button>
-                    <button
-                      type="button"
-                      className="club-detail-page__btn club-detail-page__btn--primary"
-                      onClick={handleJoin}
-                      disabled={joinDisabled}
-                    >
-                      {joinButtonLabel()}
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    className={`club-detail-page__btn club-detail-page__btn--primary ${club.isFollowing ? 'is-active' : ''}`}
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                  >
+                    {followLoading
+                      ? 'Đang xử lý...'
+                      : club.isFollowing
+                        ? 'Đã yêu thích'
+                        : 'Yêu thích'}
+                  </button>
                 )}
               </div>
             </div>

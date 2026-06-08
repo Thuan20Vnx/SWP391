@@ -67,6 +67,7 @@ const PartnerProposalCreate = () => {
   const [confirmAction, setConfirmAction] = useState(null);
   const [draftSavedAt, setDraftSavedAt] = useState(null);
   const [activeRequest, setActiveRequest] = useState(null);
+  const [cancelledRequests, setCancelledRequests] = useState([]);
 
   const [company, setCompany] = useState(EMPTY_COMPANY);
   const [form, setForm] = useState(EMPTY_EVENT_FORM);
@@ -85,7 +86,7 @@ const PartnerProposalCreate = () => {
   const isApproved = requestStatus === 'approved';
   const isHidden = requestStatus === 'hidden';
   const isApprovedOrHidden = isApproved || isHidden;
-  const isReadOnly = isPending;
+  const isReadOnly = false;
   const canApiDraft = !activeRequest || requestStatus === 'draft';
 
   const applyState = useCallback((state) => {
@@ -112,6 +113,7 @@ const PartnerProposalCreate = () => {
 
         const request = activeRes.request;
         setActiveRequest(request || null);
+        setCancelledRequests(activeRes.cancelled || []);
 
         if (request && ACTIVE_STATUSES.has(request.status)) {
           applyState(mapRequestToState(request));
@@ -317,6 +319,10 @@ const PartnerProposalCreate = () => {
       setConfirmAction('update');
       return;
     }
+    if (isPending) {
+      setConfirmAction('updatePending');
+      return;
+    }
     if (!isPending) {
       setConfirmAction('submit');
     }
@@ -366,14 +372,53 @@ const PartnerProposalCreate = () => {
     }
   };
 
+  const doUpdatePending = async () => {
+    if (!validateForm() || !activeRequest?._id) {
+      setConfirmAction(null);
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await updatePartnerEventRequest(activeRequest._id, buildPayload());
+      setActiveRequest(res.request || activeRequest);
+      showToast?.('Đã cập nhật đơn đang chờ duyệt.', 'success');
+    } catch (err) {
+      showToast?.(err.message || 'Cập nhật thất bại.', 'error');
+    } finally {
+      setSubmitting(false);
+      setConfirmAction(null);
+    }
+  };
+
+  const doDeleteCancelled = async (requestId) => {
+    if (!requestId) return;
+    setSubmitting(true);
+    try {
+      await deletePartnerEventRequest(requestId);
+      setCancelledRequests((prev) => prev.filter((item) => item._id !== requestId));
+      showToast?.('Đã xóa đơn đã hủy.', 'success');
+    } catch (err) {
+      showToast?.(err.message || 'Xóa đơn thất bại.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const doCancelRequest = async () => {
     if (!activeRequest?._id) return;
     setSubmitting(true);
     try {
+      const cancelledRequest = activeRequest;
       await cancelPartnerEventRequest(activeRequest._id);
       clearPartnerEventDraft();
-      showToast?.('Đã hủy yêu cầu sự kiện.', 'success');
-      navigate('/partner/dashboard');
+      setActiveRequest(null);
+      if (cancelledRequest?._id) {
+        setCancelledRequests((prev) => [
+          { ...cancelledRequest, status: 'cancelled' },
+          ...prev.filter((item) => item._id !== cancelledRequest._id)
+        ]);
+      }
+      showToast?.('Đã hủy yêu cầu sự kiện. Bạn có thể xóa đơn đã hủy bên dưới.', 'success');
     } catch (err) {
       showToast?.(err.message || 'Hủy yêu cầu thất bại.', 'error');
     } finally {
@@ -467,6 +512,16 @@ const PartnerProposalCreate = () => {
         loading={submitting}
       />
       <ConfirmDialog
+        open={confirmAction === 'updatePending'}
+        title="Lưu thay đổi đơn?"
+        message="Tên và nội dung đơn sẽ được cập nhật. Đơn cũ trên danh sách CTSV sẽ hiển thị theo thông tin mới."
+        confirmLabel="Lưu thay đổi"
+        cancelLabel="Quay lại"
+        onConfirm={doUpdatePending}
+        onCancel={() => !submitting && setConfirmAction(null)}
+        loading={submitting}
+      />
+      <ConfirmDialog
         open={confirmAction === 'cancelRequest'}
         title="Hủy yêu cầu sự kiện?"
         message="Yêu cầu đang chờ CTSV duyệt sẽ bị hủy. Bạn có chắc muốn tiếp tục?"
@@ -520,13 +575,13 @@ const PartnerProposalCreate = () => {
 
       {isPending && (
         <div className="ctsv-pd-banner ctsv-pd-banner--warn" style={{ marginBottom: 24 }}>
-          <strong>Yêu cầu đang chờ duyệt.</strong> CTSV đang xem xét thông tin sự kiện của bạn.
+          <strong>Yêu cầu đang chờ duyệt.</strong> Bạn có thể chỉnh sửa tên và nội dung đơn trước khi CTSV duyệt.
           {statusLabel && (
             <span className={`ctsv-pd-status ctsv-pd-status--${statusTone}`} style={{ marginLeft: 12 }}>
               {statusLabel}
             </span>
           )}
-          <div style={{ marginTop: 12 }}>
+          <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button
               type="button"
               className="ctsv-dash-btn ctsv-dash-btn--ghost"
@@ -535,6 +590,27 @@ const PartnerProposalCreate = () => {
               Hủy yêu cầu
             </button>
           </div>
+        </div>
+      )}
+
+      {cancelledRequests.length > 0 && (
+        <div className="ctsv-pd-banner ctsv-pd-banner--info" style={{ marginBottom: 24 }}>
+          <strong>Đơn đã hủy</strong>
+          <ul className="ctsv-pd-files" style={{ marginTop: 12 }}>
+            {cancelledRequests.map((item) => (
+              <li key={item._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <span>{item.title || 'Đơn không tên'}</span>
+                <button
+                  type="button"
+                  className="ctsv-btn-secondary"
+                  disabled={submitting}
+                  onClick={() => doDeleteCancelled(item._id)}
+                >
+                  Xóa
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

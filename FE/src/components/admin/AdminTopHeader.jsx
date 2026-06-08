@@ -62,7 +62,7 @@ const AdminTopHeader = ({
       calendar: '/admin/calendar',
       partners: '/admin/partners',
       events: '/admin/events',
-      settings: '/admin/system',
+      settings: '/admin/settings',
       'fpt-system': '/',
       'browse-events': '/events',
     };

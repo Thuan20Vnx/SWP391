@@ -13,7 +13,14 @@ const LocationIcon = () => (
   </svg>
 );
 
-const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction, viewOnly = false }) => {
+const EventDiscoveryCard = ({
+  event,
+  onDetail,
+  onPrimaryAction,
+  onManage,
+  manageLabel = 'Quản lý',
+  viewOnly = false,
+}) => {
   const {
     title,
     thumbnail,
@@ -38,6 +45,8 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction, viewOnly = false
   const isPostponed = cardState === 'postponed';
   const isRegistered = cardState === 'registered' || registered;
   const showProgress = !isPostponed;
+  const hasManageAction = viewOnly && typeof onManage === 'function';
+  const singleAction = isPostponed || (viewOnly && !hasManageAction);
 
   return (
     <article
@@ -132,8 +141,8 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction, viewOnly = false
           )}
         </div>
 
-        <div className={`event-discovery-card__actions ${isPostponed || viewOnly ? 'is-single' : ''}`}>
-          {!isPostponed && !viewOnly && (
+        <div className={`event-discovery-card__actions ${singleAction ? 'is-single' : ''}`}>
+          {!isPostponed && (!viewOnly || hasManageAction) && (
             <button
               type="button"
               className="event-discovery-card__btn event-discovery-card__btn--outline"
@@ -145,12 +154,16 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction, viewOnly = false
           <button
             type="button"
             className={`event-discovery-card__btn event-discovery-card__btn--primary ${
-              isExpired && !viewOnly ? 'is-disabled' : ''
-            } ${isPostponed || viewOnly ? 'is-full' : ''}`}
+              hasManageAction ? 'event-discovery-card__btn--manage' : ''
+            } ${isExpired && !viewOnly ? 'is-disabled' : ''} ${singleAction ? 'is-full' : ''}`}
             disabled={isExpired && !viewOnly}
-            onClick={() => (viewOnly ? onDetail?.(event) : onPrimaryAction?.(event))}
+            onClick={() => {
+              if (hasManageAction) onManage?.(event);
+              else if (viewOnly) onDetail?.(event);
+              else onPrimaryAction?.(event);
+            }}
           >
-            {viewOnly ? 'Xem chi tiết' : primaryLabel}
+            {hasManageAction ? manageLabel : viewOnly ? 'Xem chi tiết' : primaryLabel}
           </button>
         </div>
       </div>

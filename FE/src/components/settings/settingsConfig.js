@@ -1,6 +1,5 @@
 export const SETTINGS_SECTIONS = [
   { id: 'security', label: 'Bảo mật' },
-  { id: 'notifications', label: 'Thông báo' },
   { id: 'appearance', label: 'Giao diện' },
   { id: 'support', label: 'Hỗ trợ' },
   { id: 'about', label: 'Về ứng dụng' },
@@ -10,10 +9,6 @@ export const SECTION_META = {
   security: {
     title: 'Bảo mật',
     description: 'Quản lý mật khẩu và phiên đăng nhập của bạn.',
-  },
-  notifications: {
-    title: 'Thông báo',
-    description: 'Tùy chỉnh cách bạn nhận thông báo từ F-Events.',
   },
   appearance: {
     title: 'Giao diện',
