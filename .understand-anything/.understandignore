@@ -1,0 +1,25 @@
+# .understandignore
+.understand-anything/
+
+# --- From .gitignore ---
+
+# .DS_Store
+# .env
+# last_otp.txt
+# BE/data/users.json
+# BE/data/last_otp.txt
+# figma-ui-mcp-plugin/
+# .cursor/
+# .understand-anything/intermediate/
+# .understand-anything/diff-overlay.json
+# .understand-anything/.trash-*/
+# screenshot-current-page.png
+
+# --- Detected directories ---
+
+# docs/
+
+# --- Test file patterns ---
+
+# *.test.*
+# *.spec.*
