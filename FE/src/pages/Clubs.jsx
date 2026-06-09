@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import ClubDiscoveryCard from '../components/ClubDiscoveryCard';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
+import useUserProfile from '../hooks/useUserProfile';
+import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { getUserRole, isClubManagerRole } from '../utils/auth';
+import { isUserManagingClub, openClubManagerPortal } from '../utils/clubManagerAccess';
 import {
   CLUB_SAMPLE_DATA,
   HERO_TAGS,
@@ -18,6 +22,9 @@ const HERO_IMAGE =
 
 const Clubs = ({ showToast }) => {
   const navigate = useNavigate();
+  const { isLoggedIn, userProfile } = useUserProfile();
+  const isClubManager = isLoggedIn && isClubManagerRole(userProfile.role || getUserRole());
+  const { clubs: managedClubs } = useManagedClubs(isClubManager);
   const [clubs, setClubs] = useState([]);
   const [totalClubs, setTotalClubs] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -155,11 +162,13 @@ const Clubs = ({ showToast }) => {
             <div className="clubs-page__view-toggle" role="group" aria-label="Chế độ hiển thị">
               <button
                 type="button"
-                className={layout === 'grid' ? 'is-active' : ''}
+                className={`clubs-page__view-toggle-btn${layout === 'grid' ? ' is-active' : ''}`}
                 onClick={() => setLayout('grid')}
+                aria-pressed={layout === 'grid'}
                 aria-label="Lưới"
+                title="Lưới"
               >
-                <svg viewBox="0 0 18 18" width="18" height="18" fill="currentColor">
+                <svg viewBox="0 0 18 18" width="18" height="18" fill="currentColor" aria-hidden="true">
                   <rect x="0" y="0" width="7" height="7" rx="1" />
                   <rect x="11" y="0" width="7" height="7" rx="1" />
                   <rect x="0" y="11" width="7" height="7" rx="1" />
@@ -168,11 +177,13 @@ const Clubs = ({ showToast }) => {
               </button>
               <button
                 type="button"
-                className={layout === 'list' ? 'is-active' : ''}
+                className={`clubs-page__view-toggle-btn${layout === 'list' ? ' is-active' : ''}`}
                 onClick={() => setLayout('list')}
+                aria-pressed={layout === 'list'}
                 aria-label="Danh sách"
+                title="Danh sách"
               >
-                <svg viewBox="0 0 18 10" width="18" height="10" fill="currentColor">
+                <svg viewBox="0 0 18 10" width="18" height="10" fill="currentColor" aria-hidden="true">
                   <rect x="0" y="0" width="18" height="2" rx="1" />
                   <rect x="0" y="4" width="18" height="2" rx="1" />
                   <rect x="0" y="8" width="18" height="2" rx="1" />
@@ -208,7 +219,9 @@ const Clubs = ({ showToast }) => {
                   key={club.id}
                   club={club}
                   layout={layout}
+                  isManaged={isUserManagingClub(club, managedClubs)}
                   onExplore={handleExplore}
+                  onManage={(item) => openClubManagerPortal({ club: item, managedClubs, navigate })}
                 />
               ))}
             </div>

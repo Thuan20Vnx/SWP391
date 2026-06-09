@@ -374,6 +374,9 @@ const Login = ({ showToast }) => {
                 <span className="checkbox-checkmark"></span>
                 <span className="checkbox-label">Ghi nhớ tài khoản</span>
               </label>
+              <Link to="/forgot-password" id="forgot-password-link" className="accent-link" style={{ fontSize: '0.875rem' }}>
+                Quên mật khẩu?
+              </Link>
             </div>
 
             {/* Submit Button */}

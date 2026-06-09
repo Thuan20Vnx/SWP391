@@ -8,6 +8,7 @@ import {
   PARTNER_MOCK_EVENTS,
   PARTNER_MOCK_STATS
 } from '../services/partnerApi';
+import { getPartnerOwnedEventCardAccess } from '../utils/partnerPublicEventAccess';
 import { statusClass } from '../utils/eventStatus';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../constants/eventCategories';
 
@@ -22,7 +23,9 @@ const HOME_CATEGORY_FILTERS = [
   ...CTSV_CATEGORY_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
 ];
 
-const PartnerEventCard = ({ ev, onOpen }) => (
+const PartnerEventCard = ({ ev, onOpen }) => {
+  const access = getPartnerOwnedEventCardAccess();
+  return (
   <article className="event-card-item">
     <div className="event-card-image-wrapper">
       <img src={ev.image} alt={ev.title} className="event-card-img" />
@@ -50,13 +53,18 @@ const PartnerEventCard = ({ ev, onOpen }) => (
           </span>
           <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
         </div>
-        <button type="button" className="btn-card-register btn-card-register--primary" onClick={() => onOpen(ev)}>
-          Chi tiết
+        <button
+          type="button"
+          className={`btn-card-register ${access.buttonClass}`}
+          onClick={() => onOpen(ev)}
+        >
+          {access.label}
         </button>
       </div>
     </div>
   </article>
-);
+  );
+};
 
 const PartnerHome = ({ showToast }) => {
   const navigate = useNavigate();
@@ -280,7 +288,7 @@ const PartnerHome = ({ showToast }) => {
       <PartnerCampusEventsSection
         showToast={showToast}
         title="Tất cả sự kiện"
-        description="Khám phá và đăng ký tham gia mọi sự kiện đang mở tại campus — đối tác được miễn phí vé."
+        description="Sự kiện do doanh nghiệp bạn tổ chức có nút Quản lý — không đăng ký tham gia. Các sự kiện khác vẫn có thể đăng ký miễn phí."
       />
 
       <main className="recommended-section ctsv-home-managed-section">

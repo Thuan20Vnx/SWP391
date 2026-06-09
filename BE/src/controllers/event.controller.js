@@ -46,7 +46,12 @@ const deleteMyEvent = async (req, res) => {
 };
 
 const updateMyEvent = async (req, res) => {
-  const result = await eventService.updateMyEvent(req.params.id, req.user, req.body);
+  const result = await eventService.updateMyEvent(
+    req.params.id,
+    req.user,
+    req.body,
+    req.headers['x-managed-club-id']
+  );
   res.status(200).json({ success: true, ...result });
 };
 

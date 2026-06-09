@@ -6,9 +6,15 @@ import PublicAdminShell from '../layouts/PublicAdminShell';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import EventTicketModal from '../components/EventTicketModal';
 import useUserProfile from '../hooks/useUserProfile';
+import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
-import { getUserRole, isAdminRole } from '../utils/auth';
-import { getCtsvPublicEventAccess, isPureCtsvStaff } from '../utils/publicEventStaffAccess';
+import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
+import {
+  getClubPublicEventAccess,
+  getCtsvPublicEventAccess,
+  isPureCtsvStaff,
+  navigateClubEventManage,
+} from '../utils/publicEventStaffAccess';
 import { mapApiEventToDetail } from '../data/eventDetailData';
 import { formatVnd } from '../utils/ticketPricing';
 import { buildTicketFromDetailEvent } from '../utils/eventTicket';
@@ -72,7 +78,25 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
   const role = userProfile.role || getUserRole();
   const isAdminViewer = isLoggedIn && isAdminRole(role);
   const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
-  const readOnly = readOnlyProp || isAdminViewer || isCtsvStaff;
+  const isClubManager = isLoggedIn && isClubManagerRole(role);
+  const { clubs: managedClubs, activeClub } = useManagedClubs(isClubManager, role);
+  const clubManagerContext = useMemo(
+    () =>
+      isClubManager
+        ? {
+            managedClubs,
+            activeClubId: activeClub?.id || '',
+            userEmail: localStorage.getItem('userEmail') || '',
+          }
+        : null,
+    [isClubManager, managedClubs, activeClub?.id]
+  );
+  const clubManageAccess =
+    event && isClubManager && clubManagerContext
+      ? getClubPublicEventAccess(event, clubManagerContext)
+      : null;
+  const readOnly =
+    readOnlyProp || isAdminViewer || isCtsvStaff || Boolean(clubManageAccess?.canManage);
   const ctsvManageAccess = event && isCtsvStaff ? getCtsvPublicEventAccess(event) : null;
 
   const holderName = useMemo(
@@ -407,7 +431,14 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                     <button
                       type="button"
                       className="event-detail-page__btn event-detail-page__btn--text"
-                      onClick={() => navigate('/events')}
+                      onClick={() => {
+                        const clubKey = event.organizer.slug || event.organizer.clubId || event.clubId;
+                        if (clubKey) {
+                          navigate(`/events?club=${encodeURIComponent(clubKey)}`);
+                          return;
+                        }
+                        navigate('/events');
+                      }}
                     >
                       Xem thêm sự kiện từ CLB
                     </button>
@@ -440,7 +471,9 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                 <p style={{ margin: '12px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                   {isCtsvStaff
                     ? 'CTSV không đăng ký hoặc mua vé từ trang này — chỉ xem thông tin sự kiện.'
-                    : 'Chế độ xem — Admin không đăng ký tham gia từ trang này.'}
+                    : clubManageAccess?.canManage
+                      ? 'Quản lý CLB không đăng ký tham gia sự kiện do CLB mình tổ chức.'
+                      : 'Chế độ xem — Admin không đăng ký tham gia từ trang này.'}
                 </p>
                 {isAdminViewer && (
                   <Link to="/admin/events" className="event-detail-page__admin-portal-link">
@@ -451,6 +484,26 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                   <Link to={ctsvManageAccess.managePath} className="event-detail-page__admin-portal-link">
                     {ctsvManageAccess.label} sự kiện
                   </Link>
+                )}
+                {clubManageAccess?.canManage && clubManageAccess.managePath && (
+                  <>
+                    {clubManageAccess.switchClubHint ? (
+                      <p className="event-detail-page__club-switch-hint">{clubManageAccess.switchClubHint}</p>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="event-detail-page__admin-portal-link event-detail-page__admin-portal-link--button"
+                      onClick={() =>
+                        navigateClubEventManage({
+                          access: clubManageAccess,
+                          navigate,
+                          showToast,
+                        })
+                      }
+                    >
+                      {clubManageAccess.label} sự kiện
+                    </button>
+                  </>
                 )}
               </div>
             ) : (

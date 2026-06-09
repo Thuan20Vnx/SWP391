@@ -34,6 +34,22 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
   );
 
   useEffect(() => {
+    const collapseShellOnMobile = () => {
+      if (window.innerWidth > 900) return;
+      setAdminSidebarOpen(false);
+      setClubSidebarOpen(false);
+      setCtsvSidebarOpen(false);
+      writeSidebarPref(false);
+      persistClubPublicSidebarOpen(false);
+      persistCtsvSidebarOpen(false);
+    };
+
+    collapseShellOnMobile();
+    window.addEventListener('resize', collapseShellOnMobile);
+    return () => window.removeEventListener('resize', collapseShellOnMobile);
+  }, []);
+
+  useEffect(() => {
     if (!showClubShell) return;
     fetch(`${API_BASE}/api/events/my`, { headers: getEventHeaders(false) })
       .then((res) => parseApiResponse(res))

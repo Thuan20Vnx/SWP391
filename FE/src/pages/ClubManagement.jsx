@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { API_BASE, getEventHeaders, parseApiResponse } from '../utils/api';
 import ClubProfileUpdate from '../components/ClubProfileUpdate';
@@ -9,6 +9,7 @@ import ClubEventReportsPanel from '../components/club/ClubEventReportsPanel';
 import './ClubManagement.css';
 import EventProposalForm from '../components/events/EventProposalForm';
 import { EMPTY_EVENT_FORM, mapApiEventToForm } from '../utils/eventFormState';
+import { canClubEditEventProposal } from '../constants/clubEventModeration';
 
 const ClubManagement = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const ClubManagement = () => {
     events = [],
     setEvents,
     lastSeenNotifs,
+    activeClub,
   } = useOutletContext();
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -33,7 +35,84 @@ const ClubManagement = () => {
   const [submittingEvent, setSubmittingEvent] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [bannerFileName, setBannerFileName] = useState('');
+  const [loadingEventForm, setLoadingEventForm] = useState(false);
   const totalEvents = events.length;
+
+  const applyEventToForm = useCallback((event) => {
+    if (!event) return;
+    setEventForm(mapApiEventToForm(event));
+    setBannerFileName(event.bannerFileName || 'event-banner.jpg');
+    setEventFormKey((k) => k + 1);
+  }, []);
+
+  const findCachedEvent = useCallback(
+    (editId) => events.find((ev) => String(ev._id || ev.id) === String(editId)),
+    [events]
+  );
+
+  const isRichEventPrefill = (event) =>
+    Boolean(
+      event &&
+        event.title &&
+        event.startDate &&
+        (event.thumbnail || event.image || event.description !== undefined)
+    );
+
+  const fetchAndApplyEventForEdit = useCallback(
+    async (editId, { prefill, returnTo, silent = false } = {}) => {
+      if (!silent) setLoadingEventForm(true);
+      try {
+        const res = await fetch(`${API_BASE}/api/events/${editId}`, {
+          headers: getEventHeaders(false),
+        });
+        const data = await res.json();
+        if (data.success && data.event) {
+          if (!canClubEditEventProposal(data.event)) {
+            showToast?.('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 'error');
+            setEditingEventId(null);
+            setEditReturnTo(null);
+            setActiveNav('list');
+            return;
+          }
+          applyEventToForm(data.event);
+        } else if (!prefill) {
+          showToast?.(data.message || 'Không tải được sự kiện để chỉnh sửa.', 'error');
+        }
+      } catch {
+        if (!prefill) showToast?.('Lỗi khi tải sự kiện.', 'error');
+      } finally {
+        if (!silent) setLoadingEventForm(false);
+      }
+    },
+    [applyEventToForm, setActiveNav, showToast]
+  );
+
+  const startEditEvent = useCallback(
+    (editId, returnTo, prefill) => {
+      setEditingEventId(editId);
+      setEditReturnTo(returnTo);
+      setActiveNav('create');
+
+      const instantSource =
+        (isRichEventPrefill(prefill) && prefill) ||
+        (isRichEventPrefill(findCachedEvent(editId)) && findCachedEvent(editId));
+
+      if (instantSource) {
+        applyEventToForm(instantSource);
+        setLoadingEventForm(false);
+        if (!isRichEventPrefill(prefill)) {
+          fetchAndApplyEventForEdit(editId, { prefill: instantSource, silent: true });
+        }
+        return;
+      }
+
+      setEventForm(EMPTY_EVENT_FORM);
+      setBannerFileName('');
+      setLoadingEventForm(true);
+      fetchAndApplyEventForEdit(editId, { returnTo });
+    },
+    [applyEventToForm, fetchAndApplyEventForEdit, findCachedEvent, setActiveNav]
+  );
 
   const eventNotifications = useMemo(() => {
     return events
@@ -86,24 +165,34 @@ const ClubManagement = () => {
   }, []);
 
   useEffect(() => {
+    if (!location.state?.clubPortalHome) return;
+    setEditingEventId(null);
+    setEditReturnTo(null);
+    setLoadingEventForm(false);
+    setEventForm(EMPTY_EVENT_FORM);
+    setBannerFileName('');
+    setEventFormKey((k) => k + 1);
+  }, [location.state?.clubPortalHome]);
+
+  useEffect(() => {
+    if (!location.state?.freshCreate) return;
+    setEditingEventId(null);
+    setEditReturnTo(null);
+    setLoadingEventForm(false);
+    setEventForm(EMPTY_EVENT_FORM);
+    setBannerFileName('');
+    setEventFormKey((k) => k + 1);
+    setActiveNav('create');
+    navigate(location.pathname, { replace: true, state: {} });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.freshCreate]);
+
+  useEffect(() => {
     const editId = location.state?.editEventId;
     const returnTo = location.state?.returnTo || null;
+    const prefill = location.state?.editEventPrefill || null;
     if (!editId) return;
-    setEditingEventId(editId);
-    setEditReturnTo(returnTo);
-    setActiveNav('create');
-    fetch(`${API_BASE}/api/events/${editId}`, { headers: getEventHeaders(false) })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.event) {
-          setEventForm(mapApiEventToForm(data.event));
-          setBannerFileName(data.event.bannerFileName || 'event-banner.jpg');
-          setEventFormKey((k) => k + 1);
-        } else {
-          showToast?.(data.message || 'Không tải được sự kiện để chỉnh sửa.', 'error');
-        }
-      })
-      .catch(() => showToast?.('Lỗi khi tải sự kiện.', 'error'));
+    startEditEvent(editId, returnTo, prefill);
     navigate(location.pathname, { replace: true, state: {} });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state?.editEventId]);
@@ -193,7 +282,8 @@ const ClubManagement = () => {
       const data = await res.json();
       if (data.success) {
         showToast(
-          editingEventId ? 'Đã cập nhật và gửi lại duyệt!' : 'Đề xuất sự kiện đã được gửi duyệt!',
+          data.message ||
+            (editingEventId ? 'Đã cập nhật sự kiện!' : 'Đề xuất sự kiện đã được gửi duyệt!'),
           'success'
         );
         const returnTo = editReturnTo;
@@ -237,14 +327,12 @@ const ClubManagement = () => {
               <div className="clb-page-header">
                 <div>
                   <h1 className="clb-page-title">DANH SÁCH SỰ KIỆN QUẢN LÝ</h1>
-                  <p className="clb-page-subtitle">Chào mừng trở lại, <strong>{userProfile.fullname || 'Manager'}</strong>. Bạn đang quản lý <strong>{events.length}</strong> sự kiện.</p>
+                  <p className="clb-page-subtitle">Chào mừng trở lại, <strong>{userProfile.fullname || 'Manager'}</strong>. Bạn đang quản lý <strong>{events.length}</strong> sự kiện{activeClub?.name ? <> thuộc <strong>{activeClub.name}</strong></> : null}.</p>
                 </div>
                 <button
                   className="clb-create-btn"
                   onClick={() => {
-                    setEditingEventId(null);
-                    setEditReturnTo(null);
-                    setActiveNav('create');
+                    navigate('/quan-ly-clb', { state: { freshCreate: true }, replace: true });
                   }}
                 >
                   <svg viewBox="0 0 24 24" width="18" height="18"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" /></svg>
@@ -269,7 +357,10 @@ const ClubManagement = () => {
                       {loadingEvents ? (
                         <tr><td colSpan={6} className="clb-panel-empty-cell">Đang tải...</td></tr>
                       ) : events.length === 0 ? (
-                        <tr><td colSpan={6} className="clb-panel-empty-cell">Chưa có sự kiện nào. Tạo sự kiện đầu tiên của bạn!</td></tr>
+                        <tr><td colSpan={6} className="clb-panel-empty-cell">
+                          Chưa có sự kiện cho CLB đang quản lý.
+                          {' '}Nếu bạn quản lý nhiều CLB, hãy dùng <strong>Đổi câu lạc bộ</strong> trên menu tài khoản.
+                        </td></tr>
                       ) : events.map(ev => {
                         const { label, tone } = getStatusLabel(ev.status);
                         const startDate = ev.startDate ? new Date(ev.startDate).toLocaleDateString('vi-VN') : '--';
@@ -363,15 +454,27 @@ const ClubManagement = () => {
               bannerFileName={bannerFileName}
               onBannerFileNameChange={setBannerFileName}
               submitting={submittingEvent}
+              loading={loadingEventForm}
               onCancel={() => {
-                const returnTo = editReturnTo;
+                const returnTo =
+                  editReturnTo ||
+                  (editingEventId ? `/quan-ly-clb/su-kien/${editingEventId}` : null);
                 setEditingEventId(null);
                 setEditReturnTo(null);
+                setLoadingEventForm(false);
+                setEventForm(EMPTY_EVENT_FORM);
+                setBannerFileName('');
+                setEventFormKey((k) => k + 1);
                 if (returnTo) {
                   navigate(returnTo);
-                } else {
-                  setActiveNav('list');
+                  return;
                 }
+                try {
+                  sessionStorage.setItem('clb_active_nav', 'list');
+                } catch {
+                  /* ignore */
+                }
+                setActiveNav('list');
               }}
               onDraftSave={() => showToast('Đã lưu bản nháp!', 'info')}
               onSubmit={handleClubEventSubmit}

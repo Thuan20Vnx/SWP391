@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
 import AppSelect from '../components/ui/AppSelect';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import useUserProfile from '../hooks/useUserProfile';
+import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
-import { getUserRole, isAdminRole } from '../utils/auth';
-import { isPureCtsvStaff, resolveDiscoveryCardProps } from '../utils/publicEventStaffAccess';
+import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
+import {
+  isPureCtsvStaff,
+  navigateClubEventManage,
+  resolveDiscoveryCardProps,
+} from '../utils/publicEventStaffAccess';
 import {
   CATEGORY_FILTERS,
   STATE_FILTERS,
@@ -18,6 +23,7 @@ import {
   filterEventsBySearch,
   filterEventsByState,
   filterEventsByOrganizer,
+  filterEventsByClub,
   sortEventsByStatePriority,
 } from '../data/eventDiscoveryData';
 
@@ -37,6 +43,9 @@ const CATEGORY_SELECT_OPTIONS = CATEGORY_FILTERS.map((f) => ({
 
 const Events = ({ showToast }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clubFilter = searchParams.get('club') || '';
+  const [clubFilterLabel, setClubFilterLabel] = useState('');
   const [events, setEvents] = useState(USE_FIGMA_FALLBACK ? FIGMA_SAMPLE_EVENTS : []);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -48,6 +57,19 @@ const Events = ({ showToast }) => {
   const role = userProfile.role || getUserRole();
   const isAdminViewer = isLoggedIn && isAdminRole(role);
   const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
+  const isClubManager = isLoggedIn && isClubManagerRole(role);
+  const { clubs: managedClubs, activeClub } = useManagedClubs(isClubManager, role);
+  const clubManagerContext = useMemo(
+    () =>
+      isClubManager
+        ? {
+            managedClubs,
+            activeClubId: activeClub?.id || '',
+            userEmail: localStorage.getItem('userEmail') || '',
+          }
+        : null,
+    [isClubManager, managedClubs, activeClub?.id]
+  );
 
   useEffect(() => {
     setLoading(true);
@@ -70,18 +92,61 @@ const Events = ({ showToast }) => {
       .finally(() => setLoading(false));
   }, [showToast, isLoggedIn, userProfile.role]);
 
+  useEffect(() => {
+    if (!clubFilter) {
+      setClubFilterLabel('');
+      return;
+    }
+
+    const matched = events.find((event) => {
+      const key = clubFilter.toLowerCase();
+      return (
+        String(event.clubSlug || '').toLowerCase() === key
+        || String(event.clubId || '').toLowerCase() === key
+      );
+    });
+    if (matched?.clubName) {
+      setClubFilterLabel(matched.clubName);
+      return;
+    }
+
+    fetch(`${API_BASE}/api/clubs/${clubFilter}`, { headers: getAuthHeaders(false) })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.club?.name) {
+          setClubFilterLabel(data.club.name);
+        } else {
+          setClubFilterLabel('');
+        }
+      })
+      .catch(() => setClubFilterLabel(''));
+  }, [clubFilter, events]);
+
   const filteredEvents = useMemo(() => {
-    let result = filterEventsByState(events, stateFilter);
-    result = filterEventsByOrganizer(result, organizerFilter);
+    let result = events;
+    if (clubFilter) {
+      result = filterEventsByClub(result, clubFilter);
+    }
+    result = filterEventsByState(result, stateFilter);
+    if (!clubFilter) {
+      result = filterEventsByOrganizer(result, organizerFilter);
+    }
     result = filterEventsByCategory(result, activeFilter);
     result = filterEventsBySearch(result, searchQuery);
     return sortEventsByStatePriority(result);
-  }, [events, stateFilter, organizerFilter, activeFilter, searchQuery]);
+  }, [events, clubFilter, stateFilter, organizerFilter, activeFilter, searchQuery]);
 
   const visibleEvents = filteredEvents.slice(0, visibleCount);
   const hasMore = visibleCount < filteredEvents.length;
 
   const hasSecondaryFilters = organizerFilter !== 'all' || activeFilter !== 'all';
+
+  const clearClubFilter = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('club');
+    setSearchParams(next, { replace: true });
+    setClubFilterLabel('');
+  };
 
   const resetFilters = () => {
     setActiveFilter('all');
@@ -89,6 +154,7 @@ const Events = ({ showToast }) => {
     setStateFilter(DEFAULT_STATE_FILTER);
     setSearchQuery('');
     setVisibleCount(PAGE_SIZE);
+    if (clubFilter) clearClubFilter();
   };
 
   const handleRegister = async (event) => {
@@ -157,23 +223,39 @@ const Events = ({ showToast }) => {
         setVisibleCount(PAGE_SIZE);
       }}
     >
-    <div className={`events-page home-layout${isAdminViewer || isCtsvStaff ? ' events-page--admin-view' : ''}`}>
+    <div className={`events-page home-layout${isAdminViewer || isCtsvStaff || isClubManager ? ' events-page--admin-view' : ''}`}>
       <main className="events-page__main">
         <section className="events-page__hero">
           <h1>
-            {isAdminViewer
-              ? 'Danh sách sự kiện toàn sàn'
-              : isCtsvStaff
-                ? 'Khám phá sự kiện toàn trường'
-                : 'Khám phá sự kiện tại FPT'}
+            {clubFilter
+              ? `Sự kiện của ${clubFilterLabel || 'câu lạc bộ'}`
+              : isAdminViewer
+                ? 'Danh sách sự kiện toàn sàn'
+                : isCtsvStaff
+                  ? 'Khám phá sự kiện toàn trường'
+                  : 'Khám phá sự kiện tại FPT'}
           </h1>
           <p>
-            {isAdminViewer
-              ? 'Xem chi tiết sự kiện trên nền tảng — chế độ quản trị chỉ xem, không đăng ký tham gia.'
-              : isCtsvStaff
-                ? 'CTSV chỉ xem thông tin sự kiện — không đăng ký hoặc mua vé. Sự kiện do CTSV tổ chức có thêm nút Quản lý.'
-                : 'Tìm kiếm và tham gia những sự kiện sôi động nhất dành cho cộng đồng FPT'}
+            {clubFilter
+              ? 'Chỉ hiển thị các sự kiện do câu lạc bộ này tổ chức.'
+              : isAdminViewer
+                ? 'Xem chi tiết sự kiện trên nền tảng — chế độ quản trị chỉ xem, không đăng ký tham gia.'
+                : isCtsvStaff
+                  ? 'CTSV chỉ xem thông tin sự kiện — không đăng ký hoặc mua vé. Sự kiện do CTSV tổ chức có thêm nút Quản lý.'
+                  : isClubManager
+                    ? 'Sự kiện do CLB bạn quản lý có nút Quản lý thay cho đăng ký. Nếu sự kiện thuộc CLB khác, bạn sẽ được chuyển sang portal CLB tương ứng.'
+                    : 'Tìm kiếm và tham gia những sự kiện sôi động nhất dành cho cộng đồng FPT'}
           </p>
+          {clubFilter && (
+            <div className="events-page__club-filter-actions">
+              <Link to={`/clubs/${clubFilter}`} className="events-page__club-filter-link">
+                ← Quay lại trang CLB
+              </Link>
+              <button type="button" className="events-page__club-filter-clear" onClick={clearClubFilter}>
+                Xem tất cả sự kiện
+              </button>
+            </div>
+          )}
         </section>
 
         <section className="events-page__filter-bar" aria-label="Bộ lọc sự kiện">
@@ -195,23 +277,25 @@ const Events = ({ showToast }) => {
             </div>
 
             <div className="events-page__filter-dropdowns">
-              <div className="events-page__filter-field">
-                <span className="events-page__filter-field-label" id="events-organizer-filter-label">
-                  Tổ chức
-                </span>
-                <AppSelect
-                  id="events-organizer-filter"
-                  aria-labelledby="events-organizer-filter-label"
-                  value={organizerFilter}
-                  onChange={(e) => {
-                    setOrganizerFilter(e.target.value);
-                    setVisibleCount(PAGE_SIZE);
-                  }}
-                  options={ORGANIZER_SELECT_OPTIONS}
-                  fullWidth={false}
-                  className="events-page__filter-select"
-                />
-              </div>
+              {!clubFilter && (
+                <div className="events-page__filter-field">
+                  <span className="events-page__filter-field-label" id="events-organizer-filter-label">
+                    Tổ chức
+                  </span>
+                  <AppSelect
+                    id="events-organizer-filter"
+                    aria-labelledby="events-organizer-filter-label"
+                    value={organizerFilter}
+                    onChange={(e) => {
+                      setOrganizerFilter(e.target.value);
+                      setVisibleCount(PAGE_SIZE);
+                    }}
+                    options={ORGANIZER_SELECT_OPTIONS}
+                    fullWidth={false}
+                    className="events-page__filter-select"
+                  />
+                </div>
+              )}
               <div className="events-page__filter-field">
                 <span className="events-page__filter-field-label" id="events-category-filter-label">
                   Chủ đề
@@ -248,7 +332,8 @@ const Events = ({ showToast }) => {
               {stateFilter === 'expired' && 'Chưa có sự kiện đã kết thúc trong bộ lọc này.'}
               {stateFilter === 'postponed' && 'Không có sự kiện bị hoãn.'}
               {stateFilter === 'open' && 'Không có sự kiện đang mở đăng ký.'}
-              {organizerFilter !== 'all' && ' Thử đổi bộ lọc đơn vị tổ chức hoặc chủ đề.'}
+              {clubFilter && ' CLB này chưa có sự kiện phù hợp bộ lọc hiện tại.'}
+              {!clubFilter && organizerFilter !== 'all' && ' Thử đổi bộ lọc đơn vị tổ chức hoặc chủ đề.'}
             </p>
             <button type="button" className="events-page__reset-btn" onClick={resetFilters}>
               Xóa bộ lọc
@@ -261,9 +346,14 @@ const Events = ({ showToast }) => {
                 event,
                 isCtsvStaff,
                 isAdminViewer,
+                isClubManager,
+                clubManagerContext,
                 onDetail: handleDetail,
                 onRegister: handleRegister,
                 onManageNavigate: (path) => navigate(path),
+                onClubManageNavigate: (access) =>
+                  navigateClubEventManage({ access, navigate, showToast }),
+                showToast,
               });
               return (
                 <EventDiscoveryCard
@@ -273,6 +363,7 @@ const Events = ({ showToast }) => {
                   onPrimaryAction={cardProps.onPrimaryAction}
                   onManage={cardProps.onManage}
                   manageLabel={cardProps.manageLabel}
+                  manageHint={cardProps.manageHint}
                   viewOnly={cardProps.viewOnly}
                 />
               );

@@ -2,7 +2,51 @@ const mongoose = require('mongoose');
 const Club = require('../models/Club');
 const ClubFollow = require('../models/ClubFollow');
 const ClubMembership = require('../models/ClubMembership');
+const Event = require('../models/Event');
 const AppError = require('../utils/AppError');
+
+const PUBLIC_EVENT_STATUSES = ['live', 'approved'];
+
+const CLUB_LIST_FIELDS =
+  'name slug category description coverImage logoText logoColor memberCount followerCount eventsHeld featuredEvent status';
+
+const formatEventDateLabel = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+const mapEventToUpcomingCard = (event, { isHot = false } = {}) => ({
+  id: String(event._id),
+  title: event.title,
+  date: formatEventDateLabel(event.startDate),
+  location: event.location || 'FPT University',
+  description: event.description || '',
+  image: event.thumbnail || event.image || '',
+  isHot,
+  primaryLabel: 'Đăng ký tham gia',
+  variant: 'primary',
+});
+
+const getClubUpcomingEvents = async (club) => {
+  const clubId = club._id;
+  const now = new Date();
+
+  const clubEvents = await Event.find({
+    clubId,
+    source: 'club',
+    status: { $in: PUBLIC_EVENT_STATUSES },
+    startDate: { $gte: now },
+  })
+    .sort({ startDate: 1 })
+    .limit(6)
+    .lean();
+
+  return clubEvents.map((event, index) => mapEventToUpcomingCard(event, { isHot: index === 0 }));
+};
 
 const resolveClub = async (idOrSlug) => {
   if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
@@ -67,11 +111,14 @@ const buildClubQuery = ({ category, search }) => {
 };
 
 const getClubs = async ({ category, search, userId } = {}) => {
-  const followedSet = await getFollowedClubIds(userId);
-  const membershipMap = await getMembershipMap(userId);
-
-  const clubs = await Club.find(buildClubQuery({ category, search }))
-    .sort({ name: 1 });
+  const [followedSet, membershipMap, clubs] = await Promise.all([
+    getFollowedClubIds(userId),
+    getMembershipMap(userId),
+    Club.find(buildClubQuery({ category, search }))
+      .select(CLUB_LIST_FIELDS)
+      .sort({ name: 1 })
+      .lean(),
+  ]);
 
   return {
     clubs: clubs.map((club) => attachUserClubFlags(club, followedSet, membershipMap)),
@@ -88,8 +135,11 @@ const getClubBySlug = async (idOrSlug, userId) => {
 
   const followedSet = await getFollowedClubIds(userId);
   const membershipMap = await getMembershipMap(userId);
+  const upcomingEvents = await getClubUpcomingEvents(club);
+  const clubDoc = attachUserClubFlags(club, followedSet, membershipMap);
+  clubDoc.upcomingEvents = upcomingEvents;
 
-  return { club: attachUserClubFlags(club, followedSet, membershipMap) };
+  return { club: clubDoc };
 };
 
 const followClub = async (userId, idOrSlug) => {
@@ -430,7 +480,7 @@ const resolveManagedClub = async (userId, activeClubId = null) => {
     if (matched) return matched;
   }
 
-  return clubs[0];
+  return clubs.find((club) => club.slug === 'fu-dever') || clubs[0];
 };
 
 const findClubManagedBy = async (userId, activeClubId = null) =>

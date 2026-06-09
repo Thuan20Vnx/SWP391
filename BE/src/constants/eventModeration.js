@@ -24,6 +24,9 @@ const ICPDP_MODERATION_STATUS_BY_ACTION = {
 
 const CLUB_MODERATION_ACTIONS = ['cancel', 'postpone'];
 
+/** CLB hủy đề xuất ngay khi chưa được duyệt */
+const CLUB_PENDING_CANCEL_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'revision'];
+
 const CLUB_MODERATABLE_STATUSES = ['approved', 'live', 'ended'];
 
 const CLUB_MODERATION_REASON_LABELS = {
@@ -64,6 +67,14 @@ const canClubRequestModeration = (event) =>
   !ICPDP_MODERATION_PENDING_STATUSES.includes(event?.status) &&
   event?.eventState !== 'postponed';
 
+const canClubCancelPending = (event) =>
+  event?.source === 'club' &&
+  CLUB_PENDING_CANCEL_STATUSES.includes(event?.status) &&
+  event?.status !== 'cancelled';
+
+const canClubUnhide = (event) =>
+  event?.source === 'club' && (event?.status === 'hidden' || event?.isHidden === true);
+
 const isModerationPendingStatus = (status) => MODERATION_PENDING_STATUSES.includes(status);
 
 const isIcpdpModerationPendingStatus = (status) =>
@@ -90,6 +101,7 @@ module.exports = {
   ICPDP_MODERATION_PENDING_STATUSES,
   ICPDP_MODERATION_STATUS_BY_ACTION,
   CLUB_MODERATION_ACTIONS,
+  CLUB_PENDING_CANCEL_STATUSES,
   CLUB_MODERATABLE_STATUSES,
   CLUB_MODERATION_REASON_LABELS,
   MODERATION_STATUS_BY_ACTION,
@@ -97,6 +109,8 @@ module.exports = {
   CTSV_MODERATABLE_STATUSES,
   canCtsvRequestModeration,
   canClubRequestModeration,
+  canClubCancelPending,
+  canClubUnhide,
   isModerationPendingStatus,
   isIcpdpModerationPendingStatus,
   getModerationActionFromStatus,

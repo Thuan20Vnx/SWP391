@@ -62,10 +62,23 @@ const resolveEventOrganizer = (event) => {
       kind: 'partner',
       name: 'Đối tác FPT',
       slug: null,
+      clubId: '',
       logo: CLUB_ORGANIZER.logo,
       memberCount: null,
       eventsHeld: null,
-      description: 'Sự kiện hợp tác cùng đối tác, được CTSV và Admin phê duyệt.'
+      description: 'Sự kiện hợp tác cùng đối tác, được CTSV và Admin phê duyệt.',
+    };
+  }
+  if (event?.clubSlug || event?.clubName || event?.clubId) {
+    return {
+      kind: 'club',
+      name: event.clubName || CLUB_ORGANIZER.name,
+      slug: event.clubSlug || null,
+      clubId: event.clubId ? String(event.clubId) : '',
+      logo: event.clubLogo || CLUB_ORGANIZER.logo,
+      memberCount: event.clubMemberCount ?? CLUB_ORGANIZER.memberCount,
+      eventsHeld: event.clubEventsHeld ?? CLUB_ORGANIZER.eventsHeld,
+      description: event.clubDescription || CLUB_ORGANIZER.description,
     };
   }
   return CLUB_ORGANIZER;
@@ -232,6 +245,10 @@ export const mapApiEventToDetail = (event) => {
         capacity > 0 &&
         registeredCount >= capacity),
     createdBy: event.createdBy,
+    clubId: event.clubId ? String(event.clubId) : '',
+    clubName: event.clubName || '',
+    createdByEmail: event.createdBy?.email || event.createdByEmail || '',
+    createdById: event.createdBy?._id || event.createdBy || '',
   };
 };
 

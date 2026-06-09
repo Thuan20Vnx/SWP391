@@ -11,6 +11,7 @@ import {
 import { fetchCtsvEvent } from '../services/ctsvApi';
 import { getCtsvEventAccess } from '../utils/ctsvEventAccess';
 import { canCtsvEditSchoolEvent } from '../constants/eventWorkflow';
+import { canClubEditEventProposal } from '../constants/clubEventModeration';
 import { getManagementEventId, normalizeManagementEvent } from '../utils/normalizeManagementEvent';
 import './EventManagementDetail.css';
 import BentoStarRating from '../components/events/BentoStarRating';
@@ -167,6 +168,7 @@ const EventManagementDetail = ({ portal = 'club' }) => {
     canManageCtsv &&
     eventData?.source === 'school' &&
     canCtsvEditSchoolEvent(eventData);
+  const canEditClub = !isCtsvPortal && canClubEditEventProposal(eventData);
 
   const statusMeta = getEventStatusMeta(eventData);
   const rejectionReason =
@@ -209,8 +211,16 @@ const EventManagementDetail = ({ portal = 'club' }) => {
       navigate(`/ctsv/events/${id}/edit`);
       return;
     }
+    if (!canClubEditEventProposal(eventData)) {
+      showToast?.('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 'info');
+      return;
+    }
     navigate('/quan-ly-clb', {
-      state: { editEventId: id, returnTo: `/quan-ly-clb/su-kien/${id}` },
+      state: {
+        editEventId: id,
+        returnTo: `/quan-ly-clb/su-kien/${id}`,
+        editEventPrefill: eventData,
+      },
     });
   };
 
@@ -257,7 +267,7 @@ const EventManagementDetail = ({ portal = 'club' }) => {
               </p>
             </div>
             <div className="ev-header-actions">
-              {(isCtsvPortal ? canManageCtsv : true) && (
+              {(isCtsvPortal ? canManageCtsv : canEditClub) && (
                 <button type="button" className="ev-btn-outline" onClick={handleEdit}>
                   Chỉnh sửa thông tin
                 </button>

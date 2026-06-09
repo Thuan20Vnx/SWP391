@@ -1,4 +1,6 @@
+const mongoose = require('mongoose');
 const Event = require('../models/Event');
+const Club = require('../models/Club');
 const EventRegistration = require('../models/EventRegistration');
 const AppError = require('../utils/AppError');
 const { isValidEventVenue } = require('../constants/eventVenues');
@@ -16,6 +18,44 @@ const { findClubManagedBy, findManagedClubs, resolveManagedClub } = require('./c
 
 /** Trạng thái chờ duyệt (đồng bộ với luồng CTSV / CLB) */
 const PENDING_EVENT_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'revision'];
+
+const CLUB_META_FIELDS = 'name slug description memberCount eventsHeld coverImage logoText logoColor';
+
+const EVENT_PUBLIC_LIST_FIELDS =
+  'title description thumbnail image category startDate endDate location capacity registeredCount ticketPrice eventState eventType source schoolOrganizerRole status clubId partnerId createdAt postponeReason';
+
+const isValidClubId = (clubId) => {
+  const value = String(clubId || '').trim();
+  return Boolean(value && value !== 'null' && value !== 'undefined' && mongoose.Types.ObjectId.isValid(value));
+};
+
+const mapClubMeta = (club) => {
+  if (!club) return {};
+  return {
+    clubName: club.name || '',
+    clubSlug: club.slug || '',
+    clubDescription: club.description || '',
+    clubMemberCount: club.memberCount ?? 0,
+    clubEventsHeld: club.eventsHeld ?? 0,
+    clubLogo: club.coverImage || '',
+    clubLogoText: club.logoText || '',
+    clubLogoColor: club.logoColor || '',
+  };
+};
+
+const attachClubMetaBatch = async (docs) => {
+  const clubIds = [...new Set(docs.map((doc) => String(doc.clubId)).filter(isValidClubId))];
+  if (!clubIds.length) return docs;
+
+  const clubs = await Club.find({ _id: { $in: clubIds } }).select(CLUB_META_FIELDS).lean();
+  const clubMap = new Map(clubs.map((club) => [String(club._id), club]));
+
+  return docs.map((doc) => {
+    if (!isValidClubId(doc.clubId)) return doc;
+    const club = clubMap.get(String(doc.clubId));
+    return club ? { ...doc, ...mapClubMeta(club) } : doc;
+  });
+};
 
 const createEvent = async (user, body, activeClubId = null) => {
   const {
@@ -92,13 +132,24 @@ const MY_EVENTS_LIST_FIELDS =
 const getMyEvents = async (user, activeClubId = null) => {
   const query = { createdBy: user._id };
 
-  if (activeClubId && user.role === 'club_manager') {
+  if (user.role === 'club_manager') {
     const managedClubs = await findManagedClubs(user._id);
-    if (managedClubs.length > 1) {
-      query.clubId = activeClubId;
-    } else {
-      query.$or = [{ clubId: activeClubId }, { clubId: null }, { clubId: { $exists: false } }];
+
+    if (activeClubId) {
+      query.$or = [
+        { clubId: activeClubId },
+        { clubId: null },
+        { clubId: { $exists: false } },
+      ];
+    } else if (managedClubs.length === 1) {
+      const onlyId = String(managedClubs[0]._id);
+      query.$or = [
+        { clubId: onlyId },
+        { clubId: null },
+        { clubId: { $exists: false } },
+      ];
     }
+    // Nhiều CLB mà chưa chọn: trả về tất cả sự kiện của user
   }
 
   const events = await Event.find(query)
@@ -123,9 +174,9 @@ const deleteMyEvent = async (eventId, user) => {
   return { message: 'Đã xóa sự kiện thành công!' };
 };
 
-const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'revision', 'pending_ctsv', 'pending_icpdp'];
+const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'approved', 'revision', 'pending_ctsv', 'pending_icpdp'];
 
-const updateMyEvent = async (eventId, user, body) => {
+const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   const event = await Event.findById(eventId);
   if (!event) throw new AppError('Không tìm thấy sự kiện!', 404);
   if (String(event.createdBy) !== String(user._id)) {
@@ -133,6 +184,11 @@ const updateMyEvent = async (eventId, user, body) => {
   }
   if (!EDITABLE_CLUB_STATUSES.includes(event.status)) {
     throw new AppError('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 400);
+  }
+
+  if (user.role === 'club_manager' && !event.clubId) {
+    const managedClub = await resolveManagedClub(user._id, activeClubId);
+    if (managedClub) event.clubId = managedClub._id;
   }
 
   const {
@@ -181,15 +237,27 @@ const updateMyEvent = async (eventId, user, body) => {
   if (learningOutcomes !== undefined) {
     event.learningOutcomes = normalizeLearningOutcomes(learningOutcomes);
   }
-  if (event.status === 'rejected') {
+
+  const previousStatus = event.status;
+  if (previousStatus === 'rejected' || previousStatus === 'approved') {
     event.status = 'pending';
     event.rejectionReason = '';
     event.moderationReason = '';
+    if (previousStatus === 'approved') {
+      event.approvedByEmail = '';
+    }
   }
 
   await event.save();
+  const resubmitted =
+    previousStatus === 'rejected' ||
+    previousStatus === 'approved' ||
+    event.status === 'pending';
+  const message = resubmitted
+    ? 'Đã cập nhật đề xuất sự kiện và gửi lại duyệt!'
+    : 'Đã cập nhật đề xuất sự kiện!';
   return {
-    message: 'Đã cập nhật đề xuất sự kiện và gửi lại duyệt!',
+    message,
     event,
   };
 };
@@ -240,24 +308,29 @@ const getApprovedEvents = async ({ category, user } = {}) => {
     query.category = category;
   }
 
-  const events = await Event.find(query)
-    .populate('createdBy', 'fullname email')
-    .sort({ startDate: 1 })
-    .limit(300);
+  const [events, registeredIds] = await Promise.all([
+    Event.find(query)
+      .select(EVENT_PUBLIC_LIST_FIELDS)
+      .populate('createdBy', 'fullname email')
+      .sort({ startDate: 1 })
+      .limit(300)
+      .lean(),
+    user?._id ? getRegisteredEventIds(user._id) : Promise.resolve([]),
+  ]);
 
-  let registeredSet = new Set();
-  if (user?._id) {
-    const ids = await getRegisteredEventIds(user._id);
-    registeredSet = new Set(ids);
-  }
+  const registeredSet = new Set(registeredIds);
 
   const eventsWithRegistration = events.map((event) => {
-    const doc = event.toObject();
-    doc.isRegistered = registeredSet.has(String(event._id));
+    const doc = {
+      ...event,
+      isRegistered: registeredSet.has(String(event._id)),
+    };
     return enrichEventWithPricing(doc, user);
   });
 
-  return { events: eventsWithRegistration };
+  const eventsWithClubMeta = await attachClubMetaBatch(eventsWithRegistration);
+
+  return { events: eventsWithClubMeta };
 };
 
 const getEventById = async (eventId, { user, activeClubId } = {}) => {
@@ -274,7 +347,9 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
 
-  const [registeredCount, checkinCount, registrations] = await Promise.all([
+  const clubId = event.clubId;
+
+  const [registeredCount, checkinCount, registrations, registeredIds, clubMeta] = await Promise.all([
     EventRegistration.countDocuments({ event: eventId, status: { $ne: 'cancelled' } }),
     EventRegistration.countDocuments({ event: eventId, status: 'attended' }),
     isOwner
@@ -282,7 +357,12 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
           .populate('user', 'fullname studentId email')
           .sort({ registeredAt: -1 })
           .limit(200)
-      : Promise.resolve([])
+          .lean()
+      : Promise.resolve([]),
+    user?._id ? getRegisteredEventIds(user._id) : Promise.resolve([]),
+    isValidClubId(clubId)
+      ? Club.findById(clubId).select(CLUB_META_FIELDS).lean()
+      : Promise.resolve(null),
   ]);
 
   const doc = event.toObject();
@@ -293,12 +373,10 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
   doc.ratingCount = doc.reviewCount ?? 0;
   doc.averageRating = doc.averageRating ?? 0;
   doc.reviewCount = doc.reviewCount ?? 0;
+  doc.isRegistered = registeredIds.includes(String(event._id));
 
-  if (user?._id) {
-    const ids = await getRegisteredEventIds(user._id);
-    doc.isRegistered = ids.includes(String(event._id));
-  } else {
-    doc.isRegistered = false;
+  if (clubMeta) {
+    Object.assign(doc, mapClubMeta(clubMeta));
   }
 
   if (isOwner && doc.source === 'club') {
@@ -306,10 +384,8 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
     const club = await resolveManagedClub(user._id, activeClubId)
       || (ownerId ? await resolveManagedClub(ownerId, activeClubId) : null);
     if (club) {
-      doc.clubName = club.name || '';
       doc.clubPresident = club.president || event.createdBy?.fullname || user.fullname || '';
     } else {
-      doc.clubName = doc.clubName || '';
       doc.clubPresident = event.createdBy?.fullname || user.fullname || '';
     }
   }

@@ -5,8 +5,12 @@ import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import AppSelect from '../components/ui/AppSelect';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
-import { getUserRole, isAdminRole } from '../utils/auth';
-import { isPureCtsvStaff, resolveDiscoveryCardProps } from '../utils/publicEventStaffAccess';
+import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
+import {
+  isPureCtsvStaff,
+  navigateClubEventManage,
+  resolveDiscoveryCardProps,
+} from '../utils/publicEventStaffAccess';
 
 const HOME_TIME_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -25,6 +29,7 @@ const HOME_CATEGORY_FILTERS = [
 ];
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import useUserProfile from '../hooks/useUserProfile';
+import useManagedClubs from '../hooks/useManagedClubs';
 import {
   mapApiEventToCard,
   filterActiveDiscoveryEvents,
@@ -55,6 +60,19 @@ const Home = ({ showToast }) => {
   const role = userProfile.role || getUserRole();
   const isAdminViewer = isLoggedIn && isAdminRole(role);
   const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
+  const isClubManager = isLoggedIn && isClubManagerRole(role);
+  const { clubs: managedClubs, activeClub } = useManagedClubs(isClubManager, role);
+  const clubManagerContext = useMemo(
+    () =>
+      isClubManager
+        ? {
+            managedClubs,
+            activeClubId: activeClub?.id || '',
+            userEmail: localStorage.getItem('userEmail') || '',
+          }
+        : null,
+    [isClubManager, managedClubs, activeClub?.id]
+  );
 
   const resetHeroAutoplay = useCallback(() => {
     setHeroAutoplayKey((k) => k + 1);
@@ -453,9 +471,14 @@ const Home = ({ showToast }) => {
                 event,
                 isCtsvStaff,
                 isAdminViewer,
+                isClubManager,
+                clubManagerContext,
                 onDetail: handleViewDetail,
                 onRegister: handleRegister,
                 onManageNavigate: (path) => navigate(path),
+                onClubManageNavigate: (access) =>
+                  navigateClubEventManage({ access, navigate, showToast }),
+                showToast,
               });
               return (
                 <EventDiscoveryCard
@@ -465,6 +488,7 @@ const Home = ({ showToast }) => {
                   onPrimaryAction={cardProps.onPrimaryAction}
                   onManage={cardProps.onManage}
                   manageLabel={cardProps.manageLabel}
+                  manageHint={cardProps.manageHint}
                   viewOnly={cardProps.viewOnly}
                 />
               );
