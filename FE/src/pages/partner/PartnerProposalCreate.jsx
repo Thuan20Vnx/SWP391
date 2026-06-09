@@ -40,12 +40,48 @@ const formatFileSize = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const SectionTitle = ({ children }) => (
-  <h2 className="ctsv-form-section-title">
+const SectionTitle = ({ children, className = '' }) => (
+  <h2 className={`ctsv-form-section-title ${className}`.trim()}>
     <span className="ctsv-form-section-icon" aria-hidden />
     {children}
   </h2>
 );
+
+const CollapsibleFormSection = ({ title, sectionId, defaultOpen = false, children }) => {
+  const [open, setOpen] = useState(defaultOpen);
+  const panelId = `${sectionId}-panel`;
+
+  return (
+    <section className={`ctsv-form-section ctsv-form-section--collapsible${open ? ' is-open' : ''}`}>
+      <button
+        type="button"
+        className="ctsv-form-section-toggle"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <SectionTitle className="ctsv-form-section-title--toggle">{title}</SectionTitle>
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.25"
+          aria-hidden="true"
+          className={`ctsv-form-section-chevron${open ? ' is-open' : ''}`}
+        >
+          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div id={panelId} className="ctsv-form-section-body">
+          {children}
+        </div>
+      )}
+    </section>
+  );
+};
 
 const Field = ({ label, required, hint, children }) => (
   <div className="ctsv-field">
@@ -178,8 +214,12 @@ const PartnerProposalCreate = () => {
     };
   }, [applyState, showToast, userProfile]);
 
-  const onCompanyChange = (field, value) => {
-    setCompany((prev) => ({ ...prev, [field]: value }));
+  const validateForm = () => {
+    if (!company.companyName.trim()) {
+      showToast?.('Vui lòng cập nhật tên doanh nghiệp trong hồ sơ đối tác trước khi gửi đơn.', 'error');
+      return false;
+    }
+    return true;
   };
 
   const handleAttachmentFiles = (fileList) => {
@@ -304,14 +344,6 @@ const PartnerProposalCreate = () => {
     bannerFileName,
     persistDraftSilent
   ]);
-
-  const validateForm = () => {
-    if (!company.companyName.trim()) {
-      showToast?.('Vui lòng điền tên doanh nghiệp.', 'error');
-      return false;
-    }
-    return true;
-  };
 
   const handlePartnerEventSubmit = async () => {
     if (!validateForm()) return;
@@ -564,7 +596,7 @@ const PartnerProposalCreate = () => {
         <span className="ctsv-events-eyebrow">Tạo sự kiện mới</span>
         <h1>TẠO SỰ KIỆN ĐỐI TÁC</h1>
         <p className="ctsv-muted">
-          Điền thông tin doanh nghiệp và chi tiết sự kiện. CTSV sẽ xem xét và phản hồi trong 3–5 ngày làm việc.
+          Điền chi tiết sự kiện. Thông tin doanh nghiệp lấy từ hồ sơ đối tác. CTSV sẽ xem xét và phản hồi trong 3–5 ngày làm việc.
         </p>
         {draftLabel && !isApprovedOrHidden && (
           <p className="ctsv-create-draft-status" aria-live="polite">
@@ -632,87 +664,6 @@ const PartnerProposalCreate = () => {
       )}
 
       <div className="ctsv-create-form">
-        <section className="ctsv-form-section">
-          <SectionTitle>Thông tin doanh nghiệp</SectionTitle>
-          <div className="ctsv-form-section-body">
-            <div className="ctsv-form-row-2">
-              <Field label="Tên doanh nghiệp" required>
-                <input
-                  type="text"
-                  value={company.companyName}
-                  onChange={(e) => onCompanyChange('companyName', e.target.value)}
-                  className="ctsv-input"
-                  placeholder="Công ty TNHH..."
-                  required
-                  disabled={isReadOnly}
-                />
-              </Field>
-              <Field label="Mã số / Mã đối tác">
-                <input
-                  type="text"
-                  value={company.partnerCode}
-                  onChange={(e) => onCompanyChange('partnerCode', e.target.value)}
-                  className="ctsv-input"
-                  placeholder="FPT-SW-001"
-                  disabled={isReadOnly}
-                />
-              </Field>
-            </div>
-            <div className="ctsv-form-row-2">
-              <Field label="Người đại diện">
-                <input
-                  type="text"
-                  value={company.representative}
-                  onChange={(e) => onCompanyChange('representative', e.target.value)}
-                  className="ctsv-input"
-                  disabled={isReadOnly}
-                />
-              </Field>
-              <Field label="Chức danh">
-                <input
-                  type="text"
-                  value={company.representativeTitle}
-                  onChange={(e) => onCompanyChange('representativeTitle', e.target.value)}
-                  className="ctsv-input"
-                  placeholder="Giám đốc kinh doanh"
-                  disabled={isReadOnly}
-                />
-              </Field>
-            </div>
-            <div className="ctsv-form-row-2">
-              <Field label="Số điện thoại">
-                <input
-                  type="tel"
-                  value={company.phone}
-                  onChange={(e) => onCompanyChange('phone', e.target.value)}
-                  className="ctsv-input"
-                  disabled={isReadOnly}
-                />
-              </Field>
-              <Field label="Giá trị tài trợ dự kiến (VNĐ)">
-                <input
-                  type="number"
-                  min="0"
-                  value={company.expectedSponsorAmount}
-                  onChange={(e) => onCompanyChange('expectedSponsorAmount', e.target.value)}
-                  className="ctsv-input"
-                  placeholder="50000000"
-                  disabled={isReadOnly}
-                />
-              </Field>
-            </div>
-            <Field label="Địa chỉ">
-              <input
-                type="text"
-                value={company.address}
-                onChange={(e) => onCompanyChange('address', e.target.value)}
-                className="ctsv-input"
-                disabled={isReadOnly}
-              />
-            </Field>
-          </div>
-        </section>
-
         <EventProposalForm
           role="partner"
           embedded
@@ -726,14 +677,16 @@ const PartnerProposalCreate = () => {
           disabled={isReadOnly}
           submitting={submitting}
           onDraftSave={!isPending && !isApprovedOrHidden ? persistDraft : undefined}
-          beforeFinalSubmit={() => (company.companyName.trim() ? null : 'Vui lòng điền tên doanh nghiệp.')}
+          beforeFinalSubmit={() =>
+            company.companyName.trim()
+              ? null
+              : 'Vui lòng cập nhật tên doanh nghiệp trong hồ sơ đối tác.'
+          }
           onSubmit={handlePartnerEventSubmit}
         />
 
-        <section className="ctsv-form-section">
-          <SectionTitle>Quyền lợi &amp; Đính kèm</SectionTitle>
-          <div className="ctsv-form-section-body">
-            <div className="partner-benefits-section">
+        <CollapsibleFormSection title="Quyền lợi & Đính kèm" sectionId="partner-benefits">
+          <div className="partner-benefits-section">
               <Field label="Quyền lợi đối tác yêu cầu">
                 <div className="partner-benefits-list">
                   {benefits.map((b, i) => (
@@ -827,8 +780,7 @@ const PartnerProposalCreate = () => {
                 </p>
               )}
             </Field>
-          </div>
-        </section>
+        </CollapsibleFormSection>
 
         <footer className="ctsv-form-actions">
           <button

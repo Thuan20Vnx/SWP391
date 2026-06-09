@@ -87,6 +87,7 @@ const IcpdpPortalHeader = ({
           <div className="ctsv-header-brand">
             <CtsvHamburgerButton
               onClick={onToggleSidebar}
+              expanded={sidebarOpen}
               ariaLabel={sidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
             />
 

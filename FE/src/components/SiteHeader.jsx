@@ -19,6 +19,7 @@ import {
   clearSession,
   USER_ROLES,
 } from '../utils/auth';
+import { navigateClubPortalHome } from './club/clubNavConfig';
 import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
 import CtsvHamburgerButton from './ctsv/CtsvHamburgerButton';
 import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../data/adminPublicNav';
@@ -59,6 +60,7 @@ const SiteHeader = ({
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
   const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -114,7 +116,14 @@ const SiteHeader = ({
     if (!sidebarControlled) setAdminDrawerOpen(false);
     setNotifOpen(false);
     setProfilePopupOpen(false);
+    setMobileMenuOpen(false);
+    setMobileSearchOpen(false);
   }, [pathname, sidebarControlled]);
+
+  const closeMobileOverlays = () => {
+    setMobileMenuOpen(false);
+    setMobileSearchOpen(false);
+  };
 
   useEffect(() => {
     if (!profilePopupOpen) return undefined;
@@ -175,6 +184,10 @@ const SiteHeader = ({
         };
 
     if (routes[action]) {
+      if (action === 'club-manage' || (action === 'my-clubs' && isClubManagerRole())) {
+        navigateClubPortalHome(navigate, pathname);
+        return;
+      }
       navigate(routes[action]);
       return;
     }
@@ -220,14 +233,26 @@ const SiteHeader = ({
     }
   }, [searchExpanded]);
 
+  const showMobileSearch = Boolean(onSearchChange || searchPlaceholder);
+  const searchToggleLabel = mobileSearchOpen ? 'Đóng tìm kiếm' : 'Mở tìm kiếm';
+
   const renderNav = () => (
-    <nav className={`header-nav site-header__nav ctsv-header-nav${mobileMenuOpen ? ' mobile-active' : ''}`} aria-label="Điều hướng chính">
+    <nav
+      className={`header-nav site-header__nav ctsv-header-nav${mobileMenuOpen ? ' mobile-active' : ''}`}
+      aria-label="Điều hướng chính"
+    >
       {navItems.map((item) => (
         <Link
           key={item.key}
           to={item.to}
           className={`nav-link ${item.linkClass || ''} ${isNavItemActive(item) ? 'active' : ''}`.trim()}
-          onClick={() => setMobileMenuOpen(false)}
+          onClick={(e) => {
+            closeMobileOverlays();
+            if (item.key === 'club-manage') {
+              e.preventDefault();
+              navigateClubPortalHome(navigate, pathname);
+            }
+          }}
         >
           {item.label}
         </Link>
@@ -251,7 +276,11 @@ const SiteHeader = ({
           <div className="ctsv-header-start site-header__start">
             <div className="ctsv-header-brand">
               {onTogglePortalSidebar ? (
-                <CtsvHamburgerButton onClick={onTogglePortalSidebar} ariaLabel={portalSidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'} />
+                <CtsvHamburgerButton
+                  onClick={onTogglePortalSidebar}
+                  expanded={portalSidebarOpen}
+                  ariaLabel={portalSidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
+                />
               ) : (
                 <button type="button" className="admin-hamburger-btn" onClick={toggleAdminMenu} aria-label={menuOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'} aria-expanded={menuOpen}>
                   <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
@@ -259,15 +288,54 @@ const SiteHeader = ({
                   </svg>
                 </button>
               )}
-              {renderLogo(sidebarLogoCollapsed)}
+              {renderLogo(false)}
             </div>
+            <button
+              type="button"
+              className="site-header__nav-toggle"
+              onClick={() => {
+                setMobileSearchOpen(false);
+                setMobileMenuOpen((open) => !open);
+              }}
+              aria-label={mobileMenuOpen ? 'Đóng menu trang' : 'Mở menu trang'}
+              aria-expanded={mobileMenuOpen}
+            >
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                {mobileMenuOpen ? (
+                  <path
+                    d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"
+                    fill="currentColor"
+                  />
+                ) : (
+                  <path
+                    d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
+                    fill="currentColor"
+                  />
+                )}
+              </svg>
+            </button>
             {renderNav()}
           </div>
         ) : (
           <>
             {!isAdminPortal && (
-              <button type="button" className="mobile-hamburger-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Mở menu">
-                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" /></svg>
+              <button
+                type="button"
+                className="mobile-hamburger-btn"
+                onClick={() => {
+                  setMobileSearchOpen(false);
+                  setMobileMenuOpen((open) => !open);
+                }}
+                aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
+                aria-expanded={mobileMenuOpen}
+              >
+                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                  {mobileMenuOpen ? (
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor" />
+                  ) : (
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
+                  )}
+                </svg>
               </button>
             )}
             <div className="header-logo site-header__logo-group">
@@ -313,6 +381,23 @@ const SiteHeader = ({
         </div>
 
         <div className="header-actions">
+          {showMobileSearch && (
+            <button
+              type="button"
+              className="site-header__mobile-search-btn"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setMobileSearchOpen((open) => !open);
+              }}
+              aria-label={searchToggleLabel}
+              aria-expanded={mobileSearchOpen}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor" />
+              </svg>
+            </button>
+          )}
+
           <NotificationBell
             open={notifOpen}
             onOpenChange={(open) => {
@@ -407,7 +492,37 @@ const SiteHeader = ({
           </div>
         </div>
       </div>
+
+      {mobileSearchOpen && showMobileSearch && (
+        <div className="site-header__mobile-search-panel">
+          <span className="search-icon-inside">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor" />
+            </svg>
+          </span>
+          <input
+            ref={searchInputRef}
+            type="search"
+            name="site-header-mobile-search"
+            placeholder={resolvedSearchPlaceholder}
+            value={searchValue}
+            onChange={(e) => onSearchChange?.(e.target.value)}
+            onKeyDown={onSearchKeyDown}
+            className="search-input site-header__search-input"
+            autoFocus
+          />
+        </div>
+      )}
     </header>
+
+    {(mobileMenuOpen || mobileSearchOpen) && (
+      <button
+        type="button"
+        className="site-header__mobile-backdrop"
+        aria-label="Đóng menu"
+        onClick={closeMobileOverlays}
+      />
+    )}
 
     {showAdminMenu && !isAdminPortal && !sidebarControlled && (
       <AdminDrawerMenu

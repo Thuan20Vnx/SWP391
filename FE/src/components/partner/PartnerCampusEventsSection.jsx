@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import EventDiscoveryCard from '../EventDiscoveryCard';
 import EventTicketModal from '../EventTicketModal';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import { fetchPartnerEvents, fetchPartnerMe } from '../../services/partnerApi';
 import { API_BASE, getAuthHeaders } from '../../utils/api';
 import { filterEventsByState, mapApiEventToCard } from '../../data/eventDiscoveryData';
 import { buildTicketFromCardEvent } from '../../utils/eventTicket';
+import { resolveDiscoveryCardProps } from '../../utils/publicEventStaffAccess';
 
 /**
  * Danh sách sự kiện campus (đăng ký tham gia) — dùng chung PartnerHome & PartnerEventList.
@@ -18,6 +20,7 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
   const [ticketData, setTicketData] = useState(null);
   const [registrationIds, setRegistrationIds] = useState({});
   const [actionLoading, setActionLoading] = useState(false);
+  const [partnerContext, setPartnerContext] = useState(null);
 
   const holderName = useMemo(
     () => localStorage.getItem('userFullname') || localStorage.getItem('userEmail') || '',
@@ -26,14 +29,22 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
-      .then((res) => res.json())
-      .then((data) => {
+    Promise.all([
+      fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) }).then((res) => res.json()),
+      fetchPartnerMe().catch(() => ({ partner: null })),
+      fetchPartnerEvents().catch(() => ({ events: [] })),
+    ])
+      .then(([data, meRes, partnerEventsRes]) => {
         if (data.success && data.events?.length) {
           setEvents(filterEventsByState(data.events.map(mapApiEventToCard), 'open'));
         } else {
           setEvents([]);
         }
+        setPartnerContext({
+          partnerId: meRes.partner?._id || meRes.partner?.id || '',
+          managedEventIds: (partnerEventsRes.events || []).map((ev) => ev.id || ev._id),
+          userEmail: localStorage.getItem('userEmail') || '',
+        });
       })
       .catch(() => setEvents([]))
       .finally(() => setLoading(false));
@@ -145,14 +156,27 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
           </div>
         ) : (
           <div className="event-discovery-grid partner-campus-events-grid">
-            {events.map((ev) => (
-              <EventDiscoveryCard
-                key={ev.id}
-                event={ev}
-                onDetail={handleDetail}
-                onPrimaryAction={handlePrimaryAction}
-              />
-            ))}
+            {events.map((ev) => {
+              const cardProps = resolveDiscoveryCardProps({
+                event: ev,
+                isPartner: true,
+                partnerContext,
+                onDetail: handleDetail,
+                onRegister: handlePrimaryAction,
+                onManageNavigate: (path) => navigate(path),
+              });
+              return (
+                <EventDiscoveryCard
+                  key={ev.id}
+                  event={ev}
+                  onDetail={cardProps.onDetail}
+                  onPrimaryAction={cardProps.onPrimaryAction}
+                  onManage={cardProps.onManage}
+                  manageLabel={cardProps.manageLabel}
+                  viewOnly={cardProps.viewOnly}
+                />
+              );
+            })}
           </div>
         )}
       </section>

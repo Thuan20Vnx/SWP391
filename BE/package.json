@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "dev:watch": "node --watch server.js",
     "seed": "node seed.js",
     "seed:events": "node seed-events.js",
     "seed:clubs": "node seed-clubs.js",

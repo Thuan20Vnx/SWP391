@@ -7,9 +7,21 @@ const MembersIcon = () => (
   </svg>
 );
 
-const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'Khám phá ngay' }) => {
+const ClubDiscoveryCard = ({
+  club,
+  onExplore,
+  onManage,
+  isManaged = false,
+  layout = 'grid',
+  exploreLabel = 'Khám phá ngay',
+  manageLabel = 'Quản lý',
+}) => {
   const categoryColor = getCategoryColor(club.category);
   const { featuredEvent } = club;
+  const handlePrimaryAction = () => {
+    if (isManaged) onManage?.(club);
+    else onExplore?.(club);
+  };
 
   return (
     <article className={`club-discovery-card club-discovery-card--${layout}`}>
@@ -21,9 +33,6 @@ const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'K
         >
           {club.category}
         </span>
-      </div>
-
-      <div className="club-discovery-card__body">
         <div
           className="club-discovery-card__logo"
           style={{ backgroundColor: club.logoColor }}
@@ -31,7 +40,9 @@ const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'K
         >
           <span>{club.logoText}</span>
         </div>
+      </div>
 
+      <div className="club-discovery-card__body">
         <div className="club-discovery-card__header">
           <h3 className="club-discovery-card__name">{club.name}</h3>
           <div className="club-discovery-card__members">
@@ -57,10 +68,10 @@ const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'K
 
         <button
           type="button"
-          className="club-discovery-card__cta"
-          onClick={() => onExplore?.(club)}
+          className={`club-discovery-card__cta${isManaged ? ' club-discovery-card__cta--manage' : ''}`}
+          onClick={handlePrimaryAction}
         >
-          {exploreLabel}
+          {isManaged ? manageLabel : exploreLabel}
         </button>
       </div>
     </article>

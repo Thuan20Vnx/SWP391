@@ -41,8 +41,8 @@ const CtsvNavIcon = ({ type }) => {
     case 'create':
       return (
         <svg {...common}>
-          <path d="M12 5v14M5 12h14" />
-          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
         </svg>
       );
     case 'publish':

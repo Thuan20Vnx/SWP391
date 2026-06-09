@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const connectDB = require('./src/config/db');
 const Event = require('./src/models/Event');
+const Club = require('./src/models/Club');
 const User = require('./src/models/User');
 const eventSeedData = require('./src/data/eventSeedData');
 const { syncPrimarySpeakerFields } = require('./src/constants/eventSpeaker');
@@ -43,11 +44,23 @@ const seedEvents = async () => {
     console.log(`Đã xóa ${removedLegacy.deletedCount} sự kiện legacy (nếu có).`);
     await Event.deleteMany({ title: { $in: DEPRECATED_EVENT_TITLES } });
 
-    const eventsWithCreator = eventSeedData.map((event) => {
-      const doc = { ...event, createdBy: creator._id };
-      syncPrimarySpeakerFields(doc);
-      return doc;
-    });
+    const clubSlugIds = new Map(
+      (await Club.find({ slug: { $in: eventSeedData.map((e) => e.clubSlug).filter(Boolean) } }).select('slug'))
+        .map((club) => [club.slug, club._id])
+    );
+
+    const eventsWithCreator = await Promise.all(
+      eventSeedData.map(async (event) => {
+        const { clubSlug, ...rest } = event;
+        const doc = { ...rest, createdBy: creator._id };
+        if (clubSlug && clubSlugIds.has(clubSlug)) {
+          doc.clubId = clubSlugIds.get(clubSlug);
+          doc.source = doc.source || 'club';
+        }
+        syncPrimarySpeakerFields(doc);
+        return doc;
+      })
+    );
 
     const inserted = await Event.insertMany(eventsWithCreator);
 

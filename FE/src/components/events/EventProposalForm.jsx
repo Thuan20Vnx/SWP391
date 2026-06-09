@@ -16,6 +16,7 @@ import {
   validateTicketTypesStep,
 } from '../../utils/eventFormState';
 import { audienceLabel, formatTicketPriceLabel } from '../../utils/eventTicketTypes';
+import EventProposalFormSkeleton from './EventProposalFormSkeleton';
 
 const BANNER_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -50,6 +51,7 @@ const EventProposalForm = ({
   embedded = false,
   hideHeader = false,
   hideBackButton = false,
+  loading = false,
   className = '',
 }) => {
   const config = EVENT_FORM_ROLE_CONFIG[role] || EVENT_FORM_ROLE_CONFIG.club;
@@ -137,6 +139,7 @@ const EventProposalForm = ({
       }
     }
     if (step === 3) {
+      if (!form.location?.trim()) return 'Vui lòng nhập địa điểm tổ chức.';
       return validateScheduleStep(form) || validateTicketTypesStep(form);
     }
     if (step === 4 && beforeFinalSubmit) return beforeFinalSubmit();
@@ -155,13 +158,9 @@ const EventProposalForm = ({
       return;
     }
 
-    try {
-      const payload = buildCoreEventPayload(form);
-      if (bannerFileName) payload.bannerFileName = bannerFileName;
-      await onSubmit?.(payload);
-    } catch {
-      showToast?.('Gửi đề xuất thất bại.', 'error');
-    }
+    const payload = buildCoreEventPayload(form);
+    if (bannerFileName) payload.bannerFileName = bannerFileName;
+    await onSubmit?.(payload);
   };
 
   const title = isEditMode || editingId ? config.titleEdit : config.titleCreate;
@@ -175,6 +174,16 @@ const EventProposalForm = ({
   const wrapperStyle = embedded
     ? undefined
     : { width: '100%', maxWidth: '1200px', margin: '0 auto', background: '#fff', borderRadius: '16px', padding: '40px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' };
+
+  if (loading) {
+    return (
+      <EventProposalFormSkeleton
+        role={role}
+        isEditMode={isEditMode || Boolean(editingId)}
+        onCancel={hideBackButton ? undefined : onCancel}
+      />
+    );
+  }
 
   return (
     <div className={wrapperClass} style={wrapperStyle}>

@@ -65,6 +65,18 @@ export const filterEventsByOrganizer = (events, filterId) => {
   });
 };
 
+export const filterEventsByClub = (events, clubKey = '') => {
+  const key = String(clubKey || '').trim().toLowerCase();
+  if (!key) return events;
+  return events.filter((ev) => {
+    const type = ev.organizerType || resolveEventOrganizerType(ev);
+    if (type !== 'club') return false;
+    const slug = String(ev.clubSlug || '').trim().toLowerCase();
+    const id = String(ev.clubId || '').trim().toLowerCase();
+    return slug === key || id === key;
+  });
+};
+
 export const CATEGORY_COLORS = {
   'Công nghệ': '#f26f21',
   'CÔNG NGHỆ': '#f26f21',
@@ -277,6 +289,12 @@ export const mapApiEventToCard = (event) => {
     statusKey: event.statusKey || '',
     organizerType,
     organizerLabel,
+    clubId: event.clubId ? String(event.clubId) : '',
+    clubSlug: event.clubSlug || '',
+    clubName: event.clubName || '',
+    createdByEmail: event.createdBy?.email || event.createdByEmail || '',
+    createdById: event.createdBy?._id || event.createdBy || '',
+    partnerId: event.partnerId ? String(event.partnerId) : '',
     fromApi: true,
   };
 };

@@ -168,7 +168,9 @@ const getRegisteredEventIds = async (userId) => {
   const registrations = await EventRegistration.find({
     user: userId,
     status: 'registered',
-  }).select('event');
+  })
+    .select('event')
+    .lean();
 
   return registrations.map((r) => String(r.event));
 };

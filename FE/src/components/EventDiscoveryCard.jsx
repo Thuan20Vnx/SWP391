@@ -19,6 +19,7 @@ const EventDiscoveryCard = ({
   onPrimaryAction,
   onManage,
   manageLabel = 'Quản lý',
+  manageHint = '',
   viewOnly = false,
 }) => {
   const {
@@ -142,6 +143,9 @@ const EventDiscoveryCard = ({
         </div>
 
         <div className={`event-discovery-card__actions ${singleAction ? 'is-single' : ''}`}>
+          {hasManageAction && manageHint ? (
+            <p className="event-discovery-card__manage-hint">{manageHint}</p>
+          ) : null}
           {!isPostponed && (!viewOnly || hasManageAction) && (
             <button
               type="button"
