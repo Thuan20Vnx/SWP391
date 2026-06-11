@@ -1,0 +1,639 @@
+/**
+ * Global dark theme — kích hoạt khi html.dark (toggle Cài đặt → Chế độ tối)
+ */
+
+html.dark #root {
+  background-color: var(--bg-light);
+  min-height: 100vh;
+}
+
+/* ── Layout chung ── */
+html.dark .profile-page,
+html.dark .dashboard-main,
+html.dark .dashboard-container,
+html.dark .home-layout {
+  background-color: var(--bg-light);
+  color: var(--text-main);
+}
+
+html.dark .dashboard-footer {
+  color: var(--text-muted);
+  border-top-color: var(--surface-border);
+}
+
+html.dark .page-header p {
+  color: var(--text-muted);
+}
+
+/* ── Sidebar dashboard ── */
+html.dark .sidebar-aside {
+  background-color: var(--bg-card);
+  border-right-color: var(--surface-border);
+}
+
+html.dark .sidebar-logo {
+  border-bottom-color: var(--surface-border);
+}
+
+html.dark .sidebar-user-card:hover {
+  background-color: var(--surface-hover);
+}
+
+html.dark .menu-header {
+  color: var(--text-tertiary);
+}
+
+html.dark .menu-item {
+  color: var(--text-secondary);
+}
+
+html.dark .menu-item svg {
+  color: var(--text-tertiary);
+}
+
+html.dark .menu-item:hover {
+  background-color: var(--surface-hover);
+  color: var(--text-main);
+}
+
+html.dark .menu-item:hover svg {
+  color: var(--text-main);
+}
+
+html.dark .btn-logout:hover {
+  background-color: rgba(225, 29, 72, 0.12);
+}
+
+/* ── Top navbar ── */
+html.dark .top-navbar {
+  background-color: var(--bg-card);
+  border-bottom-color: var(--surface-border);
+}
+
+html.dark .search-wrapper input {
+  background-color: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .btn-icon-nav {
+  color: var(--text-secondary);
+}
+
+html.dark .btn-icon-nav:hover {
+  background-color: var(--surface-hover);
+}
+
+html.dark .navbar-user-name {
+  color: var(--text-main);
+}
+
+html.dark .navbar-user-role {
+  color: var(--text-muted);
+}
+
+/* ── Header trang công khai ── */
+html.dark .home-header {
+  background: var(--header-bg);
+  border-bottom-color: var(--header-border);
+}
+
+html.dark .mobile-hamburger-btn {
+  color: var(--text-main);
+}
+
+html.dark .mobile-hamburger-btn:hover {
+  background-color: var(--surface-hover);
+}
+
+html.dark .site-header__search-input {
+  background: var(--surface-muted);
+  color: var(--text-main);
+  border: 1px solid var(--surface-border);
+}
+
+html.dark .profile-display-card-link {
+  color: var(--text-main);
+}
+
+html.dark .profile-display-card-link--open {
+  background: rgba(242, 111, 33, 0.14);
+}
+
+/* ── Profile popup / nav hub ── */
+html.dark .profile-menu-dropdown {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .nav-hub__header {
+  background: linear-gradient(135deg, rgba(242, 111, 33, 0.08) 0%, var(--bg-card) 100%);
+  border-bottom-color: var(--surface-border);
+}
+
+html.dark .nav-hub__name {
+  color: var(--text-heading);
+}
+
+html.dark .nav-hub__subtitle {
+  color: var(--text-muted);
+}
+
+html.dark .nav-hub__section-title {
+  color: var(--text-tertiary);
+}
+
+html.dark .nav-hub__item {
+  color: var(--text-secondary);
+}
+
+html.dark .nav-hub__item:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+html.dark .nav-hub__item--active {
+  background: rgba(242, 111, 33, 0.14);
+  color: var(--primary);
+}
+
+html.dark .nav-hub__item-hint {
+  color: var(--text-tertiary);
+}
+
+html.dark .nav-hub__item--active .nav-hub__item-hint {
+  color: rgba(242, 111, 33, 0.65);
+}
+
+html.dark .nav-hub__footer {
+  border-top-color: var(--surface-border);
+  background: var(--surface-muted);
+}
+
+html.dark .nav-hub__meta {
+  color: var(--text-muted);
+}
+
+html.dark .nav-hub__section-label {
+  color: var(--text-tertiary);
+}
+
+html.dark .nav-hub__item.is-active {
+  background: rgba(242, 111, 33, 0.14);
+  color: var(--primary);
+}
+
+/* ── Profile cards ── */
+html.dark .profile-card {
+  box-shadow: var(--shadow-sm);
+}
+
+html.dark .profile-card-header {
+  border-bottom-color: var(--surface-border);
+}
+
+html.dark .card-status-badge {
+  background-color: rgba(34, 197, 94, 0.15);
+}
+
+html.dark .club-tag {
+  background-color: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+html.dark .club-tag:hover {
+  background-color: var(--surface-border);
+}
+
+/* ── Student dashboard ── */
+html.dark .student-stat-card,
+html.dark .student-panel,
+html.dark .student-timeline-item,
+html.dark .student-event-card,
+html.dark .student-calendar,
+html.dark .student-schedule-item {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .student-stat-label,
+html.dark .student-stat-trend {
+  color: var(--text-muted);
+}
+
+html.dark .student-panel__header h2,
+html.dark .student-event-card__body h3 {
+  color: var(--text-heading);
+}
+
+html.dark .student-badge--muted {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+html.dark .student-calendar__day {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-secondary);
+}
+
+html.dark .student-calendar__day.is-muted {
+  background: var(--surface-muted);
+  color: var(--text-tertiary);
+}
+
+html.dark .student-calendar__day.is-today {
+  border-color: var(--primary);
+}
+
+html.dark .student-outline-btn {
+  background: var(--bg-card);
+  border-color: rgba(242, 111, 33, 0.4);
+}
+
+html.dark .my-clubs-stat,
+html.dark .my-clubs-card,
+html.dark .my-clubs-search,
+html.dark .my-clubs-filter,
+html.dark .my-clubs-empty {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .my-clubs-stat--highlight {
+  background: linear-gradient(135deg, rgba(242, 111, 33, 0.14) 0%, rgba(242, 111, 33, 0.04) 100%);
+}
+
+html.dark .my-clubs-stat__value--text,
+html.dark .my-clubs-card__name,
+html.dark .my-clubs-empty h3,
+html.dark .my-clubs-result-meta strong {
+  color: var(--text-heading);
+}
+
+html.dark .my-clubs-stat__label,
+html.dark .my-clubs-stat__hint,
+html.dark .my-clubs-card__meta span,
+html.dark .my-clubs-card__desc,
+html.dark .my-clubs-empty p,
+html.dark .my-clubs-result-meta {
+  color: var(--text-muted);
+}
+
+html.dark .my-clubs-search input {
+  color: var(--text-main);
+}
+
+html.dark .my-clubs-card__footer {
+  border-top-color: var(--surface-border);
+}
+
+html.dark .my-clubs-card__unfollow-btn {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-secondary);
+}
+
+html.dark .my-clubs-card__logo {
+  border-color: var(--bg-card);
+}
+
+html.dark .student-pill-btn {
+  color: #fff;
+}
+
+/* ── Home / events cards ── */
+html.dark .filter-bar-card {
+  box-shadow: var(--shadow-md);
+}
+
+html.dark .filter-group input,
+html.dark .filter-group select {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .event-card-item:hover {
+  border-color: var(--surface-border);
+  box-shadow: var(--shadow-md);
+}
+
+html.dark .event-card-image-wrapper {
+  background-color: var(--surface-muted);
+}
+
+html.dark .event-card-title {
+  color: var(--text-heading);
+}
+
+html.dark .event-card-details,
+html.dark .event-card-footer {
+  color: var(--text-muted);
+}
+
+html.dark .event-card-divider {
+  background: var(--surface-border);
+}
+
+html.dark .no-events-card {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-muted);
+}
+
+html.dark .see-all-link {
+  color: var(--primary);
+}
+
+/* ── Events discovery ── */
+html.dark .events-page__hero p {
+  color: var(--text-muted);
+}
+
+html.dark .events-page__state-pill,
+html.dark .events-page__filter-pill {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-secondary);
+}
+
+html.dark .events-page__state-pill:hover,
+html.dark .events-page__filter-pill:hover {
+  background: rgba(242, 111, 33, 0.12);
+}
+
+html.dark .events-page__state-pill.is-active,
+html.dark .events-page__filter-pill.is-active {
+  background: rgba(242, 111, 33, 0.16);
+}
+
+html.dark .events-page__load-more {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .event-discovery-card {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+}
+
+html.dark .event-discovery-card__title {
+  color: var(--text-heading);
+}
+
+html.dark .event-discovery-card__body {
+  background: linear-gradient(180deg, var(--surface-hover) 0%, var(--bg-card) 100%);
+  border-top-color: var(--surface-border);
+}
+
+html.dark .event-discovery-card__meta-chip,
+html.dark .event-discovery-card__info-panel {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+}
+
+html.dark .event-discovery-card__meta-text {
+  color: var(--text-main);
+}
+
+html.dark .event-discovery-card__meta-icon {
+  background: rgba(242, 111, 33, 0.15);
+}
+
+html.dark .event-discovery-card__actions {
+  background: var(--bg-card);
+  border-top-color: var(--surface-border);
+}
+
+html.dark .event-discovery-card__progress-track {
+  background: var(--surface-hover);
+}
+
+html.dark .event-discovery-card__btn--outline {
+  background: transparent;
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .events-page__footer,
+html.dark .home-footer {
+  background: var(--bg-card);
+  border-top-color: var(--surface-border);
+  color: var(--text-muted);
+}
+
+html.dark .home-footer h4 {
+  color: var(--text-heading);
+}
+
+html.dark .home-footer a,
+html.dark .events-page__footer-col a,
+html.dark .footer-links-list a {
+  color: var(--text-secondary);
+}
+
+html.dark .home-footer a:hover,
+html.dark .events-page__footer-col a:hover {
+  color: var(--primary);
+}
+
+html.dark .footer-brand-desc {
+  color: var(--text-muted);
+}
+
+html.dark .social-icon-box {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+/* ── Clubs ── */
+html.dark .clubs-page {
+  background: var(--bg-light);
+}
+
+html.dark .clubs-page__hero {
+  background: linear-gradient(135deg, rgba(242, 111, 33, 0.12) 0%, var(--bg-card) 58%);
+  border-color: var(--surface-border);
+}
+
+html.dark .clubs-page__hero-content h1,
+html.dark .clubs-page__community-head h2 {
+  color: var(--text-heading);
+}
+
+html.dark .clubs-page__hero-content > p,
+html.dark .clubs-page__community-head p {
+  color: var(--text-muted);
+}
+
+html.dark .clubs-page__hero-search-field {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+}
+
+html.dark .clubs-page__hero-search-field input {
+  color: var(--text-main);
+}
+
+html.dark .clubs-page__hero-tag {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-secondary);
+}
+
+html.dark .clubs-page__hero-stat {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+}
+
+html.dark .club-discovery-card,
+html.dark .club-detail-card {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+}
+
+html.dark .club-discovery-card__title,
+html.dark .club-detail-card h2 {
+  color: var(--text-heading);
+}
+
+/* ── Settings ── */
+html.dark .settings-shell {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  box-shadow: var(--shadow-sm);
+}
+
+html.dark .settings-sidebar {
+  background: transparent;
+  border-color: transparent;
+}
+
+html.dark .settings-sidebar__nav {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  box-shadow: var(--shadow-sm);
+}
+
+html.dark .settings-sidebar__item:hover {
+  background: var(--surface-muted);
+  color: var(--text-main);
+}
+
+html.dark .settings-sidebar__item.is-active {
+  background: rgba(242, 111, 33, 0.12);
+  color: var(--primary);
+}
+
+html.dark .settings-panel__content {
+  background: var(--bg-card);
+}
+
+html.dark .settings-group__body {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+}
+
+html.dark .settings-row,
+html.dark .settings-toggle-row,
+html.dark .settings-info-row {
+  background: var(--bg-card);
+  border-bottom-color: var(--surface-border);
+}
+
+html.dark .settings-row:hover {
+  background: var(--surface-hover);
+}
+
+html.dark .settings-section-header__title,
+html.dark .settings-row__label,
+html.dark .settings-toggle-row__label,
+html.dark .settings-info-row__label {
+  color: var(--text-heading);
+}
+
+html.dark .settings-section-header__desc,
+html.dark .settings-row__desc,
+html.dark .settings-toggle-row__desc,
+html.dark .settings-info-row__desc,
+html.dark .settings-note {
+  color: var(--text-muted);
+}
+
+html.dark .settings-version-badge {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+html.dark .settings-switch:not(.is-on) {
+  background: #475569;
+}
+
+html.dark .settings-form__cancel:hover {
+  background: var(--surface-hover);
+}
+
+/* ── Static / auth ── */
+html.dark .static-page {
+  background: var(--bg-light);
+  color: var(--text-main);
+}
+
+html.dark .static-page__hero,
+html.dark .static-page__content section {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+}
+
+html.dark .static-page__hero h1,
+html.dark .static-page__content h2 {
+  color: var(--text-heading);
+}
+
+html.dark .static-page__content p {
+  color: var(--text-muted);
+}
+
+html.dark .form-column {
+  background-color: var(--bg-card);
+}
+
+html.dark .sso-button {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .sso-button:hover {
+  background: var(--surface-hover);
+}
+
+/* ── Toast ── */
+html.dark .toast-item {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Misc ── */
+html.dark .dashboard-footer p {
+  color: var(--text-muted);
+}
+
+html.dark .profile-skeleton {
+  background: linear-gradient(90deg, var(--surface-muted) 25%, var(--surface-hover) 50%, var(--surface-muted) 75%);
+}
+
+html.dark .sidebar-overlay.active {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+html.dark .profile-menu-backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}

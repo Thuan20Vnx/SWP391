@@ -1,0 +1,30 @@
+{
+  "name": "swp391-backend",
+  "version": "1.0.0",
+  "description": "Mock Backend for FPT Students Community",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "seed": "node seed.js",
+    "seed:events": "node seed-events.js",
+    "seed:clubs": "node seed-clubs.js",
+    "seed:reviews": "node seed-event-reviews.js",
+    "db:audit": "node scripts/db-health.js",
+    "db:sync-indexes": "node scripts/db-health.js --sync",
+    "db:repair-counts": "node scripts/db-health.js --repair-counts",
+    "db:cleanup-orphans": "node scripts/db-health.js --cleanup-orphans",
+    "db:cleanup-orphans:dry": "node scripts/db-health.js --cleanup-orphans --dry-run"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "google-auth-library": "^10.6.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.2",
+    "nodemailer": "^8.0.8"
+  }
+}
