@@ -270,6 +270,7 @@ const Home = ({ showToast }) => {
   return (
     <PublicAdminShell
       activeNav="home"
+      searchPlaceholder="Tìm kiếm sự kiện..."
       searchValue={searchQuery}
       onSearchChange={setSearchQuery}
       onSearchKeyDown={handleNavSearch}

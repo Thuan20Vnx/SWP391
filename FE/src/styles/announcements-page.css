@@ -781,15 +781,46 @@
   .announcements-detail__grid {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 20px;
   }
 
   .announcements-detail__aside {
     order: -1;
+    width: 100%;
   }
 
   .announcements-detail__sender {
     position: static;
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .announcements-detail__sender-top {
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+  }
+
+  .announcements-detail__avatar {
+    width: 46px;
+    height: 46px;
+    font-size: 1rem;
+  }
+
+  .announcements-detail__sender-list {
+    gap: 10px;
+  }
+
+  .announcements-detail__sender-list li {
+    gap: 10px;
+  }
+
+  .announcements-detail__sender-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
   }
 
   .announcements-detail-skeleton__grid {

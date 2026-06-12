@@ -43,6 +43,7 @@ const Announcements = ({ showToast }) => {
   const navigate = useNavigate();
 
   const [activeFilter, setActiveFilter] = useState('Tất cả');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [items, setItems] = useState([]);
 
@@ -85,14 +86,22 @@ const Announcements = ({ showToast }) => {
 
 
   const filteredItems = useMemo(() => {
+    let list = items;
 
-    if (activeFilter === 'Chưa đọc') return items.filter((item) => item.unread);
+    if (activeFilter === 'Chưa đọc') list = list.filter((item) => item.unread);
+    else if (activeFilter === 'Quan trọng') list = list.filter((item) => item.important);
 
-    if (activeFilter === 'Quan trọng') return items.filter((item) => item.important);
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return list;
 
-    return items;
-
-  }, [activeFilter, items]);
+    return list.filter((item) => {
+      const haystack = [item.title, item.summary, item.category, item.sender]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [activeFilter, items, searchQuery]);
 
 
 
@@ -117,11 +126,10 @@ const Announcements = ({ showToast }) => {
   return (
 
     <AnnouncementsLayout
-
       title="Thông báo từ Nhà trường"
-
       subtitle="Cập nhật các thông tin quan trọng về học tập và sự kiện tại campus."
-
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
     >
 
       {!loading && items.length > 0 && (

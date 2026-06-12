@@ -14,10 +14,18 @@ import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getEventHeaders, parseApiResponse } from '../utils/api';
 import { getUserRole, isAdminRole, isClubManagerRole, normalizeRole, USER_ROLES } from '../utils/auth';
 import { readSidebarPref, writeSidebarPref } from '../utils/adminSidebarStorage';
+import { resolvePublicShellSearchPlaceholder } from '../utils/publicShellSearch';
 import '../styles/admin-menu.css';
 import '../styles/club-portal.css';
 
 const PublicAdminShell = ({ children, ...headerProps }) => {
+  const shellHeaderProps = {
+    ...headerProps,
+    searchPlaceholder: resolvePublicShellSearchPlaceholder(
+      headerProps.activeNav,
+      headerProps.searchPlaceholder,
+    ),
+  };
   const { pathname } = useLocation();
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = normalizeRole(userProfile.role || getUserRole());
@@ -115,7 +123,7 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
   if (!showAdminMenu && !showClubShell && !showCtsvShell) {
     return (
       <>
-        <SiteHeader {...headerProps} />
+        <SiteHeader {...shellHeaderProps} />
         {children}
       </>
     );
@@ -145,7 +153,7 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
         />
         <div className="ctsv-shell-main">
           <SiteHeader
-            {...headerProps}
+            {...shellHeaderProps}
             onTogglePortalSidebar={toggleClubSidebar}
             portalSidebarOpen={clubSidebarOpen}
           />
@@ -177,7 +185,7 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
         />
         <div className="ctsv-shell-main">
           <SiteHeader
-            {...headerProps}
+            {...shellHeaderProps}
             onTogglePortalSidebar={toggleCtsvSidebar}
             portalSidebarOpen={ctsvSidebarOpen}
           />
@@ -202,7 +210,7 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
       )}
       <AdminSidebar open={adminSidebarOpen} onClose={closeAdminSidebar} pathname={pathname} userProfile={userProfile} />
       <div className="ctsv-shell-main admin-shell-main public-shell-main">
-        <AdminTopHeader {...headerProps} sidebarToggle={toggleAdminSidebar} sidebarOpen={adminSidebarOpen} />
+        <AdminTopHeader {...shellHeaderProps} sidebarToggle={toggleAdminSidebar} sidebarOpen={adminSidebarOpen} />
         {children}
       </div>
     </div>
