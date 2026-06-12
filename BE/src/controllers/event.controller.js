@@ -19,6 +19,8 @@ const getApprovedEvents = async (req, res) => {
   const result = await eventService.getApprovedEvents({
     category: req.query.category,
     user: req.user || null,
+    limit: req.query.limit,
+    state: req.query.state
   });
   res.status(200).json({ success: true, ...result });
 };

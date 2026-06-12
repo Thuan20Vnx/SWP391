@@ -336,7 +336,7 @@ const PartnerProfileSettings = ({ showToast }) => {
 
       fetchPartnerUserProfile().catch(() => null),
 
-      fetchPartnerMe().catch(() => ({ partner: null }))
+      fetchPartnerMe({ includeLogo: true }).catch(() => ({ partner: null }))
 
     ])
 
@@ -748,7 +748,7 @@ const PartnerProfileSettings = ({ showToast }) => {
 
         await savePartnerCompanyProfile(company);
 
-        const refreshed = await fetchPartnerMe();
+        const refreshed = await fetchPartnerMe({ includeLogo: true });
 
         setPartnerRecord(refreshed.partner || null);
 

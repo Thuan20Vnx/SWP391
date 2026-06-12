@@ -143,6 +143,7 @@ const PartnerProposalCreate = () => {
   const attachmentInputRef = useRef(null);
   const draftRestoreToastShownRef = useRef(false);
   const autoSaveSkipRef = useRef(true);
+  const initLoadedRef = useRef(false);
 
   const requestStatus = activeRequest?.status;
   const isPending = requestStatus === 'pending';
@@ -166,6 +167,16 @@ const PartnerProposalCreate = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const finishInit = () => {
+      if (cancelled) return;
+      initLoadedRef.current = true;
+      setLoading(false);
+      autoSaveSkipRef.current = false;
+    };
+
+    const guardTimer = setTimeout(() => {
+      finishInit();
+    }, 4000);
 
     const init = async () => {
       setLoading(true);
@@ -214,36 +225,48 @@ const PartnerProposalCreate = () => {
             setActiveRequest(request);
           }
 
-          const partner = partnerRes.partner;
-          if (partner) {
-            setCompany((prev) => ({
-              ...prev,
-              companyName: prev.companyName || partner.name || '',
-              phone: prev.phone || partner.phone || '',
-              representative: prev.representative || partner.representative || userProfile?.fullname || '',
-              address: prev.address || partner.address || '',
-              partnerCode: prev.partnerCode || partner.partnerCode || ''
-            }));
-          } else if (userProfile?.fullname) {
-            setCompany((prev) => ({
-              ...prev,
-              representative: prev.representative || userProfile.fullname
-            }));
-          }
+        }
+
+        const partner = partnerRes.partner;
+        if (partner) {
+          setCompany((prev) => ({
+            ...prev,
+            companyName: prev.companyName || partner.name || '',
+            phone: prev.phone || partner.phone || '',
+            representative: prev.representative || partner.representative || userProfile?.fullname || '',
+            address: prev.address || partner.address || '',
+            partnerCode: prev.partnerCode || partner.partnerCode || ''
+          }));
+        } else if (userProfile?.fullname) {
+          setCompany((prev) => ({
+            ...prev,
+            representative: prev.representative || userProfile.fullname
+          }));
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-          autoSaveSkipRef.current = false;
-        }
+        clearTimeout(guardTimer);
+        finishInit();
       }
     };
 
     init();
     return () => {
       cancelled = true;
+      clearTimeout(guardTimer);
     };
-  }, [applyState, showToast, userProfile]);
+  }, [applyState, showToast]);
+
+  useEffect(() => {
+    if (!initLoadedRef.current || !userProfile?.fullname) return;
+    setCompany((prev) =>
+      prev.representative
+        ? prev
+        : {
+            ...prev,
+            representative: userProfile.fullname
+          }
+    );
+  }, [userProfile?.fullname]);
 
   const parsedExpected = parseExpectedAttendees(form.expectedAttendees);
   const maxTicketTotal = getMaxTicketTotal(form.expectedAttendees);

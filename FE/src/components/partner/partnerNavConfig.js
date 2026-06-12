@@ -6,8 +6,7 @@ export const PARTNER_NAV_ITEMS = [
   { path: '/partner/events', label: 'Quản lý sự kiện', section: 'SỰ KIỆN', icon: 'publish' },
   { path: '/partner/announcements', label: 'Thông báo', icon: 'reports' },
   { path: '/partner/proposals/create', label: 'Tạo sự kiện mới', icon: 'create' },
-  { path: '/partner/contracts', label: 'Hợp đồng', section: 'TÀI CHÍNH', icon: 'partners' },
-  { path: '/partner/analytics', label: 'Phân tích báo cáo', icon: 'reports' }
+  { path: '/partner/analytics', label: 'Phân tích báo cáo', section: 'TÀI CHÍNH', icon: 'reports' }
 ];
 
 export const readPartnerSidebarPref = () => {

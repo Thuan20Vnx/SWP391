@@ -8,7 +8,12 @@ const AppError = require('../utils/AppError');
 const {
   getPartnerRecordsByEmail,
   getPrimaryPartner,
+  getPartnerMeData,
+  loadPartnersByEmail,
   buildPartnerStats,
+  getPartnerHomeData,
+  getPartnerDashboardData,
+  getPartnerCampusEventsData,
   getPartnerEvents,
   getPartnerEventById,
   getPartnerContracts,
@@ -17,11 +22,11 @@ const {
   buildActivityFeed
 } = require('../services/partner.service');
 const {
-  getActiveRequestForEmail,
-  getDraftForEmail,
+  getPartnerEventRequestsBundle,
   saveDraft,
   submitRequest,
   cancelRequest,
+  updatePendingRequest,
   updateApprovedRequest,
   hideRequest,
   deleteRequest,
@@ -46,21 +51,18 @@ const handleError = (res, error, label) => {
 
 router.get('/me', async (req, res) => {
   try {
-    const partner = await getPrimaryPartner(req.authEmail);
-    if (!partner) {
+    const includeLogo =
+      req.query.includeLogo === '1' ||
+      req.query.includeLogo === 'true';
+    const data = await getPartnerMeData(req.authEmail, { includeLogo });
+    if (!data.hasProfile) {
       return res.status(404).json({
         success: false,
         message: 'Chưa có hồ sơ đối tác. Vui lòng gửi đề xuất đầu tiên.',
         partner: null
       });
     }
-    const proposals = await getPartnerRecordsByEmail(req.authEmail);
-    return res.json({
-      success: true,
-      partner,
-      proposals,
-      hasProfile: true
-    });
+    return res.json({ success: true, ...data });
   } catch (error) {
     return handleError(res, error, 'partner me');
   }
@@ -128,12 +130,43 @@ router.patch('/me', async (req, res) => {
 
 router.get('/stats', async (req, res) => {
   try {
-    const data = await buildPartnerStats(req.authEmail);
-    const proposals = await getPartnerRecordsByEmail(req.authEmail);
-    const activity = buildActivityFeed(proposals);
+    const [data, partners] = await Promise.all([
+      buildPartnerStats(req.authEmail),
+      loadPartnersByEmail(req.authEmail)
+    ]);
+    const activity = buildActivityFeed(partners);
     return res.json({ success: true, ...data, activity });
   } catch (error) {
     return handleError(res, error, 'partner stats');
+  }
+});
+
+router.get('/home', async (req, res) => {
+  try {
+    const data = await getPartnerHomeData(req.authEmail);
+    return res.json({ success: true, ...data });
+  } catch (error) {
+    return handleError(res, error, 'partner home');
+  }
+});
+
+router.get('/dashboard', async (req, res) => {
+  try {
+    const data = await getPartnerDashboardData(req.authEmail);
+    return res.json({ success: true, ...data });
+  } catch (error) {
+    return handleError(res, error, 'partner dashboard');
+  }
+});
+
+router.get('/campus-events', async (req, res) => {
+  try {
+    const data = await getPartnerCampusEventsData(req.authEmail, req.user, {
+      limit: req.query.limit
+    });
+    return res.json({ success: true, ...data });
+  } catch (error) {
+    return handleError(res, error, 'partner campus events');
   }
 });
 
@@ -238,6 +271,9 @@ router.post('/proposals', async (req, res) => {
       status: 'pending'
     });
 
+    const { ensurePrimaryPartnerMember } = require('../services/partnerMember.service');
+    await ensurePrimaryPartnerMember(partner);
+
     return res.status(201).json({
       success: true,
       partner,
@@ -264,9 +300,8 @@ router.patch('/proposals/:id/supplement', async (req, res) => {
 
 router.get('/event-requests/active', async (req, res) => {
   try {
-    const request = await getActiveRequestForEmail(req.authEmail);
-    const draft = request?.status === 'draft' ? request : await getDraftForEmail(req.authEmail);
-    return res.json({ success: true, request: request || draft || null, draft: draft || null });
+    const bundle = await getPartnerEventRequestsBundle(req.authEmail);
+    return res.json({ success: true, ...bundle });
   } catch (error) {
     return handleError(res, error, 'partner event active');
   }
@@ -306,8 +341,20 @@ router.post('/event-requests/:id/cancel', async (req, res) => {
 
 router.patch('/event-requests/:id', async (req, res) => {
   try {
-    const request = await updateApprovedRequest(req.authEmail, req.params.id, req.body);
-    return res.json({ success: true, request, message: 'Đã cập nhật thông tin sự kiện.' });
+    const PartnerEventRequest = require('../models/PartnerEventRequest');
+    const existing = await PartnerEventRequest.findById(req.params.id);
+    if (!existing) {
+      throw new AppError('Không tìm thấy yêu cầu!', 404);
+    }
+    const request =
+      existing.status === 'pending'
+        ? await updatePendingRequest(req.authEmail, req.params.id, req.body)
+        : await updateApprovedRequest(req.authEmail, req.params.id, req.body);
+    const message =
+      existing.status === 'pending'
+        ? 'Đã cập nhật đơn đang chờ duyệt.'
+        : 'Đã cập nhật thông tin sự kiện.';
+    return res.json({ success: true, request, message });
   } catch (error) {
     return handleError(res, error, 'partner event update');
   }

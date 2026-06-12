@@ -19,6 +19,30 @@ const formatTime = (d) => {
   return `${h}:${m}`;
 };
 
+/** Lightweight shape for event list/card views (partner home, event grids). */
+const formatEventCard = (doc) => {
+  if (!doc) return null;
+  const o = doc.toObject ? doc.toObject({ virtuals: true }) : { ...doc };
+  const cap = o.capacity || o.totalTickets || 0;
+  const remaining = Math.max(0, cap - (o.registeredCount || 0));
+  return {
+    id: o._id?.toString() || o.id,
+    title: o.title,
+    category: o.category,
+    date: formatDate(o.startDate),
+    time: formatTime(o.startDate),
+    location: o.location,
+    remainingTickets: remaining,
+    totalTickets: cap,
+    status: STATUS_LABELS[o.status] || o.status,
+    statusKey: o.status,
+    image: o.image || o.thumbnail || '',
+    thumbnail: o.image || o.thumbnail || '',
+    source: o.source || 'club',
+    partnerId: o.partnerId?.toString?.() || o.partnerId || null
+  };
+};
+
 const formatEvent = (doc) => {
   if (!doc) return null;
   const o = doc.toObject ? doc.toObject({ virtuals: true }) : { ...doc };
@@ -109,4 +133,11 @@ const formatProposal = (doc) => {
   };
 };
 
-module.exports = { formatEvent, formatProposal, STATUS_LABELS, formatDate, formatTime };
+module.exports = {
+  formatEvent,
+  formatEventCard,
+  formatProposal,
+  STATUS_LABELS,
+  formatDate,
+  formatTime
+};

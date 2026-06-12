@@ -127,8 +127,9 @@ const partnerFetch = (path, options = {}) =>
     headers: { ...getAuthHeaders(), ...options.headers }
   }).then(parseJson);
 
-export const fetchPartnerMe = async () => {
-  const res = await fetch(`${API_BASE}/api/partner/me`, {
+export const fetchPartnerMe = async ({ includeLogo = false } = {}) => {
+  const qs = includeLogo ? '?includeLogo=1' : '';
+  const res = await fetch(`${API_BASE}/api/partner/me${qs}`, {
     headers: getAuthHeaders()
   });
   const data = await res.json().catch(() => ({}));
@@ -177,6 +178,19 @@ export const updatePartnerUserProfile = async (body) => {
 };
 
 export const fetchPartnerStats = () => partnerFetch('/stats');
+
+export const fetchPartnerHome = () => partnerFetch('/home');
+
+export const fetchPartnerDashboard = () => partnerFetch('/dashboard');
+
+export const fetchPartnerCampusEvents = (params = {}) => {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') qs.set(k, v);
+  });
+  const q = qs.toString();
+  return partnerFetch(`/campus-events${q ? `?${q}` : ''}`);
+};
 
 export const fetchPartnerEvents = (params = {}) => {
   const qs = new URLSearchParams();

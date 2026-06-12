@@ -286,9 +286,32 @@ const supplementRequest = async (email, requestId, body) => {
   return { request: doc, partner };
 };
 
+const getPartnerEventRequestsBundle = async (email) => {
+  const normalized = normalizeEmail(email);
+  const rows = await PartnerEventRequest.find({
+    partnerEmail: normalized,
+    status: { $ne: 'deleted' }
+  })
+    .sort({ updatedAt: -1 })
+    .limit(40)
+    .lean();
+
+  const cancelled = rows.filter((row) => row.status === 'cancelled').slice(0, 20);
+  const active = rows.filter((row) => row.status !== 'cancelled');
+  const request = active[0] || null;
+  const draft = active.find((row) => row.status === 'draft') || null;
+
+  return {
+    request: request || draft || null,
+    draft: draft || null,
+    cancelled
+  };
+};
+
 module.exports = {
   getActiveRequestForEmail,
   getDraftForEmail,
+  getPartnerEventRequestsBundle,
   saveDraft,
   submitRequest,
   cancelRequest,

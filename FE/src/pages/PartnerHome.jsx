@@ -1,13 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
+import HomeHeroSlider from '../components/home/HomeHeroSlider';
 import PartnerCampusEventsSection from '../components/partner/PartnerCampusEventsSection';
-import {
-  fetchPartnerEvents,
-  fetchPartnerStats,
-  PARTNER_MOCK_EVENTS,
-  PARTNER_MOCK_STATS
-} from '../services/partnerApi';
+import { fetchPartnerHome, PARTNER_MOCK_STATS } from '../services/partnerApi';
+import { getPartnerOwnedEventCardAccess } from '../utils/partnerPublicEventAccess';
 import { statusClass } from '../utils/eventStatus';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../constants/eventCategories';
 
@@ -22,38 +19,108 @@ const HOME_CATEGORY_FILTERS = [
   ...CTSV_CATEGORY_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
 ];
 
-const PartnerEventCard = ({ ev, onOpen }) => (
-  <article className="event-card-item">
-    <div className="event-card-image-wrapper">
-      <img src={ev.image} alt={ev.title} className="event-card-img" />
-      <span className="event-card-category-badge">
-        {getCategoryDisplayLabel(ev.category) || ev.category}
-      </span>
-    </div>
+const PARTNER_HERO_FALLBACK = [
+  {
+    title: 'Tech Talk 2026 - FPT Software',
+    dateLabel: '15 Tháng 6, 2026',
+    location: 'Hội trường Alpha',
+    categoryLabel: 'Công nghệ',
+    organizerLabel: 'Partner',
+    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1280&q=80'
+  },
+  {
+    title: 'FPT Recruitment Day 2026',
+    dateLabel: '22 Tháng 6, 2026',
+    location: 'Sân FPT',
+    categoryLabel: 'Kết nối',
+    organizerLabel: 'Partner',
+    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1280&q=80'
+  },
+  {
+    title: 'Phân tích hiệu suất tài trợ & ROI',
+    dateLabel: '30 Tháng 6, 2026',
+    location: 'Campus FPT',
+    categoryLabel: 'Báo cáo',
+    organizerLabel: 'Partner',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1280&q=80'
+  }
+];
+
+const parsePartnerEventDate = (value) => {
+  const match = String(value || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!match) return null;
+  const [, day, month, year] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day));
+};
+
+const isSameDay = (left, right) =>
+  Boolean(
+    left &&
+      right &&
+      left.getFullYear() === right.getFullYear() &&
+      left.getMonth() === right.getMonth() &&
+      left.getDate() === right.getDate()
+  );
+
+const isInCurrentWeek = (date, now) => {
+  if (!date || !now) return false;
+  const current = new Date(now);
+  current.setHours(0, 0, 0, 0);
+  const day = current.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const weekStart = new Date(current);
+  weekStart.setDate(current.getDate() + mondayOffset);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  return date >= weekStart && date <= weekEnd;
+};
+
+const PartnerEventCard = ({ ev, onOpen }) => {
+  const access = getPartnerOwnedEventCardAccess();
+
+  return (
+    <article className="event-card-item">
+      <div className="event-card-image-wrapper">
+        <img src={ev.image} alt={ev.title} className="event-card-img" />
+        <span className="event-card-category-badge">{getCategoryDisplayLabel(ev.category) || ev.category}</span>
+      </div>
+      <div className="event-card-body">
+        <h3 className="event-card-title">{ev.title}</h3>
+        <div className="event-card-details">
+          <div className="detail-row">
+            <span>
+              {ev.date} • {ev.time}
+            </span>
+          </div>
+          <div className="detail-row">
+            <span className="location-text">{ev.location}</span>
+          </div>
+        </div>
+        <div className="event-card-divider" />
+        <div className="event-card-footer">
+          <div className="ticket-info">
+            <span className="ticket-remain-text">
+              Còn: {ev.remainingTickets}/{ev.totalTickets}
+            </span>
+            <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
+          </div>
+          <button type="button" className={`btn-card-register ${access.buttonClass}`} onClick={() => onOpen(ev)}>
+            {access.label}
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+};
+
+const PartnerEventCardSkeleton = () => (
+  <article className="event-card-item ctsv-events-card--skeleton" aria-hidden>
+    <div className="ctsv-events-card-media sk" />
     <div className="event-card-body">
-      <h3 className="event-card-title">{ev.title}</h3>
-      <div className="event-card-details">
-        <div className="detail-row">
-          <span>
-            {ev.date} • {ev.time}
-          </span>
-        </div>
-        <div className="detail-row">
-          <span className="location-text">{ev.location}</span>
-        </div>
-      </div>
-      <div className="event-card-divider" />
-      <div className="event-card-footer">
-        <div className="ticket-info">
-          <span className="ticket-remain-text">
-            Còn: {ev.remainingTickets}/{ev.totalTickets}
-          </span>
-          <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
-        </div>
-        <button type="button" className="btn-card-register btn-card-register--primary" onClick={() => onOpen(ev)}>
-          Chi tiết
-        </button>
-      </div>
+      <div className="sk sk-line sk-line--lg" />
+      <div className="sk sk-line" />
+      <div className="sk sk-line sk-line--short" />
+      <div className="sk sk-btn" />
     </div>
   </article>
 );
@@ -64,59 +131,35 @@ const PartnerHome = ({ showToast }) => {
   const searchQuery = outlet.headerSearch ?? '';
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
-  const [activeSlide, setActiveSlide] = useState(0);
 
-  const sliderData = [
-    {
-      tag: 'TÀI TRỢ & HỢP TÁC',
-      title: 'Tech Talk 2026:\nKết nối nhân tài FPT',
-      desc: 'Đồng hành cùng FPT University tổ chức sự kiện công nghệ, tiếp cận sinh viên IT và mở rộng thương hiệu doanh nghiệp.',
-      image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1280&q=80'
-    },
-    {
-      tag: 'TUYỂN DỤNG',
-      title: 'FPT Recruitment Day:\nGặp gỡ ứng viên tiềm năng',
-      desc: 'Quản lý đăng ký, theo dõi lượt tham dự và đánh giá hiệu quả tuyển dụng trực tiếp tại campus.',
-      image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1280&q=80'
-    },
-    {
-      tag: 'BÁO CÁO',
-      title: 'Phân tích hiệu suất:\nDoanh thu tài trợ & ROI',
-      desc: 'Theo dõi doanh thu tài trợ, tỷ lệ check-in và báo cáo định kỳ cho từng chiến dịch sự kiện.',
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1280&q=80'
-    }
-  ];
-
-  const [events, setEvents] = useState(PARTNER_MOCK_EVENTS);
-  const [filteredEvents, setFilteredEvents] = useState(PARTNER_MOCK_EVENTS);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [stats, setStats] = useState(PARTNER_MOCK_STATS);
 
   useEffect(() => {
-    fetchPartnerStats()
-      .then((d) => setStats(d.stats || PARTNER_MOCK_STATS))
-      .catch(() => setStats(PARTNER_MOCK_STATS));
-
-    fetchPartnerEvents()
+    fetchPartnerHome()
       .then((d) => {
-        const list = d.events?.length ? d.events : PARTNER_MOCK_EVENTS;
+        setStats(d.stats || PARTNER_MOCK_STATS);
+        const list = Array.isArray(d.events) ? d.events : [];
         setEvents(list);
         setFilteredEvents(list);
       })
       .catch(() => {
-        setEvents(PARTNER_MOCK_EVENTS);
-        setFilteredEvents(PARTNER_MOCK_EVENTS);
+        setStats(PARTNER_MOCK_STATS);
+        setEvents([]);
+        setFilteredEvents([]);
+      })
+      .finally(() => {
+        setLoadingEvents(false);
       });
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % sliderData.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [sliderData.length]);
-
   const handleFilterSubmit = useCallback(() => {
     let result = [...events];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -126,24 +169,49 @@ const PartnerHome = ({ showToast }) => {
           ev.category.toLowerCase().includes(q)
       );
     }
+
     if (categoryFilter !== 'Tất cả') {
       result = result.filter((ev) => ev.category === categoryFilter);
     }
+
+    if (timeFilter === 'Hôm nay') {
+      result = result.filter((ev) => isSameDay(parsePartnerEventDate(ev.date), today));
+    } else if (timeFilter === 'Tuần này') {
+      result = result.filter((ev) => isInCurrentWeek(parsePartnerEventDate(ev.date), today));
+    }
+
     setFilteredEvents(result);
     showToast?.(`Đã lọc ${result.length} sự kiện.`, 'success');
-  }, [searchQuery, categoryFilter, events, showToast]);
+  }, [searchQuery, categoryFilter, timeFilter, events, showToast]);
 
   useEffect(() => {
     outlet.registerHeaderSearchSubmit?.(handleFilterSubmit);
     return () => outlet.registerHeaderSearchSubmit?.(null);
   }, [outlet, handleFilterSubmit]);
 
-  const upcomingEvents = useMemo(
-    () => filteredEvents.filter((ev) => ev.statusKey === 'approved' || ev.statusKey === 'pending_admin'),
-    [filteredEvents]
-  );
+  const heroSlides = useMemo(() => {
+    const featured = events.slice(0, 3);
+    if (!featured.length) {
+      return PARTNER_HERO_FALLBACK.map((slide) => ({ ...slide, eventId: null }));
+    }
+    return featured.map((ev) => ({
+      title: ev.title,
+      dateLabel: ev.date,
+      location: ev.location,
+      categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
+      organizerLabel: 'Partner',
+      image: ev.image,
+      eventId: ev.id
+    }));
+  }, [events]);
+
+  const ownedEvents = useMemo(() => filteredEvents, [filteredEvents]);
 
   const handleOpenEvent = (ev) => {
+    if (!ev?.id) {
+      showToast?.('Sự kiện này chưa có trang chi tiết để mở.', 'info');
+      return;
+    }
     navigate(`/partner/events/${ev.id}`);
   };
 
@@ -164,54 +232,23 @@ const PartnerHome = ({ showToast }) => {
   );
 
   return (
-    <>
-      <section className="hero-banner-slider">
-        {sliderData.map((slide, index) => (
-          <div
-            key={index}
-            className={`hero-slide ${index === activeSlide ? 'active' : ''}`}
-            style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.72)), url(${slide.image})` }}
-          >
-            <div className="hero-content-container">
-              <span className="hero-tag-badge">{slide.tag}</span>
-              <h1 className="hero-title">{slide.title}</h1>
-              <p className="hero-description">{slide.desc}</p>
-              <button type="button" className="hero-cta-btn" onClick={() => navigate('/partner/dashboard')}>
-                Vào bảng điều khiển
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className="hero-dot-indicators">
-          {sliderData.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              className={`slider-dot ${index === activeSlide ? 'active' : ''}`}
-              onClick={() => setActiveSlide(index)}
-              aria-label={`Slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="ctsv-stats-section">
-        <div className="ctsv-stats-grid">
-          {stats.map((item) => (
-            <article key={item.label} className="ctsv-stat-card">
-              <p className="ctsv-stat-label">{item.label}</p>
-              <div className="ctsv-stat-value-row">
-                <span className="ctsv-stat-value">{item.value}</span>
-                <span className="ctsv-stat-trend">{item.trend}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+    <div className="portal-home-hero-layout">
+      <HomeHeroSlider
+        slides={heroSlides}
+        resolveDetailPath={(slide) => (slide.eventId ? `/partner/events/${slide.eventId}` : null)}
+        fallbackCtaPath="/partner/dashboard"
+        fallbackCtaMain="Vào bảng điều khiển"
+        fallbackCtaSub="Quản lý sự kiện & tài trợ"
+      />
 
       <section className="filter-bar-section">
         <div className="filter-bar-card">
           <div className="filter-group">
+            <span className="filter-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="currentColor" />
+              </svg>
+            </span>
             <div className="filter-control">
               <label htmlFor="partner-time-select" className="filter-label">
                 Thời gian
@@ -227,6 +264,11 @@ const PartnerHome = ({ showToast }) => {
           </div>
           <div className="filter-divider-line" />
           <div className="filter-group">
+            <span className="filter-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor" />
+              </svg>
+            </span>
             <div className="filter-control">
               <label htmlFor="partner-category-select" className="filter-label">
                 Chủ đề
@@ -246,6 +288,20 @@ const PartnerHome = ({ showToast }) => {
         </div>
       </section>
 
+      <section className="ctsv-stats-section">
+        <div className="ctsv-stats-grid">
+          {stats.map((item) => (
+            <article key={item.label} className="ctsv-stat-card">
+              <p className="ctsv-stat-label">{item.label}</p>
+              <div className="ctsv-stat-value-row">
+                <span className="ctsv-stat-value">{item.value}</span>
+                <span className="ctsv-stat-trend">{item.trend}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <main className="recommended-section ctsv-home-live-section">
         <div className="recommended-header-row">
           <div className="recommended-title-container">
@@ -257,7 +313,13 @@ const PartnerHome = ({ showToast }) => {
           {sectionLink('/partner/events', 'Quản lý sự kiện')}
         </div>
 
-        {upcomingEvents.length === 0 ? (
+        {loadingEvents ? (
+          <div className="event-grid-cards">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <PartnerEventCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : ownedEvents.length === 0 ? (
           <div className="ctsv-home-section-empty">
             <p>Chưa có sự kiện nào phù hợp bộ lọc.</p>
             <button
@@ -270,7 +332,7 @@ const PartnerHome = ({ showToast }) => {
           </div>
         ) : (
           <div className="event-grid-cards">
-            {upcomingEvents.map((ev) => (
+            {ownedEvents.map((ev) => (
               <PartnerEventCard key={ev.id} ev={ev} onOpen={handleOpenEvent} />
             ))}
           </div>
@@ -279,8 +341,8 @@ const PartnerHome = ({ showToast }) => {
 
       <PartnerCampusEventsSection
         showToast={showToast}
-        title="Tất cả sự kiện"
-        description="Khám phá và đăng ký tham gia mọi sự kiện đang mở tại campus — đối tác được miễn phí vé."
+        title="Khám phá sự kiện campus"
+        description="Đăng ký tham gia các sự kiện đang mở tại trường. Sự kiện do bạn tổ chức hiển thị nút Quản lý thay vì Đăng ký."
       />
 
       <main className="recommended-section ctsv-home-managed-section">
@@ -340,7 +402,7 @@ const PartnerHome = ({ showToast }) => {
           </article>
         </div>
       </main>
-    </>
+    </div>
   );
 };
 

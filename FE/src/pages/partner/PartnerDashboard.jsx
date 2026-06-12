@@ -3,9 +3,7 @@ import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import CtsvNavIcon from '../../components/ctsv/CtsvNavIcon';
 import PortalDashHero from '../../components/portal/PortalDashHero';
 import {
-  fetchPartnerEvents,
-  fetchPartnerMe,
-  fetchPartnerStats,
+  fetchPartnerDashboard,
   PARTNER_MOCK_EVENTS,
   PARTNER_MOCK_STATS,
   PARTNER_PERFORMANCE
@@ -50,17 +48,13 @@ const PartnerDashboard = () => {
     setLoading(true);
     setApiError(false);
 
-    Promise.all([
-      fetchPartnerStats(),
-      fetchPartnerEvents(),
-      fetchPartnerMe()
-    ])
-      .then(([statsRes, eventsRes, meRes]) => {
+    fetchPartnerDashboard()
+      .then((res) => {
         if (cancelled) return;
-        setStats(statsRes.stats || []);
-        setEvents(eventsRes.events || []);
-        setActivity(statsRes.activity || []);
-        setPartnerStatus(meRes.partner?.status || null);
+        setStats(res.stats || []);
+        setEvents(res.events || []);
+        setActivity(res.activity || []);
+        setPartnerStatus(res.partner?.status || null);
       })
       .catch(() => {
         if (cancelled) return;
@@ -313,7 +307,12 @@ const PartnerDashboard = () => {
                     <img src={ev.image} alt="" loading="lazy" />
                   </div>
                   <div className="ctsv-dash-event-main">
-                    <span className="ctsv-dash-event-category">{ev.category}</span>
+                    <div className="ctsv-dash-event-meta-row">
+                      <span className="ctsv-dash-event-category">{ev.category}</span>
+                      <span className={`ctsv-dash-event-source ctsv-dash-event-source--${ev.source || 'partner'}`}>
+                        {ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : ev.source === 'icpdp' ? 'IC-PDP' : 'CLB'}
+                      </span>
+                    </div>
                     <h3>{ev.title}</h3>
                     <p>
                       {ev.date} · {ev.time}

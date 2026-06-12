@@ -21,6 +21,25 @@
   background: #ffffff !important;
 }
 
+.partner-app-shell .ctsv-portal-body:has(.portal-home-hero-layout) {
+  max-width: none;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.partner-app-shell .portal-home-hero-layout {
+  width: 100%;
+  max-width: none;
+}
+
+.partner-app-shell .portal-home-hero-layout .hero-banner-slider {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
 .partner-sidebar .ctsv-nav-link.active,
 .partner-sidebar .partner-nav-link.active {
   background: var(--partner-accent-bg-strong) !important;
@@ -50,11 +69,7 @@
   opacity: 0.8;
 }
 
-.partner-app-shell .ctsv-portal-hamburger:hover {
-  border-color: var(--partner-accent) !important;
-  color: var(--partner-accent) !important;
-  background: var(--partner-accent-bg) !important;
-}
+
 
 .partner-role-label {
   color: var(--partner-accent) !important;
@@ -978,4 +993,8 @@
 
 .partner-campus-section {
   margin-top: 40px;
+}
+
+.partner-campus-events-pagination {
+  margin-top: 24px;
 }

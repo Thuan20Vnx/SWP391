@@ -3,21 +3,33 @@ import { useNavigate } from 'react-router-dom';
 import EventDiscoveryCard from '../EventDiscoveryCard';
 import EventTicketModal from '../EventTicketModal';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import { fetchPartnerCampusEvents } from '../../services/partnerApi';
 import { API_BASE, getAuthHeaders } from '../../utils/api';
-import { filterEventsByState, mapApiEventToCard } from '../../data/eventDiscoveryData';
+import { mapApiEventToCard } from '../../data/eventDiscoveryData';
 import { buildTicketFromCardEvent } from '../../utils/eventTicket';
+import { resolveDiscoveryCardProps } from '../../utils/publicEventStaffAccess';
+
+const CAMPUS_EVENTS_PAGE_SIZE = 6;
+const CAMPUS_EVENTS_FETCH_LIMIT = 24;
 
 /**
- * Danh sách sự kiện campus (đăng ký tham gia) — dùng chung PartnerHome & PartnerEventList.
+ * Danh sách sự kiện campus (đăng ký tham gia) — dùng trên PartnerHome.
  */
-const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện', description, className = '' }) => {
+const PartnerCampusEventsSection = ({
+  showToast,
+  title = 'Tất cả sự kiện',
+  description,
+  className = ''
+}) => {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const [confirmEvent, setConfirmEvent] = useState(null);
   const [ticketData, setTicketData] = useState(null);
   const [registrationIds, setRegistrationIds] = useState({});
   const [actionLoading, setActionLoading] = useState(false);
+  const [partnerContext, setPartnerContext] = useState(null);
 
   const holderName = useMemo(
     () => localStorage.getItem('userFullname') || localStorage.getItem('userEmail') || '',
@@ -26,14 +38,17 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
-      .then((res) => res.json())
+
+    fetchPartnerCampusEvents({ limit: CAMPUS_EVENTS_FETCH_LIMIT })
       .then((data) => {
-        if (data.success && data.events?.length) {
-          setEvents(filterEventsByState(data.events.map(mapApiEventToCard), 'open'));
-        } else {
-          setEvents([]);
-        }
+        const list = Array.isArray(data.events) ? data.events : [];
+        setEvents(list.map(mapApiEventToCard));
+        setPage(1);
+        setPartnerContext({
+          partnerId: data.partnerId || '',
+          managedEventIds: data.managedEventIds || [],
+          userEmail: localStorage.getItem('userEmail') || ''
+        });
       })
       .catch(() => setEvents([]))
       .finally(() => setLoading(false));
@@ -51,7 +66,7 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
       setTicketData(
         buildTicketFromCardEvent(event, {
           holderName,
-          registrationId: registrationIds[event.id],
+          registrationId: registrationIds[event.id]
         })
       );
     },
@@ -87,7 +102,7 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
     try {
       const res = await fetch(`${API_BASE}/api/events/${confirmEvent.id}/register`, {
         method: 'POST',
-        headers: getAuthHeaders(),
+        headers: getAuthHeaders()
       });
       const data = await res.json();
 
@@ -103,19 +118,17 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
 
       const updatedCard = mapApiEventToCard({
         ...data.event,
-        isRegistered: true,
+        isRegistered: true
       });
 
-      setEvents((prev) =>
-        prev.map((ev) => (ev.id === confirmEvent.id ? updatedCard : ev))
-      );
+      setEvents((prev) => prev.map((ev) => (ev.id === confirmEvent.id ? updatedCard : ev)));
 
       showToast?.(data.message || 'Đăng ký sự kiện thành công!', 'success');
       setConfirmEvent(null);
       setTicketData(
         buildTicketFromCardEvent(updatedCard, {
           holderName,
-          registrationId,
+          registrationId
         })
       );
     } catch {
@@ -124,6 +137,13 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
       setActionLoading(false);
     }
   }, [confirmEvent, holderName, showToast]);
+
+  const totalPages = Math.max(1, Math.ceil(events.length / CAMPUS_EVENTS_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedEvents = useMemo(() => {
+    const start = (currentPage - 1) * CAMPUS_EVENTS_PAGE_SIZE;
+    return events.slice(start, start + CAMPUS_EVENTS_PAGE_SIZE);
+  }, [currentPage, events]);
 
   return (
     <>
@@ -144,16 +164,54 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
             <p>Hiện chưa có sự kiện nào đang mở đăng ký.</p>
           </div>
         ) : (
-          <div className="events-page__grid partner-campus-events-grid">
-            {events.map((ev) => (
-              <EventDiscoveryCard
-                key={ev.id}
-                event={ev}
-                onDetail={handleDetail}
-                onPrimaryAction={handlePrimaryAction}
-              />
-            ))}
-          </div>
+          <>
+            <div className="event-discovery-grid partner-campus-events-grid">
+              {pagedEvents.map((ev) => {
+                const cardProps = resolveDiscoveryCardProps({
+                  event: ev,
+                  isPartner: true,
+                  partnerContext,
+                  onDetail: handleDetail,
+                  onRegister: handlePrimaryAction,
+                  onManageNavigate: (path) => navigate(path)
+                });
+                return (
+                  <EventDiscoveryCard
+                    key={ev.id}
+                    event={ev}
+                    onDetail={cardProps.onDetail}
+                    onPrimaryAction={cardProps.onPrimaryAction}
+                    onManage={cardProps.onManage}
+                    manageLabel={cardProps.manageLabel}
+                    viewOnly={cardProps.viewOnly}
+                  />
+                );
+              })}
+            </div>
+            {totalPages > 1 && (
+              <nav className="ctsv-events-pagination partner-campus-events-pagination" aria-label="Phân trang sự kiện campus">
+                <button
+                  type="button"
+                  className="ctsv-events-page-btn"
+                  onClick={() => setPage((n) => Math.max(1, n - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </button>
+                <span className="ctsv-events-page-status" aria-live="polite">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  className="ctsv-events-page-btn"
+                  onClick={() => setPage((n) => Math.min(totalPages, n + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </button>
+              </nav>
+            )}
+          </>
         )}
       </section>
 
@@ -161,9 +219,7 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
         open={Boolean(confirmEvent)}
         title="Xác nhận đăng ký"
         message={
-          confirmEvent
-            ? `Bạn có chắc muốn đăng ký tham gia "${confirmEvent.title}"?`
-            : ''
+          confirmEvent ? `Bạn có chắc muốn đăng ký tham gia "${confirmEvent.title}"?` : ''
         }
         confirmLabel="Đăng ký"
         cancelLabel="Hủy"
