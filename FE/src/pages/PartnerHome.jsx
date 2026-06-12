@@ -190,11 +190,7 @@ const PartnerHome = ({ showToast }) => {
   }, [outlet, handleFilterSubmit]);
 
   const heroSlides = useMemo(() => {
-    const featured = events.slice(0, 3);
-    if (!featured.length) {
-      return PARTNER_HERO_FALLBACK.map((slide) => ({ ...slide, eventId: null }));
-    }
-    return featured.map((ev) => ({
+    const featured = events.slice(0, 3).map((ev) => ({
       title: ev.title,
       dateLabel: ev.date,
       location: ev.location,
@@ -203,6 +199,17 @@ const PartnerHome = ({ showToast }) => {
       image: ev.image,
       eventId: ev.id
     }));
+    if (featured.length >= 3) {
+      return featured;
+    }
+
+    const usedTitles = new Set(featured.map((slide) => slide.title.trim().toLowerCase()));
+    const fallbackSlides = PARTNER_HERO_FALLBACK
+      .filter((slide) => !usedTitles.has(slide.title.trim().toLowerCase()))
+      .slice(0, 3 - featured.length)
+      .map((slide) => ({ ...slide, eventId: null }));
+
+    return [...featured, ...fallbackSlides];
   }, [events]);
 
   const ownedEvents = useMemo(() => filteredEvents, [filteredEvents]);
