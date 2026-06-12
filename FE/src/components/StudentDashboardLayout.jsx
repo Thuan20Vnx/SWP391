@@ -9,6 +9,7 @@ import { cacheUserProfile, clearUserProfileCache, readUserProfileSummaryCache } 
 import { mapUserToProfileDetail, writeProfileDetailCache } from '../utils/profileDetailCache';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import DashboardSidebarNav from './DashboardSidebarNav';
+import SiteFooter from './SiteFooter';
 
 const StudentDashboardLayout = ({
   activeMenu,
@@ -221,9 +222,7 @@ const StudentDashboardLayout = ({
             {children}
           </div>
 
-          <footer className="dashboard-footer">
-            <p>© 2026 FPT Event Platform. All rights reserved.</p>
-          </footer>
+          <SiteFooter embedded />
         </main>
       </div>
     </div>

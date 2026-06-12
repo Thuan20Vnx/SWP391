@@ -6,8 +6,10 @@ import { getHomePathForRole, getUserRole, isAdminRole } from '../utils/auth';
 import {
   FOOTER_CONTACT,
   FOOTER_EXPLORE_LINKS,
+  FOOTER_GUEST_ACCOUNT_LINKS,
   FOOTER_POLICY_LINKS,
   FOOTER_SOCIAL_LINKS,
+  FOOTER_STUDENT_ACCOUNT_LINKS,
   FOOTER_SUPPORT_LINKS,
 } from '../data/footerContent';
 
@@ -15,16 +17,23 @@ const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-const SiteFooter = () => {
+const SiteFooter = ({ embedded = false }) => {
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = userProfile.role || getUserRole();
   const isGuest = !isLoggedIn;
   const staffPortalRoles = ['ctsv', 'icpdp', 'partner', 'club_manager'];
   const isStudentLike = isLoggedIn && !isAdminRole(role) && !staffPortalRoles.includes(role);
   const portalHome = getHomePathForRole(role);
+  const accountLinks = isGuest
+    ? FOOTER_GUEST_ACCOUNT_LINKS
+    : isStudentLike
+      ? FOOTER_STUDENT_ACCOUNT_LINKS
+      : isLoggedIn
+        ? [{ to: portalHome, label: 'Vào cổng làm việc' }]
+        : [];
 
   return (
-    <footer className="home-footer">
+    <footer className={`home-footer${embedded ? ' home-footer--embedded' : ''}`}>
       <div className="footer-top-columns">
         <div className="footer-branding-col">
           <Link to="/" className="footer-logo-link" onClick={scrollToTop}>
@@ -75,40 +84,16 @@ const SiteFooter = () => {
         <div className="footer-links-col footer-account-col">
           <h4>{isGuest ? 'Dành cho bạn' : 'Tài khoản'}</h4>
           <ul className="footer-links-list">
-            {isGuest && (
-              <>
-                <li>
-                  <Link to="/login">Đăng nhập</Link>
-                </li>
-                <li>
-                  <Link to="/signup">Đăng ký tài khoản</Link>
-                </li>
-                <li>
-                  <Link to="/guide">Hướng dẫn tham gia sự kiện</Link>
-                </li>
-              </>
-            )}
-            {isStudentLike && (
-              <>
-                <li>
-                  <Link to="/profile">Hồ sơ cá nhân</Link>
-                </li>
-                <li>
-                  <Link to="/my-events">Sự kiện của tôi</Link>
-                </li>
-                <li>
-                  <Link to="/settings">Cài đặt tài khoản</Link>
-                </li>
-              </>
-            )}
-            {isLoggedIn && !isGuest && !isStudentLike && (
-              <li>
-                <Link to={portalHome}>Vào cổng làm việc</Link>
+            {accountLinks.map((item) => (
+              <li key={item.to}>
+                <Link to={item.to}>{item.label}</Link>
               </li>
-            )}
+            ))}
           </ul>
+        </div>
 
-          <h4 className="footer-subheading">Kết nối</h4>
+        <div className="footer-links-col footer-connect-col">
+          <h4>Kết nối</h4>
           <div className="social-icon-row">
             {FOOTER_SOCIAL_LINKS.map((social) => (
               <a

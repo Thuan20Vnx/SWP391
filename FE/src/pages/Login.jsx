@@ -152,36 +152,12 @@ const Login = ({ showToast }) => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const authStatus = params.get('auth_status');
-    if (authStatus === 'success') {
-      const email = params.get('email');
-      const name = params.get('name');
-      const token = params.get('token');
+    if (!authStatus) return;
 
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('loginMethod', 'google');
-      if (token) localStorage.setItem('authToken', token);
-
-      fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-        .then(r => r.json())
-        .then(d => {
-          if (d.success && d.user) {
-            persistProfileFromUser(d.user);
-            if (isCtsvRole(normalizeRole(d.user.role))) {
-              resetCtsvSidebarOnLogin();
-            }
-          }
-        })
-        .catch(() => {});
-
-      dispatchAuthChanged();
-      navigate('/', { replace: true });
-    } else if (authStatus === 'error') {
-      const message = params.get('message') || 'Đăng nhập Google thất bại.';
-      showToast(message, 'error');
-      navigate('/login', { replace: true });
-    }
-  }, [navigate, showToast]);
+    // Legacy callback URL — forward to dedicated handler route
+    const query = window.location.search;
+    window.location.replace(`/auth/google/callback${query}`);
+  }, []);
 
   const validateField = (name, value) => {
     let isValid = false;

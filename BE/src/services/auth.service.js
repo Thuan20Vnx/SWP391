@@ -507,7 +507,7 @@ const googleCallback = async (code) => {
   }
 
   const authToken = signToken(user);
-  const redirectUrl = `${CLIENT_ORIGIN}/login?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`;
+  const redirectUrl = `${CLIENT_ORIGIN}/auth/google/callback?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`;
 
   return { redirectUrl };
 };

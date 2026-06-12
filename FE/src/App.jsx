@@ -36,6 +36,7 @@ import IcpdpReports from './pages/icpdp/IcpdpReports';
 import IcpdpProfileSettings from './pages/icpdp/IcpdpProfileSettings';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
+import GoogleAuthCallback from './pages/GoogleAuthCallback';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import UnlockAccount from './pages/UnlockAccount';
@@ -343,6 +344,7 @@ function App() {
 
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/login" element={<Login showToast={showToast} />} />
+          <Route path="/auth/google/callback" element={<GoogleAuthCallback showToast={showToast} />} />
           <Route path="/forgot-password" element={<ForgotPassword showToast={showToast} />} />
           <Route path="/forgot" element={<ForgotPassword showToast={showToast} />} />
           <Route path="/reset-password" element={<ResetPassword showToast={showToast} />} />

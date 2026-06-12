@@ -102,8 +102,12 @@
     max-width: 42rem;
   }
 
-  .student-portal .dashboard-footer {
-    display: none;
+  .student-portal .home-footer--embedded .footer-top-columns {
+    padding: 36px 16px 28px;
+  }
+
+  .student-portal .home-footer--embedded .footer-bottom-row {
+    padding: 20px 16px calc(24px + env(safe-area-inset-bottom, 0px));
   }
 }
 
