@@ -1,14 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AdminAnalyticsViewAllModal from '../../components/admin/AdminAnalyticsViewAllModal';
 import {
   ADMIN_ANALYTICS_PERIODS,
   ANALYTICS_PREVIEW_LIMITS,
   ANALYTICS_VIEW_ALL_META,
+  getAnalyticsViewAllMeta,
 } from '../../data/adminAnalyticsData';
 import useAdminAnalyticsLiveData from '../../hooks/useAdminAnalyticsLiveData';
+import { useTranslation } from '../../i18n/I18nContext';
+import { mapSelectOptions, resolveLabel } from '../../i18n/helpers';
 import { getUserRole, isAdminRole } from '../../utils/auth';
-import { formatAdminDateTime } from '../../utils/adminLiveTime';
+import {
+  formatAnalyticsDateTime,
+  localizeAnalyticsCategory,
+  localizeAnalyticsEvent,
+  localizeAnalyticsList,
+  localizeAnalyticsOverview,
+  localizeAnalyticsReview,
+} from '../../utils/localizeAdminAnalytics';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-analytics.css';
 
@@ -24,8 +34,8 @@ const IconStar = ({ filled }) => (
   </svg>
 );
 
-const StarRating = ({ value, max = 5 }) => (
-  <span className="admin-analytics-stars" aria-label={`${value} trên ${max} sao`}>
+const StarRating = ({ value, max = 5, t }) => (
+  <span className="admin-analytics-stars" aria-label={t('admin.analytics.starsAria', { value, max })}>
     {Array.from({ length: max }, (_, i) => (
       <span key={i} className={i < Math.round(value) ? 'admin-analytics-stars__on' : ''}>
         <IconStar filled={i < Math.round(value)} />
@@ -40,7 +50,7 @@ const IconExport = () => (
   </svg>
 );
 
-const PanelHead = ({ title, onViewAll, showViewAll = true }) => (
+const PanelHead = ({ title, onViewAll, showViewAll = true, t }) => (
   <div className="admin-panel__head">
     <h2 className="admin-panel__title admin-panel__title--inline">{title}</h2>
     {showViewAll && (
@@ -52,7 +62,7 @@ const PanelHead = ({ title, onViewAll, showViewAll = true }) => (
           onViewAll();
         }}
       >
-        Xem tất cả
+        {t('admin.analytics.viewAll')}
       </button>
     )}
   </div>
@@ -65,8 +75,9 @@ const panelKeyOpen = (onOpen) => (e) => {
   }
 };
 
-const AnalyticsPanel = ({ section, className = '', onOpen, children }) => {
-  const label = ANALYTICS_VIEW_ALL_META[section]?.title || 'Xem chi tiết';
+const AnalyticsPanel = ({ section, className = '', onOpen, children, t }) => {
+  const meta = ANALYTICS_VIEW_ALL_META[section];
+  const label = meta?.titleKey ? t(meta.titleKey) : t('admin.analytics.viewDetail');
   return (
     <article
       className={`admin-panel admin-panel--clickable admin-analytics-panel--lift ${className}`.trim()}
@@ -74,7 +85,7 @@ const AnalyticsPanel = ({ section, className = '', onOpen, children }) => {
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={panelKeyOpen(onOpen)}
-      aria-label={`${label} — bấm để xem đầy đủ`}
+      aria-label={t('admin.analytics.panelAria', { label })}
     >
       {children}
     </article>
@@ -84,24 +95,59 @@ const AnalyticsPanel = ({ section, className = '', onOpen, children }) => {
 const AdminAnalytics = () => {
   const navigate = useNavigate();
   const { showToast } = useOutletContext() || {};
+  const { t, language } = useTranslation();
   const role = getUserRole();
   const [period, setPeriod] = useState('month');
   const [viewAllSection, setViewAllSection] = useState(null);
-  const live = useAdminAnalyticsLiveData(period);
+  const live = useAdminAnalyticsLiveData(period, language);
   const {
-    overview,
+    overview: rawOverview,
     starDistribution,
     starDetailRows,
-    categoryRatings,
-    topEvents,
+    categoryRatings: rawCategoryRatings,
+    topEvents: rawTopEvents,
     topClubs,
-    allEvents,
+    allEvents: rawAllEvents,
     allClubs,
-    recentReviews,
-    allReviews,
+    recentReviews: rawRecentReviews,
+    allReviews: rawAllReviews,
     maxStarCount,
     maxCategoryReviews,
+    now,
   } = live;
+
+  const periodOptions = useMemo(() => mapSelectOptions(ADMIN_ANALYTICS_PERIODS, t), [t]);
+  const numberLocale = language === 'en' ? 'en-US' : 'vi-VN';
+
+  const overview = useMemo(
+    () => localizeAnalyticsOverview(rawOverview, t, language),
+    [rawOverview, t, language],
+  );
+
+  const categoryRatings = useMemo(
+    () => localizeAnalyticsList(rawCategoryRatings, localizeAnalyticsCategory, t, language),
+    [rawCategoryRatings, t, language],
+  );
+
+  const topEvents = useMemo(
+    () => localizeAnalyticsList(rawTopEvents, localizeAnalyticsEvent, t, language),
+    [rawTopEvents, t, language],
+  );
+
+  const allEvents = useMemo(
+    () => localizeAnalyticsList(rawAllEvents, localizeAnalyticsEvent, t, language),
+    [rawAllEvents, t, language],
+  );
+
+  const recentReviews = useMemo(
+    () => localizeAnalyticsList(rawRecentReviews, localizeAnalyticsReview, t, language),
+    [rawRecentReviews, t, language],
+  );
+
+  const allReviews = useMemo(
+    () => localizeAnalyticsList(rawAllReviews, localizeAnalyticsReview, t, language),
+    [rawAllReviews, t, language],
+  );
 
   const previewCategories = categoryRatings.slice(0, ANALYTICS_PREVIEW_LIMITS.categories);
   const previewEvents = topEvents.slice(0, ANALYTICS_PREVIEW_LIMITS.events);
@@ -110,13 +156,13 @@ const AdminAnalytics = () => {
 
   useEffect(() => {
     if (!isAdminRole(role)) {
-      showToast?.('Bạn không có quyền truy cập trang quản trị!', 'error');
+      showToast?.(t('admin.common.noAccess'), 'error');
       navigate('/profile');
     }
-  }, [role, navigate, showToast]);
+  }, [role, navigate, showToast, t]);
 
   const handleExport = () => {
-    showToast?.('Đang chuẩn bị báo cáo xuất file (mock).', 'info');
+    showToast?.(t('admin.analytics.exportToast'), 'info');
   };
 
   const openSection = (section) => () => setViewAllSection(section);
@@ -128,14 +174,14 @@ const AdminAnalytics = () => {
       <div className="admin-dashboard-grid admin-analytics-grid">
         <header className="admin-page-header admin-analytics-header">
           <div>
-            <h1 className="admin-main__title">Đánh giá & Phân tích</h1>
+            <h1 className="admin-main__title">{t('admin.analytics.title')}</h1>
             <p className="admin-page-header__clock">
-              Báo cáo hiệu suất và phân tích vận hành · Cập nhật: {formatAdminDateTime(live.now)}
+              {t('admin.analytics.subtitle', { time: formatAnalyticsDateTime(now, language) })}
             </p>
           </div>
           <div className="admin-analytics-toolbar">
-            <div className="admin-analytics-period" role="tablist" aria-label="Kỳ báo cáo">
-              {ADMIN_ANALYTICS_PERIODS.map((opt) => (
+            <div className="admin-analytics-period" role="tablist" aria-label={t('admin.analytics.periodAria')}>
+              {periodOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
@@ -150,14 +196,14 @@ const AdminAnalytics = () => {
             </div>
             <button type="button" className="admin-analytics-export" onClick={handleExport}>
               <IconExport />
-              Xuất báo cáo
+              {t('admin.analytics.export')}
             </button>
           </div>
         </header>
 
-        <section className="admin-analytics-kpis" aria-label="Chỉ số đánh giá">
+        <section className="admin-analytics-kpis" aria-label={t('admin.analytics.kpisAria')}>
           <article className="admin-stat-card admin-analytics-kpi">
-            <p className="admin-stat-card__label">Điểm đánh giá trung bình</p>
+            <p className="admin-stat-card__label">{t('admin.analytics.kpi.avgRating')}</p>
             <p className="admin-stat-card__value admin-stat-card__value--primary">
               {overview.avgRating}
               <span className="admin-analytics-kpi__suffix">/{overview.avgRatingMax}</span>
@@ -165,17 +211,17 @@ const AdminAnalytics = () => {
             <p className="admin-stat-card__trend admin-stat-card__trend--inline">
               <span aria-hidden="true">↑</span> {overview.trendAvg} {overview.trendCaption}
             </p>
-            <StarRating value={overview.avgRating} />
+            <StarRating value={overview.avgRating} t={t} />
           </article>
           <article className="admin-stat-card admin-analytics-kpi">
-            <p className="admin-stat-card__label">Tổng phản hồi</p>
-            <p className="admin-stat-card__value">{overview.totalReviews.toLocaleString('vi-VN')}</p>
+            <p className="admin-stat-card__label">{t('admin.analytics.kpi.totalReviews')}</p>
+            <p className="admin-stat-card__value">{overview.totalReviews.toLocaleString(numberLocale)}</p>
             <p className="admin-stat-card__trend admin-stat-card__trend--inline">
               <span aria-hidden="true">↑</span> {overview.trendReviews} {overview.trendCaption}
             </p>
           </article>
           <article className="admin-stat-card admin-analytics-kpi">
-            <p className="admin-stat-card__label">Tỷ lệ hài lòng (4–5 sao)</p>
+            <p className="admin-stat-card__label">{t('admin.analytics.kpi.satisfaction')}</p>
             <p className="admin-stat-card__value">{overview.satisfactionRate}%</p>
             <div className="admin-goal-progress">
               <div className="admin-goal-progress__track">
@@ -184,9 +230,9 @@ const AdminAnalytics = () => {
             </div>
           </article>
           <article className="admin-stat-card admin-analytics-kpi">
-            <p className="admin-stat-card__label">Sự kiện có đánh giá</p>
+            <p className="admin-stat-card__label">{t('admin.analytics.kpi.reviewedEvents')}</p>
             <p className="admin-stat-card__value">{overview.reviewedEvents}</p>
-            <p className="admin-metric-hero__sub">Trên toàn hệ thống F-Events</p>
+            <p className="admin-metric-hero__sub">{t('admin.analytics.kpi.systemWide')}</p>
           </article>
         </section>
 
@@ -195,9 +241,10 @@ const AdminAnalytics = () => {
             section="stars"
             className="admin-panel--chart admin-analytics-panel--stars"
             onOpen={openSection('stars')}
+            t={t}
           >
-            <PanelHead title="Phân bổ điểm sao" onViewAll={openSection('stars')} />
-            <p className="admin-chart-header__sub">Số lượng đánh giá theo mức sao trong kỳ đã chọn</p>
+            <PanelHead title={t('admin.analytics.panel.stars.title')} onViewAll={openSection('stars')} t={t} />
+            <p className="admin-chart-header__sub">{t('admin.analytics.panel.stars.sub')}</p>
             <ul className="admin-analytics-star-bars">
               {starDistribution.map((row) => (
                 <li key={row.stars} className="admin-analytics-star-bars__row">
@@ -210,21 +257,30 @@ const AdminAnalytics = () => {
                       style={{ width: `${(row.count / maxStarCount) * 100}%` }}
                     />
                   </div>
-                  <span className="admin-analytics-star-bars__count">{row.count.toLocaleString('vi-VN')}</span>
+                  <span className="admin-analytics-star-bars__count">{row.count.toLocaleString(numberLocale)}</span>
                   <span className="admin-analytics-star-bars__pct">{row.percent}%</span>
                 </li>
               ))}
             </ul>
           </AnalyticsPanel>
 
-          <AnalyticsPanel section="categories" className="admin-analytics-panel--categories" onOpen={openSection('categories')}>
-            <PanelHead title="Đánh giá theo danh mục" onViewAll={openSection('categories')} />
-            <p className="admin-chart-header__sub">Điểm TB và số phản hồi theo danh mục sự kiện</p>
+          <AnalyticsPanel
+            section="categories"
+            className="admin-analytics-panel--categories"
+            onOpen={openSection('categories')}
+            t={t}
+          >
+            <PanelHead
+              title={t('admin.analytics.panel.categories.title')}
+              onViewAll={openSection('categories')}
+              t={t}
+            />
+            <p className="admin-chart-header__sub">{t('admin.analytics.panel.categories.sub')}</p>
             <ul className="admin-analytics-cat-list">
               {previewCategories.map((cat) => (
                 <li key={cat.id} className="admin-analytics-cat-list__item">
                   <div className="admin-analytics-cat-list__head">
-                    <span className="admin-analytics-cat-list__name">{cat.label}</span>
+                    <span className="admin-analytics-cat-list__name">{resolveLabel(cat, t)}</span>
                     <span className="admin-analytics-cat-list__avg">{cat.avg}/5</span>
                   </div>
                   <div className="admin-analytics-cat-list__track">
@@ -233,7 +289,9 @@ const AdminAnalytics = () => {
                       style={{ width: `${(cat.reviews / maxCategoryReviews) * 100}%` }}
                     />
                   </div>
-                  <span className="admin-analytics-cat-list__reviews">{cat.reviews} phản hồi</span>
+                  <span className="admin-analytics-cat-list__reviews">
+                    {t('admin.analytics.reviewsCount', { count: cat.reviews })}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -241,17 +299,17 @@ const AdminAnalytics = () => {
         </section>
 
         <section className="admin-analytics-tables">
-          <AnalyticsPanel section="events" className="admin-analytics-panel--table" onOpen={openSection('events')}>
-            <PanelHead title="Top sự kiện được đánh giá cao" onViewAll={openSection('events')} />
+          <AnalyticsPanel section="events" className="admin-analytics-panel--table" onOpen={openSection('events')} t={t}>
+            <PanelHead title={t('admin.analytics.panel.events.title')} onViewAll={openSection('events')} t={t} />
             <div className="admin-analytics-table-wrap">
               <table className="admin-analytics-table">
                 <thead>
                   <tr>
-                    <th>Sự kiện</th>
-                    <th>Đơn vị tổ chức</th>
-                    <th>Danh mục</th>
-                    <th>Điểm TB</th>
-                    <th>Phản hồi</th>
+                    <th>{t('admin.analytics.table.event')}</th>
+                    <th>{t('admin.analytics.table.org')}</th>
+                    <th>{t('admin.analytics.table.category')}</th>
+                    <th>{t('admin.analytics.table.avgRating')}</th>
+                    <th>{t('admin.analytics.table.feedback')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -263,7 +321,7 @@ const AdminAnalytics = () => {
                       <td>{row.org}</td>
                       <td className="admin-analytics-table__muted">{row.category}</td>
                       <td>
-                        <StarRating value={row.rating} />
+                        <StarRating value={row.rating} t={t} />
                         <span className="admin-analytics-table__rating-num">{row.rating}</span>
                       </td>
                       <td>{row.reviews}</td>
@@ -274,16 +332,16 @@ const AdminAnalytics = () => {
             </div>
           </AnalyticsPanel>
 
-          <AnalyticsPanel section="clubs" className="admin-analytics-panel--table" onOpen={openSection('clubs')}>
-            <PanelHead title="CLB nhiều phản hồi nhất" onViewAll={openSection('clubs')} />
+          <AnalyticsPanel section="clubs" className="admin-analytics-panel--table" onOpen={openSection('clubs')} t={t}>
+            <PanelHead title={t('admin.analytics.panel.clubs.title')} onViewAll={openSection('clubs')} t={t} />
             <div className="admin-analytics-table-wrap">
               <table className="admin-analytics-table">
                 <thead>
                   <tr>
-                    <th>Mã CLB</th>
-                    <th>Tên câu lạc bộ</th>
-                    <th>Điểm TB</th>
-                    <th>Phản hồi</th>
+                    <th>{t('admin.analytics.table.clubCode')}</th>
+                    <th>{t('admin.analytics.table.clubName')}</th>
+                    <th>{t('admin.analytics.table.avgRating')}</th>
+                    <th>{t('admin.analytics.table.feedback')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -296,7 +354,7 @@ const AdminAnalytics = () => {
                         <strong>{row.name}</strong>
                       </td>
                       <td>
-                        <StarRating value={row.avg} />
+                        <StarRating value={row.avg} t={t} />
                         <span className="admin-analytics-table__rating-num">{row.avg}</span>
                       </td>
                       <td>{row.reviews}</td>
@@ -312,8 +370,9 @@ const AdminAnalytics = () => {
           section="reviews"
           className="admin-panel--activity admin-analytics-reviews"
           onOpen={openSection('reviews')}
+          t={t}
         >
-          <PanelHead title="Đánh giá gần đây" onViewAll={openSection('reviews')} />
+          <PanelHead title={t('admin.analytics.panel.reviews.title')} onViewAll={openSection('reviews')} t={t} />
           <ul className="admin-activity-list admin-analytics-review-list">
             {previewReviews.map((review) => (
               <li key={review.id} className="admin-activity-item admin-activity-item--primary">
@@ -322,7 +381,7 @@ const AdminAnalytics = () => {
                   {review.user} · {review.event}
                 </p>
                 <div className="admin-analytics-review-meta">
-                  <StarRating value={review.stars} />
+                  <StarRating value={review.stars} t={t} />
                   <span className="admin-analytics-review-stars-label">{review.stars}/5</span>
                 </div>
                 <p className="admin-activity-item__message">{review.excerpt}</p>
@@ -343,6 +402,8 @@ const AdminAnalytics = () => {
         allEvents={allEvents}
         allClubs={allClubs}
         allReviews={allReviews}
+        viewAllMeta={getAnalyticsViewAllMeta(t)}
+        language={language}
       />
     </main>
   );

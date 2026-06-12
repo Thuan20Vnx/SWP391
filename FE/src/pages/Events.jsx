@@ -20,23 +20,25 @@ import {
   filterEventsByOrganizer,
   sortEventsByStatePriority,
 } from '../data/eventDiscoveryData';
+import { useTranslation } from '../i18n/I18nContext';
+import { mapSelectOptions, resolveLabel } from '../i18n/helpers';
 
 const PAGE_SIZE = 6;
 const USE_FIGMA_FALLBACK = false;
 const DEFAULT_STATE_FILTER = 'open';
 
-const ORGANIZER_SELECT_OPTIONS = ORGANIZER_FILTERS.map((f) => ({
-  value: f.id,
-  label: f.label,
-}));
-
-const CATEGORY_SELECT_OPTIONS = CATEGORY_FILTERS.map((f) => ({
-  value: f.id,
-  label: f.label,
-}));
-
 const Events = ({ showToast }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const organizerSelectOptions = useMemo(
+    () =>
+      ORGANIZER_FILTERS.map((f) => ({
+        value: f.id,
+        label: resolveLabel(f, t),
+      })),
+    [t],
+  );
+  const categorySelectOptions = useMemo(() => mapSelectOptions(CATEGORY_FILTERS, t), [t]);
   const [events, setEvents] = useState(USE_FIGMA_FALLBACK ? FIGMA_SAMPLE_EVENTS : []);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -65,7 +67,7 @@ const Events = ({ showToast }) => {
       .catch((err) => {
         console.error(err);
         if (USE_FIGMA_FALLBACK) setEvents(FIGMA_SAMPLE_EVENTS);
-        showToast?.('Không thể tải danh sách sự kiện', 'error');
+        showToast?.(t('events.loadFail'), 'error');
       })
       .finally(() => setLoading(false));
   }, [showToast, isLoggedIn, userProfile.role]);
@@ -98,18 +100,18 @@ const Events = ({ showToast }) => {
     }
 
     if (event.cardState === 'expired') {
-      showToast('Sự kiện này đã kết thúc, không thể đăng ký.', 'error');
+      showToast(t('home.toast.eventEnded'), 'error');
       return;
     }
 
     if (!isLoggedIn) {
-      showToast('Vui lòng đăng nhập để đăng ký tham gia sự kiện!', 'error');
+      showToast(t('home.toast.loginRequired'), 'error');
       setTimeout(() => navigate('/login'), 1200);
       return;
     }
 
     if (event.cardState === 'registered' || event.registered) {
-      showToast('Mở vé điện tử sự kiện (đang phát triển).', 'success');
+      showToast(t('events.toast.ticketDev'), 'success');
       return;
     }
 
@@ -121,7 +123,7 @@ const Events = ({ showToast }) => {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast(data.message || 'Không thể đăng ký sự kiện.', 'error');
+        showToast(data.message || t('home.toast.registerFail'), 'error');
         return;
       }
 
@@ -136,10 +138,10 @@ const Events = ({ showToast }) => {
             : ev
         )
       );
-      showToast(data.message || 'Đăng ký sự kiện thành công!', 'success');
+      showToast(data.message || t('home.toast.registerSuccess'), 'success');
     } catch (err) {
       console.error(err);
-      showToast('Không thể kết nối máy chủ. Vui lòng thử lại.', 'error');
+      showToast(t('events.toast.serverError'), 'error');
     }
   };
 
@@ -150,7 +152,7 @@ const Events = ({ showToast }) => {
   return (
     <PublicAdminShell
       activeNav="events"
-      searchPlaceholder="Tìm kiếm sự kiện..."
+      searchPlaceholder={t('header.searchEvents')}
       searchValue={searchQuery}
       onSearchChange={(value) => {
         setSearchQuery(value);
@@ -162,23 +164,23 @@ const Events = ({ showToast }) => {
         <section className="events-page__hero">
           <h1>
             {isAdminViewer
-              ? 'Danh sách sự kiện toàn sàn'
+              ? t('events.hero.admin')
               : isCtsvStaff
-                ? 'Khám phá sự kiện toàn trường'
-                : 'Khám phá sự kiện tại FPT'}
+                ? t('events.hero.ctsv')
+                : t('events.hero.student')}
           </h1>
           <p>
             {isAdminViewer
-              ? 'Xem chi tiết sự kiện trên nền tảng — chế độ quản trị chỉ xem, không đăng ký tham gia.'
+              ? t('events.desc.admin')
               : isCtsvStaff
-                ? 'CTSV chỉ xem thông tin sự kiện — không đăng ký hoặc mua vé. Sự kiện do CTSV tổ chức có thêm nút Quản lý.'
-                : 'Tìm kiếm và tham gia những sự kiện sôi động nhất dành cho cộng đồng FPT'}
+                ? t('events.desc.ctsv')
+                : t('events.desc.student')}
           </p>
         </section>
 
-        <section className="events-page__filter-bar" aria-label="Bộ lọc sự kiện">
+        <section className="events-page__filter-bar" aria-label={t('events.filterBar')}>
           <div className="events-page__filter-bar-main">
-            <div className="events-page__state-filters" role="group" aria-label="Trạng thái">
+            <div className="events-page__state-filters" role="group" aria-label={t('events.filter.state')}>
               {STATE_FILTERS.map((filter) => (
                 <button
                   key={filter.id}
@@ -189,7 +191,7 @@ const Events = ({ showToast }) => {
                     setVisibleCount(PAGE_SIZE);
                   }}
                 >
-                  {filter.label}
+                  {resolveLabel(filter, t)}
                 </button>
               ))}
             </div>
@@ -197,7 +199,7 @@ const Events = ({ showToast }) => {
             <div className="events-page__filter-dropdowns">
               <div className="events-page__filter-field">
                 <span className="events-page__filter-field-label" id="events-organizer-filter-label">
-                  Tổ chức
+                  {t('events.filter.organizer')}
                 </span>
                 <AppSelect
                   id="events-organizer-filter"
@@ -207,14 +209,14 @@ const Events = ({ showToast }) => {
                     setOrganizerFilter(e.target.value);
                     setVisibleCount(PAGE_SIZE);
                   }}
-                  options={ORGANIZER_SELECT_OPTIONS}
+                  options={organizerSelectOptions}
                   fullWidth={false}
                   className="events-page__filter-select"
                 />
               </div>
               <div className="events-page__filter-field">
                 <span className="events-page__filter-field-label" id="events-category-filter-label">
-                  Chủ đề
+                  {t('events.filter.category')}
                 </span>
                 <AppSelect
                   id="events-category-filter"
@@ -224,14 +226,14 @@ const Events = ({ showToast }) => {
                     setActiveFilter(e.target.value);
                     setVisibleCount(PAGE_SIZE);
                   }}
-                  options={CATEGORY_SELECT_OPTIONS}
+                  options={categorySelectOptions}
                   fullWidth={false}
                   className="events-page__filter-select"
                 />
               </div>
               {hasSecondaryFilters && (
                 <button type="button" className="events-page__filter-clear" onClick={resetFilters}>
-                  Xóa lọc
+                  {t('events.filter.clear')}
                 </button>
               )}
             </div>
@@ -245,13 +247,13 @@ const Events = ({ showToast }) => {
         ) : visibleEvents.length === 0 ? (
           <div className="events-page__empty">
             <p>
-              {stateFilter === 'expired' && 'Chưa có sự kiện đã kết thúc trong bộ lọc này.'}
-              {stateFilter === 'postponed' && 'Không có sự kiện bị hoãn.'}
-              {stateFilter === 'open' && 'Không có sự kiện đang mở đăng ký.'}
-              {organizerFilter !== 'all' && ' Thử đổi bộ lọc đơn vị tổ chức hoặc chủ đề.'}
+              {stateFilter === 'expired' && t('events.empty.expired')}
+              {stateFilter === 'postponed' && t('events.empty.postponed')}
+              {stateFilter === 'open' && t('events.empty.open')}
+              {organizerFilter !== 'all' && t('events.empty.tryOther')}
             </p>
             <button type="button" className="events-page__reset-btn" onClick={resetFilters}>
-              Xóa bộ lọc
+              {t('events.resetFilters')}
             </button>
           </div>
         ) : (
@@ -287,7 +289,7 @@ const Events = ({ showToast }) => {
               className="events-page__load-more"
               onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
             >
-              Xem thêm sự kiện
+              {t('events.loadMore')}
               <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden="true">
                 <path d="M1 1l5 5 5-5" stroke="currentColor" strokeWidth="2" fill="none" />
               </svg>
@@ -301,8 +303,8 @@ const Events = ({ showToast }) => {
       <button
         type="button"
         className="events-page__fab"
-        aria-label="Quà tặng sự kiện"
-        onClick={() => showToast('Tính năng ưu đãi sắp ra mắt!', 'success')}
+        aria-label={t('events.fabLabel')}
+        onClick={() => showToast(t('events.fabToast'), 'success')}
       >
         <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
           <path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.4l3.38 4.6L17 10.83 14.92 8H20v6z" />

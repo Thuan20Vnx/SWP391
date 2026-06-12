@@ -1,5 +1,6 @@
 import React from 'react';
 import defaultAvatar from '../../constants/defaultAvatar';
+import { useTranslation } from '../../i18n/I18nContext';
 
 export const NavHubIcon = ({ children, size = 18 }) => (
   <span className="nav-hub__icon" aria-hidden="true">
@@ -44,13 +45,17 @@ export const NavHubHeader = ({ userProfile, fallbackName, roleLabel }) => (
   </header>
 );
 
-export const NavHubMenuSection = ({ title = 'Truy cập nhanh', items = [], cta = null }) => (
-  <section className="nav-hub__section nav-hub__section--menu" aria-label={title}>
-    <p className="nav-hub__section-title">{title}</p>
-    <div className="nav-hub__group">{items}</div>
-    {cta}
-  </section>
-);
+export const NavHubMenuSection = ({ title, items = [], cta = null }) => {
+  const { t } = useTranslation();
+  const sectionTitle = title ?? t('navHub.quickAccess');
+  return (
+    <section className="nav-hub__section nav-hub__section--menu" aria-label={sectionTitle}>
+      <p className="nav-hub__section-title">{sectionTitle}</p>
+      <div className="nav-hub__group">{items}</div>
+      {cta}
+    </section>
+  );
+};
 
 export const NavHubCtaButton = ({ icon, label, className = '', onClick }) => (
   <button type="button" className={`nav-hub__qr-btn ${className}`.trim()} onClick={onClick}>
@@ -59,25 +64,32 @@ export const NavHubCtaButton = ({ icon, label, className = '', onClick }) => (
   </button>
 );
 
-export const NavHubSystemSection = ({ items = [] }) => (
-  <section className="nav-hub__section nav-hub__section--system" aria-label="Hệ thống">
-    <p className="nav-hub__section-title">Hệ thống</p>
-    <div className="nav-hub__group">{items}</div>
-  </section>
-);
+export const NavHubSystemSection = ({ items = [] }) => {
+  const { t } = useTranslation();
+  const title = t('navHub.system');
+  return (
+    <section className="nav-hub__section nav-hub__section--system" aria-label={title}>
+      <p className="nav-hub__section-title">{title}</p>
+      <div className="nav-hub__group">{items}</div>
+    </section>
+  );
+};
 
-export const NavHubFooter = ({ onLogout }) => (
-  <footer className="nav-hub__footer">
-    <button type="button" className="nav-hub__logout-btn" onClick={onLogout}>
-      <NavHubIcon>
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        <polyline points="16 17 21 12 16 7" />
-        <line x1="21" y1="12" x2="9" y2="12" />
-      </NavHubIcon>
-      <span>Đăng xuất</span>
-    </button>
-  </footer>
-);
+export const NavHubFooter = ({ onLogout }) => {
+  const { t } = useTranslation();
+  return (
+    <footer className="nav-hub__footer">
+      <button type="button" className="nav-hub__logout-btn" onClick={onLogout}>
+        <NavHubIcon>
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </NavHubIcon>
+        <span>{t('profile.menu.logout')}</span>
+      </button>
+    </footer>
+  );
+};
 
 /** Icon paths dùng chung */
 export const navIcons = {

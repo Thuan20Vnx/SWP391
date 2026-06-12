@@ -1,4 +1,18 @@
-export const HERO_TAGS = ['#Tình nguyện', '#Âm nhạc', '#Công nghệ'];
+export const HERO_TAGS = [
+  { id: 'volunteer', labelKey: 'clubs.tag.volunteer', filter: 'tình nguyện' },
+  { id: 'music', labelKey: 'clubs.tag.music', filter: 'âm nhạc' },
+  { id: 'tech', labelKey: 'clubs.tag.tech', filter: 'công nghệ' },
+];
+
+export const CLUB_CATEGORY_KEYS = {
+  'Công nghệ': 'clubs.cat.tech',
+  'Nghệ thuật': 'clubs.cat.art',
+  'Kinh doanh': 'clubs.cat.business',
+  'Văn hóa': 'clubs.cat.culture',
+  'Thể thao': 'clubs.cat.sport',
+  'Tình nguyện': 'clubs.cat.volunteer',
+  'Âm nhạc': 'clubs.cat.music',
+};
 
 export const CATEGORY_COLORS = {
   'Công nghệ': '#f26f21',
@@ -8,16 +22,38 @@ export const CATEGORY_COLORS = {
   'Thể thao': '#16a34a',
   'Tình nguyện': '#e11d48',
   'Âm nhạc': '#009ee6',
+  Technology: '#f26f21',
+  Arts: '#006494',
+  Business: '#4caf50',
+  Culture: '#9333ea',
+  Sports: '#16a34a',
+  Volunteer: '#e11d48',
+  Music: '#009ee6',
 };
 
 export const getCategoryColor = (category) =>
   CATEGORY_COLORS[category] || '#f26f21';
+
+export const getClubCategoryLabel = (category, t) => {
+  const key = CLUB_CATEGORY_KEYS[category];
+  return key && t ? t(key) : category;
+};
+
+export const localizeClubItem = (club, t) => {
+  if (!club || !t) return club;
+  return {
+    ...club,
+    category: getClubCategoryLabel(club.category, t),
+    description: club.descriptionKey ? t(club.descriptionKey) : club.description,
+  };
+};
 
 export const CLUB_SAMPLE_DATA = [
   {
     id: 'f-soft-club',
     name: 'F-Soft Club',
     category: 'Công nghệ',
+    descriptionKey: 'clubs.sample.fSoft.desc',
     logoText: 'F-Soft',
     logoColor: '#f26f21',
     coverImage: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa65?auto=format&fit=crop&w=800&q=80',
@@ -30,6 +66,7 @@ export const CLUB_SAMPLE_DATA = [
     id: 'f-art-music',
     name: 'F-Art Music',
     category: 'Nghệ thuật',
+    descriptionKey: 'clubs.sample.fArtMusic.desc',
     logoText: '♪',
     logoColor: '#009ee6',
     coverImage: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
@@ -42,6 +79,7 @@ export const CLUB_SAMPLE_DATA = [
     id: 'f-biz-startup',
     name: 'F-Biz Startup',
     category: 'Kinh doanh',
+    descriptionKey: 'clubs.sample.fBizStartup.desc',
     logoText: 'Biz',
     logoColor: '#4caf50',
     coverImage: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80',
@@ -54,6 +92,7 @@ export const CLUB_SAMPLE_DATA = [
     id: 'fu-dever',
     name: 'FU-DEVER',
     category: 'Công nghệ',
+    descriptionKey: 'clubs.sample.fuDever.desc',
     logoText: 'D',
     logoColor: '#f26f21',
     coverImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80',
@@ -66,6 +105,7 @@ export const CLUB_SAMPLE_DATA = [
     id: 'minori-japanese',
     name: 'Minori Japanese Club',
     category: 'Văn hóa',
+    descriptionKey: 'clubs.sample.minori.desc',
     logoText: '日',
     logoColor: '#9333ea',
     coverImage: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=800&q=80',
@@ -78,6 +118,7 @@ export const CLUB_SAMPLE_DATA = [
     id: 'dreamteam',
     name: 'DreamTeam',
     category: 'Thể thao',
+    descriptionKey: 'clubs.sample.dreamteam.desc',
     logoText: 'DT',
     logoColor: '#16a34a',
     coverImage: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
@@ -90,6 +131,7 @@ export const CLUB_SAMPLE_DATA = [
     id: 'f-volunteer',
     name: 'F-Volunteer',
     category: 'Tình nguyện',
+    descriptionKey: 'clubs.sample.fVolunteer.desc',
     logoText: '♥',
     logoColor: '#e11d48',
     coverImage: 'https://images.unsplash.com/photo-1559027615-cd4628903324?auto=format&fit=crop&w=800&q=80',
@@ -102,6 +144,7 @@ export const CLUB_SAMPLE_DATA = [
     id: 'f-shark',
     name: 'F-Shark',
     category: 'Kinh doanh',
+    descriptionKey: 'clubs.sample.fShark.desc',
     logoText: 'Shark',
     logoColor: '#4caf50',
     coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
@@ -114,6 +157,7 @@ export const CLUB_SAMPLE_DATA = [
     id: 'icpc-fpt',
     name: 'ICPC FPT',
     category: 'Công nghệ',
+    descriptionKey: 'clubs.sample.icpcFpt.desc',
     logoText: 'ICPC',
     logoColor: '#f26f21',
     coverImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80',
@@ -126,22 +170,26 @@ export const CLUB_SAMPLE_DATA = [
 
 export const formatMemberCount = (count) => `${count}+`;
 
-export const mapApiClubToListItem = (club) => ({
-  id: club.slug,
-  _id: club._id,
-  name: club.name,
-  category: club.category,
-  logoText: club.logoText,
-  logoColor: club.logoColor,
-  coverImage: club.coverImage,
-  memberCount: club.memberCount ?? 0,
-  followerCount: club.followerCount ?? 0,
-  description: club.description,
-  featuredEvent: club.featuredEvent || null,
-  tags: club.tags || [],
-  isFollowing: club.isFollowing === true,
-  fromApi: true,
-});
+export const mapApiClubToListItem = (club) => {
+  const sample = CLUB_SAMPLE_DATA.find((item) => item.id === club.slug);
+  return {
+    id: club.slug,
+    _id: club._id,
+    name: club.name,
+    category: club.category,
+    descriptionKey: sample?.descriptionKey,
+    logoText: club.logoText,
+    logoColor: club.logoColor,
+    coverImage: club.coverImage,
+    memberCount: club.memberCount ?? 0,
+    followerCount: club.followerCount ?? 0,
+    description: club.description,
+    featuredEvent: club.featuredEvent || null,
+    tags: club.tags || [],
+    isFollowing: club.isFollowing === true,
+    fromApi: true,
+  };
+};
 
 export const filterClubsBySearch = (clubs, query) => {
   const q = query.trim().toLowerCase();
@@ -157,7 +205,10 @@ export const filterClubsBySearch = (clubs, query) => {
 
 export const filterClubsByTag = (clubs, tag) => {
   if (!tag) return clubs;
-  const normalized = tag.replace('#', '').toLowerCase();
+  const heroTag = HERO_TAGS.find((item) => item.labelKey === tag || item.id === tag);
+  const normalized = heroTag
+    ? heroTag.filter
+    : String(tag).replace('#', '').toLowerCase();
   return clubs.filter(
     (club) =>
       club.category.toLowerCase().includes(normalized) ||

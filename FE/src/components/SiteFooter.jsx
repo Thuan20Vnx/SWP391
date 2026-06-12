@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import fptLogo from '../assets/fpt_logo.png';
 import useUserProfile from '../hooks/useUserProfile';
 import { getHomePathForRole, getUserRole, isAdminRole } from '../utils/auth';
+import { useTranslation } from '../i18n/I18nContext';
 import {
   FOOTER_CONTACT,
   FOOTER_EXPLORE_LINKS,
@@ -16,12 +17,14 @@ const scrollToTop = () => {
 };
 
 const SiteFooter = () => {
+  const { t } = useTranslation();
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = userProfile.role || getUserRole();
   const isGuest = !isLoggedIn;
   const staffPortalRoles = ['ctsv', 'icpdp', 'partner', 'club_manager'];
   const isStudentLike = isLoggedIn && !isAdminRole(role) && !staffPortalRoles.includes(role);
   const portalHome = getHomePathForRole(role);
+  const year = new Date().getFullYear();
 
   return (
     <footer className="home-footer">
@@ -30,10 +33,7 @@ const SiteFooter = () => {
           <Link to="/" className="footer-logo-link" onClick={scrollToTop}>
             <img src={fptLogo} alt="FPT Event Platform" className="footer-logo-img" />
           </Link>
-          <p className="footer-brand-desc">
-            FPT Event Platform — nền tảng khám phá, đăng ký và tham gia sự kiện, hoạt động ngoại khóa dành cho
-            sinh viên FPT University.
-          </p>
+          <p className="footer-brand-desc">{t('footer.desc')}</p>
           <ul className="footer-contact-list">
             <li>
               <a href={`mailto:${FOOTER_CONTACT.ctsvEmail}`}>{FOOTER_CONTACT.ctsvEmail}</a>
@@ -46,69 +46,67 @@ const SiteFooter = () => {
         </div>
 
         <div className="footer-links-col">
-          <h4>Khám phá</h4>
+          <h4>{t('footer.explore')}</h4>
           <ul className="footer-links-list">
             {FOOTER_EXPLORE_LINKS.map((item) => (
               <li key={item.to}>
-                <Link to={item.to}>{item.label}</Link>
+                <Link to={item.to}>{t(item.labelKey)}</Link>
               </li>
             ))}
           </ul>
         </div>
 
         <div className="footer-links-col">
-          <h4>Hỗ trợ</h4>
+          <h4>{t('footer.support')}</h4>
           <ul className="footer-links-list">
             {FOOTER_SUPPORT_LINKS.map((item) => (
               <li key={item.to}>
-                <Link to={item.to}>{item.label}</Link>
+                <Link to={item.to}>{t(item.labelKey)}</Link>
               </li>
             ))}
             <li>
-              <span className="footer-chat-hint">
-                Trợ lý ảo F-Events — nhấn biểu tượng chat ở góc màn hình
-              </span>
+              <span className="footer-chat-hint">{t('footer.chatHint')}</span>
             </li>
           </ul>
         </div>
 
         <div className="footer-links-col footer-account-col">
-          <h4>{isGuest ? 'Dành cho bạn' : 'Tài khoản'}</h4>
+          <h4>{isGuest ? t('footer.forYou') : t('footer.account')}</h4>
           <ul className="footer-links-list">
             {isGuest && (
               <>
                 <li>
-                  <Link to="/login">Đăng nhập</Link>
+                  <Link to="/login">{t('header.login')}</Link>
                 </li>
                 <li>
-                  <Link to="/signup">Đăng ký tài khoản</Link>
+                  <Link to="/signup">{t('footer.link.signup')}</Link>
                 </li>
                 <li>
-                  <Link to="/guide">Hướng dẫn tham gia sự kiện</Link>
+                  <Link to="/guide">{t('footer.link.guideEvents')}</Link>
                 </li>
               </>
             )}
             {isStudentLike && (
               <>
                 <li>
-                  <Link to="/profile">Hồ sơ cá nhân</Link>
+                  <Link to="/profile">{t('footer.link.profile')}</Link>
                 </li>
                 <li>
-                  <Link to="/my-events">Sự kiện của tôi</Link>
+                  <Link to="/my-events">{t('footer.link.myEvents')}</Link>
                 </li>
                 <li>
-                  <Link to="/settings">Cài đặt tài khoản</Link>
+                  <Link to="/settings">{t('footer.link.settings')}</Link>
                 </li>
               </>
             )}
             {isLoggedIn && !isGuest && !isStudentLike && (
               <li>
-                <Link to={portalHome}>Vào cổng làm việc</Link>
+                <Link to={portalHome}>{t('footer.link.portal')}</Link>
               </li>
             )}
           </ul>
 
-          <h4 className="footer-subheading">Kết nối</h4>
+          <h4 className="footer-subheading">{t('footer.connect')}</h4>
           <div className="social-icon-row">
             {FOOTER_SOCIAL_LINKS.map((social) => (
               <a
@@ -150,16 +148,16 @@ const SiteFooter = () => {
       </div>
 
       <div className="footer-bottom-row">
-        <p className="copyright-text">© {new Date().getFullYear()} FPT Event Platform. Bảo lưu mọi quyền.</p>
+        <p className="copyright-text">{t('common.copyright', { year })}</p>
         <div className="footer-policy-links">
           {FOOTER_POLICY_LINKS.map((item) => (
             <Link key={item.to} to={item.to}>
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           ))}
         </div>
         <button type="button" className="footer-back-top" onClick={scrollToTop}>
-          Lên đầu trang
+          {t('common.backToTop')}
         </button>
       </div>
     </footer>

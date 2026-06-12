@@ -13,10 +13,15 @@ export const getPublisherRoleLabel = (roleOrLabel) => {
 };
 
 export const getPublisherRoleTone = (roleOrLabel) => {
+  const r = String(roleOrLabel || '').toLowerCase();
+  if (r === 'ctsv' || r === 'staff') return 'ctsv';
+  if (r === 'icpdp' || r === 'ic-pdp') return 'icpdp';
+  if (r === 'partner') return 'partner';
+  if (r === 'club_manager' || r === 'quản lý clb' || r === 'club manager') return 'club';
   const label = getPublisherRoleLabel(roleOrLabel);
   if (label === 'CTSV') return 'ctsv';
   if (label === 'IC-PDP') return 'icpdp';
   if (label === 'Partner') return 'partner';
-  if (label === 'Quản lý CLB') return 'club';
+  if (label === 'Quản lý CLB' || label === 'Club manager') return 'club';
   return 'school';
 };

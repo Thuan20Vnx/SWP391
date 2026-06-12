@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AdminDataSelect from './AdminDataSelect';
+import { useTranslation } from '../../i18n/I18nContext';
 import '../../styles/admin-data-fields.css';
 
 const AdminCoreDataModal = ({
@@ -12,6 +13,7 @@ const AdminCoreDataModal = ({
   onSubmit,
   submitting,
 }) => {
+  const { t } = useTranslation();
   const [values, setValues] = useState({});
 
   useEffect(() => {
@@ -62,7 +64,7 @@ const AdminCoreDataModal = ({
             className="admin-data-modal__close"
             onClick={onClose}
             disabled={submitting}
-            aria-label="Đóng"
+            aria-label={t('admin.common.close')}
           >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -122,10 +124,10 @@ const AdminCoreDataModal = ({
 
           <footer className="admin-data-modal__footer">
             <button type="button" className="admin-acc-btn admin-acc-btn--ghost" onClick={onClose} disabled={submitting}>
-              Hủy bỏ
+              {t('admin.common.cancel')}
             </button>
             <button type="submit" className="admin-data-btn-add" disabled={submitting}>
-              {submitting ? 'Đang lưu...' : 'Xác nhận lưu'}
+              {submitting ? t('admin.dataMaintenance.modal.saving') : t('admin.dataMaintenance.modal.confirmSave')}
             </button>
           </footer>
         </form>

@@ -37,9 +37,24 @@ export const normalizeTargetsForPublisher = (portalRole, roles) => {
 export const getAllowedTargetsForPublisher = (portalRole) =>
   PUBLISHER_ALLOWED_TARGETS[portalRole] || [ANNOUNCEMENT_TARGET_ALL];
 
-export const formatTargetRolesLabel = (roles = []) => {
-  if (!roles?.length || roles.includes(ANNOUNCEMENT_TARGET_ALL)) return 'Tất cả';
-  return roles.map((r) => ANNOUNCEMENT_TARGET_LABELS[r] || r).join(', ');
+const TARGET_LABEL_KEYS = {
+  all: 'announce.target.all',
+  guest: 'announce.target.guest',
+  student: 'announce.target.student',
+  club_manager: 'announce.target.club_manager',
+  partner: 'announce.target.partner',
+  icpdp: 'announce.target.icpdp',
+  ctsv: 'announce.target.ctsv',
+  admin: 'announce.target.admin',
+};
+
+export const formatTargetRolesLabel = (roles = [], t) => {
+  if (!roles?.length || roles.includes(ANNOUNCEMENT_TARGET_ALL)) {
+    return t ? t('announce.target.all') : ANNOUNCEMENT_TARGET_LABELS.all;
+  }
+  return roles
+    .map((r) => (t && TARGET_LABEL_KEYS[r] ? t(TARGET_LABEL_KEYS[r]) : ANNOUNCEMENT_TARGET_LABELS[r] || r))
+    .join(', ');
 };
 
 export const normalizeSelectedTargets = (selected) => {
@@ -105,38 +120,38 @@ export const getAnnouncementDetailPathForNotifRole = (notifRole, id) => {
 
 export const PORTAL_ANNOUNCEMENT_CONFIG = {
   admin: {
-    eyebrow: 'Truyền thông Admin',
-    title: 'Thông báo hệ thống',
-    subtitle: 'Soạn, phát hành và quản lý thông báo tới mọi nhóm người dùng trên nền tảng F-Events.',
-    publishLabel: 'Phát hành thông báo',
-    manageLink: '/announcements'
+    eyebrowKey: 'announce.admin.eyebrow',
+    titleKey: 'announce.admin.title',
+    subtitleKey: 'announce.admin.subtitle',
+    publishLabelKey: 'announce.publish',
+    manageLink: '/announcements',
   },
   ctsv: {
-    eyebrow: 'Truyền thông CTSV',
-    title: 'Thông báo chính thức',
-    subtitle: 'Phát hành thông báo toàn trường và quản lý danh sách đã gửi.',
-    publishLabel: 'Phát hành thông báo',
-    manageLink: '/ctsv/announcements/publish'
+    eyebrowKey: 'announce.ctsv.eyebrow',
+    titleKey: 'announce.ctsv.title',
+    subtitleKey: 'announce.ctsv.subtitle',
+    publishLabelKey: 'announce.publish',
+    manageLink: '/ctsv/announcements/publish',
   },
   icpdp: {
-    eyebrow: 'Truyền thông IC-PDP',
-    title: 'Thông báo CLB',
-    subtitle: 'Gửi thông báo nội bộ tới sinh viên, CLB và CTSV.',
-    publishLabel: 'Gửi thông báo',
-    manageLink: '/icpdp/announcements'
+    eyebrowKey: 'announce.icpdp.eyebrow',
+    titleKey: 'announce.icpdp.title',
+    subtitleKey: 'announce.icpdp.subtitle',
+    publishLabelKey: 'announce.send',
+    manageLink: '/icpdp/announcements',
   },
   club_manager: {
-    eyebrow: 'Truyền thông CLB',
-    title: 'Thông báo câu lạc bộ',
-    subtitle: 'Thông báo tới thành viên và sinh viên quan tâm CLB.',
-    publishLabel: 'Gửi thông báo',
-    manageLink: '/quan-ly-clb/announcements'
+    eyebrowKey: 'announce.club.eyebrow',
+    titleKey: 'announce.club.title',
+    subtitleKey: 'announce.club.subtitle',
+    publishLabelKey: 'announce.send',
+    manageLink: '/quan-ly-clb/announcements',
   },
   partner: {
-    eyebrow: 'Truyền thông đối tác',
-    title: 'Thông báo đối tác',
-    subtitle: 'Gửi thông báo trực tiếp tới Phòng CTSV (phê duyệt, bổ sung hồ sơ, cập nhật sự kiện).',
-    publishLabel: 'Gửi tới CTSV',
-    manageLink: '/partner/announcements'
-  }
+    eyebrowKey: 'announce.partner.eyebrow',
+    titleKey: 'announce.partner.title',
+    subtitleKey: 'announce.partner.subtitle',
+    publishLabelKey: 'announce.send',
+    manageLink: '/partner/announcements',
+  },
 };

@@ -59,10 +59,10 @@ export const clearAnnouncementDraft = (portalRole = 'ctsv') => {
   }
 };
 
-export const formatDraftSavedLabel = (savedAt) => {
+export const formatDraftSavedLabel = (savedAt, locale = 'vi-VN') => {
   if (!savedAt) return '';
   try {
-    return new Intl.DateTimeFormat('vi-VN', {
+    return new Intl.DateTimeFormat(locale, {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'

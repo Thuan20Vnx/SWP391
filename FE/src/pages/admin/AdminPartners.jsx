@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AdminDataSelect from '../../components/admin/AdminDataSelect';
 import {
@@ -13,6 +13,8 @@ import {
   saveStoredPartners,
 } from '../../data/adminPartnersData';
 import { getUserRole, isAdminRole } from '../../utils/auth';
+import { useTranslation } from '../../i18n/I18nContext';
+import { mapSelectOptions } from '../../i18n/helpers';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-accounts.css';
 import '../../styles/admin-data-maintenance.css';
@@ -35,6 +37,7 @@ const IconUploadCloud = () => (
 const AdminPartners = () => {
   const navigate = useNavigate();
   const { showToast } = useOutletContext() || {};
+  const { t } = useTranslation();
   const role = getUserRole();
   const fileInputRef = useRef(null);
   const [form, setForm] = useState(emptyPartnerForm);
@@ -42,20 +45,25 @@ const AdminPartners = () => {
   const [dragOver, setDragOver] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const sponsorProgramOptions = useMemo(
+    () => mapSelectOptions(PARTNER_SPONSOR_PROGRAM_OPTIONS, t),
+    [t],
+  );
+
   useEffect(() => {
     if (!isAdminRole(role)) {
-      showToast?.('Bạn không có quyền truy cập trang quản trị!', 'error');
+      showToast?.(t('admin.common.noAccess'), 'error');
       navigate('/profile');
     }
-  }, [role, navigate, showToast]);
+  }, [role, navigate, showToast, t]);
 
   const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const validateFile = (file) => {
-    if (!file) return 'Không có file.';
-    if (file.size > PARTNER_UPLOAD_MAX_BYTES) return 'File tối đa 10MB.';
+    if (!file) return t('admin.partners.file.none');
+    if (file.size > PARTNER_UPLOAD_MAX_BYTES) return t('admin.partners.file.maxSize');
     const ext = file.name.split('.').pop()?.toLowerCase();
-    if (!['pdf', 'doc', 'docx'].includes(ext || '')) return 'Chỉ chấp nhận PDF, DOC, DOCX.';
+    if (!['pdf', 'doc', 'docx'].includes(ext || '')) return t('admin.partners.file.type');
     return null;
   };
 
@@ -89,7 +97,7 @@ const AdminPartners = () => {
 
   const handleCancel = () => {
     resetForm();
-    showToast?.('Đã hủy nhập liệu.', 'info');
+    showToast?.(t('admin.partners.toast.cancelled'), 'info');
   };
 
   const handleSubmit = async (e) => {
@@ -97,7 +105,7 @@ const AdminPartners = () => {
     if (submitting) return;
 
     if (!form.companyName.trim() || !form.field || !form.representative.trim() || !form.email.trim() || !form.phone.trim()) {
-      showToast?.('Vui lòng điền đầy đủ các trường bắt buộc (*).', 'error');
+      showToast?.(t('admin.partners.required'), 'error');
       return;
     }
 
@@ -106,10 +114,10 @@ const AdminPartners = () => {
       const record = partnerFormToRecord(form, attachment);
       const list = loadStoredPartners();
       saveStoredPartners([record, ...list]);
-      showToast?.('Đã thêm đối tác vào hệ thống.', 'success');
+      showToast?.(t('admin.partners.toast.added'), 'success');
       resetForm();
     } catch {
-      showToast?.('Không thể lưu đối tác. Thử lại sau.', 'error');
+      showToast?.(t('admin.partners.toast.saveFail'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -122,17 +130,15 @@ const AdminPartners = () => {
       <div className="admin-partners-page">
         <div className="admin-partners-card">
           <header className="admin-partners-card__header">
-            <h1 className="admin-partners-card__title">Thêm Đối Tác Mới</h1>
-            <p className="admin-partners-card__subtitle">
-              Nhập thông tin chi tiết để thêm đối tác tài trợ hoặc đồng hành vào hệ thống.
-            </p>
+            <h1 className="admin-partners-card__title">{t('admin.partners.title')}</h1>
+            <p className="admin-partners-card__subtitle">{t('admin.partners.subtitle')}</p>
           </header>
 
           <form className="admin-partners-form" onSubmit={handleSubmit} noValidate>
             <div className="admin-partners-form__grid">
               <div className="admin-data-field">
                 <label className="admin-partner-field__label" htmlFor="partner-company">
-                  Tên doanh nghiệp/đối tác <span className="admin-partner-required">*</span>
+                  {t('admin.partners.companyName')} <span className="admin-partner-required">*</span>
                 </label>
                 <input
                   id="partner-company"
@@ -140,18 +146,18 @@ const AdminPartners = () => {
                   className="admin-data-input"
                   value={form.companyName}
                   onChange={(e) => setField('companyName', e.target.value)}
-                  placeholder="Ví dụ: Công ty Cổ phần VNG"
+                  placeholder={t('admin.partners.companyPlaceholder')}
                   required
                   disabled={submitting}
                 />
               </div>
 
               <AdminDataSelect
-                label="Lĩnh vực hoạt động *"
+                label={`${t('admin.partners.field')} *`}
                 labelClassName="admin-partner-field__label"
                 value={form.field}
                 options={PARTNER_FIELD_OPTIONS}
-                placeholder="Chọn lĩnh vực"
+                placeholder={t('admin.partners.fieldPlaceholder')}
                 onChange={(v) => setField('field', v)}
                 disabled={submitting}
                 required
@@ -161,7 +167,7 @@ const AdminPartners = () => {
             <div className="admin-partners-form__grid admin-partners-form__grid--full">
               <div className="admin-data-field">
                 <label className="admin-partner-field__label" htmlFor="partner-rep">
-                  Người đại diện <span className="admin-partner-required">*</span>
+                  {t('admin.partners.representative')} <span className="admin-partner-required">*</span>
                 </label>
                 <input
                   id="partner-rep"
@@ -169,7 +175,7 @@ const AdminPartners = () => {
                   className="admin-data-input"
                   value={form.representative}
                   onChange={(e) => setField('representative', e.target.value)}
-                  placeholder="Họ và tên người đại diện"
+                  placeholder={t('admin.partners.representativePlaceholder')}
                   required
                   disabled={submitting}
                 />
@@ -179,7 +185,7 @@ const AdminPartners = () => {
             <div className="admin-partners-form__grid">
               <div className="admin-data-field">
                 <label className="admin-partner-field__label" htmlFor="partner-email">
-                  Email liên hệ <span className="admin-partner-required">*</span>
+                  {t('admin.partners.email')} <span className="admin-partner-required">*</span>
                 </label>
                 <input
                   id="partner-email"
@@ -195,7 +201,7 @@ const AdminPartners = () => {
 
               <div className="admin-data-field">
                 <label className="admin-partner-field__label" htmlFor="partner-phone">
-                  Số điện thoại <span className="admin-partner-required">*</span>
+                  {t('admin.partners.phone')} <span className="admin-partner-required">*</span>
                 </label>
                 <input
                   id="partner-phone"
@@ -213,7 +219,7 @@ const AdminPartners = () => {
             <div className="admin-partners-form__grid">
               <div className="admin-data-field">
                 <label className="admin-partner-field__label" htmlFor="partner-sponsor-value">
-                  Giá trị tài trợ dự kiến (VND)
+                  {t('admin.partners.sponsorValue')}
                 </label>
                 <div className="admin-partner-input-vnd">
                   <input
@@ -231,18 +237,18 @@ const AdminPartners = () => {
               </div>
 
               <AdminDataSelect
-                label="Chương trình đề xuất tài trợ"
+                label={t('admin.partners.sponsorProgram')}
                 labelClassName="admin-partner-field__label"
                 value={form.sponsorProgram}
-                options={PARTNER_SPONSOR_PROGRAM_OPTIONS}
-                placeholder="Chưa xác định"
+                options={sponsorProgramOptions}
+                placeholder={t('admin.partners.sponsorProgram.unset')}
                 onChange={(v) => setField('sponsorProgram', v)}
                 disabled={submitting}
               />
             </div>
 
             <div className="admin-partners-upload">
-              <span className="admin-partner-field__label">Hồ sơ năng lực & bản thảo hợp đồng</span>
+              <span className="admin-partner-field__label">{t('admin.partners.uploadLabel')}</span>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -276,19 +282,19 @@ const AdminPartners = () => {
                   <p className="admin-partners-upload__file-name">{attachment.name}</p>
                 ) : (
                   <p className="admin-partners-upload__text">
-                    <strong>Tải file lên</strong> hoặc kéo thả vào đây
+                    <strong>{t('admin.partners.uploadCta')}</strong> {t('admin.partners.uploadOr')}
                   </p>
                 )}
-                <p className="admin-partners-upload__hint">PDF, DOCX lên đến 10MB</p>
+                <p className="admin-partners-upload__hint">{t('admin.partners.uploadHint')}</p>
               </div>
             </div>
 
             <footer className="admin-partners-form__footer">
               <button type="button" className="admin-partners-btn-cancel" onClick={handleCancel} disabled={submitting}>
-                Hủy bỏ
+                {t('admin.common.cancel')}
               </button>
               <button type="submit" className="admin-partners-btn-submit" disabled={submitting}>
-                {submitting ? 'Đang thêm...' : 'Thêm đối tác'}
+                {submitting ? t('admin.partners.submitting') : t('admin.partners.submit')}
               </button>
             </footer>
           </form>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from '../i18n/I18nContext';
 
 const HOME_GREETING =
   'Xin chào! Tôi là trợ lý ảo F-Events. Bạn cần tôi giúp gì hôm nay?';
@@ -48,6 +49,7 @@ const buildBotReply = (userMsg, context) => {
 };
 
 const ChatbotFloating = ({ context = 'home' }) => {
+  const { t } = useTranslation();
   const rootRef = useRef(null);
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([
@@ -159,7 +161,7 @@ const ChatbotFloating = ({ context = 'home' }) => {
             />
           </svg>
         </span>
-        <span className="fab-text">Bạn cần giúp gì?</span>
+        <span className="fab-text">{t('clubs.fabLabel')}</span>
       </button>
     </div>
   );

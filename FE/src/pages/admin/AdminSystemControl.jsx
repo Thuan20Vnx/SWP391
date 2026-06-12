@@ -22,7 +22,9 @@ import {
   isAdminRole,
   isIcpdpRole,
 } from '../../utils/auth';
-import { addMinutes, formatAdminDateTime } from '../../utils/adminLiveTime';
+import { addMinutes, formatAdminDateTime, formatRelativeSeconds, startOfDay } from '../../utils/adminLiveTime';
+import { useTranslation } from '../../i18n/I18nContext';
+import { mapSelectOptions, resolveLabel } from '../../i18n/helpers';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-system-control.css';
 
@@ -75,6 +77,7 @@ const AdminField = ({ label, hint, wide, children }) => (
 
 const AdminSystemControl = () => {
   const navigate = useNavigate();
+  const { t, language } = useTranslation();
   const { showToast } = useOutletContext() || {};
   const role = getUserRole();
   const isFullAdmin = isAdminRole(role);
@@ -92,16 +95,37 @@ const AdminSystemControl = () => {
     ADMIN_QUICK_METRICS.map((m) => ({ ...m, value: '…' })),
   );
 
-  const clockLabel = formatAdminDateTime(live.now);
+  const clockLabel = formatAdminDateTime(live.now, language);
   const { systemOverall } = live;
+
+  const systemOverallDisplay = useMemo(() => {
+    const now = live.now;
+    const secondsSinceBoot = Math.floor((now.getTime() - startOfDay(now).getTime()) / 1000) % 45 + 8;
+    const checkTime = now.toLocaleTimeString(language === 'en' ? 'en-US' : 'vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+    return {
+      label: t('admin.monitor.stable'),
+      uptime: systemOverall.uptime,
+      uptimeCaption: t('admin.system.status.uptime30'),
+      lastCheck: t('admin.system.lastCheck', {
+        time: checkTime,
+        relative: formatRelativeSeconds(secondsSinceBoot, language),
+      }),
+    };
+  }, [live.now, language, systemOverall.uptime, t]);
 
   const changeLog = useMemo(
     () =>
       ADMIN_SYSTEM_CHANGE_LOG.map((item) => ({
         ...item,
-        time: formatAdminDateTime(addMinutes(live.now, -item.minutesAgo)),
+        time: formatAdminDateTime(addMinutes(live.now, -item.minutesAgo), language),
+        action: item.actionKey ? t(item.actionKey) : item.action,
       })),
-    [live.now],
+    [live.now, t, language],
   );
 
   const loadQuickMetrics = useCallback(() => {
@@ -116,38 +140,29 @@ const AdminSystemControl = () => {
         .then((r) => r.json())
         .catch(() => null),
     ]).then(([accountsRes, pendingRes]) => {
-      setQuickMetrics([
-        {
-          id: 'accounts',
-          label: 'Tài khoản hệ thống',
-          value: accountsRes?.total != null ? String(accountsRes.total) : '—',
-          hint: 'Tổng user trong DB',
-        },
-        {
-          id: 'pending',
-          label: 'Sự kiện chờ duyệt',
-          value: pendingRes?.events?.length != null ? String(pendingRes.events.length) : '—',
-          hint: 'status = pending',
-        },
-        {
-          id: 'live',
-          label: 'Sự kiện đang live',
-          value: '—',
-          hint: 'Cần API thống kê (mock)',
-        },
-        {
-          id: 'clubs',
-          label: 'Câu lạc bộ',
-          value: '—',
-          hint: 'Cần API thống kê (mock)',
-        },
-      ]);
+      setQuickMetrics(
+        ADMIN_QUICK_METRICS.map((m) => ({
+          ...m,
+          label: resolveLabel(m, t),
+          hint: m.hintKey ? t(m.hintKey) : m.hint,
+          value:
+            m.id === 'accounts'
+              ? accountsRes?.total != null
+                ? String(accountsRes.total)
+                : t('admin.common.empty')
+              : m.id === 'pending'
+                ? pendingRes?.events?.length != null
+                  ? String(pendingRes.events.length)
+                  : t('admin.common.empty')
+                : t('admin.common.empty'),
+        })),
+      );
     });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!canAccessAdminSystemPage(role)) {
-      showToast?.('Bạn không có quyền truy cập trang quản trị!', 'error');
+      showToast?.(t('admin.common.noAccess'), 'error');
       navigate(isIcpdpRole(role) ? '/icpdp' : '/profile');
       return;
     }
@@ -164,12 +179,12 @@ const AdminSystemControl = () => {
         }));
       })
       .catch(() => {
-        showToast?.('Không tải được cấu hình bảo trì từ máy chủ', 'error');
+        showToast?.(t('admin.system.toast.loadFail'), 'error');
       })
       .finally(() => setConfigLoading(false));
 
     if (isFullAdmin) loadQuickMetrics();
-  }, [role, navigate, showToast, loadQuickMetrics, isFullAdmin]);
+  }, [role, navigate, showToast, loadQuickMetrics, isFullAdmin, t]);
 
   const patch = (path, value) => {
     setConfig((prev) => {
@@ -207,9 +222,9 @@ const AdminSystemControl = () => {
           remote.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage,
       }));
       setMaintenanceDirty(false);
-      showToast?.(res.message || 'Đã lưu cấu hình bảo trì', 'success');
+      showToast?.(res.message || t('admin.system.toast.saveMaintenance'), 'success');
     } catch (err) {
-      showToast?.(err.message || 'Lưu cấu hình bảo trì thất bại', 'error');
+      showToast?.(err.message || t('admin.system.toast.saveMaintenanceFail'), 'error');
     } finally {
       setSavingMaintenance(false);
     }
@@ -223,7 +238,7 @@ const AdminSystemControl = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
     setDirty(false);
     if (!maintenanceDirty) {
-      showToast?.('Đã lưu cấu hình hệ thống', 'success');
+      showToast?.(t('admin.system.toast.saveConfig'), 'success');
     }
   };
 
@@ -231,7 +246,7 @@ const AdminSystemControl = () => {
     setConfig(ADMIN_SYSTEM_DEFAULT_CONFIG);
     localStorage.removeItem(STORAGE_KEY);
     setDirty(false);
-    showToast?.('Đã khôi phục cấu hình mặc định', 'success');
+    showToast?.(t('admin.system.toast.reset'), 'success');
   };
 
   const handleTestConnection = async () => {
@@ -243,45 +258,49 @@ const AdminSystemControl = () => {
       if (res.ok) {
         setTestResult({
           ok: true,
-          text: `Backend phản hồi HTTP ${res.status} trong ${ms}ms. MongoDB và SMTP cần kiểm tra riêng trên server.`,
+          text: t('admin.system.test.ok', { status: res.status, ms }),
         });
-        showToast?.('Kết nối backend thành công', 'success');
+        showToast?.(t('admin.system.toast.testOk'), 'success');
       } else {
-        setTestResult({ ok: false, text: `Backend trả mã ${res.status}.` });
-        showToast?.('Backend không phản hồi đúng', 'error');
+        setTestResult({ ok: false, text: t('admin.system.test.bad', { status: res.status }) });
+        showToast?.(t('admin.system.toast.testBad'), 'error');
       }
     } catch {
       setTestResult({
         ok: false,
-        text: 'Không kết nối được tới http://localhost:5000. Hãy chạy npm run dev trong thư mục BE.',
+        text: t('admin.system.test.unreachable'),
       });
-      showToast?.('Không kết nối được backend', 'error');
+      showToast?.(t('admin.system.toast.testFail'), 'error');
     }
   };
 
   if (!canAccessAdminSystemPage(role)) return null;
 
+  const encryptionOptions = mapSelectOptions(ENCRYPTION_OPTIONS, t);
+  const paymentProviderOptions = mapSelectOptions(PAYMENT_PROVIDER_OPTIONS, t);
+  const currencyOptions = mapSelectOptions(CURRENCY_OPTIONS, t);
+
   const renderMaintenanceOps = () => (
     <>
       <div className="admin-sys-group">
-        <h3 className="admin-sys-group__title">Vận hành chung</h3>
+        <h3 className="admin-sys-group__title">{t('admin.system.ops.title')}</h3>
         <AdminToggle
-          label="Chế độ bảo trì"
-          description="Tạm khóa truy cập sinh viên; Admin, CTSV và ICPDP vẫn đăng nhập được"
+          label={t('admin.system.ops.maintenance')}
+          description={t('admin.system.ops.maintenanceDesc')}
           checked={config.maintenanceMode}
           onChange={(v) => patch('maintenanceMode', v)}
           disabled={configLoading || savingMaintenance}
         />
         <AdminToggle
-          label="Hiển thị banner thông báo"
-          description="Banner cảnh báo trên trang chủ khi có sự cố hoặc bảo trì"
+          label={t('admin.system.ops.banner')}
+          description={t('admin.system.ops.bannerDesc')}
           checked={config.publicAnnouncements}
           onChange={(v) => patch('publicAnnouncements', v)}
           disabled={configLoading || savingMaintenance}
         />
         {config.maintenanceMode && (
           <div className="admin-sys-field" style={{ padding: '0 16px 14px' }}>
-            <span className="admin-sys-field__label">Nội dung banner bảo trì</span>
+            <span className="admin-sys-field__label">{t('admin.system.ops.bannerContent')}</span>
             <textarea
               className="admin-sys-input"
               rows={2}
@@ -295,7 +314,7 @@ const AdminSystemControl = () => {
 
       {config.maintenanceMode && (
         <div className="admin-sys-maint-preview">
-          <p className="admin-sys-maint-preview__title">Xem trước banner</p>
+          <p className="admin-sys-maint-preview__title">{t('admin.system.ops.bannerPreview')}</p>
           <p className="admin-sys-maint-preview__text">
             {config.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage}
           </p>
@@ -307,19 +326,19 @@ const AdminSystemControl = () => {
   const emailChecklist = [
     {
       ok: config.email.enabled,
-      text: config.email.enabled ? 'SMTP đang bật' : 'SMTP đang tắt',
+      text: config.email.enabled ? t('admin.system.email.smtpOn') : t('admin.system.email.smtpOff'),
     },
     {
       ok: Boolean(config.email.host),
-      text: `Host: ${config.email.host || '—'}`,
+      text: t('admin.system.email.host', { host: config.email.host || t('admin.common.empty') }),
     },
     {
       ok: Boolean(config.email.fromEmail),
-      text: `From: ${config.email.fromEmail}`,
+      text: t('admin.system.email.from', { email: config.email.fromEmail }),
     },
     {
       ok: true,
-      text: 'App Password Gmail: cấu hình trong BE/.env (EMAIL_USER, EMAIL_PASS)',
+      text: t('admin.system.email.envHint'),
     },
   ];
 
@@ -328,17 +347,17 @@ const AdminSystemControl = () => {
       <div className="admin-sys-hero">
         <span className="admin-sys-hero__indicator" aria-hidden="true" />
         <div className="admin-sys-hero__main">
-          <span className="admin-sys-hero__label">Trạng thái tổng</span>
-          <span className="admin-sys-hero__status">{systemOverall.label}</span>
-          <p className="admin-sys-hero__meta">{systemOverall.lastCheck}</p>
+          <span className="admin-sys-hero__label">{t('admin.system.overallStatus')}</span>
+          <span className="admin-sys-hero__status">{systemOverallDisplay.label}</span>
+          <p className="admin-sys-hero__meta">{systemOverallDisplay.lastCheck}</p>
         </div>
         <div className="admin-sys-hero__uptime">
-          <span className="admin-sys-hero__uptime-value">{systemOverall.uptime}</span>
-          <span className="admin-sys-hero__uptime-caption">{systemOverall.uptimeCaption}</span>
+          <span className="admin-sys-hero__uptime-value">{systemOverallDisplay.uptime}</span>
+          <span className="admin-sys-hero__uptime-caption">{systemOverallDisplay.uptimeCaption}</span>
         </div>
       </div>
 
-      <div className="admin-sys-metrics" aria-label="Chỉ số nhanh">
+      <div className="admin-sys-metrics" aria-label={t('admin.system.quickMetricsAria')}>
         {quickMetrics.map((m) => (
           <article key={m.id} className="admin-sys-metric">
             <p className="admin-sys-metric__value">{m.value}</p>
@@ -348,52 +367,52 @@ const AdminSystemControl = () => {
         ))}
       </div>
 
-      <h3 className="admin-sys-section-title">Dịch vụ lõi</h3>
+      <h3 className="admin-sys-section-title">{t('admin.system.coreServices')}</h3>
       <div className="admin-sys-status-grid">
         {ADMIN_SYSTEM_STATUS_CARDS.map((card) => (
           <article key={card.id} className="admin-sys-status-card">
             <div className="admin-sys-status-card__top">
               <span className={`admin-system-services__dot admin-system-services__dot--${card.status}`} />
-              <span className="admin-sys-status-card__title">{card.title}</span>
+              <span className="admin-sys-status-card__title">{t(card.titleKey)}</span>
               <span className={`admin-system-services__pill admin-system-services__pill--${card.status}`}>
-                {card.statusLabel}
+                {t(card.statusLabelKey)}
               </span>
             </div>
             <p className="admin-sys-status-card__metric">
-              {card.metric} <span>{card.metricLabel}</span>
+              {card.metric} <span>{t(card.metricLabelKey)}</span>
             </p>
-            {card.detail && <p className="admin-sys-status-card__detail">{card.detail}</p>}
+            {card.detailKey && <p className="admin-sys-status-card__detail">{t(card.detailKey)}</p>}
           </article>
         ))}
       </div>
 
-      <h3 className="admin-sys-section-title">Chi tiết hạ tầng</h3>
+      <h3 className="admin-sys-section-title">{t('admin.system.infraDetails')}</h3>
       <ul className="admin-sys-infra-list">
         {ADMIN_INFRA_SERVICES.map((svc) => (
           <li key={svc.id} className="admin-sys-infra-card">
             <div className="admin-sys-infra-card__head">
               <span className={`admin-system-services__dot admin-system-services__dot--${svc.status}`} />
-              <h4 className="admin-sys-infra-card__name">{svc.name}</h4>
+              <h4 className="admin-sys-infra-card__name">{t(svc.nameKey)}</h4>
               <span className={`admin-system-services__pill admin-system-services__pill--${svc.status}`}>
-                {svc.statusLabel}
+                {t(svc.statusLabelKey)}
               </span>
             </div>
             <dl className="admin-sys-infra-card__body">
               <div className="admin-sys-infra-row">
-                <dt>Endpoint</dt>
+                <dt>{t('admin.system.infra.endpoint')}</dt>
                 <dd>{svc.endpoint}</dd>
               </div>
               <div className="admin-sys-infra-row">
-                <dt>Phiên bản</dt>
+                <dt>{t('admin.system.infra.version')}</dt>
                 <dd>{svc.version}</dd>
               </div>
               <div className="admin-sys-infra-row">
-                <dt>Độ trễ</dt>
+                <dt>{t('admin.system.infra.latency')}</dt>
                 <dd>{svc.latency}</dd>
               </div>
               <div className="admin-sys-infra-row admin-sys-infra-row--full">
-                <dt>Ghi chú</dt>
-                <dd className="admin-sys-infra-row__note">{svc.note}</dd>
+                <dt>{t('admin.system.infra.note')}</dt>
+                <dd className="admin-sys-infra-row__note">{t(svc.noteKey)}</dd>
               </div>
             </dl>
           </li>
@@ -407,7 +426,7 @@ const AdminSystemControl = () => {
   const renderEmail = () => (
     <div className="admin-sys-form">
       <div className="admin-sys-detail-block">
-        <p className="admin-sys-detail-block__title">Trạng thái kết nối SMTP</p>
+        <p className="admin-sys-detail-block__title">{t('admin.system.email.smtpStatus')}</p>
         <ul className="admin-sys-checklist">
           {emailChecklist.map((item) => (
             <li key={item.text}>
@@ -423,13 +442,13 @@ const AdminSystemControl = () => {
       </div>
 
       <AdminToggle
-        label="Bật Email Server"
-        description="Gửi OTP đăng ký và email kích hoạt tài khoản qua SMTP"
+        label={t('admin.system.email.enable')}
+        description={t('admin.system.email.enableDesc')}
         checked={config.email.enabled}
         onChange={(v) => patch('email.enabled', v)}
       />
       <div className="admin-sys-form__grid">
-        <AdminField label="SMTP Host">
+        <AdminField label={t('admin.system.email.smtpHost')}>
           <input
             type="text"
             className="admin-sys-input"
@@ -438,7 +457,7 @@ const AdminSystemControl = () => {
             disabled={!config.email.enabled}
           />
         </AdminField>
-        <AdminField label="Cổng (Port)">
+        <AdminField label={t('admin.system.email.port')}>
           <input
             type="text"
             className="admin-sys-input"
@@ -447,18 +466,18 @@ const AdminSystemControl = () => {
             disabled={!config.email.enabled}
           />
         </AdminField>
-        <AdminField label="Mã hóa">
+        <AdminField label={t('admin.system.email.encryption')}>
           <AdminFilterDropdown
             label=""
             value={config.email.encryption}
-            options={ENCRYPTION_OPTIONS}
+            options={encryptionOptions}
             onChange={(v) => patch('email.encryption', v)}
             menuOpen={openMenu === 'encryption'}
             onMenuToggle={setOpenMenu}
             menuId="encryption"
           />
         </AdminField>
-        <AdminField label="Timeout (giây)" hint="Thời gian chờ kết nối SMTP">
+        <AdminField label={t('admin.system.email.timeout')} hint={t('admin.system.email.timeoutHint')}>
           <input
             type="number"
             min="5"
@@ -468,7 +487,7 @@ const AdminSystemControl = () => {
             disabled={!config.email.enabled}
           />
         </AdminField>
-        <AdminField label="Giới hạn gửi / ngày">
+        <AdminField label={t('admin.system.email.dailyLimit')}>
           <input
             type="number"
             min="1"
@@ -478,7 +497,7 @@ const AdminSystemControl = () => {
             disabled={!config.email.enabled}
           />
         </AdminField>
-        <AdminField label="Tên hiển thị (From name)">
+        <AdminField label={t('admin.system.email.fromName')}>
           <input
             type="text"
             className="admin-sys-input"
@@ -487,7 +506,7 @@ const AdminSystemControl = () => {
             disabled={!config.email.enabled}
           />
         </AdminField>
-        <AdminField label="Email gửi đi">
+        <AdminField label={t('admin.system.email.fromEmail')}>
           <input
             type="email"
             className="admin-sys-input"
@@ -507,7 +526,7 @@ const AdminSystemControl = () => {
         </AdminField>
       </div>
       <p className="admin-sys-field__hint" style={{ marginTop: 8 }}>
-        Mật khẩu SMTP thật lưu trong <code>BE/.env</code> (EMAIL_USER, EMAIL_PASS), không lưu trên trình duyệt.
+        {t('admin.system.email.passwordHint')}
       </p>
     </div>
   );
@@ -515,19 +534,26 @@ const AdminSystemControl = () => {
   const renderPayment = () => (
     <div className="admin-sys-form">
       <div className="admin-sys-detail-block">
-        <p className="admin-sys-detail-block__title">Thông tin cổng thanh toán</p>
+        <p className="admin-sys-detail-block__title">{t('admin.system.payment.info')}</p>
         <table className="admin-sys-info-table">
           <tbody>
             <tr>
-              <th>Chế độ</th>
-              <td>{config.payment.sandbox ? 'Sandbox (thử nghiệm)' : 'Production'}</td>
+              <th>{t('admin.system.payment.mode')}</th>
+              <td>
+                {config.payment.sandbox
+                  ? t('admin.system.payment.modeSandbox')
+                  : t('admin.system.payment.modeProduction')}
+              </td>
             </tr>
             <tr>
-              <th>Cổng</th>
-              <td>{PAYMENT_PROVIDER_OPTIONS.find((o) => o.value === config.payment.provider)?.label || config.payment.provider}</td>
+              <th>{t('admin.system.payment.gateway')}</th>
+              <td>
+                {paymentProviderOptions.find((o) => o.value === config.payment.provider)?.label ||
+                  config.payment.provider}
+              </td>
             </tr>
             <tr>
-              <th>Tiền tệ</th>
+              <th>{t('admin.system.payment.currency')}</th>
               <td>{config.payment.currency}</td>
             </tr>
           </tbody>
@@ -535,35 +561,35 @@ const AdminSystemControl = () => {
       </div>
 
       <AdminToggle
-        label="Bật Payment Gateway"
-        description="Cho phép thanh toán vé online qua cổng đối tác"
+        label={t('admin.system.payment.enable')}
+        description={t('admin.system.payment.enableDesc')}
         checked={config.payment.enabled}
         onChange={(v) => patch('payment.enabled', v)}
       />
       <AdminToggle
-        label="Chế độ Sandbox"
-        description="Giao dịch thử nghiệm, không trừ tiền thật"
+        label={t('admin.system.payment.sandbox')}
+        description={t('admin.system.payment.sandboxDesc')}
         checked={config.payment.sandbox}
         onChange={(v) => patch('payment.sandbox', v)}
         disabled={!config.payment.enabled}
       />
       <div className="admin-sys-form__grid">
-        <AdminField label="Cổng thanh toán">
+        <AdminField label={t('admin.system.payment.provider')}>
           <AdminFilterDropdown
             label=""
             value={config.payment.provider}
-            options={PAYMENT_PROVIDER_OPTIONS}
+            options={paymentProviderOptions}
             onChange={(v) => patch('payment.provider', v)}
             menuOpen={openMenu === 'provider'}
             onMenuToggle={setOpenMenu}
             menuId="provider"
           />
         </AdminField>
-        <AdminField label="Tiền tệ">
+        <AdminField label={t('admin.system.payment.currency')}>
           <AdminFilterDropdown
             label=""
             value={config.payment.currency}
-            options={CURRENCY_OPTIONS}
+            options={currencyOptions}
             onChange={(v) => patch('payment.currency', v)}
             menuOpen={openMenu === 'currency'}
             onMenuToggle={setOpenMenu}
@@ -588,7 +614,7 @@ const AdminSystemControl = () => {
             disabled={!config.payment.enabled}
           />
         </AdminField>
-        <AdminField label="Số tiền tối thiểu (VNĐ)">
+        <AdminField label={t('admin.system.payment.minAmount')}>
           <input
             type="number"
             className="admin-sys-input"
@@ -597,7 +623,7 @@ const AdminSystemControl = () => {
             disabled={!config.payment.enabled}
           />
         </AdminField>
-        <AdminField label="Số tiền tối đa (VNĐ)">
+        <AdminField label={t('admin.system.payment.maxAmount')}>
           <input
             type="number"
             className="admin-sys-input"
@@ -606,7 +632,7 @@ const AdminSystemControl = () => {
             disabled={!config.payment.enabled}
           />
         </AdminField>
-        <AdminField label="Callback URL" hint="Backend nhận kết quả thanh toán" wide>
+        <AdminField label={t('admin.system.payment.callbackUrl')} hint={t('admin.system.payment.callbackHint')} wide>
           <input
             type="url"
             className="admin-sys-input"
@@ -615,7 +641,7 @@ const AdminSystemControl = () => {
             disabled={!config.payment.enabled}
           />
         </AdminField>
-        <AdminField label="Return URL" hint="Chuyển user về FE sau thanh toán" wide>
+        <AdminField label={t('admin.system.payment.returnUrl')} hint={t('admin.system.payment.returnHint')} wide>
           <input
             type="url"
             className="admin-sys-input"
@@ -631,27 +657,27 @@ const AdminSystemControl = () => {
   const renderSecurity = () => (
     <div className="admin-sys-form">
       <div className="admin-sys-detail-block">
-        <p className="admin-sys-detail-block__title">Chính sách phiên & API</p>
+        <p className="admin-sys-detail-block__title">{t('admin.system.security.policy')}</p>
         <table className="admin-sys-info-table">
           <tbody>
             <tr>
-              <th>JWT (hiện tại)</th>
-              <td>{config.security.jwtHours} giờ</td>
+              <th>{t('admin.system.security.jwtCurrent')}</th>
+              <td>{t('admin.system.security.jwtHours', { hours: config.security.jwtHours })}</td>
             </tr>
             <tr>
-              <th>OTP đăng ký</th>
-              <td>{config.security.otpMinutes} phút</td>
+              <th>{t('admin.system.security.otp')}</th>
+              <td>{t('admin.system.security.otpMinutes', { minutes: config.security.otpMinutes })}</td>
             </tr>
             <tr>
-              <th>Rate limit</th>
-              <td>{config.security.apiRateLimit} req/phút/IP (mock)</td>
+              <th>{t('admin.system.security.rateLimit')}</th>
+              <td>{t('admin.system.security.rateLimitValue', { limit: config.security.apiRateLimit })}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <div className="admin-sys-form__grid">
-        <AdminField label="Thời hạn JWT (giờ)">
+        <AdminField label={t('admin.system.security.jwtExpiry')}>
           <input
             type="number"
             min="1"
@@ -660,7 +686,7 @@ const AdminSystemControl = () => {
             onChange={(e) => patch('security.jwtHours', e.target.value)}
           />
         </AdminField>
-        <AdminField label="OTP hết hạn (phút)">
+        <AdminField label={t('admin.system.security.otpExpiry')}>
           <input
             type="number"
             min="1"
@@ -669,7 +695,7 @@ const AdminSystemControl = () => {
             onChange={(e) => patch('security.otpMinutes', e.target.value)}
           />
         </AdminField>
-        <AdminField label="Số lần đăng nhập sai tối đa">
+        <AdminField label={t('admin.system.security.maxLogin')}>
           <input
             type="number"
             min="1"
@@ -678,7 +704,7 @@ const AdminSystemControl = () => {
             onChange={(e) => patch('security.maxLoginAttempts', e.target.value)}
           />
         </AdminField>
-        <AdminField label="Khóa tài khoản (phút)" hint="Sau khi vượt số lần sai">
+        <AdminField label={t('admin.system.security.lockout')} hint={t('admin.system.security.lockoutHint')}>
           <input
             type="number"
             min="1"
@@ -687,7 +713,7 @@ const AdminSystemControl = () => {
             onChange={(e) => patch('security.lockoutMinutes', e.target.value)}
           />
         </AdminField>
-        <AdminField label="CORS origins" hint="Phân tách bằng dấu phẩy" wide>
+        <AdminField label={t('admin.system.security.cors')} hint={t('admin.system.security.corsHint')} wide>
           <input
             type="text"
             className="admin-sys-input"
@@ -695,7 +721,7 @@ const AdminSystemControl = () => {
             onChange={(e) => patch('security.corsOrigins', e.target.value)}
           />
         </AdminField>
-        <AdminField label="API rate limit (req/phút)">
+        <AdminField label={t('admin.system.security.apiRateLimit')}>
           <input
             type="number"
             min="10"
@@ -704,7 +730,7 @@ const AdminSystemControl = () => {
             onChange={(e) => patch('security.apiRateLimit', e.target.value)}
           />
         </AdminField>
-        <AdminField label="Độ dài mật khẩu tối thiểu">
+        <AdminField label={t('admin.system.security.passwordMin')}>
           <input
             type="number"
             min="6"
@@ -715,20 +741,20 @@ const AdminSystemControl = () => {
         </AdminField>
       </div>
       <AdminToggle
-        label="Bắt buộc mật khẩu mạnh"
-        description="Chữ hoa, chữ thường, số và ký tự đặc biệt khi đăng ký"
+        label={t('admin.system.security.strongPassword')}
+        description={t('admin.system.security.strongPasswordDesc')}
         checked={config.security.requireStrongPassword}
         onChange={(v) => patch('security.requireStrongPassword', v)}
       />
       <AdminToggle
-        label="Bắt buộc HTTPS"
-        description="Chuyển hướng HTTP sang HTTPS trên production"
+        label={t('admin.system.security.forceHttps')}
+        description={t('admin.system.security.forceHttpsDesc')}
         checked={config.security.forceHttps}
         onChange={(v) => patch('security.forceHttps', v)}
       />
       <AdminToggle
-        label="Ghi nhật ký kiểm toán (Audit log)"
-        description="Lưu mọi thay đổi cấu hình và hành động admin"
+        label={t('admin.system.security.auditLog')}
+        description={t('admin.system.security.auditLogDesc')}
         checked={config.security.auditLog}
         onChange={(v) => patch('security.auditLog', v)}
       />
@@ -748,13 +774,11 @@ const AdminSystemControl = () => {
         <div className="admin-sys-page admin-sys-page--icpdp">
           <header className="admin-page-header admin-sys-page__header">
             <div>
-              <h1 className="admin-main__title">Bảo trì hệ thống</h1>
-              <p className="admin-sys-page__subtitle">
-                Bật chế độ bảo trì để tạm khóa sinh viên; IC-PDP, CTSV và Admin vẫn truy cập được.
-              </p>
+              <h1 className="admin-main__title">{t('admin.system.maintenanceTitle')}</h1>
+              <p className="admin-sys-page__subtitle">{t('admin.system.maintenanceSubtitle')}</p>
               {maintenanceDirty && (
                 <p className="admin-page-header__clock" style={{ color: '#c2410c', fontWeight: 600 }}>
-                  Có thay đổi chưa lưu
+                  {t('admin.system.unsaved')}
                 </p>
               )}
             </div>
@@ -765,14 +789,18 @@ const AdminSystemControl = () => {
                 onClick={handleSaveMaintenance}
                 disabled={!maintenanceDirty || savingMaintenance || configLoading}
               >
-                {savingMaintenance ? 'Đang lưu…' : 'Lưu cấu hình bảo trì'}
+                {savingMaintenance ? t('admin.system.saving') : t('admin.system.saveMaintenance')}
               </button>
             </div>
           </header>
 
           <section className="admin-panel admin-sys-panel admin-sys-panel--main">
             <div className="admin-sys-panel__body admin-sys-panel__body--maint-only">
-              {configLoading ? <p className="admin-sys-panel__lead">Đang tải cấu hình…</p> : renderMaintenanceOps()}
+              {configLoading ? (
+                <p className="admin-sys-panel__lead">{t('admin.system.loadingConfig')}</p>
+              ) : (
+                renderMaintenanceOps()
+              )}
             </div>
           </section>
         </div>
@@ -787,25 +815,23 @@ const AdminSystemControl = () => {
       <div className="admin-sys-page">
         <header className="admin-page-header admin-sys-page__header">
           <div>
-            <h1 className="admin-main__title">Kiểm soát hệ thống</h1>
-            <p className="admin-sys-page__subtitle">
-              Giám sát hạ tầng, cấu hình Email / Payment / Bảo mật và theo dõi trạng thái vận hành F-Events.
-            </p>
+            <h1 className="admin-main__title">{t('admin.system.title')}</h1>
+            <p className="admin-sys-page__subtitle">{t('admin.system.subtitle')}</p>
             <p className="admin-page-header__clock" aria-live="polite">
-              Cập nhật: {clockLabel}
+              {t('admin.system.updated', { time: clockLabel })}
               {hasUnsaved && (
                 <span style={{ marginLeft: 8, color: '#c2410c', fontWeight: 600 }}>
-                  · Có thay đổi chưa lưu
+                  · {t('admin.system.unsaved')}
                 </span>
               )}
             </p>
           </div>
           <div className="admin-sys-page__actions">
             <button type="button" className="admin-sys-btn admin-sys-btn--ghost" onClick={handleTestConnection}>
-              Kiểm tra kết nối
+              {t('admin.system.testConnection')}
             </button>
             <button type="button" className="admin-sys-btn admin-sys-btn--ghost" onClick={handleReset}>
-              Khôi phục mặc định
+              {t('admin.system.resetDefault')}
             </button>
             <button
               type="button"
@@ -813,7 +839,7 @@ const AdminSystemControl = () => {
               onClick={handleSave}
               disabled={!hasUnsaved || savingMaintenance}
             >
-              {savingMaintenance ? 'Đang lưu…' : 'Lưu cấu hình'}
+              {savingMaintenance ? t('admin.system.saving') : t('admin.system.saveConfig')}
             </button>
           </div>
         </header>
@@ -829,7 +855,7 @@ const AdminSystemControl = () => {
 
         <div className="admin-sys-layout">
           <section className="admin-panel admin-sys-panel admin-sys-panel--main">
-            <div className="admin-sys-tabs" role="tablist" aria-label="Khu vực cấu hình">
+            <div className="admin-sys-tabs" role="tablist" aria-label={t('admin.system.tabAria')}>
               {ADMIN_SYSTEM_TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -839,7 +865,7 @@ const AdminSystemControl = () => {
                   className={`admin-sys-tab${activeTab === tab.id ? ' admin-sys-tab--active' : ''}`}
                   onClick={() => setActiveTab(tab.id)}
                 >
-                  {tab.label}
+                  {resolveLabel(tab, t)}
                 </button>
               ))}
             </div>
@@ -850,13 +876,13 @@ const AdminSystemControl = () => {
 
           <aside className="admin-panel admin-sys-panel admin-sys-panel--side">
             <div className="admin-sys-side-block">
-              <h2 className="admin-panel__title admin-panel__title--flush">Thông tin nền tảng</h2>
+              <h2 className="admin-panel__title admin-panel__title--flush">{t('admin.system.platform.title')}</h2>
               <table className="admin-sys-info-table">
                 <tbody>
                   {ADMIN_PLATFORM_INFO.map((row) => (
-                    <tr key={row.label}>
-                      <th>{row.label}</th>
-                      <td>{row.value}</td>
+                    <tr key={row.labelKey}>
+                      <th>{t(row.labelKey)}</th>
+                      <td>{row.valueKey ? t(row.valueKey) : row.value}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -864,21 +890,23 @@ const AdminSystemControl = () => {
             </div>
 
             <div className="admin-sys-side-block">
-              <h2 className="admin-panel__title admin-panel__title--flush">Biến môi trường (BE)</h2>
-              <p className="admin-sys-panel__lead">Giá trị tham chiếu — chỉnh trong file BE/.env</p>
+              <h2 className="admin-panel__title admin-panel__title--flush">{t('admin.system.env.title')}</h2>
+              <p className="admin-sys-panel__lead">{t('admin.system.env.lead')}</p>
               <ul className="admin-sys-env-list">
                 {ADMIN_ENV_DISPLAY.map((env) => (
                   <li key={env.key} className="admin-sys-env-item">
                     <span className="admin-sys-env-item__key">{env.key}</span>
-                    <span className="admin-sys-env-item__val">{env.value}</span>
+                    <span className="admin-sys-env-item__val">
+                      {env.valueKey ? t(env.valueKey) : env.value}
+                    </span>
                   </li>
                 ))}
               </ul>
             </div>
 
             <div className="admin-sys-side-block">
-              <h2 className="admin-panel__title admin-panel__title--flush">Nhật ký thay đổi</h2>
-              <p className="admin-sys-panel__lead">Các chỉnh sửa cấu hình gần đây</p>
+              <h2 className="admin-panel__title admin-panel__title--flush">{t('admin.system.changelog.title')}</h2>
+              <p className="admin-sys-panel__lead">{t('admin.system.changelog.lead')}</p>
               <ul className="admin-sys-changelog">
                 {changeLog.map((entry) => (
                   <li key={entry.id} className={`admin-sys-changelog__item admin-sys-changelog__item--${entry.tone}`}>
@@ -891,16 +919,14 @@ const AdminSystemControl = () => {
             </div>
 
             <div className="admin-sys-danger">
-              <p className="admin-sys-danger__title">Vùng nguy hiểm</p>
-              <p className="admin-sys-danger__desc">
-                Khởi động lại dịch vụ lõi — chỉ dùng khi có sự cố nghiêm trọng. Cần quyền IT Admin.
-              </p>
+              <p className="admin-sys-danger__title">{t('admin.system.danger.title')}</p>
+              <p className="admin-sys-danger__desc">{t('admin.system.danger.desc')}</p>
               <button
                 type="button"
                 className="admin-sys-btn admin-sys-btn--danger"
-                onClick={() => showToast?.('Yêu cầu khởi động lại đã ghi nhận (mock)', 'error')}
+                onClick={() => showToast?.(t('admin.system.danger.restartMock'), 'error')}
               >
-                Khởi động lại hệ thống
+                {t('admin.system.danger.restart')}
               </button>
             </div>
           </aside>

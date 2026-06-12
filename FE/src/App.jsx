@@ -91,7 +91,6 @@ import {
 } from './utils/auth';
 import SystemMaintenanceGate from './components/SystemMaintenanceGate';
 import SystemMaintenanceBanner from './components/SystemMaintenanceBanner';
-import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import AdminFptSystem from './pages/admin/public/AdminFptSystem';
 import AdminPartnerDetail from './pages/admin/public/AdminPartnerDetail';
 import AdminFptDeptDetail from './pages/admin/public/AdminFptDeptDetail';
@@ -100,10 +99,9 @@ import AdminFptUnitEvents from './pages/admin/AdminFptUnitEvents';
 import AdminPublicAnnouncements from './pages/admin/public/AdminPublicAnnouncements';
 import PublicAdminShell from './layouts/PublicAdminShell';
 import SiteFooter from './components/SiteFooter';
+import { useTranslation } from './i18n/I18nContext';
 import './index.css';
 import './styles/admin-public-pages.css';
-
-initThemeFromStorage();
 
 const ProtectedRoute = ({ children }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -219,6 +217,7 @@ const AdminAreaGuard = () => {
 };
 
 function App() {
+  const { language } = useTranslation();
   const [toasts, setToasts] = useState([]);
 
   const showToast = useCallback((message, type = 'success') => {
@@ -231,7 +230,7 @@ function App() {
   }, []);
 
   return (
-    <Router>
+    <Router key={language}>
       <div className="app-root">
         <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
         <SystemMaintenanceGate>

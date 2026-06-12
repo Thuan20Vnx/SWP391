@@ -1,30 +1,30 @@
 import { SettingsCard, SettingsSectionHeader } from '../SettingsLayout';
+import { useTranslation } from '../../../i18n/I18nContext';
 import { SECTION_META } from '../settingsConfig';
-import { getRoleSectionDescription } from '../settingsRoleConfig';
+import { normalizeSettingsRole } from '../settingsRoleConfig';
+import { getSecurityDescKey } from '../../../i18n/helpers';
 import ProfilePasswordSection from '../../profile/ProfilePasswordSection';
 
 const SecuritySection = ({ showToast, role = 'student' }) => {
-  const description =
-    getRoleSectionDescription('security', role) || SECTION_META.security.description;
+  const { t } = useTranslation();
+  const normalized = normalizeSettingsRole(role);
+  const description = t(getSecurityDescKey(normalized));
 
   return (
     <div className="settings-section">
-      <SettingsSectionHeader title={SECTION_META.security.title} description={description} />
+      <SettingsSectionHeader title={t(SECTION_META.security.titleKey)} description={description} />
 
       <div className="settings-section__stack">
-        <SettingsCard title="Mật khẩu">
+        <SettingsCard title={t('settings.passwordCard')}>
           <ProfilePasswordSection
             showToast={showToast}
-            idPrefix={`settings-${role}`}
-            description="Cập nhật mật khẩu đăng nhập tài khoản của bạn."
+            idPrefix={`settings-${normalized}`}
+            description={t('settings.passwordDesc')}
           />
         </SettingsCard>
 
-        <SettingsCard title="Phiên đăng nhập">
-          <p className="settings-note">
-            Đăng xuất trên thiết bị khác sẽ có trong bản cập nhật tiếp theo. Hiện tại bạn có thể đăng xuất
-            thủ công từ menu tài khoản.
-          </p>
+        <SettingsCard title={t('settings.sessionCard')}>
+          <p className="settings-note">{t('settings.sessionNote')}</p>
         </SettingsCard>
       </div>
     </div>

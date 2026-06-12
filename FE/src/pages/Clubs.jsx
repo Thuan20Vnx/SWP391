@@ -11,6 +11,7 @@ import {
   filterClubsByTag,
   mapApiClubToListItem,
 } from '../data/clubDiscoveryData';
+import { useTranslation } from '../i18n/I18nContext';
 
 const PAGE_SIZE = 3;
 const HERO_IMAGE =
@@ -18,6 +19,7 @@ const HERO_IMAGE =
 
 const Clubs = ({ showToast }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [clubs, setClubs] = useState([]);
   const [totalClubs, setTotalClubs] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -43,7 +45,7 @@ const Clubs = ({ showToast }) => {
       .catch(() => {
         setClubs(CLUB_SAMPLE_DATA);
         setTotalClubs(CLUB_SAMPLE_DATA.length);
-        showToast?.('Không thể tải danh sách CLB', 'error');
+        showToast?.(t('clubs.loadFail'), 'error');
       })
       .finally(() => setLoading(false));
   }, [showToast]);
@@ -66,8 +68,8 @@ const Clubs = ({ showToast }) => {
     setVisibleCount(PAGE_SIZE);
   };
 
-  const handleTagClick = (tag) => {
-    setActiveTag((prev) => (prev === tag ? '' : tag));
+  const handleTagClick = (tagId) => {
+    setActiveTag((prev) => (prev === tagId ? '' : tagId));
     setVisibleCount(PAGE_SIZE);
   };
 
@@ -83,7 +85,7 @@ const Clubs = ({ showToast }) => {
   return (
     <PublicAdminShell
       activeNav="clubs"
-      searchPlaceholder="Tìm kiếm câu lạc bộ..."
+      searchPlaceholder={t('header.searchClubs')}
       searchValue={headerSearch}
       onSearchChange={handleHeaderSearchChange}
     >
@@ -92,14 +94,11 @@ const Clubs = ({ showToast }) => {
         <section className="clubs-page__hero">
           <div className="clubs-page__hero-content">
             <h1>
-              Kết nối đam mê,
-              <span className="clubs-page__hero-accent">Khám phá tiềm</span>
-              <span className="clubs-page__hero-accent">năng.</span>
+              {t('clubs.heroTitle1')}
+              <span className="clubs-page__hero-accent">{t('clubs.heroTitle2')}</span>
+              <span className="clubs-page__hero-accent">{t('clubs.heroTitle3')}</span>
             </h1>
-            <p>
-              Khám phá cộng đồng sinh viên năng động tại FPT University. Tìm kiếm câu lạc bộ
-              phù hợp với sở thích và phát triển kỹ năng mềm vượt trội.
-            </p>
+            <p>{t('clubs.heroDesc')}</p>
 
             <form className="clubs-page__hero-search" onSubmit={handleHeroSearch}>
               <div className="clubs-page__hero-search-field">
@@ -108,30 +107,30 @@ const Clubs = ({ showToast }) => {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Nhập tên CLB hoặc lĩnh vực..."
+                  placeholder={t('clubs.searchPlaceholder')}
                   value={heroSearch}
                   onChange={(e) => setHeroSearch(e.target.value)}
                 />
               </div>
-              <button type="submit" className="clubs-page__hero-search-btn">Tìm ngay</button>
+              <button type="submit" className="clubs-page__hero-search-btn">{t('clubs.searchBtn')}</button>
             </form>
 
             <div className="clubs-page__hero-tags">
               {HERO_TAGS.map((tag) => (
                 <button
-                  key={tag}
+                  key={tag.id}
                   type="button"
-                  className={`clubs-page__hero-tag ${activeTag === tag ? 'is-active' : ''}`}
-                  onClick={() => handleTagClick(tag)}
+                  className={`clubs-page__hero-tag ${activeTag === tag.id ? 'is-active' : ''}`}
+                  onClick={() => handleTagClick(tag.id)}
                 >
-                  {tag}
+                  {t(tag.labelKey)}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="clubs-page__hero-visual">
-            <img src={HERO_IMAGE} alt="Hoạt động câu lạc bộ sinh viên" className="clubs-page__hero-img" />
+            <img src={HERO_IMAGE} alt={t('clubs.heroImageAlt')} className="clubs-page__hero-img" />
             <div className="clubs-page__hero-stat">
               <div className="clubs-page__hero-stat-icon">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="#f26f21">
@@ -140,7 +139,7 @@ const Clubs = ({ showToast }) => {
               </div>
               <div>
                 <strong>50+</strong>
-                <span>Câu lạc bộ đang hoạt động</span>
+                <span>{t('clubs.stat')}</span>
               </div>
             </div>
           </div>
@@ -149,15 +148,15 @@ const Clubs = ({ showToast }) => {
         <section className="clubs-page__community">
           <div className="clubs-page__community-head">
             <div>
-              <h2>Khám phá Cộng đồng</h2>
-              <p>Dành riêng cho tinh thần nhiệt huyết của sinh viên FPT</p>
+              <h2>{t('clubs.communityTitle')}</h2>
+              <p>{t('clubs.communityDesc')}</p>
             </div>
-            <div className="clubs-page__view-toggle" role="group" aria-label="Chế độ hiển thị">
+            <div className="clubs-page__view-toggle" role="group" aria-label={t('clubs.viewMode')}>
               <button
                 type="button"
                 className={layout === 'grid' ? 'is-active' : ''}
                 onClick={() => setLayout('grid')}
-                aria-label="Lưới"
+                aria-label={t('clubs.viewGrid')}
               >
                 <svg viewBox="0 0 18 18" width="18" height="18" fill="currentColor">
                   <rect x="0" y="0" width="7" height="7" rx="1" />
@@ -170,7 +169,7 @@ const Clubs = ({ showToast }) => {
                 type="button"
                 className={layout === 'list' ? 'is-active' : ''}
                 onClick={() => setLayout('list')}
-                aria-label="Danh sách"
+                aria-label={t('clubs.viewList')}
               >
                 <svg viewBox="0 0 18 10" width="18" height="10" fill="currentColor">
                   <rect x="0" y="0" width="18" height="2" rx="1" />
@@ -183,11 +182,11 @@ const Clubs = ({ showToast }) => {
 
           {loading ? (
             <div className="clubs-page__empty">
-              <p>Đang tải danh sách câu lạc bộ...</p>
+              <p>{t('clubs.loading')}</p>
             </div>
           ) : visibleClubs.length === 0 ? (
             <div className="clubs-page__empty">
-              <p>Không tìm thấy câu lạc bộ phù hợp.</p>
+              <p>{t('clubs.empty')}</p>
               <button
                 type="button"
                 className="clubs-page__reset-btn"
@@ -198,7 +197,7 @@ const Clubs = ({ showToast }) => {
                   setVisibleCount(PAGE_SIZE);
                 }}
               >
-                Xóa bộ lọc
+                {t('clubs.reset')}
               </button>
             </div>
           ) : (
@@ -221,13 +220,16 @@ const Clubs = ({ showToast }) => {
                 className="clubs-page__load-more"
                 onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
               >
-                Xem thêm câu lạc bộ
+                {t('clubs.loadMore')}
                 <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden="true">
                   <path d="M1 1l5 5 5-5" stroke="currentColor" strokeWidth="2" fill="none" />
                 </svg>
               </button>
               <p className="clubs-page__load-more-meta">
-                Hiển thị {Math.min(visibleCount, filteredClubs.length)} trên {displayTotal} câu lạc bộ
+                {t('clubs.loadMoreMeta', {
+                  shown: Math.min(visibleCount, filteredClubs.length),
+                  total: displayTotal,
+                })}
               </p>
             </div>
           )}
@@ -239,13 +241,13 @@ const Clubs = ({ showToast }) => {
       <button
         type="button"
         className="clubs-page__fab"
-        aria-label="Bạn cần giúp gì?"
+        aria-label={t('clubs.fabLabel')}
         onClick={() => navigate('/support')}
       >
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
           <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6z" />
         </svg>
-        Bạn cần giúp gì?
+        {t('clubs.fabText')}
       </button>
     </div>
     </PublicAdminShell>

@@ -565,6 +565,25 @@ html.dark .settings-note {
   color: var(--text-muted);
 }
 
+html.dark .settings-group__label {
+  color: var(--text-tertiary);
+}
+
+html.dark .ctsv-profile-security-body .profile-input-group input {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .ctsv-profile-security-body .profile-input-group input:focus {
+  background: var(--surface-muted);
+  border-color: var(--primary);
+}
+
+html.dark .ctsv-profile-security-body .profile-input-group label {
+  color: var(--text-secondary);
+}
+
 html.dark .settings-version-badge {
   background: var(--surface-hover);
   color: var(--text-secondary);
@@ -636,4 +655,85 @@ html.dark .sidebar-overlay.active {
 
 html.dark .profile-menu-backdrop {
   background: rgba(0, 0, 0, 0.45);
+}
+
+/* ── Admin shell / sidebar ── */
+html.dark .ctsv-app-shell .ctsv-sidebar,
+html.dark .admin-app-shell .ctsv-sidebar {
+  background: var(--bg-card);
+  border-right-color: var(--surface-border);
+}
+
+html.dark .ctsv-nav-link {
+  color: var(--text-main);
+}
+
+html.dark .ctsv-nav-section {
+  color: var(--text-muted);
+}
+
+html.dark .ctsv-sidebar-user {
+  color: var(--text-heading);
+}
+
+html.dark .admin-hamburger-btn,
+html.dark .ctsv-sidebar-close {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .admin-hamburger-btn:hover,
+html.dark .ctsv-sidebar-close:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+html.dark .site-header__nav .nav-link {
+  color: var(--text-nav);
+}
+
+html.dark .site-header__nav .nav-link.active {
+  color: var(--primary);
+}
+
+html.dark .header-search-box,
+html.dark .search-icon-inside {
+  color: var(--text-muted);
+}
+
+html.dark .profile-name {
+  color: var(--text-heading);
+}
+
+html.dark .profile-role,
+html.dark .profile-role-admin {
+  color: var(--primary);
+}
+
+html.dark .btn-auth-login {
+  color: var(--text-main);
+  border-color: var(--surface-border);
+}
+
+html.dark .btn-auth-signup {
+  color: #fff;
+}
+
+html.dark .admin-app-shell,
+html.dark .ctsv-shell-main,
+html.dark .public-shell-main,
+html.dark .admin-main,
+html.dark .admin-dashboard-grid,
+html.dark .admin-page {
+  background: var(--bg-light);
+  color: var(--text-main);
+}
+
+html.dark .admin-dashboard-grid .admin-stat-card,
+html.dark .admin-panel-card,
+html.dark .settings-shell {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-main);
 }

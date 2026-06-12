@@ -13,10 +13,13 @@ import {
   FACILITY_STATUS,
   STORAGE_KEYS,
   formToFacility,
+  getFacilityStatusLabel,
   loadStoredList,
   saveStoredList,
 } from '../../data/adminDataMaintenanceData';
 import { getUserRole, isAdminRole } from '../../utils/auth';
+import { useTranslation } from '../../i18n/I18nContext';
+import { resolveLabel } from '../../i18n/helpers';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-accounts.css';
 import '../../styles/admin-data-maintenance.css';
@@ -100,6 +103,7 @@ const IconChevronRight = () => (
 );
 
 const AdminDataMaintenance = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast } = useOutletContext() || {};
@@ -120,10 +124,10 @@ const AdminDataMaintenance = () => {
 
   useEffect(() => {
     if (!isAdminRole(role)) {
-      showToast?.('Bạn không có quyền truy cập trang quản trị!', 'error');
+      showToast?.(t('admin.common.noAccess'), 'error');
       navigate('/profile');
     }
-  }, [role, navigate, showToast]);
+  }, [role, navigate, showToast, t]);
 
   useEffect(() => {
     if (tabFromUrl && ADMIN_DATA_TABS.some((t) => t.id === tabFromUrl)) {
@@ -166,10 +170,10 @@ const AdminDataMaintenance = () => {
   );
 
   const addButtonLabel = useMemo(() => {
-    if (activeTab === 'facilities') return 'Thêm tài nguyên mới';
-    if (activeTab === 'categories') return 'Thêm danh mục sự kiện mới';
-    return 'Khai báo câu lạc bộ mới';
-  }, [activeTab]);
+    if (activeTab === 'facilities') return t('admin.dataMaintenance.add.facilities');
+    if (activeTab === 'categories') return t('admin.dataMaintenance.add.categories');
+    return t('admin.dataMaintenance.add.clubs');
+  }, [activeTab, t]);
 
   const openCreate = () => {
     setEditingItem(null);
@@ -200,7 +204,7 @@ const AdminDataMaintenance = () => {
     onKeyDown: (e) => handleRowKeyDown(row, e),
     tabIndex: 0,
     role: 'button',
-    'aria-label': `Xem chi tiết ${label}`,
+    'aria-label': t('admin.dataMaintenance.rowAria', { label }),
   });
 
   const openEdit = (item) => {
@@ -212,10 +216,10 @@ const AdminDataMaintenance = () => {
   const handleDelete = (item) => {
     const label =
       activeTab === 'facilities' ? item.name : activeTab === 'categories' ? item.name : item.name;
-    if (!window.confirm(`Xóa "${label}" khỏi danh sách quản lý?`)) return;
+    if (!window.confirm(t('admin.dataMaintenance.deleteConfirm', { label }))) return;
     const next = currentList.filter((row) => row.id !== item.id);
     persist(activeTab, next);
-    showToast?.('Đã xóa bản ghi', 'info');
+    showToast?.(t('admin.dataMaintenance.toast.deleted'), 'info');
   };
 
   const handleFacilitySubmit = (values) => {
@@ -227,7 +231,10 @@ const AdminDataMaintenance = () => {
     persist('facilities', next);
     setSubmitting(false);
     setModalOpen(false);
-    showToast?.(editingItem ? 'Đã cập nhật tài nguyên' : 'Đã thêm tài nguyên mới', 'success');
+    showToast?.(
+      editingItem ? t('admin.dataMaintenance.toast.facilityUpdated') : t('admin.dataMaintenance.toast.facilityAdded'),
+      'success',
+    );
   };
 
   const handleCategorySubmit = (values) => {
@@ -246,7 +253,10 @@ const AdminDataMaintenance = () => {
     persist('categories', next);
     setSubmitting(false);
     setModalOpen(false);
-    showToast?.(editingItem ? 'Đã cập nhật danh mục' : 'Đã thêm danh mục mới', 'success');
+    showToast?.(
+      editingItem ? t('admin.dataMaintenance.toast.categoryUpdated') : t('admin.dataMaintenance.toast.categoryAdded'),
+      'success',
+    );
   };
 
   const handleClubSubmit = (values) => {
@@ -263,7 +273,10 @@ const AdminDataMaintenance = () => {
     persist('clubs', next);
     setSubmitting(false);
     setModalOpen(false);
-    showToast?.(editingItem ? 'Đã cập nhật câu lạc bộ' : 'Đã khai báo câu lạc bộ mới', 'success');
+    showToast?.(
+      editingItem ? t('admin.dataMaintenance.toast.clubUpdated') : t('admin.dataMaintenance.toast.clubAdded'),
+      'success',
+    );
   };
 
   const renderFacilityRows = () =>
@@ -279,23 +292,23 @@ const AdminDataMaintenance = () => {
               <span className="admin-data-room__name">{row.name}</span>
             </div>
           </td>
-          <td>{row.capacity.toLocaleString('vi-VN')} người</td>
+          <td>{t('admin.dataMaintenance.capacityPeople', { count: row.capacity.toLocaleString('vi-VN') })}</td>
           <td>{row.building}</td>
           <td>
             <span className={`admin-data-status admin-data-status--${statusMeta.tone}`}>
               <span className="admin-data-status__dot" aria-hidden="true" />
-              {statusMeta.label}
+              {getFacilityStatusLabel(row.status, t)}
             </span>
           </td>
           <td>
             <div className="admin-data-row-actions" onClick={(e) => e.stopPropagation()}>
-              <button type="button" className="admin-data-icon-btn" title="Xem chi tiết" onClick={() => openDetail(row)}>
+              <button type="button" className="admin-data-icon-btn" title={t('admin.common.viewDetail')} onClick={() => openDetail(row)}>
                 <IconView />
               </button>
-              <button type="button" className="admin-data-icon-btn" title="Sửa" onClick={() => openEdit(row)}>
+              <button type="button" className="admin-data-icon-btn" title={t('admin.common.edit')} onClick={() => openEdit(row)}>
                 <IconEdit />
               </button>
-              <button type="button" className="admin-data-icon-btn admin-data-icon-btn--danger" title="Xóa" onClick={() => handleDelete(row)}>
+              <button type="button" className="admin-data-icon-btn admin-data-icon-btn--danger" title={t('admin.common.delete')} onClick={() => handleDelete(row)}>
                 <IconTrash />
               </button>
             </div>
@@ -318,18 +331,18 @@ const AdminDataMaintenance = () => {
         </td>
         <td>
           <span className="admin-data-event-count">
-            {(row.eventCount ?? 0).toLocaleString('vi-VN')} sự kiện
+            {t('admin.dataMaintenance.eventCount', { count: (row.eventCount ?? 0).toLocaleString('vi-VN') })}
           </span>
         </td>
         <td>
           <div className="admin-data-row-actions" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="admin-data-icon-btn" title="Xem chi tiết" onClick={() => openDetail(row)}>
+            <button type="button" className="admin-data-icon-btn" title={t('admin.common.viewDetail')} onClick={() => openDetail(row)}>
               <IconView />
             </button>
-            <button type="button" className="admin-data-icon-btn" title="Sửa" onClick={() => openEdit(row)}>
+            <button type="button" className="admin-data-icon-btn" title={t('admin.common.edit')} onClick={() => openEdit(row)}>
               <IconEdit />
             </button>
-            <button type="button" className="admin-data-icon-btn admin-data-icon-btn--danger" title="Xóa" onClick={() => handleDelete(row)}>
+            <button type="button" className="admin-data-icon-btn admin-data-icon-btn--danger" title={t('admin.common.delete')} onClick={() => handleDelete(row)}>
               <IconTrash />
             </button>
           </div>
@@ -355,18 +368,20 @@ const AdminDataMaintenance = () => {
         <td>
           <span className={`admin-data-status admin-data-status--${row.status === 'active' ? 'ready' : 'maintenance'}`}>
             <span className="admin-data-status__dot" aria-hidden="true" />
-            {row.status === 'active' ? 'HOẠT ĐỘNG' : 'TẠM DỪNG'}
+            {row.status === 'active'
+              ? t('admin.dataMaintenance.clubStatus.active')
+              : t('admin.dataMaintenance.clubStatus.inactive')}
           </span>
         </td>
         <td>
           <div className="admin-data-row-actions" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="admin-data-icon-btn" title="Xem chi tiết" onClick={() => openDetail(row)}>
+            <button type="button" className="admin-data-icon-btn" title={t('admin.common.viewDetail')} onClick={() => openDetail(row)}>
               <IconView />
             </button>
-            <button type="button" className="admin-data-icon-btn" title="Sửa" onClick={() => openEdit(row)}>
+            <button type="button" className="admin-data-icon-btn" title={t('admin.common.edit')} onClick={() => openEdit(row)}>
               <IconEdit />
             </button>
-            <button type="button" className="admin-data-icon-btn admin-data-icon-btn--danger" title="Xóa" onClick={() => handleDelete(row)}>
+            <button type="button" className="admin-data-icon-btn admin-data-icon-btn--danger" title={t('admin.common.delete')} onClick={() => handleDelete(row)}>
               <IconTrash />
             </button>
           </div>
@@ -378,33 +393,33 @@ const AdminDataMaintenance = () => {
     if (activeTab === 'facilities') {
       return (
         <tr>
-          <th>Hội trường / Phòng</th>
-          <th>Sức chứa</th>
-          <th>Tòa nhà</th>
-          <th>Trạng thái</th>
-          <th className="admin-data-table__col-actions">Hành động</th>
+          <th>{t('admin.dataMaintenance.table.room')}</th>
+          <th>{t('admin.dataMaintenance.table.capacity')}</th>
+          <th>{t('admin.dataMaintenance.table.building')}</th>
+          <th>{t('admin.dataMaintenance.table.status')}</th>
+          <th className="admin-data-table__col-actions">{t('admin.common.actions')}</th>
         </tr>
       );
     }
     if (activeTab === 'categories') {
       return (
         <tr>
-          <th>Mã danh mục</th>
-          <th>Tên danh mục sự kiện</th>
-          <th>Mô tả khái quát</th>
-          <th>Số sự kiện đã tổ chức</th>
-          <th className="admin-data-table__col-actions">Hành động</th>
+          <th>{t('admin.dataMaintenance.table.categoryCode')}</th>
+          <th>{t('admin.dataMaintenance.table.categoryName')}</th>
+          <th>{t('admin.dataMaintenance.table.description')}</th>
+          <th>{t('admin.dataMaintenance.table.eventCount')}</th>
+          <th className="admin-data-table__col-actions">{t('admin.common.actions')}</th>
         </tr>
       );
     }
     return (
       <tr>
-        <th>Mã CLB</th>
-        <th>Tên câu lạc bộ</th>
-        <th>Lĩnh vực hoạt động</th>
-        <th>Chủ nhiệm hiện tại</th>
-        <th>Trạng thái</th>
-        <th className="admin-data-table__col-actions">Hành động</th>
+        <th>{t('admin.dataMaintenance.table.clubCode')}</th>
+        <th>{t('admin.dataMaintenance.table.clubName')}</th>
+        <th>{t('admin.dataMaintenance.table.clubField')}</th>
+        <th>{t('admin.dataMaintenance.table.president')}</th>
+        <th>{t('admin.dataMaintenance.table.status')}</th>
+        <th className="admin-data-table__col-actions">{t('admin.common.actions')}</th>
       </tr>
     );
   };
@@ -432,10 +447,8 @@ const AdminDataMaintenance = () => {
       <div className="admin-data-page">
         <header className="admin-data-page__header">
           <div className="admin-data-page__intro">
-            <h1 className="admin-data-page__title">Quản lý cơ sở & danh mục</h1>
-            <p className="admin-data-page__subtitle">
-              Cập nhật phòng/hội trường, danh mục sự kiện và danh sách CLB dùng chung toàn hệ thống.
-            </p>
+            <h1 className="admin-data-page__title">{t('admin.dataMaintenance.title')}</h1>
+            <p className="admin-data-page__subtitle">{t('admin.dataMaintenance.subtitle')}</p>
           </div>
           <button type="button" className="admin-data-btn-add" onClick={openCreate}>
             <IconPlus />
@@ -443,7 +456,7 @@ const AdminDataMaintenance = () => {
           </button>
         </header>
 
-        <nav className="admin-data-tabs" role="tablist" aria-label="Quản lý cơ sở và danh mục">
+        <nav className="admin-data-tabs" role="tablist" aria-label={t('admin.dataMaintenance.tabNavAria')}>
           {ADMIN_DATA_TABS.map((tab) => (
             <button
               key={tab.id}
@@ -453,7 +466,7 @@ const AdminDataMaintenance = () => {
               className={`admin-data-tab${activeTab === tab.id ? ' admin-data-tab--active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              {tab.label}
+              {resolveLabel(tab, t)}
             </button>
           ))}
         </nav>
@@ -467,7 +480,7 @@ const AdminDataMaintenance = () => {
                 {slice.length === 0 ? (
                   <tr>
                     <td colSpan={colSpan} className="admin-data-table__empty">
-                      Chưa có dữ liệu. Bấm nút thêm mới để tạo bản ghi.
+                      {t('admin.dataMaintenance.empty')}
                     </td>
                   </tr>
                 ) : (
@@ -484,16 +497,20 @@ const AdminDataMaintenance = () => {
           <footer className="admin-data-pagination">
             <p className="admin-data-pagination__info">
               {total === 0
-                ? 'Không có kết quả'
-                : `Hiển thị ${pageStart}–${pageEnd} trên ${total} kết quả`}
+                ? t('admin.dataMaintenance.pagination.none')
+                : t('admin.dataMaintenance.pagination.range', {
+                    start: pageStart,
+                    end: pageEnd,
+                    total,
+                  })}
             </p>
-            <nav className="admin-data-pagination__nav" aria-label="Phân trang">
+            <nav className="admin-data-pagination__nav" aria-label={t('admin.common.pagination')}>
               <button
                 type="button"
                 className="admin-data-page-arrow"
                 disabled={safePage <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-label="Trang trước"
+                aria-label={t('admin.common.prevPage')}
               >
                 <IconChevronLeft />
               </button>
@@ -515,7 +532,7 @@ const AdminDataMaintenance = () => {
                 className="admin-data-page-arrow"
                 disabled={safePage >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                aria-label="Trang sau"
+                aria-label={t('admin.common.nextPage')}
               >
                 <IconChevronRight />
               </button>

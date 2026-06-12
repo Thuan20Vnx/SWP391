@@ -1,4 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react';
+import { useTranslation } from '../../i18n/I18nContext';
 import '../../styles/admin-data-fields.css';
 
 const IconPlus = () => (
@@ -53,6 +54,7 @@ export const categoryToForm = (item) => ({
 });
 
 const AdminCategoryDeclareModal = ({ open, editingItem, onClose, onSubmit, submitting }) => {
+  const { t } = useTranslation();
   const [values, setValues] = useState(emptyCategoryForm);
 
   useEffect(() => {
@@ -75,8 +77,11 @@ const AdminCategoryDeclareModal = ({ open, editingItem, onClose, onSubmit, submi
   }, [open, onClose, submitting]);
 
   const title = useMemo(
-    () => (editingItem ? 'Chỉnh sửa danh mục sự kiện' : 'Thêm danh mục sự kiện mới'),
-    [editingItem],
+    () =>
+      editingItem
+        ? t('admin.dataMaintenance.category.editTitle')
+        : t('admin.dataMaintenance.category.addTitle'),
+    [editingItem, t],
   );
 
   if (!open) return null;
@@ -110,8 +115,8 @@ const AdminCategoryDeclareModal = ({ open, editingItem, onClose, onSubmit, submi
             </h2>
             <p className="admin-data-modal__subtitle">
               {editingItem
-                ? 'Cập nhật thông tin danh mục sự kiện trên hệ thống.'
-                : 'Khai báo danh mục sự kiện dùng chung khi tạo và duyệt sự kiện trên hệ thống.'}
+                ? t('admin.dataMaintenance.category.editSubtitle')
+                : t('admin.dataMaintenance.category.addSubtitle')}
             </p>
           </div>
           <button
@@ -119,7 +124,7 @@ const AdminCategoryDeclareModal = ({ open, editingItem, onClose, onSubmit, submi
             className="admin-data-modal__close"
             onClick={onClose}
             disabled={submitting}
-            aria-label="Đóng"
+            aria-label={t('admin.common.close')}
           >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -129,14 +134,16 @@ const AdminCategoryDeclareModal = ({ open, editingItem, onClose, onSubmit, submi
 
         <form onSubmit={handleSubmit} className="admin-data-modal__form">
           <div className="admin-data-field">
-            <span className="admin-data-field__label admin-data-field__label--dark">Mã danh mục</span>
+            <span className="admin-data-field__label admin-data-field__label--dark">
+              {t('admin.dataMaintenance.category.code')}
+            </span>
             <div className="admin-data-input-wrap">
               <input
                 type="text"
                 className="admin-data-input"
                 value={values.code}
                 onChange={(e) => setField('code', e.target.value.toUpperCase())}
-                placeholder="Ví dụ: CAT_TECH..."
+                placeholder={t('admin.dataMaintenance.category.codePlaceholder')}
                 required
                 disabled={submitting}
               />
@@ -147,14 +154,16 @@ const AdminCategoryDeclareModal = ({ open, editingItem, onClose, onSubmit, submi
           </div>
 
           <div className="admin-data-field">
-            <span className="admin-data-field__label admin-data-field__label--dark">Tên danh mục sự kiện</span>
+            <span className="admin-data-field__label admin-data-field__label--dark">
+              {t('admin.dataMaintenance.category.name')}
+            </span>
             <div className="admin-data-input-wrap">
               <input
                 type="text"
                 className="admin-data-input"
                 value={values.name}
                 onChange={(e) => setField('name', e.target.value)}
-                placeholder="Nhập tên danh mục (Ví dụ: Học thuật & Công nghệ)..."
+                placeholder={t('admin.dataMaintenance.category.namePlaceholder')}
                 required
                 disabled={submitting}
               />
@@ -165,21 +174,25 @@ const AdminCategoryDeclareModal = ({ open, editingItem, onClose, onSubmit, submi
           </div>
 
           <div className="admin-data-field">
-            <span className="admin-data-field__label admin-data-field__label--dark">Mô tả khái quát</span>
+            <span className="admin-data-field__label admin-data-field__label--dark">
+              {t('admin.dataMaintenance.category.description')}
+            </span>
             <textarea
               className="admin-data-textarea"
               rows={4}
               value={values.description}
               onChange={(e) => setField('description', e.target.value)}
-              placeholder="Mô tả ngắn về phạm vi danh mục, loại sự kiện thuộc nhóm..."
+              placeholder={t('admin.dataMaintenance.category.descriptionPlaceholder')}
               disabled={submitting}
             />
           </div>
 
           <div className="admin-data-toggle admin-data-toggle--stacked">
             <div className="admin-data-toggle__copy">
-              <span className="admin-data-toggle__title">Trạng thái hiển thị</span>
-              <p className="admin-data-toggle__hint">Hiển thị danh mục này khi tạo và duyệt sự kiện.</p>
+              <span className="admin-data-toggle__title">
+                {t('admin.dataMaintenance.category.displayStatus')}
+              </span>
+              <p className="admin-data-toggle__hint">{t('admin.dataMaintenance.category.displayHint')}</p>
             </div>
             <button
               type="button"
@@ -197,11 +210,15 @@ const AdminCategoryDeclareModal = ({ open, editingItem, onClose, onSubmit, submi
 
           <footer className="admin-data-modal__footer">
             <button type="button" className="admin-acc-btn admin-acc-btn--ghost" onClick={onClose} disabled={submitting}>
-              Hủy bỏ
+              {t('admin.common.cancel')}
             </button>
             <button type="submit" className="admin-data-btn-add" disabled={submitting}>
               {editingItem ? <IconSave /> : <IconPlus />}
-              {submitting ? 'Đang lưu...' : editingItem ? 'Xác nhận lưu' : 'Xác nhận tạo'}
+              {submitting
+                ? t('admin.dataMaintenance.modal.saving')
+                : editingItem
+                  ? t('admin.dataMaintenance.modal.confirmSave')
+                  : t('admin.dataMaintenance.modal.confirmCreate')}
             </button>
           </footer>
         </form>

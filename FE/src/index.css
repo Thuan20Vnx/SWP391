@@ -50,7 +50,7 @@ html.dark {
   --color-icon: #cbd5e1;
   --text-dark: #f1f5f9;
   --accent-dark: #fb923c;
-  --bg-light: #ffffff;
+  --bg-light: #0f172a;
   --bg-card: #1e293b;
   --white: #1e293b;
   --header-bg: rgba(15, 23, 42, 0.94);
@@ -76,7 +76,7 @@ html.dark {
 
 body {
   font-family: var(--font-family);
-  background-color: #ffffff;
+  background-color: var(--bg-light);
   color: var(--text-main);
   line-height: 1.5;
   overflow-x: hidden;
@@ -5347,6 +5347,16 @@ a.club-tag {
   border-radius: 12px;
   background: #fff;
   overflow: hidden;
+}
+
+.settings-group__body:has(.settings-select-field),
+.settings-group__body:has(.app-select) {
+  overflow: visible;
+}
+
+.settings-group:has(.app-select.is-open) {
+  position: relative;
+  z-index: 20;
 }
 
 .settings-group__body > .settings-form,
@@ -11913,8 +11923,8 @@ a.club-tag {
 
 .ctsv-profile-security-card {
   margin-top: 0;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  border: 1px solid var(--surface-border);
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
   overflow: hidden;
@@ -11932,10 +11942,11 @@ a.club-tag {
   cursor: pointer;
   text-align: left;
   transition: background 0.15s ease;
+  color: inherit;
 }
 
 .ctsv-profile-security-toggle:hover {
-  background: #ffffff;
+  background: var(--surface-hover);
 }
 
 .ctsv-profile-security-toggle-main {
@@ -11947,13 +11958,13 @@ a.club-tag {
   margin: 0 0 4px;
   font-size: 1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-heading);
 }
 
 .ctsv-profile-security-toggle-main p {
   margin: 0;
   font-size: 0.8125rem;
-  color: #64748b;
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
@@ -11965,13 +11976,13 @@ a.club-tag {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  color: #ea580c;
-  background: #ffffff;
+  color: var(--primary);
+  background: var(--surface-muted);
   transition: transform 0.28s ease, background 0.15s ease;
 }
 
 .ctsv-profile-security-toggle:hover .ctsv-profile-security-chevron {
-  background: #ffffff;
+  background: var(--surface-hover);
 }
 
 .ctsv-profile-security-chevron.is-open {
@@ -11995,7 +12006,7 @@ a.club-tag {
 
 .ctsv-profile-security-body {
   padding: 0 32px 24px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--surface-border);
 }
 
 .ctsv-profile-security-body .profile-form-grid {
@@ -12042,9 +12053,9 @@ a.club-tag {
   padding: 12px 14px;
   border-radius: 10px;
   font-size: 0.875rem;
-  color: #64748b;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  border: 1px solid var(--surface-border);
   line-height: 1.5;
 }
 

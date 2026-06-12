@@ -1,0 +1,227 @@
+/**
+ * Dark theme — admin dashboard (Giám sát, analytics, modals)
+ */
+
+html.dark .admin-main,
+html.dark .admin-dashboard-grid {
+  background: var(--bg-light);
+  color: var(--text-main);
+}
+
+html.dark .admin-main__title,
+html.dark .admin-panel__title,
+html.dark .admin-panel__title--inline {
+  color: var(--text-heading);
+}
+
+html.dark .admin-page-header__clock,
+html.dark .admin-chart-header__sub,
+html.dark .admin-stat-card__sub {
+  color: var(--text-muted);
+}
+
+html.dark .admin-stat-card__label {
+  color: var(--text-secondary);
+}
+
+html.dark .admin-stat-card__value,
+html.dark .admin-stat-card__quick strong {
+  color: var(--text-heading);
+}
+
+html.dark .admin-stat-card__quick {
+  border-top-color: var(--surface-border);
+}
+
+html.dark .admin-status-badge {
+  background: rgba(34, 197, 94, 0.12) !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  color: #86efac !important;
+}
+
+html.dark .admin-chart-kpis__item,
+html.dark .admin-chart-kpis__item--peak,
+html.dark .admin-chart-kpis__item--growth {
+  background: var(--surface-muted) !important;
+  border-color: var(--surface-border) !important;
+}
+
+html.dark .admin-chart-kpis__item--peak {
+  border-color: rgba(242, 111, 33, 0.35) !important;
+}
+
+html.dark .admin-chart-kpis__item--growth {
+  border-color: rgba(34, 197, 94, 0.3) !important;
+}
+
+html.dark .admin-chart-kpis__label,
+html.dark .admin-chart-kpis__hint {
+  color: var(--text-muted);
+}
+
+html.dark .admin-chart-kpis__value {
+  color: var(--text-heading);
+}
+
+html.dark .admin-chart-kpis__item--growth .admin-chart-kpis__value {
+  color: #86efac;
+}
+
+html.dark .admin-panel {
+  background: var(--bg-card) !important;
+  border-color: var(--surface-border) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+html.dark .admin-panel__detail-hint {
+  color: var(--text-tertiary);
+}
+
+html.dark .admin-chart-legend {
+  color: var(--text-secondary);
+}
+
+html.dark .admin-bar-chart {
+  border-left-color: var(--surface-border);
+  border-bottom-color: var(--surface-border);
+}
+
+html.dark .admin-bar-chart__grid-line {
+  border-top-color: var(--surface-border);
+}
+
+html.dark .admin-bar-chart__y-labels,
+html.dark .admin-bar-chart__x,
+html.dark .admin-bar-chart__month {
+  color: var(--text-muted);
+}
+
+html.dark .admin-bar-chart__value-label {
+  color: var(--text-secondary);
+}
+
+html.dark .admin-activity-item {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+}
+
+html.dark .admin-activity-item__time,
+html.dark .admin-activity-item__actor {
+  color: var(--text-muted);
+}
+
+html.dark .admin-activity-item__message {
+  color: var(--text-main);
+}
+
+html.dark .admin-log-modal,
+html.dark .admin-log-modal__toolbar,
+html.dark .admin-log-modal__footer,
+html.dark .admin-detail-summary__item,
+html.dark .admin-detail-table-wrap {
+  background: var(--bg-card) !important;
+  border-color: var(--surface-border);
+}
+
+html.dark .admin-detail-summary__label {
+  color: var(--text-muted);
+}
+
+html.dark .admin-detail-summary__value {
+  color: var(--text-heading);
+}
+
+html.dark .admin-detail-table th {
+  background: var(--surface-muted) !important;
+  color: var(--text-secondary) !important;
+}
+
+html.dark .admin-detail-table td {
+  background: var(--bg-card) !important;
+  color: var(--text-main);
+  border-color: var(--surface-border) !important;
+}
+
+html.dark .admin-metric-hero__badge {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-metric-hero__badge--up {
+  background: rgba(34, 197, 94, 0.12) !important;
+  color: #86efac;
+}
+
+html.dark .admin-live-pill {
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+}
+
+html.dark .admin-proposal-card,
+html.dark .admin-proposal-card__footer,
+html.dark .admin-data-check-card__box,
+html.dark .admin-event-request-card {
+  background: var(--bg-card) !important;
+  border-color: var(--surface-border);
+}
+
+html.dark .admin-log-badge--default {
+  background: var(--surface-muted) !important;
+  color: var(--text-secondary);
+}
+
+html.dark .admin-log-modal__filters-badge {
+  background: var(--surface-muted) !important;
+  color: var(--text-muted);
+}
+
+/* AppSelect — sửa override sai từ dark-theme-force (menu/option mất tương phản) */
+html.dark .app-select__trigger {
+  background: var(--surface-muted) !important;
+  border-color: var(--surface-border) !important;
+  color: var(--text-main) !important;
+}
+
+html.dark .app-select__trigger:hover:not(:disabled),
+html.dark .app-select.is-open .app-select__trigger,
+html.dark .app-select__trigger:focus-visible {
+  background: var(--bg-card) !important;
+  border-color: var(--primary) !important;
+}
+
+html.dark .app-select__value.is-placeholder {
+  color: var(--text-muted) !important;
+}
+
+html.dark .app-select__chevron {
+  color: var(--text-muted);
+}
+
+html.dark .app-select.is-open .app-select__chevron {
+  color: var(--primary);
+}
+
+html.dark .app-select__menu,
+html.dark .app-select__menu--portal {
+  background: var(--bg-card) !important;
+  border-color: var(--surface-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+html.dark .app-select__option {
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+}
+
+html.dark .app-select__option:hover {
+  background: var(--surface-hover) !important;
+  color: var(--text-main) !important;
+}
+
+html.dark .app-select__option.is-selected {
+  background: rgba(242, 111, 33, 0.14) !important;
+  color: var(--primary) !important;
+}
+
+html.dark .app-select__check {
+  color: var(--primary);
+}

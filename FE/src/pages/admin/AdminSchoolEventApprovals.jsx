@@ -8,8 +8,7 @@ import {
   rejectAdminModeration,
   rejectAdminSchoolEvent
 } from '../../services/adminApi';
-import { SCHOOL_EVENT_STATUS_LABELS } from '../../constants/eventWorkflow';
-import { MODERATION_ACTION_LABELS } from '../../constants/eventModeration';
+import { useTranslation } from '../../i18n/I18nContext';
 
 const formatDateTime = (value) => {
   if (!value) return '—';
@@ -19,6 +18,7 @@ const formatDateTime = (value) => {
 
 const AdminSchoolEventApprovals = ({ showToast }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [tab, setTab] = useState('submit');
   const [events, setEvents] = useState([]);
   const [modEvents, setModEvents] = useState([]);
@@ -29,6 +29,12 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
   const [modRejectReason, setModRejectReason] = useState('');
   const [busy, setBusy] = useState(false);
   const userRole = localStorage.getItem('userRole');
+
+  const modActionLabel = (action) => {
+    const key = `admin.eventApprovals.modAction.${action}`;
+    const translated = t(key);
+    return translated !== key ? translated : action;
+  };
 
   const load = () => {
     setLoading(true);
@@ -47,18 +53,18 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
 
   useEffect(() => {
     if (userRole !== 'admin') {
-      showToast?.('Chỉ tài khoản Admin mới truy cập được trang này.', 'error');
+      showToast?.(t('admin.common.adminOnly'), 'error');
       navigate('/profile');
       return;
     }
     load();
-  }, [userRole, navigate, showToast, tab]);
+  }, [userRole, navigate, showToast, tab, t]);
 
   const handleApprove = async (id) => {
     setBusy(true);
     try {
       await approveAdminSchoolEvent(id);
-      showToast?.('Đã phê duyệt sự kiện cấp trường.', 'success');
+      showToast?.(t('admin.eventApprovals.toast.approved'), 'success');
       setEvents((prev) => prev.filter((ev) => ev.id !== id));
     } catch (e) {
       showToast?.(e.message, 'error');
@@ -71,7 +77,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
     setBusy(true);
     try {
       await approveAdminModeration(eventId);
-      showToast?.('Đã phê duyệt yêu cầu điều phối.', 'success');
+      showToast?.(t('admin.eventApprovals.toast.modApproved'), 'success');
       setModEvents((prev) => prev.filter((ev) => ev.id !== eventId));
     } catch (e) {
       showToast?.(e.message, 'error');
@@ -85,7 +91,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
     setBusy(true);
     try {
       await rejectAdminModeration(modRejectId, modRejectReason.trim());
-      showToast?.('Đã từ chối yêu cầu điều phối.', 'info');
+      showToast?.(t('admin.eventApprovals.toast.modRejected'), 'info');
       setModEvents((prev) => prev.filter((ev) => ev.id !== modRejectId));
       setModRejectId(null);
       setModRejectReason('');
@@ -101,7 +107,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
     setBusy(true);
     try {
       await rejectAdminSchoolEvent(rejectId, rejectReason.trim());
-      showToast?.('Đã từ chối đơn tổ chức sự kiện.', 'info');
+      showToast?.(t('admin.eventApprovals.toast.rejected'), 'info');
       setEvents((prev) => prev.filter((ev) => ev.id !== rejectId));
       setRejectId(null);
       setRejectReason('');
@@ -116,10 +122,8 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
     <div className="profile-container" style={{ minHeight: '100vh', background: 'var(--bg-default)' }}>
       <main className="profile-main" style={{ marginTop: '40px', padding: '24px 5%', maxWidth: 960, margin: '40px auto' }}>
         <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Phê duyệt sự kiện cấp trường (Admin)</h1>
-          <p style={{ color: 'var(--text-muted)' }}>
-            CTSV đã gửi đơn tổ chức — Admin xác nhận trước khi CTSV được publish và mở đăng ký.
-          </p>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>{t('admin.eventApprovals.title')}</h1>
+          <p style={{ color: 'var(--text-muted)' }}>{t('admin.eventApprovals.subtitle')}</p>
         </header>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
@@ -128,26 +132,26 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
             className={tab === 'submit' ? 'ctsv-btn-primary' : 'ctsv-btn-secondary'}
             onClick={() => setTab('submit')}
           >
-            Đơn tổ chức mới
+            {t('admin.eventApprovals.tab.submit')}
           </button>
           <button
             type="button"
             className={tab === 'moderation' ? 'ctsv-btn-primary' : 'ctsv-btn-secondary'}
             onClick={() => setTab('moderation')}
           >
-            Quản lý sự kiện
+            {t('admin.eventApprovals.tab.moderation')}
           </button>
         </div>
 
         {loading ? (
-          <p>Đang tải…</p>
+          <p>{t('common.loading')}</p>
         ) : tab === 'submit' && events.length === 0 ? (
           <p style={{ padding: 32, textAlign: 'center', background: '#fff', borderRadius: 12 }}>
-            Không có đơn tổ chức sự kiện chờ Admin phê duyệt.
+            {t('admin.eventApprovals.empty.submit')}
           </p>
         ) : tab === 'moderation' && modEvents.length === 0 ? (
           <p style={{ padding: 32, textAlign: 'center', background: '#fff', borderRadius: 12 }}>
-            Không có yêu cầu quản lý sự kiện (hủy / hoãn / ẩn / chỉnh sửa) chờ Admin.
+            {t('admin.eventApprovals.empty.moderation')}
           </p>
         ) : tab === 'submit' ? (
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -184,18 +188,20 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
                         color: '#1d4ed8'
                       }}
                     >
-                      {SCHOOL_EVENT_STATUS_LABELS.pending_admin}
+                      {t('admin.eventApprovals.status.pending_admin')}
                     </span>
                   </div>
                   <p style={{ margin: '0 0 8px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    {ev.category} · {ev.location || '—'} · {ev.date} {ev.time}
+                    {ev.category} · {ev.location || t('admin.common.empty')} · {ev.date} {ev.time}
                   </p>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    Gửi bởi CTSV: {ev.ctsvSubmittedByEmail || ev.createdByEmail || '—'}
+                    {t('admin.eventApprovals.submittedBy', {
+                      email: ev.ctsvSubmittedByEmail || ev.createdByEmail || t('admin.common.empty'),
+                    })}
                     {ev.ctsvSubmittedAt ? ` · ${formatDateTime(ev.ctsvSubmittedAt)}` : ''}
                   </p>
                   <Link to={`/ctsv/events/${ev.id}`} style={{ fontSize: '0.85rem', marginTop: 8, display: 'inline-block' }}>
-                    Xem chi tiết
+                    {t('admin.common.viewDetail')}
                   </Link>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
@@ -205,7 +211,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
                     disabled={busy}
                     onClick={() => handleApprove(ev.id)}
                   >
-                    Phê duyệt
+                    {t('admin.common.approve')}
                   </button>
                   <button
                     type="button"
@@ -216,7 +222,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
                       setRejectReason('');
                     }}
                   >
-                    Từ chối
+                    {t('admin.common.reject')}
                   </button>
                 </div>
               </li>
@@ -241,23 +247,23 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 8 }}>
                     <strong style={{ fontSize: '1.05rem' }}>{ev.title}</strong>
                     <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#ffffff', color: '#b45309' }}>
-                      {MODERATION_ACTION_LABELS[ev.moderationAction] || ev.status}
+                      {modActionLabel(ev.moderationAction) || ev.status}
                     </span>
                   </div>
                   <p style={{ margin: '0 0 8px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    Lý do CTSV: {ev.moderationReason || '—'}
+                    {t('admin.eventApprovals.ctsvReason', { reason: ev.moderationReason || t('admin.common.empty') })}
                   </p>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    {ev.moderationRequestedByEmail || '—'}
+                    {ev.moderationRequestedByEmail || t('admin.common.empty')}
                     {ev.moderationRequestedAt ? ` · ${formatDateTime(ev.moderationRequestedAt)}` : ''}
                   </p>
                   <Link to={`/ctsv/events/${ev.id}`} style={{ fontSize: '0.85rem', marginTop: 8, display: 'inline-block' }}>
-                    Xem chi tiết
+                    {t('admin.common.viewDetail')}
                   </Link>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
                   <button type="button" className="ctsv-btn-primary" disabled={busy} onClick={() => handleModApprove(ev.id)}>
-                    Phê duyệt
+                    {t('admin.common.approve')}
                   </button>
                   <button
                     type="button"
@@ -268,7 +274,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
                       setModRejectReason('');
                     }}
                   >
-                    Từ chối
+                    {t('admin.common.reject')}
                   </button>
                 </div>
               </li>
@@ -279,20 +285,20 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
         {rejectId && (
           <div className="ctsv-partner-dialog-backdrop" role="presentation" onClick={() => setRejectId(null)}>
             <div className="ctsv-partner-dialog" onClick={(e) => e.stopPropagation()}>
-              <h2 className="ctsv-partner-dialog-title">Từ chối đơn tổ chức (Admin)</h2>
+              <h2 className="ctsv-partner-dialog-title">{t('admin.eventApprovals.rejectSubmitTitle')}</h2>
               <label className="ctsv-partner-dialog-field">
-                Lý do
+                {t('admin.common.reason')}
                 <textarea
                   className="ctsv-textarea ctsv-partner-dialog-textarea"
                   rows={4}
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="Nhập lý do từ chối..."
+                  placeholder={t('admin.eventApprovals.reasonPlaceholder')}
                 />
               </label>
               <div className="ctsv-partner-dialog-actions">
                 <button type="button" className="ctsv-partner-dialog-cancel" onClick={() => setRejectId(null)}>
-                  Hủy
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -300,7 +306,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
                   disabled={busy || !rejectReason.trim()}
                   onClick={handleReject}
                 >
-                  Xác nhận từ chối
+                  {t('admin.eventApprovals.confirmReject')}
                 </button>
               </div>
             </div>
@@ -310,20 +316,20 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
         {modRejectId && (
           <div className="ctsv-partner-dialog-backdrop" role="presentation" onClick={() => setModRejectId(null)}>
             <div className="ctsv-partner-dialog" onClick={(e) => e.stopPropagation()}>
-              <h2 className="ctsv-partner-dialog-title">Từ chối yêu cầu điều phối</h2>
+              <h2 className="ctsv-partner-dialog-title">{t('admin.eventApprovals.rejectModTitle')}</h2>
               <label className="ctsv-partner-dialog-field">
-                Lý do
+                {t('admin.common.reason')}
                 <textarea
                   className="ctsv-textarea ctsv-partner-dialog-textarea"
                   rows={4}
                   value={modRejectReason}
                   onChange={(e) => setModRejectReason(e.target.value)}
-                  placeholder="Nhập lý do từ chối..."
+                  placeholder={t('admin.eventApprovals.reasonPlaceholder')}
                 />
               </label>
               <div className="ctsv-partner-dialog-actions">
                 <button type="button" className="ctsv-partner-dialog-cancel" onClick={() => setModRejectId(null)}>
-                  Hủy
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -331,7 +337,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
                   disabled={busy || !modRejectReason.trim()}
                   onClick={handleModReject}
                 >
-                  Xác nhận từ chối
+                  {t('admin.eventApprovals.confirmReject')}
                 </button>
               </div>
             </div>

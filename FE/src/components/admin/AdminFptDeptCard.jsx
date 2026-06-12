@@ -1,14 +1,18 @@
 import React from 'react';
-import { FPT_TYPE_META } from '../../data/adminFptSystemData';
+import { FPT_TYPE_META, resolveFptTypeLabel } from '../../data/adminFptSystemData';
+import { useTranslation } from '../../i18n/I18nContext';
 
 const AdminFptDeptCard = ({ unit, onDetail, onManage }) => {
-  const meta = FPT_TYPE_META[unit.type] || FPT_TYPE_META.ctsv;
+  const { t } = useTranslation();
+  const badgeLabel = resolveFptTypeLabel(unit.type, t);
 
   return (
     <article className="admin-fpt-dept-card">
       <div className="admin-fpt-dept-card__media">
         <img src={unit.coverImage} alt="" className="admin-fpt-dept-card__cover" />
-        <span className={`admin-fpt-dept-card__badge ${meta.badgeClass}`}>{meta.label}</span>
+        <span className={`admin-fpt-dept-card__badge ${FPT_TYPE_META[unit.type]?.badgeClass || ''}`}>
+          {badgeLabel}
+        </span>
       </div>
 
       <div className="admin-fpt-dept-card__body">
@@ -19,7 +23,7 @@ const AdminFptDeptCard = ({ unit, onDetail, onManage }) => {
           </div>
           <div className="admin-fpt-dept-card__stat">
             <strong>{unit.staffCount ?? 0}</strong>
-            <span>cán bộ</span>
+            <span>{t('admin.fpt.card.staff')}</span>
           </div>
         </div>
 
@@ -31,7 +35,7 @@ const AdminFptDeptCard = ({ unit, onDetail, onManage }) => {
             className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--primary"
             onClick={() => onDetail?.(unit)}
           >
-            Chi tiết
+            {t('admin.fpt.card.detail')}
           </button>
           <button
             type="button"

@@ -20,27 +20,28 @@ import {
   USER_ROLES,
 } from '../utils/auth';
 import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
+import { useTranslation } from '../i18n/I18nContext';
 import CtsvHamburgerButton from './ctsv/CtsvHamburgerButton';
 import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../data/adminPublicNav';
 import '../styles/admin-menu.css';
 
 const BASE_NAV_ITEMS = [
-  { key: 'home', label: 'Trang chủ', to: '/' },
-  { key: 'events', label: 'Sự kiện', to: '/events' },
-  { key: 'clubs', label: 'Câu lạc bộ', to: '/clubs' },
-  { key: 'news', label: 'Tin tức', to: '/announcements' },
+  { key: 'home', labelKey: 'nav.home', to: '/' },
+  { key: 'events', labelKey: 'nav.events', to: '/events' },
+  { key: 'clubs', labelKey: 'nav.clubs', to: '/clubs' },
+  { key: 'news', labelKey: 'nav.news', to: '/announcements' },
 ];
 
 const CLUB_MANAGER_NAV_ITEM = {
   key: 'club-manage',
-  label: 'Quản lý CLB',
+  labelKey: 'nav.clubManage',
   to: '/quan-ly-clb',
   linkClass: 'nav-link-manager',
 };
 
 const CTSV_NAV_ITEM = {
   key: 'ctsv-manage',
-  label: 'CTSV',
+  labelKey: 'nav.ctsv',
   to: '/ctsv/dashboard',
   linkClass: 'nav-link-ctsv-pill',
 };
@@ -56,6 +57,7 @@ const SiteHeader = ({
   adminSidebarOpen = false,
   onAdminSidebarToggle,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -84,8 +86,8 @@ const SiteHeader = ({
   const resolvedSearchPlaceholder =
     searchPlaceholder
     ?? (isAdminRoute && showAdminMenu
-      ? 'Tìm kiếm tài khoản, mã lệnh, log hệ thống...'
-      : 'Tìm kiếm sự kiện...');
+      ? t('header.searchAdmin')
+      : t('header.searchEvents'));
 
   const navItems = showAdminMenu
     ? ADMIN_PUBLIC_NAV_ITEMS
@@ -221,7 +223,7 @@ const SiteHeader = ({
   }, [searchExpanded]);
 
   const renderNav = () => (
-    <nav className={`header-nav site-header__nav ctsv-header-nav${mobileMenuOpen ? ' mobile-active' : ''}`} aria-label="Điều hướng chính">
+    <nav className={`header-nav site-header__nav ctsv-header-nav${mobileMenuOpen ? ' mobile-active' : ''}`} aria-label={t('header.navigation')}>
       {navItems.map((item) => (
         <Link
           key={item.key}
@@ -229,7 +231,7 @@ const SiteHeader = ({
           className={`nav-link ${item.linkClass || ''} ${isNavItemActive(item) ? 'active' : ''}`.trim()}
           onClick={() => setMobileMenuOpen(false)}
         >
-          {item.label}
+          {t(item.labelKey || item.label)}
         </Link>
       ))}
     </nav>
@@ -350,7 +352,7 @@ const SiteHeader = ({
                         }`}
                       >
                         {isAdminRole(role)
-                          ? getRoleLabel(userProfile.role, userProfile.course)
+                          ? getRoleLabel(userProfile.role)
                           : (
                             <>
                               {getRoleLabel(userProfile.role)}

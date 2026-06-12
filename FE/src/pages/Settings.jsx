@@ -3,6 +3,7 @@ import StudentDashboardLayout from '../components/StudentDashboardLayout';
 import SettingsPanel from '../components/settings/SettingsPanel';
 import { normalizeSettingsRole } from '../components/settings/settingsRoleConfig';
 import { getUserRole, normalizeRole } from '../utils/auth';
+import { useTranslation } from '../i18n/I18nContext';
 
 const PORTAL_SETTINGS_PATH = {
   ctsv: '/ctsv/settings',
@@ -12,6 +13,7 @@ const PORTAL_SETTINGS_PATH = {
 };
 
 const Settings = ({ showToast }) => {
+  const { t } = useTranslation();
   const role = normalizeSettingsRole(normalizeRole(getUserRole()));
   const portalPath = PORTAL_SETTINGS_PATH[role];
 
@@ -22,8 +24,8 @@ const Settings = ({ showToast }) => {
   return (
     <StudentDashboardLayout
       activeMenu="settings"
-      pageTitle="Cài đặt và bảo mật"
-      pageSubtitle="Quản lý mật khẩu và giao diện ứng dụng."
+      pageTitle={t('settings.pageTitle')}
+      pageSubtitle={t('settings.pageSubtitle')}
       showToast={showToast}
     >
       <div className="settings-shell">

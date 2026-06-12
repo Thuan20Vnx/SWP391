@@ -1,28 +1,46 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AdminFilterDropdown from './AdminFilterDropdown';
+import { useTranslation } from '../../i18n/I18nContext';
 
-const TONE_META = {
-  primary: { label: 'Hoạt động', badgeClass: 'admin-log-badge--primary' },
-  danger: { label: 'Cảnh báo', badgeClass: 'admin-log-badge--danger' },
-  default: { label: 'Hệ thống', badgeClass: 'admin-log-badge--default' },
+const TONE_META_KEYS = {
+  primary: { labelKey: 'admin.monitor.activityModal.type.primary', badgeClass: 'admin-log-badge--primary' },
+  danger: { labelKey: 'admin.monitor.activityModal.type.danger', badgeClass: 'admin-log-badge--danger' },
+  default: { labelKey: 'admin.monitor.activityModal.type.default', badgeClass: 'admin-log-badge--default' },
 };
 
-const TYPE_FILTERS = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'primary', label: 'Hoạt động' },
-  { key: 'danger', label: 'Cảnh báo' },
-  { key: 'default', label: 'Hệ thống' },
+const TYPE_FILTER_KEYS = [
+  { key: 'all', labelKey: 'admin.monitor.activityModal.type.all' },
+  { key: 'primary', labelKey: 'admin.monitor.activityModal.type.primary' },
+  { key: 'danger', labelKey: 'admin.monitor.activityModal.type.danger' },
+  { key: 'default', labelKey: 'admin.monitor.activityModal.type.default' },
 ];
 
 const getLogDate = (log) => log.dateKey || '';
 
 const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [actorFilter, setActorFilter] = useState('all');
   const [openMenu, setOpenMenu] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const toneMeta = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(TONE_META_KEYS).map(([key, meta]) => [
+          key,
+          { label: t(meta.labelKey), badgeClass: meta.badgeClass },
+        ]),
+      ),
+    [t],
+  );
+
+  const typeFilters = useMemo(
+    () => TYPE_FILTER_KEYS.map((item) => ({ ...item, label: t(item.labelKey) })),
+    [t],
+  );
 
   const dateOptions = useMemo(() => {
     const dates = [...new Set(logs.map((log) => getLogDate(log)).filter(Boolean))];
@@ -35,10 +53,10 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
 
   const dateSelectOptions = useMemo(
     () => [
-      { value: 'all', label: 'Tất cả ngày' },
+      { value: 'all', label: t('admin.monitor.activityModal.allDates') },
       ...dateOptions.map((date) => ({ value: date, label: date })),
     ],
-    [dateOptions]
+    [dateOptions, t],
   );
 
   const getActorIcon = (actor) => {
@@ -51,14 +69,14 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
 
   const actorSelectOptions = useMemo(
     () => [
-      { value: 'all', label: 'Tất cả người dùng', icon: '👥' },
+      { value: 'all', label: t('admin.monitor.activityModal.allActors'), icon: '👥' },
       ...actorOptions.map((actor) => ({
         value: actor,
         label: actor,
         icon: getActorIcon(actor),
       })),
     ],
-    [actorOptions]
+    [actorOptions, t],
   );
 
   const filteredLogs = useMemo(() => {
@@ -72,13 +90,13 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
         log.time,
         log.actor,
         log.message,
-        TONE_META[log.tone]?.label || '',
+        toneMeta[log.tone]?.label || '',
       ]
         .join(' ')
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [logs, search, typeFilter, dateFilter, actorFilter]);
+  }, [logs, search, typeFilter, dateFilter, actorFilter, toneMeta]);
 
   const hasActiveFilters =
     search.trim() !== '' || typeFilter !== 'all' || dateFilter !== 'all' || actorFilter !== 'all';
@@ -129,12 +147,15 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
       >
         <header className="admin-log-modal__header">
           <div>
-            <h2 id="admin-log-modal-title">Nhật ký hoạt động hệ thống</h2>
+            <h2 id="admin-log-modal-title">{t('admin.monitor.activityModal.title')}</h2>
             <p>
-              Hiển thị {filteredLogs.length}/{logs.length} bản ghi
+              {t('admin.monitor.activityModal.records', {
+                filtered: filteredLogs.length,
+                total: logs.length,
+              })}
             </p>
           </div>
-          <button type="button" className="admin-log-modal__close" onClick={onClose} aria-label="Đóng">
+          <button type="button" className="admin-log-modal__close" onClick={onClose} aria-label={t('admin.common.close')}>
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
@@ -158,12 +179,18 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
                   strokeLinecap="round"
                 />
               </svg>
-              {filtersOpen ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
-              {hasActiveFilters ? <span className="admin-log-modal__filters-badge">Đang lọc</span> : null}
+              {filtersOpen
+                ? t('admin.monitor.activityModal.hideFilters')
+                : t('admin.monitor.activityModal.showFilters')}
+              {hasActiveFilters ? (
+                <span className="admin-log-modal__filters-badge">
+                  {t('admin.monitor.activityModal.filtering')}
+                </span>
+              ) : null}
             </button>
             {hasActiveFilters && (
               <button type="button" className="admin-log-filter-reset" onClick={resetFilters}>
-                Xóa bộ lọc
+                {t('admin.monitor.activityModal.clearFilters')}
               </button>
             )}
           </div>
@@ -184,14 +211,14 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
                     <input
                       type="search"
                       className="admin-log-search__input"
-                      placeholder="Tìm theo nội dung, người thực hiện, thời gian..."
+                      placeholder={t('admin.monitor.activityModal.searchPlaceholder')}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
                   <div className="admin-log-filter-advanced">
                     <AdminFilterDropdown
-                      label="Ngày"
+                      label={t('admin.monitor.activityModal.filterDate')}
                       menuId="date"
                       value={dateFilter}
                       options={dateSelectOptions}
@@ -200,7 +227,7 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
                       onMenuToggle={setOpenMenu}
                     />
                     <AdminFilterDropdown
-                      label="Người thực hiện"
+                      label={t('admin.monitor.activityModal.filterActor')}
                       menuId="actor"
                       value={actorFilter}
                       options={actorSelectOptions}
@@ -212,9 +239,15 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
                 </div>
 
                 <div className="admin-log-filter-group">
-                  <span className="admin-log-filter-label">Loại hoạt động</span>
-                  <div className="admin-log-filter-tabs" role="tablist" aria-label="Lọc theo loại">
-                    {TYPE_FILTERS.map((item) => (
+                  <span className="admin-log-filter-label">
+                    {t('admin.monitor.activityModal.activityType')}
+                  </span>
+                  <div
+                    className="admin-log-filter-tabs"
+                    role="tablist"
+                    aria-label={t('admin.monitor.activityModal.filterTypeAria')}
+                  >
+                    {typeFilters.map((item) => (
                       <button
                         key={item.key}
                         type="button"
@@ -233,51 +266,51 @@ const AdminActivityLogModal = ({ open, onClose, logs = [] }) => {
           )}
 
           <div className="admin-log-modal__table-wrap">
-          {filteredLogs.length === 0 ? (
-            <div className="admin-log-empty">
-              <p>Không có bản ghi phù hợp với bộ lọc hiện tại.</p>
-              <button type="button" className="admin-log-filter-reset" onClick={resetFilters}>
-                Xóa bộ lọc
-              </button>
-            </div>
-          ) : (
-            <table className="admin-log-table">
-              <thead>
-                <tr>
-                  <th>Thời gian</th>
-                  <th>Người thực hiện</th>
-                  <th>Nội dung</th>
-                  <th>Loại</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredLogs.map((log) => {
-                  const meta = TONE_META[log.tone] || TONE_META.default;
-                  return (
-                    <tr key={log.id} className={`admin-log-table__row--${log.tone}`}>
-                      <td data-label="Thời gian">{log.time}</td>
-                      <td data-label="Người thực hiện">
-                        <strong>{log.actor}</strong>
-                      </td>
-                      <td data-label="Nội dung">{log.message}</td>
-                      <td data-label="Loại">
-                        <span className={`admin-log-badge ${meta.badgeClass}`}>{meta.label}</span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+            {filteredLogs.length === 0 ? (
+              <div className="admin-log-empty">
+                <p>{t('admin.monitor.activityModal.empty')}</p>
+                <button type="button" className="admin-log-filter-reset" onClick={resetFilters}>
+                  {t('admin.monitor.activityModal.clearFilters')}
+                </button>
+              </div>
+            ) : (
+              <table className="admin-log-table">
+                <thead>
+                  <tr>
+                    <th>{t('admin.monitor.activityModal.col.time')}</th>
+                    <th>{t('admin.monitor.activityModal.col.actor')}</th>
+                    <th>{t('admin.monitor.activityModal.col.content')}</th>
+                    <th>{t('admin.monitor.activityModal.col.type')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLogs.map((log) => {
+                    const meta = toneMeta[log.tone] || toneMeta.default;
+                    return (
+                      <tr key={log.id} className={`admin-log-table__row--${log.tone}`}>
+                        <td data-label={t('admin.monitor.activityModal.col.time')}>{log.time}</td>
+                        <td data-label={t('admin.monitor.activityModal.col.actor')}>
+                          <strong>{log.actor}</strong>
+                        </td>
+                        <td data-label={t('admin.monitor.activityModal.col.content')}>{log.message}</td>
+                        <td data-label={t('admin.monitor.activityModal.col.type')}>
+                          <span className={`admin-log-badge ${meta.badgeClass}`}>{meta.label}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
         <footer className="admin-log-modal__footer">
           <p className="admin-log-modal__footer-hint">
-            {filteredLogs.length > 0 ? 'Cuộn trong bảng để xem toàn bộ nhật ký.' : null}
+            {filteredLogs.length > 0 ? t('admin.monitor.activityModal.scrollHint') : null}
           </p>
           <button type="button" className="admin-log-modal__btn-close" onClick={onClose}>
-            Đóng
+            {t('admin.common.close')}
           </button>
         </footer>
       </div>

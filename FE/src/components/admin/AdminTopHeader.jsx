@@ -7,6 +7,7 @@ import HeaderNotificationPanel from '../HeaderNotificationPanel';
 import useUserProfile, { clearUserProfileCache } from '../../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../../utils/authEvents';
 import { getRoleLabel } from '../../utils/role';
+import { useTranslation } from '../../i18n/I18nContext';
 import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../../data/adminPublicNav';
 import '../../styles/admin-menu.css';
 
@@ -15,13 +16,14 @@ const NAV_ITEMS = ADMIN_PUBLIC_NAV_ITEMS;
 const isNavActive = isAdminPublicNavActive;
 
 const AdminTopHeader = ({
-  searchPlaceholder = 'Tìm kiếm tài khoản, mã lệnh, log hệ thống...',
+  searchPlaceholder,
   searchValue = '',
   onSearchChange,
   onSearchKeyDown,
   sidebarToggle,
   sidebarOpen = false,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
@@ -94,7 +96,7 @@ const AdminTopHeader = ({
               type="button"
               className="admin-hamburger-btn admin-header-menu-btn"
               onClick={sidebarToggle}
-              aria-label={sidebarOpen ? 'Ẩn menu quản trị' : 'Hiện menu quản trị'}
+              aria-label={sidebarOpen ? t('header.hideAdminMenu') : t('header.showAdminMenu')}
               aria-expanded={sidebarOpen}
             >
               <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
@@ -109,14 +111,14 @@ const AdminTopHeader = ({
               <img src={FE_LOGO} alt={FE_LOGO_ALT} className="logo-img admin-header-logo-img" />
             </div>
           </div>
-          <nav className="header-nav site-header__nav ctsv-header-nav" aria-label="Điều hướng">
+          <nav className="header-nav site-header__nav ctsv-header-nav" aria-label={t('header.navigation')}>
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.key}
                 to={item.to}
                 className={`nav-link ${isNavActive(item.key, pathname) ? 'active' : ''}`}
               >
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             ))}
           </nav>
@@ -133,12 +135,12 @@ const AdminTopHeader = ({
           </span>
           <input
             type="text"
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholder ?? t('header.searchAdmin')}
             value={searchValue}
             onChange={(e) => onSearchChange?.(e.target.value)}
             onKeyDown={onSearchKeyDown}
             className="search-input site-header__search-input"
-            aria-label="Tìm kiếm"
+            aria-label={t('header.search')}
           />
         </div>
 
@@ -147,7 +149,7 @@ const AdminTopHeader = ({
             <button
               type="button"
               className={`notif-bell-btn${notifOpen ? ' notif-bell-btn--open' : ''}`}
-              aria-label="Thông báo"
+              aria-label={t('header.notifications')}
               aria-expanded={notifOpen}
               onClick={handleToggleNotifications}
             >
@@ -168,7 +170,7 @@ const AdminTopHeader = ({
                 <div
                   className="profile-display-card profile-display-card--loading"
                   aria-busy="true"
-                  aria-label="Đang tải thông tin tài khoản"
+                  aria-label={t('header.loadingProfile')}
                 >
                   <div className="profile-info-text">
                     <span className="profile-skeleton profile-skeleton--name" />
@@ -181,14 +183,14 @@ const AdminTopHeader = ({
                   <button
                     type="button"
                     className={`profile-display-card-link ${profilePopupOpen ? 'profile-display-card-link--open' : ''}`}
-                    title="Mở menu tài khoản"
+                    title={t('header.openAccountMenu')}
                     onClick={handleOpenProfilePopup}
                     aria-expanded={profilePopupOpen}
                   >
                     <div className="profile-info-text">
-                      <span className="profile-name">{userProfile.fullname || 'Quản trị viên'}</span>
+                      <span className="profile-name">{userProfile.fullname || t('header.defaultAdmin')}</span>
                       <span className="profile-role profile-role-admin">
-                        {getRoleLabel(userProfile.role, userProfile.course)}
+                        {getRoleLabel(userProfile.role)}
                       </span>
                     </div>
                     <div className="profile-avatar-circle">
@@ -202,7 +204,7 @@ const AdminTopHeader = ({
                         onClick={() => setProfilePopupOpen(false)}
                         role="presentation"
                       />
-                      <div className="profile-menu-dropdown" role="menu" aria-label="Menu tài khoản">
+                      <div className="profile-menu-dropdown" role="menu" aria-label={t('header.accountMenu')}>
                         <AdminProfileMenu
                           activeItem=""
                           userProfile={userProfile}
@@ -216,7 +218,7 @@ const AdminTopHeader = ({
               )
             ) : (
               <Link to="/login" className="btn-auth btn-auth-login">
-                Đăng nhập
+                {t('header.login')}
               </Link>
             )}
           </div>

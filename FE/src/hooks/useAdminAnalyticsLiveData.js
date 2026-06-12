@@ -12,7 +12,7 @@ import {
   buildRecentReviews,
 } from '../data/adminAnalyticsData';
 
-export function useAdminAnalyticsLiveData(period = 'month', tickMs = 60000) {
+export function useAdminAnalyticsLiveData(period = 'month', language = 'vi', tickMs = 60000) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -30,13 +30,13 @@ export function useAdminAnalyticsLiveData(period = 'month', tickMs = 60000) {
       topClubs: ADMIN_TOP_CLUBS_BY_FEEDBACK,
       allEvents: ADMIN_ALL_RATED_EVENTS,
       allClubs: ADMIN_ALL_CLUBS_BY_FEEDBACK,
-      recentReviews: buildRecentReviews(now),
-      allReviews: buildAllRecentReviews(now),
+      recentReviews: buildRecentReviews(now, language),
+      allReviews: buildAllRecentReviews(now, language),
       starDetailRows: ADMIN_STAR_DETAIL_ROWS,
       maxStarCount: Math.max(...ADMIN_STAR_DISTRIBUTION.map((s) => s.count)),
       maxCategoryReviews: Math.max(...ADMIN_CATEGORY_RATINGS.map((c) => c.reviews)),
     }),
-    [now, period],
+    [now, period, language],
   );
 }
 

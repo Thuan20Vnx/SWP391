@@ -10,12 +10,12 @@ export const PARTNER_FIELD_OPTIONS = CLUB_ACTIVITY_FIELDS.map((label) => ({
 }));
 
 export const PARTNER_SPONSOR_PROGRAM_OPTIONS = [
-  { value: 'unset', label: 'Chưa xác định' },
-  { value: 'cash', label: 'Tài trợ tài chính' },
-  { value: 'in_kind', label: 'Tài trợ hiện vật' },
-  { value: 'media', label: 'Đồng hành truyền thông' },
-  { value: 'venue', label: 'Hỗ trợ địa điểm / cơ sở' },
-  { value: 'scholarship', label: 'Học bổng / quỹ tài trợ' },
+  { value: 'unset', labelKey: 'admin.partners.sponsorProgram.unset' },
+  { value: 'cash', labelKey: 'admin.partners.sponsorProgram.cash' },
+  { value: 'in_kind', labelKey: 'admin.partners.sponsorProgram.in_kind' },
+  { value: 'media', labelKey: 'admin.partners.sponsorProgram.media' },
+  { value: 'venue', labelKey: 'admin.partners.sponsorProgram.venue' },
+  { value: 'scholarship', labelKey: 'admin.partners.sponsorProgram.scholarship' },
 ];
 
 export const PARTNER_UPLOAD_ACCEPT = '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';

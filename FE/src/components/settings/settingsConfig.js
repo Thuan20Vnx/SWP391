@@ -1,26 +1,26 @@
 export const SETTINGS_SECTIONS = [
-  { id: 'security', label: 'Bảo mật' },
-  { id: 'appearance', label: 'Giao diện' },
-  { id: 'support', label: 'Hỗ trợ' },
-  { id: 'about', label: 'Về ứng dụng' },
+  { id: 'security', labelKey: 'settings.section.security' },
+  { id: 'appearance', labelKey: 'settings.section.appearance' },
+  { id: 'support', labelKey: 'settings.section.support' },
+  { id: 'about', labelKey: 'settings.section.about' },
 ];
 
 export const SECTION_META = {
   security: {
-    title: 'Bảo mật',
-    description: 'Quản lý mật khẩu và phiên đăng nhập của bạn.',
+    titleKey: 'settings.security.title',
+    descKey: 'settings.security.desc',
   },
   appearance: {
-    title: 'Giao diện',
-    description: 'Cá nhân hóa trải nghiệm sử dụng ứng dụng.',
+    titleKey: 'settings.appearance.title',
+    descKey: 'settings.appearance.desc',
   },
   support: {
-    title: 'Hỗ trợ',
-    description: 'Liên hệ đội ngũ hỗ trợ khi cần trợ giúp.',
+    titleKey: 'settings.support.title',
+    descKey: 'settings.support.desc',
   },
   about: {
-    title: 'Về ứng dụng',
-    description: 'Thông tin phiên bản và chính sách sử dụng.',
+    titleKey: 'settings.about.title',
+    descKey: 'settings.about.desc',
   },
 };
 

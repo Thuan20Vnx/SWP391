@@ -3,55 +3,133 @@ import SettingsRow from '../SettingsRow';
 import { SettingsCard, SettingsSectionHeader } from '../SettingsLayout';
 import { SECTION_META } from '../settingsConfig';
 import { normalizeSettingsRole } from '../settingsRoleConfig';
+import { useTranslation } from '../../../i18n/I18nContext';
+import { resolveDescription, resolveLabel } from '../../../i18n/helpers';
 
 const SUPPORT_LINKS = {
   student: [
-    { label: 'Trung tâm hỗ trợ', description: 'Hướng dẫn sử dụng và câu hỏi thường gặp', path: '/support' },
-    { label: 'Báo lỗi & góp ý', description: 'Gửi phản hồi để cải thiện nền tảng', path: '/contact' },
-    { label: 'Liên hệ quản trị viên', description: 'Trao đổi trực tiếp với đội vận hành', path: '/contact' },
+    {
+      labelKey: 'settings.support.student.help',
+      descriptionKey: 'settings.support.student.helpDesc',
+      path: '/support',
+    },
+    {
+      labelKey: 'settings.support.student.feedback',
+      descriptionKey: 'settings.support.student.feedbackDesc',
+      path: '/contact',
+    },
+    {
+      labelKey: 'settings.support.student.admin',
+      descriptionKey: 'settings.support.student.adminDesc',
+      path: '/contact',
+    },
   ],
   club_manager: [
-    { label: 'Hướng dẫn quản lý CLB', description: 'Tạo sự kiện, duyệt thành viên và báo cáo', path: '/support' },
-    { label: 'Quản lý CLB', description: 'Mở portal quản lý câu lạc bộ', path: '/quan-ly-clb' },
-    { label: 'Liên hệ IC-PDP / CTSV', description: 'Hỗ trợ duyệt sự kiện và hoạt động CLB', path: '/contact' },
+    {
+      labelKey: 'settings.support.club.guide',
+      descriptionKey: 'settings.support.club.guideDesc',
+      path: '/support',
+    },
+    {
+      labelKey: 'settings.support.club.portal',
+      descriptionKey: 'settings.support.club.portalDesc',
+      path: '/quan-ly-clb',
+    },
+    {
+      labelKey: 'settings.support.club.contact',
+      descriptionKey: 'settings.support.club.contactDesc',
+      path: '/contact',
+    },
   ],
   ctsv: [
-    { label: 'Trung tâm hỗ trợ CTSV', description: 'Quy trình duyệt sự kiện và đối tác', path: '/support' },
-    { label: 'Portal CTSV', description: 'Quay lại bảng điều khiển CTSV', path: '/ctsv/dashboard' },
-    { label: 'Liên hệ Admin', description: 'Escalate yêu cầu cần quyền Admin', path: '/contact' },
+    {
+      labelKey: 'settings.support.ctsv.help',
+      descriptionKey: 'settings.support.ctsv.helpDesc',
+      path: '/support',
+    },
+    {
+      labelKey: 'settings.support.ctsv.portal',
+      descriptionKey: 'settings.support.ctsv.portalDesc',
+      path: '/ctsv/dashboard',
+    },
+    {
+      labelKey: 'settings.support.ctsv.admin',
+      descriptionKey: 'settings.support.ctsv.adminDesc',
+      path: '/contact',
+    },
   ],
   icpdp: [
-    { label: 'Trung tâm hỗ trợ IC-PDP', description: 'Duyệt đề xuất CLB và sự kiện', path: '/support' },
-    { label: 'Portal IC-PDP', description: 'Quay lại bảng điều khiển IC-PDP', path: '/icpdp/dashboard' },
-    { label: 'Liên hệ Admin', description: 'Hỗ trợ khi cần phê duyệt cấp Admin', path: '/contact' },
+    {
+      labelKey: 'settings.support.icpdp.help',
+      descriptionKey: 'settings.support.icpdp.helpDesc',
+      path: '/support',
+    },
+    {
+      labelKey: 'settings.support.icpdp.portal',
+      descriptionKey: 'settings.support.icpdp.portalDesc',
+      path: '/icpdp/dashboard',
+    },
+    {
+      labelKey: 'settings.support.icpdp.admin',
+      descriptionKey: 'settings.support.icpdp.adminDesc',
+      path: '/contact',
+    },
   ],
   partner: [
-    { label: 'Hỗ trợ đối tác', description: 'Hướng dẫn đề xuất sự kiện và hợp đồng', path: '/support' },
-    { label: 'Portal đối tác', description: 'Quay lại bảng điều khiển đối tác', path: '/partner/dashboard' },
-    { label: 'Liên hệ CTSV', description: 'Trao đổi về duyệt đề xuất và hợp đồng', path: '/contact' },
+    {
+      labelKey: 'settings.support.partner.help',
+      descriptionKey: 'settings.support.partner.helpDesc',
+      path: '/support',
+    },
+    {
+      labelKey: 'settings.support.partner.portal',
+      descriptionKey: 'settings.support.partner.portalDesc',
+      path: '/partner/dashboard',
+    },
+    {
+      labelKey: 'settings.support.partner.ctsv',
+      descriptionKey: 'settings.support.partner.ctsvDesc',
+      path: '/contact',
+    },
   ],
   admin: [
-    { label: 'Kiểm soát hệ thống', description: 'Bảo trì, cấu hình và vận hành nền tảng', path: '/admin/system' },
-    { label: 'Trung tâm hỗ trợ', description: 'Tài liệu vận hành và FAQ', path: '/support' },
-    { label: 'Liên hệ kỹ thuật', description: 'Báo sự cố hạ tầng hoặc bảo mật', path: '/contact' },
+    {
+      labelKey: 'settings.support.admin.system',
+      descriptionKey: 'settings.support.admin.systemDesc',
+      path: '/admin/system',
+    },
+    {
+      labelKey: 'settings.support.admin.help',
+      descriptionKey: 'settings.support.admin.helpDesc',
+      path: '/support',
+    },
+    {
+      labelKey: 'settings.support.admin.tech',
+      descriptionKey: 'settings.support.admin.techDesc',
+      path: '/contact',
+    },
   ],
 };
 
 const SupportSection = ({ role = 'student' }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const normalized = normalizeSettingsRole(role);
   const links = SUPPORT_LINKS[normalized] || SUPPORT_LINKS.student;
 
   return (
     <div className="settings-section">
-      <SettingsSectionHeader {...SECTION_META.support} />
+      <SettingsSectionHeader
+        title={t(SECTION_META.support.titleKey)}
+        description={t(SECTION_META.support.descKey)}
+      />
 
       <SettingsCard>
         {links.map((item) => (
           <SettingsRow
-            key={item.path + item.label}
-            label={item.label}
-            description={item.description}
+            key={item.path + item.labelKey}
+            label={resolveLabel(item, t)}
+            description={resolveDescription(item, t)}
             onClick={() => navigate(item.path)}
           />
         ))}

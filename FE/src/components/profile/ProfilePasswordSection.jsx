@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { API_BASE, getAuthHeaders } from '../../utils/api';
+import { useTranslation } from '../../i18n/I18nContext';
 
 const IconChevronDown = () => (
   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden>
@@ -14,6 +15,7 @@ const ProfilePasswordSection = ({
   description = 'Cập nhật mật khẩu đăng nhập tài khoản của bạn.',
   idPrefix = 'profile',
 }) => {
+  const { t } = useTranslation();
   const isGoogleLogin = localStorage.getItem('loginMethod') === 'google';
   const [open, setOpen] = useState(false);
   const [pwForm, setPwForm] = useState(EMPTY_PW);
@@ -25,15 +27,15 @@ const ProfilePasswordSection = ({
     const { currentPassword, newPassword, confirmPassword } = pwForm;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      showToast?.('Vui lòng điền đầy đủ thông tin mật khẩu.', 'error');
+      showToast?.(t('password.fillAll'), 'error');
       return;
     }
     if (newPassword.length < 6) {
-      showToast?.('Mật khẩu mới phải có ít nhất 6 ký tự.', 'error');
+      showToast?.(t('password.minLength'), 'error');
       return;
     }
     if (newPassword !== confirmPassword) {
-      showToast?.('Xác nhận mật khẩu không khớp.', 'error');
+      showToast?.(t('password.mismatch'), 'error');
       return;
     }
 
@@ -47,12 +49,12 @@ const ProfilePasswordSection = ({
       .then(({ status, data }) => {
         if (status === 200) {
           setPwForm(EMPTY_PW);
-          showToast?.('Đổi mật khẩu thành công.', 'success');
+          showToast?.(t('password.success'), 'success');
         } else {
-          showToast?.(data.message || 'Đổi mật khẩu thất bại.', 'error');
+          showToast?.(data.message || t('password.fail'), 'error');
         }
       })
-      .catch(() => showToast?.('Không thể kết nối máy chủ.', 'error'))
+      .catch(() => showToast?.(t('common.serverError'), 'error'))
       .finally(() => setLoading(false));
   };
 
@@ -66,8 +68,8 @@ const ProfilePasswordSection = ({
         onClick={() => setOpen((v) => !v)}
       >
         <div className="ctsv-profile-security-toggle-main">
-          <h2>Đổi mật khẩu</h2>
-          <p>{description}</p>
+          <h2>{t('password.title')}</h2>
+          <p>{description || t('settings.passwordDesc')}</p>
         </div>
         <span className={`ctsv-profile-security-chevron${open ? ' is-open' : ''}`} aria-hidden>
           <IconChevronDown />
@@ -78,18 +80,16 @@ const ProfilePasswordSection = ({
         <div className="ctsv-profile-security-panel-inner">
           <div className="ctsv-profile-security-body">
             {isGoogleLogin ? (
-              <p className="ctsv-profile-security-note">
-                Tài khoản đăng nhập bằng Google không hỗ trợ đổi mật khẩu tại đây.
-              </p>
+              <p className="ctsv-profile-security-note">{t('password.googleNote')}</p>
             ) : (
               <form className="ctsv-profile-password-form" onSubmit={handlePasswordSubmit}>
                 <div className="profile-form-grid">
                   <div className="profile-input-group profile-form-grid-full">
-                    <label htmlFor={`${idPrefix}-current-password`}>Mật khẩu hiện tại</label>
+                    <label htmlFor={`${idPrefix}-current-password`}>{t('password.current')}</label>
                     <input
                       id={`${idPrefix}-current-password`}
                       type="password"
-                      placeholder="Nhập mật khẩu hiện tại"
+                      placeholder={t('password.placeholderCurrent')}
                       value={pwForm.currentPassword}
                       onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))}
                       autoComplete="current-password"
@@ -97,11 +97,11 @@ const ProfilePasswordSection = ({
                     />
                   </div>
                   <div className="profile-input-group">
-                    <label htmlFor={`${idPrefix}-new-password`}>Mật khẩu mới</label>
+                    <label htmlFor={`${idPrefix}-new-password`}>{t('password.new')}</label>
                     <input
                       id={`${idPrefix}-new-password`}
                       type="password"
-                      placeholder="Ít nhất 6 ký tự"
+                      placeholder={t('password.placeholderNew')}
                       value={pwForm.newPassword}
                       onChange={(e) => setPwForm((p) => ({ ...p, newPassword: e.target.value }))}
                       autoComplete="new-password"
@@ -109,11 +109,11 @@ const ProfilePasswordSection = ({
                     />
                   </div>
                   <div className="profile-input-group">
-                    <label htmlFor={`${idPrefix}-confirm-password`}>Xác nhận mật khẩu</label>
+                    <label htmlFor={`${idPrefix}-confirm-password`}>{t('password.confirm')}</label>
                     <input
                       id={`${idPrefix}-confirm-password`}
                       type="password"
-                      placeholder="Nhập lại mật khẩu mới"
+                      placeholder={t('password.placeholderConfirm')}
                       value={pwForm.confirmPassword}
                       onChange={(e) => setPwForm((p) => ({ ...p, confirmPassword: e.target.value }))}
                       autoComplete="new-password"
@@ -123,7 +123,7 @@ const ProfilePasswordSection = ({
                 </div>
                 <div className="ctsv-profile-security-actions">
                   <button type="submit" className="primary-button btn-save-profile" disabled={loading}>
-                    {loading ? 'Đang lưu...' : 'Lưu mật khẩu mới'}
+                    {loading ? t('password.saving') : t('password.save')}
                   </button>
                 </div>
               </form>

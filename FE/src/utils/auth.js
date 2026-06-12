@@ -1,3 +1,5 @@
+import { tStatic } from '../i18n/translate';
+
 export const USER_ROLES = {
   STUDENT: 'student',
   CTSV: 'ctsv',
@@ -85,22 +87,24 @@ export const getHomePathForRole = (role = getUserRole()) => {
 };
 
 /** Nhãn hiển thị trên header / profile */
-export const getRoleDisplayLabel = (role, course = 'K18') => {
+export const getRoleDisplayLabel = (role, course) => {
   const r = normalizeRole(role);
   switch (r) {
     case USER_ROLES.CTSV:
-      return 'CTSV';
+      return tStatic('role.ctsv');
     case USER_ROLES.ICPDP:
-      return 'ICPDP';
+      return tStatic('role.icpdp');
     case USER_ROLES.CLUB_MANAGER:
-      return 'Quản lý CLB';
+      return tStatic('role.clubManager');
     case USER_ROLES.PARTNER:
-      return 'Đối tác';
+      return tStatic('role.partner');
     case USER_ROLES.ADMIN:
-      return course ? `IT Admin - ${course}` : 'IT Admin';
+      return tStatic('role.admin');
     case USER_ROLES.GUEST:
-      return 'Khách';
+      return tStatic('role.guest');
     default:
-      return `Sinh viên ${course}`;
+      return course
+        ? tStatic('role.studentWithCourse', { course })
+        : tStatic('role.student');
   }
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { getSidebarMenuSections } from '../data/studentSidebarMenu';
 import { getUserRole } from '../utils/auth';
+import { useTranslation } from '../i18n/I18nContext';
 
 const MenuIcon = ({ type }) => {
   const props = {
@@ -85,6 +86,7 @@ const DashboardSidebarNav = ({
   onProfileMenuItem,
   onNavigate,
 }) => {
+  const { t } = useTranslation();
   const sections = getSidebarMenuSections(getUserRole());
 
   const handleItemClick = (item) => (event) => {
@@ -106,10 +108,13 @@ const DashboardSidebarNav = ({
   return (
     <nav className="sidebar-menu">
       {sections.map((section) => (
-        <div className="menu-section" key={section.header || 'main'}>
-          {section.header && <span className="menu-header">{section.header}</span>}
+        <div className="menu-section" key={section.headerKey || section.header || 'main'}>
+          {(section.headerKey || section.header) && (
+            <span className="menu-header">{section.headerKey ? t(section.headerKey) : section.header}</span>
+          )}
           {section.items.map((item) => {
             const className = `menu-item ${activeMenu === item.key ? 'active' : ''}`;
+            const label = item.labelKey ? t(item.labelKey) : item.label;
 
             if (onNavigate) {
               return (
@@ -121,7 +126,7 @@ const DashboardSidebarNav = ({
                 >
                   <div className="menu-item-content">
                     <MenuIcon type={item.icon} />
-                    <span>{item.label}</span>
+                    <span>{label}</span>
                   </div>
                 </a>
               );
@@ -136,7 +141,7 @@ const DashboardSidebarNav = ({
               >
                 <div className="menu-item-content">
                   <MenuIcon type={item.icon} />
-                  <span>{item.label}</span>
+                  <span>{label}</span>
                 </div>
               </Link>
             );
@@ -151,7 +156,7 @@ const DashboardSidebarNav = ({
           <rect x="3" y="14" width="7" height="7" rx="1" />
           <path d="M14 14h.01M18 14h.01M14 18h.01M18 18h.01M21 14v4h-4" />
         </svg>
-        <span>Check-in tại sự kiện</span>
+        <span>{t('student.checkin')}</span>
       </button>
     </nav>
   );

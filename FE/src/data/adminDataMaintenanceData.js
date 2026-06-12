@@ -1,28 +1,38 @@
 ﻿/** Quản lý cơ sở & danh mục — Figma SWP391_2 */
 
 export const ADMIN_DATA_TABS = [
-  { id: 'facilities', label: 'Cơ sở vật chất' },
-  { id: 'categories', label: 'Danh mục sự kiện' },
-  { id: 'clubs', label: 'Danh sách CLB' },
+  { id: 'facilities', label: 'Cơ sở vật chất', labelKey: 'admin.dataMaintenance.tab.facilities' },
+  { id: 'categories', label: 'Danh mục sự kiện', labelKey: 'admin.dataMaintenance.tab.categories' },
+  { id: 'clubs', label: 'Danh sách CLB', labelKey: 'admin.dataMaintenance.tab.clubs' },
 ];
 
 export const ADMIN_DATA_PAGE_SIZE = 6;
 
 export const FACILITY_STATUS = {
-  ready: { key: 'ready', label: 'SẴN SÀNG', tone: 'ready' },
-  maintenance: { key: 'maintenance', label: 'ĐANG BẢO TRÌ', tone: 'maintenance' },
+  ready: {
+    key: 'ready',
+    label: 'SẴN SÀNG',
+    labelKey: 'admin.dataMaintenance.facilityStatus.ready',
+    tone: 'ready',
+  },
+  maintenance: {
+    key: 'maintenance',
+    label: 'ĐANG BẢO TRÌ',
+    labelKey: 'admin.dataMaintenance.facilityStatus.maintenance',
+    tone: 'maintenance',
+  },
 };
 
 export const RESOURCE_TYPES = [
-  { value: 'hall', label: 'Hội trường' },
-  { value: 'meeting', label: 'Phòng họp' },
-  { value: 'field', label: 'Sân bãi' },
+  { value: 'hall', label: 'Hội trường', labelKey: 'admin.dataMaintenance.resourceType.hall' },
+  { value: 'meeting', label: 'Phòng họp', labelKey: 'admin.dataMaintenance.resourceType.meeting' },
+  { value: 'field', label: 'Sân bãi', labelKey: 'admin.dataMaintenance.resourceType.field' },
 ];
 
 export const FACILITY_EQUIPMENT_OPTIONS = [
-  { key: 'speakers', label: 'Hệ thống Loa' },
-  { key: 'projector', label: 'Máy chiếu / Màn LED' },
-  { key: 'ac', label: 'Thiết bị Điều hòa' },
+  { key: 'speakers', label: 'Hệ thống Loa', labelKey: 'admin.dataMaintenance.equipment.speakers' },
+  { key: 'projector', label: 'Máy chiếu / Màn LED', labelKey: 'admin.dataMaintenance.equipment.projector' },
+  { key: 'ac', label: 'Thiết bị Điều hòa', labelKey: 'admin.dataMaintenance.equipment.ac' },
 ];
 
 export const emptyFacilityForm = () => ({
@@ -47,12 +57,22 @@ export const facilityToForm = (item) => ({
   isActive: item?.isActive !== false && item?.status !== 'maintenance',
 });
 
-export const getResourceTypeLabel = (value) =>
-  RESOURCE_TYPES.find((t) => t.value === value)?.label || 'Hội trường';
+export const getResourceTypeLabel = (value, t) => {
+  const item = RESOURCE_TYPES.find((row) => row.value === value);
+  if (!item) return t ? t('admin.dataMaintenance.resourceType.hall') : 'Hội trường';
+  return item.labelKey && t ? t(item.labelKey) : item.label;
+};
 
-export const getFacilityEquipmentLabels = (equipment) => {
+export const getFacilityStatusLabel = (status, t) => {
+  const meta = FACILITY_STATUS[status] || FACILITY_STATUS.ready;
+  return meta.labelKey && t ? t(meta.labelKey) : meta.label;
+};
+
+export const getFacilityEquipmentLabels = (equipment, t) => {
   if (!equipment) return [];
-  return FACILITY_EQUIPMENT_OPTIONS.filter((opt) => equipment[opt.key]).map((opt) => opt.label);
+  return FACILITY_EQUIPMENT_OPTIONS.filter((opt) => equipment[opt.key]).map((opt) =>
+    opt.labelKey && t ? t(opt.labelKey) : opt.label,
+  );
 };
 
 export const formToFacility = (values, existingId) => ({
@@ -227,21 +247,23 @@ const MASTER_CLUB_EXTRA_NAMES = [
   'FPT Agriculture', 'FPT Environment', 'FPT Architecture',
 ];
 
-export const CLUB_ACTIVITY_FIELDS = [
-  'Công nghệ thông tin',
-  'Học thuật',
-  'Âm nhạc & Nghệ thuật',
-  'Thể thao',
-  'Kinh doanh & Truyền thông',
-  'Ngoại ngữ',
-  'Kỹ năng mềm',
-  'Tình nguyện & Cộng đồng',
-  'Thiết kế',
-  'Khoa học',
-  'Giải trí',
-  'Trí tuệ nhân tạo',
-  'Tài chính số',
+export const CLUB_ACTIVITY_FIELD_OPTIONS = [
+  { value: 'Công nghệ thông tin', labelKey: 'admin.dataMaintenance.clubField.it' },
+  { value: 'Học thuật', labelKey: 'admin.dataMaintenance.clubField.academic' },
+  { value: 'Âm nhạc & Nghệ thuật', labelKey: 'admin.dataMaintenance.clubField.arts' },
+  { value: 'Thể thao', labelKey: 'admin.dataMaintenance.clubField.sports' },
+  { value: 'Kinh doanh & Truyền thông', labelKey: 'admin.dataMaintenance.clubField.business' },
+  { value: 'Ngoại ngữ', labelKey: 'admin.dataMaintenance.clubField.language' },
+  { value: 'Kỹ năng mềm', labelKey: 'admin.dataMaintenance.clubField.softSkills' },
+  { value: 'Tình nguyện & Cộng đồng', labelKey: 'admin.dataMaintenance.clubField.volunteer' },
+  { value: 'Thiết kế', labelKey: 'admin.dataMaintenance.clubField.design' },
+  { value: 'Khoa học', labelKey: 'admin.dataMaintenance.clubField.science' },
+  { value: 'Giải trí', labelKey: 'admin.dataMaintenance.clubField.entertainment' },
+  { value: 'Trí tuệ nhân tạo', labelKey: 'admin.dataMaintenance.clubField.ai' },
+  { value: 'Tài chính số', labelKey: 'admin.dataMaintenance.clubField.fintech' },
 ];
+
+export const CLUB_ACTIVITY_FIELDS = CLUB_ACTIVITY_FIELD_OPTIONS.map((opt) => opt.value);
 
 const MASTER_CLUB_FIELDS = CLUB_ACTIVITY_FIELDS;
 

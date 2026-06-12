@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from '../../i18n/I18nContext';
 
 const STATUS_BADGE = {
   active: 'admin-log-badge admin-log-badge--primary',
@@ -12,6 +13,7 @@ const DELTA_BADGE = {
 };
 
 const AdminMetricDetailModal = ({ variant, open, onClose, detailMap = {} }) => {
+  const { t } = useTranslation();
   const config = variant ? detailMap[variant] : null;
 
   useEffect(() => {
@@ -92,7 +94,7 @@ const AdminMetricDetailModal = ({ variant, open, onClose, detailMap = {} }) => {
             <h2 id="admin-detail-modal-title">{config.title}</h2>
             <p>{config.subtitle}</p>
           </div>
-          <button type="button" className="admin-log-modal__close" onClick={onClose} aria-label="Đóng">
+          <button type="button" className="admin-log-modal__close" onClick={onClose} aria-label={t('admin.common.close')}>
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
@@ -137,9 +139,9 @@ const AdminMetricDetailModal = ({ variant, open, onClose, detailMap = {} }) => {
         </div>
 
         <footer className="admin-log-modal__footer">
-          <p className="admin-detail-modal__hint">Dữ liệu tổng hợp từ MongoDB · Cập nhật theo thời gian thực khi tải lại trang</p>
+          <p className="admin-detail-modal__hint">{t('admin.monitor.metricModal.hint')}</p>
           <button type="button" className="admin-log-modal__btn-close" onClick={onClose}>
-            Đóng
+            {t('admin.common.close')}
           </button>
         </footer>
       </div>

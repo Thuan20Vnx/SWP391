@@ -5,10 +5,12 @@ import {
   fetchAdminPartners,
   rejectAdminPartner
 } from '../../services/adminApi';
-import { PARTNER_STATUS_LABEL, formatPartnerDate, formatVnd } from '../../utils/partnerDisplay';
+import { formatPartnerDate, formatVnd, getPartnerStatusLabel } from '../../utils/partnerDisplay';
+import { useTranslation } from '../../i18n/I18nContext';
 
 const AdminPartnerApprovals = ({ showToast }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rejectId, setRejectId] = useState(null);
@@ -26,18 +28,18 @@ const AdminPartnerApprovals = ({ showToast }) => {
 
   useEffect(() => {
     if (userRole !== 'admin') {
-      showToast?.('Chỉ tài khoản Admin mới truy cập được trang này.', 'error');
+      showToast?.(t('admin.common.adminOnly'), 'error');
       navigate('/profile');
       return;
     }
     load();
-  }, [userRole, navigate, showToast]);
+  }, [userRole, navigate, showToast, t]);
 
   const handleApprove = async (id) => {
     setBusy(true);
     try {
       await approveAdminPartner(id);
-      showToast?.('Đã phê duyệt đối tác thành công.', 'success');
+      showToast?.(t('admin.partnerApprovals.toast.approved'), 'success');
       setPartners((prev) => prev.filter((p) => p._id !== id));
     } catch (e) {
       showToast?.(e.message, 'error');
@@ -51,7 +53,7 @@ const AdminPartnerApprovals = ({ showToast }) => {
     setBusy(true);
     try {
       await rejectAdminPartner(rejectId, rejectReason.trim());
-      showToast?.('Đã từ chối đơn.', 'info');
+      showToast?.(t('admin.partnerApprovals.toast.rejected'), 'info');
       setPartners((prev) => prev.filter((p) => p._id !== rejectId));
       setRejectId(null);
       setRejectReason('');
@@ -66,17 +68,15 @@ const AdminPartnerApprovals = ({ showToast }) => {
     <div className="profile-container" style={{ minHeight: '100vh', background: 'var(--bg-default)' }}>
       <main className="profile-main" style={{ marginTop: '40px', padding: '24px 5%', maxWidth: 960, margin: '40px auto' }}>
         <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Phê duyệt đối tác (Admin)</h1>
-          <p style={{ color: 'var(--text-muted)' }}>
-            Các đơn đã được CTSV phê duyệt — Admin xác nhận lần cuối để hoàn tất.
-          </p>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>{t('admin.partnerApprovals.title')}</h1>
+          <p style={{ color: 'var(--text-muted)' }}>{t('admin.partnerApprovals.subtitle')}</p>
         </header>
 
         {loading ? (
-          <p>Đang tải…</p>
+          <p>{t('common.loading')}</p>
         ) : partners.length === 0 ? (
           <p style={{ padding: 32, textAlign: 'center', background: '#fff', borderRadius: 12 }}>
-            Không có đơn chờ Admin phê duyệt.
+            {t('admin.partnerApprovals.empty')}
           </p>
         ) : (
           <ul style={{ display: 'flex', flexDirection: 'column', gap: 16, listStyle: 'none', padding: 0 }}>
@@ -94,11 +94,12 @@ const AdminPartnerApprovals = ({ showToast }) => {
                   <div>
                     <h3 style={{ margin: '0 0 8px', fontSize: '1.125rem' }}>{p.name}</h3>
                     <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>
-                      {p.proposedEventTitle || '—'} • {formatVnd(p.expectedSponsorAmount)}
+                      {p.proposedEventTitle || t('admin.common.empty')} • {formatVnd(p.expectedSponsorAmount)}
                     </p>
                     <p style={{ margin: '8px 0 0', fontSize: '0.8125rem', color: '#94a3b8' }}>
-                      Gửi {formatPartnerDate(p.createdAt)} • CTSV: {p.ctsvApprovedByEmail || '—'} •{' '}
-                      {PARTNER_STATUS_LABEL[p.status]}
+                      {t('admin.partnerApprovals.submitted', { date: formatPartnerDate(p.createdAt) })} •{' '}
+                      {t('admin.partnerApprovals.ctsv', { email: p.ctsvApprovedByEmail || t('admin.common.empty') })} •{' '}
+                      {getPartnerStatusLabel(p.status, t)}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -108,7 +109,7 @@ const AdminPartnerApprovals = ({ showToast }) => {
                       style={{ background: '#fff', color: 'var(--primary)', border: '1px solid var(--primary)' }}
                       onClick={() => navigate(`/partners/${p._id}`)}
                     >
-                      Chi tiết
+                      {t('admin.partnerApprovals.detail')}
                     </button>
                     <button
                       type="button"
@@ -117,7 +118,7 @@ const AdminPartnerApprovals = ({ showToast }) => {
                       disabled={busy}
                       onClick={() => handleApprove(p._id)}
                     >
-                      Phê duyệt
+                      {t('admin.common.approve')}
                     </button>
                     <button
                       type="button"
@@ -129,7 +130,7 @@ const AdminPartnerApprovals = ({ showToast }) => {
                         setRejectReason('');
                       }}
                     >
-                      Từ chối
+                      {t('admin.common.reject')}
                     </button>
                   </div>
                 </div>
@@ -146,10 +147,10 @@ const AdminPartnerApprovals = ({ showToast }) => {
             onClick={() => !busy && setRejectId(null)}
           >
             <div className="ctsv-partner-dialog" onClick={(e) => e.stopPropagation()}>
-              <h2 className="ctsv-partner-dialog-title">Từ chối (Admin)</h2>
+              <h2 className="ctsv-partner-dialog-title">{t('admin.partnerApprovals.rejectTitle')}</h2>
               <label className="ctsv-partner-dialog-field">
                 <span>
-                  Lý do từ chối <em>*</em>
+                  {t('admin.partnerApprovals.rejectReason')} <em>*</em>
                 </span>
                 <textarea
                   className="ctsv-textarea ctsv-partner-dialog-textarea"
@@ -160,7 +161,7 @@ const AdminPartnerApprovals = ({ showToast }) => {
               </label>
               <div className="ctsv-partner-dialog-actions">
                 <button type="button" className="ctsv-partner-dialog-cancel" onClick={() => setRejectId(null)}>
-                  Hủy
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -168,7 +169,7 @@ const AdminPartnerApprovals = ({ showToast }) => {
                   disabled={busy || !rejectReason.trim()}
                   onClick={handleReject}
                 >
-                  Xác nhận
+                  {t('admin.common.confirm')}
                 </button>
               </div>
             </div>

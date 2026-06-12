@@ -2,23 +2,21 @@ import { isClubManagerRole } from '../utils/auth';
 
 export const studentMenuSections = [
   {
+    items: [{ key: 'profile', labelKey: 'student.menu.profile', path: '/profile', icon: 'user' }],
+  },
+  {
+    headerKey: 'student.section.events',
     items: [
-      { key: 'profile', label: 'Thông tin cá nhân', path: '/profile', icon: 'user' },
+      { key: 'my-events', labelKey: 'student.menu.myEvents', path: '/my-events', icon: 'folder' },
+      { key: 'my-clubs', labelKey: 'student.menu.myClubs', path: '/my-clubs', icon: 'users' },
+      { key: 'schedule', labelKey: 'student.menu.schedule', path: '/schedule', icon: 'calendar' },
     ],
   },
   {
-    header: 'Sự kiện',
+    headerKey: 'student.section.utilities',
     items: [
-      { key: 'my-events', label: 'Sự kiện của tôi', path: '/my-events', icon: 'folder' },
-      { key: 'my-clubs', label: 'Câu lạc bộ yêu thích', path: '/my-clubs', icon: 'users' },
-      { key: 'schedule', label: 'Quản lý lịch trình', path: '/schedule', icon: 'calendar' },
-    ],
-  },
-  {
-    header: 'Tiện ích',
-    items: [
-      { key: 'reviews', label: 'Đánh giá sự kiện', path: '/event-reviews', icon: 'star' },
-      { key: 'settings', label: 'Cài đặt và bảo mật', path: '/settings', icon: 'settings' },
+      { key: 'reviews', labelKey: 'student.menu.reviews', path: '/event-reviews', icon: 'star' },
+      { key: 'settings', labelKey: 'student.menu.settings', path: '/settings', icon: 'settings' },
     ],
   },
 ];
@@ -30,10 +28,10 @@ export const getSidebarMenuSections = (role = null) => {
 
   return studentMenuSections.map((section) => ({
     ...section,
-    items: section.items.map((item) => (
+    items: section.items.map((item) =>
       item.key === 'my-clubs'
-        ? { key: 'club-manage', label: 'Quản lý CLB', path: '/quan-ly-clb', icon: 'users' }
+        ? { key: 'club-manage', labelKey: 'student.menu.clubManage', path: '/quan-ly-clb', icon: 'users' }
         : item
-    )),
+    ),
   }));
 };

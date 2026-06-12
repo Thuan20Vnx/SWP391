@@ -1,9 +1,37 @@
+export const PARTNER_STATUS_KEYS = {
+  pending: 'partner.status.pending',
+  pending_admin: 'partner.status.pending_admin',
+  approved: 'partner.status.approved',
+  rejected: 'partner.status.rejected',
+  info_requested: 'partner.status.info_requested',
+};
+
 export const PARTNER_STATUS_LABEL = {
   pending: 'Chờ duyệt',
   pending_admin: 'Chờ Admin duyệt',
   approved: 'Đã duyệt',
   rejected: 'Từ chối',
-  info_requested: 'Cần bổ sung'
+  info_requested: 'Cần bổ sung',
+};
+
+export const getPartnerStatusLabel = (status, t) => {
+  const key = PARTNER_STATUS_KEYS[status];
+  if (t && key) return t(key);
+  return PARTNER_STATUS_LABEL[status] || status;
+};
+
+export const PARTNER_STATUS_DETAIL_KEYS = {
+  pending: 'partner.status.detail.pending',
+  pending_admin: 'partner.status.detail.pending_admin',
+  approved: 'partner.status.detail.approved',
+  rejected: 'partner.status.detail.rejected',
+  info_requested: 'partner.status.detail.info_requested',
+};
+
+export const getPartnerStatusDetailLabel = (status, t) => {
+  const key = PARTNER_STATUS_DETAIL_KEYS[status];
+  if (t && key) return t(key);
+  return PARTNER_STATUS_LABEL_DETAIL[status] || PARTNER_STATUS_LABEL[status] || status;
 };
 
 /** Nhãn trên màn chi tiết — khớp Figma */
