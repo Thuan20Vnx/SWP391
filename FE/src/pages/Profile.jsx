@@ -8,32 +8,49 @@ import AvatarCropModal from '../components/profile/AvatarCropModal';
 import { getRoleLabel } from '../utils/role';
 import { logoutWithConfirm } from '../utils/logout';
 import { dispatchAuthChanged } from '../utils/authEvents';
-import { cacheUserProfile } from '../hooks/useUserProfile';
+import { cacheUserProfile, readUserProfileSummaryCache } from '../hooks/useUserProfile';
 import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileApi';
-import { isAdminRole, isCtsvRole, normalizeRole } from '../utils/auth';
+import { isAdminRole, isCtsvRole, isClubManagerRole, normalizeRole, getUserRole } from '../utils/auth';
+import {
+  INTEREST_LABELS,
+  mapUserToProfileDetail,
+  readProfileDetailCache,
+  writeProfileDetailCache,
+} from '../utils/profileDetailCache';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
 import ProfilePasswordSection from '../components/profile/ProfilePasswordSection';
 import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 
 const Profile = ({ showToast, embedded = false }) => {
   const navigate = useNavigate();
+  const bootstrapDetail = readProfileDetailCache();
+  const bootstrapSummary = readUserProfileSummaryCache();
+
+  const buildInitialProfileData = () => {
+    if (bootstrapDetail?.profileData) return bootstrapDetail.profileData;
+    return {
+      fullname: bootstrapSummary?.fullname || localStorage.getItem('userFullname') || '',
+      course: bootstrapSummary?.course || '',
+      campus: '',
+      email: localStorage.getItem('userEmail') || '',
+      phone: '',
+    };
+  };
 
   // Profile data from backend
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [profileData, setProfileData] = useState({
-    fullname: '',
-    course: '',
-    campus: '',
-    email: localStorage.getItem('userEmail') || '',
-    phone: ''
-  });
+  const [profileLoading, setProfileLoading] = useState(() => !bootstrapDetail && !bootstrapSummary);
+  const [profileData, setProfileData] = useState(buildInitialProfileData);
 
   // Role & Student ID for FPT recognition
-  const [userRole, setUserRole] = useState('guest');
-  const [studentId, setStudentId] = useState('');
+  const [userRole, setUserRole] = useState(
+    () => bootstrapDetail?.userRole || bootstrapSummary?.role || getUserRole()
+  );
+  const [studentId, setStudentId] = useState(() =>
+    bootstrapDetail?.studentId ? formatMssv(bootstrapDetail.studentId) : ''
+  );
 
   // Track if course cohort has been changed once
-  const [courseChanged, setCourseChanged] = useState(false);
+  const [courseChanged, setCourseChanged] = useState(() => bootstrapDetail?.courseChanged || false);
 
   const [sidebarActive, setSidebarActive] = useState(false);
 
@@ -44,84 +61,95 @@ const Profile = ({ showToast, embedded = false }) => {
   const [backupData, setBackupData] = useState(null);
 
   // Avatar Upload State
-  const [avatar, setAvatar] = useState('');
+  const [avatar, setAvatar] = useState(
+    () => bootstrapDetail?.avatar || bootstrapSummary?.picture || ''
+  );
   const [avatarSaving, setAvatarSaving] = useState(false);
   const [avatarCropOpen, setAvatarCropOpen] = useState(false);
   const [avatarCropSrc, setAvatarCropSrc] = useState('');
   const [avatarCropFileName, setAvatarCropFileName] = useState('');
 
   // Form Orientation State
-  const [orientation, setOrientation] = useState('');
+  const [orientation, setOrientation] = useState(() => bootstrapDetail?.orientation || '');
   const [saveLoading, setSaveLoading] = useState(false);
   const [favoriteClubs, setFavoriteClubs] = useState([]);
 
-  // Load profile from Backend on mount
+  const [interests, setInterests] = useState(
+    () => bootstrapDetail?.interests || {
+      hardware: false,
+      ai: false,
+      japan: false,
+      charity: false,
+      sports: false,
+      music: false,
+    }
+  );
+
+  const applyProfileUser = (user) => {
+    const detail = mapUserToProfileDetail(user);
+    if (!detail) return;
+
+    setProfileData(detail.profileData);
+    setCourseChanged(detail.courseChanged);
+    setAvatar(detail.avatar);
+    setOrientation(detail.orientation);
+    setUserRole(detail.userRole);
+    setStudentId(detail.studentId ? formatMssv(detail.studentId) : '');
+    setInterests(detail.interests);
+    writeProfileDetailCache(detail);
+    cacheUserProfile({
+      fullname: detail.profileData.fullname,
+      course: detail.profileData.course,
+      role: detail.userRole,
+      picture: detail.avatar,
+    });
+  };
+
+  // Load profile from Backend on mount (stale-while-revalidate)
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       setProfileLoading(false);
       navigate('/login');
-      return;
+      return undefined;
     }
 
-    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-      .then(res => {
-        if (res.status === 200) {
-          return res.json();
-        } else {
-          throw new Error('Failed to load profile');
-        }
-      })
-      .then(data => {
-        const u = data.user;
-        setProfileData({
-          fullname: u.fullname || '',
-          course: u.course || '',
-          campus: u.campus || '',
-          email: u.email || '',
-          phone: u.phone || ''
-        });
-        setCourseChanged(u.courseChanged || false);
-        setAvatar(resolveUserAvatar(u, ''));
-        if (u.orientation !== undefined) {
-          setOrientation(u.orientation);
-        }
-        // Load role & studentId
-        if (u.role) setUserRole(u.role);
-        if (u.studentId) setStudentId(formatMssv(u.studentId));
+    const controller = new AbortController();
+    const hasCachedBootstrap = Boolean(bootstrapDetail || bootstrapSummary);
+    if (!hasCachedBootstrap) setProfileLoading(true);
 
-        // Populate interests checklist state
-        if (u.interests) {
-          const map = {
-            hardware: 'Phần cứng & Vi điều khiển',
-            ai: 'AI',
-            japan: 'Văn hóa Nhật Bản',
-            charity: 'Thiện nguyện',
-            sports: 'Thể thao',
-            music: 'Âm nhạc & Nghệ thuật'
-          };
-          setInterests({
-            hardware: u.interests.includes(map.hardware),
-            ai: u.interests.includes(map.ai),
-            japan: u.interests.includes(map.japan),
-            charity: u.interests.includes(map.charity),
-            sports: u.interests.includes(map.sports),
-            music: u.interests.includes(map.music)
-          });
-        }
+    fetch(`${API_BASE}/api/user/profile`, {
+      headers: getAuthHeaders(false),
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (res.status === 200) return res.json();
+        throw new Error('Failed to load profile');
       })
-      .catch(err => {
+      .then((data) => {
+        if (data?.user) applyProfileUser(data.user);
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
         console.error(err);
-        showToast('Không thể tải dữ liệu hồ sơ cá nhân từ Backend!', 'error');
+        if (!hasCachedBootstrap) {
+          showToast('Không thể tải dữ liệu hồ sơ cá nhân từ Backend!', 'error');
+        }
       })
       .finally(() => setProfileLoading(false));
+
+    return () => controller.abort();
   }, [navigate, showToast]);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    if (!token) return;
+    if (!token || isClubManagerRole(userRole)) return undefined;
 
-    fetch(`${API_BASE}/api/user/my-clubs?tab=following`, { headers: getAuthHeaders(false) })
+    const controller = new AbortController();
+    fetch(`${API_BASE}/api/user/my-clubs?tab=following`, {
+      headers: getAuthHeaders(false),
+      signal: controller.signal,
+    })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.success && Array.isArray(data.clubs)) {
@@ -129,17 +157,20 @@ const Profile = ({ showToast, embedded = false }) => {
         }
       })
       .catch(() => {});
-  }, []);
 
-  // Interests Checklist State
-  const [interests, setInterests] = useState({
-    hardware: false,
-    ai: false,
-    japan: false,
-    charity: false,
-    sports: false,
-    music: false
-  });
+    return () => controller.abort();
+  }, [userRole]);
+
+  useEffect(() => {
+    if (!sidebarActive) {
+      document.body.style.overflow = '';
+      return undefined;
+    }
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [sidebarActive]);
 
   // Handle Sidebar Menu item click
   const handleFeatureNotImplemented = (e) => {
@@ -282,18 +313,9 @@ const Profile = ({ showToast, embedded = false }) => {
 
     setSaveLoading(true);
 
-    const map = {
-      hardware: 'Phần cứng & Vi điều khiển',
-      ai: 'AI',
-      japan: 'Văn hóa Nhật Bản',
-      charity: 'Thiện nguyện',
-      sports: 'Thể thao',
-      music: 'Âm nhạc & Nghệ thuật'
-    };
-
     const activeInterests = Object.keys(interests)
       .filter(k => interests[k])
-      .map(k => map[k]);
+      .map(k => INTEREST_LABELS[k]);
 
     fetch(`${API_BASE}/api/user/profile`, {
       method: 'PUT',
@@ -314,23 +336,7 @@ const Profile = ({ showToast, embedded = false }) => {
         if (ok && status === 200 && data.success !== false) {
           setIsEditing(false);
           if (data.user) {
-            setProfileData({
-              fullname: data.user.fullname || '',
-              course: data.user.course || '',
-              campus: data.user.campus || '',
-              email: data.user.email || '',
-              phone: data.user.phone || ''
-            });
-            setCourseChanged(data.user.courseChanged || false);
-            if (data.user.picture || data.user.avatar) {
-              setAvatar(resolveUserAvatar(data.user, ''));
-            }
-            cacheUserProfile({
-              fullname: data.user.fullname || '',
-              course: data.user.course || '',
-              role: normalizeRole(data.user.role || userRole),
-              picture: resolveUserAvatar(data.user, displayAvatar)
-            });
+            applyProfileUser(data.user);
             dispatchAuthChanged();
           }
           showToast('Cập nhật hồ sơ thành công.', 'success');
@@ -794,7 +800,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
   return (
     <>
-    <div className="dashboard-body">
+    <div className="dashboard-body student-portal">
       <div
         className={`sidebar-overlay ${sidebarActive ? 'active' : ''}`}
         id="sidebar-overlay"
@@ -878,6 +884,7 @@ const Profile = ({ showToast, embedded = false }) => {
                 <span style={{ color: '#cbd5e1' }}>/</span>
                 <span className="current">{profilePageTitle}</span>
               </div>
+              <h2 className="student-mobile-nav-title">{profilePageTitle}</h2>
             </div>
 
             <div className="navbar-right">

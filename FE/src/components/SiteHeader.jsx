@@ -33,14 +33,14 @@ import { navigateClubPortalHome } from './club/clubNavConfig';
 import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
 import CtsvHamburgerButton from './ctsv/CtsvHamburgerButton';
 import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../data/adminPublicNav';
+import { PUBLIC_NAV_ITEMS } from '../data/publicNavItems';
 import '../styles/admin-menu.css';
 
-const BASE_NAV_ITEMS = [
-  { key: 'home', label: 'Trang chủ', to: '/' },
-  { key: 'events', label: 'Sự kiện', to: '/events' },
-  { key: 'clubs', label: 'Câu lạc bộ', to: '/clubs' },
-  { key: 'news', label: 'Tin tức', to: '/announcements' },
-];
+const BASE_NAV_ITEMS = PUBLIC_NAV_ITEMS.map(({ key, label, path }) => ({
+  key,
+  label,
+  to: path,
+}));
 
 const CLUB_MANAGER_NAV_ITEM = {
   key: 'club-manage',
@@ -292,6 +292,24 @@ const SiteHeader = ({
           {item.label}
         </Link>
       ))}
+      {!isLoggedIn && (
+        <div className="mobile-nav-auth site-header__mobile-auth">
+          <Link
+            to="/login"
+            className="btn-auth btn-auth-login"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Đăng nhập
+          </Link>
+          <Link
+            to="/signup"
+            className="btn-auth btn-auth-signup"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Đăng ký
+          </Link>
+        </div>
+      )}
     </nav>
   );
 
@@ -360,6 +378,17 @@ const SiteHeader = ({
           </>
         ) : (
           <>
+            {!isAdminPortal && (
+              <button
+                type="button"
+                className="mobile-hamburger-btn"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
+                aria-expanded={mobileMenuOpen}
+              >
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" /></svg>
+              </button>
+            )}
             <div className="header-logo site-header__logo-group">
               {renderLogo(false)}
               {renderNav()}

@@ -3,6 +3,8 @@ import BannerCropModal from './ctsv/BannerCropModal';
 import AvatarCropModal from './profile/AvatarCropModal';
 import { API_BASE, getAuthHeaders, parseApiResponse } from '../utils/api';
 import { openImageFilePicker } from '../utils/imageFilePicker';
+import { readClubProfileCache, writeClubProfileCache } from '../utils/clubProfileCache';
+import { ACTIVE_CLUB_CHANGED, getActiveManagedClubId } from '../utils/activeManagedClub';
 import ClubChairmanTransfer from './club/ClubChairmanTransfer';
 
 const ACTIVITY_FIELDS = [
@@ -245,9 +247,10 @@ const ProfileCoverSection = ({
 );
 
 const ClubProfileUpdate = ({ showToast }) => {
-  const [form, setForm] = useState(emptyProfile);
-  const [savedForm, setSavedForm] = useState(emptyProfile);
-  const [loading, setLoading] = useState(true);
+  const initialCached = readClubProfileCache();
+  const [form, setForm] = useState(initialCached || emptyProfile);
+  const [savedForm, setSavedForm] = useState(initialCached || emptyProfile);
+  const [loading, setLoading] = useState(!initialCached);
   const [loadError, setLoadError] = useState('');
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -262,43 +265,98 @@ const ClubProfileUpdate = ({ showToast }) => {
   const [logoCropSrc, setLogoCropSrc] = useState('');
   const [logoCropFileName, setLogoCropFileName] = useState('');
 
-  const loadProfile = useCallback(async (signal) => {
-    setLoading(true);
-    setLoadError('');
+  const applyClubForm = useCallback((mapped, clubId) => {
+    setForm(mapped);
+    setSavedForm(mapped);
+    writeClubProfileCache(mapped, clubId);
+  }, []);
+
+  const loadProfileMedia = useCallback(async (signal, clubId) => {
     try {
-      const res = await fetch(`${API_BASE}/api/clubs/manage/profile`, {
+      const res = await fetch(`${API_BASE}/api/clubs/manage/profile?media=1`, {
+        headers: getAuthHeaders(false),
+        signal,
+      });
+      const { ok, data } = await parseApiResponse(res);
+      if (!ok || !data.success || !data.club) return;
+
+      const mergeMedia = (prev) => {
+        const next = {
+          ...prev,
+          coverImage: data.club.coverImage || prev.coverImage,
+          logoImage: data.club.logoImage || prev.logoImage,
+          coverPositionY: normalizeCoverPositionY(
+            data.club.coverPositionY ?? prev.coverPositionY
+          ),
+        };
+        writeClubProfileCache(next, clubId);
+        return next;
+      };
+
+      setForm(mergeMedia);
+      setSavedForm(mergeMedia);
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        /* Ảnh tải nền — không chặn form */
+      }
+    }
+  }, []);
+
+  const loadProfile = useCallback(async (signal) => {
+    const clubId = getActiveManagedClubId();
+    const cached = readClubProfileCache(clubId);
+    if (!cached) setLoading(true);
+    setLoadError('');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/clubs/manage/profile?lite=1`, {
         headers: getAuthHeaders(false),
         signal,
       });
       const { ok, data } = await parseApiResponse(res);
       if (ok && data.success && data.club) {
-        const mapped = mapClubToForm(data.club);
-        setForm(mapped);
-        setSavedForm(mapped);
+        const resolvedClubId = String(data.club._id || data.club.id || clubId || '');
+        const mapped = mapClubToForm({
+          ...data.club,
+          coverImage: cached?.coverImage || '',
+          logoImage: cached?.logoImage || '',
+          coverPositionY: cached?.coverPositionY ?? 50,
+        });
+        applyClubForm(mapped, resolvedClubId);
+        void loadProfileMedia(signal, resolvedClubId);
       } else if (res.status === 404) {
         const msg = 'Backend chưa có API mới. Hãy restart server BE (npm run dev).';
         setLoadError(msg);
-        showToast(msg, 'error');
+        if (!cached) showToast(msg, 'error');
       } else {
         const msg = data.message || 'Không tải được hồ sơ CLB.';
         setLoadError(msg);
-        showToast(msg, 'error');
+        if (!cached) showToast(msg, 'error');
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
         const msg = 'Không kết nối được server.';
         setLoadError(msg);
-        showToast(msg, 'error');
+        if (!cached) showToast(msg, 'error');
       }
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [applyClubForm, loadProfileMedia, showToast]);
 
   useEffect(() => {
     const controller = new AbortController();
     loadProfile(controller.signal);
     return () => controller.abort();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    const handleClubChanged = () => {
+      const controller = new AbortController();
+      loadProfile(controller.signal);
+    };
+    window.addEventListener(ACTIVE_CLUB_CHANGED, handleClubChanged);
+    return () => window.removeEventListener(ACTIVE_CLUB_CHANGED, handleClubChanged);
   }, [loadProfile]);
 
   const updateField = (field, value) => {
@@ -430,6 +488,7 @@ const ClubProfileUpdate = ({ showToast }) => {
         };
         setForm(synced);
         setSavedForm(synced);
+        writeClubProfileCache(synced, getActiveManagedClubId());
         setIsEditing(false);
         showToast('Đã lưu hồ sơ CLB.', 'success');
       } else {
@@ -457,7 +516,7 @@ const ClubProfileUpdate = ({ showToast }) => {
     );
   }
 
-  if (loadError) {
+  if (loadError && !savedForm.name) {
     return (
       <div className="clb-profile-view">
         <p className="clb-profile-loading">{loadError}</p>

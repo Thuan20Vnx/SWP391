@@ -210,16 +210,6 @@ body {
     height: 48px !important;
     padding: 16px 48px 4px 48px !important;
   }
-  .forgot-card {
-    padding: 32px 32px 36px 32px !important;
-    gap: 20px !important;
-    border-radius: 16px !important;
-  }
-  .badge-circle {
-    width: 64px !important;
-    height: 64px !important;
-    margin-bottom: 16px !important;
-  }
 }
 
 /* Slogan styles specifically for login page */
@@ -865,6 +855,35 @@ body {
   white-space: nowrap;
 }
 
+.login-forgot-link {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary, #f26f21);
+  text-decoration: none;
+  padding: 6px 2px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.login-forgot-link:hover {
+  color: var(--primary-hover, #d85f1a);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.login-forgot-link:focus-visible {
+  outline: 2px solid var(--primary, #f26f21);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.login-forgot-link:active {
+  opacity: 0.85;
+}
+
 .accent-link.dark {
   color: var(--accent-dark);
 }
@@ -873,20 +892,103 @@ body {
   color: var(--primary-hover);
 }
 
-/* Responsive login slogan style overrides inside media query */
+/* Responsive login slogan */
 @media (max-width: 767px) {
   .login-slogan .slogan-title {
     font-size: 1.75rem;
     margin-bottom: 8px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
     text-align: center;
+    text-wrap: balance;
   }
+
   .login-slogan .slogan-desc {
     font-size: 0.95rem;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    line-height: 1.5;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
     text-align: center;
-    display: block; /* override line-clamp if necessary */
-    -webkit-line-clamp: unset;
+  }
+
+  /* Login / Unlock — compact hero trên mobile */
+  .page-container.split-50 {
+    min-height: 100dvh;
+  }
+
+  .page-container.split-50 .branding-column {
+    width: 100%;
+    height: auto;
+    min-height: clamp(168px, 30dvh, 252px);
+    padding:
+      max(16px, calc(env(safe-area-inset-top, 0px) + 12px))
+      20px
+      22px;
+    justify-content: flex-end;
+    align-items: stretch;
+    background-position: center 35%;
+    flex-shrink: 0;
+  }
+
+  .page-container.split-50 .glass-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(15, 23, 42, 0.2) 0%,
+      rgba(15, 23, 42, 0.5) 50%,
+      rgba(15, 23, 42, 0.82) 100%
+    );
+  }
+
+  .page-container.split-50 .branding-content {
+    gap: 0;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+  }
+
+  .page-container.split-50 .login-slogan {
+    max-width: none;
+  }
+
+  .page-container.split-50 .login-slogan .slogan-title {
+    font-size: clamp(1.3rem, 4.8vw, 1.65rem);
+    line-height: 1.22;
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+
+  .page-container.split-50 .login-slogan .slogan-desc {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    text-align: left;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 36ch;
+  }
+
+  .page-container.split-50 .form-column {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    padding: 18px 16px 28px;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    align-items: flex-start;
+  }
+
+  .page-container.split-50 .auth-form-shell {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container.split-50 .branding-column {
+    min-height: clamp(132px, 24dvh, 168px);
+    padding-bottom: 16px;
+  }
+
+  .page-container.split-50 .login-slogan .slogan-desc {
+    display: none;
   }
 }
 
@@ -950,13 +1052,188 @@ body {
   text-transform: none;
 }
 
-/* Forgot Password Page Custom Layout Overrides */
+/* Forgot Password — aligned with Login / Signup auth shell */
+.auth-logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+.auth-logo {
+  width: 115px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.auth-form-header {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.auth-form-header h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.auth-form-header .subtitle {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  line-height: 1.55;
+  max-width: 36ch;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+
+.auth-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-form-stack .input-group {
+  margin-bottom: 0;
+}
+
+.auth-submit-btn {
+  height: 46px;
+  margin-top: 0;
+}
+
+.auth-form-footer {
+  margin-top: 14px;
+}
+
+.auth-form-footer .login-redirect {
+  margin-bottom: 10px;
+}
+
+.login-redirect-muted {
+  color: var(--color-icon);
+}
+
+.auth-accent-link {
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+.auth-hint {
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+  max-width: 38ch;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+
+.auth-notice {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  animation: fadeIn 0.3s ease;
+}
+
+.auth-notice--warning {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+}
+
+.auth-notice--success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.auth-notice__title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.auth-notice__text {
+  margin: 0;
+  opacity: 0.92;
+}
+
+.auth-notice__link {
+  display: inline-flex;
+  margin-top: 8px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-notice__link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-notice__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  text-decoration: none;
+  transition: color 0.2s ease, gap 0.2s ease;
+}
+
+.auth-notice__action:hover {
+  color: var(--primary-hover);
+  gap: 8px;
+}
+
+.auth-notice__action:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Countdown state of submit button */
+.primary-button.btn-countdown {
+  background-color: #fde8d8;
+  color: #9a3412;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.primary-button.btn-countdown:hover {
+  background-color: #fde8d8;
+  box-shadow: none;
+}
+
+.primary-button:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.primary-button:disabled:hover {
+  transform: none !important;
+}
+
+/* Reset password page — legacy card shell (ResetPassword.jsx) */
 .page-container.forgot-page .branding-column {
   background-image: url('./assets/fpt_architecture.png');
 }
 
 .page-container.forgot-page .glass-overlay {
-  background: #ffffff;
+  background: linear-gradient(
+    135deg,
+    rgba(160, 65, 0, 0.12) 0%,
+    rgba(30, 41, 59, 0.45) 100%
+  );
 }
 
 .forgot-slogan {
@@ -964,26 +1241,25 @@ body {
 }
 
 .forgot-slogan .slogan-title {
-  font-size: 2rem; /* 32px */
+  font-size: 2rem;
   font-weight: 700;
   color: var(--text-white);
   margin-bottom: 8px;
 }
 
 .forgot-slogan .slogan-desc {
-  font-size: 1rem; /* 16px */
+  font-size: 1rem;
   color: rgba(255, 255, 255, 0.9);
   line-height: 1.5;
 }
 
-/* Form Card Styling */
 .forgot-card {
   width: 100%;
   max-width: 480px;
   background-color: var(--bg-card);
   border-radius: 24px;
-  padding: 48px 40px 64px 40px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04), 0 8px 10px rgba(0, 0, 0, 0.04);
+  padding: 48px 40px 64px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06), 0 8px 10px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -1003,7 +1279,7 @@ body {
 .badge-circle {
   width: 80px;
   height: 80px;
-  background-color: #ffffff;
+  background-color: #fff7ed;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1013,31 +1289,50 @@ body {
 }
 
 .forgot-header h1 {
-  font-size: 1.75rem; /* 28px */
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-main);
   margin-bottom: 12px;
 }
 
 .forgot-header p {
-  font-size: 0.875rem; /* 14px */
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
 
-/* Countdown state of submit button */
-.primary-button.btn-countdown {
-  background-color: #ffffff; /* soft peach */
-  color: var(--text-white);
-  box-shadow: none;
-  cursor: not-allowed;
-  transform: none !important;
+@media (min-width: 768px) {
+  .forgot-card {
+    padding: 32px 32px 36px;
+    gap: 20px;
+    border-radius: 16px;
+  }
+
+  .badge-circle {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+  }
 }
 
-.primary-button.btn-countdown:hover {
-  background-color: #ffffff;
-  box-shadow: none;
+@media (max-width: 767px) {
+  .forgot-slogan .slogan-title {
+    font-size: 1.5rem;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  .forgot-slogan .slogan-desc {
+    font-size: 0.95rem;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+
+  .forgot-card {
+    max-width: 100%;
+    padding: 32px 24px;
+  }
 }
 
 /* Back navigation link style */
@@ -1161,24 +1456,12 @@ body {
 }
 
 @media (max-width: 767px) {
-  .forgot-slogan .slogan-title {
-    font-size: 1.5rem;
-    text-align: center;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  .auth-form-header .subtitle {
+    font-size: 0.875rem;
   }
-  .forgot-slogan .slogan-desc {
-    font-size: 0.95rem;
-    text-align: center;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  }
-  
-  .forgot-card {
-    max-width: 100%;
-    padding: 32px 24px;
-  }
-  
-  .success-snackbar {
-    max-width: 100%;
+
+  .auth-hint {
+    font-size: 0.8125rem;
   }
 }
 
@@ -2761,6 +3044,10 @@ a.club-tag {
   gap: 12px;
 }
 
+.mobile-nav-auth {
+  display: none;
+}
+
 .btn-auth {
   text-decoration: none;
   font-size: 0.9rem;
@@ -4133,6 +4420,36 @@ a.club-tag {
     padding: 6px;
   }
 
+  .site-header:not(.site-header--with-shell) .site-header__nav.mobile-active,
+  .site-header--with-shell .site-header__nav.mobile-active {
+    display: flex;
+    z-index: 1000;
+  }
+
+  .site-header--with-shell .ctsv-header-nav-toggle,
+  .site-header--with-shell .site-header__nav-toggle {
+    display: flex;
+  }
+
+  .site-header--with-shell .site-header__nav {
+    display: none;
+    position: absolute;
+    top: 65px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding: 12px 16px;
+    background: var(--header-bg, #fff);
+    border-bottom: 1px solid var(--header-border, #e5e7eb);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  .site-header:not(.site-header--with-shell) .mobile-hamburger-btn {
+    display: block;
+  }
+
   .ctsv-portal-layout .ctsv-header-nav {
     display: none;
     position: absolute;
@@ -4186,6 +4503,82 @@ a.club-tag {
 
   .profile-info-text {
     display: none; /* Hide text on small screens, keep avatar clickable */
+  }
+
+  .site-header .header-container {
+    gap: 8px;
+    padding: 0 12px;
+    min-width: 0;
+  }
+
+  .site-header:not(.site-header--with-shell) .site-header__container {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas: 'menu brand actions';
+    align-items: center;
+  }
+
+  .site-header:not(.site-header--with-shell) .mobile-hamburger-btn {
+    grid-area: menu;
+  }
+
+  .site-header:not(.site-header--with-shell) .site-header__logo-group {
+    grid-area: brand;
+    justify-self: center;
+    flex: unset;
+    min-width: 0;
+  }
+
+  .site-header:not(.site-header--with-shell) .header-actions {
+    grid-area: actions;
+  }
+
+  .site-header .logo-img {
+    height: 34px;
+  }
+
+  .header-actions {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .site-header__auth-buttons {
+    display: none;
+  }
+
+  .header-nav.mobile-active {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .header-nav .mobile-nav-auth {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    padding-top: 14px;
+    margin-top: 6px;
+    border-top: 1px solid #ebe4de;
+  }
+
+  .header-nav .mobile-nav-auth .btn-auth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
+  .header-nav .mobile-nav-auth .btn-auth-login:active,
+  .header-nav .mobile-nav-auth .btn-auth-signup:active {
+    transform: scale(0.98);
+  }
+
+  .notif-bell-btn {
+    padding: 6px;
   }
 
   .hero-banner-slider {
@@ -7645,6 +8038,10 @@ a.club-tag {
 
   .site-header .site-header__nav.mobile-active {
     display: flex;
+  }
+
+  .site-header:not(.site-header--with-shell) .mobile-hamburger-btn {
+    display: block;
   }
 
   .site-header__search {

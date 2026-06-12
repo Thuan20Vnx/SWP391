@@ -14,6 +14,8 @@ import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../
 import { ACTIVE_CLUB_CHANGED } from '../utils/activeManagedClub';
 import { useManagedClubs } from '../hooks/useManagedClubs';
 import { resolveUserAvatar } from '../utils/image';
+import { cacheUserProfile } from '../hooks/useUserProfile';
+import { mapUserToProfileDetail, writeProfileDetailCache } from '../utils/profileDetailCache';
 import '../styles/club-portal.css';
 
 const ClubManagerLayout = ({ showToast }) => {
@@ -73,6 +75,14 @@ const ClubManagerLayout = ({ showToast }) => {
           picture: resolveUserAvatar(u, defaultAvatar),
           role,
         });
+        cacheUserProfile({
+          fullname: u.fullname || '',
+          course: u.course || 'K18',
+          picture: resolveUserAvatar(u, defaultAvatar),
+          role,
+        });
+        const detail = mapUserToProfileDetail(u);
+        if (detail) writeProfileDetailCache(detail);
         if (role && role !== 'club_manager') {
           showToast?.('Bạn không có quyền truy cập trang quản lý CLB!', 'error');
           localStorage.setItem('userRole', role);
