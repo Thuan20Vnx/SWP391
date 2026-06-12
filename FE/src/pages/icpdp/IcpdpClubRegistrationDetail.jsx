@@ -191,17 +191,20 @@ const IcpdpClubRegistrationDetail = () => {
         </div>
 
         {canApprove && (
-          <aside className="ctsv-ed-actions icpdp-club-reg-actions">
-            <h2>Quyết định IC-PDP</h2>
-            <label htmlFor="club-reg-note">Ghi chú / lý do (bắt buộc khi từ chối hoặc yêu cầu sửa)</label>
+          <div className="icpdp-action-panel">
+            <h3>Quyết định IC-PDP</h3>
+            <label className="icpdp-action-panel__label" htmlFor="club-reg-note">
+              Ghi chú / lý do (bắt buộc khi từ chối hoặc yêu cầu sửa)
+            </label>
             <textarea
               id="club-reg-note"
-              rows={4}
+              className="ctsv-textarea"
+              rows={3}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Nhập ghi chú nội bộ hoặc hướng dẫn chỉnh sửa…"
             />
-            <div className="icpdp-club-reg-actions__btns">
+            <div className="icpdp-action-panel__buttons">
               <button
                 type="button"
                 className="ctsv-dash-btn ctsv-dash-btn--primary"
@@ -227,7 +230,7 @@ const IcpdpClubRegistrationDetail = () => {
                 Từ chối
               </button>
             </div>
-          </aside>
+          </div>
         )}
       </div>
     </div>

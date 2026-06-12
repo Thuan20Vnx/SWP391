@@ -13,6 +13,8 @@
   --icpdp-accent-bg-strong: #ffffff;
   --icpdp-gradient: linear-gradient(135deg, #f26f21 0%, #ff9800 100%);
   --icpdp-gradient-soft: linear-gradient(135deg, rgba(242, 111, 33, 0.12) 0%, rgba(255, 152, 0, 0.08) 100%);
+  --icpdp-shadow-soft: 0 4px 20px rgba(242, 111, 33, 0.08);
+  --icpdp-shadow-hover: 0 8px 30px rgba(242, 111, 33, 0.15);
 }
 
 /* ── Sidebar accent override ── */
@@ -111,17 +113,18 @@
 
 /* ── Proposal card specific ── */
 .icpdp-proposal-card {
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid rgba(242, 111, 33, 0.12);
   background: #fff;
-  padding: 20px;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  padding: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  box-shadow: var(--icpdp-shadow-soft);
 }
 .icpdp-proposal-card:hover {
   border-color: var(--icpdp-accent-light);
-  box-shadow: 0 8px 24px rgba(242, 111, 33, 0.1);
-  transform: translateY(-2px);
+  box-shadow: var(--icpdp-shadow-hover);
+  transform: translateY(-4px) scale(1.01);
 }
 
 .icpdp-proposal-card__header {
@@ -144,6 +147,16 @@
   font-size: 0.82rem;
   color: #64748b;
   margin: 2px 0 0;
+}
+
+.ctsv-events-empty-icon {
+  color: var(--icpdp-accent-light);
+  filter: drop-shadow(0 0 12px rgba(242, 111, 33, 0.4));
+  transition: all 0.3s ease;
+}
+.ctsv-events-empty:hover .ctsv-events-empty-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 20px rgba(242, 111, 33, 0.6));
 }
 
 .icpdp-proposal-card__meta {
@@ -333,10 +346,14 @@
 .icpdp-action-panel {
   background: #fff;
   border: 1px solid rgba(242, 111, 33, 0.2);
-  box-shadow: 0 4px 20px rgba(242, 111, 33, 0.05);
-  border-radius: 14px;
-  padding: 20px;
-  margin-top: 20px;
+  box-shadow: var(--icpdp-shadow-soft);
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 24px;
+  transition: box-shadow 0.3s ease;
+}
+.icpdp-action-panel:hover {
+  box-shadow: var(--icpdp-shadow-hover);
 }
 .icpdp-action-panel h3 {
   font-size: 1rem;
@@ -466,11 +483,11 @@
     top: 0;
     z-index: 260;
     height: 65px;
-    background: rgba(255, 255, 255, 0.98) !important;
-    border-bottom: 1px solid #f0ebe6;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-bottom: 1px solid rgba(242, 111, 33, 0.1);
+    box-shadow: 0 8px 32px rgba(242, 111, 33, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 
   .icpdp-app-shell .icpdp-portal-header .header-container {
@@ -771,6 +788,12 @@
 /* ── Panel accent ── */
 .icpdp-app-shell .ctsv-dash-panel--accent {
   border-color: rgba(242, 111, 33, 0.2);
+  background: linear-gradient(180deg, rgba(242, 111, 33, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+  box-shadow: var(--icpdp-shadow-soft);
+  transition: box-shadow 0.3s ease;
+}
+.icpdp-app-shell .ctsv-dash-panel--accent:hover {
+  box-shadow: var(--icpdp-shadow-hover);
 }
 
 .icpdp-app-shell .ctsv-dash-pill-count {
@@ -1052,9 +1075,15 @@
 }
 
 /* ── Quick-card link style ── */
+.icpdp-app-shell .ctsv-dash-quick-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
 .icpdp-app-shell .ctsv-dash-quick-card:hover {
   border-color: var(--icpdp-accent-light);
-  box-shadow: 0 6px 20px rgba(242, 111, 33, 0.08);
+  box-shadow: var(--icpdp-shadow-hover);
+  transform: translateY(-3px);
+  background: linear-gradient(180deg, #fff 0%, rgba(242, 111, 33, 0.02) 100%);
 }
 
 /* ── ICPDP / Club workflow bridge ── */

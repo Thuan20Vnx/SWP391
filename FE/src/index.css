@@ -9791,8 +9791,8 @@ a.club-tag {
   width: 100%;
   min-width: 280px;
   max-width: 520px;
-  margin-left: 8px;
-  margin-right: auto;
+  margin-left: auto;
+  margin-right: 16px;
 }
 
 .ctsv-portal-header--with-search .header-actions {

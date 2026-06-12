@@ -174,7 +174,7 @@ const EventProposalForm = ({
 
   const wrapperStyle = embedded
     ? undefined
-    : { width: '100%', maxWidth: '1200px', margin: '0 auto', background: '#fff', borderRadius: '16px', padding: '40px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' };
+    : { maxWidth: '1200px', margin: '0 auto' };
 
   return (
     <div className={wrapperClass} style={wrapperStyle}>

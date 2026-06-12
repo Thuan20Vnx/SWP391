@@ -156,19 +156,7 @@ const IcpdpPortalHeader = ({
             </svg>
           </button>
 
-          <button
-            type="button"
-            className="icpdp-mobile-search-btn"
-            onClick={() => onSearchSubmit?.()}
-            aria-label="Tìm kiếm"
-          >
-            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
-              <path
-                d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
+
 
           <button
             type="button"

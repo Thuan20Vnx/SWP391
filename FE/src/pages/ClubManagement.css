@@ -1780,3 +1780,74 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Event Proposal Form Styles & Mobile Responsiveness */
+.clb-create-view {
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+
+@media (max-width: 768px) {
+  .clb-create-view {
+    padding: 20px !important;
+  }
+  .clb-steps {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    background: #fafbfc;
+    border-radius: 16px;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .clb-step {
+    width: 100%;
+    background: #fff;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    z-index: 2;
+  }
+  .clb-step.active {
+    border-color: #fed7aa;
+    background: #fffaf5;
+    box-shadow: 0 4px 12px rgba(242, 111, 33, 0.08);
+  }
+  .clb-step.done {
+    border-color: #e2e8f0;
+  }
+  .clb-step-label {
+    font-size: 0.8rem;
+    white-space: normal;
+  }
+  .clb-step-line {
+    position: absolute;
+    top: 100%;
+    left: 29px; /* 16px padding + 14px circle center */
+    width: 2px;
+    height: 16px; /* equal to gap */
+    margin: 0;
+    background: #e2e8f0;
+    z-index: 1;
+  }
+  .clb-step.done .clb-step-line {
+    background: #22c55e;
+  }
+  .clb-form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .clb-modal {
+    padding: 24px 16px;
+  }
+  .clb-confirm-hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
