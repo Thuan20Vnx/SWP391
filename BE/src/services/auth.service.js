@@ -31,9 +31,28 @@ const {
   MOCK_GOOGLE_NAME,
 } = require('../config/env');
 const { verifyToken } = require('../utils/jwt');
-const { assertLoginAllowed } = require('./systemSettings.service');
+const { assertLoginAllowed: assertSystemLoginAllowed } = require('./systemSettings.service');
+const {
+  assertLoginAllowed: assertPasswordLockoutAllowed,
+  recordFailedLogin,
+  throwAfterFailedLogin,
+  clearLoginLockout,
+  verifyPasswordWithTiming,
+  unlockAccount,
+} = require('./loginLockout.service');
 
 const sanitizeUser = (user) => User.sanitizeUser(user);
+
+const EMAIL_CONTACT_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const PHONE_CONTACT_PATTERN = /^0[35789]\d{8}$/;
+
+const normalizeForgotContact = (contact) => {
+  const trimmed = String(contact || '').trim();
+  if (!trimmed) return null;
+  if (EMAIL_CONTACT_PATTERN.test(trimmed)) return trimmed.toLowerCase();
+  if (PHONE_CONTACT_PATTERN.test(trimmed)) return trimmed;
+  return null;
+};
 
 const throwGoogleAccountError = (message, statusCode = 403) => {
   const err = new AppError(message, statusCode);
@@ -76,24 +95,25 @@ const login = async ({ email, password }) => {
     throw new AppError('Vui lòng điền đầy đủ email và mật khẩu!', 400);
   }
 
-  const user = await User.findOne({ email: email.trim().toLowerCase() });
+  const emailKey = email.trim().toLowerCase();
+  await assertPasswordLockoutAllowed(emailKey);
 
-  if (!user) {
-    throw new AppError('Tài khoản hoặc mật khẩu không chính xác. Vui lòng thử lại!', 401);
-  }
+  const user = await User.findOne({ email: emailKey });
 
-  if (!user.passwordHash) {
+  if (user && !user.passwordHash) {
     throw new AppError('Tài khoản này sử dụng đăng nhập Google. Vui lòng đăng nhập bằng Google!', 401);
   }
 
-  const isMatch = await bcrypt.compare(password, user.passwordHash);
+  const isMatch = await verifyPasswordWithTiming(password, user?.passwordHash);
 
   if (!isMatch) {
-    throw new AppError('Tài khoản hoặc mật khẩu không chính xác. Vui lòng thử lại!', 401);
+    const record = await recordFailedLogin(emailKey, user || null);
+    await throwAfterFailedLogin(record);
   }
 
+  await clearLoginLockout(emailKey);
   await User.syncAndPersistUserProfile(user);
-  await assertLoginAllowed(user);
+  await assertSystemLoginAllowed(user);
 
   return {
     message: 'Đăng nhập thành công!',
@@ -248,20 +268,24 @@ const resendOtp = async ({ email }) => {
 };
 
 const forgotPassword = async ({ contact }) => {
-  if (!contact) throw new AppError('Vui lòng điền Email hoặc Số điện thoại!', 400);
+  if (!contact) throw new AppError('Vui lòng điền email hoặc số điện thoại.', 400);
 
-  const contactVal = contact.trim().toLowerCase();
+  const contactVal = normalizeForgotContact(contact);
+  if (!contactVal) {
+    throw new AppError('Email hoặc số điện thoại không hợp lệ.', 400);
+  }
+
   const user = await User.findOne({
     $or: [{ email: contactVal }, { phone: contactVal }],
   });
 
   if (!user) {
-    throw new AppError('Email hoặc Số điện thoại không tồn tại trên hệ thống!', 404);
+    throw new AppError('Email hoặc số điện thoại không tồn tại trên hệ thống.', 404);
   }
 
   if (User.isGoogleOnlyAccount(user)) {
     throwGoogleAccountError(
-      'Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu. Vui lòng đăng nhập bằng Google!'
+      'Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu. Vui lòng đăng nhập bằng Google.'
     );
   }
 
@@ -274,18 +298,24 @@ const forgotPassword = async ({ contact }) => {
     expiresAt: Date.now() + OTP_TTL_MS,
   }));
 
-  await sendResetEmail(user.email, user.fullname, otpCode);
+  try {
+    await sendResetEmail(user.email, user.fullname, otpCode);
+  } catch (err) {
+    pendingResets.delete(emailKey);
+    console.error('Lỗi gửi email khôi phục mật khẩu:', err.message);
+    throw new AppError('Không thể gửi email khôi phục. Vui lòng thử lại sau.', 500);
+  }
 
   return {
-    message: 'Mã OTP đã được gửi thành công!',
-    isPhone: /^[0-9]+$/.test(contactVal),
+    message: 'Liên kết khôi phục đã được gửi. Kiểm tra hộp thư của bạn.',
+    isPhone: PHONE_CONTACT_PATTERN.test(contactVal),
     email: user.email,
   };
 };
 
 const resetPassword = async ({ email, otp, newPassword }) => {
   if (!email || !otp || !newPassword) {
-    throw new AppError('Vui lòng điền đầy đủ các thông tin bắt buộc!', 400);
+    throw new AppError('Vui lòng điền đầy đủ các thông tin bắt buộc.', 400);
   }
 
   const passwordCheck = validatePasswordPolicy(newPassword);
@@ -294,63 +324,67 @@ const resetPassword = async ({ email, otp, newPassword }) => {
   }
 
   const emailKey = email.trim().toLowerCase();
+  if (!EMAIL_CONTACT_PATTERN.test(emailKey)) {
+    throw new AppError('Email không hợp lệ.', 400);
+  }
+
   const pendingReset = pendingResets.get(emailKey);
 
   if (!pendingReset) {
-    throw new AppError('Không tìm thấy yêu cầu đặt lại mật khẩu hoặc mã OTP đã hết hạn!', 400);
+    throw new AppError('Không tìm thấy yêu cầu đặt lại mật khẩu hoặc mã OTP đã hết hạn.', 400);
   }
 
   if (pendingReset.locked) {
     pendingResets.delete(emailKey);
-    throw new AppError(
-      `Bạn đã nhập sai OTP quá ${MAX_OTP_ATTEMPTS} lần. Vui lòng quay lại trang Quên mật khẩu để nhận mã mới.`,
-      423
-    );
+    throwOtpLockedError(pendingReset, 'reset');
   }
 
   if (isExpired(pendingReset)) {
     pendingResets.delete(emailKey);
-    throw new AppError('Mã OTP đã hết hạn! Vui lòng thực hiện lại từ trang Quên mật khẩu.', 400);
+    throw new AppError('Mã OTP đã hết hạn. Vui lòng thực hiện lại từ trang Quên mật khẩu.', 400);
   }
 
-  if (pendingReset.otp !== otp.trim()) {
+  if (pendingReset.otp !== String(otp).trim()) {
     recordFailedOtpAttempt(pendingReset);
 
     if (pendingReset.locked) {
       pendingResets.delete(emailKey);
-      throw new AppError(
-        `Bạn đã nhập sai OTP quá ${MAX_OTP_ATTEMPTS} lần. Vui lòng quay lại trang Quên mật khẩu để nhận mã mới.`,
-        423
-      );
+      throwOtpLockedError(pendingReset, 'reset');
     }
 
     pendingResets.set(emailKey, pendingReset);
     const remaining = getRemainingOtpAttempts(pendingReset);
-    throw new AppError(
+    const err = new AppError(
       `Mã xác minh OTP không chính xác. Bạn còn ${remaining} lần thử.`,
       400
     );
+    err.extra = { code: 'OTP_INVALID', remainingAttempts: remaining };
+    throw err;
   }
 
   const user = await User.findOne({ email: emailKey });
 
   if (!user) {
     pendingResets.delete(emailKey);
-    throw new AppError('Không tìm thấy người dùng trên hệ thống!', 404);
+    throw new AppError('Không tìm thấy người dùng trên hệ thống.', 404);
   }
 
   if (User.isGoogleOnlyAccount(user)) {
     pendingResets.delete(emailKey);
     throwGoogleAccountError(
-      'Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu. Vui lòng đăng nhập bằng Google!'
+      'Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu. Vui lòng đăng nhập bằng Google.'
     );
   }
 
   user.passwordHash = await bcrypt.hash(newPassword, 10);
+  if (!user.authProvider || user.authProvider === 'google') {
+    user.authProvider = 'local';
+  }
   await user.save();
   pendingResets.delete(emailKey);
+  await clearLoginLockout(emailKey);
 
-  return { message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.' };
+  return { message: 'Đặt lại mật khẩu thành công. Bạn có thể đăng nhập bằng mật khẩu mới.' };
 };
 
 const googleLogin = async ({ token, email, name, isMock, picture }) => {
@@ -394,7 +428,7 @@ const googleLogin = async ({ token, email, name, isMock, picture }) => {
       googlePicture,
     }));
     user = await User.findOne({ email: googleEmail.toLowerCase() });
-    await assertLoginAllowed(user);
+    await assertSystemLoginAllowed(user);
 
     return {
       message: 'Đăng nhập bằng Google thành công!',
@@ -409,7 +443,7 @@ const googleLogin = async ({ token, email, name, isMock, picture }) => {
     picture: googlePicture,
     googleId,
   });
-  await assertLoginAllowed(newUser);
+  await assertSystemLoginAllowed(newUser);
 
   return {
     message: 'Tự động tạo tài khoản và đăng nhập thành công!',
@@ -559,4 +593,5 @@ module.exports = {
   googleCallback,
   getGoogleCalendarAuthUrl,
   googleCalendarCallback,
+  unlockAccount,
 };

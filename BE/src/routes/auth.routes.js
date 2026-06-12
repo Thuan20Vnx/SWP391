@@ -5,6 +5,9 @@ const authController = require('../controllers/auth.controller');
 const router = express.Router();
 
 router.post('/login', asyncHandler(authController.login));
+router.post('/forgot-password', asyncHandler(authController.forgotPassword));
+router.post('/reset-password', asyncHandler(authController.resetPassword));
+router.get('/unlock-account', asyncHandler(authController.unlockAccount));
 router.post('/signup', asyncHandler(authController.signup));
 router.post('/verify-otp', asyncHandler(authController.verifyOtp));
 router.post('/resend-otp', asyncHandler(authController.resendOtp));
