@@ -87,6 +87,7 @@ const IcpdpPortalHeader = ({
           <div className="ctsv-header-brand">
             <CtsvHamburgerButton
               onClick={onToggleSidebar}
+              expanded={sidebarOpen}
               ariaLabel={sidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
             />
 
@@ -147,6 +148,7 @@ const IcpdpPortalHeader = ({
             className="ctsv-header-nav-toggle"
             onClick={() => setMobileNavOpen((v) => !v)}
             aria-label="Menu trang"
+            aria-expanded={mobileNavOpen}
           >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
               <path d="M4 8h16v2H4V8zm0 5h16v2H4v-2z" fill="currentColor" />

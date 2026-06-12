@@ -394,25 +394,209 @@
 }
 
 @media (max-width: 768px) {
+  .icpdp-app-shell .icpdp-portal-header {
+    position: sticky;
+    top: 0;
+    z-index: 260;
+    height: 65px;
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-bottom: 1px solid #f0ebe6;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .header-container {
+    height: 65px;
+    padding: 0 20px;
+    gap: 12px;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .ctsv-header-start {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 12px;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .ctsv-header-brand {
+    min-width: 0;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .ctsv-header-logo {
+    max-width: 118px;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .header-actions {
+    flex-shrink: 0;
+    gap: 10px;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .ctsv-header-nav,
+  .icpdp-app-shell .icpdp-portal-header .ctsv-header-nav.mobile-active,
+  .icpdp-app-shell .icpdp-portal-header .ctsv-header-nav-toggle,
+  .icpdp-app-shell .icpdp-portal-header .ctsv-header-search {
+    display: none !important;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .profile-display-card {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .profile-avatar-circle {
+    width: 38px;
+    height: 38px;
+  }
+
+  .icpdp-app-shell .icpdp-sidebar {
+    z-index: 280;
+  }
+
+  .icpdp-app-shell .ctsv-drawer-backdrop {
+    z-index: 270;
+  }
+
   .icpdp-app-shell .ctsv-portal-layout .icpdp-home-layout .hero-banner-slider {
     width: 100%;
-    height: 560px;
-    min-height: 500px;
+    height: min(520px, calc(100vh - 65px));
+    min-height: 470px;
     margin: 0;
     border-radius: 0;
   }
+
+  .icpdp-home-layout .hero-content-container {
+    justify-content: center;
+    padding: 34px 56px 96px;
+    min-height: 100%;
+  }
+
+  .icpdp-home-layout .hero-top-row {
+    gap: 7px;
+    margin-bottom: 4px;
+  }
+
+  .icpdp-home-layout .hero-tag-badge,
+  .icpdp-home-layout .hero-category-pill,
+  .icpdp-home-layout .hero-organizer-pill {
+    max-width: 100%;
+    font-size: 0.66rem;
+    padding: 5px 10px;
+    white-space: nowrap;
+  }
+
   .icpdp-home-layout .hero-title {
-    font-size: clamp(2rem, 11vw, 3rem);
+    max-width: 100%;
+    font-size: clamp(2rem, 10vw, 2.85rem);
+    line-height: 1.08;
+    -webkit-line-clamp: 4;
   }
+
+  .icpdp-home-layout .hero-meta-list {
+    max-width: 100%;
+    gap: 7px;
+  }
+
+  .icpdp-home-layout .hero-meta-item {
+    font-size: 0.9rem;
+  }
+
+  .icpdp-home-layout .hero-cta-btn {
+    width: min(100%, 280px);
+    padding: 13px 20px;
+    border-radius: 12px;
+  }
+
+  .icpdp-home-layout .hero-slider-arrow {
+    width: 36px;
+    height: 36px;
+  }
+
+  .icpdp-home-layout .hero-banner-slider--nav .hero-slider-arrow--prev {
+    left: 10px;
+  }
+
+  .icpdp-home-layout .hero-banner-slider--nav .hero-slider-arrow--next {
+    right: 10px;
+  }
+
   .icpdp-home-layout .filter-bar-section {
-    margin-top: -34px;
-    margin-bottom: 34px;
+    margin-top: -36px;
+    margin-bottom: 42px;
+    padding: 0 20px;
   }
+
   .icpdp-home-layout .filter-bar-card {
     min-height: 0;
+    padding: 18px;
+    border-radius: 16px;
+    gap: 14px;
   }
+
+  .icpdp-home-layout .filter-group {
+    padding: 0;
+    gap: 12px;
+  }
+
+  .icpdp-home-layout .filter-submit-btn {
+    width: 100%;
+    min-height: 46px;
+  }
+
   .icpdp-home-layout .ctsv-stats-section {
     margin-bottom: 34px;
+    padding: 0 20px;
+  }
+
+  .icpdp-home-layout .recommended-section {
+    padding: 38px 20px;
+  }
+
+  .icpdp-home-layout .recommended-header-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .icpdp-home-layout .recommended-title-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .icpdp-home-layout .recommended-title-container h2 {
+    font-size: clamp(1.55rem, 7vw, 2rem);
+    line-height: 1.12;
+    max-width: 100%;
+    margin: 0;
+    word-break: normal;
+  }
+
+  .icpdp-home-layout .ctsv-home-section-desc {
+    max-width: 100%;
+    margin-top: 0;
+    font-size: 0.92rem;
+  }
+
+  .icpdp-home-layout .see-all-link {
+    align-self: flex-start;
+    display: inline-flex;
+    width: auto;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.25;
+    gap: 6px;
+  }
+
+  .icpdp-home-layout .see-all-link span {
+    display: inline;
+  }
+
+  .icpdp-home-layout .ctsv-home-section-empty {
+    padding: 34px 18px;
+    border-radius: 16px;
   }
 }
 
