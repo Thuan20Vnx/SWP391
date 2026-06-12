@@ -222,7 +222,12 @@ const IcpdpDashboard = () => {
                     <img src={ev.image} alt="" loading="lazy" />
                   </div>
                   <div className="ctsv-dash-event-main">
-                    <span className="ctsv-dash-event-category">{ev.category}</span>
+                    <div className="ctsv-dash-event-meta-row">
+                      <span className="ctsv-dash-event-category">{ev.category}</span>
+                      <span className={`ctsv-dash-event-source ctsv-dash-event-source--${ev.source || 'club'}`}>
+                        {ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : ev.source === 'icpdp' ? 'IC-PDP' : 'CLB'}
+                      </span>
+                    </div>
                     <h3>{ev.title}</h3>
                     <p>
                       {ev.date} · {ev.time}

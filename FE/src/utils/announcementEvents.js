@@ -17,6 +17,8 @@ export const ANNOUNCEMENT_CATEGORY_LABELS = {
   general: 'Thông báo chung',
   school: 'Sự kiện cấp trường',
   partner: 'Sự kiện đối tác',
+  icpdp: 'Sự kiện ICPDP',
+  club: 'Sự kiện CLB',
   hidden: 'Đã ẩn',
 };
 
@@ -29,5 +31,7 @@ export const resolveAnnouncementCategory = (announcement, eventSourceById = {}) 
     announcement?.eventId?.source || eventSourceById[String(evId)] || 'general';
   if (source === 'school') return 'school';
   if (source === 'partner') return 'partner';
+  if (source === 'icpdp') return 'icpdp';
+  if (source === 'club') return 'club';
   return 'general';
 };
