@@ -20,7 +20,13 @@ const STAT_STYLES = [
 
 const QUICK_ACTIONS = [
   { path: '/ctsv/events', label: 'Publish sự kiện', desc: 'Duyệt & xuất bản', icon: 'publish' },
-  { path: '/ctsv/partners', label: 'Duyệt đơn đối tác', desc: 'Đơn đăng ký từ đối tác', icon: 'partners' },
+  {
+    path: '/ctsv/partners',
+    label: 'Duyệt đơn đối tác',
+    mobileLabel: 'Duyệt đối tác',
+    desc: 'Đơn đăng ký từ đối tác',
+    icon: 'partners',
+  },
   { path: '/ctsv/calendar', label: 'Lịch toàn trường', desc: 'Lịch tổng hợp', icon: 'calendar' },
   { path: '/ctsv/announcements/publish', label: 'Thông báo', desc: 'Phát hành chính thức', icon: 'announce' },
   { path: '/ctsv/reports', label: 'Báo cáo sau SK', desc: 'Tổng hợp kết quả', icon: 'reports' }
@@ -147,7 +153,10 @@ const CtsvDashboard = () => {
               <span className="ctsv-dash-quick-icon">
                 <CtsvNavIcon type={action.icon} />
               </span>
-              <span className="ctsv-dash-quick-label">{action.label}</span>
+              <span className="ctsv-dash-quick-label">
+                <span className="ctsv-dash-quick-label__full">{action.label}</span>
+                <span className="ctsv-dash-quick-label__short">{action.mobileLabel || action.label}</span>
+              </span>
               <span className="ctsv-dash-quick-desc">{action.desc}</span>
             </button>
           ))}

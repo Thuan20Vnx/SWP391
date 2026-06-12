@@ -251,7 +251,11 @@ const SiteHeader = ({
           <div className="ctsv-header-start site-header__start">
             <div className="ctsv-header-brand">
               {onTogglePortalSidebar ? (
-                <CtsvHamburgerButton onClick={onTogglePortalSidebar} ariaLabel={portalSidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'} />
+                <CtsvHamburgerButton
+                  onClick={onTogglePortalSidebar}
+                  expanded={portalSidebarOpen}
+                  ariaLabel={portalSidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
+                />
               ) : (
                 <button type="button" className="admin-hamburger-btn" onClick={toggleAdminMenu} aria-label={menuOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'} aria-expanded={menuOpen}>
                   <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">

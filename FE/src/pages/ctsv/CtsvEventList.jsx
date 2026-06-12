@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import AppSelect from '../../components/ui/AppSelect';
 import { fetchCtsvEvents, MOCK_EVENTS } from '../../services/ctsvApi';
 import { getCtsvEventAccess } from '../../utils/ctsvEventAccess';
@@ -17,6 +16,8 @@ const CATEGORY_FILTER_OPTIONS = [
   { value: 'Tất cả', label: 'Tất cả chủ đề' },
   ...CTSV_CATEGORY_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
 ];
+
+const EVENTS_PER_PAGE = 6;
 
 const SOURCE_META = {
   school: { label: 'Cấp trường', tone: 'school' },
@@ -66,6 +67,7 @@ const CtsvEventList = () => {
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   const loadEvents = useCallback(
     (overrides = {}) => {
@@ -77,10 +79,12 @@ const CtsvEventList = () => {
         .then((d) => {
           const list = d.events || [];
           setEvents(list);
+          setPage(1);
           return list;
         })
         .catch((err) => {
           setEvents(MOCK_EVENTS);
+          setPage(1);
           const msg =
             err?.status === 401
               ? 'Phiên đăng nhập hết hạn — vui lòng đăng nhập lại.'
@@ -103,6 +107,13 @@ const CtsvEventList = () => {
     () => events.filter((ev) => getCtsvEventAccess(ev).canManage).length,
     [events]
   );
+
+  const totalPages = Math.max(1, Math.ceil(events.length / EVENTS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedEvents = useMemo(() => {
+    const start = (currentPage - 1) * EVENTS_PER_PAGE;
+    return events.slice(start, start + EVENTS_PER_PAGE);
+  }, [currentPage, events]);
 
   const handleFilter = async (e) => {
     e?.preventDefault();
@@ -197,57 +208,82 @@ const CtsvEventList = () => {
           </button>
         </div>
       ) : (
-        <div className="ctsv-events-grid">
-          {events.map((ev) => {
-            const access = getCtsvEventAccess(ev);
-            const source = getSourceMeta(ev.source);
-            return (
-              <article key={ev.id} className="ctsv-events-card">
-                <div className="ctsv-events-card-media">
-                  <img
-                    src={ev.image || ev.thumbnail}
-                    alt=""
-                    className="ctsv-events-card-img"
-                    loading="lazy"
-                  />
-                  <span className="ctsv-events-card-category">
-                    {getCategoryDisplayLabel(ev.category) || ev.category}
-                  </span>
-                  <span className={`ctsv-events-card-source ctsv-events-card-source--${source.tone}`}>
-                    {source.label}
-                  </span>
-                </div>
-                <div className="ctsv-events-card-body">
-                  <h3 className="ctsv-events-card-title">{ev.title}</h3>
-                  <ul className="ctsv-events-card-meta">
-                    <li>
-                      <IconCalendar />
-                      <span>
-                        {ev.date} · {ev.time}
-                      </span>
-                    </li>
-                    <li>
-                      <IconPin />
-                      <span>{ev.location || 'Chưa có địa điểm'}</span>
-                    </li>
-                  </ul>
-                  <div className="ctsv-events-card-stats">
-                    <span className="ctsv-events-ticket">
-                      Vé còn <strong>{ev.remainingTickets}</strong>/{ev.totalTickets}
+        <>
+          <div className="ctsv-events-grid">
+            {pagedEvents.map((ev) => {
+              const access = getCtsvEventAccess(ev);
+              const source = getSourceMeta(ev.source);
+              return (
+                <article key={ev.id} className="ctsv-events-card">
+                  <div className="ctsv-events-card-media">
+                    <img
+                      src={ev.image || ev.thumbnail}
+                      alt=""
+                      className="ctsv-events-card-img"
+                      loading="lazy"
+                    />
+                    <span className="ctsv-events-card-category">
+                      {getCategoryDisplayLabel(ev.category) || ev.category}
                     </span>
-                    <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
+                    <span className={`ctsv-events-card-source ctsv-events-card-source--${source.tone}`}>
+                      {source.label}
+                    </span>
                   </div>
-                  <Link
-                    to={`/ctsv/events/${ev.id}`}
-                    className={`ctsv-events-card-action btn-card-register ${access.buttonClass}`}
-                  >
-                    {access.label}
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                  <div className="ctsv-events-card-body">
+                    <h3 className="ctsv-events-card-title">{ev.title}</h3>
+                    <ul className="ctsv-events-card-meta">
+                      <li>
+                        <IconCalendar />
+                        <span>
+                          {ev.date} · {ev.time}
+                        </span>
+                      </li>
+                      <li>
+                        <IconPin />
+                        <span>{ev.location || 'Chưa có địa điểm'}</span>
+                      </li>
+                    </ul>
+                    <div className="ctsv-events-card-stats">
+                      <span className="ctsv-events-ticket">
+                        Vé còn <strong>{ev.remainingTickets}</strong>/{ev.totalTickets}
+                      </span>
+                      <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
+                    </div>
+                    <Link
+                      to={`/ctsv/events/${ev.id}`}
+                      className={`ctsv-events-card-action btn-card-register ${access.buttonClass}`}
+                    >
+                      {access.label}
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          {totalPages > 1 && (
+            <nav className="ctsv-events-pagination" aria-label="Phân trang sự kiện">
+              <button
+                type="button"
+                className="ctsv-events-page-btn"
+                onClick={() => setPage((n) => Math.max(1, n - 1))}
+                disabled={currentPage === 1}
+              >
+                Trước
+              </button>
+              <span className="ctsv-events-page-status" aria-live="polite">
+                Trang {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                className="ctsv-events-page-btn"
+                onClick={() => setPage((n) => Math.min(totalPages, n + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Sau
+              </button>
+            </nav>
+          )}
+        </>
       )}
     </div>
   );

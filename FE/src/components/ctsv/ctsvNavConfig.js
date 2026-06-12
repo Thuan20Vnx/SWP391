@@ -3,12 +3,18 @@ export const SIDEBAR_KEY = 'ctsvSidebarOpen';
 export const CTSV_NAV_ITEMS = [
   { path: '/ctsv/dashboard', label: 'Bảng điều khiển', icon: 'dashboard' },
   { path: '/ctsv/profile', label: 'Hồ sơ', icon: 'profile' },
-  { path: '/ctsv/partners', label: 'Duyệt đơn đối tác', icon: 'partners' },
-  { path: '/ctsv/events/create', label: 'Tạo sự kiện cấp trường', section: 'SỰ KIỆN', icon: 'create' },
+  { path: '/ctsv/partners', label: 'Duyệt đơn đối tác', mobileLabel: 'Duyệt đối tác', icon: 'partners' },
+  {
+    path: '/ctsv/events/create',
+    label: 'Tạo sự kiện cấp trường',
+    mobileLabel: 'Tạo sự kiện trường',
+    section: 'SỰ KIỆN',
+    icon: 'create',
+  },
   { path: '/ctsv/events', label: 'Publish sự kiện', icon: 'publish' },
   { path: '/ctsv/announcements/publish', label: 'Thông báo chính thức', icon: 'announce' },
   { path: '/ctsv/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
-  { path: '/ctsv/reports', label: 'Báo cáo sau SK', icon: 'reports' }
+  { path: '/ctsv/reports', label: 'Báo cáo sau SK', icon: 'reports' },
 ];
 
 export const readSidebarPref = () => {
@@ -30,7 +36,7 @@ export const persistSidebarOpen = (open) => {
   }
 };
 
-/** Gọi sau khi đăng nhập CTSV — sidebar đóng mặc định. */
+/** Gọi sau khi đăng nhập CTSV: sidebar đóng mặc định. */
 export const resetCtsvSidebarOnLogin = () => {
   persistSidebarOpen(false);
 };

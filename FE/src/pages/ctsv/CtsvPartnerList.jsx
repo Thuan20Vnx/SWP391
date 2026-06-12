@@ -54,10 +54,10 @@ const CtsvPartnerList = () => {
   }, [partners, pageSafe]);
 
   const rangeLabel = useMemo(() => {
-    if (!partners.length) return 'Hiển thị 0–0 trong 0 đơn';
+    if (!partners.length) return 'Hiển thị 0-0 trong 0 đơn';
     const from = (pageSafe - 1) * PAGE_SIZE + 1;
     const to = Math.min(pageSafe * PAGE_SIZE, partners.length);
-    return `Hiển thị ${from}–${to} trong ${partners.length} đơn`;
+    return `Hiển thị ${from}-${to} trong ${partners.length} đơn`;
   }, [partners.length, pageSafe]);
 
   return (
@@ -133,9 +133,11 @@ const CtsvPartnerList = () => {
                   const tone = PARTNER_STATUS_TONE[p.status] || 'slate';
                   const program = p.proposedProgram || p.proposedEventTitle || '—';
                   const code = p.partnerCode || p.email?.split('@')[0] || '—';
+                  const actionLabel = ['pending', 'info_requested'].includes(p.status) ? 'Xét duyệt' : 'Xem đơn';
+
                   return (
                     <tr key={p._id}>
-                      <td>
+                      <td data-label="Đơn vị gửi">
                         <div className="ctsv-partners-partner-cell">
                           <span className="ctsv-partners-avatar" aria-hidden>
                             {partnerInitials(p.name)}
@@ -146,18 +148,20 @@ const CtsvPartnerList = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="ctsv-partners-program">{program}</td>
-                      <td className="col-center ctsv-partners-date">
+                      <td className="ctsv-partners-program" data-label="Nội dung đề xuất">
+                        {program}
+                      </td>
+                      <td className="col-center ctsv-partners-date" data-label="Ngày gửi">
                         {formatPartnerDate(p.createdAt)}
                       </td>
-                      <td className="col-center">
+                      <td className="col-center" data-label="Trạng thái">
                         <span className={`ctsv-partners-badge ctsv-partners-badge--${tone}`}>
                           {PARTNER_STATUS_LABEL[p.status] || p.status}
                         </span>
                       </td>
-                      <td className="col-center">
+                      <td className="col-center" data-label="Thao tác">
                         <Link to={`/ctsv/partners/${p._id}`} className="ctsv-partners-detail-btn">
-                          {['pending', 'info_requested'].includes(p.status) ? 'Xét duyệt' : 'Xem đơn'}
+                          {actionLabel}
                         </Link>
                       </td>
                     </tr>
