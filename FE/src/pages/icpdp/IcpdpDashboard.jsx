@@ -97,7 +97,7 @@ const IcpdpDashboard = () => {
   const pendingCount = pendingProposalTotal;
 
   return (
-    <div className="ctsv-dashboard">
+    <div className="ctsv-dashboard icpdp-dashboard">
       <PortalDashHero
         fullname={userProfile?.fullname}
         description="Tổng quan đề xuất CLB chờ duyệt, sự kiện CLB và báo cáo — IC-PDP quản lý hoạt động Câu lạc bộ."
