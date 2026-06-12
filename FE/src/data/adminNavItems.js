@@ -8,7 +8,7 @@ export const ICPDP_ADMIN_NAV_ITEMS = [
   { path: '/admin/system', label: 'Bảo trì hệ thống', icon: 'system' },
 ];
 
-/** Menu sidebar admin — cấu trúc giống CTSV */
+/** Menu sidebar admin - cấu trúc giống CTSV */
 export const ADMIN_NAV_ITEMS = [
   { path: '/admin', label: 'Bảng điều khiển', icon: 'dashboard', end: true },
   { path: '/admin/profile', label: 'Hồ sơ', icon: 'profile' },
@@ -21,4 +21,5 @@ export const ADMIN_NAV_ITEMS = [
   { section: 'SỰ KIỆN' },
   { path: '/admin/events', label: 'Duyệt đề xuất sự kiện', icon: 'events' },
   { path: '/admin/event-requests', label: 'Yêu cầu sửa / ẩn / xóa', icon: 'event-requests' },
+  { path: '/admin/ctsv-reports', label: 'Báo cáo', icon: 'reports' },
 ];

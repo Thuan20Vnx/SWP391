@@ -67,8 +67,29 @@
   background: var(--partner-accent-dark);
 }
 .partner-app-shell .hero-tag-badge {
-  background: #ffffff;
-  border-color: rgba(242, 111, 33, 0.4);
+  background: var(--partner-accent);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 10px rgba(242, 111, 33, 0.3);
+}
+.partner-app-shell .slider-dot.active {
+  background-color: var(--partner-accent);
+}
+
+/* Partner portal home — accent cam trên hero */
+.partner-app-shell .portal-home-hero-layout .hero-tag-badge {
+  background-color: var(--partner-accent);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 10px rgba(242, 111, 33, 0.3);
+}
+
+.partner-app-shell .portal-home-hero-layout .hero-cta-btn {
+  background: var(--partner-accent);
+}
+
+.partner-app-shell .portal-home-hero-layout .hero-cta-btn:hover {
+  background: var(--partner-accent-dark);
 }
 
 .partner-app-shell .filter-submit-btn {
@@ -985,6 +1006,33 @@
   margin-top: 48px;
   padding-top: 8px;
   border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.partner-events-scope-note {
+  margin: 0 0 24px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  background: linear-gradient(135deg, rgba(255, 247, 237, 0.95), rgba(255, 255, 255, 0.98));
+  color: #7c2d12;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.partner-events-scope-note strong {
+  color: #9a3412;
+}
+
+.partner-events-scope-note__link {
+  display: inline-block;
+  margin-top: 6px;
+  color: #ea580c;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.partner-events-scope-note__link:hover {
+  text-decoration: underline;
 }
 
 .partner-campus-section {

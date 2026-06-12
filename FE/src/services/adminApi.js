@@ -16,6 +16,11 @@ const adminFetch = (path, options = {}) =>
 
 export const fetchAdminCalendar = () => adminFetch('/events/calendar');
 
+export const fetchAdminSubmittedCtsvReports = () => adminFetch('/ctsv-report-submissions');
+
+export const fetchAdminSubmittedCtsvReportDetail = (reportId) =>
+  adminFetch(`/ctsv-report-submissions/${encodeURIComponent(reportId)}`);
+
 export const fetchAdminPartners = (status = 'pending_admin') =>
   adminFetch(`/partners?status=${encodeURIComponent(status)}`);
 

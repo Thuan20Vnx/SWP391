@@ -60,6 +60,9 @@ export const fetchCtsvReports = () => ctsvFetch('/reports');
 
 export const fetchCtsvReportDetail = (id) => ctsvFetch(`/reports/${id}`);
 
+export const submitCtsvReportToAdmin = (id) =>
+  ctsvFetch(`/reports/${id}/submit-admin`, { method: 'POST', body: '{}' });
+
 export const DEMO_REPORT_EVENT_ID = 'demo-ended-event';
 
 export const fetchCtsvProposals = (params = {}) => {
