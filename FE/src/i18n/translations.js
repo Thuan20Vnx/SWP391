@@ -7,6 +7,7 @@ const coreVi = {
   'nav.clubs': 'Câu lạc bộ',
   'nav.news': 'Tin tức',
   'nav.admin': 'Quản trị viên',
+  'nav.adminShort': 'QTV',
   'nav.clubManage': 'Quản lý CLB',
   'nav.ctsv': 'CTSV',
 
@@ -25,6 +26,8 @@ const coreVi = {
   'header.searchAdmin': 'Tìm kiếm tài khoản, mã lệnh, log hệ thống...',
   'header.searchClubs': 'Tìm kiếm câu lạc bộ...',
   'header.search': 'Tìm kiếm',
+  'header.openSearch': 'Mở tìm kiếm',
+  'header.closeSearch': 'Đóng tìm kiếm',
   'header.notifications': 'Thông báo',
   'header.openAccountMenu': 'Mở menu tài khoản',
   'header.accountMenu': 'Menu tài khoản',
@@ -119,6 +122,7 @@ const coreEn = {
   'nav.clubs': 'Clubs',
   'nav.news': 'News',
   'nav.admin': 'Administrator',
+  'nav.adminShort': 'QTV',
   'nav.clubManage': 'Club management',
   'nav.ctsv': 'Student Affairs',
 
@@ -137,6 +141,8 @@ const coreEn = {
   'header.searchAdmin': 'Search accounts, commands, system logs...',
   'header.searchClubs': 'Search clubs...',
   'header.search': 'Search',
+  'header.openSearch': 'Open search',
+  'header.closeSearch': 'Close search',
   'header.notifications': 'Notifications',
   'header.openAccountMenu': 'Open account menu',
   'header.accountMenu': 'Account menu',

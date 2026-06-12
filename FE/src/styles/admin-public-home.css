@@ -1,0 +1,158 @@
+/* Admin public home — hero + filter (reference: ICPDP portal home) */
+
+.admin-public-shell .admin-public-home {
+  width: 100%;
+}
+
+.admin-public-shell .admin-public-home .hero-banner-slider {
+  width: calc(100% - 2 * var(--home-content-padding, 24px));
+  max-width: var(--home-content-max, 1280px);
+  margin: 12px auto 0;
+  border-radius: 16px;
+  overflow: hidden;
+  height: clamp(380px, 56vw, 520px);
+}
+
+.admin-public-shell .admin-public-home .hero-slide,
+.admin-public-shell .admin-public-home .hero-slide.active {
+  border-radius: 16px;
+}
+
+.admin-public-shell .admin-public-home .hero-title {
+  font-size: clamp(1.5rem, 4.8vw, 2.75rem);
+  line-height: 1.22;
+  max-width: 680px;
+  -webkit-line-clamp: 4;
+}
+
+.admin-public-shell .admin-public-home .hero-meta-list {
+  gap: 10px;
+}
+
+.admin-public-shell .admin-public-home .hero-meta-item {
+  font-size: 0.875rem;
+}
+
+.admin-public-shell .admin-public-home .hero-slider-arrow {
+  z-index: 14;
+}
+
+.admin-public-shell .admin-public-home .hero-dot-indicators {
+  z-index: 13;
+}
+
+.admin-public-shell .admin-public-home .filter-bar-section {
+  width: calc(100% - 2 * var(--home-content-padding, 24px));
+  max-width: var(--home-content-max, 1280px);
+  margin: -52px auto 0;
+  padding: 0;
+  position: relative;
+  z-index: 20;
+}
+
+.admin-public-shell .admin-public-home .filter-bar-card {
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
+  border-color: rgba(242, 111, 33, 0.12);
+}
+
+.admin-public-shell .admin-public-home .filter-icon,
+.admin-public-shell .admin-public-home .recommended-title-icon {
+  display: none;
+}
+
+.admin-public-shell .admin-public-home .filter-group {
+  padding-left: 0;
+}
+
+.admin-public-shell .admin-public-home .filter-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+}
+
+.admin-public-shell .admin-public-home .filter-submit-btn {
+  border-radius: 12px;
+  min-width: 148px;
+}
+
+.admin-public-shell .admin-public-home .recommended-section {
+  padding-top: 40px;
+}
+
+@media (max-width: 900px) {
+  .admin-public-shell .admin-public-home .hero-banner-slider {
+    width: calc(100% - 20px);
+    margin-top: 8px;
+    border-radius: 14px;
+    height: clamp(340px, 62vw, 420px);
+  }
+
+  .admin-public-shell .admin-public-home .hero-slide,
+  .admin-public-shell .admin-public-home .hero-slide.active {
+    border-radius: 14px;
+  }
+
+  .admin-public-shell .admin-public-home .hero-banner-slider--nav .hero-slider-arrow {
+    top: 40%;
+    bottom: auto;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+  }
+
+  .admin-public-shell .admin-public-home .hero-banner-slider--nav .hero-slider-arrow--prev:hover,
+  .admin-public-shell .admin-public-home .hero-banner-slider--nav .hero-slider-arrow--next:hover {
+    transform: translateY(-50%) scale(1.03);
+  }
+
+  .admin-public-shell .admin-public-home .hero-banner-slider--nav .hero-content-container {
+    padding-left: 16px;
+    padding-right: 16px;
+    gap: 12px;
+  }
+
+  .admin-public-shell .admin-public-home .hero-dot-indicators {
+    bottom: 22px;
+    padding: 0 52px;
+  }
+
+  .admin-public-shell .admin-public-home .filter-bar-section {
+    width: calc(100% - 20px);
+    margin-top: -44px;
+  }
+
+  .admin-public-shell .admin-public-home .filter-bar-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .admin-public-shell .admin-public-home .filter-divider-line {
+    width: 100%;
+    height: 1px;
+  }
+
+  .admin-public-shell .admin-public-home .filter-submit-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-public-shell .admin-public-home .hero-top-row {
+    gap: 6px;
+  }
+
+  .admin-public-shell .admin-public-home .hero-tag-badge,
+  .admin-public-shell .admin-public-home .hero-category-pill,
+  .admin-public-shell .admin-public-home .hero-organizer-pill {
+    font-size: 0.625rem;
+    padding: 4px 10px;
+  }
+
+  .admin-public-shell .admin-public-home .hero-cta-btn {
+    width: 100%;
+    max-width: 320px;
+  }
+}
