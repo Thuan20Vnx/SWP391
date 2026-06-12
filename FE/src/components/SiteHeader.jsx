@@ -1,0 +1,432 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
+import defaultAvatar from '../constants/defaultAvatar';
+import ProfileSidebarMenu from './ProfileSidebarMenu';
+import AdminProfileMenu from './admin/AdminProfileMenu';
+import AdminDrawerMenu from './admin/AdminDrawerMenu';
+import NotificationBell from './NotificationBell';
+import ClubSwitchModal from './club/ClubSwitchModal';
+import { getRoleLabel } from '../utils/role';
+import useUserProfile, { clearUserProfileCache } from '../hooks/useUserProfile';
+import { useManagedClubs } from '../hooks/useManagedClubs';
+import { dispatchAuthChanged } from '../utils/authEvents';
+import {
+  getUserRole,
+  isAdminRole,
+  normalizeRole,
+  isClubManagerRole,
+  clearSession,
+  USER_ROLES,
+} from '../utils/auth';
+import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
+import CtsvHamburgerButton from './ctsv/CtsvHamburgerButton';
+import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../data/adminPublicNav';
+import '../styles/admin-menu.css';
+
+const BASE_NAV_ITEMS = [
+  { key: 'home', label: 'Trang chủ', to: '/' },
+  { key: 'events', label: 'Sự kiện', to: '/events' },
+  { key: 'clubs', label: 'Câu lạc bộ', to: '/clubs' },
+  { key: 'news', label: 'Tin tức', to: '/announcements' },
+];
+
+const CLUB_MANAGER_NAV_ITEM = {
+  key: 'club-manage',
+  label: 'Quản lý CLB',
+  to: '/quan-ly-clb',
+  linkClass: 'nav-link-manager',
+};
+
+const CTSV_NAV_ITEM = {
+  key: 'ctsv-manage',
+  label: 'CTSV',
+  to: '/ctsv/dashboard',
+  linkClass: 'nav-link-ctsv-pill',
+};
+
+const SiteHeader = ({
+  activeNav = 'home',
+  searchPlaceholder,
+  searchValue = '',
+  onSearchChange,
+  onSearchKeyDown,
+  onTogglePortalSidebar,
+  portalSidebarOpen = false,
+  adminSidebarOpen = false,
+  onAdminSidebarToggle,
+}) => {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profilePopupOpen, setProfilePopupOpen] = useState(false);
+  const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [clubSwitchOpen, setClubSwitchOpen] = useState(false);
+  const profileRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const { isLoggedIn, userProfile, profileLoading } = useUserProfile();
+
+  const role = normalizeRole(getUserRole() || userProfile.role);
+  const showAdminMenu = isLoggedIn && isAdminRole(role);
+  const showClubManagerNav = isLoggedIn && isClubManagerRole(role);
+  const showCtsvNav = isLoggedIn && role === USER_ROLES.CTSV && !showAdminMenu;
+  const {
+    clubs: managedClubs,
+    activeClub,
+    switchClub,
+    loading: managedClubsLoading,
+    error: managedClubsError,
+    reload: reloadManagedClubs,
+  } = useManagedClubs(showClubManagerNav && !showAdminMenu, role);
+  const isAdminRoute = pathname.startsWith('/admin');
+  const resolvedSearchPlaceholder =
+    searchPlaceholder
+    ?? (isAdminRoute && showAdminMenu
+      ? 'Tìm kiếm tài khoản, mã lệnh, log hệ thống...'
+      : 'Tìm kiếm sự kiện...');
+
+  const navItems = showAdminMenu
+    ? ADMIN_PUBLIC_NAV_ITEMS
+    : showClubManagerNav
+      ? [...BASE_NAV_ITEMS, CLUB_MANAGER_NAV_ITEM]
+      : showCtsvNav
+        ? [...BASE_NAV_ITEMS, CTSV_NAV_ITEM]
+        : BASE_NAV_ITEMS;
+
+  const isNavItemActive = (item) => {
+    if (showAdminMenu) return isAdminPublicNavActive(item.key, pathname);
+    if (item.key === 'ctsv-manage') return pathname.startsWith('/ctsv');
+    if (item.key === 'club-manage') return pathname.startsWith('/quan-ly-clb');
+    return activeNav === item.key;
+  };
+
+  const isAdminPortal = isAdminRoute && showAdminMenu;
+  const sidebarControlled =
+    showAdminMenu && !isAdminPortal && typeof onAdminSidebarToggle === 'function';
+  const menuOpen = sidebarControlled ? adminSidebarOpen : adminDrawerOpen;
+  const toggleAdminMenu = sidebarControlled
+    ? onAdminSidebarToggle
+    : () => setAdminDrawerOpen((v) => !v);
+
+  useEffect(() => {
+    if (!sidebarControlled) setAdminDrawerOpen(false);
+    setNotifOpen(false);
+    setProfilePopupOpen(false);
+  }, [pathname, sidebarControlled]);
+
+  useEffect(() => {
+    if (!profilePopupOpen) return undefined;
+
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setProfilePopupOpen(false);
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [profilePopupOpen]);
+
+  useCloseOnClickOutside(profileRef, profilePopupOpen, () => setProfilePopupOpen(false));
+
+  const handleOpenProfilePopup = () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    setNotifOpen(false);
+    setProfilePopupOpen((prev) => {
+      const next = !prev;
+      if (next && isClubManagerRole()) reloadManagedClubs();
+      return next;
+    });
+  };
+
+  const handleProfileMenuAction = (action) => {
+    if (action === 'switch-club') {
+      setProfilePopupOpen(false);
+      setClubSwitchOpen(true);
+      reloadManagedClubs();
+      return;
+    }
+
+    setProfilePopupOpen(false);
+
+    const routes = isAdminRole(role) || isAdminPortal
+      ? {
+          profile: '/admin/profile',
+          calendar: '/admin/calendar',
+          partners: '/admin/partners',
+          events: '/admin/events',
+          settings: '/admin/settings',
+          'fpt-system': '/',
+          'browse-events': '/events',
+        }
+      : {
+          profile: '/profile',
+          'browse-events': '/events',
+          settings: '/settings',
+          schedule: '/schedule',
+          'my-clubs': isClubManagerRole() ? '/quan-ly-clb' : '/my-clubs',
+          'club-manage': '/quan-ly-clb',
+          'ctsv-manage': '/ctsv/dashboard',
+          scan: '/quet-qr',
+          'my-events': '/my-events',
+        };
+
+    if (routes[action]) {
+      navigate(routes[action]);
+      return;
+    }
+
+    setProfilePopupOpen(false);
+  };
+
+  const handleSelectManagedClub = (clubId) => {
+    if (!clubId || clubId === activeClub?.id) {
+      setClubSwitchOpen(false);
+      setProfilePopupOpen(false);
+      return;
+    }
+    switchClub(clubId);
+    setClubSwitchOpen(false);
+    setProfilePopupOpen(false);
+    if (pathname.startsWith('/quan-ly-clb')) {
+      window.location.assign('/quan-ly-clb');
+    }
+  };
+
+  const handleLogout = () => {
+    clearSession();
+    clearUserProfileCache();
+    dispatchAuthChanged();
+    setProfilePopupOpen(false);
+    navigate('/');
+  };
+
+  const hasShellSidebar = Boolean(onTogglePortalSidebar) || (showAdminMenu && !isAdminPortal);
+  const portalSidebarActive = Boolean(onTogglePortalSidebar) && portalSidebarOpen;
+  const adminMenuOpen = showAdminMenu && !isAdminPortal && menuOpen;
+  const sidebarLogoCollapsed = portalSidebarActive || adminMenuOpen;
+  const searchCollapsed = adminMenuOpen && !searchExpanded && !searchValue.trim();
+
+  useEffect(() => {
+    if (!adminMenuOpen) setSearchExpanded(false);
+  }, [adminMenuOpen]);
+
+  useEffect(() => {
+    if (searchExpanded && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchExpanded]);
+
+  const renderNav = () => (
+    <nav className={`header-nav site-header__nav ctsv-header-nav${mobileMenuOpen ? ' mobile-active' : ''}`} aria-label="Điều hướng chính">
+      {navItems.map((item) => (
+        <Link
+          key={item.key}
+          to={item.to}
+          className={`nav-link ${item.linkClass || ''} ${isNavItemActive(item) ? 'active' : ''}`.trim()}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
+
+  const renderLogo = (collapsed = false) => (
+    <div className={`header-logo ctsv-header-logo site-header__logo${collapsed ? ' is-collapsed' : ''}`} onClick={() => navigate('/')} role="presentation">
+      <img src={FE_LOGO} alt={FE_LOGO_ALT} className="logo-img" />
+    </div>
+  );
+
+  return (
+    <>
+    <header
+      className={`home-header site-header${showAdminMenu ? ' site-header--admin' : ''}${hasShellSidebar ? ' site-header--with-shell' : ''}${sidebarLogoCollapsed ? ' site-header--sidebar-open' : ''}${menuOpen && showAdminMenu && !isAdminPortal ? ' admin-home-header--sidebar-open' : ''}`}
+    >
+      <div className="header-container site-header__container">
+        {hasShellSidebar ? (
+          <div className="ctsv-header-start site-header__start">
+            <div className="ctsv-header-brand">
+              {onTogglePortalSidebar ? (
+                <CtsvHamburgerButton onClick={onTogglePortalSidebar} ariaLabel={portalSidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'} />
+              ) : (
+                <button type="button" className="admin-hamburger-btn" onClick={toggleAdminMenu} aria-label={menuOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'} aria-expanded={menuOpen}>
+                  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                    {menuOpen ? <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor" /> : <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />}
+                  </svg>
+                </button>
+              )}
+              {renderLogo(sidebarLogoCollapsed)}
+            </div>
+            {renderNav()}
+          </div>
+        ) : (
+          <>
+            {!isAdminPortal && (
+              <button type="button" className="mobile-hamburger-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Mở menu">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" /></svg>
+              </button>
+            )}
+            <div className="header-logo site-header__logo-group">
+              {renderLogo(false)}
+              {renderNav()}
+            </div>
+          </>
+        )}
+
+        <div className={`header-search-box site-header__search${searchCollapsed ? ' site-header__search--collapsed' : ''}`}>
+          {searchCollapsed ? (
+            <button
+              type="button"
+              className="site-header__search-toggle"
+              onClick={() => setSearchExpanded(true)}
+              aria-label="Mở tìm kiếm"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor" />
+              </svg>
+            </button>
+          ) : (
+            <>
+              <span className="search-icon-inside">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                  <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor" />
+                </svg>
+              </span>
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder={resolvedSearchPlaceholder}
+                value={searchValue}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                onKeyDown={onSearchKeyDown}
+                onBlur={() => {
+                  if (sidebarLogoCollapsed && !searchValue.trim()) setSearchExpanded(false);
+                }}
+                className="search-input site-header__search-input"
+              />
+            </>
+          )}
+        </div>
+
+        <div className="header-actions">
+          <NotificationBell
+            open={notifOpen}
+            onOpenChange={(open) => {
+              setNotifOpen(open);
+              if (open) setProfilePopupOpen(false);
+            }}
+            isAdmin={isAdminRoute && showAdminMenu}
+            isClub={showClubManagerNav && !isAdminRoute}
+          />
+
+          <div className="auth-profile-wrapper">
+            {isLoggedIn ? (
+              profileLoading && !userProfile.fullname ? (
+                <div className="profile-display-card profile-display-card--loading" aria-busy="true" aria-label="Đang tải thông tin tài khoản">
+                  <div className="profile-info-text">
+                    <span className="profile-skeleton profile-skeleton--name" />
+                    <span className="profile-skeleton profile-skeleton--line" />
+                  </div>
+                  <div className="profile-avatar-circle profile-skeleton profile-skeleton--avatar" />
+                </div>
+              ) : (
+                <div className="profile-display-card" ref={profileRef}>
+                  <button
+                    type="button"
+                    className={`profile-display-card-link ${profilePopupOpen ? 'profile-display-card-link--open' : ''}`}
+                    title="Mở menu tài khoản"
+                    onClick={handleOpenProfilePopup}
+                    aria-expanded={profilePopupOpen}
+                  >
+                    <div className="profile-info-text">
+                      <span className="profile-name">{userProfile.fullname || 'Người dùng'}</span>
+                      <span
+                        className={`profile-role${
+                          isAdminRole(role) ? ' profile-role-admin' : ''
+                        }`}
+                      >
+                        {isAdminRole(role)
+                          ? getRoleLabel(userProfile.role, userProfile.course)
+                          : (
+                            <>
+                              {getRoleLabel(userProfile.role)}
+                              {userProfile.course ? ` · ${userProfile.course}` : ''}
+                            </>
+                          )}
+                      </span>
+                    </div>
+                    <div className="profile-avatar-circle">
+                      <img src={userProfile.picture || defaultAvatar} alt="" />
+                    </div>
+                  </button>
+
+                  {profilePopupOpen && (
+                    <>
+                      <div
+                        className="profile-menu-backdrop"
+                        onClick={() => setProfilePopupOpen(false)}
+                        role="presentation"
+                      />
+                      <div
+                        className="profile-menu-dropdown"
+                        role="menu"
+                        aria-label="Menu tài khoản"
+                      >
+                        {isAdminRole(role) ? (
+                          <AdminProfileMenu
+                            activeItem=""
+                            userProfile={userProfile}
+                            onMenuAction={handleProfileMenuAction}
+                            onLogout={handleLogout}
+                          />
+                        ) : (
+                          <ProfileSidebarMenu
+                            activeItem=""
+                            userProfile={userProfile}
+                            onMenuAction={handleProfileMenuAction}
+                            onLogout={handleLogout}
+                            activeClub={activeClub}
+                            showSwitchClub={isClubManagerRole(role)}
+                          />
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
+            ) : (
+              <div className="auth-buttons">
+                <Link to="/login" className="btn-auth btn-auth-login">Đăng nhập</Link>
+                <Link to="/signup" className="btn-auth btn-auth-signup">Đăng ký</Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    {showAdminMenu && !isAdminPortal && !sidebarControlled && (
+      <AdminDrawerMenu
+        open={adminDrawerOpen}
+        onClose={() => setAdminDrawerOpen(false)}
+      />
+    )}
+
+    <ClubSwitchModal
+      open={clubSwitchOpen}
+      clubs={managedClubs}
+      activeClubId={activeClub?.id || ''}
+      loading={managedClubsLoading}
+      error={managedClubsError}
+      onClose={() => setClubSwitchOpen(false)}
+      onSelect={handleSelectManagedClub}
+    />
+    </>
+  );
+};
+
+export default SiteHeader;

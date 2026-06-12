@@ -1,0 +1,361 @@
+/* Admin portal — giao diện giống CTSV home (ảnh mẫu) */
+
+.admin-app-shell .admin-shell-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.admin-app-shell .admin-layout.admin-shell-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  background: #ffffff;
+  align-items: stretch;
+}
+
+.admin-app-shell .admin-shell-main {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-app-shell .admin-shell-content > .admin-main,
+.admin-app-shell .admin-shell-content > main.admin-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-app-shell .admin-shell-content > .home-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.admin-app-shell .admin-shell-content > .chatbot-floating-wrapper {
+  flex-shrink: 0;
+}
+
+/* Nội dung full-width: sidebar đóng → tràn 2 bên; sidebar mở → thu theo vùng main (flex) */
+.admin-app-shell .admin-main,
+.admin-app-shell .admin-event-requests,
+.admin-app-shell main.admin-main {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(20px, 2.5vw, 36px);
+  padding-right: clamp(20px, 2.5vw, 36px);
+  box-sizing: border-box;
+}
+
+.admin-app-shell .admin-main > .ctsv-announce-page {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Trang CTSV/ICPDP render trực tiếp trong admin shell — căn giữa như .ctsv-portal-body */
+.admin-app-shell .admin-shell-content > .ctsv-events-page,
+.admin-app-shell .admin-shell-content > .ctsv-ed-page,
+.admin-app-shell .admin-shell-content > .ctsv-calendar-page,
+.admin-app-shell .admin-shell-content > .admin-icpdp-club-reg-page {
+  width: 100%;
+  max-width: var(--home-content-max, 1280px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(20px, 2.5vw, 36px);
+  padding-right: clamp(20px, 2.5vw, 36px);
+  box-sizing: border-box;
+}
+
+.admin-app-shell .admin-icpdp-club-reg-page {
+  --icpdp-accent: #f26f21;
+  --icpdp-accent-light: #fdba74;
+}
+
+.admin-app-shell .admin-icpdp-club-reg-page .icpdp-proposals-grid {
+  width: 100%;
+}
+
+.admin-app-shell .admin-icpdp-club-reg-page .icpdp-status-filters {
+  flex-wrap: wrap;
+}
+
+.admin-app-shell .admin-partners-page,
+.admin-app-shell .admin-acc-page,
+.admin-app-shell .admin-sys-page,
+.admin-app-shell .admin-data-page,
+.admin-app-shell .admin-dashboard-grid,
+.admin-app-shell .admin-placeholder {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.admin-app-shell .admin-partners-page {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.admin-app-shell .home-footer {
+  width: 100%;
+}
+
+.admin-app-shell .home-footer .footer-top-columns {
+  max-width: none;
+  padding-left: clamp(20px, 2.5vw, 36px);
+  padding-right: clamp(20px, 2.5vw, 36px);
+}
+
+/* Click vùng ngoài menu để đóng — mobile: phủ toàn màn; desktop: chỉ vùng nội dung */
+.admin-app-shell .admin-sidebar-backdrop,
+.admin-public-shell .admin-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 215;
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+@media (min-width: 1024px) {
+  .admin-app-shell.sidebar-open .admin-sidebar-backdrop,
+  .admin-public-shell.sidebar-open .admin-sidebar-backdrop {
+    display: block !important;
+    left: 280px;
+    right: 0;
+    width: auto;
+    background: transparent;
+  }
+
+  .admin-app-shell.sidebar-open .ctsv-sidebar,
+  .admin-public-shell.sidebar-open .ctsv-sidebar {
+    z-index: 220;
+  }
+}
+
+/* Shell trang công khai — sidebar đẩy nội dung (giống /admin) */
+.admin-public-shell.ctsv-app-shell {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.admin-public-shell .public-shell-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Trang chủ / Sự kiện — cùng max-width & padding khi có menu admin */
+.admin-public-shell .recommended-section,
+.admin-public-shell .events-page__main {
+  width: 100%;
+  max-width: var(--home-content-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--home-content-padding);
+  padding-right: var(--home-content-padding);
+  box-sizing: border-box;
+}
+
+.admin-public-shell .home-header.site-header,
+.admin-public-shell .admin-home-header {
+  width: 100%;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.admin-public-shell .admin-header-container {
+  max-width: none;
+  width: 100%;
+}
+
+/* Logo ẩn bằng .ctsv-header-logo.is-collapsed (animation), không dùng display:none */
+
+/* Header admin — dùng chung class SiteHeader (trang chủ), chỉ bổ sung sidebar */
+.admin-home-header {
+  z-index: 100;
+  width: 100%;
+}
+
+.admin-app-shell .admin-header-container {
+  max-width: none;
+  width: 100%;
+}
+
+/* Nút menu sidebar (thêm trước logo group) */
+.admin-header-menu-btn.admin-hamburger-btn {
+  display: flex;
+  flex-shrink: 0;
+  margin-right: 0;
+}
+
+/* club_manager / CTSV public shell */
+.club-public-shell,
+.ctsv-public-shell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.club-public-shell .ctsv-shell-main,
+.ctsv-public-shell .ctsv-shell-main {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.site-header--with-shell .site-header__container {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+.site-header--with-shell .site-header__start {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+/* Sidebar mở: thu ô tìm kiếm thành nút kính lúp */
+.site-header__search--collapsed {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  margin: 0 8px;
+}
+
+.site-header__search-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #e8dfd8;
+  border-radius: 50%;
+  background: #fff;
+  color: #8c7166;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.site-header__search-toggle:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #fff;
+}
+
+.site-header--sidebar-open .site-header__search:not(.site-header__search--collapsed) {
+  flex: 1 1 auto;
+  min-width: 140px;
+  max-width: 220px;
+}
+
+@media (min-width: 1024px) {
+  .admin-app-shell {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .admin-app-shell .admin-shell-main {
+    flex: 1 1 0%;
+    min-width: 0;
+    width: auto;
+  }
+}
+
+/* Hamburger trên SiteHeader (trang ngoài /admin) */
+.admin-hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-right: 8px;
+  padding: 0;
+  border: 1px solid #e8dfd8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--text-main);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.admin-hamburger-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .admin-home-header .profile-info-text {
+    display: none;
+  }
+
+  .admin-home-header .profile-display-card {
+    padding-left: 0;
+    border-left: none;
+  }
+}
+
+/* Drawer fallback (trang chưa bọc PublicAdminShell) */
+.admin-drawer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1250;
+  pointer-events: none;
+}
+
+.admin-drawer-root .admin-drawer-backdrop {
+  display: block !important;
+  inset: 0;
+  left: 0;
+  background: rgba(15, 23, 42, 0.45);
+  pointer-events: auto;
+}
+
+.admin-drawer-root .admin-sidebar--overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 280px;
+  max-width: 85vw;
+  height: 100vh;
+  height: 100dvh;
+  background: #ffffff;
+  border-right: 1px solid #e8dfd8;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+  pointer-events: auto;
+}
+
+.admin-drawer-root .admin-sidebar--overlay.admin-sidebar--open {
+  transform: translateX(0);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+}

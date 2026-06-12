@@ -1,0 +1,284 @@
+const Event = require('../models/Event');
+const AppError = require('../utils/AppError');
+const {
+  MODERATION_ACTIONS,
+  CLUB_MODERATION_ACTIONS,
+  MODERATION_STATUS_BY_ACTION,
+  ICPDP_MODERATION_STATUS_BY_ACTION,
+  canCtsvRequestModeration,
+  canClubRequestModeration,
+  isModerationPendingStatus,
+  isIcpdpModerationPendingStatus,
+  getModerationActionFromStatus,
+  buildClubModerationReason
+} = require('../constants/eventModeration');
+
+const applyWeatherPostpone = (event, reason, authEmail) => {
+  event.eventState = 'postponed';
+  event.postponeReason = reason;
+  event.postponeIsWeather = true;
+  event.moderationReason = '';
+  event.moderationReasonCategory = '';
+  event.moderationRequestedByEmail = authEmail || '';
+  event.moderationRequestedAt = new Date();
+};
+
+const requestModeration = async (eventId, { action, reason, isWeatherPostpone }, authEmail) => {
+  if (!MODERATION_ACTIONS.includes(action)) {
+    throw new AppError('Hành động không hợp lệ.', 400);
+  }
+
+  const trimmedReason = String(reason || '').trim();
+  if (!trimmedReason) {
+    throw new AppError('Vui lòng nhập lý do.', 400);
+  }
+
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (event.source !== 'school') {
+    throw new AppError('Chỉ áp dụng cho sự kiện cấp trường.', 400);
+  }
+  if (!canCtsvRequestModeration(event)) {
+    throw new AppError('Sự kiện không thể gửi yêu cầu quản lý ở trạng thái hiện tại.', 400);
+  }
+
+  if (action === 'postpone' && isWeatherPostpone === true) {
+    applyWeatherPostpone(event, trimmedReason, authEmail);
+    await event.save();
+    return {
+      message: 'Đã hoãn sự kiện do thời tiết (không cần Admin duyệt).',
+      event
+    };
+  }
+
+  event.statusBeforeModeration = event.status;
+  event.status = MODERATION_STATUS_BY_ACTION[action];
+  event.moderationReason = trimmedReason;
+  event.moderationReasonCategory = '';
+  event.moderationRequestedByEmail = authEmail || '';
+  event.moderationRequestedAt = new Date();
+  event.postponeIsWeather = false;
+  event.ctsvEditUnlocked = false;
+
+  if (action === 'postpone') {
+    event.postponeReason = trimmedReason;
+  }
+
+  await event.save();
+
+  const actionLabels = { cancel: 'hủy', hide: 'ẩn', postpone: 'hoãn', edit: 'chỉnh sửa' };
+  return {
+    message: `Đã gửi yêu cầu ${actionLabels[action]} — chờ Admin phê duyệt.`,
+    event
+  };
+};
+
+const requestClubModeration = async (
+  eventId,
+  { action, reasonCategory, content },
+  authEmail,
+  userId
+) => {
+  if (!CLUB_MODERATION_ACTIONS.includes(action)) {
+    throw new AppError('Hành động không hợp lệ. Chọn hoãn hoặc hủy sự kiện.', 400);
+  }
+
+  const trimmedContent = String(content || '').trim();
+  if (!trimmedContent) {
+    throw new AppError('Vui lòng nhập nội dung chi tiết.', 400);
+  }
+  if (!reasonCategory) {
+    throw new AppError('Vui lòng chọn lý do.', 400);
+  }
+
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (event.source !== 'club') {
+    throw new AppError('Chỉ áp dụng cho sự kiện CLB.', 400);
+  }
+  if (userId && String(event.createdBy) !== String(userId)) {
+    throw new AppError('Bạn không có quyền quản lý sự kiện này.', 403);
+  }
+  if (!canClubRequestModeration(event)) {
+    throw new AppError('Sự kiện không thể gửi yêu cầu hoãn/hủy ở trạng thái hiện tại.', 400);
+  }
+
+  const fullReason = buildClubModerationReason(reasonCategory, trimmedContent);
+  const isWeatherPostpone = action === 'postpone' && reasonCategory === 'weather';
+
+  if (isWeatherPostpone) {
+    applyWeatherPostpone(event, fullReason, authEmail);
+    event.moderationReasonCategory = reasonCategory;
+    await event.save();
+    return {
+      message: 'Đã hoãn sự kiện do thời tiết (không cần duyệt).',
+      event
+    };
+  }
+
+  event.statusBeforeModeration = event.status;
+  event.status = ICPDP_MODERATION_STATUS_BY_ACTION[action];
+  event.moderationReason = fullReason;
+  event.moderationReasonCategory = reasonCategory;
+  event.moderationRequestedByEmail = authEmail || '';
+  event.moderationRequestedAt = new Date();
+  event.postponeIsWeather = false;
+  event.icpdpNote = '';
+
+  if (action === 'postpone') {
+    event.postponeReason = fullReason;
+  }
+
+  await event.save();
+
+  const actionLabels = { cancel: 'hủy', postpone: 'hoãn' };
+  return {
+    message: `Đã gửi yêu cầu ${actionLabels[action]} — chờ IC-PDP phê duyệt.`,
+    event
+  };
+};
+
+const approveIcpdpModeration = async (eventId, note, authEmail) => {
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (event.source !== 'club') {
+    throw new AppError('Chỉ áp dụng cho sự kiện CLB.', 400);
+  }
+  if (!isIcpdpModerationPendingStatus(event.status)) {
+    throw new AppError('Sự kiện không có yêu cầu chờ IC-PDP.', 400);
+  }
+
+  const action = getModerationActionFromStatus(event.status);
+  event.status = MODERATION_STATUS_BY_ACTION[action];
+  event.icpdpNote = String(note || '').trim();
+  event.moderationRequestedAt = new Date();
+
+  await event.save();
+  return {
+    message: 'IC-PDP đã duyệt — yêu cầu chuyển sang Admin phê duyệt.',
+    event
+  };
+};
+
+const rejectIcpdpModeration = async (eventId, reason, authEmail) => {
+  const trimmedReason = String(reason || '').trim();
+  if (!trimmedReason) {
+    throw new AppError('Vui lòng nhập lý do từ chối.', 400);
+  }
+
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (!isIcpdpModerationPendingStatus(event.status)) {
+    throw new AppError('Sự kiện không có yêu cầu chờ IC-PDP.', 400);
+  }
+
+  const action = getModerationActionFromStatus(event.status);
+  event.status = event.statusBeforeModeration || 'approved';
+  event.statusBeforeModeration = '';
+  event.rejectionReason = trimmedReason;
+  event.icpdpNote = trimmedReason;
+  event.moderationReason = '';
+  event.moderationReasonCategory = '';
+  event.moderationRequestedByEmail = '';
+  event.moderationRequestedAt = null;
+
+  if (action === 'postpone') {
+    event.postponeReason = '';
+    event.eventState = 'active';
+  }
+
+  await event.save();
+  return { message: 'IC-PDP đã từ chối yêu cầu hoãn/hủy.', event };
+};
+
+const approveModeration = async (eventId, authEmail) => {
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (!isModerationPendingStatus(event.status)) {
+    throw new AppError('Sự kiện không có yêu cầu chờ Admin.', 400);
+  }
+
+  const action = getModerationActionFromStatus(event.status);
+  const previous = event.statusBeforeModeration || 'approved';
+
+  if (action === 'cancel') {
+    event.status = 'cancelled';
+    event.eventState = 'expired';
+  } else if (action === 'hide') {
+    event.status = 'hidden';
+    event.isHidden = true;
+  } else if (action === 'postpone') {
+    event.status = previous;
+    event.eventState = 'postponed';
+    event.postponeIsWeather = false;
+  } else if (action === 'edit') {
+    event.status = previous;
+    event.ctsvEditUnlocked = true;
+  }
+
+  event.statusBeforeModeration = '';
+  event.moderationReason = '';
+  event.moderationReasonCategory = '';
+  event.moderationRequestedByEmail = '';
+  event.moderationRequestedAt = null;
+  event.adminApprovedByEmail = authEmail || event.adminApprovedByEmail;
+  event.adminApprovedAt = new Date();
+
+  await event.save();
+  return { message: 'Đã phê duyệt yêu cầu điều phối sự kiện.', event };
+};
+
+const rejectModeration = async (eventId, reason, authEmail) => {
+  const trimmedReason = String(reason || '').trim();
+  if (!trimmedReason) {
+    throw new AppError('Vui lòng nhập lý do từ chối.', 400);
+  }
+
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (!isModerationPendingStatus(event.status)) {
+    throw new AppError('Sự kiện không có yêu cầu chờ Admin.', 400);
+  }
+
+  const action = getModerationActionFromStatus(event.status);
+  event.status = event.statusBeforeModeration || 'approved';
+  event.statusBeforeModeration = '';
+  event.moderationReason = '';
+  event.moderationReasonCategory = '';
+  event.moderationRequestedByEmail = '';
+  event.moderationRequestedAt = null;
+  event.rejectionReason = trimmedReason;
+  event.adminApprovedByEmail = authEmail || '';
+
+  if (action === 'postpone') {
+    event.postponeReason = '';
+    event.eventState = 'active';
+  }
+  if (action === 'edit') {
+    event.ctsvEditUnlocked = false;
+  }
+
+  await event.save();
+  return { message: 'Đã từ chối yêu cầu điều phối.', event };
+};
+
+module.exports = {
+  requestModeration,
+  requestClubModeration,
+  approveIcpdpModeration,
+  rejectIcpdpModeration,
+  approveModeration,
+  rejectModeration
+};
