@@ -271,6 +271,65 @@
 }
 
 /* ── Detail page actions panel ── */
+@media (max-width: 768px) {
+  .icpdp-proposals-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-left: -2px;
+    margin-right: -2px;
+  }
+
+  .icpdp-proposals-search {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+
+  .icpdp-proposals-search input {
+    min-width: 0;
+    font-size: 0.9rem;
+  }
+
+  .icpdp-status-filters {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    width: calc(100% + 4px);
+    margin: 0 -2px;
+    padding: 2px 2px 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .icpdp-status-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .icpdp-status-chip {
+    flex: 0 0 auto;
+    min-width: max-content;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 14px;
+    white-space: nowrap;
+    font-size: 0.86rem;
+    line-height: 1;
+    scroll-snap-align: start;
+  }
+
+  .icpdp-status-chip.is-active {
+    border-width: 1.5px;
+    box-shadow: 0 6px 16px rgba(242, 111, 33, 0.12);
+  }
+}
+
 .icpdp-action-panel {
   background: #fff;
   border: 1px solid rgba(242, 111, 33, 0.2);
