@@ -45,6 +45,10 @@
   object-fit: contain;
 }
 
+.icpdp-mobile-role-pill {
+  display: none;
+}
+
 /* ── Hamburger override ── */
 .icpdp-app-shell .ctsv-portal-hamburger:hover {
   border-color: var(--icpdp-accent) !important;
@@ -408,14 +412,14 @@
 
   .icpdp-app-shell .icpdp-portal-header .header-container {
     height: 65px;
-    padding: 0 20px;
-    gap: 12px;
+    padding: 0 16px;
+    gap: 10px;
   }
 
   .icpdp-app-shell .icpdp-portal-header .ctsv-header-start {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
-    gap: 12px;
+    gap: 10px;
   }
 
   .icpdp-app-shell .icpdp-portal-header .ctsv-header-brand {
@@ -423,12 +427,13 @@
   }
 
   .icpdp-app-shell .icpdp-portal-header .ctsv-header-logo {
-    max-width: 118px;
+    max-width: 104px;
   }
 
   .icpdp-app-shell .icpdp-portal-header .header-actions {
+    margin-left: auto;
     flex-shrink: 0;
-    gap: 10px;
+    gap: 9px;
   }
 
   .icpdp-app-shell .icpdp-portal-header .ctsv-header-nav,
@@ -443,9 +448,50 @@
     padding-left: 0;
   }
 
+  .icpdp-app-shell .icpdp-portal-header .profile-info-text {
+    display: none !important;
+  }
+
   .icpdp-app-shell .icpdp-portal-header .profile-avatar-circle {
+    width: 34px;
+    height: 34px;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .profile-display-card-link {
+    min-width: 34px;
+    padding: 0;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .ctsv-portal-hamburger {
     width: 38px;
     height: 38px;
+  }
+
+  .icpdp-mobile-role-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 106px;
+    max-width: 116px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid #eadfd7;
+    border-radius: 999px;
+    background: #fffaf7;
+    color: #5f493f;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.06);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .icpdp-mobile-role-pill:hover {
+    border-color: var(--icpdp-accent);
+    color: var(--icpdp-accent);
+    background: #ffffff;
   }
 
   .icpdp-app-shell .icpdp-sidebar {

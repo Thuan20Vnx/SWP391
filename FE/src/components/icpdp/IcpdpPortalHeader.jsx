@@ -145,6 +145,19 @@ const IcpdpPortalHeader = ({
         <div className="header-actions">
           <button
             type="button"
+            className="icpdp-mobile-role-pill"
+            onClick={onToggleSidebar}
+            aria-label="Mở menu quản lý CLB"
+            aria-expanded={sidebarOpen}
+          >
+            <span>Quản lý CLB</span>
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden>
+              <path d="M7 10l5 5 5-5H7z" fill="currentColor" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
             className="ctsv-header-nav-toggle"
             onClick={() => setMobileNavOpen((v) => !v)}
             aria-label="Menu trang"
