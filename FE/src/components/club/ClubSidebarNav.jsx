@@ -31,10 +31,18 @@ const ClubSidebarNav = ({ activeNav, onNavSelect, hasNewNotifs = false }) => {
           <CtsvNavIcon type={item.icon} />
         </span>
         <span className="ctsv-nav-label">
-          {item.label}
-          {item.key === 'notifications' && hasNewNotifs && (
-            <span className="club-nav-unread-dot" aria-hidden="true" />
-          )}
+          <span className="ctsv-nav-label__full">
+            {item.label}
+            {item.key === 'notifications' && hasNewNotifs && (
+              <span className="club-nav-unread-dot" aria-hidden="true" />
+            )}
+          </span>
+          <span className="ctsv-nav-label__short">
+            {item.mobileLabel || item.label}
+            {item.key === 'notifications' && hasNewNotifs && (
+              <span className="club-nav-unread-dot" aria-hidden="true" />
+            )}
+          </span>
         </span>
       </button>
     );

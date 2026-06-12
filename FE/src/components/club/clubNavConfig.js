@@ -3,15 +3,27 @@ export const CLUB_PUBLIC_SIDEBAR_KEY = 'clubPublicSidebarOpen';
 
 export const CLUB_NAV_ITEMS = [
   { key: 'profile', label: 'Hồ sơ CLB', icon: 'profile' },
-  { key: 'transfer-chairman', label: 'Chuyển nhượng Chủ nhiệm', icon: 'transfer' },
-  { key: 'semester-timeline', label: 'Timeline Spring/Summer/Fall', section: 'KẾ HOẠCH KỲ', icon: 'calendar' },
-  { key: 'create', label: 'Tạo đề xuất sự kiện', section: 'SỰ KIỆN', icon: 'create' },
-  { key: 'list', label: 'Danh sách Sự kiện quản lý', icon: 'publish' },
-  { key: 'participants', label: 'Quản lý người tham gia', icon: 'participants' },
-  { key: 'report', label: 'Báo cáo sau sự kiện', section: 'THEO DÕI', icon: 'reports' },
-  { key: 'notifications', label: 'Thông báo xét duyệt', icon: 'approval' },
-  { key: 'announcements', label: 'Đăng thông báo CLB', icon: 'broadcast' },
-  { key: 'dashboard', label: 'Dashboard Thống kê số liệu', icon: 'dashboard' },
+  { key: 'transfer-chairman', label: 'Chuyển nhượng Chủ nhiệm', mobileLabel: 'Chuyển CN', icon: 'transfer' },
+  {
+    key: 'semester-timeline',
+    label: 'Timeline Spring/Summer/Fall',
+    mobileLabel: 'Timeline kỳ',
+    section: 'KẾ HOẠCH KỲ',
+    icon: 'calendar',
+  },
+  {
+    key: 'create',
+    label: 'Tạo đề xuất sự kiện',
+    mobileLabel: 'Tạo đề xuất',
+    section: 'SỰ KIỆN',
+    icon: 'create',
+  },
+  { key: 'list', label: 'Danh sách Sự kiện quản lý', mobileLabel: 'DS sự kiện', icon: 'publish' },
+  { key: 'participants', label: 'Quản lý người tham gia', mobileLabel: 'Người tham gia', icon: 'participants' },
+  { key: 'report', label: 'Báo cáo sau sự kiện', mobileLabel: 'Báo cáo SK', section: 'THEO DÕI', icon: 'reports' },
+  { key: 'notifications', label: 'Thông báo xét duyệt', mobileLabel: 'Xét duyệt', icon: 'approval' },
+  { key: 'announcements', label: 'Đăng thông báo CLB', mobileLabel: 'Thông báo CLB', icon: 'broadcast' },
+  { key: 'dashboard', label: 'Dashboard Thống kê số liệu', mobileLabel: 'Dashboard', icon: 'dashboard' },
 ];
 
 export const readClubSidebarPref = () => {
@@ -43,14 +55,22 @@ export const persistClubPublicSidebarOpen = (open) => {
 export const isClubDesktop = () => window.matchMedia('(min-width: 1024px)').matches;
 export const isClubNavActive = (key, activeNav) => activeNav === key;
 
+export const CLUB_PORTAL_HOME_NAV = 'list';
+
 export const resolveClubActiveNav = (pathname) => {
   if (pathname.startsWith('/quan-ly-clb/announcements')) return 'announcements';
   if (pathname.startsWith('/quan-ly-clb/su-kien')) return 'list';
   try {
     const saved = sessionStorage.getItem('clb_active_nav');
-    if (saved && CLUB_NAV_ITEMS.some((item) => item.key === saved)) return saved;
+    if (
+      saved
+      && saved !== 'create'
+      && CLUB_NAV_ITEMS.some((item) => item.key === saved)
+    ) {
+      return saved;
+    }
   } catch { /* ignore */ }
-  return 'list';
+  return CLUB_PORTAL_HOME_NAV;
 };
 
 /** Sidebar cổng công khai — chỉ highlight khi đang ở /quan-ly-clb */
@@ -76,6 +96,14 @@ export const navigateClubNavItem = ({
     return;
   }
 
+  if (key === 'create') {
+    navigate('/quan-ly-clb', {
+      state: { freshCreate: true },
+      replace: pathname === '/quan-ly-clb',
+    });
+    return;
+  }
+
   try {
     sessionStorage.setItem('clb_active_nav', key);
   } catch { /* ignore */ }
@@ -87,4 +115,16 @@ export const navigateClubNavItem = ({
   if (pathname !== '/quan-ly-clb') {
     navigate('/quan-ly-clb');
   }
+};
+
+/** Header / menu chính — luôn mở trang danh sách sự kiện, không nhớ tab "Tạo đề xuất" */
+export const navigateClubPortalHome = (navigate, pathname = '') => {
+  try {
+    sessionStorage.setItem('clb_active_nav', CLUB_PORTAL_HOME_NAV);
+  } catch { /* ignore */ }
+
+  navigate('/quan-ly-clb', {
+    state: { clubPortalHome: true },
+    replace: pathname.startsWith('/quan-ly-clb'),
+  });
 };

@@ -55,6 +55,18 @@ const CtsvLayout = ({ showToast }) => {
   }, [loadCtsvUserProfile]);
 
   useEffect(() => {
+    const closeSidebarOnMobile = () => {
+      if (window.innerWidth > 900) return;
+      setSidebarOpen(false);
+      persistSidebarOpen(false);
+    };
+
+    closeSidebarOnMobile();
+    window.addEventListener('resize', closeSidebarOnMobile);
+    return () => window.removeEventListener('resize', closeSidebarOnMobile);
+  }, []);
+
+  useEffect(() => {
     const onAuthChanged = () => loadCtsvUserProfile();
     window.addEventListener(AUTH_CHANGED_EVENT, onAuthChanged);
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, onAuthChanged);

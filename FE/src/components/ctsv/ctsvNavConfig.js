@@ -3,9 +3,20 @@ export const SIDEBAR_KEY = 'ctsvSidebarOpen';
 export const CTSV_NAV_ITEMS = [
   { path: '/ctsv/dashboard', label: 'Bảng điều khiển', icon: 'dashboard' },
   { path: '/ctsv/profile', label: 'Hồ sơ', icon: 'profile' },
-  { path: '/ctsv/partners', label: 'Duyệt đơn đối tác', icon: 'partners' },
-  { path: '/ctsv/semester-timelines', label: 'Duyệt timeline Spring/Summer/Fall', icon: 'calendar' },
-  { path: '/ctsv/events/create', label: 'Tạo sự kiện cấp trường', section: 'SỰ KIỆN', icon: 'create' },
+  { path: '/ctsv/partners', label: 'Duyệt đơn đối tác', mobileLabel: 'Duyệt đối tác', icon: 'partners' },
+  {
+    path: '/ctsv/semester-timelines',
+    label: 'Duyệt timeline Spring/Summer/Fall',
+    mobileLabel: 'Timeline kỳ học',
+    icon: 'calendar',
+  },
+  {
+    path: '/ctsv/events/create',
+    label: 'Tạo sự kiện cấp trường',
+    mobileLabel: 'Tạo sự kiện trường',
+    section: 'SỰ KIỆN',
+    icon: 'create',
+  },
   { path: '/ctsv/events', label: 'Publish sự kiện', icon: 'publish' },
   { path: '/ctsv/announcements/publish', label: 'Thông báo chính thức', icon: 'announce' },
   { path: '/ctsv/calendar', label: 'Lịch toàn trường', icon: 'calendar' },

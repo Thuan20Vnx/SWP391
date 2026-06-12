@@ -37,6 +37,18 @@ const ClubManagerLayout = ({ showToast }) => {
   }, [pathname]);
 
   useEffect(() => {
+    const closeSidebarOnMobile = () => {
+      if (window.innerWidth > 900) return;
+      setSidebarOpen(false);
+      persistClubSidebarOpen(false);
+    };
+
+    closeSidebarOnMobile();
+    window.addEventListener('resize', closeSidebarOnMobile);
+    return () => window.removeEventListener('resize', closeSidebarOnMobile);
+  }, []);
+
+  useEffect(() => {
     if (!pathname.startsWith('/quan-ly-clb') || pathname.startsWith('/quan-ly-clb/announcements')) return;
     sessionStorage.setItem('clb_active_nav', activeNav);
   }, [activeNav, pathname]);
