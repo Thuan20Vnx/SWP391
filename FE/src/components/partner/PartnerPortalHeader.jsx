@@ -46,6 +46,12 @@ const resolveActiveMenuItem = (pathname) => {
   return '';
 };
 
+const resolveMobilePageLabel = (pathname) => {
+  if (pathname === '/partner' || pathname.startsWith('/partner/dashboard')) return 'Trang chủ';
+  const activeLink = NAV_LINKS.find((item) => item.match(pathname));
+  return activeLink?.label || 'Trang chủ';
+};
+
 const PartnerPortalHeader = ({
   userProfile,
   showToast,
@@ -64,6 +70,7 @@ const PartnerPortalHeader = ({
   const profileRef = useRef(null);
   const path = location.pathname;
   const activeMenuItem = useMemo(() => resolveActiveMenuItem(path), [path]);
+  const mobilePageLabel = useMemo(() => resolveMobilePageLabel(path), [path]);
   const roleLabel = getRoleDisplayLabel(getUserRole());
 
   useEffect(() => {
@@ -115,7 +122,7 @@ const PartnerPortalHeader = ({
               <Link
                 key={item.to}
                 to={item.to}
-                className={`nav-link ${item.match(path) ? 'active' : ''}`}
+                className={`nav-link ${item.match(path) || (item.to === '/partner' && path.startsWith('/partner/dashboard')) ? 'active' : ''}`}
                 onClick={closeMobileNav}
               >
                 {item.label}
@@ -152,7 +159,48 @@ const PartnerPortalHeader = ({
           </div>
         )}
 
+          <button
+            type="button"
+            className="site-header__nav-toggle partner-mobile-page-switch"
+            onClick={() => setMobileNavOpen((v) => !v)}
+            aria-label="Chuyển trang"
+            aria-expanded={mobileNavOpen}
+          >
+          <span className="partner-mobile-page-switch__label">{mobilePageLabel}</span>
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden>
+            <path
+              d={mobileNavOpen ? 'M5.5 12.5 10 8l4.5 4.5' : 'M5.5 7.5 10 12l4.5-4.5'}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+
         <div className="header-actions">
+          <button
+            type="button"
+            className="site-header__mobile-search-btn partner-mobile-search-trigger"
+            aria-label="Tìm kiếm"
+            onClick={() => {
+              if (showSearch) {
+                const input = document.querySelector('.partner-portal-header .search-input');
+                input?.focus();
+                return;
+              }
+              navigate('/partner/events');
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+              <path
+                d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28h.79l5 4.99L20.49 19zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+
           <button
             type="button"
             className="ctsv-header-nav-toggle"

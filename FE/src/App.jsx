@@ -82,6 +82,7 @@ import PartnerEventList from './pages/partner/PartnerEventList';
 import PartnerEventDetail from './pages/partner/PartnerEventDetail';
 import PartnerContractList from './pages/partner/PartnerContractList';
 import PartnerAnalytics from './pages/partner/PartnerAnalytics';
+import PartnerCalendar from './pages/partner/PartnerCalendar';
 import PartnerReportDetail from './pages/partner/PartnerReportDetail';
 import PartnerProposalCreate from './pages/partner/PartnerProposalCreate';
 import {
@@ -313,6 +314,7 @@ function App() {
               <Route path="profile" element={<PartnerProfileSettings showToast={showToast} />} />
               <Route path="settings" element={<PortalSettingsView showToast={showToast} role="partner" />} />
               <Route path="events" element={<PartnerEventList />} />
+              <Route path="calendar" element={<PartnerCalendar />} />
               <Route path="events/:id" element={<PartnerEventDetail />} />
               <Route path="join/events" element={<Navigate to="/partner" replace />} />
               <Route
