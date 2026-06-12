@@ -372,7 +372,7 @@ const IcpdpEventDetail = () => {
             </div>
             <div className="ctsv-ed-fill">
               <div className="ctsv-ed-fill-head">
-                <span>Tỷ lệ lấp đầy</span>
+                <span>Tỷ lệ đăng ký</span>
                 <strong>{stats.fillRate}%</strong>
               </div>
               <div className="ctsv-ed-fill-bar" aria-hidden>

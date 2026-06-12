@@ -128,7 +128,7 @@ const IcpdpReports = () => {
           <strong>{loading ? '—' : stats.totalRegistered.toLocaleString('vi-VN')}</strong>
         </div>
         <div className="ctsv-reports-summary-card">
-          <span className="ctsv-reports-summary-label">TB tỷ lệ lấp đầy</span>
+          <span className="ctsv-reports-summary-label">TB tỷ lệ đăng ký</span>
           <strong>{loading ? '—' : `${stats.avgFill}%`}</strong>
         </div>
       </div>
@@ -140,7 +140,7 @@ const IcpdpReports = () => {
               <th>Sự kiện</th>
               <th>Ngày</th>
               <th>Đăng ký</th>
-              <th>Tỷ lệ lấp đầy</th>
+              <th>Tỷ lệ đăng ký</th>
               <th aria-hidden />
             </tr>
           </thead>
