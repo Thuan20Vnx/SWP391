@@ -49,6 +49,10 @@
   display: none;
 }
 
+.icpdp-mobile-search-btn {
+  display: none;
+}
+
 /* ── Hamburger override ── */
 .icpdp-app-shell .ctsv-portal-hamburger:hover {
   border-color: var(--icpdp-accent) !important;
@@ -467,15 +471,23 @@
     height: 38px;
   }
 
+  .icpdp-app-shell .icpdp-portal-header .ctsv-portal-hamburger__icon--menu {
+    display: block !important;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .ctsv-portal-hamburger__icon--chevron {
+    display: none !important;
+  }
+
   .icpdp-mobile-role-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    min-width: 106px;
-    max-width: 116px;
+    min-width: 78px;
+    max-width: 88px;
     height: 34px;
-    padding: 0 12px;
+    padding: 0 10px;
     border: 1px solid #eadfd7;
     border-radius: 999px;
     background: #fffaf7;
@@ -492,6 +504,25 @@
     border-color: var(--icpdp-accent);
     color: var(--icpdp-accent);
     background: #ffffff;
+  }
+
+  .icpdp-mobile-search-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #5f493f;
+    cursor: pointer;
+  }
+
+  .icpdp-mobile-search-btn:hover {
+    color: var(--icpdp-accent);
+    background: #fff7ed;
   }
 
   .icpdp-app-shell .icpdp-sidebar {
