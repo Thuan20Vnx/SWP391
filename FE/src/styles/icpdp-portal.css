@@ -645,6 +645,7 @@
   .icpdp-home-layout .hero-slider-arrow {
     width: 36px;
     height: 36px;
+    bottom: 92px !important;
   }
 
   .icpdp-home-layout .hero-banner-slider--nav .hero-slider-arrow--prev {
@@ -653,6 +654,10 @@
 
   .icpdp-home-layout .hero-banner-slider--nav .hero-slider-arrow--next {
     right: 10px;
+  }
+
+  .icpdp-home-layout .hero-banner-slider--nav .hero-dot-indicators {
+    bottom: 100px;
   }
 
   .icpdp-home-layout .filter-bar-section {
