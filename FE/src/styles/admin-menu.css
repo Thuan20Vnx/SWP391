@@ -68,7 +68,9 @@
 
 /* Trang CTSV/ICPDP render trực tiếp trong admin shell — căn giữa như .ctsv-portal-body */
 .admin-app-shell .admin-shell-content > .ctsv-events-page,
+.admin-app-shell .admin-shell-content > .ctsv-reports-page,
 .admin-app-shell .admin-shell-content > .ctsv-ed-page,
+.admin-app-shell .admin-shell-content > .ctsv-rd-page,
 .admin-app-shell .admin-shell-content > .ctsv-calendar-page,
 .admin-app-shell .admin-shell-content > .admin-icpdp-club-reg-page {
   width: 100%;
@@ -692,6 +694,10 @@
   }
 
   .site-header--guest .site-header__guest-auth {
+    display: none;
+  }
+
+  .site-header--guest:not(.site-header--with-shell) .site-header__nav {
     display: none;
   }
 

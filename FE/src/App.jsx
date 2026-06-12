@@ -57,6 +57,8 @@ import AdminPartners from './pages/admin/AdminPartners';
 import AdminAccountsControl from './pages/admin/AdminAccountsControl';
 import AdminSchoolEventApprovals from './pages/admin/AdminSchoolEventApprovals';
 import AdminEventRequests from './pages/admin/AdminEventRequests';
+import AdminSubmittedReports from './pages/admin/AdminSubmittedReports';
+import AdminSubmittedReportDetail from './pages/admin/AdminSubmittedReportDetail';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
 import Schedule from './pages/Schedule';
@@ -415,6 +417,8 @@ function App() {
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
               <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />
               <Route path="event-requests" element={<AdminEventRequests showToast={showToast} />} />
+              <Route path="ctsv-reports" element={<AdminSubmittedReports />} />
+              <Route path="ctsv-reports/:id" element={<AdminSubmittedReportDetail />} />
               <Route path="accounts" element={<AdminAccountsControl />} />
               <Route path="system" element={<AdminSystemControl />} />
               <Route path="partners" element={<AdminPartners />} />

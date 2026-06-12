@@ -9,6 +9,7 @@ const {
   requireIcpdpOrCtsv
 } = require('../middleware/requireRole');
 const Event = require('../models/Event');
+const EventRegistration = require('../models/EventRegistration');
 const EventProposal = require('../models/EventProposal');
 const Partner = require('../models/Partner');
 const { PARTNER_STATUSES } = require('../models/Partner');
@@ -27,6 +28,7 @@ const {
 } = require('../constants/eventWorkflow');
 const { getCtsvReportDetail, appendDemoToReportList } = require('../services/ctsvReport.service');
 const { resolveReportPhase, getReportDisplayStatus } = require('../constants/ctsvReportDisplay');
+const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
 const {
   findLinkableAnnouncementEvents,
   isEventLinkableForAnnouncement
@@ -240,7 +242,25 @@ router.get('/events/:id', async (req, res) => {
     if (!event) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
     }
-    return res.json({ success: true, event: formatEvent(event) });
+    let students;
+    if (canRoleManageSchoolEvent(event, req.userRole)) {
+      const registrations = await EventRegistration.find({ event: event._id })
+        .populate('user', 'fullname studentId email role')
+        .sort({ registeredAt: -1 })
+        .limit(200)
+        .lean();
+
+      students = registrations.map((registration) => ({
+        _id: registration._id,
+        status: registration.status === 'attended' ? 'checked-in' : registration.status,
+        createdAt: registration.createdAt,
+        cancelledAt: registration.cancelledAt || null,
+        checkedInAt: registration.checkedInAt || null,
+        checkedOutAt: registration.checkedOutAt || null,
+        student: registration.user,
+      }));
+    }
+    return res.json({ success: true, event: formatEvent(event), students });
   } catch (error) {
     console.error('ctsv event detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -595,6 +615,44 @@ router.get('/reports/:id', async (req, res) => {
     }
     console.error('ctsv report detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/reports/:id/submit-admin', async (req, res) => {
+  try {
+    const result = await getCtsvReportDetail(req.params.id);
+    const report = result.report;
+    const submission = await SubmittedCtsvReport.findOneAndUpdate(
+      { reportId: String(report.id || req.params.id) },
+      {
+        reportId: String(report.id || req.params.id),
+        eventId: req.params.id && /^[a-f\d]{24}$/i.test(req.params.id) ? req.params.id : null,
+        title: report.title || '',
+        category: report.category || '',
+        source: report.source || 'school',
+        reportPhase: report.reportPhase || 'ended',
+        snapshot: report,
+        submittedByEmail: String(req.authEmail || '').trim().toLowerCase(),
+        submittedAt: new Date(),
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    return res.json({
+      success: true,
+      submission: {
+        reportId: submission.reportId,
+        submittedAt: submission.submittedAt,
+        submittedByEmail: submission.submittedByEmail,
+      },
+      message: 'Da gui bao cao cho Admin xem.',
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('ctsv report submit admin:', error);
+    return res.status(500).json({ success: false, message: 'Loi may chu noi bo!' });
   }
 });
 

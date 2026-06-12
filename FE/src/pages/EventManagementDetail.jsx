@@ -61,6 +61,43 @@ const getEventStatusMeta = (event) => {
   return { label: 'Đang chạy', tone: 'live' };
 };
 
+const getStudentRoleMeta = (student) => {
+  const role = student?.role;
+
+  if (role === 'club_manager') {
+    return { label: 'Ban t\u1ed5 ch\u1ee9c CLB', tone: 'club-manager' };
+  }
+
+  if (role === 'staff') {
+    return { label: 'C\u00e1n b\u1ed9', tone: 'staff' };
+  }
+
+  if (role === 'student') {
+    return { label: 'Sinh vi\u00ean', tone: 'student' };
+  }
+
+  return { label: 'Kh\u00e1c', tone: 'other' };
+};
+
+const getStudentStatusMeta = (status) => {
+  if (status === 'checked-in') {
+    return { label: '\u0110\u00e3 check-in', tone: 'checked-in' };
+  }
+
+  if (status === 'cancelled') {
+    return { label: '\u0110\u00e3 h\u1ee7y', tone: 'cancelled' };
+  }
+
+  return { label: 'Ch\u01b0a check-in', tone: 'registered' };
+};
+
+const formatStudentEventTime = (value) => {
+  if (!value) return 'Ch\u01b0a c\u1eadp nh\u1eadt';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Ch\u01b0a c\u1eadp nh\u1eadt';
+  return date.toLocaleString('vi-VN');
+};
+
 const EventManagementDetail = ({ portal = 'club' }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -79,6 +116,7 @@ const EventManagementDetail = ({ portal = 'club' }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [eventData, setEventData] = useState(null);
   const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [clubMeta, setClubMeta] = useState({ clubName: '', clubPresident: '' });
   const [loading, setLoading] = useState(true);
   const tabContentRef = useRef(null);
@@ -87,28 +125,29 @@ const EventManagementDetail = ({ portal = 'club' }) => {
     if (!id) return;
     setLoading(true);
     try {
-      let event = null;
-      let studentList = [];
-
       if (isCtsvPortal) {
-        try {
-          const ctsvData = await fetchCtsvEvent(id);
-          if (ctsvData?.event) {
-            event = normalizeManagementEvent(ctsvData.event);
-          }
-        } catch {
-          /* fallback public API */
+        const ctsvData = await fetchCtsvEvent(id);
+        if (!ctsvData?.event) {
+          showToast?.('Không thể lấy thông tin sự kiện', 'error');
+          navigate(config.eventsPath);
+          return;
         }
+
+        setEventData(normalizeManagementEvent(ctsvData.event));
+        setStudents(ctsvData.students || []);
+        return;
       }
 
+      let event = null;
+      let studentList = [];
       try {
         const res = await fetch(`${API_BASE}/api/events/${id}`, {
-          headers: isCtsvPortal ? getAuthHeaders(false) : getEventHeaders(false),
+          headers: getEventHeaders(false),
         });
         const data = await res.json();
         if (data.success && data.event) {
-          event = normalizeManagementEvent({ ...event, ...data.event });
-          studentList = data.students || studentList;
+          event = normalizeManagementEvent(data.event);
+          studentList = data.students || [];
         }
       } catch {
         /* optional */
@@ -201,6 +240,21 @@ const EventManagementDetail = ({ portal = 'club' }) => {
       return mssv.includes(q) || name.includes(q);
     });
   }, [students, searchQuery]);
+
+  const selectedStudentMeta = useMemo(() => {
+    if (!selectedStudent) return null;
+    return {
+      role: getStudentRoleMeta(selectedStudent.student),
+      status: getStudentStatusMeta(selectedStudent.status),
+      registeredAt: formatStudentEventTime(selectedStudent.createdAt),
+      checkedInAt: formatStudentEventTime(selectedStudent.checkedInAt),
+      checkedOutAt: formatStudentEventTime(selectedStudent.checkedOutAt),
+      cancelledAt: formatStudentEventTime(selectedStudent.cancelledAt),
+      email: selectedStudent.student?.email || 'Ch\u01b0a c\u1eadp nh\u1eadt',
+      studentId: selectedStudent.student?.studentId || 'Ch\u01b0a c\u1ea5p MSSV',
+      fullname: selectedStudent.student?.fullname || 'Ch\u01b0a r\u00f5 danh t\u00ednh',
+    };
+  }, [selectedStudent]);
 
   const handleEdit = () => {
     if (isCtsvPortal) {
@@ -434,73 +488,74 @@ const EventManagementDetail = ({ portal = 'club' }) => {
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="#94a3b8"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                   <input
                     type="text"
-                    placeholder="Tìm MSSV, Tên..."
+                    placeholder={"T\u00ecm MSSV, T\u00ean..."}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
               </div>
 
-              <div className="ev-table-wrapper">
+              <div className="ev-table-wrapper ev-st-table-wrapper">
                 <table className="ev-table">
                   <thead>
                     <tr>
                       <th>MSSV</th>
-                      <th>HỌ VÀ TÊN</th>
-                      <th>THỜI GIAN ĐK</th>
-                      <th>TRẠNG THÁI VÉ</th>
-                      <th>HÀNH ĐỘNG</th>
+                      <th>{'H\u1ecc V\u00c0 T\u00caN'}</th>
+                      <th>{'TH\u1edcI GIAN \u0110K'}</th>
+                      <th>{'TR\u1ea0NG TH\u00c1I V\u00c9'}</th>
+                      <th>{'H\u00c0NH \u0110\u1ed8NG'}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredStudents.length === 0 ? (
                       <tr>
                         <td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: '#94a3b8' }}>
-                          Chưa có sinh viên nào đăng ký
+                          {"Ch\u01b0a c\u00f3 sinh vi\u00ean n\u00e0o \u0111\u0103ng k\u00fd"}
                         </td>
                       </tr>
                     ) : (
                       filteredStudents.map((st) => {
-                        const mssv = st.student?.studentId || 'N/A';
-                        const name = st.student?.fullname || 'Unknown';
+                        const mssv = st.student?.studentId || 'Ch\u01b0a c\u1ea5p MSSV';
+                        const name = st.student?.fullname || 'Ch\u01b0a r\u00f5 danh t\u00ednh';
                         const time = new Date(st.createdAt).toLocaleString('vi-VN');
+                        const studentRole = getStudentRoleMeta(st.student);
+                        const ticketStatus = getStudentStatusMeta(st.status);
                         const avatarCode = name
                           .split(' ')
                           .map((n) => n[0])
                           .join('')
                           .substring(0, 2)
                           .toUpperCase();
-                        const statusDisplay =
-                          st.status === 'checked-in'
-                            ? 'Đã check-in'
-                            : st.status === 'registered'
-                              ? 'Chưa check-in'
-                              : 'Đã hủy';
                         return (
                           <tr key={st._id}>
-                            <td style={{ fontWeight: '500', color: '#334155' }}>{mssv}</td>
+                            <td className="ev-st-id-cell">
+                              <strong>{mssv}</strong>
+                              {!st.student?.studentId && (
+                                <span className="ev-st-id-hint">{"T\u00e0i kho\u1ea3n ch\u01b0a c\u00f3 m\u00e3 s\u1ed1"}</span>
+                              )}
+                            </td>
                             <td>
                               <div className="ev-st-name-cell">
                                 <div className="ev-st-avatar" style={{ backgroundColor: '#ffffff', color: '#64748b' }}>
                                   {avatarCode}
                                 </div>
-                                {name}
+                                <div className="ev-st-name-block">
+                                  <span className="ev-st-name">{name}</span>
+                                  <span className={`ev-st-role-badge ev-st-role-badge--${studentRole.tone}`}>
+                                    {studentRole.label}
+                                  </span>
+                                </div>
                               </div>
                             </td>
                             <td style={{ color: '#64748b' }}>{time}</td>
                             <td>
-                              {st.status === 'checked-in' ? (
-                                <span style={{ color: '#334155' }}>{statusDisplay}</span>
-                              ) : (
-                                <span style={{ color: '#eab308', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#eab308' }} />
-                                  {statusDisplay}
-                                </span>
-                              )}
+                              <span className={`ev-st-status-badge ev-st-status-badge--${ticketStatus.tone}`}>
+                                {ticketStatus.label}
+                              </span>
                             </td>
                             <td>
-                              <button type="button" className="ev-action-link" onClick={() => showToast?.(`Xem chi tiết SV: ${name}`, 'info')}>
-                                Chi tiết
+                              <button type="button" className="ev-action-link" onClick={() => setSelectedStudent(st)}>
+                                {"Chi ti\u1ebft"}
                               </button>
                             </td>
                           </tr>
@@ -511,10 +566,132 @@ const EventManagementDetail = ({ portal = 'club' }) => {
                 </table>
               </div>
 
+              <div className="ev-st-mobile-list">
+                {filteredStudents.length === 0 ? (
+                  <div className="ev-st-mobile-empty">{"Ch\u01b0a c\u00f3 sinh vi\u00ean n\u00e0o \u0111\u0103ng k\u00fd"}</div>
+                ) : (
+                  filteredStudents.map((st) => {
+                    const mssv = st.student?.studentId || 'Ch\u01b0a c\u1ea5p MSSV';
+                    const name = st.student?.fullname || 'Ch\u01b0a r\u00f5 danh t\u00ednh';
+                    const time = new Date(st.createdAt).toLocaleString('vi-VN');
+                    const studentRole = getStudentRoleMeta(st.student);
+                    const ticketStatus = getStudentStatusMeta(st.status);
+                    const avatarCode = name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .substring(0, 2)
+                      .toUpperCase();
+                    return (
+                      <article key={`mobile-${st._id}`} className="ev-st-mobile-card">
+                        <div className="ev-st-mobile-top">
+                          <div className="ev-st-name-cell">
+                            <div className="ev-st-avatar" style={{ backgroundColor: '#ffffff', color: '#64748b' }}>
+                              {avatarCode}
+                            </div>
+                            <div className="ev-st-name-block">
+                              <span className="ev-st-name">{name}</span>
+                              <span className={`ev-st-role-badge ev-st-role-badge--${studentRole.tone}`}>
+                                {studentRole.label}
+                              </span>
+                            </div>
+                          </div>
+                          <span className={`ev-st-status-badge ev-st-status-badge--${ticketStatus.tone}`}>
+                            {ticketStatus.label}
+                          </span>
+                        </div>
+                        <div className="ev-st-mobile-grid">
+                          <div className="ev-st-mobile-item">
+                            <span className="ev-st-mobile-label">MSSV</span>
+                            <span className="ev-st-mobile-value">{mssv}</span>
+                          </div>
+                          <div className="ev-st-mobile-item">
+                            <span className="ev-st-mobile-label">{"Th\u1eddi gian \u0111\u0103ng k\u00fd"}</span>
+                            <span className="ev-st-mobile-value">{time}</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="ev-action-link ev-action-link--mobile"
+                          onClick={() => setSelectedStudent(st)}
+                        >
+                          {"Chi ti\u1ebft sinh vi\u00ean"}
+                        </button>
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+
               <div className="ev-pagination">
                 <span className="ev-page-info">
-                  Hiển thị {filteredStudents.length === 0 ? 0 : 1} - {filteredStudents.length} trong số {students.length} sinh viên
+                  {"Hi\u1ec3n th\u1ecb"} {filteredStudents.length === 0 ? 0 : 1} - {filteredStudents.length} {"trong s\u1ed1"} {students.length} {"sinh vi\u00ean"}
                 </span>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'danh-sach' && selectedStudent && selectedStudentMeta && (
+            <div className="ev-st-detail-modal" role="dialog" aria-modal="true" aria-labelledby="ev-st-detail-title">
+              <div className="ev-st-detail-backdrop" onClick={() => setSelectedStudent(null)} />
+              <div className="ev-st-detail-panel">
+                <button
+                  type="button"
+                  className="ev-st-detail-close"
+                  onClick={() => setSelectedStudent(null)}
+                  aria-label={"\u0110\u00f3ng chi ti\u1ebft sinh vi\u00ean"}
+                >
+                  ×
+                </button>
+                <div className="ev-st-detail-hero">
+                  <div className="ev-st-avatar ev-st-avatar--lg">
+                    {selectedStudentMeta.fullname
+                      .split(' ')
+                      .map((part) => part[0])
+                      .join('')
+                      .substring(0, 2)
+                      .toUpperCase()}
+                  </div>
+                  <div className="ev-st-detail-heading">
+                    <p className="ev-st-detail-kicker">{"H\u1ed3 s\u01a1 ng\u01b0\u1eddi tham gia"}</p>
+                    <h3 id="ev-st-detail-title">{selectedStudentMeta.fullname}</h3>
+                    <div className="ev-st-detail-badges">
+                      <span className={`ev-st-role-badge ev-st-role-badge--${selectedStudentMeta.role.tone}`}>
+                        {selectedStudentMeta.role.label}
+                      </span>
+                      <span className={`ev-st-status-badge ev-st-status-badge--${selectedStudentMeta.status.tone}`}>
+                        {selectedStudentMeta.status.label}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="ev-st-detail-grid">
+                  <div className="ev-st-detail-item">
+                    <span className="ev-st-detail-label">MSSV</span>
+                    <strong>{selectedStudentMeta.studentId}</strong>
+                  </div>
+                  <div className="ev-st-detail-item">
+                    <span className="ev-st-detail-label">Email</span>
+                    <strong>{selectedStudentMeta.email}</strong>
+                  </div>
+                  <div className="ev-st-detail-item">
+                    <span className="ev-st-detail-label">{"\u0110\u0103ng k\u00fd l\u00fac"}</span>
+                    <strong>{selectedStudentMeta.registeredAt}</strong>
+                  </div>
+                  <div className="ev-st-detail-item">
+                    <span className="ev-st-detail-label">Check-in</span>
+                    <strong>{selectedStudentMeta.checkedInAt}</strong>
+                  </div>
+                  <div className="ev-st-detail-item">
+                    <span className="ev-st-detail-label">Check-out</span>
+                    <strong>{selectedStudentMeta.checkedOutAt}</strong>
+                  </div>
+                  <div className="ev-st-detail-item">
+                    <span className="ev-st-detail-label">{"H\u1ee7y v\u00e9"}</span>
+                    <strong>{selectedStudentMeta.cancelledAt}</strong>
+                  </div>
+                </div>
               </div>
             </div>
           )}

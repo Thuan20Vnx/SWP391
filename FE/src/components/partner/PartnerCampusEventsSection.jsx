@@ -10,7 +10,7 @@ import { buildTicketFromCardEvent } from '../../utils/eventTicket';
 import { resolveDiscoveryCardProps } from '../../utils/publicEventStaffAccess';
 
 /**
- * Danh sách sự kiện campus (đăng ký tham gia) — dùng chung PartnerHome & PartnerEventList.
+ * Danh sách sự kiện campus (đăng ký tham gia) — dùng trên PartnerHome.
  */
 const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện', description, className = '' }) => {
   const navigate = useNavigate();

@@ -10167,6 +10167,46 @@ a.club-tag {
   border-radius: 16px;
 }
 
+/* Portal home (CTSV & Partner) — hero full bleed + filter nổi giống trang chủ khách */
+.ctsv-home-layout .portal-home-hero-layout .hero-banner-slider {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  height: 520px;
+}
+
+.ctsv-home-layout .portal-home-hero-layout .hero-slide,
+.ctsv-home-layout .portal-home-hero-layout .hero-slide.active {
+  border-radius: 0;
+}
+
+.ctsv-home-layout .portal-home-hero-layout .filter-bar-section {
+  margin: -40px auto 0;
+  padding: 0 var(--home-content-padding, 24px);
+  position: relative;
+  z-index: 20;
+  max-width: var(--home-content-max, 1280px);
+}
+
+.ctsv-home-layout .portal-home-hero-layout .ctsv-stats-section {
+  margin: 24px auto 0;
+  padding: 32px 24px 8px;
+}
+
+@media (max-width: 768px) {
+  .ctsv-home-layout .portal-home-hero-layout .hero-banner-slider {
+    height: 420px;
+  }
+}
+
+.ctsv-portal-layout .hero-title {
+  white-space: pre-line;
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
 @media (max-width: 768px) {
   .ctsv-portal-layout .hero-banner-slider {
     width: calc(100% - 32px);

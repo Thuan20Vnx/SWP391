@@ -292,16 +292,6 @@ const SiteHeader = ({
           {item.label}
         </Link>
       ))}
-      {!isLoggedIn && (
-        <div className="site-header__guest-auth">
-          <Link to="/login" className="btn-auth btn-auth-login" onClick={closeMobileOverlays}>
-            Đăng nhập
-          </Link>
-          <Link to="/signup" className="btn-auth btn-auth-signup" onClick={closeMobileOverlays}>
-            Đăng ký tài khoản
-          </Link>
-        </div>
-      )}
     </nav>
   );
 
@@ -370,32 +360,6 @@ const SiteHeader = ({
           </>
         ) : (
           <>
-            {!isAdminPortal && (
-              <button
-                type="button"
-                className="mobile-hamburger-btn ctsv-portal-hamburger"
-                onClick={() => {
-                  setMobileSearchOpen(false);
-                  setMobileMenuOpen((open) => !open);
-                }}
-                aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
-                aria-expanded={mobileMenuOpen}
-              >
-                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                  {mobileMenuOpen ? (
-                    <path
-                      d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"
-                      fill="currentColor"
-                    />
-                  ) : (
-                    <path
-                      d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
-                      fill="currentColor"
-                    />
-                  )}
-                </svg>
-              </button>
-            )}
             <div className="header-logo site-header__logo-group">
               {renderLogo(false)}
               {renderNav()}

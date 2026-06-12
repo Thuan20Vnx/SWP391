@@ -20,6 +20,7 @@ const clubRegistrationService = require('../services/clubRegistration.service');
 const Contract = require('../models/Contract');
 const Event = require('../models/Event');
 const EventProposal = require('../models/EventProposal');
+const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
 const { ensurePartnerEvent } = require('../utils/announcementEvents');
 const {
@@ -142,6 +143,51 @@ router.get('/unit-events', async (req, res) => {
 router.get('/system-config', adminOrIcpdp, asyncHandler(async (req, res) => {
   const config = await getPublicStatus();
   res.json({ success: true, config });
+}));
+
+router.get('/ctsv-report-submissions', adminOnly, asyncHandler(async (req, res) => {
+  const submissions = await SubmittedCtsvReport.find({})
+    .sort({ submittedAt: -1, updatedAt: -1 })
+    .limit(200)
+    .lean();
+
+  const reports = submissions.map((item) => {
+    const snapshot = item.snapshot || {};
+    const stats = snapshot.stats || {};
+    return {
+      reportId: item.reportId,
+      title: item.title || snapshot.title || '',
+      category: item.category || snapshot.category || '',
+      source: item.source || snapshot.source || 'school',
+      reportPhase: item.reportPhase || snapshot.reportPhase || 'ended',
+      date: snapshot.date || '',
+      time: snapshot.time || '',
+      location: snapshot.location || '',
+      registeredCount: stats.registeredCount ?? 0,
+      totalTickets: stats.totalCapacity ?? 0,
+      fillRate: stats.fillRate ?? 0,
+      submittedAt: item.submittedAt,
+      submittedByEmail: item.submittedByEmail || '',
+    };
+  });
+
+  res.json({ success: true, reports });
+}));
+
+router.get('/ctsv-report-submissions/:reportId', adminOnly, asyncHandler(async (req, res) => {
+  const submission = await SubmittedCtsvReport.findOne({ reportId: req.params.reportId }).lean();
+  if (!submission) {
+    return res.status(404).json({ success: false, message: 'Khong tim thay bao cao CTSV da gui.' });
+  }
+  res.json({
+    success: true,
+    submission: {
+      reportId: submission.reportId,
+      submittedAt: submission.submittedAt,
+      submittedByEmail: submission.submittedByEmail || '',
+    },
+    report: submission.snapshot,
+  });
 }));
 
 router.patch('/system-config', adminOrIcpdp, asyncHandler(async (req, res) => {
