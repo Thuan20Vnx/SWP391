@@ -18,6 +18,7 @@ import {
   writeProfileDetailCache,
 } from '../utils/profileDetailCache';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
+import SiteFooter from '../components/SiteFooter';
 import ProfilePasswordSection from '../components/profile/ProfilePasswordSection';
 import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 
@@ -913,68 +914,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
           {profileContent}
 
-          {/* Dashboard Footer */}
-          <footer className="dashboard-footer">
-            <div className="dashboard-footer-content">
-              <div className="footer-top">
-                <div className="footer-info">
-                  <a href="#" className="footer-logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
-                    <img
-                      src={FE_LOGO}
-                      alt={FE_LOGO_ALT}
-                      style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
-                    />
-                  </a>
-                  <p>Nền tảng quản lý sự kiện chuyên nghiệp và sáng tạo dành riêng cho hệ sinh thái FPT.</p>
-                </div>
-
-                <div className="footer-column">
-                  <h3>Khám phá</h3>
-                  <ul className="footer-links">
-                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Sự kiện sắp tới</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Câu lạc bộ nổi bật</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/my-events')}>Thư viện hình ảnh</a></li>
-                  </ul>
-                </div>
-
-                <div className="footer-column">
-                  <h3>Hỗ trợ</h3>
-                  <ul className="footer-links">
-                    <li><a href="#" onClick={handleSidebarNavigate('/support')}>Trung tâm hỗ trợ</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/contact')}>Liên hệ chúng tôi</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/terms')}>Điều khoản dịch vụ</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/privacy')}>Chính sách bảo mật</a></li>
-                  </ul>
-                </div>
-
-                <div className="footer-column">
-                  <h3>Kết nối</h3>
-                  <div className="social-links">
-                    <a href="#" className="social-link" aria-label="Facebook" onClick={(e) => handleFeatureNotImplemented(e, 'Facebook')}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                      </svg>
-                    </a>
-                    <a href="#" className="social-link" aria-label="Instagram" onClick={(e) => handleFeatureNotImplemented(e, 'Instagram')}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              <div className="footer-bottom">
-                <span className="copyright-text">© 2024 FPT Event Platform. All rights reserved.</span>
-                <div className="footer-bottom-links">
-                  <a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Báo cáo')}>Báo cáo</a>
-                  <a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Cookie Policy')}>Cookie Policy</a>
-                </div>
-              </div>
-            </div>
-          </footer>
+          <SiteFooter embedded />
         </main>
       </div>
     </div>

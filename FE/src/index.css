@@ -4038,12 +4038,21 @@ a.club-tag {
   margin-top: 64px;
 }
 
+.home-footer--embedded {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.student-portal .home-footer--embedded {
+  margin-top: 40px;
+}
+
 .footer-top-columns {
   max-width: var(--home-content-max);
   margin: 0 auto;
   padding: 64px var(--home-content-padding) 48px var(--home-content-padding);
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr repeat(4, minmax(0, 1fr));
   gap: 48px;
 }
 
@@ -4108,7 +4117,7 @@ a.club-tag {
   display: block;
 }
 
-.footer-account-col .social-icon-row {
+.footer-connect-col .social-icon-row {
   margin-top: 4px;
 }
 
@@ -4125,11 +4134,11 @@ a.club-tag {
 }
 
 .footer-links-col h4 {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--text-dark);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 
 .footer-links-list {
@@ -4152,6 +4161,14 @@ a.club-tag {
 .footer-policy-links a:hover {
   color: var(--primary);
   padding-left: 4px;
+}
+
+.footer-links-list a:focus-visible,
+.footer-policy-links a:focus-visible,
+.footer-back-top:focus-visible,
+.social-icon-box:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .social-icon-row {
@@ -4206,6 +4223,27 @@ a.club-tag {
 .footer-back-top:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.student-portal .home-footer--embedded .footer-top-columns {
+  padding-top: 48px;
+  padding-bottom: 36px;
+}
+
+.student-portal .home-footer--embedded .footer-bottom-row {
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 1280px) {
+  .student-portal .home-footer--embedded .footer-top-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 24px;
+  }
+
+  .student-portal .home-footer--embedded .footer-branding-col {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
 }
 
 .copyright-text {
@@ -4316,8 +4354,13 @@ a.club-tag {
     grid-template-columns: repeat(2, 1fr);
   }
   .footer-top-columns {
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 24px;
+  }
+
+  .footer-branding-col {
+    grid-column: 1 / -1;
+    max-width: none;
   }
 }
 
@@ -4644,9 +4687,42 @@ a.club-tag {
     width: auto;
   }
   .footer-top-columns {
-    grid-template-columns: 1fr;
-    gap: 28px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 16px;
+    padding: 40px 16px 28px;
   }
+
+  .footer-branding-col {
+    grid-column: 1 / -1;
+  }
+
+  .footer-links-col {
+    gap: 12px;
+  }
+
+  .footer-links-col h4 {
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+  }
+
+  .footer-links-list {
+    gap: 8px;
+  }
+
+  .footer-links-list a,
+  .footer-policy-links a {
+    font-size: 0.875rem;
+  }
+
+  .footer-chat-hint {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .footer-connect-col .social-icon-row {
+    margin-top: 0;
+  }
+
   .footer-bottom-row {
     flex-direction: column;
     gap: 12px;

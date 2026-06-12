@@ -44,3 +44,16 @@ export const FOOTER_POLICY_LINKS = [
   { to: '/terms', label: 'Điều khoản sử dụng' },
   { to: '/cookies', label: 'Chính sách Cookie' },
 ];
+
+export const FOOTER_GUEST_ACCOUNT_LINKS = [
+  { to: '/login', label: 'Đăng nhập' },
+  { to: '/signup', label: 'Đăng ký tài khoản' },
+  { to: '/guide', label: 'Hướng dẫn tham gia sự kiện' },
+];
+
+export const FOOTER_STUDENT_ACCOUNT_LINKS = [
+  { to: '/dashboard', label: 'Tổng quan' },
+  { to: '/profile', label: 'Hồ sơ cá nhân' },
+  { to: '/my-events', label: 'Sự kiện của tôi' },
+  { to: '/settings', label: 'Cài đặt tài khoản' },
+];

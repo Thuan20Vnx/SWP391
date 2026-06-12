@@ -108,6 +108,54 @@ html.dark .site-header__search-input {
   border: 1px solid var(--surface-border);
 }
 
+html.dark .site-header__mobile-search-sheet {
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-main) 100%);
+}
+
+html.dark .site-header__mobile-search-sheet-head {
+  background: rgba(20, 20, 22, 0.94);
+  border-bottom-color: var(--surface-border);
+}
+
+html.dark .site-header__mobile-search-field {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  box-shadow: none;
+}
+
+html.dark .site-header__mobile-search-field:focus-within {
+  border-color: rgba(242, 111, 33, 0.55);
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.14);
+}
+
+html.dark .site-header__mobile-search-input {
+  color: var(--text-main);
+}
+
+html.dark .site-header__mobile-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+html.dark .site-header__mobile-search-chip {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .site-header__mobile-search-chip:hover {
+  background: rgba(242, 111, 33, 0.12);
+  border-color: rgba(242, 111, 33, 0.35);
+}
+
+html.dark .site-header__mobile-search-hint,
+html.dark .site-header__mobile-search-label {
+  color: var(--text-muted);
+}
+
+html.dark .site-header__mobile-search-hint strong {
+  color: var(--text-main);
+}
+
 html.dark .profile-display-card-link {
   color: var(--text-main);
 }
@@ -618,8 +666,9 @@ html.dark .toast-item {
 }
 
 /* ── Misc ── */
-html.dark .dashboard-footer p {
-  color: var(--text-muted);
+html.dark .student-portal .home-footer--embedded {
+  background-color: var(--bg-card);
+  border-top-color: var(--surface-border);
 }
 
 html.dark .profile-skeleton {
