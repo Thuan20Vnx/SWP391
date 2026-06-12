@@ -3014,38 +3014,91 @@ a.club-tag {
 }
 
 @media (max-width: 640px) {
+  .ctsv-home-layout .portal-home-hero-layout .hero-slide {
+    align-items: stretch;
+  }
+
+  .ctsv-home-layout .portal-home-hero-layout .hero-content-container {
+    height: 100%;
+    box-sizing: border-box;
+    padding-top: 56px;
+    padding-bottom: 108px;
+    display: grid;
+    grid-template-rows: auto minmax(116px, 116px) minmax(76px, 76px) auto;
+    align-content: start;
+    gap: 10px;
+    transform: none;
+    transition: opacity 0.45s ease;
+  }
+
+  .ctsv-home-layout .portal-home-hero-layout .hero-slide.active .hero-content-container {
+    transform: none;
+  }
+
+  .ctsv-home-layout .portal-home-hero-layout .hero-top-row {
+    align-self: start;
+  }
+
+  .ctsv-home-layout .portal-home-hero-layout .hero-title {
+    align-self: start;
+    margin: 0;
+    min-height: 116px;
+    max-height: 116px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .ctsv-home-layout .portal-home-hero-layout .hero-meta-list {
+    align-self: start;
+    min-height: 76px;
+    max-height: 76px;
+    overflow: hidden;
+  }
+
+  .ctsv-home-layout .portal-home-hero-layout .hero-cta-btn {
+    align-self: start;
+    margin-top: 0;
+  }
+
   .hero-banner-slider--nav .hero-content-container {
-    padding-left: var(--home-content-padding);
-    padding-right: var(--home-content-padding);
+    padding-left: calc(var(--home-content-padding) + 34px);
+    padding-right: calc(var(--home-content-padding) + 34px);
   }
 
   .hero-banner-slider--nav .hero-slider-arrow {
-    top: auto;
-    bottom: 18px;
-    transform: none;
-    width: 40px;
-    height: 40px;
-    z-index: 14;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    z-index: 18;
+    background: rgba(15, 23, 42, 0.62);
+    border-color: rgba(255, 255, 255, 0.45);
+    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.28);
+    touch-action: manipulation;
   }
 
   .hero-banner-slider--nav .hero-slider-arrow--prev {
-    left: 12px;
+    left: 14px;
   }
 
   .hero-banner-slider--nav .hero-slider-arrow--next {
-    right: 12px;
+    right: 14px;
   }
 
   .hero-banner-slider--nav .hero-slider-arrow--prev:hover,
   .hero-banner-slider--nav .hero-slider-arrow--next:hover {
-    transform: scale(1.03);
+    transform: translateY(-50%) scale(1.03);
   }
 
   .hero-banner-slider--nav .hero-dot-indicators {
-    bottom: 26px;
+    bottom: 34px;
     padding: 0 56px;
     max-width: 100%;
     box-sizing: border-box;
+    z-index: 18;
   }
 }
 
@@ -4035,6 +4088,10 @@ a.club-tag {
 }
 
 @media (max-width: 768px) {
+  .hero-dot-indicators {
+    bottom: 42px;
+  }
+
   .home-header.site-header:not(.site-header--with-shell) {
     height: auto;
     min-height: 56px;
