@@ -9,8 +9,7 @@ export const ICPDP_NAV_ITEMS = [
   { path: '/icpdp/events/create', label: 'Tạo sự kiện cấp trường', section: 'SỰ KIỆN', icon: 'create' },
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
   { path: '/icpdp/reports', label: 'Báo cáo sau SK', icon: 'reports' },
-  { path: '/icpdp/announcements', label: 'Thông báo CLB', icon: 'announce' },
-  { path: '/admin/system', label: 'Bảo trì hệ thống', section: 'HỆ THỐNG', icon: 'system' }
+  { path: '/icpdp/announcements', label: 'Thông báo CLB', icon: 'announce' }
 ];
 
 export const readIcpdpSidebarPref = () => {
@@ -65,9 +64,6 @@ export const isIcpdpNavActive = (path, pathname) => {
   }
   if (path === '/icpdp/announcements') {
     return pathname.startsWith('/icpdp/announcements');
-  }
-  if (path === '/admin/system') {
-    return pathname === '/admin/system' || pathname.startsWith('/admin/system/');
   }
   return pathname === path || pathname.startsWith(`${path}/`);
 };
