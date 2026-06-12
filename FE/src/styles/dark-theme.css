@@ -98,12 +98,8 @@ html.dark .home-header {
   border-bottom-color: var(--header-border);
 }
 
-html.dark .mobile-hamburger-btn {
-  color: var(--text-main);
-}
-
-html.dark .mobile-hamburger-btn:hover {
-  background-color: var(--surface-hover);
+html.dark .mobile-hamburger-btn.ctsv-portal-hamburger {
+  color: var(--primary);
 }
 
 html.dark .site-header__search-input {

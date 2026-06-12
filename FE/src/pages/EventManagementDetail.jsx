@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom';
 import { API_BASE, getAuthHeaders, getEventHeaders } from '../utils/api';
 import { downloadStudentsExcel } from '../utils/exportStudentsExcel';
@@ -81,6 +81,7 @@ const EventManagementDetail = ({ portal = 'club' }) => {
   const [students, setStudents] = useState([]);
   const [clubMeta, setClubMeta] = useState({ clubName: '', clubPresident: '' });
   const [loading, setLoading] = useState(true);
+  const tabContentRef = useRef(null);
 
   const loadEventData = useCallback(async () => {
     if (!id) return;
@@ -224,6 +225,24 @@ const EventManagementDetail = ({ portal = 'club' }) => {
     });
   };
 
+  const scrollToTabContent = useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const target = tabContentRef.current;
+        if (!target) return;
+        const stickyHeaderHeight =
+          document.querySelector('.site-header')?.getBoundingClientRect().height || 0;
+        const top = target.getBoundingClientRect().top + window.scrollY - stickyHeaderHeight - 12;
+        window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+      });
+    });
+  }, []);
+
+  const openQrTab = useCallback(() => {
+    setActiveTab('ma-qr');
+    scrollToTabContent();
+  }, [scrollToTabContent]);
+
   if (loading) {
     return (
       <div className="ev-detail-content">
@@ -275,12 +294,12 @@ const EventManagementDetail = ({ portal = 'club' }) => {
               <button
                 type="button"
                 className="ev-btn-outline"
-                onClick={() => {
+                onClick={async () => {
                   if (!students.length) {
                     showToast?.('Chưa có sinh viên đăng ký để xuất file.', 'info');
                     return;
                   }
-                  downloadStudentsExcel(students, {
+                  await downloadStudentsExcel(students, {
                     eventTitle: eventData?.title || 'su-kien',
                     clubName: eventData?.clubName || clubMeta.clubName || 'CTSV',
                     clubPresident:
@@ -288,13 +307,19 @@ const EventManagementDetail = ({ portal = 'club' }) => {
                       clubMeta.clubPresident ||
                       eventData?.createdBy?.fullname ||
                       '',
+                    capacity: eventData?.capacity,
+                    registeredCount: eventData?.registeredCount,
+                    checkinCount: eventData?.checkinCount,
+                    startDate: eventData?.startDate,
+                    endDate: eventData?.endDate,
+                    location: eventData?.location,
                   });
                   showToast?.('Đã xuất danh sách sinh viên.', 'success');
                 }}
               >
                 Xuất danh sách SV (Excel)
               </button>
-              <button type="button" className="ev-btn-primary ev-btn-qr" onClick={() => setActiveTab('ma-qr')}>
+              <button type="button" className="ev-btn-primary ev-btn-qr" onClick={openQrTab}>
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm13-2h3v2h-3zm-5 0h3v2h-3zm3 3h3v2h-3zm-3 3h3v2h-3zm3 3h3v2h-3zm-5-3h3v2h-3z" fill="currentColor"/></svg>
                 Mã QR check-in/out
               </button>
@@ -398,10 +423,10 @@ const EventManagementDetail = ({ portal = 'club' }) => {
             <button type="button" className={`ev-tab ${activeTab === 'hoan-huy' ? 'active' : ''}`} onClick={() => setActiveTab('hoan-huy')}>Hoãn / Hủy sự kiện</button>
           )}
           <button type="button" className={`ev-tab ${activeTab === 'bao-cao' ? 'active' : ''}`} onClick={() => setActiveTab('bao-cao')}>Báo cáo & Minh chứng</button>
-          <button type="button" className={`ev-tab ${activeTab === 'ma-qr' ? 'active' : ''}`} onClick={() => setActiveTab('ma-qr')}>Mã QR check-in/out</button>
+          <button type="button" className={`ev-tab ${activeTab === 'ma-qr' ? 'active' : ''}`} onClick={openQrTab}>Mã QR check-in/out</button>
         </div>
 
-        <div className="ev-tab-content">
+        <div className="ev-tab-content" ref={tabContentRef}>
           {activeTab === 'danh-sach' && (
             <div className="ev-table-card">
               <div className="ev-table-toolbar">

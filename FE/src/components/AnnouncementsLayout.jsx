@@ -3,8 +3,20 @@ import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from './SiteFooter';
 import '../styles/announcements-page.css';
 
-const AnnouncementsLayout = ({ children, title, subtitle }) => (
-  <PublicAdminShell activeNav="news">
+const AnnouncementsLayout = ({
+  children,
+  title,
+  subtitle,
+  searchValue,
+  onSearchChange,
+  searchPlaceholder,
+}) => (
+  <PublicAdminShell
+    activeNav="news"
+    searchValue={searchValue}
+    onSearchChange={onSearchChange}
+    searchPlaceholder={searchPlaceholder}
+  >
     <div className="announcements-page">
       <main className="announcements-page__main">
         <div className="announcements-page__container">
