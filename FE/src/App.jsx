@@ -116,6 +116,11 @@ const ProtectedRoute = ({ children }) => {
   return isLoggedIn ? children : <Navigate to="/login" replace />;
 };
 
+const ScanQrLegacyRedirect = () => {
+  const { search } = useLocation();
+  return <Navigate to={`/quet-qr${search}`} replace />;
+};
+
 const CtsvProtectedRoute = () => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (!isLoggedIn) return <Navigate to="/login" replace />;
@@ -403,6 +408,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/scan-qr" element={<ScanQrLegacyRedirect />} />
           <Route
             path="/create-event"
             element={

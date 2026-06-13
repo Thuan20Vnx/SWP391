@@ -45,6 +45,7 @@ const {
   totalQtyFromTypes
 } = require('../utils/ticketTypes');
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
+const { buildEventTextSearchOr } = require('../utils/eventSearch');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -129,9 +130,10 @@ const buildEventFilter = (query) => {
   const filter = {};
   if (query.status) filter.status = query.status;
   if (query.category && query.category !== 'Tất cả') filter.category = query.category;
-  if (query.q) {
-    const re = new RegExp(query.q.trim(), 'i');
-    filter.$or = [{ title: re }, { location: re }, { category: re }];
+
+  const searchOr = buildEventTextSearchOr(query.q || query.search);
+  if (searchOr) {
+    filter.$or = searchOr;
   }
   if (query.time === 'Hôm nay') {
     const start = new Date();

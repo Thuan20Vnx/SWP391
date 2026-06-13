@@ -7,6 +7,8 @@ import SiteFooter from '../components/SiteFooter';
 import useUserProfile from '../hooks/useUserProfile';
 import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import useDebouncedValue from '../hooks/useDebouncedValue';
+import { fetchPublicEvents } from '../services/eventsApi';
 import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
 import {
   isPureCtsvStaff,
@@ -19,11 +21,8 @@ import {
   ORGANIZER_FILTERS,
   FIGMA_SAMPLE_EVENTS,
   mapApiEventToCard,
-  filterEventsByCategory,
-  filterEventsBySearch,
   filterEventsByState,
   filterEventsByOrganizer,
-  filterEventsByClub,
   sortEventsByStatePriority,
 } from '../data/eventDiscoveryData';
 
@@ -52,6 +51,7 @@ const Events = ({ showToast }) => {
   const [organizerFilter, setOrganizerFilter] = useState('all');
   const [stateFilter, setStateFilter] = useState(DEFAULT_STATE_FILTER);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery.trim(), 400);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = userProfile.role || getUserRole();
@@ -73,12 +73,15 @@ const Events = ({ showToast }) => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
-      .then((res) => res.json())
+    fetchPublicEvents({
+      q: debouncedSearch,
+      category: activeFilter !== 'all' ? activeFilter : undefined,
+      club: clubFilter || undefined,
+    })
       .then((data) => {
         if (data.success && data.events?.length > 0) {
           setEvents(data.events.map(mapApiEventToCard));
-        } else if (USE_FIGMA_FALLBACK) {
+        } else if (USE_FIGMA_FALLBACK && !debouncedSearch && !clubFilter) {
           setEvents(FIGMA_SAMPLE_EVENTS.filter((ev) => ev.cardState === 'active' && ev.filledSlots < ev.totalSlots));
         } else {
           setEvents([]);
@@ -90,7 +93,7 @@ const Events = ({ showToast }) => {
         showToast?.('Không thể tải danh sách sự kiện', 'error');
       })
       .finally(() => setLoading(false));
-  }, [showToast, isLoggedIn, userProfile.role]);
+  }, [showToast, isLoggedIn, userProfile.role, debouncedSearch, activeFilter, clubFilter]);
 
   useEffect(() => {
     if (!clubFilter) {
@@ -124,17 +127,12 @@ const Events = ({ showToast }) => {
 
   const filteredEvents = useMemo(() => {
     let result = events;
-    if (clubFilter) {
-      result = filterEventsByClub(result, clubFilter);
-    }
-    result = filterEventsByState(result, stateFilter);
     if (!clubFilter) {
       result = filterEventsByOrganizer(result, organizerFilter);
     }
-    result = filterEventsByCategory(result, activeFilter);
-    result = filterEventsBySearch(result, searchQuery);
+    result = filterEventsByState(result, stateFilter);
     return sortEventsByStatePriority(result);
-  }, [events, clubFilter, stateFilter, organizerFilter, activeFilter, searchQuery]);
+  }, [events, clubFilter, stateFilter, organizerFilter]);
 
   const visibleEvents = filteredEvents.slice(0, visibleCount);
   const hasMore = visibleCount < filteredEvents.length;
@@ -388,17 +386,6 @@ const Events = ({ showToast }) => {
       </main>
 
       <SiteFooter />
-
-      <button
-        type="button"
-        className="events-page__fab"
-        aria-label="Quà tặng sự kiện"
-        onClick={() => showToast('Tính năng ưu đãi sắp ra mắt!', 'success')}
-      >
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-          <path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.4l3.38 4.6L17 10.83 14.92 8H20v6z" />
-        </svg>
-      </button>
     </div>
     </PublicAdminShell>
   );
