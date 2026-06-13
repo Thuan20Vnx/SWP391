@@ -132,11 +132,21 @@ router.use(requireCtsvPortal);
 
 const buildEventFilter = (query) => {
   const filter = {};
-  if (query.status) filter.status = query.status;
+  if (query.status) {
+    if (query.status === 'published') {
+      filter.status = { $in: ['approved', 'live'] };
+    } else {
+      filter.status = query.status;
+    }
+  }
   if (query.category && query.category !== 'Tất cả') filter.category = query.category;
   if (query.q) {
     const re = new RegExp(query.q.trim(), 'i');
     filter.$or = [{ title: re }, { location: re }, { category: re }];
+  }
+  if (query.source && query.source !== 'Tất cả') {
+    const sourceMap = { 'Cấp trường': 'school', 'Đối tác': 'partner', 'Câu lạc bộ': 'club' };
+    if (sourceMap[query.source]) filter.source = sourceMap[query.source];
   }
   if (query.time === 'Hôm nay') {
     const start = new Date();
@@ -243,10 +253,24 @@ router.get('/events', async (req, res) => {
     }
 
     const filter = buildEventFilter(req.query);
-    const events = await Event.find(filter).sort({ startDate: 1 }).limit(100);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const skip = (page - 1) * limit;
+
+    const [events, total] = await Promise.all([
+      Event.find(filter).sort({ startDate: 1 }).skip(skip).limit(limit),
+      Event.countDocuments(filter)
+    ]);
+
     return res.json({
       success: true,
-      events: events.map(formatEvent)
+      events: events.map(formatEvent),
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
     });
   } catch (error) {
     console.error('ctsv events list:', error);
@@ -669,8 +693,19 @@ router.get('/proposals', async (req, res) => {
       const re = new RegExp(req.query.q.trim(), 'i');
       filter.$or = [{ title: re }, { clubName: re }];
     }
-    const proposals = await EventProposal.find(filter).sort({ createdAt: -1 }).limit(100);
-    return res.json({ success: true, proposals: proposals.map(formatProposal) });
+    const limit = parseInt(req.query.limit) || 100;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+    
+    const [proposals, total] = await Promise.all([
+      EventProposal.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      EventProposal.countDocuments(filter)
+    ]);
+    return res.json({
+      success: true,
+      proposals: proposals.map(formatProposal),
+      pagination: { total, page, limit, totalPages: Math.ceil(total / limit) }
+    });
   } catch (error) {
     console.error('ctsv proposals:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });

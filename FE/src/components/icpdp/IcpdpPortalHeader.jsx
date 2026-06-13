@@ -146,9 +146,9 @@ const IcpdpPortalHeader = ({
           <button
             type="button"
             className="icpdp-mobile-role-pill"
-            onClick={onToggleSidebar}
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
             aria-label="Mở menu IC-PDP"
-            aria-expanded={sidebarOpen}
+            aria-expanded={mobileNavOpen}
           >
             <span>IC-PDP</span>
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden>

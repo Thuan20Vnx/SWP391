@@ -635,9 +635,14 @@ const PortalAnnouncementManage = ({
           <h1>{portalConfig.title}</h1>
           <p>{portalConfig.subtitle}</p>
         </div>
-        <div className="ctsv-announce-hero-stat" aria-hidden={loading}>
+        <div 
+          className="ctsv-announce-hero-stat" 
+          aria-hidden={loading}
+          onClick={() => document.getElementById('announcement-list-section')?.scrollIntoView({ behavior: 'smooth' })}
+          style={{ cursor: 'pointer' }}
+        >
           <span className="ctsv-announce-hero-stat-num">{visibleHistoryCount}</span>
-          <span className="ctsv-announce-hero-stat-label">Thông báo đang hiển thị</span>
+          <span className="ctsv-announce-hero-stat-label">Tất cả thông báo</span>
           <span className="ctsv-announce-hero-stat-sub">{historyThisWeek.length} trong tuần này</span>
         </div>
       </header>
@@ -914,7 +919,7 @@ const PortalAnnouncementManage = ({
         </div>
       </section>
 
-      <section className="ctsv-announce-history-card">
+      <section id="announcement-list-section" className="ctsv-announce-history-card">
         <div className="ctsv-announce-card-head">
           <h2>Danh sách thông báo</h2>
           <p>Xem, tìm kiếm và quản lý thông báo đã phát hành trên toàn trường.</p>

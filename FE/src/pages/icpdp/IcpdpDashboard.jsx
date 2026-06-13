@@ -27,28 +27,6 @@ const QUICK_ACTIONS = [
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', desc: 'Tránh trùng lịch tổ chức', icon: 'calendar' }
 ];
 
-const CLUB_WORKFLOW_STEPS = [
-  {
-    icon: 'create',
-    title: 'CLB gửi hồ sơ',
-    desc: 'Đề xuất sự kiện hoặc đơn thành lập CLB được gửi từ portal quản lý CLB.'
-  },
-  {
-    icon: 'edit',
-    title: 'IC-PDP duyệt nội bộ',
-    desc: 'Kiểm tra nội dung, lịch tổ chức, quyền lợi sinh viên và yêu cầu chỉnh sửa nếu cần.'
-  },
-  {
-    icon: 'approval',
-    title: 'Chuyển cấp tiếp theo',
-    desc: 'Hồ sơ đạt yêu cầu được chuyển CTSV/Admin để phê duyệt hoặc ghi nhận chính thức.'
-  },
-  {
-    icon: 'reports',
-    title: 'Theo dõi sau sự kiện',
-    desc: 'Giám sát báo cáo, lượt đăng ký và hiệu quả hoạt động của từng CLB.'
-  }
-];
 
 const IcpdpDashboard = () => {
   const navigate = useNavigate();
@@ -65,8 +43,8 @@ const IcpdpDashboard = () => {
 
     Promise.all([
       fetchIcpdpStats().catch(() => ({ stats: ICPDP_MOCK_STATS })),
-      fetchIcpdpEvents().catch(() => ({ events: [] })),
-      fetchIcpdpProposals({ status: 'pending_icpdp' }).catch(() => ({ proposals: [] }))
+      fetchIcpdpEvents({ limit: 5 }).catch(() => ({ events: [] })),
+      fetchIcpdpProposals({ status: 'pending_icpdp', limit: 5 }).catch(() => ({ proposals: [] }))
     ])
       .then(([statsRes, eventsRes, proposalsRes]) => {
         if (cancelled) return;
@@ -74,8 +52,8 @@ const IcpdpDashboard = () => {
         const list = eventsRes.events || [];
         const pendingList = proposalsRes.proposals || [];
         setEvents(list);
-        setPendingProposalTotal(pendingList.length);
-        setPendingProposals(pendingList.slice(0, 5));
+        setPendingProposalTotal(proposalsRes.pagination?.total || pendingList.length);
+        setPendingProposals(pendingList);
       })
       .catch(() => {
         if (cancelled) return;
@@ -92,7 +70,7 @@ const IcpdpDashboard = () => {
     };
   }, []);
 
-  const recentEvents = useMemo(() => events.slice(0, 5), [events]);
+  const recentEvents = events;
 
   const pendingCount = pendingProposalTotal;
 
@@ -105,52 +83,49 @@ const IcpdpDashboard = () => {
         badgeLabel="đề xuất chờ duyệt"
         actions={
           <>
-            <Link to="/icpdp/proposals" className="ctsv-dash-btn ctsv-dash-btn--primary">
-              Duyệt đề xuất CLB
+            <Link to="/icpdp/proposals" className="ctsv-dash-create-card" style={{ flex: '1 1 100%' }}>
+              <span className="ctsv-dash-create-card__icon">
+                <CtsvNavIcon type="edit" />
+              </span>
+              <span className="ctsv-dash-create-card__body">
+                <strong>Duyệt đề xuất CLB</strong>
+                <span>Xét duyệt nội bộ các đề xuất sự kiện từ Ban chủ nhiệm CLB trước khi chuyển CTSV.</span>
+              </span>
+              <span className="ctsv-dash-create-card__arrow" aria-hidden>
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path
+                    d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </span>
             </Link>
-            <Link to="/icpdp/reports" className="ctsv-dash-btn ctsv-dash-btn--ghost">
+            <Link to="/icpdp/reports" className="ctsv-dash-btn ctsv-dash-btn--ghost" style={{ flex: '0 0 auto' }}>
               Xem báo cáo
             </Link>
           </>
         }
       />
 
-      <Link to="/icpdp/proposals" className="ctsv-dash-create-card">
-        <span className="ctsv-dash-create-card__icon">
-          <CtsvNavIcon type="edit" />
-        </span>
-        <span className="ctsv-dash-create-card__body">
-          <strong>Duyệt đề xuất CLB</strong>
-          <span>Xét duyệt nội bộ các đề xuất sự kiện từ Ban chủ nhiệm CLB trước khi chuyển CTSV.</span>
-        </span>
-        <span className="ctsv-dash-create-card__arrow" aria-hidden>
-          <svg viewBox="0 0 24 24" width="22" height="22">
-            <path
-              d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
-              fill="currentColor"
-            />
-          </svg>
-        </span>
-      </Link>
-
-      <section className="icpdp-club-workflow" aria-label="Quy trình xử lý hồ sơ CLB">
-        <div className="icpdp-club-workflow__head">
-          <span className="icpdp-club-workflow__eyebrow">Đồng bộ với quy trình CLB</span>
-          <div>
-            <h2>Luồng xử lý hồ sơ Câu lạc bộ</h2>
-            <p>IC-PDP là lớp duyệt nội bộ giữa Ban chủ nhiệm CLB và các cấp phê duyệt tiếp theo.</p>
-          </div>
+      <section className="ctsv-dash-quick" aria-label="Thao tác nhanh">
+        <div className="ctsv-dash-section-head">
+          <h2>Thao tác nhanh</h2>
+          <p>Lối tắt tới các màn vận hành CLB và sự kiện IC-PDP</p>
         </div>
-        <div className="icpdp-club-workflow__grid">
-          {CLUB_WORKFLOW_STEPS.map((step, index) => (
-            <article key={step.title} className="icpdp-club-workflow__step">
-              <span className="icpdp-club-workflow__index">{String(index + 1).padStart(2, '0')}</span>
-              <span className="icpdp-club-workflow__icon">
-                <CtsvNavIcon type={step.icon} />
+        <div className="ctsv-dash-quick-grid">
+          {QUICK_ACTIONS.map((action) => (
+            <button
+              key={action.path}
+              type="button"
+              className="ctsv-dash-quick-card"
+              onClick={() => navigate(action.path)}
+            >
+              <span className="ctsv-dash-quick-icon">
+                <CtsvNavIcon type={action.icon} />
               </span>
-              <strong>{step.title}</strong>
-              <p>{step.desc}</p>
-            </article>
+              <span className="ctsv-dash-quick-label">{action.label}</span>
+              <span className="ctsv-dash-quick-desc">{action.desc}</span>
+            </button>
           ))}
         </div>
       </section>
@@ -188,11 +163,25 @@ const IcpdpDashboard = () => {
 
       <section className="partner-perf-section" aria-label="Hiệu suất quản lý">
         <div className="partner-perf-grid">
-          <div className="partner-perf-card">
+          <div className="partner-perf-card partner-perf-card--ring">
             <h3 className="partner-perf-card__title">Tỷ lệ duyệt đúng hạn</h3>
-            <div className="partner-perf-ring">
-              <span className="partner-perf-ring__value" style={{ color: 'var(--icpdp-accent)' }}>95%</span>
-              <span className="partner-perf-ring__label">Trung bình 30 ngày qua</span>
+            <div className="partner-perf-ring partner-perf-ring--high">
+              <svg className="partner-perf-ring__svg" viewBox="0 0 128 128" aria-hidden>
+                <circle className="partner-perf-ring__track" cx="64" cy="64" r="54" />
+                <circle
+                  className="partner-perf-ring__progress"
+                  cx="64"
+                  cy="64"
+                  r="54"
+                  strokeDasharray={339.292}
+                  strokeDashoffset={339.292 - (339.292 * 95) / 100}
+                  style={{ stroke: 'var(--icpdp-accent)' }}
+                />
+              </svg>
+              <div className="partner-perf-ring__center">
+                <span className="partner-perf-ring__value" style={{ color: 'var(--icpdp-accent)' }}>95%</span>
+                <span className="partner-perf-ring__label">Trung bình 30 ngày qua</span>
+              </div>
             </div>
           </div>
           <div className="partner-perf-card">
@@ -212,28 +201,6 @@ const IcpdpDashboard = () => {
         </div>
       </section>
 
-      <section className="ctsv-dash-quick" aria-label="Thao tác nhanh">
-        <div className="ctsv-dash-section-head">
-          <h2>Thao tác nhanh</h2>
-          <p>Lối tắt tới các màn vận hành CLB và sự kiện IC-PDP</p>
-        </div>
-        <div className="ctsv-dash-quick-grid">
-          {QUICK_ACTIONS.map((action) => (
-            <button
-              key={action.path}
-              type="button"
-              className="ctsv-dash-quick-card"
-              onClick={() => navigate(action.path)}
-            >
-              <span className="ctsv-dash-quick-icon">
-                <CtsvNavIcon type={action.icon} />
-              </span>
-              <span className="ctsv-dash-quick-label">{action.label}</span>
-              <span className="ctsv-dash-quick-desc">{action.desc}</span>
-            </button>
-          ))}
-        </div>
-      </section>
 
       <div className="ctsv-dash-columns">
         <section className="ctsv-dash-panel">

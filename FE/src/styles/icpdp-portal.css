@@ -45,6 +45,7 @@
 .icpdp-sidebar-header .ctsv-sidebar-logo {
   height: 34px;
   object-fit: contain;
+  margin: 0 auto;
 }
 
 .icpdp-mobile-role-pill {
@@ -517,10 +518,49 @@
   }
 
   .icpdp-app-shell .icpdp-portal-header .ctsv-header-nav,
-  .icpdp-app-shell .icpdp-portal-header .ctsv-header-nav.mobile-active,
   .icpdp-app-shell .icpdp-portal-header .ctsv-header-nav-toggle,
   .icpdp-app-shell .icpdp-portal-header .ctsv-header-search {
     display: none !important;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .ctsv-header-nav.mobile-active {
+    display: flex !important;
+    position: absolute;
+    top: 65px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(242, 111, 33, 0.1);
+    box-shadow: 0 8px 32px rgba(242, 111, 33, 0.05);
+    padding: 10px 16px;
+    z-index: 250;
+    align-items: stretch;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header .ctsv-header-nav.mobile-active .nav-link {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .ctsv-events-search {
+    flex: 1 1 100% !important;
+    min-height: 40px !important;
+  }
+
+  .ctsv-events-filter-selects {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    width: 100%;
+  }
+
+  .ctsv-events-filter-selects .app-select {
+    min-width: 0 !important;
+    width: 100% !important;
   }
 
   .icpdp-app-shell .icpdp-portal-header .profile-display-card {
@@ -762,6 +802,7 @@
 .icpdp-app-shell .ctsv-cal-filter-chip.is-active {
   background: var(--icpdp-accent);
   border-color: var(--icpdp-accent);
+  color: #ffffff !important;
 }
 
 /* ── Reports overrides ── */

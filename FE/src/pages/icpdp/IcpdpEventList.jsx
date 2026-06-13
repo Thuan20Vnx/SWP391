@@ -141,11 +141,30 @@ const IcpdpEventList = () => {
   const [sourceFilter, setSourceFilter] = useState('Tất cả');
   const [statusFilter, setStatusFilter] = useState('');
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalEvents, setTotalEvents] = useState(0);
+
   const loadEvents = () => {
     setLoading(true);
-    fetchIcpdpEvents()
+    fetchIcpdpEvents({
+      page,
+      limit: 6,
+      q: searchQuery,
+      time: timeFilter,
+      category: categoryFilter,
+      source: sourceFilter,
+      status: statusFilter === 'published' ? 'published' : statusFilter
+    })
       .then((d) => {
         setEvents(d.events || []);
+        if (d.pagination) {
+          setTotalPages(d.pagination.totalPages || 1);
+          setTotalEvents(d.pagination.total || 0);
+        } else {
+          setTotalPages(1);
+          setTotalEvents(d.events?.length || 0);
+        }
       })
       .catch((err) => {
         setEvents([]);
@@ -159,37 +178,43 @@ const IcpdpEventList = () => {
 
   useEffect(() => {
     loadEvents();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   const handleFilter = (e) => {
     e?.preventDefault();
+    if (page !== 1) {
+      setPage(1); // will trigger loadEvents via useEffect
+    } else {
+      loadEvents();
+    }
     showToast?.(`Đã áp dụng bộ lọc sự kiện.`, 'success');
   };
 
-  const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return events.filter((ev) => {
-      const title = (ev.title || '').toLowerCase();
-      const location = (ev.location || '').toLowerCase();
-      if (q && !title.includes(q) && !location.includes(q)) {
-        return false;
-      }
-      if (categoryFilter !== 'Tất cả' && ev.category !== categoryFilter) {
-        return false;
-      }
-      if (!matchesTimeFilter(ev, timeFilter)) {
-        return false;
-      }
-      if (sourceFilter !== 'Tất cả') {
-        const sourceMap = { 'Cấp trường': 'school', 'Đối tác': 'partner', 'Câu lạc bộ': 'club' };
-        if (ev.source !== sourceMap[sourceFilter]) return false;
-      }
-      if (!matchesStatusFilter(ev.statusKey, statusFilter)) {
-        return false;
-      }
-      return true;
-    });
-  }, [events, searchQuery, timeFilter, categoryFilter, sourceFilter, statusFilter]);
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    return (
+      <div className="ctsv-events-pagination">
+        <button
+          className="ctsv-events-page-btn"
+          disabled={page <= 1 || loading}
+          onClick={() => setPage(p => Math.max(1, p - 1))}
+        >
+          &lt; Trước
+        </button>
+        <span className="ctsv-events-page-status" style={{ minWidth: 'auto', padding: '0 16px', background: 'transparent' }}>
+          Trang {page} / {totalPages}
+        </span>
+        <button
+          className="ctsv-events-page-btn"
+          disabled={page >= totalPages || loading}
+          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+        >
+          Sau &gt;
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="ctsv-events-page icpdp-list-page icpdp-event-list-page">
@@ -203,7 +228,7 @@ const IcpdpEventList = () => {
         </div>
         <div className="ctsv-events-hero-aside">
           <div className="ctsv-events-hero-stat" aria-live="polite">
-            <span className="ctsv-events-hero-stat-num">{loading ? '—' : filtered.length}</span>
+            <span className="ctsv-events-hero-stat-num">{loading ? '—' : totalEvents}</span>
             <span className="ctsv-events-hero-stat-label">Sự kiện</span>
           </div>
           <Link to="/icpdp/events/create" className="ctsv-events-hero-cta">
@@ -260,11 +285,11 @@ const IcpdpEventList = () => {
 
       {loading ? (
         <div className="ctsv-events-grid" aria-busy="true" aria-label="Đang tải sự kiện">
-          {Array.from({ length: 8 }, (_, i) => (
+          {Array.from({ length: 6 }, (_, i) => (
             <EventCardSkeleton key={i} />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : events.length === 0 ? (
         <div className="ctsv-events-empty">
           <span className="ctsv-events-empty-icon" aria-hidden>
             <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -289,55 +314,58 @@ const IcpdpEventList = () => {
           </button>
         </div>
       ) : (
-        <div className="ctsv-events-grid">
-          {filtered.map((ev) => {
-            const tone = getSourceTone(ev.source);
-            const label = getSourceLabel(ev.source);
-            return (
-              <article key={ev.id} className="ctsv-events-card">
-                <div className="ctsv-events-card-media">
-                  <img
-                    src={ev.image || ev.thumbnail}
-                    alt=""
-                    className="ctsv-events-card-img"
-                    loading="lazy"
-                  />
-                  <span className="ctsv-events-card-category">{ev.category}</span>
-                  <span className={`ctsv-events-card-source ctsv-events-card-source--${tone}`}>
-                    {label}
-                  </span>
-                </div>
-                <div className="ctsv-events-card-body">
-                  <h3 className="ctsv-events-card-title">{ev.title}</h3>
-                  <ul className="ctsv-events-card-meta">
-                    <li>
-                      <IconCalendar />
-                      <span>
-                        {ev.date} · {ev.time}
-                      </span>
-                    </li>
-                    <li>
-                      <IconPin />
-                      <span>{ev.location || 'Chưa có địa điểm'}</span>
-                    </li>
-                  </ul>
-                  <div className="ctsv-events-card-stats">
-                    <span className="ctsv-events-ticket">
-                      Vé còn <strong>{ev.remainingTickets || 0}</strong>/{ev.totalTickets || 100}
+        <>
+          <div className="ctsv-events-grid">
+            {events.map((ev) => {
+              const tone = getSourceTone(ev.source);
+              const label = getSourceLabel(ev.source);
+              return (
+                <article key={ev.id} className="ctsv-events-card">
+                  <div className="ctsv-events-card-media">
+                    <img
+                      src={ev.image || ev.thumbnail}
+                      alt=""
+                      className="ctsv-events-card-img"
+                      loading="lazy"
+                    />
+                    <span className="ctsv-events-card-category">{ev.category}</span>
+                    <span className={`ctsv-events-card-source ctsv-events-card-source--${tone}`}>
+                      {label}
                     </span>
-                    <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
                   </div>
-                  <Link
-                    to={`/icpdp/events/${ev.id}`}
-                    className="ctsv-events-card-action btn-card-view"
-                  >
-                    Xem chi tiết
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                  <div className="ctsv-events-card-body">
+                    <h3 className="ctsv-events-card-title">{ev.title}</h3>
+                    <ul className="ctsv-events-card-meta">
+                      <li>
+                        <IconCalendar />
+                        <span>
+                          {ev.date} · {ev.time}
+                        </span>
+                      </li>
+                      <li>
+                        <IconPin />
+                        <span>{ev.location || 'Chưa có địa điểm'}</span>
+                      </li>
+                    </ul>
+                    <div className="ctsv-events-card-stats">
+                      <span className="ctsv-events-ticket">
+                        Vé còn <strong>{ev.remainingTickets || 0}</strong>/{ev.totalTickets || 100}
+                      </span>
+                      <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
+                    </div>
+                    <Link
+                      to={`/icpdp/events/${ev.id}`}
+                      className="ctsv-events-card-action btn-card-view"
+                    >
+                      Xem chi tiết
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          {renderPagination()}
+        </>
       )}
     </div>
   );

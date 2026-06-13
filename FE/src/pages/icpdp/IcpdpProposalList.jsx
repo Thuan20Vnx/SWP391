@@ -6,7 +6,6 @@ import { statusClass } from '../../utils/eventStatus';
 const STATUS_FILTERS = [
   { id: '', label: 'Tất cả' },
   { id: 'pending_icpdp', label: 'Chờ IC-PDP duyệt' },
-  { id: 'pending_ctsv', label: 'Đã chuyển CTSV' },
   { id: 'approved', label: 'Đã duyệt' },
   { id: 'revision', label: 'Cần chỉnh sửa' },
   { id: 'rejected', label: 'Từ chối' }
