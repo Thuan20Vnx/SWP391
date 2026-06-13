@@ -148,7 +148,7 @@ const IcpdpProfileSettings = ({ showToast }) => {
   };
 
   return (
-    <div className="ctsv-dashboard partner-settings-page">
+    <div className="ctsv-dashboard partner-settings-page icpdp-settings-page">
       <div className="partner-settings-header">
         <div className="partner-settings-header__title">
           <h1>Cài đặt tài khoản</h1>

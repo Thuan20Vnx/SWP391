@@ -83,7 +83,7 @@ const IcpdpProposalList = () => {
   );
 
   return (
-    <div className="ctsv-events-page">
+    <div className="ctsv-events-page icpdp-list-page icpdp-proposal-list-page">
       <header className="ctsv-events-hero">
         <div className="ctsv-events-hero-text">
           <span className="ctsv-events-eyebrow">Quản lý đề xuất IC-PDP</span>

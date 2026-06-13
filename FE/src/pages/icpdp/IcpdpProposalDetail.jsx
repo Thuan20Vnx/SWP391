@@ -66,7 +66,7 @@ const IcpdpProposalDetail = () => {
 
   if (!proposal) {
     return (
-      <div className="ctsv-ed-page">
+      <div className="ctsv-ed-page icpdp-detail-page icpdp-proposal-detail-page">
         <div className="ctsv-ed-skeleton-hero sk" />
         <div className="ctsv-ed-skeleton-tabs">
           <div className="sk sk-line sk-line--lg" />
@@ -133,7 +133,7 @@ const IcpdpProposalDetail = () => {
   };
 
   return (
-    <div className="ctsv-ed-page">
+    <div className="ctsv-ed-page icpdp-detail-page icpdp-proposal-detail-page">
       <Link to="/icpdp/proposals" className="ctsv-ed-back">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
           <polyline points="15 18 9 12 15 6" />

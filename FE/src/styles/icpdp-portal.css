@@ -800,7 +800,253 @@
   background: var(--icpdp-accent);
 }
 
+.icpdp-list-page,
+.icpdp-detail-page,
+.icpdp-reports-page,
+.icpdp-calendar-page,
+.icpdp-settings-page {
+  --icpdp-card-border: rgba(226, 232, 240, 0.95);
+  --icpdp-card-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.icpdp-list-page .ctsv-events-hero,
+.icpdp-reports-page .ctsv-events-hero,
+.icpdp-calendar-page .ctsv-events-hero {
+  border-radius: 16px;
+  border: 1px solid rgba(242, 111, 33, 0.18);
+  border-left: 3px solid var(--icpdp-accent);
+  background:
+    linear-gradient(135deg, rgba(242, 111, 33, 0.08), rgba(255, 255, 255, 0) 45%),
+    #ffffff;
+  box-shadow: var(--icpdp-card-shadow);
+}
+
+.icpdp-list-page .ctsv-events-hero h1,
+.icpdp-reports-page .ctsv-events-hero h1,
+.icpdp-calendar-page .ctsv-events-hero h1 {
+  letter-spacing: 0;
+}
+
+.icpdp-list-page .ctsv-events-hero-aside,
+.icpdp-reports-page .ctsv-events-hero-aside,
+.icpdp-calendar-page .ctsv-events-hero-aside {
+  align-items: stretch;
+}
+
+.icpdp-list-page .ctsv-events-hero-stat,
+.icpdp-reports-page .ctsv-events-hero-stat,
+.icpdp-calendar-page .ctsv-events-hero-stat {
+  border-color: rgba(242, 111, 33, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(242, 111, 33, 0.06);
+}
+
+.icpdp-list-page .ctsv-events-filter-card,
+.icpdp-list-page .icpdp-proposals-toolbar,
+.icpdp-reports-page .ctsv-reports-toolbar,
+.icpdp-calendar-page .ctsv-cal-toolbar-card {
+  border: 1px solid var(--icpdp-card-border);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.icpdp-list-page .icpdp-proposals-toolbar,
+.icpdp-reports-page .ctsv-reports-toolbar {
+  padding: 14px;
+}
+
+.icpdp-proposal-card {
+  min-width: 0;
+}
+
+.icpdp-proposal-card__header > div {
+  min-width: 0;
+}
+
+.icpdp-proposal-card__title,
+.icpdp-proposal-card__club {
+  overflow-wrap: anywhere;
+}
+
+.icpdp-proposal-card .status-pill {
+  flex: 0 0 auto;
+}
+
+.icpdp-proposal-card__footer {
+  gap: 12px;
+}
+
+.icpdp-detail-page .ctsv-ed-hero,
+.icpdp-detail-page .ctsv-ed-panel,
+.icpdp-detail-page .ctsv-ed-actions,
+.icpdp-detail-page .icpdp-action-panel {
+  border-radius: 16px;
+  border-color: rgba(242, 111, 33, 0.16);
+  box-shadow: var(--icpdp-card-shadow);
+}
+
+.icpdp-detail-page .ctsv-ed-info-card {
+  border-radius: 12px;
+}
+
+.icpdp-event-detail-page .ctsv-ed-hero-stat-label {
+  white-space: nowrap;
+}
+
+.icpdp-reports-page .ctsv-reports-summary-card,
+.icpdp-reports-page .ctsv-reports-table-card {
+  border-color: rgba(242, 111, 33, 0.12);
+  box-shadow: var(--icpdp-card-shadow);
+}
+
+.icpdp-calendar-page .ctsv-cal-layout {
+  align-items: start;
+}
+
+.icpdp-calendar-page .student-calendar,
+.icpdp-calendar-page .ctsv-cal-sidebar {
+  border-color: rgba(242, 111, 33, 0.12);
+  box-shadow: var(--icpdp-card-shadow);
+}
+
+.icpdp-settings-page .partner-settings-header {
+  padding: 18px 22px;
+  border: 1px solid rgba(242, 111, 33, 0.14);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(242, 111, 33, 0.08), rgba(255, 255, 255, 0) 50%),
+    #ffffff;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+}
+
+.icpdp-settings-page .partner-settings-panel,
+.icpdp-settings-page .icpdp-avatar-card,
+.icpdp-settings-page .partner-settings-nav {
+  border-color: rgba(242, 111, 33, 0.12);
+  box-shadow: var(--icpdp-card-shadow);
+}
+
 @media (max-width: 768px) {
+  .icpdp-app-shell .ctsv-portal-body {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .icpdp-app-shell .ctsv-portal-body:has(.icpdp-home-layout) {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .icpdp-list-page,
+  .icpdp-detail-page,
+  .icpdp-reports-page,
+  .icpdp-calendar-page,
+  .icpdp-settings-page {
+    padding-top: 14px;
+  }
+
+  .icpdp-list-page .ctsv-events-hero,
+  .icpdp-reports-page .ctsv-events-hero,
+  .icpdp-calendar-page .ctsv-events-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .icpdp-list-page .ctsv-events-hero h1,
+  .icpdp-reports-page .ctsv-events-hero h1,
+  .icpdp-calendar-page .ctsv-events-hero h1 {
+    font-size: clamp(1.35rem, 7vw, 1.85rem);
+    line-height: 1.16;
+  }
+
+  .icpdp-list-page .ctsv-events-hero-text p,
+  .icpdp-reports-page .ctsv-events-hero-text p,
+  .icpdp-calendar-page .ctsv-events-hero-text p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .icpdp-list-page .ctsv-events-hero-aside,
+  .icpdp-reports-page .ctsv-events-hero-aside,
+  .icpdp-calendar-page .ctsv-events-hero-aside {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .icpdp-list-page .ctsv-events-hero-stat,
+  .icpdp-reports-page .ctsv-events-hero-stat,
+  .icpdp-calendar-page .ctsv-events-hero-stat {
+    width: 100%;
+    min-width: 0;
+    min-height: 78px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .icpdp-list-page .ctsv-events-hero-stat-num,
+  .icpdp-reports-page .ctsv-events-hero-stat-num,
+  .icpdp-calendar-page .ctsv-events-hero-stat-num {
+    font-size: 1.8rem;
+  }
+
+  .icpdp-list-page .ctsv-events-hero-cta {
+    flex: 1;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 11px;
+    text-align: center;
+  }
+
+  .icpdp-list-page .ctsv-events-filter-card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .icpdp-list-page .ctsv-events-filter-form,
+  .icpdp-list-page .ctsv-events-filter-selects {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .icpdp-list-page .ctsv-events-search,
+  .icpdp-list-page .app-select,
+  .icpdp-list-page .ctsv-events-filter-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .icpdp-list-page .ctsv-events-filter-btn {
+    min-height: 46px;
+    border-radius: 12px;
+  }
+
+  .icpdp-proposal-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .icpdp-proposal-card__header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .icpdp-proposal-card__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .icpdp-proposal-card__action {
+    justify-content: center;
+    min-height: 42px;
+  }
+
   .icpdp-dashboard {
     gap: 16px;
     padding-top: 0;
@@ -879,6 +1125,217 @@
   .icpdp-dashboard .ctsv-dash-hero-stat-label {
     font-size: 0.68rem;
     line-height: 1.2;
+  }
+
+  .icpdp-dashboard .ctsv-dash-create-card {
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .icpdp-dashboard .ctsv-dash-create-card__icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+  }
+
+  .icpdp-dashboard .ctsv-dash-create-card__body strong {
+    font-size: 1rem;
+  }
+
+  .icpdp-detail-page .ctsv-ed-hero {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .icpdp-detail-page .ctsv-ed-hero-media {
+    min-height: 190px;
+  }
+
+  .icpdp-detail-page .ctsv-ed-hero-body h1 {
+    font-size: clamp(1.45rem, 8vw, 2rem);
+    line-height: 1.15;
+  }
+
+  .icpdp-detail-page .ctsv-ed-meta {
+    gap: 8px;
+  }
+
+  .icpdp-detail-page .ctsv-ed-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .icpdp-detail-page .ctsv-ed-hero-stat {
+    min-width: 0;
+    padding: 10px 6px;
+    border-radius: 12px;
+  }
+
+  .icpdp-detail-page .ctsv-ed-hero-stat-num {
+    font-size: 1.35rem;
+  }
+
+  .icpdp-detail-page .ctsv-ed-hero-stat-label {
+    font-size: 0.68rem;
+  }
+
+  .icpdp-detail-page .ctsv-ed-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .icpdp-detail-page .icpdp-action-panel__buttons,
+  .icpdp-detail-page .icpdp-club-reg-actions__btns {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .icpdp-detail-page .ctsv-dash-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .icpdp-reports-page .ctsv-reports-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .icpdp-reports-page .ctsv-reports-table-card {
+    overflow: visible;
+    border-radius: 14px;
+  }
+
+  .icpdp-reports-page .ctsv-reports-table {
+    min-width: 0;
+  }
+
+  .icpdp-reports-page .ctsv-reports-table,
+  .icpdp-reports-page .ctsv-reports-table tbody,
+  .icpdp-reports-page .ctsv-reports-table tr,
+  .icpdp-reports-page .ctsv-reports-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .icpdp-reports-page .ctsv-reports-table thead {
+    display: none;
+  }
+
+  .icpdp-reports-page .ctsv-reports-table tbody {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .icpdp-reports-page .ctsv-reports-row {
+    border: 1px solid #edf2f7;
+    border-radius: 14px;
+    background: #ffffff;
+    overflow: hidden;
+  }
+
+  .icpdp-reports-page .ctsv-reports-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .icpdp-reports-page .ctsv-reports-table td:not(:first-child):not(:last-child) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .icpdp-reports-page .ctsv-reports-table td:nth-child(2)::before,
+  .icpdp-reports-page .ctsv-reports-table td:nth-child(3)::before,
+  .icpdp-reports-page .ctsv-reports-table td:nth-child(4)::before {
+    color: #94a3b8;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .icpdp-reports-page .ctsv-reports-table td:nth-child(2)::before {
+    content: 'Ngày';
+  }
+
+  .icpdp-reports-page .ctsv-reports-table td:nth-child(3)::before {
+    content: 'Đăng ký';
+  }
+
+  .icpdp-reports-page .ctsv-reports-table td:nth-child(4)::before {
+    content: 'Tỷ lệ';
+  }
+
+  .icpdp-reports-page .ctsv-reports-table td:last-child {
+    border-bottom: none;
+  }
+
+  .icpdp-reports-page .ctsv-reports-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .icpdp-calendar-page .ctsv-cal-toolbar-top,
+  .icpdp-calendar-page .ctsv-cal-legend {
+    gap: 10px;
+  }
+
+  .icpdp-calendar-page .ctsv-cal-source-filters {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .icpdp-calendar-page .ctsv-cal-source-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .icpdp-calendar-page .ctsv-cal-filter-chip {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .icpdp-settings-page .partner-settings-header {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .icpdp-settings-page .partner-settings-header__title h1 {
+    font-size: 1.42rem;
+  }
+
+  .icpdp-settings-page .partner-settings-panel__head,
+  .icpdp-settings-page .partner-settings-panel__body {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .icpdp-settings-page .partner-settings-panel__head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-view-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .profile-view-row > span {
+    flex-basis: auto;
+  }
+
+  .form-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 }
 

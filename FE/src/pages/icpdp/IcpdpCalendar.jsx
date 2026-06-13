@@ -85,7 +85,7 @@ const IcpdpCalendar = () => {
     viewDate.getMonth() === new Date().getMonth();
 
   return (
-    <div className="ctsv-calendar-page">
+    <div className="ctsv-calendar-page icpdp-calendar-page">
       <header className="ctsv-events-hero ctsv-cal-hero">
         <div className="ctsv-events-hero-text">
           <span className="ctsv-events-eyebrow">Lịch IC-PDP</span>

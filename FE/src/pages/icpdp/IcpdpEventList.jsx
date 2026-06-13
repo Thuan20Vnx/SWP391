@@ -192,7 +192,7 @@ const IcpdpEventList = () => {
   }, [events, searchQuery, timeFilter, categoryFilter, sourceFilter, statusFilter]);
 
   return (
-    <div className="ctsv-events-page">
+    <div className="ctsv-events-page icpdp-list-page icpdp-event-list-page">
       <header className="ctsv-events-hero">
         <div className="ctsv-events-hero-text">
           <span className="ctsv-events-eyebrow">Giám sát sự kiện</span>

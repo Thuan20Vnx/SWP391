@@ -74,8 +74,8 @@ const IcpdpClubRegistrationList = () => {
   };
 
   const pageClass = pathname.startsWith('/admin')
-    ? 'ctsv-events-page admin-icpdp-club-reg-page'
-    : 'ctsv-events-page';
+    ? 'ctsv-events-page icpdp-list-page icpdp-club-registration-list-page admin-icpdp-club-reg-page'
+    : 'ctsv-events-page icpdp-list-page icpdp-club-registration-list-page';
 
   return (
     <div className={pageClass}>

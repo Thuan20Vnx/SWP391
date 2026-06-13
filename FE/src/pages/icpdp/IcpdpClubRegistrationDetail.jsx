@@ -41,7 +41,7 @@ const IcpdpClubRegistrationDetail = () => {
 
   if (!registration) {
     return (
-      <div className="ctsv-ed-page">
+      <div className="ctsv-ed-page icpdp-detail-page icpdp-club-registration-detail-page">
         <div className="ctsv-ed-skeleton-panel sk" style={{ minHeight: 200 }} />
       </div>
     );
@@ -97,8 +97,8 @@ const IcpdpClubRegistrationDetail = () => {
   };
 
   const pageClass = pathname.startsWith('/admin')
-    ? 'ctsv-ed-page admin-icpdp-club-reg-page'
-    : 'ctsv-ed-page';
+    ? 'ctsv-ed-page icpdp-detail-page icpdp-club-registration-detail-page admin-icpdp-club-reg-page'
+    : 'ctsv-ed-page icpdp-detail-page icpdp-club-registration-detail-page';
 
   return (
     <div className={pageClass}>

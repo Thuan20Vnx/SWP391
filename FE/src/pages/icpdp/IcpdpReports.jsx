@@ -74,7 +74,7 @@ const IcpdpReports = () => {
   }, [filtered]);
 
   return (
-    <div className="ctsv-reports-page">
+    <div className="ctsv-reports-page icpdp-reports-page">
       <header className="ctsv-events-hero ctsv-reports-hero">
         <div className="ctsv-events-hero-text">
           <span className="ctsv-events-eyebrow">Báo cáo IC-PDP</span>

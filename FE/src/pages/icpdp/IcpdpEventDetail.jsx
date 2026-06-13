@@ -79,7 +79,7 @@ const IcpdpEventDetail = () => {
 
   if (!event || !stats) {
     return (
-      <div className="ctsv-ed-page">
+      <div className="ctsv-ed-page icpdp-detail-page icpdp-event-detail-page">
         <div className="ctsv-ed-skeleton-hero sk" />
         <div className="ctsv-ed-skeleton-tabs">
           <div className="sk sk-line sk-line--short" />
@@ -128,7 +128,7 @@ const IcpdpEventDetail = () => {
   };
 
   return (
-    <div className="ctsv-ed-page">
+    <div className="ctsv-ed-page icpdp-detail-page icpdp-event-detail-page">
       <Link to="/icpdp/events" className="ctsv-ed-back">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
           <polyline points="15 18 9 12 15 6" />
@@ -183,7 +183,7 @@ const IcpdpEventDetail = () => {
             </div>
             <div className="ctsv-ed-hero-stat">
               <span className="ctsv-ed-hero-stat-num">{stats.fillRate}%</span>
-              <span className="ctsv-ed-hero-stat-label">Lấp đầy</span>
+              <span className="ctsv-ed-hero-stat-label">Đăng ký</span>
             </div>
           </div>
         </div>
