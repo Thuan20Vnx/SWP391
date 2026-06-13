@@ -12,6 +12,7 @@ import {
 import { isAdminRole, isCtsvRole } from '../../utils/auth';
 import { useTranslation } from '../../i18n/I18nContext';
 import { resolveLabel } from '../../i18n/helpers';
+import AdminFilterDropdown from '../../components/admin/AdminFilterDropdown';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-event-requests.css';
 
@@ -183,9 +184,14 @@ const AdminEventRequests = ({ showToast: showToastProp }) => {
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState(null);
   const [notes, setNotes] = useState({});
+  const [openMenu, setOpenMenu] = useState(null);
 
-  const filterChips = useMemo(
-    () => EVENT_REQUEST_FILTERS.map((f) => ({ ...f, label: resolveLabel(f, t) })),
+  const filterOptions = useMemo(
+    () =>
+      EVENT_REQUEST_FILTERS.map((f) => ({
+        value: f.id,
+        label: resolveLabel(f, t),
+      })),
     [t],
   );
 
@@ -274,19 +280,16 @@ const AdminEventRequests = ({ showToast: showToastProp }) => {
       </header>
 
       <div className="admin-event-requests__filters">
-        <div className="admin-event-requests__filter-group" role="tablist" aria-label={t('admin.eventRequests.filterAria')}>
-          {filterChips.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              role="tab"
-              aria-selected={activeFilter === f.id}
-              className={`admin-event-requests__chip${activeFilter === f.id ? ' admin-event-requests__chip--active' : ''}`}
-              onClick={() => setActiveFilter(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="admin-event-requests__filter-group" aria-label={t('admin.eventRequests.filterAria')}>
+          <AdminFilterDropdown
+            label=""
+            value={activeFilter}
+            options={filterOptions}
+            onChange={setActiveFilter}
+            menuOpen={openMenu === 'filter'}
+            onMenuToggle={setOpenMenu}
+            menuId="filter"
+          />
         </div>
         <span className="admin-event-requests__count">
           {loading

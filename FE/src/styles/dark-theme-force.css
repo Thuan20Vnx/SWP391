@@ -1592,6 +1592,15 @@ html.dark .admin-acc-page-btn {
   background: var(--bg-card) !important;
 }
 
+html.dark .admin-acc-page-btn--active,
+html.dark .admin-acc-page-btn--active:hover:not(:disabled),
+html.dark .admin-acc-page-btn--active:disabled {
+  background: #f26f21 !important;
+  border-color: #f26f21 !important;
+  color: #fff !important;
+  opacity: 1;
+}
+
 html.dark .admin-acc-modal {
   background: var(--bg-card) !important;
 }
@@ -1616,8 +1625,16 @@ html.dark .admin-analytics-period {
   background: var(--bg-card) !important;
 }
 
-html.dark .admin-analytics-period__btn:hover {
+html.dark .admin-analytics-period__btn:hover:not(.admin-analytics-period__btn--active) {
   background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-period__btn--active,
+html.dark .admin-analytics-period__btn--active:hover,
+html.dark .admin-analytics-period__btn--active:focus-visible {
+  background: #f26f21 !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(242, 111, 33, 0.3);
 }
 
 html.dark .admin-analytics-export {
@@ -2064,7 +2081,7 @@ html.dark .admin-fpt-hero {
   background: var(--bg-card) !important;
 }
 
-html.dark .admin-fpt-hero__quick button {
+html.dark .admin-fpt-hero__quick .admin-filter-dropdown__trigger {
   background: var(--bg-card) !important;
 }
 
@@ -3108,11 +3125,7 @@ html.dark .admin-data-tab--active {
   background: var(--surface-muted) !important;
 }
 
-html.dark .admin-event-requests__chip {
-  background: var(--surface-muted) !important;
-}
-
-html.dark .admin-event-requests__chip--active {
+html.dark .admin-event-requests__filter-group .admin-filter-dropdown__trigger {
   background: var(--surface-muted) !important;
 }
 
@@ -3174,6 +3187,8 @@ html.dark .admin-sys-tab--active {
 
 html.dark .admin-system-services__pill--degraded {
   background: var(--surface-muted) !important;
+  border: 1px solid #fde68a !important;
+  color: #fbbf24 !important;
 }
 
 html.dark .admin-sys-switch__thumb {

@@ -1,20 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AdminDataSelect from '../../components/admin/AdminDataSelect';
 import {
   PARTNER_FIELD_OPTIONS,
-  PARTNER_SPONSOR_PROGRAM_OPTIONS,
   PARTNER_UPLOAD_ACCEPT,
   PARTNER_UPLOAD_MAX_BYTES,
   emptyPartnerForm,
-  formatVndInput,
   loadStoredPartners,
   partnerFormToRecord,
   saveStoredPartners,
 } from '../../data/adminPartnersData';
 import { getUserRole, isAdminRole } from '../../utils/auth';
 import { useTranslation } from '../../i18n/I18nContext';
-import { mapSelectOptions } from '../../i18n/helpers';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-accounts.css';
 import '../../styles/admin-data-maintenance.css';
@@ -44,11 +41,6 @@ const AdminPartners = () => {
   const [attachment, setAttachment] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  const sponsorProgramOptions = useMemo(
-    () => mapSelectOptions(PARTNER_SPONSOR_PROGRAM_OPTIONS, t),
-    [t],
-  );
 
   useEffect(() => {
     if (!isAdminRole(role)) {
@@ -214,37 +206,6 @@ const AdminPartners = () => {
                   disabled={submitting}
                 />
               </div>
-            </div>
-
-            <div className="admin-partners-form__grid">
-              <div className="admin-data-field">
-                <label className="admin-partner-field__label" htmlFor="partner-sponsor-value">
-                  {t('admin.partners.sponsorValue')}
-                </label>
-                <div className="admin-partner-input-vnd">
-                  <input
-                    id="partner-sponsor-value"
-                    type="text"
-                    inputMode="numeric"
-                    className="admin-data-input"
-                    value={form.sponsorValue}
-                    onChange={(e) => setField('sponsorValue', formatVndInput(e.target.value))}
-                    placeholder="10,000,000"
-                    disabled={submitting}
-                  />
-                  <span className="admin-partner-input-vnd__suffix">VND</span>
-                </div>
-              </div>
-
-              <AdminDataSelect
-                label={t('admin.partners.sponsorProgram')}
-                labelClassName="admin-partner-field__label"
-                value={form.sponsorProgram}
-                options={sponsorProgramOptions}
-                placeholder={t('admin.partners.sponsorProgram.unset')}
-                onChange={(v) => setField('sponsorProgram', v)}
-                disabled={submitting}
-              />
             </div>
 
             <div className="admin-partners-upload">

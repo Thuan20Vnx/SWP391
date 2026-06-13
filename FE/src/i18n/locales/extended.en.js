@@ -434,6 +434,7 @@ export default {
   'admin.fpt.heroTitle': 'Manage the F-Events ecosystem',
   'admin.fpt.heroDesc':
     'Coordinating units (CTSV & IC-PDP), clubs and business partners on campus — search, manage and send notifications centrally.',
+  'admin.fpt.quickAccess': 'Quick access',
   'admin.fpt.quick.dashboard': 'Dashboard',
   'admin.fpt.quick.eventApprovals': 'Review event proposals',
   'admin.fpt.quick.partners': 'Partner management',
@@ -748,7 +749,10 @@ export default {
   'admin.analytics.period.year': 'This year',
   'admin.analytics.periodAria': 'Report period',
   'admin.analytics.export': 'Export report',
-  'admin.analytics.exportToast': 'Preparing export report (mock).',
+  'admin.analytics.exportSuccess': 'Analytics report downloaded (.xlsx).',
+  'admin.analytics.exportFail': 'Could not export the report. Please try again.',
+  'admin.analytics.exportEmpty': 'No review data available to export.',
+  'admin.analytics.loading': 'Loading review data from the system…',
   'admin.analytics.kpisAria': 'Review metrics',
   'admin.analytics.kpi.avgRating': 'Average rating',
   'admin.analytics.kpi.totalReviews': 'Total feedback',
@@ -788,7 +792,7 @@ export default {
   'admin.analytics.modal.sharePct': 'Share',
   'admin.analytics.modal.relatedEvents': 'Related events',
   'admin.analytics.modal.eventsCount': '{{count}} events',
-  'admin.analytics.modal.hint': 'Mock data · Will connect to API when backend is deployed',
+  'admin.analytics.modal.hint': 'Data is sourced from real attendee reviews on F-Events.',
 
   'admin.analytics.viewAll.stars.title': 'Star rating distribution — Details',
   'admin.analytics.viewAll.stars.subtitle': 'Full statistics by star level in the selected period',
@@ -865,7 +869,7 @@ export default {
 
   'admin.eventRequests.title': 'Process event requests',
   'admin.eventRequests.subtitle':
-    'Review edit, hide, or delete requests for published events from clubs. Separate from the new proposal approval flow.',
+    'Review edit, hide, or delete requests for published events from CTSV and IC-PDP. Separate from the new proposal approval flow.',
   'admin.eventRequests.filter.pending': 'Pending',
   'admin.eventRequests.filter.edit': 'Edit',
   'admin.eventRequests.filter.hide': 'Hide',
@@ -944,7 +948,7 @@ export default {
 
   'admin.partners.title': 'Add new partner',
   'admin.partners.subtitle':
-    'Enter details to add a sponsoring or collaborating partner to the system.',
+    'Enter details to add a collaborating partner to the system.',
   'admin.partners.companyName': 'Company / partner name',
   'admin.partners.companyPlaceholder': 'e.g. VNG Corporation',
   'admin.partners.field': 'Business field',
@@ -1041,7 +1045,7 @@ export default {
 
   'admin.proposals.title': 'Approve event proposals',
   'admin.proposals.subtitle':
-    'Proposals awaiting Student Affairs approval before being published on the system.',
+    'Proposals awaiting CTSV and IC-PDP approval before being published on the system.',
   'admin.proposals.loading': 'Loading proposal list…',
   'admin.proposals.pendingCount': '{{count}} pending items',
   'admin.proposals.emptyTitle': 'No proposals awaiting approval',
@@ -1144,9 +1148,16 @@ export default {
   'admin.system.metric.pending': 'Events pending approval',
   'admin.system.metric.pendingHint': 'status = pending',
   'admin.system.metric.live': 'Live events',
-  'admin.system.metric.liveHint': 'Needs stats API (mock)',
+  'admin.system.metric.liveHint': 'Live status from MongoDB',
   'admin.system.metric.clubs': 'Clubs',
-  'admin.system.metric.clubsHint': 'Needs stats API (mock)',
+  'admin.system.metric.clubsHint': 'Total clubs in DB',
+  'admin.system.status.uptimeCaption': 'continuous uptime',
+  'admin.system.status.degraded': 'Degraded',
+  'admin.system.status.offline': 'Offline',
+  'admin.system.status.notConfigured': 'Not configured',
+  'admin.system.loadingHealth': 'Loading system status…',
+  'admin.monitor.degraded': 'DEGRADED',
+  'admin.monitor.offline': 'OFFLINE',
   'admin.system.status.api': 'API Backend',
   'admin.system.status.db': 'MongoDB',
   'admin.system.status.email': 'Email Server',

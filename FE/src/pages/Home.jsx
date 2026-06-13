@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import ChatbotFloating from '../components/ChatbotFloating';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import AppSelect from '../components/ui/AppSelect';
@@ -496,8 +495,6 @@ const Home = ({ showToast }) => {
           </div>
         )}
       </main>
-
-      <ChatbotFloating context="home" />
 
       <SiteFooter />
     </div>

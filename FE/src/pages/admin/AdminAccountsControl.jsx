@@ -4,6 +4,7 @@ import AdminAccountActionBar from '../../components/admin/AdminAccountActionBar'
 import AdminAccountEditModal from '../../components/admin/AdminAccountEditModal';
 import AdminAccountViewModal from '../../components/admin/AdminAccountViewModal';
 import AdminAddAccountModal from '../../components/admin/AdminAddAccountModal';
+import AdminFilterDropdown from '../../components/admin/AdminFilterDropdown';
 import {
   ADMIN_ACCOUNT_ROLE_FILTERS,
   ADMIN_ACCOUNT_ROLE_META,
@@ -68,6 +69,7 @@ const AdminAccountsControl = () => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
   const search = adminSearch;
 
   useEffect(() => {
@@ -125,6 +127,15 @@ const AdminAccountsControl = () => {
     for (let i = start; i <= end; i += 1) nums.push(i);
     return nums;
   }, [page, totalPages]);
+
+  const roleOptions = useMemo(
+    () =>
+      ADMIN_ACCOUNT_ROLE_FILTERS.map((tab) => ({
+        value: tab.key,
+        label: resolveLabel(tab, t),
+      })),
+    [t],
+  );
 
   const toggleActive = async (acc) => {
     const next = !acc.active;
@@ -232,22 +243,19 @@ const AdminAccountsControl = () => {
           </button>
         </header>
 
-        <div className="admin-acc-filters" role="tablist" aria-label={t('admin.accounts.filterByRole')}>
-          {ADMIN_ACCOUNT_ROLE_FILTERS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              role="tab"
-              aria-selected={roleFilter === tab.key}
-              className={`admin-acc-filter-tab${roleFilter === tab.key ? ' admin-acc-filter-tab--active' : ''}`}
-              onClick={() => {
-                setRoleFilter(tab.key);
-                setPage(1);
-              }}
-            >
-              {resolveLabel(tab, t)}
-            </button>
-          ))}
+        <div className="admin-acc-filters" aria-label={t('admin.accounts.filterByRole')}>
+          <AdminFilterDropdown
+            label=""
+            value={roleFilter}
+            options={roleOptions}
+            onChange={(next) => {
+              setRoleFilter(next);
+              setPage(1);
+            }}
+            menuOpen={openMenu === 'role'}
+            onMenuToggle={setOpenMenu}
+            menuId="role"
+          />
         </div>
 
         <section className="admin-panel admin-acc-table-panel">
@@ -351,7 +359,7 @@ const AdminAccountsControl = () => {
                   className={`admin-acc-page-btn${page === n ? ' admin-acc-page-btn--active' : ''}`}
                   onClick={() => setPage(n)}
                   aria-current={page === n ? 'page' : undefined}
-                  disabled={loading}
+                  disabled={loading && page !== n}
                 >
                   {n}
                 </button>

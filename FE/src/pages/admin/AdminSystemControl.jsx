@@ -15,14 +15,14 @@ import {
   PAYMENT_PROVIDER_OPTIONS,
 } from '../../data/adminSystemControlData';
 import useAdminDashboardLiveData from '../../hooks/useAdminDashboardLiveData';
-import { fetchSystemConfig, updateSystemMaintenance } from '../../services/adminApi';
+import { fetchSystemConfig, fetchSystemHealth, updateSystemMaintenance } from '../../services/adminApi';
 import {
   canAccessAdminSystemPage,
   getUserRole,
   isAdminRole,
   isIcpdpRole,
 } from '../../utils/auth';
-import { addMinutes, formatAdminDateTime, formatRelativeSeconds, startOfDay } from '../../utils/adminLiveTime';
+import { addMinutes, formatAdminDateTime, formatLatency, formatRelativeSeconds, secondsSince } from '../../utils/adminLiveTime';
 import { useTranslation } from '../../i18n/I18nContext';
 import { mapSelectOptions, resolveLabel } from '../../i18n/helpers';
 import '../../styles/admin-dashboard.css';
@@ -30,6 +30,12 @@ import '../../styles/admin-system-control.css';
 
 const STORAGE_KEY = 'fe_admin_system_config_v1';
 const API_BASE = 'http://localhost:5000';
+const HEALTH_POLL_MS = 8000;
+
+const mapUiStatus = (status) => {
+  if (status === 'offline' || status === 'degraded') return 'degraded';
+  return 'online';
+};
 
 const loadConfig = () => {
   try {
@@ -89,34 +95,60 @@ const AdminSystemControl = () => {
   const [maintenanceDirty, setMaintenanceDirty] = useState(false);
   const [savingMaintenance, setSavingMaintenance] = useState(false);
   const [configLoading, setConfigLoading] = useState(true);
+  const [systemHealth, setSystemHealth] = useState(null);
+  const [healthLoading, setHealthLoading] = useState(true);
   const [openMenu, setOpenMenu] = useState(null);
   const [testResult, setTestResult] = useState(null);
-  const [quickMetrics, setQuickMetrics] = useState(() =>
-    ADMIN_QUICK_METRICS.map((m) => ({ ...m, value: '…' })),
-  );
 
   const clockLabel = formatAdminDateTime(live.now, language);
-  const { systemOverall } = live;
+
+  const resolvePillLabel = useCallback(
+    (status, kind, paymentMode) => {
+      if (status === 'offline') return t('admin.system.status.offline');
+      if (status === 'degraded') return t('admin.system.status.degraded');
+      if (kind === 'db') return t('admin.system.status.connected');
+      if (kind === 'payment') {
+        if (paymentMode === 'sandbox') return t('admin.system.status.sandbox');
+        if (paymentMode === 'disabled') return t('admin.system.status.notConfigured');
+      }
+      return t('admin.system.status.online');
+    },
+    [t],
+  );
 
   const systemOverallDisplay = useMemo(() => {
-    const now = live.now;
-    const secondsSinceBoot = Math.floor((now.getTime() - startOfDay(now).getTime()) / 1000) % 45 + 8;
-    const checkTime = now.toLocaleTimeString(language === 'en' ? 'en-US' : 'vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
+    const checkedAt = systemHealth?.checkedAt ? new Date(systemHealth.checkedAt) : null;
+    const checkTime = checkedAt
+      ? checkedAt.toLocaleTimeString(language === 'en' ? 'en-US' : 'vi-VN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+      : '—';
+    const relativeSeconds = checkedAt ? secondsSince(checkedAt, live.now) : 0;
+    const overallStatus = systemHealth?.overall?.status || 'stable';
+    const labelKey =
+      overallStatus === 'offline'
+        ? 'admin.monitor.offline'
+        : overallStatus === 'degraded'
+          ? 'admin.monitor.degraded'
+          : 'admin.monitor.stable';
+
     return {
-      label: t('admin.monitor.stable'),
-      uptime: systemOverall.uptime,
-      uptimeCaption: t('admin.system.status.uptime30'),
-      lastCheck: t('admin.system.lastCheck', {
-        time: checkTime,
-        relative: formatRelativeSeconds(secondsSinceBoot, language),
-      }),
+      label: healthLoading && !systemHealth ? '…' : t(labelKey),
+      uptime: systemHealth?.overall?.uptimeFormatted || '—',
+      uptimeCaption: t('admin.system.status.uptimeCaption'),
+      lastCheck: checkedAt
+        ? t('admin.system.lastCheck', {
+            time: checkTime,
+            relative: formatRelativeSeconds(relativeSeconds, language),
+          })
+        : healthLoading
+          ? t('admin.system.loadingHealth')
+          : '—',
     };
-  }, [live.now, language, systemOverall.uptime, t]);
+  }, [live.now, language, systemHealth, healthLoading, t]);
 
   const changeLog = useMemo(
     () =>
@@ -128,37 +160,158 @@ const AdminSystemControl = () => {
     [live.now, t, language],
   );
 
-  const loadQuickMetrics = useCallback(() => {
-    const email = localStorage.getItem('userEmail');
-    const headers = { 'x-user-email': email || '' };
-
-    Promise.all([
-      fetch(`${API_BASE}/api/admin/accounts?page=1&limit=1`, { headers })
-        .then((r) => r.json())
-        .catch(() => null),
-      fetch(`${API_BASE}/api/events/pending`, { headers })
-        .then((r) => r.json())
-        .catch(() => null),
-    ]).then(([accountsRes, pendingRes]) => {
-      setQuickMetrics(
-        ADMIN_QUICK_METRICS.map((m) => ({
-          ...m,
-          label: resolveLabel(m, t),
-          hint: m.hintKey ? t(m.hintKey) : m.hint,
-          value:
-            m.id === 'accounts'
-              ? accountsRes?.total != null
-                ? String(accountsRes.total)
+  const quickMetrics = useMemo(() => {
+    const metrics = systemHealth?.metrics;
+    return ADMIN_QUICK_METRICS.map((m) => ({
+      ...m,
+      label: resolveLabel(m, t),
+      hint: m.hintKey ? t(m.hintKey) : m.hint,
+      value:
+        !metrics && healthLoading
+          ? '…'
+          : m.id === 'accounts'
+            ? metrics?.accounts != null
+              ? String(metrics.accounts)
+              : t('admin.common.empty')
+            : m.id === 'pending'
+              ? metrics?.pendingEvents != null
+                ? String(metrics.pendingEvents)
                 : t('admin.common.empty')
-              : m.id === 'pending'
-                ? pendingRes?.events?.length != null
-                  ? String(pendingRes.events.length)
+              : m.id === 'live'
+                ? metrics?.liveEvents != null
+                  ? String(metrics.liveEvents)
                   : t('admin.common.empty')
-                : t('admin.common.empty'),
-        })),
-      );
+                : metrics?.clubs != null
+                  ? String(metrics.clubs)
+                  : t('admin.common.empty'),
+    }));
+  }, [systemHealth, healthLoading, t]);
+
+  const statusCards = useMemo(() => {
+    if (!systemHealth?.services) {
+      return ADMIN_SYSTEM_STATUS_CARDS.map((card) => ({
+        ...card,
+        title: t(card.titleKey),
+        statusLabel: healthLoading ? '…' : t(card.statusLabelKey),
+        metric: healthLoading ? '…' : card.metric,
+        metricLabel: t(card.metricLabelKey),
+        detail: card.detailKey ? t(card.detailKey) : '',
+      }));
+    }
+
+    const { api, db, email, payment } = systemHealth.services;
+    const cards = [
+      {
+        id: 'api',
+        titleKey: 'admin.system.status.api',
+        service: api,
+        kind: 'api',
+        metric: systemHealth.overall?.uptimeFormatted || '—',
+        metricLabelKey: 'admin.system.status.uptimeCaption',
+      },
+      {
+        id: 'db',
+        titleKey: 'admin.system.status.db',
+        service: db,
+        kind: 'db',
+        metric: db?.name || '—',
+        metricLabelKey: 'admin.system.status.database',
+      },
+      {
+        id: 'email',
+        titleKey: 'admin.system.status.email',
+        service: email,
+        kind: 'email',
+        metric: formatLatency(email?.latencyMs),
+        metricLabelKey: 'admin.system.status.smtpResponse',
+      },
+      {
+        id: 'payment',
+        titleKey: 'admin.system.status.payment',
+        service: payment,
+        kind: 'payment',
+        metric: payment?.errors24h != null ? String(payment.errors24h) : '—',
+        metricLabelKey: 'admin.system.status.errors24h',
+      },
+    ];
+
+    return cards.map((card) => ({
+      id: card.id,
+      status: mapUiStatus(card.service?.status),
+      title: t(card.titleKey),
+      statusLabel: resolvePillLabel(card.service?.status, card.kind, card.service?.mode),
+      metric: card.metric,
+      metricLabel: t(card.metricLabelKey),
+      detail: card.service?.detail || card.service?.framework || '',
+    }));
+  }, [systemHealth, healthLoading, resolvePillLabel, t]);
+
+  const infraServices = useMemo(() => {
+    const source = systemHealth?.infra?.length ? systemHealth.infra : ADMIN_INFRA_SERVICES;
+    const nameKeys = {
+      fe: 'admin.system.infra.fe',
+      be: 'admin.system.infra.be',
+      db: 'admin.system.infra.db',
+      smtp: 'admin.system.infra.smtp',
+    };
+
+    return source.map((svc) => {
+      const id = svc.id;
+      const fromApi = Boolean(systemHealth?.infra?.length);
+      return {
+        id,
+        name: t(nameKeys[id] || svc.nameKey),
+        endpoint: fromApi ? svc.endpoint : svc.endpoint,
+        version: svc.version,
+        status: mapUiStatus(fromApi ? svc.status : svc.status),
+        statusLabel: fromApi
+          ? resolvePillLabel(svc.status, id === 'db' ? 'db' : 'api')
+          : t(svc.statusLabelKey),
+        latency: fromApi ? formatLatency(svc.latencyMs) : svc.latency,
+        note: fromApi ? svc.note : t(svc.noteKey),
+      };
     });
-  }, [t]);
+  }, [systemHealth, resolvePillLabel, t]);
+
+  const platformRows = useMemo(() => {
+    if (!systemHealth?.platform) {
+      return ADMIN_PLATFORM_INFO.map((row) => ({
+        label: t(row.labelKey),
+        value: row.valueKey ? t(row.valueKey) : row.value,
+      }));
+    }
+
+    return [
+      { label: t('admin.system.platform.version'), value: systemHealth.platform.version },
+      { label: t('admin.system.platform.env'), value: systemHealth.platform.environment },
+      {
+        label: t('admin.system.platform.jwt'),
+        value: t('admin.system.security.jwtHours', { hours: config.security.jwtHours }),
+      },
+      { label: t('admin.system.platform.cors'), value: systemHealth.platform.cors },
+      { label: t('admin.system.platform.storage'), value: t('admin.system.platform.storageValue') },
+    ];
+  }, [systemHealth, config.security.jwtHours, t]);
+
+  const envRows = useMemo(() => {
+    const source = systemHealth?.env?.length ? systemHealth.env : ADMIN_ENV_DISPLAY;
+    return source.map((env) => ({
+      key: env.key,
+      value: env.valueKey ? t(env.valueKey) : env.value,
+    }));
+  }, [systemHealth, t]);
+
+  const refreshSystemHealth = useCallback(async () => {
+    if (!isFullAdmin) return;
+    try {
+      const res = await fetchSystemHealth();
+      setSystemHealth(res.health || res);
+    } catch {
+      setSystemHealth(null);
+    } finally {
+      setHealthLoading(false);
+    }
+  }, [isFullAdmin]);
 
   useEffect(() => {
     if (!canAccessAdminSystemPage(role)) {
@@ -183,8 +336,16 @@ const AdminSystemControl = () => {
       })
       .finally(() => setConfigLoading(false));
 
-    if (isFullAdmin) loadQuickMetrics();
-  }, [role, navigate, showToast, loadQuickMetrics, isFullAdmin, t]);
+    if (isFullAdmin) {
+      refreshSystemHealth();
+    }
+  }, [role, navigate, showToast, refreshSystemHealth, isFullAdmin, t]);
+
+  useEffect(() => {
+    if (!isFullAdmin) return undefined;
+    const id = window.setInterval(refreshSystemHealth, HEALTH_POLL_MS);
+    return () => window.clearInterval(id);
+  }, [isFullAdmin, refreshSystemHealth]);
 
   const patch = (path, value) => {
     setConfig((prev) => {
@@ -261,6 +422,7 @@ const AdminSystemControl = () => {
           text: t('admin.system.test.ok', { status: res.status, ms }),
         });
         showToast?.(t('admin.system.toast.testOk'), 'success');
+        refreshSystemHealth();
       } else {
         setTestResult({ ok: false, text: t('admin.system.test.bad', { status: res.status }) });
         showToast?.(t('admin.system.toast.testBad'), 'error');
@@ -279,6 +441,10 @@ const AdminSystemControl = () => {
   const encryptionOptions = mapSelectOptions(ENCRYPTION_OPTIONS, t);
   const paymentProviderOptions = mapSelectOptions(PAYMENT_PROVIDER_OPTIONS, t);
   const currencyOptions = mapSelectOptions(CURRENCY_OPTIONS, t);
+  const tabOptions = ADMIN_SYSTEM_TABS.map((tab) => ({
+    value: tab.id,
+    label: resolveLabel(tab, t),
+  }));
 
   const renderMaintenanceOps = () => (
     <>
@@ -369,32 +535,32 @@ const AdminSystemControl = () => {
 
       <h3 className="admin-sys-section-title">{t('admin.system.coreServices')}</h3>
       <div className="admin-sys-status-grid">
-        {ADMIN_SYSTEM_STATUS_CARDS.map((card) => (
+        {statusCards.map((card) => (
           <article key={card.id} className="admin-sys-status-card">
             <div className="admin-sys-status-card__top">
               <span className={`admin-system-services__dot admin-system-services__dot--${card.status}`} />
-              <span className="admin-sys-status-card__title">{t(card.titleKey)}</span>
+              <span className="admin-sys-status-card__title">{card.title}</span>
               <span className={`admin-system-services__pill admin-system-services__pill--${card.status}`}>
-                {t(card.statusLabelKey)}
+                {card.statusLabel}
               </span>
             </div>
             <p className="admin-sys-status-card__metric">
-              {card.metric} <span>{t(card.metricLabelKey)}</span>
+              {card.metric} <span>{card.metricLabel}</span>
             </p>
-            {card.detailKey && <p className="admin-sys-status-card__detail">{t(card.detailKey)}</p>}
+            <p className="admin-sys-status-card__detail">{card.detail || '\u00A0'}</p>
           </article>
         ))}
       </div>
 
       <h3 className="admin-sys-section-title">{t('admin.system.infraDetails')}</h3>
       <ul className="admin-sys-infra-list">
-        {ADMIN_INFRA_SERVICES.map((svc) => (
+        {infraServices.map((svc) => (
           <li key={svc.id} className="admin-sys-infra-card">
             <div className="admin-sys-infra-card__head">
               <span className={`admin-system-services__dot admin-system-services__dot--${svc.status}`} />
-              <h4 className="admin-sys-infra-card__name">{t(svc.nameKey)}</h4>
+              <h4 className="admin-sys-infra-card__name">{svc.name}</h4>
               <span className={`admin-system-services__pill admin-system-services__pill--${svc.status}`}>
-                {t(svc.statusLabelKey)}
+                {svc.statusLabel}
               </span>
             </div>
             <dl className="admin-sys-infra-card__body">
@@ -412,7 +578,7 @@ const AdminSystemControl = () => {
               </div>
               <div className="admin-sys-infra-row admin-sys-infra-row--full">
                 <dt>{t('admin.system.infra.note')}</dt>
-                <dd className="admin-sys-infra-row__note">{t(svc.noteKey)}</dd>
+                <dd className="admin-sys-infra-row__note">{svc.note}</dd>
               </div>
             </dl>
           </li>
@@ -827,12 +993,14 @@ const AdminSystemControl = () => {
             </p>
           </div>
           <div className="admin-sys-page__actions">
-            <button type="button" className="admin-sys-btn admin-sys-btn--ghost" onClick={handleTestConnection}>
-              {t('admin.system.testConnection')}
-            </button>
-            <button type="button" className="admin-sys-btn admin-sys-btn--ghost" onClick={handleReset}>
-              {t('admin.system.resetDefault')}
-            </button>
+            <div className="admin-sys-page__actions-secondary">
+              <button type="button" className="admin-sys-btn admin-sys-btn--ghost" onClick={handleTestConnection}>
+                {t('admin.system.testConnection')}
+              </button>
+              <button type="button" className="admin-sys-btn admin-sys-btn--ghost" onClick={handleReset}>
+                {t('admin.system.resetDefault')}
+              </button>
+            </div>
             <button
               type="button"
               className="admin-sys-btn admin-sys-btn--primary"
@@ -855,19 +1023,16 @@ const AdminSystemControl = () => {
 
         <div className="admin-sys-layout">
           <section className="admin-panel admin-sys-panel admin-sys-panel--main">
-            <div className="admin-sys-tabs" role="tablist" aria-label={t('admin.system.tabAria')}>
-              {ADMIN_SYSTEM_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === tab.id}
-                  className={`admin-sys-tab${activeTab === tab.id ? ' admin-sys-tab--active' : ''}`}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  {resolveLabel(tab, t)}
-                </button>
-              ))}
+            <div className="admin-sys-tabs" aria-label={t('admin.system.tabAria')}>
+              <AdminFilterDropdown
+                label=""
+                value={activeTab}
+                options={tabOptions}
+                onChange={setActiveTab}
+                menuOpen={openMenu === 'sysTab'}
+                onMenuToggle={setOpenMenu}
+                menuId="sysTab"
+              />
             </div>
             <div className="admin-sys-panel__body" role="tabpanel">
               {renderTabContent()}
@@ -879,10 +1044,10 @@ const AdminSystemControl = () => {
               <h2 className="admin-panel__title admin-panel__title--flush">{t('admin.system.platform.title')}</h2>
               <table className="admin-sys-info-table">
                 <tbody>
-                  {ADMIN_PLATFORM_INFO.map((row) => (
-                    <tr key={row.labelKey}>
-                      <th>{t(row.labelKey)}</th>
-                      <td>{row.valueKey ? t(row.valueKey) : row.value}</td>
+                  {platformRows.map((row) => (
+                    <tr key={row.label}>
+                      <th>{row.label}</th>
+                      <td>{row.value}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -893,12 +1058,10 @@ const AdminSystemControl = () => {
               <h2 className="admin-panel__title admin-panel__title--flush">{t('admin.system.env.title')}</h2>
               <p className="admin-sys-panel__lead">{t('admin.system.env.lead')}</p>
               <ul className="admin-sys-env-list">
-                {ADMIN_ENV_DISPLAY.map((env) => (
+                {envRows.map((env) => (
                   <li key={env.key} className="admin-sys-env-item">
                     <span className="admin-sys-env-item__key">{env.key}</span>
-                    <span className="admin-sys-env-item__val">
-                      {env.valueKey ? t(env.valueKey) : env.value}
-                    </span>
+                    <span className="admin-sys-env-item__val">{env.value}</span>
                   </li>
                 ))}
               </ul>

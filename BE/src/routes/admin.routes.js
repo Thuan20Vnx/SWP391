@@ -261,6 +261,10 @@ router.delete('/accounts/:id', adminOnly, asyncHandler(adminController.deleteAcc
 router.get('/data/overview', adminOnly, asyncHandler(adminController.getDataOverview));
 router.get('/dashboard/stats', adminOnly, asyncHandler(adminController.getDashboardStats));
 
+router.get('/system-health', adminOnly, asyncHandler(adminController.getSystemHealth));
+
+router.get('/analytics', adminOnly, asyncHandler(adminController.getAnalytics));
+
 router.get('/event-requests', adminOrCtsv, asyncHandler(eventChangeRequestController.list));
 router.get('/event-requests/:id', adminOrCtsv, asyncHandler(eventChangeRequestController.getById));
 router.patch('/event-requests/:id/approve', adminOrCtsv, asyncHandler(eventChangeRequestController.approve));

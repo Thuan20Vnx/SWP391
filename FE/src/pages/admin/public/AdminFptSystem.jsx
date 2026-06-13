@@ -4,6 +4,7 @@ import AdminFptDeptCard from '../../../components/admin/AdminFptDeptCard';
 import AdminFptNotifBell from '../../../components/admin/AdminFptNotifBell';
 import AdminFptUnitCard from '../../../components/admin/AdminFptUnitCard';
 import AppSelect from '../../../components/ui/AppSelect';
+import AdminFilterDropdown from '../../../components/admin/AdminFilterDropdown';
 import PublicAdminShell from '../../../layouts/PublicAdminShell';
 import SiteFooter from '../../../components/SiteFooter';
 import { API_BASE, getAuthHeaders } from '../../../utils/api';
@@ -21,12 +22,13 @@ import {
   mapPartnerToFptUnit,
   filterClubs,
   filterPartners,
-  sortClubs,
+  sortFptUnits,
   buildFptSummary,
 } from '../../../data/adminFptSystemData';
 import { getPartnerStatusLabel, partnerInitials } from '../../../utils/partnerDisplay';
 import { useTranslation } from '../../../i18n/I18nContext';
 import { mapSelectOptions, resolveLabel } from '../../../i18n/helpers';
+import '../../../styles/admin-dashboard.css';
 import '../../../styles/admin-public-pages.css';
 
 const PAGE_SIZE = 9;
@@ -63,7 +65,12 @@ const AdminFptSystem = ({ showToast }) => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name_asc');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [openMenu, setOpenMenu] = useState(null);
 
+  const quickLinkOptions = useMemo(
+    () => QUICK_LINKS.map((link) => ({ value: link.to, label: t(link.labelKey) })),
+    [t],
+  );
   const sortOptions = useMemo(() => mapSelectOptions(FPT_SORT_OPTIONS, t), [t]);
   const localizedDepartments = useMemo(
     () => departments.map((unit) => localizeDepartmentUnit(unit, t)),
@@ -133,21 +140,22 @@ const AdminFptSystem = ({ showToast }) => {
   const visibleDepartments = useMemo(() => {
     if (typeFilter === 'clb' || typeFilter === 'partner') return [];
     const source = localizedDepartments;
-    if (typeFilter === 'ctsv') return source.filter((d) => d.type === 'ctsv');
-    if (typeFilter === 'icpdp') return source.filter((d) => d.type === 'icpdp');
-    return source;
-  }, [localizedDepartments, typeFilter]);
+    let filtered = source;
+    if (typeFilter === 'ctsv') filtered = source.filter((d) => d.type === 'ctsv');
+    else if (typeFilter === 'icpdp') filtered = source.filter((d) => d.type === 'icpdp');
+    return sortFptUnits(filtered, sortBy);
+  }, [localizedDepartments, typeFilter, sortBy]);
 
   const filteredClubs = useMemo(() => {
     if (typeFilter === 'ctsv' || typeFilter === 'icpdp' || typeFilter === 'partner') return [];
     const filtered = filterClubs(clubs, searchQuery);
-    return sortClubs(filtered, sortBy);
+    return sortFptUnits(filtered, sortBy);
   }, [clubs, searchQuery, sortBy, typeFilter]);
 
   const filteredPartners = useMemo(() => {
     if (typeFilter === 'clb' || typeFilter === 'ctsv' || typeFilter === 'icpdp') return [];
     const filtered = filterPartners(partners, searchQuery);
-    return sortClubs(filtered, sortBy);
+    return sortFptUnits(filtered, sortBy);
   }, [partners, searchQuery, sortBy, typeFilter]);
 
   const visibleClubs = filteredClubs.slice(0, visibleCount);
@@ -158,6 +166,8 @@ const AdminFptSystem = ({ showToast }) => {
   const showClubSection = typeFilter === 'all' || typeFilter === 'clb';
   const showPartnerSection = typeFilter === 'all' || typeFilter === 'partner';
   const showDeptSection = typeFilter === 'all' || typeFilter === 'ctsv' || typeFilter === 'icpdp';
+  const showSortControl =
+    visibleDepartments.length > 0 || filteredClubs.length > 0 || filteredPartners.length > 0;
   const isEmpty =
     !loading &&
     visibleDepartments.length === 0 &&
@@ -231,11 +241,16 @@ const AdminFptSystem = ({ showToast }) => {
                 <h1>{t('admin.fpt.heroTitle')}</h1>
                 <p>{t('admin.fpt.heroDesc')}</p>
                 <div className="admin-fpt-hero__quick">
-                  {QUICK_LINKS.map((link) => (
-                    <button key={link.to} type="button" onClick={() => navigate(link.to)}>
-                      {t(link.labelKey)}
-                    </button>
-                  ))}
+                  <AdminFilterDropdown
+                    label=""
+                    triggerLabel={t('admin.fpt.quickAccess')}
+                    value=""
+                    options={quickLinkOptions}
+                    onChange={(to) => navigate(to)}
+                    menuOpen={openMenu === 'quick'}
+                    onMenuToggle={setOpenMenu}
+                    menuId="quick"
+                  />
                 </div>
               </div>
 
@@ -304,12 +319,13 @@ const AdminFptSystem = ({ showToast }) => {
               ))}
             </div>
 
-            {(showClubSection || showPartnerSection) && (
+            {showSortControl && (
               <div className="admin-fpt-toolbar__sort">
                 <label htmlFor="admin-fpt-sort">{t('admin.fpt.sortLabel')}</label>
                 <AppSelect
                   id="admin-fpt-sort"
                   value={sortBy}
+                  usePortal
                   onChange={(e) => {
                     setSortBy(e.target.value);
                     setVisibleCount(PAGE_SIZE);

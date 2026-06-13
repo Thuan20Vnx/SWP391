@@ -191,17 +191,18 @@ export const filterClubs = (clubs, search = '') => {
   });
 };
 
-export const sortClubs = (clubs, sortBy = 'name_asc') => {
-  const list = [...clubs];
+export const sortFptUnits = (units, sortBy = 'name_asc') => {
+  const list = [...units];
   const byName = (a, b, dir) => {
-    const cmp = a.name.localeCompare(b.name, 'vi');
+    const cmp = String(a.name || '').localeCompare(String(b.name || ''), 'vi');
     return dir === 'desc' ? -cmp : cmp;
   };
+  const getMemberCount = (unit) => unit.memberCount ?? unit.staffCount ?? 0;
 
   list.sort((a, b) => {
     if (sortBy === 'name_desc') return byName(a, b, 'desc');
     if (sortBy === 'members_desc') {
-      const diff = (b.memberCount ?? 0) - (a.memberCount ?? 0);
+      const diff = getMemberCount(b) - getMemberCount(a);
       return diff !== 0 ? diff : byName(a, b, 'asc');
     }
     if (sortBy === 'newest') {
@@ -214,6 +215,9 @@ export const sortClubs = (clubs, sortBy = 'name_asc') => {
 
   return list;
 };
+
+/** @deprecated use sortFptUnits */
+export const sortClubs = sortFptUnits;
 
 export const buildFptSummary = ({
   clubs = [],

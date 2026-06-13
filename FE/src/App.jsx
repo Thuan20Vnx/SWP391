@@ -70,6 +70,7 @@ import EventManagementDetail from './pages/EventManagementDetail';
 import QrScanPage from './pages/QrScanPage';
 
 import { ToastContainer } from './components/Toast';
+import GlobalChatbot from './components/GlobalChatbot';
 import PartnerLayout from './layouts/PartnerLayout';
 import PartnerHome from './pages/PartnerHome';
 import PartnerDashboard from './pages/partner/PartnerDashboard';
@@ -482,6 +483,7 @@ function App() {
 
           <Route path="*" element={<Navigate to={getHomePathForRole(getUserRole())} replace />} />
         </Routes>
+        <GlobalChatbot />
         </SystemMaintenanceGate>
       </div>
     </Router>

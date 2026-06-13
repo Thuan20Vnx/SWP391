@@ -160,8 +160,9 @@ const AdminTopHeader = ({
             </div>
           </div>
           <nav
-            className={`header-nav site-header__nav ctsv-header-nav${mobileMenuOpen ? ' mobile-active' : ''}`}
+            className={`header-nav site-header__nav ctsv-header-nav admin-header-mobile-nav${mobileMenuOpen ? ' mobile-active' : ''}`}
             aria-label={t('header.navigation')}
+            aria-hidden={!mobileMenuOpen}
           >
             {NAV_ITEMS.map((item) => (
               <Link

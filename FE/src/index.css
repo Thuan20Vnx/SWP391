@@ -4167,6 +4167,20 @@ a.club-tag {
 }
 
 @media (max-width: 900px) {
+  .site-header--with-shell .site-header__logo .logo-img,
+  .site-header--with-shell .ctsv-header-logo .logo-img {
+    height: 32px;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .site-header--with-shell .ctsv-header-logo.is-collapsed {
+    max-width: 72px;
+    opacity: 1;
+    margin: 0;
+    pointer-events: auto;
+  }
+
   .header-notif-panel,
   .profile-menu-dropdown {
     right: 16px;
@@ -4194,6 +4208,23 @@ a.club-tag {
     flex-direction: column;
     gap: 12px;
     text-align: center;
+  }
+  .chatbot-floating-wrapper {
+    bottom: 20px;
+    right: 16px;
+    z-index: 1300;
+  }
+  .chatbot-fab-btn {
+    height: 52px;
+    padding: 0 16px 0 12px;
+    gap: 8px;
+  }
+  .chatbot-fab-btn.fab-active {
+    width: 52px;
+    height: 52px;
+  }
+  .fab-text {
+    font-size: 0.8125rem;
   }
   .chatbot-window {
     width: calc(100vw - 32px);
@@ -4884,6 +4915,37 @@ a.club-tag {
   color: var(--primary, #f26f21);
 }
 
+.nav-hub__qr-btn--detailed {
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.nav-hub__qr-btn-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.nav-hub__qr-btn-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--primary, #f26f21);
+}
+
+.nav-hub__qr-btn--detailed .nav-hub__item-hint {
+  color: #94a3b8;
+}
+
+.nav-hub__qr-btn--detailed .nav-hub__badge {
+  margin-left: auto;
+}
+
 .club-switch-modal {
   position: fixed;
   inset: 0;
@@ -5204,8 +5266,8 @@ a.club-tag {
 }
 
 .settings-sidebar__heading {
-  display: none;
-  margin: 0 0 12px;
+  display: block;
+  margin: 0 0 10px;
   padding: 0 12px;
   font-size: 0.68rem;
   font-weight: 700;
@@ -5216,15 +5278,15 @@ a.club-tag {
 
 @media (min-width: 768px) {
   .settings-sidebar__heading {
-    display: block;
+    margin-bottom: 12px;
   }
 }
 
 .settings-sidebar__nav {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 4px;
-  overflow-x: auto;
+  overflow: visible;
   padding: 8px;
   scrollbar-width: thin;
   background: #fff;
@@ -5233,21 +5295,12 @@ a.club-tag {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
-@media (min-width: 768px) {
-  .settings-sidebar__nav {
-    flex-direction: column;
-    overflow-x: visible;
-    padding: 8px;
-  }
-}
-
 .settings-sidebar__item {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0;
   width: 100%;
-  min-width: max-content;
+  min-width: 0;
   padding: 10px 12px;
   border: none;
   border-radius: 8px;
@@ -5259,12 +5312,6 @@ a.club-tag {
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
   text-align: left;
-}
-
-@media (min-width: 768px) {
-  .settings-sidebar__item {
-    min-width: 0;
-  }
 }
 
 .settings-sidebar__item:hover {

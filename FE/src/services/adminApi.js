@@ -108,6 +108,11 @@ export const fetchAdminDataOverview = async () => {
 
 export const fetchAdminDashboardStats = () => adminFetch('/dashboard/stats');
 
+export const fetchAdminAnalytics = (period = 'month') =>
+  adminFetch(`/analytics?period=${encodeURIComponent(period)}`);
+
+export const fetchSystemHealth = () => adminFetch('/system-health');
+
 export const fetchAdminUnitEvents = ({ unitType, unitId, scope = 'unit' } = {}) => {
   const params = new URLSearchParams({ scope });
   if (scope === 'unit' && unitType && unitId) {

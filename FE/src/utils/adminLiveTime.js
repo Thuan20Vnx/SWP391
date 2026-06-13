@@ -56,6 +56,18 @@ export const formatRelativeSeconds = (seconds, language) => {
   return `${days} ngày trước`;
 };
 
+export const secondsSince = (isoDate, now = new Date()) => {
+  if (!isoDate) return 0;
+  const then = isoDate instanceof Date ? isoDate : new Date(isoDate);
+  if (Number.isNaN(then.getTime())) return 0;
+  return Math.max(0, Math.floor((now.getTime() - then.getTime()) / 1000));
+};
+
+export const formatLatency = (ms) => {
+  if (ms == null || Number.isNaN(Number(ms))) return '—';
+  return `${Math.round(Number(ms))}ms`;
+};
+
 export const formatHourRange = (hourStart) => {
   const pad = (n) => String(n).padStart(2, '0');
   const end = (hourStart + 1) % 24;

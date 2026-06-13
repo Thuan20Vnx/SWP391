@@ -25,6 +25,7 @@ const SiteFooter = () => {
   const isStudentLike = isLoggedIn && !isAdminRole(role) && !staffPortalRoles.includes(role);
   const portalHome = getHomePathForRole(role);
   const year = new Date().getFullYear();
+  const contactEmail = isAdminRole(role) ? FOOTER_CONTACT.adminEmail : FOOTER_CONTACT.ctsvEmail;
 
   return (
     <footer className="home-footer">
@@ -36,7 +37,7 @@ const SiteFooter = () => {
           <p className="footer-brand-desc">{t('footer.desc')}</p>
           <ul className="footer-contact-list">
             <li>
-              <a href={`mailto:${FOOTER_CONTACT.ctsvEmail}`}>{FOOTER_CONTACT.ctsvEmail}</a>
+              <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
             </li>
             <li>
               <a href={`tel:${FOOTER_CONTACT.hotline.replace(/\s/g, '')}`}>{FOOTER_CONTACT.hotline}</a>

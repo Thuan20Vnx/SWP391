@@ -20,6 +20,7 @@ export const FOOTER_SOCIAL_LINKS = [
 
 export const FOOTER_CONTACT = {
   ctsvEmail: 'ctsv@fpt.edu.vn',
+  adminEmail: 'qtv@fpt.edu.vn',
   supportEmail: 'fevents-support@fpt.edu.vn',
   hotline: '0236 3 757 757',
   address: 'FPT University Đà Nẵng, Khu đô thị FPT, Ngũ Hành Sơn',

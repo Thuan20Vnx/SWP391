@@ -237,18 +237,6 @@ const Clubs = ({ showToast }) => {
       </main>
 
       <SiteFooter />
-
-      <button
-        type="button"
-        className="clubs-page__fab"
-        aria-label={t('clubs.fabLabel')}
-        onClick={() => navigate('/support')}
-      >
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-          <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6z" />
-        </svg>
-        {t('clubs.fabText')}
-      </button>
     </div>
     </PublicAdminShell>
   );

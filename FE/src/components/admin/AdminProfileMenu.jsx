@@ -65,8 +65,9 @@ const AdminProfileMenu = ({
         ]}
         cta={
           <NavHubCtaButton
-            icon={<NavHubIcon size={16}>{navIcons.plus}</NavHubIcon>}
+            icon={<NavHubIcon size={16}>{navIcons.ecosystem}</NavHubIcon>}
             label={t('admin.profileMenu.fptSystem')}
+            hint={t('admin.profileMenu.fptSystemHint')}
             onClick={act('fpt-system')}
           />
         }

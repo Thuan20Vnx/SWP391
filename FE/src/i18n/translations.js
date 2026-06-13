@@ -110,6 +110,7 @@ const coreVi = {
   'admin.profileMenu.events': 'Duyệt sự kiện',
   'admin.profileMenu.eventsHint': 'Đề xuất & yêu cầu sửa',
   'admin.profileMenu.fptSystem': 'Hệ thống FPT',
+  'admin.profileMenu.fptSystemHint': 'CLB · CTSV · IC-PDP · Đối tác',
   'admin.profileMenu.settingsHint': 'Bảo mật, thông báo, giao diện',
   'admin.profileMenu.roleLabel': 'Admin hệ thống',
 
@@ -225,6 +226,7 @@ const coreEn = {
   'admin.profileMenu.events': 'Event approval',
   'admin.profileMenu.eventsHint': 'Proposals & edit requests',
   'admin.profileMenu.fptSystem': 'FPT System',
+  'admin.profileMenu.fptSystemHint': 'Clubs · CTSV · IC-PDP · Partners',
   'admin.profileMenu.settingsHint': 'Security, notifications, appearance',
   'admin.profileMenu.roleLabel': 'System Admin',
 

@@ -8,6 +8,7 @@ import {
   getAnalyticsViewAllMeta,
 } from '../../data/adminAnalyticsData';
 import useAdminAnalyticsLiveData from '../../hooks/useAdminAnalyticsLiveData';
+import { downloadAdminAnalyticsReport } from '../../utils/exportAdminAnalyticsReport';
 import { useTranslation } from '../../i18n/I18nContext';
 import { mapSelectOptions, resolveLabel } from '../../i18n/helpers';
 import { getUserRole, isAdminRole } from '../../utils/auth';
@@ -114,6 +115,9 @@ const AdminAnalytics = () => {
     maxStarCount,
     maxCategoryReviews,
     now,
+    loading,
+    exportPayload,
+    periodLabel,
   } = live;
 
   const periodOptions = useMemo(() => mapSelectOptions(ADMIN_ANALYTICS_PERIODS, t), [t]);
@@ -162,7 +166,21 @@ const AdminAnalytics = () => {
   }, [role, navigate, showToast, t]);
 
   const handleExport = () => {
-    showToast?.(t('admin.analytics.exportToast'), 'info');
+    if (!exportPayload || loading) {
+      showToast?.(t('admin.analytics.exportEmpty'), 'error');
+      return;
+    }
+    try {
+      const activePeriodLabel =
+        periodOptions.find((opt) => opt.value === period)?.label || periodLabel || period;
+      downloadAdminAnalyticsReport(exportPayload, {
+        periodLabel: activePeriodLabel,
+        language,
+      });
+      showToast?.(t('admin.analytics.exportSuccess'), 'success');
+    } catch {
+      showToast?.(t('admin.analytics.exportFail'), 'error');
+    }
   };
 
   const openSection = (section) => () => setViewAllSection(section);
@@ -194,13 +212,17 @@ const AdminAnalytics = () => {
                 </button>
               ))}
             </div>
-            <button type="button" className="admin-analytics-export" onClick={handleExport}>
+            <button type="button" className="admin-analytics-export" onClick={handleExport} disabled={loading}>
               <IconExport />
               {t('admin.analytics.export')}
             </button>
           </div>
         </header>
 
+        {loading ? (
+          <p className="admin-page-header__clock">{t('admin.analytics.loading')}</p>
+        ) : (
+          <>
         <section className="admin-analytics-kpis" aria-label={t('admin.analytics.kpisAria')}>
           <article className="admin-stat-card admin-analytics-kpi">
             <p className="admin-stat-card__label">{t('admin.analytics.kpi.avgRating')}</p>
@@ -389,6 +411,8 @@ const AdminAnalytics = () => {
             ))}
           </ul>
         </AnalyticsPanel>
+          </>
+        )}
       </div>
 
       <AdminAnalyticsViewAllModal

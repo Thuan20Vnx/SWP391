@@ -290,25 +290,39 @@
 
 .admin-fpt-hero__quick {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  max-width: 240px;
 }
 
-.admin-fpt-hero__quick button {
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid #e8dfd8;
-  background: #fff;
-  color: var(--text-main);
-  font-size: 0.82rem;
+.admin-fpt-hero__quick .admin-filter-dropdown {
+  width: 100%;
+  gap: 0;
+}
+
+.admin-fpt-hero__quick .admin-log-filter-label:empty {
+  display: none;
+}
+
+.admin-fpt-hero__quick .admin-filter-dropdown__trigger {
+  height: 40px;
+  padding: 0 14px 0 16px;
+  border-radius: 9999px;
+  border-color: #e0c0b2;
+  font-size: 0.8125rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  color: #584238;
 }
 
-.admin-fpt-hero__quick button:hover {
+.admin-fpt-hero__quick .admin-filter-dropdown__trigger:hover,
+.admin-fpt-hero__quick .admin-filter-dropdown__trigger--open {
   border-color: var(--primary);
-  color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.1);
+}
+
+.admin-fpt-hero__quick .admin-filter-dropdown__menu {
+  min-width: 100%;
+  width: max-content;
+  max-width: min(100vw - 32px, 320px);
 }
 
 .admin-fpt-hero__stats {
@@ -606,6 +620,8 @@
   align-items: center;
   gap: 8px;
   margin-left: auto;
+  position: relative;
+  z-index: 20;
 }
 
 .admin-fpt-toolbar__sort label {
@@ -617,6 +633,7 @@
 
 .admin-fpt-toolbar__sort .app-select {
   min-width: 150px;
+  position: relative;
 }
 
 .admin-fpt-list {

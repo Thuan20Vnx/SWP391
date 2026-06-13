@@ -241,6 +241,46 @@ const sendPartnerAdminNoticeEmail = async ({ to, partnerName, title, content, ad
   });
 };
 
+let smtpVerifyCache = { checkedAt: 0, result: null };
+const SMTP_VERIFY_CACHE_MS = 30_000;
+
+const verifySmtpConnection = async () => {
+  const now = Date.now();
+  if (smtpVerifyCache.result && now - smtpVerifyCache.checkedAt < SMTP_VERIFY_CACHE_MS) {
+    return smtpVerifyCache.result;
+  }
+
+  const started = Date.now();
+  const usingRealSmtp = hasSmtpCredentials();
+  const host = usingRealSmtp ? 'smtp.gmail.com:587' : 'ethereal.email';
+
+  try {
+    const transporter = await getTransporter();
+    await transporter.verify();
+    const result = {
+      status: 'online',
+      latencyMs: Date.now() - started,
+      host,
+      mode: usingRealSmtp ? 'gmail' : 'ethereal',
+      user: usingRealSmtp ? String(process.env.EMAIL_USER).trim() : 'Ethereal (test)',
+      detail: usingRealSmtp ? 'Gmail SMTP · App Password' : 'Ethereal test account',
+    };
+    smtpVerifyCache = { checkedAt: now, result };
+    return result;
+  } catch (err) {
+    const result = {
+      status: usingRealSmtp ? 'offline' : 'degraded',
+      latencyMs: null,
+      host,
+      mode: usingRealSmtp ? 'gmail' : 'ethereal',
+      user: usingRealSmtp ? String(process.env.EMAIL_USER || '').trim() : '—',
+      detail: err.message || 'SMTP verify failed',
+    };
+    smtpVerifyCache = { checkedAt: now, result };
+    return result;
+  }
+};
+
 module.exports = {
   sendOtpEmail,
   sendActivationEmail,
@@ -248,4 +288,5 @@ module.exports = {
   sendMail,
   sendPartnerTerminationEmail,
   sendPartnerAdminNoticeEmail,
+  verifySmtpConnection,
 };

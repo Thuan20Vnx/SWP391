@@ -57,10 +57,24 @@ export const NavHubMenuSection = ({ title, items = [], cta = null }) => {
   );
 };
 
-export const NavHubCtaButton = ({ icon, label, className = '', onClick }) => (
-  <button type="button" className={`nav-hub__qr-btn ${className}`.trim()} onClick={onClick}>
+export const NavHubCtaButton = ({ icon, label, hint, badge, className = '', onClick }) => (
+  <button
+    type="button"
+    className={`nav-hub__qr-btn${hint ? ' nav-hub__qr-btn--detailed' : ''} ${className}`.trim()}
+    onClick={onClick}
+  >
     {icon}
-    <span>{label}</span>
+    {hint ? (
+      <span className="nav-hub__qr-btn-text">
+        <span className="nav-hub__qr-btn-label">{label}</span>
+        <span className="nav-hub__item-hint">{hint}</span>
+      </span>
+    ) : (
+      <span>{label}</span>
+    )}
+    {badge != null && Number(badge) > 0 ? (
+      <span className="nav-hub__badge">{Number(badge) > 99 ? '99+' : badge}</span>
+    ) : null}
   </button>
 );
 
@@ -152,6 +166,14 @@ export const navIcons = {
     <>
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
+    </>
+  ),
+  ecosystem: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
     </>
   ),
   qr: (
