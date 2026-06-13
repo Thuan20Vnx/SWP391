@@ -809,6 +809,7 @@
 .icpdp-app-shell .ctsv-reports-phase-chip.is-active {
   background: var(--icpdp-accent);
   border-color: var(--icpdp-accent);
+  color: #ffffff !important;
 }
 .icpdp-app-shell .ctsv-reports-fill-progress {
   background: var(--icpdp-accent);
