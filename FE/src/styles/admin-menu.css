@@ -337,7 +337,7 @@
 
 .site-header__nav-toggle:hover,
 .site-header__nav-toggle[aria-expanded='true'] {
-  color: var(--primary);
+  color: #f26f21;
   background: transparent;
 }
 
@@ -497,10 +497,10 @@
     height: 32px;
     padding: 0 10px 0 12px;
     gap: 4px;
-    border: 1px solid rgba(242, 111, 33, 0.2);
+    border: 1px solid rgba(242, 111, 33, 0.28);
     border-radius: 999px;
-    background: rgba(242, 111, 33, 0.06);
-    color: var(--text-nav);
+    background: rgba(242, 111, 33, 0.08);
+    color: #f26f21;
     font-size: 0.78rem;
     font-weight: 600;
     line-height: 1;
@@ -517,9 +517,9 @@
 
   .site-header--with-shell .site-header__nav-toggle:hover,
   .site-header--with-shell .site-header__nav-toggle[aria-expanded='true'] {
-    border-color: rgba(242, 111, 33, 0.42);
-    background: rgba(242, 111, 33, 0.12);
-    color: var(--primary);
+    border-color: rgba(242, 111, 33, 0.45);
+    background: rgba(242, 111, 33, 0.14);
+    color: #f26f21;
   }
 
   .site-header--with-shell .header-actions {
