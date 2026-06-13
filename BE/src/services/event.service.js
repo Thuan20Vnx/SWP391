@@ -15,6 +15,7 @@ const {
 } = require('../utils/ticketTypes');
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 const { findClubManagedBy, findManagedClubs, resolveManagedClub } = require('./club.service');
+const { applyEventTextSearch, normalizeSearchTerm } = require('../utils/eventSearch');
 
 /** Trạng thái chờ duyệt (đồng bộ với luồng CTSV / CLB) */
 const PENDING_EVENT_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'revision'];
@@ -298,18 +299,44 @@ const updateEventStatus = async (eventId, { status, rejectionReason }) => {
   };
 };
 
-const getApprovedEvents = async ({ category, user } = {}) => {
+const resolveClubRef = async (idOrSlug) => {
+  const raw = String(idOrSlug || '').trim();
+  if (!raw) return null;
+  if (mongoose.Types.ObjectId.isValid(raw)) {
+    const byId = await Club.findById(raw).select('_id').lean();
+    if (byId) return byId;
+  }
+  return Club.findOne({ slug: raw }).select('_id').lean();
+};
+
+const getApprovedEvents = async ({ category, search, q, club, user } = {}) => {
   const query = {
     status: { $in: SCHOOL_EVENT_PUBLIC_STATUSES },
     isHidden: { $ne: true },
     isDeleted: { $ne: true },
   };
-  if (category && category !== 'all') {
-    query.category = category;
+
+  const categoryValue = String(category || '').trim();
+  if (categoryValue && categoryValue !== 'all' && categoryValue !== 'Tất cả') {
+    query.category = categoryValue;
   }
 
+  const clubRef = String(club || '').trim();
+  if (clubRef) {
+    const clubDoc = await resolveClubRef(clubRef);
+    if (!clubDoc) {
+      return { events: [], total: 0 };
+    }
+    query.clubId = clubDoc._id;
+  }
+
+  const searchTerm = normalizeSearchTerm(search || q);
+  const finalQuery = searchTerm
+    ? await applyEventTextSearch(query, searchTerm, { Club })
+    : query;
+
   const [events, registeredIds] = await Promise.all([
-    Event.find(query)
+    Event.find(finalQuery)
       .select(EVENT_PUBLIC_LIST_FIELDS)
       .populate('createdBy', 'fullname email')
       .sort({ startDate: 1 })
@@ -330,7 +357,7 @@ const getApprovedEvents = async ({ category, user } = {}) => {
 
   const eventsWithClubMeta = await attachClubMetaBatch(eventsWithRegistration);
 
-  return { events: eventsWithClubMeta };
+  return { events: eventsWithClubMeta, total: eventsWithClubMeta.length };
 };
 
 const getEventById = async (eventId, { user, activeClubId } = {}) => {

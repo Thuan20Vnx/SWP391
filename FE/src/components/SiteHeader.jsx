@@ -72,6 +72,8 @@ const SiteHeader = ({
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [mobileSearchDraft, setMobileSearchDraft] = useState('');
+  const wasMobileSearchOpenRef = useRef(false);
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
   const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -285,19 +287,35 @@ const SiteHeader = ({
     };
   }, [mobileSearchOpen]);
 
+  useEffect(() => {
+    if (mobileSearchOpen && !wasMobileSearchOpenRef.current) {
+      setMobileSearchDraft(searchValue);
+    }
+    wasMobileSearchOpenRef.current = mobileSearchOpen;
+  }, [mobileSearchOpen, searchValue]);
+
   const hasSearchHandler = typeof onSearchChange === 'function';
   const showMobileSearch = hasSearchHandler;
   const searchToggleLabel = mobileSearchOpen ? 'Đóng tìm kiếm' : 'Mở tìm kiếm';
   const mobileSearchSuggestions = resolveMobileSearchSuggestions(activeNav, pathname, isAdminRoute);
   const trimmedSearchValue = searchValue.trim();
+  const trimmedMobileDraft = mobileSearchDraft.trim();
+  const hasPendingMobileSearch = trimmedMobileDraft !== trimmedSearchValue;
+
+  const handleMobileSearchSubmit = () => {
+    if (!hasPendingMobileSearch) return;
+    onSearchChange?.(trimmedMobileDraft);
+    setMobileSearchOpen(false);
+  };
 
   const handleMobileSuggestion = (term) => {
+    setMobileSearchDraft(term);
     onSearchChange?.(term);
-    mobileSearchInputRef.current?.focus();
+    setMobileSearchOpen(false);
   };
 
   const handleClearMobileSearch = () => {
-    onSearchChange?.('');
+    setMobileSearchDraft('');
     mobileSearchInputRef.current?.focus();
   };
   const activeNavItem = navItems.find((item) => isNavItemActive(item)) ?? navItems[0];
@@ -372,16 +390,18 @@ const SiteHeader = ({
               <div className="ctsv-header-brand">
                 {onTogglePortalSidebar ? (
                   <CtsvHamburgerButton
+                    className="mobile-hamburger-btn"
                     onClick={onTogglePortalSidebar}
                     expanded={portalSidebarOpen}
                     ariaLabel={portalSidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
                   />
                 ) : (
-                  <button type="button" className="admin-hamburger-btn" onClick={toggleAdminMenu} aria-label={menuOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'} aria-expanded={menuOpen}>
-                    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                      {menuOpen ? <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor" /> : <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />}
-                    </svg>
-                  </button>
+                  <CtsvHamburgerButton
+                    className="mobile-hamburger-btn"
+                    onClick={toggleAdminMenu}
+                    expanded={menuOpen}
+                    ariaLabel={menuOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'}
+                  />
                 )}
                 {renderLogo(false)}
               </div>
@@ -416,17 +436,14 @@ const SiteHeader = ({
         ) : (
           <>
             {!isAdminPortal && (
-              <button
-                type="button"
+              <CtsvHamburgerButton
                 className="mobile-hamburger-btn"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
-                aria-expanded={mobileMenuOpen}
-              >
-                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" /></svg>
-              </button>
+                expanded={mobileMenuOpen}
+                ariaLabel={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
+              />
             )}
-            <div className="header-logo site-header__logo-group">
+            <div className="header-logo site-header__logo-group site-header__primary">
               {renderLogo(false)}
               {renderNav()}
             </div>
@@ -611,7 +628,13 @@ const SiteHeader = ({
         aria-modal="true"
         aria-label="Tìm kiếm"
       >
-        <div className="site-header__mobile-search-sheet-head">
+        <form
+          className="site-header__mobile-search-sheet-head"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleMobileSearchSubmit();
+          }}
+        >
           <button
             type="button"
             className="site-header__mobile-search-cancel"
@@ -630,17 +653,13 @@ const SiteHeader = ({
               type="search"
               name="site-header-mobile-search"
               placeholder={resolvedSearchPlaceholder}
-              value={searchValue}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              onKeyDown={(e) => {
-                onSearchKeyDown?.(e);
-                if (e.key === 'Enter') setMobileSearchOpen(false);
-              }}
+              value={mobileSearchDraft}
+              onChange={(e) => setMobileSearchDraft(e.target.value)}
               className="site-header__mobile-search-input"
               enterKeyHint="search"
               autoComplete="off"
             />
-            {trimmedSearchValue && (
+            {trimmedMobileDraft && (
               <button
                 type="button"
                 className="site-header__mobile-search-clear"
@@ -653,10 +672,30 @@ const SiteHeader = ({
               </button>
             )}
           </div>
-        </div>
+          <button
+            type="submit"
+            className="site-header__mobile-search-submit"
+            disabled={!hasPendingMobileSearch}
+            aria-label="Tìm kiếm"
+          >
+            Tìm kiếm
+          </button>
+        </form>
 
         <div className="site-header__mobile-search-body">
-          {!trimmedSearchValue ? (
+          {hasPendingMobileSearch ? (
+            <p className="site-header__mobile-search-hint">
+              {trimmedMobileDraft ? (
+                <>
+                  Nhấn <strong>Tìm kiếm</strong> để lọc theo từ khóa <strong>{trimmedMobileDraft}</strong>.
+                </>
+              ) : (
+                <>
+                  Nhấn <strong>Tìm kiếm</strong> để bỏ bộ lọc hiện tại.
+                </>
+              )}
+            </p>
+          ) : !trimmedSearchValue ? (
             <>
               <p className="site-header__mobile-search-label">Gợi ý tìm kiếm</p>
               <div className="site-header__mobile-search-chips">
@@ -674,7 +713,7 @@ const SiteHeader = ({
             </>
           ) : (
             <p className="site-header__mobile-search-hint">
-              Kết quả được lọc theo từ khóa <strong>{trimmedSearchValue}</strong>. Nhấn Enter hoặc Hủy để xem danh sách.
+              Đang lọc theo từ khóa <strong>{trimmedSearchValue}</strong>. Nhấn Hủy để xem danh sách.
             </p>
           )}
         </div>

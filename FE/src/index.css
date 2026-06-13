@@ -2786,6 +2786,11 @@ a.club-tag {
   justify-content: space-between;
 }
 
+.home-header.site-header .header-container.site-header__container {
+  max-width: none;
+  margin: 0;
+}
+
 .mobile-hamburger-btn {
   display: none;
 }
@@ -2814,7 +2819,8 @@ a.club-tag {
 .site-header__search {
   flex: 1;
   max-width: 608px;
-  margin: 0 16px;
+  margin: 0;
+  min-width: 0;
 }
 
 .site-header__search-input {
@@ -4285,12 +4291,15 @@ a.club-tag {
 
 /* Large / external monitors */
 @media (min-width: 1440px) {
-  .header-search-box {
-    max-width: 380px;
+  .site-header:not(.site-header--with-shell):not(.site-header--admin) .site-header__search {
+    flex-basis: clamp(260px, 22vw, 400px);
+    width: clamp(260px, 22vw, 400px);
+    max-width: 400px;
   }
 
-  .header-nav {
-    gap: 32px;
+  .header-nav,
+  .site-header__nav {
+    gap: 28px;
   }
 
   .event-grid-cards {
@@ -4311,7 +4320,9 @@ a.club-tag {
     font-size: 3.75rem;
   }
 
-  .header-search-box {
+  .site-header:not(.site-header--with-shell):not(.site-header--admin) .site-header__search {
+    flex-basis: clamp(280px, 20vw, 420px);
+    width: clamp(280px, 20vw, 420px);
     max-width: 420px;
   }
 }
@@ -4428,9 +4439,13 @@ a.club-tag {
   }
 
   .site-header__logo-group {
-    flex: 1;
+    gap: 0;
+  }
+
+  .site-header:not(.site-header--with-shell) .site-header__logo-group {
+    flex: unset;
     min-width: 0;
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .logo-img {
@@ -4490,7 +4505,7 @@ a.club-tag {
   }
 
   .site-header:not(.site-header--with-shell) .mobile-hamburger-btn {
-    display: block;
+    display: inline-flex;
   }
 
   .ctsv-portal-layout .ctsv-header-nav {
@@ -4554,30 +4569,8 @@ a.club-tag {
     min-width: 0;
   }
 
-  .site-header:not(.site-header--with-shell) .site-header__container {
-    display: grid;
-    grid-template-columns: 40px minmax(0, 1fr) auto;
-    grid-template-areas: 'menu brand actions';
-    align-items: center;
-  }
-
-  .site-header:not(.site-header--with-shell) .mobile-hamburger-btn {
-    grid-area: menu;
-  }
-
-  .site-header:not(.site-header--with-shell) .site-header__logo-group {
-    grid-area: brand;
-    justify-self: center;
-    flex: unset;
-    min-width: 0;
-  }
-
-  .site-header:not(.site-header--with-shell) .header-actions {
-    grid-area: actions;
-  }
-
   .site-header .logo-img {
-    height: 34px;
+    height: 32px;
   }
 
   .header-actions {
@@ -8057,29 +8050,6 @@ a.club-tag {
   color: #49454f;
 }
 
-.events-page__fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: none;
-  background: var(--primary);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 10px 25px rgba(242, 111, 33, 0.35);
-  z-index: 900;
-  transition: transform 0.2s ease;
-}
-
-.events-page__fab:hover {
-  transform: scale(1.05);
-}
-
 @media (max-width: 1100px) {
   .event-discovery-grid,
   .events-page__grid {
@@ -8117,7 +8087,7 @@ a.club-tag {
   }
 
   .site-header:not(.site-header--with-shell) .mobile-hamburger-btn {
-    display: block;
+    display: inline-flex;
   }
 
   .site-header__search {
@@ -10445,6 +10415,16 @@ a.club-tag {
 
 .ctsv-portal-hamburger__icon--chevron {
   display: none;
+}
+
+@media (max-width: 900px) {
+  .home-header .ctsv-portal-hamburger__icon--menu {
+    display: none;
+  }
+
+  .home-header .ctsv-portal-hamburger__icon--chevron {
+    display: block;
+  }
 }
 
 @media (max-width: 768px) {
