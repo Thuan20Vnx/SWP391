@@ -13,7 +13,8 @@ const PartnerSidebarAside = ({
   sidebarOpen,
   onClose,
   userProfile,
-  pathname
+  pathname,
+  onLogout
 }) => {
   const renderNavItems = () => {
     const out = [];

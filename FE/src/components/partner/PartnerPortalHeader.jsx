@@ -31,12 +31,14 @@ const NAV_LINKS = [
 
 const PARTNER_MENU_ROUTES = {
   profile: '/partner/profile',
+  settings: '/partner/settings',
   events: '/partner/events',
   contracts: '/partner/contracts',
   'create-proposal': '/partner/proposals/create'
 };
 
 const resolveActiveMenuItem = (pathname) => {
+  if (pathname.startsWith('/partner/settings')) return 'settings';
   if (pathname.startsWith('/partner/profile')) return 'profile';
   if (pathname.startsWith('/partner/join/events')) return '';
   if (pathname.startsWith('/partner/events')) return 'events';
@@ -79,11 +81,11 @@ const PartnerPortalHeader = ({
   useCloseOnClickOutside(profileRef, profilePopupOpen, () => setProfilePopupOpen(false));
 
   const handleLogout = () => {
-    setProfilePopupOpen(false);
     logoutWithConfirm(navigate, {
       showToast,
       toastMessage: 'Đã đăng xuất tài khoản đối tác.'
     });
+    setProfilePopupOpen(false);
   };
 
   const handleProfileMenuAction = (action) => {
@@ -103,6 +105,7 @@ const PartnerPortalHeader = ({
           <div className="ctsv-header-brand">
             <CtsvHamburgerButton
               onClick={onToggleSidebar}
+              expanded={sidebarOpen}
               ariaLabel={sidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
             />
             <div
