@@ -21,6 +21,7 @@ const STAT_STYLES = [
 
 const QUICK_ACTIONS = [
   { path: '/icpdp/proposals', label: 'Duyệt đề xuất CLB', desc: 'Xét duyệt nội bộ', icon: 'publish' },
+  { path: '/icpdp/events/create', label: 'Tạo sự kiện cấp trường', desc: 'Gửi đơn như CTSV', icon: 'create' },
   { path: '/icpdp/events', label: 'Xem sự kiện', desc: 'Tất cả sự kiện', icon: 'calendar' },
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', desc: 'Lịch tổng hợp', icon: 'calendar' },
   { path: '/icpdp/reports', label: 'Báo cáo sau SK', desc: 'Tổng hợp kết quả', icon: 'reports' }

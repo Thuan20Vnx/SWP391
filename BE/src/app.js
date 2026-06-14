@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const apiRoutes = require('./routes');
+const dbReady = require('./middleware/dbReady');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const { CLIENT_ORIGIN } = require('./config/env');
 
@@ -31,7 +32,7 @@ app.get('/', (req, res) => {
   res.send('SWP391 API Server is running...');
 });
 
-app.use('/api', apiRoutes);
+app.use('/api', dbReady, apiRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

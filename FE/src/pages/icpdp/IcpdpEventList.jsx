@@ -165,6 +165,9 @@ const IcpdpEventList = () => {
             <span className="ctsv-events-hero-stat-num">{loading ? '—' : filtered.length}</span>
             <span className="ctsv-events-hero-stat-label">Sự kiện</span>
           </div>
+          <Link to="/icpdp/events/create" className="ctsv-events-hero-cta">
+            Tạo sự kiện cấp trường
+          </Link>
         </div>
       </header>
 

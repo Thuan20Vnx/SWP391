@@ -1,32 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import fptLogo from '../../assets/fpt_logo.png';
+import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 import defaultAvatar from '../../constants/defaultAvatar';
-import ProfileSidebarMenu from '../ProfileSidebarMenu';
+import AdminProfileMenu from './AdminProfileMenu';
 import HeaderNotificationPanel from '../HeaderNotificationPanel';
 import useUserProfile, { clearUserProfileCache } from '../../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../../utils/authEvents';
 import { getRoleLabel } from '../../utils/role';
+import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../../data/adminPublicNav';
 import '../../styles/admin-menu.css';
 
-const NAV_ITEMS = [
-  { key: 'home', label: 'Trang chủ', to: '/' },
-  { key: 'events', label: 'Sự kiện', to: '/events' },
-  { key: 'clubs', label: 'Câu lạc bộ', to: '/clubs' },
-  { key: 'news', label: 'Tin tức', to: '/announcements' },
-  { key: 'admin', label: 'Quản trị viên', to: '/admin' },
-];
+const NAV_ITEMS = ADMIN_PUBLIC_NAV_ITEMS;
 
-const isNavActive = (key, pathname) => {
-  if (key === 'admin') {
-    return pathname === '/admin' || pathname.startsWith('/admin/');
-  }
-  if (key === 'home') return pathname === '/';
-  if (key === 'events') return pathname.startsWith('/events');
-  if (key === 'clubs') return pathname.startsWith('/clubs');
-  if (key === 'news') return pathname.startsWith('/announcements');
-  return false;
-};
+const isNavActive = isAdminPublicNavActive;
 
 const AdminTopHeader = ({
   searchPlaceholder = 'Tìm kiếm tài khoản, mã lệnh, log hệ thống...',
@@ -72,12 +58,13 @@ const AdminTopHeader = ({
   const handleProfileMenuAction = (action) => {
     setProfilePopupOpen(false);
     const routes = {
-      profile: '/profile',
+      profile: '/admin/profile',
+      calendar: '/admin/calendar',
+      partners: '/admin/partners',
+      events: '/admin/events',
+      settings: '/admin/settings',
+      'fpt-system': '/',
       'browse-events': '/events',
-      settings: '/settings',
-      schedule: '/schedule',
-      'my-clubs': '/my-clubs',
-      'my-events': '/my-events',
     };
     if (routes[action]) navigate(routes[action]);
   };
@@ -92,38 +79,37 @@ const AdminTopHeader = ({
     navigate('/');
   };
 
+  const homePath = pathname.startsWith('/admin') ? '/admin' : '/';
+
   return (
     <header
-      className={`home-header site-header site-header--admin admin-home-header${
-        sidebarOpen ? ' admin-home-header--sidebar-open' : ''
+      className={`home-header site-header site-header--admin site-header--with-shell admin-home-header${
+        sidebarOpen ? ' admin-home-header--sidebar-open site-header--sidebar-open' : ''
       }`}
     >
       <div className="header-container site-header__container admin-header-container">
-        <button
-          type="button"
-          className="admin-hamburger-btn admin-header-menu-btn"
-          onClick={sidebarToggle}
-          aria-label={sidebarOpen ? 'Ẩn menu quản trị' : 'Hiện menu quản trị'}
-          aria-expanded={sidebarOpen}
-        >
-          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
-            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
-          </svg>
-        </button>
-
-        <div className="header-logo site-header__logo-group">
-          <img
-            src={fptLogo}
-            alt="F Events Logo"
-            className="logo-img admin-header-logo-img"
-            onClick={() => navigate(pathname.startsWith('/admin') ? '/admin' : '/')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') navigate(pathname.startsWith('/admin') ? '/admin' : '/');
-            }}
-          />
-          <nav className="header-nav site-header__nav" aria-label="Điều hướng">
+        <div className="ctsv-header-start site-header__start">
+          <div className="ctsv-header-brand">
+            <button
+              type="button"
+              className="admin-hamburger-btn admin-header-menu-btn"
+              onClick={sidebarToggle}
+              aria-label={sidebarOpen ? 'Ẩn menu quản trị' : 'Hiện menu quản trị'}
+              aria-expanded={sidebarOpen}
+            >
+              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" fill="currentColor" />
+              </svg>
+            </button>
+            <div
+              className={`header-logo ctsv-header-logo site-header__logo${sidebarOpen ? ' is-collapsed' : ''}`}
+              onClick={() => navigate(homePath)}
+              role="presentation"
+            >
+              <img src={FE_LOGO} alt={FE_LOGO_ALT} className="logo-img admin-header-logo-img" />
+            </div>
+          </div>
+          <nav className="header-nav site-header__nav ctsv-header-nav" aria-label="Điều hướng">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.key}
@@ -217,7 +203,7 @@ const AdminTopHeader = ({
                         role="presentation"
                       />
                       <div className="profile-menu-dropdown" role="menu" aria-label="Menu tài khoản">
-                        <ProfileSidebarMenu
+                        <AdminProfileMenu
                           activeItem=""
                           userProfile={userProfile}
                           onMenuAction={handleProfileMenuAction}

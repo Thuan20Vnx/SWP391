@@ -41,8 +41,8 @@ const CtsvNavIcon = ({ type }) => {
     case 'create':
       return (
         <svg {...common}>
-          <path d="M12 5v14M5 12h14" />
-          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
         </svg>
       );
     case 'publish':
@@ -58,6 +58,22 @@ const CtsvNavIcon = ({ type }) => {
         <svg {...common}>
           <path d="M12 4a3 3 0 0 1 3 3v4.5l2 2.5H7l2-2.5V7a3 3 0 0 1 3-3z" />
           <path d="M10 19h4" />
+        </svg>
+      );
+    case 'broadcast':
+      return (
+        <svg {...common}>
+          <path d="M4 10v4" />
+          <path d="M7 8l11-4v16L7 16v-2" />
+          <path d="M7 14h3.5v4H7z" />
+        </svg>
+      );
+    case 'approval':
+      return (
+        <svg {...common}>
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+          <rect x="9" y="3" width="6" height="4" rx="1" />
+          <path d="M9 14l2 2 4-4.5" />
         </svg>
       );
     case 'proposals':
@@ -92,8 +108,31 @@ const CtsvNavIcon = ({ type }) => {
     case 'notifications':
       return (
         <svg {...common}>
-          <path d="M12 5a3 3 0 0 1 3 3v3.5l1.8 2.2H7.2L9 11.5V8a3 3 0 0 1 3-3z" />
-          <path d="M10 18.5h4" />
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+      );
+    case 'system':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      );
+    case 'transfer':
+      return (
+        <svg {...common}>
+          <path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3z" />
+          <path d="M8 13c-2.67 0-8 1.34-8 4v3h8M16 13c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-3c0-2.67-5.33-4-8-4z" />
+        </svg>
+      );
+    case 'qr':
+      return (
+        <svg {...common}>
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <path d="M14 14h2v2h-2zM18 14h3v3h-3zM14 18h2v3h-2zM18 18h1v1h-1zM20 18h1v3h-1z" />
         </svg>
       );
     default:

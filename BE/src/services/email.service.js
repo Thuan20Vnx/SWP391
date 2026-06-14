@@ -202,8 +202,125 @@ const sendActivationEmail = async (email, fullname, password) => {
   });
 };
 
+const sendPartnerTerminationEmail = async ({ to, partnerName, reason, adminEmail }) => {
+  const htmlContent = buildEmailShell({
+    title: 'Yêu cầu hủy hợp tác',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Thông báo từ Admin F-Events</p>
+      <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Yêu cầu hủy hợp tác</h1>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;">Kính gửi <strong>${partnerName}</strong>,</p>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;">Admin (<strong>${adminEmail || 'F-Events'}</strong>) đã gửi yêu cầu hủy hợp tác trên hệ thống F-Events.</p>
+      <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#1e293b;">Lý do:</p>
+      <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#334155;background:#faf8f6;border:1px solid #e8ddd6;border-radius:8px;padding:12px 14px;">${reason}</p>
+      <p style="margin:0;font-size:13px;line-height:20px;color:#8a7b72;">Vui lòng đăng nhập cổng đối tác để xem thông báo chi tiết và phản hồi nếu cần.</p>
+    `,
+  });
+
+  return sendMail({
+    to,
+    subject: `[F-Events] Yêu cầu hủy hợp tác — ${partnerName}`,
+    html: htmlContent,
+  });
+};
+
+const sendPartnerAdminNoticeEmail = async ({ to, partnerName, title, content, adminEmail }) => {
+  const htmlContent = buildEmailShell({
+    title: title || 'Thông báo từ Admin',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Thông báo Admin → ${partnerName}</p>
+      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">${title}</h1>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;white-space:pre-wrap;">${content}</p>
+      <p style="margin:0;font-size:13px;line-height:20px;color:#8a7b72;">Gửi bởi ${adminEmail || 'Admin F-Events'}.</p>
+    `,
+  });
+
+  return sendMail({
+    to,
+    subject: `[F-Events] ${title}`,
+    html: htmlContent,
+  });
+};
+
+const sendResetEmail = async (email, fullname, otp) => {
+  writeDevOtp(otp);
+
+  const resetLink = `${APP_URL}/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`;
+  const otpBoxes = buildOtpDigitBoxes(otp);
+  const htmlContent = buildEmailShell({
+    title: 'Khôi phục mật khẩu F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Khôi phục mật khẩu</p>
+      <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Đặt lại mật khẩu</h1>
+      <p style="margin:0 0 4px;font-size:15px;line-height:24px;color:#334155;">Xin chào ${fullname},</p>
+      <p style="margin:0;font-size:15px;line-height:24px;color:#334155;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong style="color:#1e293b;">${email}</strong>. Dùng mã bên dưới hoặc nút để tiếp tục.</p>
+      ${otpBoxes}
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin-bottom:24px;">
+        <tr>
+          <td align="center">
+            <a href="${resetLink}" style="display:inline-block;background-color:#f26f21;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 28px;border-radius:8px;">Đặt lại mật khẩu</a>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:0 0 24px;font-size:13px;line-height:20px;color:#8a7b72;text-align:center;">Mã và liên kết có hiệu lực ${OTP_EXPIRY_MINUTES} phút.</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="border-top:1px solid #f0e8e2;">
+        <tr>
+          <td style="padding-top:20px;font-size:13px;line-height:20px;color:#8a7b72;">
+            Nếu bạn không yêu cầu thay đổi mật khẩu, hãy bỏ qua email này. Không chia sẻ mã với bất kỳ ai.
+          </td>
+        </tr>
+      </table>
+    `,
+  });
+
+  await sendMail({
+    to: email,
+    subject: 'Đặt lại mật khẩu F-Events',
+    html: htmlContent,
+  });
+};
+
+const sendLoginLockAlertEmail = async (email, fullname, unlockToken) => {
+  const unlockLink = `${APP_URL}/unlock-account?token=${encodeURIComponent(unlockToken)}`;
+  const htmlContent = buildEmailShell({
+    title: 'Cảnh báo bảo mật F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#b42318;">Cảnh báo bảo mật</p>
+      <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Tài khoản bị khóa tạm thời</h1>
+      <p style="margin:0 0 4px;font-size:15px;line-height:24px;color:#334155;">Xin chào ${fullname},</p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:24px;color:#334155;">Chúng tôi phát hiện <strong style="color:#b42318;">quá nhiều lần đăng nhập sai mật khẩu</strong> cho tài khoản <strong style="color:#1e293b;">${email}</strong>. Để bảo vệ tài khoản, hệ thống đã khóa đăng nhập.</p>
+      <p style="margin:0 0 24px;font-size:15px;line-height:24px;color:#334155;">Nếu đây là bạn, bấm nút bên dưới để mở khóa và đăng nhập lại. Nếu không phải bạn, hãy đổi mật khẩu ngay sau khi mở khóa.</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin-bottom:24px;">
+        <tr>
+          <td align="center">
+            <a href="${unlockLink}" style="display:inline-block;background-color:#f26f21;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 28px;border-radius:8px;">Mở khóa tài khoản</a>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:0 0 24px;font-size:13px;line-height:20px;color:#8a7b72;text-align:center;">Liên kết có hiệu lực 24 giờ. Chỉ mở khóa được bằng email này.</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="border-top:1px solid #f0e8e2;">
+        <tr>
+          <td style="padding-top:20px;font-size:13px;line-height:20px;color:#8a7b72;">
+            Nếu bạn không cố đăng nhập, có thể ai đó đang thử truy cập trái phép. Liên hệ quản trị viên nếu cần hỗ trợ thêm.
+          </td>
+        </tr>
+      </table>
+    `,
+  });
+
+  await sendMail({
+    to: email,
+    subject: '[F-Events] Cảnh báo — Tài khoản bị khóa do đăng nhập sai',
+    html: htmlContent,
+  });
+};
+
 module.exports = {
   sendOtpEmail,
+  sendResetEmail,
+  sendLoginLockAlertEmail,
   sendActivationEmail,
   sendMailInBackground,
+  sendMail,
+  sendPartnerTerminationEmail,
+  sendPartnerAdminNoticeEmail,
 };

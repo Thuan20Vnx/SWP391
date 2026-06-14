@@ -104,7 +104,7 @@
   padding: 24px;
   border: 2px dashed #e2e8f0;
   border-radius: 12px;
-  background: #fafafa;
+  background: #ffffff;
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
@@ -112,14 +112,14 @@
 .admin-partners-upload__zone:hover,
 .admin-partners-upload__zone--drag {
   border-color: #f26f21;
-  background: #fffbf7;
+  background: #ffffff;
   box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.08);
 }
 
 .admin-partners-upload__zone--has-file {
   border-style: solid;
   border-color: #fed7aa;
-  background: #fff7ed;
+  background: #ffffff;
 }
 
 .admin-partners-upload__icon {
@@ -129,7 +129,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #fff7ed;
+  background: #ffffff;
   color: #f26f21;
 }
 
@@ -194,7 +194,7 @@
 
 .admin-partners-btn-cancel:hover:not(:disabled) {
   border-color: #cbd5e1;
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .admin-partners-btn-submit {

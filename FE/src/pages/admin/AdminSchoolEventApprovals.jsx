@@ -180,7 +180,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
                         fontWeight: 700,
                         padding: '2px 8px',
                         borderRadius: 999,
-                        background: '#eff6ff',
+                        background: '#ffffff',
                         color: '#1d4ed8'
                       }}
                     >
@@ -240,7 +240,7 @@ const AdminSchoolEventApprovals = ({ showToast }) => {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 8 }}>
                     <strong style={{ fontSize: '1.05rem' }}>{ev.title}</strong>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#fef3c7', color: '#b45309' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#ffffff', color: '#b45309' }}>
                       {MODERATION_ACTION_LABELS[ev.moderationAction] || ev.status}
                     </span>
                   </div>

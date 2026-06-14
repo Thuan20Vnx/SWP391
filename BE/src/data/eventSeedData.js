@@ -86,6 +86,25 @@ const eventSeedData = [
     ticketPrice: 75000,
   },
   {
+    title: 'Career Fair: Kết nối doanh nghiệp',
+    description:
+      'Ngày hội việc làm và kết nối doanh nghiệp dành cho sinh viên FPT — gặp gỡ nhà tuyển dụng, workshop CV và phỏng vấn thử.',
+    thumbnail:
+      'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
+    category: 'Kinh tế',
+    startDate: new Date('2026-05-28T08:00:00+07:00'),
+    endDate: new Date('2026-05-28T17:00:00+07:00'),
+    campus: EVENT_CAMPUS,
+    location: 'Sảnh tòa Gamma',
+    capacity: 300,
+    registeredCount: 42,
+    status: 'approved',
+    eventState: 'active',
+    ticketPrice: 0,
+    clubSlug: 'dreamteam',
+    source: 'club',
+  },
+  {
     title: 'Triển lãm Nghệ thuật Đương đại F-Art',
     description: 'Trưng bày tác phẩm nghệ thuật đương đại của sinh viên và nghệ sĩ trẻ tại FPT.',
     thumbnail: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a2b?auto=format&fit=crop&w=800&q=80',

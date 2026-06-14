@@ -64,17 +64,17 @@
 }
 
 .admin-sys-btn--ghost {
-  background: #fafafa;
+  background: #ffffff;
 }
 
 .admin-sys-btn--danger {
-  background: #fef2f2;
+  background: #ffffff;
   border-color: #fecaca;
   color: #b91c1c;
 }
 
 .admin-sys-btn--danger:hover {
-  background: #fee2e2;
+  background: #ffffff;
   border-color: #f87171;
 }
 
@@ -119,7 +119,7 @@
   padding: 8px 16px;
   border-radius: 9999px;
   border: 1px solid #e0c0b2;
-  background: #fafafa;
+  background: #ffffff;
   color: #584238;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -133,7 +133,7 @@
 }
 
 .admin-sys-tab--active {
-  background: #fff7ed;
+  background: #ffffff;
   border-color: #f26f21;
   color: #c2410c;
 }
@@ -153,7 +153,7 @@
   padding: 18px 20px;
   margin-bottom: 20px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #fff7ed 0%, #fff 55%);
+  background: #ffffff;
   border: 1px solid #fed7aa;
 }
 
@@ -272,7 +272,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: #fafafa;
+  background: #ffffff;
   border-bottom: 1px solid #f0e8e2;
 }
 
@@ -335,7 +335,7 @@
   margin-top: 16px;
   padding: 14px 16px;
   border-radius: 10px;
-  background: #fffbeb;
+  background: #ffffff;
   border: 1px solid #fde68a;
 }
 
@@ -357,7 +357,7 @@
   margin-bottom: 20px;
   padding: 16px;
   border-radius: 10px;
-  background: #fafafa;
+  background: #ffffff;
   border: 1px solid #f0e8e2;
 }
 
@@ -414,13 +414,13 @@
 }
 
 .admin-sys-test-result--ok {
-  background: #f0fdf4;
+  background: #ffffff;
   border: 1px solid #bbf7d0;
   color: #166534;
 }
 
 .admin-sys-test-result--err {
-  background: #fef2f2;
+  background: #ffffff;
   border: 1px solid #fecaca;
   color: #b91c1c;
 }
@@ -462,7 +462,7 @@
 .admin-sys-env-item {
   padding: 10px 12px;
   border-radius: 8px;
-  background: #fafafa;
+  background: #ffffff;
   border: 1px solid #f1e8e3;
 }
 
@@ -500,7 +500,7 @@
 }
 
 .admin-system-services__pill--degraded {
-  background: #fffbeb;
+  background: #ffffff;
   border-color: #fde68a;
   color: #b45309;
 }
@@ -508,7 +508,7 @@
 .admin-sys-status-card {
   padding: 14px 16px;
   border-radius: 10px;
-  background: #fafafa;
+  background: #ffffff;
   border: 1px solid #f1e8e3;
 }
 
@@ -551,7 +551,7 @@
   font-size: 0.875rem;
   font-weight: 700;
   color: #251913;
-  background: #fafafa;
+  background: #ffffff;
   border-bottom: 1px solid #f0e8e2;
 }
 
@@ -663,7 +663,7 @@
 }
 
 .admin-sys-input:disabled {
-  background: #f8fafc;
+  background: #ffffff;
   color: #94a3b8;
 }
 
@@ -698,17 +698,17 @@
 .admin-sys-changelog__item {
   padding: 12px 14px;
   border-radius: 10px;
-  background: #fafafa;
+  background: #ffffff;
   border: 1px solid #f1e8e3;
 }
 
 .admin-sys-changelog__item--danger {
-  background: #fef2f2;
+  background: #ffffff;
   border-color: #fecaca;
 }
 
 .admin-sys-changelog__item--primary {
-  background: #fff7ed;
+  background: #ffffff;
   border-color: #fed7aa;
 }
 
@@ -740,7 +740,7 @@
   margin-top: auto;
   padding: 16px;
   border-radius: 10px;
-  background: #fef2f2;
+  background: #ffffff;
   border: 1px solid #fecaca;
 }
 
@@ -791,4 +791,67 @@
     flex: 1;
     min-width: 120px;
   }
+}
+
+.admin-sys-page--icpdp .admin-sys-panel--main {
+  max-width: 720px;
+}
+
+.admin-sys-panel__body--maint-only {
+  padding: 8px 0 20px;
+}
+
+.system-maint-page {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  background: #faf8f6;
+}
+
+.system-maint-page__card {
+  max-width: 480px;
+  text-align: center;
+  padding: 32px 28px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #f0e8e2;
+  box-shadow: 0 8px 32px rgba(37, 25, 19, 0.08);
+}
+
+.system-maint-page__card h1 {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  color: #251913;
+}
+
+.system-maint-page__card p {
+  margin: 0 0 10px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.system-maint-page__hint {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.system-maint-page__btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: #f26f21;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.system-maint-banner {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  margin: 0;
+  border-radius: 0;
 }

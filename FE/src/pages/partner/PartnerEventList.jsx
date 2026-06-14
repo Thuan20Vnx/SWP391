@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import AppSelect from '../../components/ui/AppSelect';
-import PartnerCampusEventsSection from '../../components/partner/PartnerCampusEventsSection';
 import { fetchPartnerEvents } from '../../services/partnerApi';
 import { statusClass } from '../../utils/eventStatus';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
@@ -94,7 +93,10 @@ const PartnerEventList = () => {
         <div className="ctsv-events-hero-text">
           <span className="ctsv-events-eyebrow">Quản lý sự kiện</span>
           <h1>Sự kiện tài trợ của bạn</h1>
-          <p>Theo dõi và quản lý các sự kiện do doanh nghiệp bạn tài trợ hoặc đồng tổ chức.</p>
+          <p>
+            Chỉ hiển thị các sự kiện do doanh nghiệp bạn tài trợ hoặc đồng tổ chức — theo dõi trạng thái,
+            vé và chi tiết vận hành tại đây.
+          </p>
         </div>
         <div className="ctsv-events-hero-aside">
           <div className="ctsv-events-hero-stat" aria-live="polite">
@@ -139,6 +141,16 @@ const PartnerEventList = () => {
           </p>
         )}
       </section>
+
+      <aside className="partner-events-scope-note" aria-label="Phạm vi trang quản lý sự kiện">
+        <p>
+          <strong>Trang này dành cho quản lý sự kiện của bạn.</strong> Muốn khám phá và đăng ký tham gia
+          sự kiện campus khác?
+        </p>
+        <Link to="/partner" className="partner-events-scope-note__link">
+          Xem sự kiện campus trên Trang chủ đối tác →
+        </Link>
+      </aside>
 
       {loading ? (
         <div className="ctsv-events-grid" aria-busy="true" aria-label="Đang tải sự kiện">
@@ -210,12 +222,6 @@ const PartnerEventList = () => {
         </div>
       )}
 
-      <PartnerCampusEventsSection
-        showToast={showToast}
-        title="Tất cả sự kiện"
-        description="Đăng ký tham gia các sự kiện campus đang mở — miễn phí vé cho đối tác."
-        className="partner-events-campus-block"
-      />
     </div>
   );
 };

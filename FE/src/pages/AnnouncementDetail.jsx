@@ -160,8 +160,11 @@ const AnnouncementDetail = ({
       <article className={`announcements-detail announcements-detail--${roleTone}`}>
         {announcement.image && (
           <div className="announcements-detail__hero">
-            <img src={announcement.image} alt="" className="announcements-detail__hero-img" />
-            <div className="announcements-detail__hero-fade" aria-hidden="true" />
+            <img
+              src={announcement.image}
+              alt={announcement.title ? `Minh họa: ${announcement.title}` : 'Minh họa thông báo'}
+              className="announcements-detail__hero-img"
+            />
           </div>
         )}
 

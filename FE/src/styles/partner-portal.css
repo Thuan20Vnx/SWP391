@@ -14,7 +14,7 @@
 
 /* Nền trắng cam nhẹ cho trang nội bộ (không phải trang chủ) */
 .partner-app-shell .partner-portal-inner {
-  background: linear-gradient(180deg, #fffaf7 0%, #ffffff 180px) !important;
+  background: #ffffff !important;
 }
 
 .partner-app-shell .ctsv-portal-body:has(.hero-banner-slider) {
@@ -67,8 +67,29 @@
   background: var(--partner-accent-dark);
 }
 .partner-app-shell .hero-tag-badge {
-  background: rgba(242, 111, 33, 0.25);
-  border-color: rgba(242, 111, 33, 0.4);
+  background: var(--partner-accent);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 10px rgba(242, 111, 33, 0.3);
+}
+.partner-app-shell .slider-dot.active {
+  background-color: var(--partner-accent);
+}
+
+/* Partner portal home — accent cam trên hero */
+.partner-app-shell .portal-home-hero-layout .hero-tag-badge {
+  background-color: var(--partner-accent);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 10px rgba(242, 111, 33, 0.3);
+}
+
+.partner-app-shell .portal-home-hero-layout .hero-cta-btn {
+  background: var(--partner-accent);
+}
+
+.partner-app-shell .portal-home-hero-layout .hero-cta-btn:hover {
+  background: var(--partner-accent-dark);
 }
 
 .partner-app-shell .filter-submit-btn {
@@ -339,7 +360,7 @@
 .partner-perf-bar-track {
   height: 8px;
   border-radius: 999px;
-  background: #f1f5f9;
+  background: #ffffff;
   overflow: hidden;
 }
 
@@ -392,11 +413,11 @@
 }
 .partner-btn-outline--danger {
   color: #dc2626;
-  background: #fef2f2;
+  background: #ffffff;
   border-color: #fecaca;
 }
 .partner-btn-outline--danger:hover {
-  background: #fee2e2;
+  background: #ffffff;
 }
 .partner-field input:focus,
 .partner-field textarea:focus {
@@ -556,7 +577,7 @@
 }
 
 .partner-profile-collapse-toggle:hover {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .partner-profile-collapse-toggle-main {
@@ -581,13 +602,13 @@
   height: 36px;
   border-radius: 10px;
   color: #64748b;
-  background: #f1f5f9;
+  background: #ffffff;
   transition: transform 0.2s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .partner-profile-collapse-toggle:hover .partner-profile-collapse-chevron {
   color: var(--partner-accent, #f26f21);
-  background: rgba(242, 111, 33, 0.1);
+  background: #ffffff;
 }
 
 .partner-profile-collapse-chevron.is-open {
@@ -642,7 +663,7 @@
   height: 88px;
   border-radius: 50%;
   border: 2px solid #e2e8f0;
-  background: #f8fafc;
+  background: #ffffff;
   overflow: hidden;
   flex-shrink: 0;
   padding: 0;
@@ -660,7 +681,7 @@
   height: 56px;
   border-radius: 12px;
   border: 1px dashed #cbd5e1;
-  background: #f8fafc;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -685,6 +706,17 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.partner-company-logo-preview--banner {
+  width: 96px;
+  height: 54px;
+  border-radius: 8px;
+}
+
+.partner-company-logo-preview--banner img {
+  object-fit: contain;
+  background: #f8fafc;
 }
 
 .partner-company-logo-preview svg {
@@ -775,7 +807,7 @@
 }
 
 .partner-field input:disabled {
-  background: #f8fafc;
+  background: #ffffff;
   color: #64748b;
   cursor: not-allowed;
 }
@@ -974,6 +1006,33 @@
   margin-top: 48px;
   padding-top: 8px;
   border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.partner-events-scope-note {
+  margin: 0 0 24px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  background: linear-gradient(135deg, rgba(255, 247, 237, 0.95), rgba(255, 255, 255, 0.98));
+  color: #7c2d12;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.partner-events-scope-note strong {
+  color: #9a3412;
+}
+
+.partner-events-scope-note__link {
+  display: inline-block;
+  margin-top: 6px;
+  color: #ea580c;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.partner-events-scope-note__link:hover {
+  text-decoration: underline;
 }
 
 .partner-campus-section {

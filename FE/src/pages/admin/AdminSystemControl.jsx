@@ -15,7 +15,13 @@ import {
   PAYMENT_PROVIDER_OPTIONS,
 } from '../../data/adminSystemControlData';
 import useAdminDashboardLiveData from '../../hooks/useAdminDashboardLiveData';
-import { getUserRole, isAdminRole } from '../../utils/auth';
+import { fetchSystemConfig, updateSystemMaintenance } from '../../services/adminApi';
+import {
+  canAccessAdminSystemPage,
+  getUserRole,
+  isAdminRole,
+  isIcpdpRole,
+} from '../../utils/auth';
 import { addMinutes, formatAdminDateTime } from '../../utils/adminLiveTime';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-system-control.css';
@@ -71,10 +77,15 @@ const AdminSystemControl = () => {
   const navigate = useNavigate();
   const { showToast } = useOutletContext() || {};
   const role = getUserRole();
+  const isFullAdmin = isAdminRole(role);
+  const isIcpdpOnly = isIcpdpRole(role) && !isFullAdmin;
   const live = useAdminDashboardLiveData();
   const [activeTab, setActiveTab] = useState('overview');
   const [config, setConfig] = useState(loadConfig);
   const [dirty, setDirty] = useState(false);
+  const [maintenanceDirty, setMaintenanceDirty] = useState(false);
+  const [savingMaintenance, setSavingMaintenance] = useState(false);
+  const [configLoading, setConfigLoading] = useState(true);
   const [openMenu, setOpenMenu] = useState(null);
   const [testResult, setTestResult] = useState(null);
   const [quickMetrics, setQuickMetrics] = useState(() =>
@@ -135,13 +146,30 @@ const AdminSystemControl = () => {
   }, []);
 
   useEffect(() => {
-    if (!isAdminRole(role)) {
+    if (!canAccessAdminSystemPage(role)) {
       showToast?.('Bạn không có quyền truy cập trang quản trị!', 'error');
-      navigate('/profile');
+      navigate(isIcpdpRole(role) ? '/icpdp' : '/profile');
       return;
     }
-    loadQuickMetrics();
-  }, [role, navigate, showToast, loadQuickMetrics]);
+    setConfigLoading(true);
+    fetchSystemConfig()
+      .then((res) => {
+        const remote = res.config || res;
+        setConfig((prev) => ({
+          ...prev,
+          maintenanceMode: Boolean(remote.maintenanceMode),
+          publicAnnouncements: remote.publicAnnouncements !== false,
+          maintenanceMessage:
+            remote.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage,
+        }));
+      })
+      .catch(() => {
+        showToast?.('Không tải được cấu hình bảo trì từ máy chủ', 'error');
+      })
+      .finally(() => setConfigLoading(false));
+
+    if (isFullAdmin) loadQuickMetrics();
+  }, [role, navigate, showToast, loadQuickMetrics, isFullAdmin]);
 
   const patch = (path, value) => {
     setConfig((prev) => {
@@ -155,13 +183,48 @@ const AdminSystemControl = () => {
       cursor[keys[keys.length - 1]] = value;
       return next;
     });
-    setDirty(true);
+    if (['maintenanceMode', 'publicAnnouncements', 'maintenanceMessage'].includes(path)) {
+      setMaintenanceDirty(true);
+    } else {
+      setDirty(true);
+    }
   };
 
-  const handleSave = () => {
+  const handleSaveMaintenance = async () => {
+    setSavingMaintenance(true);
+    try {
+      const res = await updateSystemMaintenance({
+        maintenanceMode: config.maintenanceMode,
+        publicAnnouncements: config.publicAnnouncements,
+        maintenanceMessage: config.maintenanceMessage,
+      });
+      const remote = res.config || res;
+      setConfig((prev) => ({
+        ...prev,
+        maintenanceMode: Boolean(remote.maintenanceMode),
+        publicAnnouncements: remote.publicAnnouncements !== false,
+        maintenanceMessage:
+          remote.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage,
+      }));
+      setMaintenanceDirty(false);
+      showToast?.(res.message || 'Đã lưu cấu hình bảo trì', 'success');
+    } catch (err) {
+      showToast?.(err.message || 'Lưu cấu hình bảo trì thất bại', 'error');
+    } finally {
+      setSavingMaintenance(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (maintenanceDirty) {
+      await handleSaveMaintenance();
+    }
+    if (!isFullAdmin) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
     setDirty(false);
-    showToast?.('Đã lưu cấu hình hệ thống', 'success');
+    if (!maintenanceDirty) {
+      showToast?.('Đã lưu cấu hình hệ thống', 'success');
+    }
   };
 
   const handleReset = () => {
@@ -196,7 +259,50 @@ const AdminSystemControl = () => {
     }
   };
 
-  if (!isAdminRole(role)) return null;
+  if (!canAccessAdminSystemPage(role)) return null;
+
+  const renderMaintenanceOps = () => (
+    <>
+      <div className="admin-sys-group">
+        <h3 className="admin-sys-group__title">Vận hành chung</h3>
+        <AdminToggle
+          label="Chế độ bảo trì"
+          description="Tạm khóa truy cập sinh viên; Admin, CTSV và ICPDP vẫn đăng nhập được"
+          checked={config.maintenanceMode}
+          onChange={(v) => patch('maintenanceMode', v)}
+          disabled={configLoading || savingMaintenance}
+        />
+        <AdminToggle
+          label="Hiển thị banner thông báo"
+          description="Banner cảnh báo trên trang chủ khi có sự cố hoặc bảo trì"
+          checked={config.publicAnnouncements}
+          onChange={(v) => patch('publicAnnouncements', v)}
+          disabled={configLoading || savingMaintenance}
+        />
+        {config.maintenanceMode && (
+          <div className="admin-sys-field" style={{ padding: '0 16px 14px' }}>
+            <span className="admin-sys-field__label">Nội dung banner bảo trì</span>
+            <textarea
+              className="admin-sys-input"
+              rows={2}
+              value={config.maintenanceMessage || ''}
+              onChange={(e) => patch('maintenanceMessage', e.target.value)}
+              disabled={configLoading || savingMaintenance}
+            />
+          </div>
+        )}
+      </div>
+
+      {config.maintenanceMode && (
+        <div className="admin-sys-maint-preview">
+          <p className="admin-sys-maint-preview__title">Xem trước banner</p>
+          <p className="admin-sys-maint-preview__text">
+            {config.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage}
+          </p>
+        </div>
+      )}
+    </>
+  );
 
   const emailChecklist = [
     {
@@ -294,41 +400,7 @@ const AdminSystemControl = () => {
         ))}
       </ul>
 
-      <div className="admin-sys-group">
-        <h3 className="admin-sys-group__title">Vận hành chung</h3>
-        <AdminToggle
-          label="Chế độ bảo trì"
-          description="Tạm khóa truy cập sinh viên, chỉ admin/CTSV đăng nhập"
-          checked={config.maintenanceMode}
-          onChange={(v) => patch('maintenanceMode', v)}
-        />
-        <AdminToggle
-          label="Hiển thị banner thông báo"
-          description="Banner cảnh báo trên trang chủ khi có sự cố"
-          checked={config.publicAnnouncements}
-          onChange={(v) => patch('publicAnnouncements', v)}
-        />
-        {config.maintenanceMode && (
-          <div className="admin-sys-field" style={{ padding: '0 16px 14px' }}>
-            <span className="admin-sys-field__label">Nội dung banner bảo trì</span>
-            <textarea
-              className="admin-sys-input"
-              rows={2}
-              value={config.maintenanceMessage || ''}
-              onChange={(e) => patch('maintenanceMessage', e.target.value)}
-            />
-          </div>
-        )}
-      </div>
-
-      {config.maintenanceMode && (
-        <div className="admin-sys-maint-preview">
-          <p className="admin-sys-maint-preview__title">Xem trước banner</p>
-          <p className="admin-sys-maint-preview__text">
-            {config.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage}
-          </p>
-        </div>
-      )}
+      {renderMaintenanceOps()}
     </div>
   );
 
@@ -670,6 +742,46 @@ const AdminSystemControl = () => {
     return renderSecurity();
   };
 
+  if (isIcpdpOnly) {
+    return (
+      <main className="admin-main">
+        <div className="admin-sys-page admin-sys-page--icpdp">
+          <header className="admin-page-header admin-sys-page__header">
+            <div>
+              <h1 className="admin-main__title">Bảo trì hệ thống</h1>
+              <p className="admin-sys-page__subtitle">
+                Bật chế độ bảo trì để tạm khóa sinh viên; IC-PDP, CTSV và Admin vẫn truy cập được.
+              </p>
+              {maintenanceDirty && (
+                <p className="admin-page-header__clock" style={{ color: '#c2410c', fontWeight: 600 }}>
+                  Có thay đổi chưa lưu
+                </p>
+              )}
+            </div>
+            <div className="admin-sys-page__actions">
+              <button
+                type="button"
+                className="admin-sys-btn admin-sys-btn--primary"
+                onClick={handleSaveMaintenance}
+                disabled={!maintenanceDirty || savingMaintenance || configLoading}
+              >
+                {savingMaintenance ? 'Đang lưu…' : 'Lưu cấu hình bảo trì'}
+              </button>
+            </div>
+          </header>
+
+          <section className="admin-panel admin-sys-panel admin-sys-panel--main">
+            <div className="admin-sys-panel__body admin-sys-panel__body--maint-only">
+              {configLoading ? <p className="admin-sys-panel__lead">Đang tải cấu hình…</p> : renderMaintenanceOps()}
+            </div>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  const hasUnsaved = dirty || maintenanceDirty;
+
   return (
     <main className="admin-main">
       <div className="admin-sys-page">
@@ -681,7 +793,7 @@ const AdminSystemControl = () => {
             </p>
             <p className="admin-page-header__clock" aria-live="polite">
               Cập nhật: {clockLabel}
-              {dirty && (
+              {hasUnsaved && (
                 <span style={{ marginLeft: 8, color: '#c2410c', fontWeight: 600 }}>
                   · Có thay đổi chưa lưu
                 </span>
@@ -699,9 +811,9 @@ const AdminSystemControl = () => {
               type="button"
               className="admin-sys-btn admin-sys-btn--primary"
               onClick={handleSave}
-              disabled={!dirty}
+              disabled={!hasUnsaved || savingMaintenance}
             >
-              Lưu cấu hình
+              {savingMaintenance ? 'Đang lưu…' : 'Lưu cấu hình'}
             </button>
           </div>
         </header>

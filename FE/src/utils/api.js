@@ -5,6 +5,8 @@ export const getAuthHeaders = (json = true) => {
   if (json) headers['Content-Type'] = 'application/json';
   const token = localStorage.getItem('authToken');
   if (token) headers['Authorization'] = `Bearer ${token}`;
+  const activeClubId = localStorage.getItem('activeManagedClubId');
+  if (activeClubId) headers['X-Managed-Club-Id'] = activeClubId;
   return headers;
 };
 
@@ -39,3 +41,16 @@ export const parseApiResponse = async (res) => {
 };
 
 export { API_BASE };
+
+export const requestClubEventModeration = async (eventId, body) => {
+  const res = await fetch(`${API_BASE}/api/events/${eventId}/moderation`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(body)
+  });
+  const { ok, data } = await parseApiResponse(res);
+  if (!ok || !data.success) {
+    throw new Error(data.message || 'Gửi yêu cầu thất bại.');
+  }
+  return data;
+};

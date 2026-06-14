@@ -8,31 +8,50 @@ import AvatarCropModal from '../components/profile/AvatarCropModal';
 import { getRoleLabel } from '../utils/role';
 import { logoutWithConfirm } from '../utils/logout';
 import { dispatchAuthChanged } from '../utils/authEvents';
-import { cacheUserProfile } from '../hooks/useUserProfile';
+import { cacheUserProfile, readUserProfileSummaryCache } from '../hooks/useUserProfile';
 import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileApi';
-import { isCtsvRole, normalizeRole } from '../utils/auth';
+import { isAdminRole, isCtsvRole, isClubManagerRole, normalizeRole, getUserRole } from '../utils/auth';
+import {
+  INTEREST_LABELS,
+  mapUserToProfileDetail,
+  readProfileDetailCache,
+  writeProfileDetailCache,
+} from '../utils/profileDetailCache';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
-import CtsvProfilePasswordSection from '../components/ctsv/CtsvProfilePasswordSection';
+import SiteFooter from '../components/SiteFooter';
+import ProfilePasswordSection from '../components/profile/ProfilePasswordSection';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 
 const Profile = ({ showToast, embedded = false }) => {
   const navigate = useNavigate();
+  const bootstrapDetail = readProfileDetailCache();
+  const bootstrapSummary = readUserProfileSummaryCache();
+
+  const buildInitialProfileData = () => {
+    if (bootstrapDetail?.profileData) return bootstrapDetail.profileData;
+    return {
+      fullname: bootstrapSummary?.fullname || localStorage.getItem('userFullname') || '',
+      course: bootstrapSummary?.course || '',
+      campus: '',
+      email: localStorage.getItem('userEmail') || '',
+      phone: '',
+    };
+  };
 
   // Profile data from backend
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [profileData, setProfileData] = useState({
-    fullname: '',
-    course: '',
-    campus: '',
-    email: localStorage.getItem('userEmail') || '',
-    phone: ''
-  });
+  const [profileLoading, setProfileLoading] = useState(() => !bootstrapDetail && !bootstrapSummary);
+  const [profileData, setProfileData] = useState(buildInitialProfileData);
 
   // Role & Student ID for FPT recognition
-  const [userRole, setUserRole] = useState('guest');
-  const [studentId, setStudentId] = useState('');
+  const [userRole, setUserRole] = useState(
+    () => bootstrapDetail?.userRole || bootstrapSummary?.role || getUserRole()
+  );
+  const [studentId, setStudentId] = useState(() =>
+    bootstrapDetail?.studentId ? formatMssv(bootstrapDetail.studentId) : ''
+  );
 
   // Track if course cohort has been changed once
-  const [courseChanged, setCourseChanged] = useState(false);
+  const [courseChanged, setCourseChanged] = useState(() => bootstrapDetail?.courseChanged || false);
 
   const [sidebarActive, setSidebarActive] = useState(false);
 
@@ -43,87 +62,116 @@ const Profile = ({ showToast, embedded = false }) => {
   const [backupData, setBackupData] = useState(null);
 
   // Avatar Upload State
-  const [avatar, setAvatar] = useState('');
+  const [avatar, setAvatar] = useState(
+    () => bootstrapDetail?.avatar || bootstrapSummary?.picture || ''
+  );
   const [avatarSaving, setAvatarSaving] = useState(false);
   const [avatarCropOpen, setAvatarCropOpen] = useState(false);
   const [avatarCropSrc, setAvatarCropSrc] = useState('');
   const [avatarCropFileName, setAvatarCropFileName] = useState('');
 
   // Form Orientation State
-  const [orientation, setOrientation] = useState('');
+  const [orientation, setOrientation] = useState(() => bootstrapDetail?.orientation || '');
   const [saveLoading, setSaveLoading] = useState(false);
+  const [favoriteClubs, setFavoriteClubs] = useState([]);
 
-  // Load profile from Backend on mount
+  const [interests, setInterests] = useState(
+    () => bootstrapDetail?.interests || {
+      hardware: false,
+      ai: false,
+      japan: false,
+      charity: false,
+      sports: false,
+      music: false,
+    }
+  );
+
+  const applyProfileUser = (user) => {
+    const detail = mapUserToProfileDetail(user);
+    if (!detail) return;
+
+    setProfileData(detail.profileData);
+    setCourseChanged(detail.courseChanged);
+    setAvatar(detail.avatar);
+    setOrientation(detail.orientation);
+    setUserRole(detail.userRole);
+    setStudentId(detail.studentId ? formatMssv(detail.studentId) : '');
+    setInterests(detail.interests);
+    writeProfileDetailCache(detail);
+    cacheUserProfile({
+      fullname: detail.profileData.fullname,
+      course: detail.profileData.course,
+      role: detail.userRole,
+      picture: detail.avatar,
+    });
+  };
+
+  // Load profile from Backend on mount (stale-while-revalidate)
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       setProfileLoading(false);
       navigate('/login');
-      return;
+      return undefined;
     }
 
-    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-      .then(res => {
-        if (res.status === 200) {
-          return res.json();
-        } else {
-          throw new Error('Failed to load profile');
-        }
-      })
-      .then(data => {
-        const u = data.user;
-        setProfileData({
-          fullname: u.fullname || '',
-          course: u.course || '',
-          campus: u.campus || '',
-          email: u.email || '',
-          phone: u.phone || ''
-        });
-        setCourseChanged(u.courseChanged || false);
-        setAvatar(resolveUserAvatar(u, ''));
-        if (u.orientation !== undefined) {
-          setOrientation(u.orientation);
-        }
-        // Load role & studentId
-        if (u.role) setUserRole(u.role);
-        if (u.studentId) setStudentId(formatMssv(u.studentId));
+    const controller = new AbortController();
+    const hasCachedBootstrap = Boolean(bootstrapDetail || bootstrapSummary);
+    if (!hasCachedBootstrap) setProfileLoading(true);
 
-        // Populate interests checklist state
-        if (u.interests) {
-          const map = {
-            hardware: 'Phần cứng & Vi điều khiển',
-            ai: 'AI',
-            japan: 'Văn hóa Nhật Bản',
-            charity: 'Thiện nguyện',
-            sports: 'Thể thao',
-            music: 'Âm nhạc & Nghệ thuật'
-          };
-          setInterests({
-            hardware: u.interests.includes(map.hardware),
-            ai: u.interests.includes(map.ai),
-            japan: u.interests.includes(map.japan),
-            charity: u.interests.includes(map.charity),
-            sports: u.interests.includes(map.sports),
-            music: u.interests.includes(map.music)
-          });
-        }
+    fetch(`${API_BASE}/api/user/profile`, {
+      headers: getAuthHeaders(false),
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (res.status === 200) return res.json();
+        throw new Error('Failed to load profile');
       })
-      .catch(err => {
+      .then((data) => {
+        if (data?.user) applyProfileUser(data.user);
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
         console.error(err);
-        showToast('Không thể tải dữ liệu hồ sơ cá nhân từ Backend!', 'error');
+        if (!hasCachedBootstrap) {
+          showToast('Không thể tải dữ liệu hồ sơ cá nhân từ Backend!', 'error');
+        }
       })
       .finally(() => setProfileLoading(false));
+
+    return () => controller.abort();
   }, [navigate, showToast]);
 
-  // Interests Checklist State
-  const [interests, setInterests] = useState({
-    hardware: false,
-    ai: false,
-    japan: false,
-    charity: false,
-    sports: false,
-    music: false
-  });
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token || isClubManagerRole(userRole)) return undefined;
+
+    const controller = new AbortController();
+    fetch(`${API_BASE}/api/user/my-clubs?tab=following`, {
+      headers: getAuthHeaders(false),
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.success && Array.isArray(data.clubs)) {
+          setFavoriteClubs(data.clubs.slice(0, 6));
+        }
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [userRole]);
+
+  useEffect(() => {
+    if (!sidebarActive) {
+      document.body.style.overflow = '';
+      return undefined;
+    }
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [sidebarActive]);
 
   // Handle Sidebar Menu item click
   const handleFeatureNotImplemented = (e) => {
@@ -138,12 +186,26 @@ const Profile = ({ showToast, embedded = false }) => {
   };
 
   const handleScanClick = () => {
-    showToast('Tính năng quét QR check-in đang được phát triển.', 'info');
+    navigate('/quet-qr');
   };
 
   const displayAvatar = avatar || defaultAvatar;
   const profilePageTitle = 'Thông tin cá nhân';
-  const isCtsvEmbedded = embedded && isCtsvRole(userRole);
+  const isCtsvEmbedded = embedded && isCtsvRole(userRole) && !isAdminRole(userRole);
+  const isAdminEmbedded = embedded && isAdminRole(userRole);
+
+  const profileFormTitle = isCtsvEmbedded
+    ? 'Thông tin liên hệ & chuyên môn'
+    : isAdminEmbedded
+      ? 'Thông tin cá nhân'
+      : 'Thông tin cá nhân & Sở thích';
+
+  const passwordDescription = (() => {
+    const role = normalizeRole(userRole);
+    if (role === 'admin') return 'Cập nhật mật khẩu đăng nhập tài khoản quản trị viên.';
+    if (role === 'ctsv') return 'Cập nhật mật khẩu đăng nhập tài khoản cán bộ CTSV.';
+    return 'Cập nhật mật khẩu đăng nhập tài khoản của bạn.';
+  })();
 
   const handleNavigateProfile = (e) => {
     e.preventDefault();
@@ -252,18 +314,9 @@ const Profile = ({ showToast, embedded = false }) => {
 
     setSaveLoading(true);
 
-    const map = {
-      hardware: 'Phần cứng & Vi điều khiển',
-      ai: 'AI',
-      japan: 'Văn hóa Nhật Bản',
-      charity: 'Thiện nguyện',
-      sports: 'Thể thao',
-      music: 'Âm nhạc & Nghệ thuật'
-    };
-
     const activeInterests = Object.keys(interests)
       .filter(k => interests[k])
-      .map(k => map[k]);
+      .map(k => INTEREST_LABELS[k]);
 
     fetch(`${API_BASE}/api/user/profile`, {
       method: 'PUT',
@@ -284,23 +337,7 @@ const Profile = ({ showToast, embedded = false }) => {
         if (ok && status === 200 && data.success !== false) {
           setIsEditing(false);
           if (data.user) {
-            setProfileData({
-              fullname: data.user.fullname || '',
-              course: data.user.course || '',
-              campus: data.user.campus || '',
-              email: data.user.email || '',
-              phone: data.user.phone || ''
-            });
-            setCourseChanged(data.user.courseChanged || false);
-            if (data.user.picture || data.user.avatar) {
-              setAvatar(resolveUserAvatar(data.user, ''));
-            }
-            cacheUserProfile({
-              fullname: data.user.fullname || '',
-              course: data.user.course || '',
-              role: normalizeRole(data.user.role || userRole),
-              picture: resolveUserAvatar(data.user, displayAvatar)
-            });
+            applyProfileUser(data.user);
             dispatchAuthChanged();
           }
           showToast('Cập nhật hồ sơ thành công.', 'success');
@@ -389,7 +426,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
   const profileContent = (
     <div className={`dashboard-content-wrapper${embedded ? ' ctsv-profile-content' : ''}`}>
-      <div className={`profile-grid${embedded ? ' ctsv-profile-grid' : ''}`}>
+      <div className={embedded ? 'ctsv-profile-grid' : 'profile-grid'}>
         {profileLoading ? (
           <div className="profile-page-loading" aria-busy="true" aria-label="Đang tải hồ sơ">
             <div className="profile-skeleton profile-skeleton--avatar-lg" />
@@ -404,19 +441,27 @@ const Profile = ({ showToast, embedded = false }) => {
           <div className="profile-left-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {renderAvatarCard()}
             <div className="profile-card clubs-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary)' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span>Câu lạc bộ của tôi</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  <span>Câu lạc bộ yêu thích</span>
+                </div>
+                <Link to="/my-clubs" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                  Xem tất cả
+                </Link>
               </div>
               <div className="tag-list">
-                <span className="club-tag">FU-DEVIES</span>
-                <span className="club-tag">Minori Japanese Club</span>
-                <span className="club-tag">DreamTeam</span>
+                {favoriteClubs.length === 0 ? (
+                  <span className="club-tag club-tag--empty">Chưa có CLB yêu thích</span>
+                ) : (
+                  favoriteClubs.map((club) => (
+                    <Link key={club.id} to={`/clubs/${club.slug}`} className="club-tag">
+                      {club.name}
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -433,7 +478,7 @@ const Profile = ({ showToast, embedded = false }) => {
             style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
           >
             <h2 className="profile-card-title" style={{ marginBottom: '4px' }}>
-              {isCtsvEmbedded ? 'Thông tin liên hệ & chuyên môn' : 'Thông tin cá nhân & Sở thích'}
+              {profileFormTitle}
             </h2>
 
                   <div className="profile-form-grid">
@@ -477,7 +522,7 @@ const Profile = ({ showToast, embedded = false }) => {
                       <label htmlFor="profile-email">Email</label>
                       <input type="email" id="profile-email" value={profileData.email} readOnly />
                     </div>
-                    <div className={`profile-input-group${isCtsvEmbedded ? ' profile-form-grid-full' : ''}`}>
+                    <div className="profile-input-group">
                       <label htmlFor="user-phone">Số điện thoại</label>
                       <input
                         type="tel"
@@ -671,7 +716,7 @@ const Profile = ({ showToast, embedded = false }) => {
                             padding: '10px 16px',
                             borderRadius: '8px',
                             border: '1.5px solid #cbd5e1',
-                            backgroundColor: '#f8fafc',
+                            backgroundColor: '#ffffff',
                             color: '#475569',
                             fontWeight: '600',
                             cursor: 'pointer',
@@ -682,11 +727,11 @@ const Profile = ({ showToast, embedded = false }) => {
                             transition: 'var(--transition-fast)'
                           }}
                           onMouseOver={(e) => {
-                            e.currentTarget.style.backgroundColor = '#f1f5f9';
+                            e.currentTarget.style.backgroundColor = '#ffffff';
                             e.currentTarget.style.color = 'var(--text-main)';
                           }}
                           onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = '#f8fafc';
+                            e.currentTarget.style.backgroundColor = '#ffffff';
                             e.currentTarget.style.color = '#475569';
                           }}
                         >
@@ -702,7 +747,13 @@ const Profile = ({ showToast, embedded = false }) => {
                   </div>
           </form>
 
-          {isCtsvEmbedded && <CtsvProfilePasswordSection showToast={showToast} />}
+          {!profileLoading && (
+            <ProfilePasswordSection
+              showToast={showToast}
+              description={passwordDescription}
+              idPrefix={isAdminEmbedded ? 'admin' : isCtsvEmbedded ? 'ctsv' : 'student'}
+            />
+          )}
         </div>
         </>
         )}
@@ -730,9 +781,15 @@ const Profile = ({ showToast, embedded = false }) => {
         <div className="ctsv-page ctsv-profile-page">
           <header className="ctsv-profile-hero">
             <div className="ctsv-profile-hero-text">
-              <span className="ctsv-profile-eyebrow">Hồ sơ cán bộ</span>
+              <span className="ctsv-profile-eyebrow">
+                {isAdminEmbedded ? 'Hồ sơ quản trị' : 'Hồ sơ cán bộ'}
+              </span>
               <h1>{profilePageTitle}</h1>
-              <p>Quản lý thông tin cá nhân và liên hệ của cán bộ CTSV.</p>
+              <p>
+                {isAdminEmbedded
+                  ? 'Quản lý thông tin tài khoản Admin trong cổng quản trị.'
+                  : 'Quản lý thông tin cá nhân và liên hệ của cán bộ CTSV.'}
+              </p>
             </div>
           </header>
           {profileContent}
@@ -744,7 +801,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
   return (
     <>
-    <div className="dashboard-body">
+    <div className="dashboard-body student-portal">
       <div
         className={`sidebar-overlay ${sidebarActive ? 'active' : ''}`}
         id="sidebar-overlay"
@@ -756,14 +813,12 @@ const Profile = ({ showToast, embedded = false }) => {
           {/* Logo */}
           <div
             className="sidebar-logo"
-            style={{ display: 'flex', justifyContent: 'center', padding: '12px 16px', cursor: 'pointer' }}
             onClick={() => navigate('/')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
           >
-            <img
-              src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
-              alt="FEvents Logo"
-              style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
-            />
+            <img src={FE_LOGO} alt={FE_LOGO_ALT} />
           </div>
 
           {/* User Profile Card */}
@@ -830,6 +885,7 @@ const Profile = ({ showToast, embedded = false }) => {
                 <span style={{ color: '#cbd5e1' }}>/</span>
                 <span className="current">{profilePageTitle}</span>
               </div>
+              <h2 className="student-mobile-nav-title">{profilePageTitle}</h2>
             </div>
 
             <div className="navbar-right">
@@ -858,68 +914,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
           {profileContent}
 
-          {/* Dashboard Footer */}
-          <footer className="dashboard-footer">
-            <div className="dashboard-footer-content">
-              <div className="footer-top">
-                <div className="footer-info">
-                  <a href="#" className="footer-logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
-                    <img
-                      src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM"
-                      alt="FEvents Logo"
-                      style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
-                    />
-                  </a>
-                  <p>Nền tảng quản lý sự kiện chuyên nghiệp và sáng tạo dành riêng cho hệ sinh thái FPT.</p>
-                </div>
-
-                <div className="footer-column">
-                  <h3>Khám phá</h3>
-                  <ul className="footer-links">
-                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Sự kiện sắp tới</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Câu lạc bộ nổi bật</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/my-events')}>Thư viện hình ảnh</a></li>
-                  </ul>
-                </div>
-
-                <div className="footer-column">
-                  <h3>Hỗ trợ</h3>
-                  <ul className="footer-links">
-                    <li><a href="#" onClick={handleSidebarNavigate('/support')}>Trung tâm hỗ trợ</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/contact')}>Liên hệ chúng tôi</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/terms')}>Điều khoản dịch vụ</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/privacy')}>Chính sách bảo mật</a></li>
-                  </ul>
-                </div>
-
-                <div className="footer-column">
-                  <h3>Kết nối</h3>
-                  <div className="social-links">
-                    <a href="#" className="social-link" aria-label="Facebook" onClick={(e) => handleFeatureNotImplemented(e, 'Facebook')}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                      </svg>
-                    </a>
-                    <a href="#" className="social-link" aria-label="Instagram" onClick={(e) => handleFeatureNotImplemented(e, 'Instagram')}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              <div className="footer-bottom">
-                <span className="copyright-text">© 2024 FPT Event Platform. All rights reserved.</span>
-                <div className="footer-bottom-links">
-                  <a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Báo cáo')}>Báo cáo</a>
-                  <a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Cookie Policy')}>Cookie Policy</a>
-                </div>
-              </div>
-            </div>
-          </footer>
+          <SiteFooter embedded />
         </main>
       </div>
     </div>

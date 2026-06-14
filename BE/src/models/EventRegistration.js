@@ -24,6 +24,19 @@ const eventRegistrationSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  checkedInAt: {
+    type: Date,
+    default: null,
+  },
+  checkedOutAt: {
+    type: Date,
+    default: null,
+  },
+  scannedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
+  },
   googleCalendarEventId: {
     type: String,
     default: null,

@@ -25,10 +25,11 @@ const NAV_LINKS = [
 const ICPDP_MENU_ROUTES = {
   profile: '/icpdp/profile',
   calendar: '/icpdp/calendar',
-  settings: '/icpdp/profile'
+  settings: '/icpdp/settings'
 };
 
 const resolveActiveMenuItem = (pathname) => {
+  if (pathname.startsWith('/icpdp/settings')) return 'settings';
   if (pathname.startsWith('/icpdp/calendar')) return 'calendar';
   if (pathname.startsWith('/icpdp/profile')) return 'profile';
   return '';
@@ -86,6 +87,7 @@ const IcpdpPortalHeader = ({
           <div className="ctsv-header-brand">
             <CtsvHamburgerButton
               onClick={onToggleSidebar}
+              expanded={sidebarOpen}
               ariaLabel={sidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
             />
 

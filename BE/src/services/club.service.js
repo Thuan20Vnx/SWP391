@@ -2,7 +2,51 @@ const mongoose = require('mongoose');
 const Club = require('../models/Club');
 const ClubFollow = require('../models/ClubFollow');
 const ClubMembership = require('../models/ClubMembership');
+const Event = require('../models/Event');
 const AppError = require('../utils/AppError');
+
+const PUBLIC_EVENT_STATUSES = ['live', 'approved'];
+
+const CLUB_LIST_FIELDS =
+  'name slug category description coverImage logoText logoColor memberCount followerCount eventsHeld featuredEvent status';
+
+const formatEventDateLabel = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+const mapEventToUpcomingCard = (event, { isHot = false } = {}) => ({
+  id: String(event._id),
+  title: event.title,
+  date: formatEventDateLabel(event.startDate),
+  location: event.location || 'FPT University',
+  description: event.description || '',
+  image: event.thumbnail || event.image || '',
+  isHot,
+  primaryLabel: 'Đăng ký tham gia',
+  variant: 'primary',
+});
+
+const getClubUpcomingEvents = async (club) => {
+  const clubId = club._id;
+  const now = new Date();
+
+  const clubEvents = await Event.find({
+    clubId,
+    source: 'club',
+    status: { $in: PUBLIC_EVENT_STATUSES },
+    startDate: { $gte: now },
+  })
+    .sort({ startDate: 1 })
+    .limit(6)
+    .lean();
+
+  return clubEvents.map((event, index) => mapEventToUpcomingCard(event, { isHot: index === 0 }));
+};
 
 const resolveClub = async (idOrSlug) => {
   if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
@@ -67,11 +111,14 @@ const buildClubQuery = ({ category, search }) => {
 };
 
 const getClubs = async ({ category, search, userId } = {}) => {
-  const followedSet = await getFollowedClubIds(userId);
-  const membershipMap = await getMembershipMap(userId);
-
-  const clubs = await Club.find(buildClubQuery({ category, search }))
-    .sort({ name: 1 });
+  const [followedSet, membershipMap, clubs] = await Promise.all([
+    getFollowedClubIds(userId),
+    getMembershipMap(userId),
+    Club.find(buildClubQuery({ category, search }))
+      .select(CLUB_LIST_FIELDS)
+      .sort({ name: 1 })
+      .lean(),
+  ]);
 
   return {
     clubs: clubs.map((club) => attachUserClubFlags(club, followedSet, membershipMap)),
@@ -88,8 +135,11 @@ const getClubBySlug = async (idOrSlug, userId) => {
 
   const followedSet = await getFollowedClubIds(userId);
   const membershipMap = await getMembershipMap(userId);
+  const upcomingEvents = await getClubUpcomingEvents(club);
+  const clubDoc = attachUserClubFlags(club, followedSet, membershipMap);
+  clubDoc.upcomingEvents = upcomingEvents;
 
-  return { club: attachUserClubFlags(club, followedSet, membershipMap) };
+  return { club: clubDoc };
 };
 
 const followClub = async (userId, idOrSlug) => {
@@ -406,8 +456,125 @@ const ALLOWED_PROFILE_FIELDS = [
   'logoColor',
 ];
 
-const getManagedClubProfile = async (userId) => {
-  let club = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
+const findManagedClubs = async (userId, options = {}) => {
+  const { excludeImages = false, select = null } = options;
+  let query = Club.find({ managedBy: userId }).sort({ name: 1 });
+  if (select) query = query.select(select);
+  else if (excludeImages) query = query.select('-coverImage -logoImage');
+
+  const clubs = await query;
+  if (clubs.length) return clubs;
+
+  let fallbackQuery = Club.findOne({ slug: MANAGED_CLUB_SLUG });
+  if (select) fallbackQuery = fallbackQuery.select(select);
+  else if (excludeImages) fallbackQuery = fallbackQuery.select('-coverImage -logoImage');
+
+  const fallback = await fallbackQuery;
+  return fallback ? [fallback] : [];
+};
+
+const formatManagedClubBrief = (club) => ({
+  id: String(club._id),
+  name: club.name || '',
+  slug: club.slug || '',
+  president: club.president || '',
+  logoText: club.logoText || '',
+});
+
+const resolveManagedClub = async (userId, activeClubId = null, options = {}) => {
+  const clubs = await findManagedClubs(userId, options);
+  if (!clubs.length) return null;
+
+  if (activeClubId) {
+    const matched = clubs.find((club) => String(club._id) === String(activeClubId));
+    if (matched) return matched;
+  }
+
+  return clubs.find((club) => club.slug === 'fu-dever') || clubs[0];
+};
+
+const findClubManagedBy = async (userId, activeClubId = null) =>
+  resolveManagedClub(userId, activeClubId);
+
+const getManagedClubs = async (userId, activeClubId = null) => {
+  const clubs = await findManagedClubs(userId);
+  const activeClub = await resolveManagedClub(userId, activeClubId);
+
+  return {
+    clubs: clubs.map(formatManagedClubBrief),
+    activeClubId: activeClub ? String(activeClub._id) : '',
+    activeClub: activeClub ? formatManagedClubBrief(activeClub) : null,
+  };
+};
+
+const transferClubChairman = async (currentUserId, payload = {}, activeClubId = null) => {
+  const club = await resolveManagedClub(currentUserId, activeClubId);
+  if (!club) throw new AppError('Không tìm thấy CLB bạn đang quản lý.', 404);
+  if (club.managedBy && String(club.managedBy) !== String(currentUserId)) {
+    throw new AppError('Bạn không có quyền chuyển nhượng chủ nhiệm CLB này.', 403);
+  }
+  const targetEmail = String(payload.targetEmail || payload.email || '').trim().toLowerCase();
+  if (!targetEmail) throw new AppError('Vui lòng nhập email sinh viên nhận chuyển nhượng.', 400);
+  if (payload.confirm !== true && payload.confirm !== 'true') {
+    throw new AppError('Vui lòng xác nhận chuyển nhượng (confirm: true).', 400);
+  }
+  const User = require('../models/User');
+  const SchoolMember = require('../models/SchoolMember');
+  const targetUser = await User.findOne({ email: targetEmail });
+  if (!targetUser) throw new AppError('Không tìm thấy tài khoản với email đã nhập.', 404);
+  if (String(targetUser._id) === String(currentUserId)) {
+    throw new AppError('Không thể chuyển nhượng cho chính bạn.', 400);
+  }
+  if (!['student', 'staff'].includes(targetUser.role)) {
+    throw new AppError('Người nhận phải là sinh viên hoặc cán bộ trường.', 400);
+  }
+  const previousManagerId = club.managedBy || currentUserId;
+  const previousUser = await User.findById(previousManagerId);
+  club.managedBy = targetUser._id;
+  club.president = String(payload.presidentName || payload.president || targetUser.fullname || '').trim();
+  await club.save();
+  targetUser.role = 'club_manager';
+  await targetUser.save();
+  await SchoolMember.updateOne({ email: targetUser.email }, { $set: { role: 'club_manager' } }, { upsert: true });
+  if (previousUser && String(previousUser._id) !== String(targetUser._id)) {
+    const otherClubs = await Club.countDocuments({ managedBy: previousUser._id, _id: { $ne: club._id } });
+    if (otherClubs === 0 && previousUser.role === 'club_manager') {
+      previousUser.role = 'student';
+      await previousUser.save();
+      await SchoolMember.updateOne({ email: previousUser.email }, { $set: { role: 'student' } });
+    }
+  }
+  return {
+    message: `Đã chuyển nhượng chủ nhiệm CLB cho ${targetUser.fullname}.`,
+    club,
+    newManager: { id: String(targetUser._id), fullname: targetUser.fullname, email: targetUser.email },
+  };
+};
+
+const getManagedClubProfile = async (userId, activeClubId = null, { lite = false, mediaOnly = false } = {}) => {
+  if (mediaOnly) {
+    const club = await resolveManagedClub(userId, activeClubId, {
+      select: 'coverImage logoImage coverPositionY managedBy',
+    });
+
+    if (!club) {
+      throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
+    }
+
+    if (club.managedBy && String(club.managedBy) !== String(userId)) {
+      throw new AppError('Bạn không có quyền quản lý hồ sơ CLB này.', 403);
+    }
+
+    return {
+      club: {
+        coverImage: club.coverImage || '',
+        logoImage: club.logoImage || '',
+        coverPositionY: club.coverPositionY ?? 50,
+      },
+    };
+  }
+
+  const club = await resolveManagedClub(userId, activeClubId, { excludeImages: lite });
 
   if (!club) {
     throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
@@ -425,8 +592,8 @@ const getManagedClubProfile = async (userId) => {
   return { club };
 };
 
-const updateManagedClubProfile = async (userId, payload = {}) => {
-  const club = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
+const updateManagedClubProfile = async (userId, payload = {}, activeClubId = null) => {
+  const club = await resolveManagedClub(userId, activeClubId);
 
   if (!club) {
     throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
@@ -472,5 +639,10 @@ module.exports = {
   getMyClubs,
   getManagedClubProfile,
   updateManagedClubProfile,
+  transferClubChairman,
+  getManagedClubs,
+  findClubManagedBy,
+  findManagedClubs,
+  resolveManagedClub,
   MANAGED_CLUB_SLUG,
 };

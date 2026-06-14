@@ -10,6 +10,19 @@ const router = express.Router();
 
 router.get('/', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubs));
 
+router.post(
+  '/registrations',
+  authMiddleware,
+  authorize('student', 'staff', 'club_manager'),
+  asyncHandler(clubController.submitClubRegistration)
+);
+
+router.get(
+  '/manage/clubs',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.getManagedClubs)
+);
 router.get(
   '/manage/profile',
   authMiddleware,
@@ -21,6 +34,12 @@ router.patch(
   authMiddleware,
   authorize('club_manager'),
   asyncHandler(clubController.updateManagedClubProfile)
+);
+router.post(
+  '/manage/transfer-chairman',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.transferClubChairman)
 );
 
 router.get('/:slug', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubBySlug));
@@ -46,13 +65,13 @@ router.patch(
 router.post(
   '/:id/follow',
   authMiddleware,
-  authorize('student', 'staff'),
+  authorize('student', 'staff', 'club_manager'),
   asyncHandler(clubController.followClub)
 );
 router.delete(
   '/:id/follow',
   authMiddleware,
-  authorize('student', 'staff'),
+  authorize('student', 'staff', 'club_manager'),
   asyncHandler(clubController.unfollowClub)
 );
 

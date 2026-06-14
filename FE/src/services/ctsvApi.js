@@ -60,6 +60,9 @@ export const fetchCtsvReports = () => ctsvFetch('/reports');
 
 export const fetchCtsvReportDetail = (id) => ctsvFetch(`/reports/${id}`);
 
+export const submitCtsvReportToAdmin = (id) =>
+  ctsvFetch(`/reports/${id}/submit-admin`, { method: 'POST', body: '{}' });
+
 export const DEMO_REPORT_EVENT_ID = 'demo-ended-event';
 
 export const fetchCtsvProposals = (params = {}) => {
@@ -71,6 +74,9 @@ export const fetchCtsvProposal = (id) => ctsvFetch(`/proposals/${id}`);
 
 export const approveCtsvProposal = (id, note = '') =>
   ctsvFetch(`/proposals/${id}/approve`, { method: 'PATCH', body: JSON.stringify({ note }) });
+
+export const icpdpApproveProposal = (id, note = '') =>
+  ctsvFetch(`/proposals/${id}/icpdp-approve`, { method: 'PATCH', body: JSON.stringify({ note }) });
 
 export const rejectCtsvProposal = (id, reason = '') =>
   ctsvFetch(`/proposals/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });

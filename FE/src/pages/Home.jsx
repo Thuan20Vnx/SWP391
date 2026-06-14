@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ChatbotFloating from '../components/ChatbotFloating';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import AppSelect from '../components/ui/AppSelect';
+import EventDiscoveryCard from '../components/EventDiscoveryCard';
+import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
+import {
+  isPureCtsvStaff,
+  navigateClubEventManage,
+  resolveDiscoveryCardProps,
+} from '../utils/publicEventStaffAccess';
 
 const HOME_TIME_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -18,9 +25,22 @@ const HOME_CATEGORY_FILTERS = [
   { value: 'Công nghệ', label: 'Công nghệ' },
   { value: 'Kết nối', label: 'Kết nối' }
 ];
+
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import useDebouncedValue from '../hooks/useDebouncedValue';
+import { fetchPublicEvents } from '../services/eventsApi';
 import useUserProfile from '../hooks/useUserProfile';
-import { mapApiEventToHomeCard, filterActiveDiscoveryEvents } from '../data/eventDiscoveryData';
+import useManagedClubs from '../hooks/useManagedClubs';
+import {
+  mapApiEventToCard,
+  filterActiveDiscoveryEvents,
+  HOME_RECOMMEND_TABS,
+  sortHomeEventsByRecommendTab,
+  sortEventsByPopular,
+  HOME_DISPLAY_LIMIT,
+} from '../data/eventDiscoveryData';
+import SystemMaintenanceBanner from '../components/SystemMaintenanceBanner';
+import HomeHeroSlider from '../components/home/HomeHeroSlider';
 
 const Home = ({ showToast }) => {
   const navigate = useNavigate();
@@ -28,133 +48,160 @@ const Home = ({ showToast }) => {
 
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery.trim(), 400);
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
 
-  // Active Hero Slider Index
-  const [activeSlide, setActiveSlide] = useState(0);
-
-  // Event Data State — loaded from API
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
+  const [recommendTab, setRecommendTab] = useState('newest');
 
-  const [filteredEvents, setFilteredEvents] = useState([]);
+  const role = userProfile.role || getUserRole();
+  const isAdminViewer = isLoggedIn && isAdminRole(role);
+  const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
+  const isClubManager = isLoggedIn && isClubManagerRole(role);
+  const { clubs: managedClubs, activeClub } = useManagedClubs(isClubManager, role);
+  const clubManagerContext = useMemo(
+    () =>
+      isClubManager
+        ? {
+            managedClubs,
+            activeClubId: activeClub?.id || '',
+            userEmail: localStorage.getItem('userEmail') || '',
+          }
+        : null,
+    [isClubManager, managedClubs, activeClub?.id]
+  );
 
-  // Hero Slider Data
   const sliderData = [
     {
-      title: 'FPT Techday 2026:\nKiến tạo tương lai số',
-      desc: 'Tham gia sự kiện công nghệ lớn nhất trong năm để khám phá những đột phá AI mới nhất và giải pháp chuyển đổi số bền vững.',
+      title: 'FPT Techday 2026: Kiến tạo tương lai số',
+      dateLabel: '25 Tháng 10, 2026',
+      location: 'Sảnh tòa Gamma',
+      categoryLabel: 'Công nghệ',
+      organizerLabel: 'CTSV',
       image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1280&q=80'
     },
     {
-      title: 'Đêm Nhạc F-Fest 2026:\nBùng Cháy Sức Trẻ',
-      desc: 'Sự kiện âm nhạc hoành tráng chào đón tân sinh viên K20 với sự góp mặt của các ca sĩ khách mời nổi tiếng hàng đầu Việt Nam.',
+      title: 'Đêm Nhạc F-Fest 2026: Bùng cháy sức trẻ',
+      dateLabel: '20 Tháng 5, 2026',
+      location: 'FPT Plaza 2',
+      categoryLabel: 'Âm nhạc',
+      organizerLabel: 'CLB',
       image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1280&q=80'
     },
     {
-      title: 'FPT Career Expo 2026:\nChạm Ngõ Thành Công',
-      desc: 'Hơn 50 doanh nghiệp hàng đầu tham gia tuyển dụng trực tiếp, phỏng vấn và mở ra cơ hội thực tập, việc làm cho sinh viên K17-K18.',
+      title: 'FPT Career Expo 2026: Chạm ngõ thành công',
+      dateLabel: '28 Tháng 5, 2026',
+      location: 'Sân bóng FPTU',
+      categoryLabel: 'Kết nối',
+      organizerLabel: 'CTSV',
       image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1280&q=80'
     }
   ];
 
-  // Load events from API
+  // Load events from API (search via query param q)
   useEffect(() => {
-    fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
-      .then((res) => res.json())
+    setEventsLoading(true);
+    fetchPublicEvents({
+      q: debouncedSearch || undefined,
+      category: categoryFilter !== 'Tất cả' ? categoryFilter : undefined,
+    })
       .then((data) => {
         if (data.success && data.events?.length > 0) {
-          const mapped = filterActiveDiscoveryEvents(data.events)
-            .slice(0, 4)
-            .map(mapApiEventToHomeCard);
+          const mapped = filterActiveDiscoveryEvents(data.events).map(mapApiEventToCard);
           setEvents(mapped);
-          setFilteredEvents(mapped);
+        } else {
+          setEvents([]);
         }
       })
       .catch((err) => console.error(err))
       .finally(() => setEventsLoading(false));
-  }, [isLoggedIn, userProfile.role]);
+  }, [isLoggedIn, userProfile.role, debouncedSearch, categoryFilter]);
 
-  // Automatic Hero Slide transition
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide(prev => (prev + 1) % sliderData.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Perform dynamic filtering
-  const handleFilterSubmit = () => {
-    let result = events;
-
-    // Search Query
-    if (searchQuery.trim() !== '') {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(ev =>
-        ev.title.toLowerCase().includes(q) ||
-        ev.category.toLowerCase().includes(q) ||
-        ev.location.toLowerCase().includes(q)
-      );
+  const applyLocalFilters = (list) => {
+    let result = list;
+    if (timeFilter === 'Hôm nay') {
+      const today = new Date().toDateString();
+      result = result.filter((ev) => {
+        const d = new Date(ev.startDate);
+        return !Number.isNaN(d.getTime()) && d.toDateString() === today;
+      });
+    } else if (timeFilter === 'Tuần này') {
+      const now = new Date();
+      const weekEnd = new Date(now);
+      weekEnd.setDate(now.getDate() + 7);
+      result = result.filter((ev) => {
+        const d = new Date(ev.startDate);
+        return !Number.isNaN(d.getTime()) && d >= now && d <= weekEnd;
+      });
     }
-
-    // Category Filter
-    if (categoryFilter !== 'Tất cả') {
-      result = result.filter(ev => ev.category === categoryFilter);
-    }
-
-    // Time Filter (Simulated)
-    if (timeFilter !== 'Tất cả') {
-      if (timeFilter === 'Hôm nay') {
-        // Just simulate sorting/filtering for visual effect
-        result = result.slice(0, 1);
-      } else if (timeFilter === 'Tuần này') {
-        result = result.slice(0, 2);
-      }
-    }
-
-    setFilteredEvents(result);
+    return result;
   };
 
-  // Quick Filter by Search Bar on Nav
+  const sortedEvents = useMemo(
+    () => sortHomeEventsByRecommendTab(events, recommendTab, userProfile, isLoggedIn),
+    [events, recommendTab, userProfile, isLoggedIn]
+  );
+
+  const filteredEvents = useMemo(
+    () => applyLocalFilters(sortedEvents).slice(0, HOME_DISPLAY_LIMIT),
+    [sortedEvents, timeFilter]
+  );
+
+  const heroSlides = useMemo(() => {
+    const featured = sortEventsByPopular(events).slice(0, 3);
+    if (featured.length === 0) return sliderData.map((s) => ({ ...s, eventId: null }));
+    return featured.map((ev) => ({
+      title: ev.title,
+      dateLabel: ev.dateLabel,
+      location: ev.location,
+      categoryLabel: ev.categoryLabel || ev.category,
+      organizerLabel: ev.organizerLabel,
+      image: ev.thumbnail,
+      eventId: ev.id,
+    }));
+  }, [events]);
+
+  const handleFilterSubmit = () => {
+    /* filtered via useMemo */
+  };
+
   const handleNavSearch = (e) => {
     if (e.key === 'Enter') {
-      let result = events.filter(ev =>
-        ev.title.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
-        ev.category.toLowerCase().includes(searchQuery.toLowerCase().trim())
-      );
-      setFilteredEvents(result);
+      e.preventDefault();
     }
   };
 
   const handleViewDetail = (event) => {
-    navigate('/events');
-    showToast?.(`Xem chi tiết: ${event.title}`, 'success');
+    if (!event?.id) return;
+    navigate(`/events/${event.id}`);
   };
 
-  // Event Registration Logic
-  const handleRegister = async (eventId) => {
+  const handleRegister = async (event) => {
+    if (event?.cardState === 'postponed') {
+      handleViewDetail(event);
+      return;
+    }
+
     if (!isLoggedIn) {
       showToast('Vui lòng đăng nhập để đăng ký tham gia sự kiện!', 'error');
       setTimeout(() => navigate('/login'), 1500);
       return;
     }
 
-    const target = events.find((ev) => ev.id === eventId);
-    if (!target) return;
-
-    if (target.registered) {
-      showToast('Bạn đã đăng ký sự kiện này. Xem tại Sự kiện của tôi.', 'success');
+    if (event.cardState === 'expired') {
+      showToast('Sự kiện này đã kết thúc, không thể đăng ký.', 'error');
       return;
     }
 
-    if (target.eventState === 'expired' || target.eventState === 'postponed') {
-      showToast('Sự kiện này hiện không thể đăng ký.', 'error');
+    if (event.cardState === 'registered' || event.registered) {
+      showToast('Bạn đã đăng ký sự kiện này.', 'success');
       return;
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/events/${eventId}/register`, {
+      const res = await fetch(`${API_BASE}/api/events/${event.id}/register`, {
         method: 'POST',
         headers: getAuthHeaders(),
       });
@@ -165,8 +212,8 @@ const Home = ({ showToast }) => {
         return;
       }
 
-      const updated = mapApiEventToHomeCard({ ...data.event, isRegistered: true });
-      setEvents((prev) => prev.map((ev) => (ev.id === eventId ? updated : ev)));
+      const updated = mapApiEventToCard({ ...data.event, isRegistered: true });
+      setEvents((prev) => prev.map((ev) => (ev.id === event.id ? updated : ev)));
       showToast(data.message || 'Đăng ký sự kiện thành công!', 'success');
     } catch (err) {
       console.error(err);
@@ -174,66 +221,20 @@ const Home = ({ showToast }) => {
     }
   };
 
-  // Synchronize filtered events when main events state changes (e.g. registered/remaining updates)
-  useEffect(() => {
-    let result = events;
-    if (categoryFilter !== 'Tất cả') {
-      result = result.filter(ev => ev.category === categoryFilter);
-    }
-    if (searchQuery.trim() !== '') {
-      result = result.filter(ev => ev.title.toLowerCase().includes(searchQuery.toLowerCase().trim()));
-    }
-    setFilteredEvents(result);
-  }, [events]);
-
   return (
     <PublicAdminShell
       activeNav="home"
+      searchPlaceholder="Tìm kiếm sự kiện..."
       searchValue={searchQuery}
       onSearchChange={setSearchQuery}
       onSearchKeyDown={handleNavSearch}
     >
     <div className="home-layout">
-      {/* 2. Hero Banner Slider (Figma 38:1158) */}
-      <section className="hero-banner-slider">
-        {sliderData.map((slide, index) => (
-          <div
-            key={index}
-            className={`hero-slide ${index === activeSlide ? 'active' : ''}`}
-            style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.7)), url(${slide.image})` }}
-          >
-            <div className="hero-content-container">
-              <span className="hero-tag-badge">SỰ KIỆN NỔI BẬT</span>
-              <h1 className="hero-title">{slide.title}</h1>
-              <p className="hero-description">{slide.desc}</p>
-              <button
-                className="hero-cta-btn"
-                onClick={() => {
-                  if (index === 0 && events[0]?.id) {
-                    handleRegister(events[0].id);
-                  } else {
-                    navigate('/events');
-                  }
-                }}
-              >
-                Đăng ký tham gia ngay
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {/* Dot Indicators */}
-        <div className="hero-dot-indicators">
-          {sliderData.map((_, index) => (
-            <button
-              key={index}
-              className={`slider-dot ${index === activeSlide ? 'active' : ''}`}
-              onClick={() => setActiveSlide(index)}
-              aria-label={`Slide ${index + 1}`}
-            ></button>
-          ))}
-        </div>
-      </section>
+      <SystemMaintenanceBanner />
+      <HomeHeroSlider
+        slides={heroSlides}
+        resolveDetailPath={(slide) => (slide.eventId ? `/events/${slide.eventId}` : null)}
+      />
 
       {/* 3. Filter Bar (Figma 38:1315) */}
       <section className="filter-bar-section">
@@ -291,108 +292,83 @@ const Home = ({ showToast }) => {
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor" />
               </svg>
             </span>
-            <h2>Gợi ý cho bạn</h2>
+            <h2>Sự kiện nổi bật</h2>
           </div>
-          <a href="#" className="see-all-link" onClick={(e) => { e.preventDefault(); setFilteredEvents(events); setCategoryFilter('Tất cả'); }}>
+          <Link to="/events" className="see-all-link">
             <span>Xem tất cả</span>
             <svg viewBox="0 0 24 24" width="16" height="16">
               <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor" />
             </svg>
-          </a>
+          </Link>
         </div>
 
-        {/* Dynamic Grid Cards */}
+        <div className="home-recommend-tabs" role="tablist" aria-label="Gợi ý sự kiện">
+          {HOME_RECOMMEND_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={recommendTab === tab.id}
+              className={`home-recommend-tab ${recommendTab === tab.id ? 'is-active' : ''}`}
+              onClick={() => setRecommendTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         {eventsLoading ? (
           <div className="no-events-card">
             <p>Đang tải sự kiện...</p>
           </div>
         ) : filteredEvents.length > 0 ? (
-          <div className="event-grid-cards">
-            {filteredEvents.map((ev) => (
-              <article key={ev.id} className="event-card-item">
-                {/* Image block & Category badge */}
-                <div className="event-card-image-wrapper">
-                  <img src={ev.image} alt={ev.title} className="event-card-img" />
-                  <span className="event-card-category-badge">{ev.categoryLabel || ev.category}</span>
-                </div>
-
-                {/* Event text body */}
-                <div className="event-card-body">
-                  <h3 className="event-card-title" title={ev.title}>{ev.title}</h3>
-
-                  <div className="event-card-details">
-                    <div className="detail-row">
-                      <span className="detail-icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16">
-                          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor" />
-                        </svg>
-                      </span>
-                      <span>{ev.date} • {ev.time}</span>
-                    </div>
-
-                    <div className="detail-row">
-                      <span className="detail-icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16">
-                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor" />
-                        </svg>
-                      </span>
-                      <span className="location-text" title={ev.location}>{ev.location}</span>
-                    </div>
-                  </div>
-
-                  <div className="event-card-divider"></div>
-
-                  {/* Remaining Tickets & Actions */}
-                  <div className="event-card-footer">
-                    <div className="ticket-info">
-                      <div className="ticket-remain-row">
-                        <span className="ticket-icon">
-                          <svg viewBox="0 0 24 24" width="16" height="16">
-                            <path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-2 .89-2 2v4c1.1 0 1.99.9 1.99 2S3.1 14 2 14v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-2-1.53c-1.27.73-2 2.02-2 3.53s.73 2.8 2 3.53V18H4v-1.47c1.27-.73 2-2.02 2-3.53s-.73-2.8-2-3.53V6h16v2.47zM9 12h6v2H9zm0-4h6v2H9zm0 8h6v2H9z" fill="currentColor" />
-                          </svg>
-                        </span>
-                        <span className="ticket-remain-text">Còn: {ev.remainingTickets}/{ev.totalTickets}</span>
-                      </div>
-                      <span className={`status-pill ${ev.status === 'SẮP HẾT CHỖ' ? 'status-danger' : 'status-success'}`}>
-                        {ev.status}
-                      </span>
-                    </div>
-
-                    <div className="event-card-actions">
-                      <button
-                        type="button"
-                        className="btn-card-detail"
-                        onClick={() => handleViewDetail(ev)}
-                      >
-                        Xem chi tiết
-                      </button>
-                      <button
-                        type="button"
-                        className={`btn-card-register ${ev.registered ? 'btn-registered' : ''}`}
-                        onClick={() => handleRegister(ev.id)}
-                      >
-                        {ev.registered ? (
-                          <>
-                            <svg viewBox="0 0 24 24" width="16" height="16" style={{ marginRight: '4px' }}>
-                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor" />
-                            </svg>
-                            Đã đăng ký
-                          </>
-                        ) : 'Đăng ký ngay'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <section className="event-discovery-grid">
+            {filteredEvents.map((event) => {
+              const cardProps = resolveDiscoveryCardProps({
+                event,
+                isCtsvStaff,
+                isAdminViewer,
+                isClubManager,
+                clubManagerContext,
+                onDetail: handleViewDetail,
+                onRegister: handleRegister,
+                onManageNavigate: (path) => navigate(path),
+                onClubManageNavigate: (access) =>
+                  navigateClubEventManage({ access, navigate, showToast }),
+                showToast,
+              });
+              return (
+                <EventDiscoveryCard
+                  key={event.id}
+                  event={event}
+                  onDetail={cardProps.onDetail}
+                  onPrimaryAction={cardProps.onPrimaryAction}
+                  onManage={cardProps.onManage}
+                  manageLabel={cardProps.manageLabel}
+                  manageHint={cardProps.manageHint}
+                  viewOnly={cardProps.viewOnly}
+                />
+              );
+            })}
+          </section>
         ) : (
           <div className="no-events-card">
             <svg viewBox="0 0 24 24" width="64" height="64" className="no-events-icon">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor" />
             </svg>
-            <p>Không tìm thấy sự kiện nào khớp với từ khóa/bộ lọc của bạn.</p>
-            <button className="reset-filter-btn" onClick={() => { setCategoryFilter('Tất cả'); setTimeFilter('Tất cả'); setSearchQuery(''); setFilteredEvents(events); }}>Xóa bộ lọc</button>
+            <p>Không tìm thấy sự kiện nào khớp với bộ lọc hoặc tiêu chí gợi ý.</p>
+            <button
+              type="button"
+              className="reset-filter-btn"
+              onClick={() => {
+                setCategoryFilter('Tất cả');
+                setTimeFilter('Tất cả');
+                setSearchQuery('');
+                setRecommendTab('newest');
+              }}
+            >
+              Xóa bộ lọc
+            </button>
           </div>
         )}
       </main>

@@ -24,6 +24,7 @@ const eventProposalSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, default: '' },
+    learningOutcomes: { type: [String], default: [] },
     category: { type: String, default: 'Khác' },
     startDate: { type: Date, required: true },
     endDate: { type: Date },
