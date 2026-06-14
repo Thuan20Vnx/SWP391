@@ -35,29 +35,41 @@ const QUICK_ACTIONS = [
 const CtsvDashboard = () => {
   const navigate = useNavigate();
   const { userProfile } = useOutletContext() || {};
-  const [loading, setLoading] = useState(true);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [loadingPartners, setLoadingPartners] = useState(true);
   const [stats, setStats] = useState(MOCK_STATS);
   const [events, setEvents] = useState([]);
   const [pendingPartners, setPendingPartners] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
 
-    Promise.all([
-      fetchCtsvStats().catch(() => ({ stats: MOCK_STATS })),
-      fetchCtsvEvents({ sort: 'newest', limit: 5 }).catch(() => ({ events: MOCK_EVENTS })),
-      fetchCtsvPartners({ status: 'pending' }).catch(() => ({ partners: [] }))
-    ])
-      .then(([statsRes, eventsRes, partnersRes]) => {
+    setLoadingStats(true);
+    fetchCtsvStats()
+      .catch(() => ({ stats: MOCK_STATS }))
+      .then((res) => {
         if (cancelled) return;
-        setStats(statsRes.stats?.length ? statsRes.stats : MOCK_STATS);
-        const list = eventsRes.events?.length ? eventsRes.events : MOCK_EVENTS;
-        setEvents(list);
-        setPendingPartners((partnersRes.partners || []).slice(0, 4));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        setStats(res.stats?.length ? res.stats : MOCK_STATS);
+        setLoadingStats(false);
+      });
+
+    setLoadingEvents(true);
+    fetchCtsvEvents({ sort: 'newest', limit: 5 })
+      .catch(() => ({ events: MOCK_EVENTS }))
+      .then((res) => {
+        if (cancelled) return;
+        setEvents(res.events?.length ? res.events : MOCK_EVENTS);
+        setLoadingEvents(false);
+      });
+
+    setLoadingPartners(true);
+    fetchCtsvPartners({ status: 'pending' })
+      .catch(() => ({ partners: [] }))
+      .then((res) => {
+        if (cancelled) return;
+        setPendingPartners((res.partners || []).slice(0, 4));
+        setLoadingPartners(false);
       });
 
     return () => {
@@ -122,7 +134,7 @@ const CtsvDashboard = () => {
             <span className="ctsv-dash-pill-count">{pendingPartnerCount}</span>
           )}
         </div>
-        {loading ? (
+        {loadingPartners ? (
           <div className="ctsv-dash-pending-list ctsv-dash-pending-list--row">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="ctsv-dash-pending-item ctsv-dash-pending-item--skeleton" />
@@ -156,7 +168,7 @@ const CtsvDashboard = () => {
       {/* 4. Thống kê nhanh */}
       <section className="ctsv-dash-stats" aria-label="Thống kê nhanh">
         <div className="ctsv-dash-stats-grid">
-          {loading
+          {loadingStats
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="ctsv-dash-stat-card ctsv-dash-stat-card--skeleton" />
               ))
@@ -204,7 +216,7 @@ const CtsvDashboard = () => {
             </Link>
           </div>
 
-          {loading ? (
+          {loadingEvents ? (
             <div className="ctsv-dash-event-list">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="ctsv-dash-event-row ctsv-dash-event-row--skeleton" />

@@ -200,7 +200,8 @@ const IcpdpHome = ({ showToast }) => {
               <h1 className="hero-title">{slide.title}</h1>
               <p className="hero-description">{slide.desc}</p>
               <button type="button" className="hero-cta-btn" onClick={() => navigate('/icpdp/dashboard')}>
-                Vào bảng điều khiển
+                <span className="hero-cta-btn__main">Vào bảng điều khiển</span>
+                <span className="hero-cta-btn__sub">Bấm để truy cập ngay</span>
               </button>
             </div>
           </div>

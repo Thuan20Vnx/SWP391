@@ -72,6 +72,8 @@ router.get('/', optionalAuth, async (req, res) => {
 
     const list = await Announcement.find(PUBLIC_ANNOUNCEMENT_FILTER)
 
+      .select('-image')
+
       .sort({ publishedAt: -1, published_at: -1 })
 
       .limit(limit * 2)
@@ -105,6 +107,31 @@ router.get('/', optionalAuth, async (req, res) => {
 });
 
 
+
+/** GET /api/announcements/:id/image */
+router.get('/:id/image', async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).send('Not found');
+    }
+    const doc = await Announcement.findById(req.params.id).select('image').lean();
+    if (!doc || !doc.image) {
+      return res.status(404).send('No image');
+    }
+    const match = doc.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!match) {
+      return res.status(400).send('Invalid image format');
+    }
+    const type = match[1];
+    const buffer = Buffer.from(match[2], 'base64');
+    res.set('Content-Type', type);
+    res.set('Cache-Control', 'public, max-age=86400');
+    return res.send(buffer);
+  } catch (error) {
+    console.error('announcement image:', error);
+    return res.status(500).send('Server Error');
+  }
+});
 
 /** GET /api/announcements/:id */
 

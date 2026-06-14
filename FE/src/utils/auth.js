@@ -24,6 +24,8 @@ export const persistSession = (user, token, loginMethod = 'local') => {
   if (token) localStorage.setItem('authToken', token);
 };
 
+import { clearAllCache } from './apiCache';
+
 export const clearSession = () => {
   localStorage.removeItem('isLoggedIn');
   localStorage.removeItem('userEmail');
@@ -32,6 +34,7 @@ export const clearSession = () => {
   localStorage.removeItem('userRole');
   localStorage.removeItem('userFullname');
   localStorage.removeItem('activeManagedClubId');
+  clearAllCache();
 };
 
 export const getUserRole = () => normalizeRole(localStorage.getItem('userRole'));

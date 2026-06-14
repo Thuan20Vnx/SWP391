@@ -228,19 +228,15 @@ const SiteHeader = ({
   };
 
   const handleLogout = () => {
-    clearSession();
-    clearUserProfileCache();
-    dispatchAuthChanged();
+    logoutWithConfirm(navigate);
     setProfilePopupOpen(false);
-    navigate('/');
   };
 
   const hasShellSidebar = Boolean(onTogglePortalSidebar) || (showAdminMenu && !isAdminPortal);
   const portalSidebarActive = Boolean(onTogglePortalSidebar) && portalSidebarOpen;
   const adminMenuOpen = showAdminMenu && !isAdminPortal && menuOpen;
   const sidebarLogoCollapsed = portalSidebarActive || adminMenuOpen;
-  const searchCollapsed =
-    (adminMenuOpen || portalSidebarActive) && !searchExpanded && !searchValue.trim();
+  const searchCollapsed = false;
 
   useEffect(() => {
     if (!adminMenuOpen && !portalSidebarActive) setSearchExpanded(false);
