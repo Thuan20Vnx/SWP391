@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import {
   approveCtsvSemesterTimeline,
+  adminApproveTimelineChangeRequest,
   fetchCtsvSemesterTimeline,
   rejectCtsvSemesterTimeline,
+  rejectCtsvTimelineChangeRequest,
   revisionCtsvSemesterTimeline,
 } from '../../services/ctsvApi';
 
@@ -37,6 +39,30 @@ const CtsvSemesterTimelineDetail = () => {
   }
 
   const canApprove = timeline.statusKey === 'pending_ctsv';
+  const pendingChange = timeline.changeRequest?.statusKey === 'pending_admin';
+
+  const runChangeAction = async (action) => {
+    setSubmitting(true);
+    try {
+      if (action === 'approve') {
+        const data = await adminApproveTimelineChangeRequest(id, note);
+        if (data.deleted) {
+          showToast?.('Admin đã duyệt — timeline đã xóa.', 'success');
+          navigate('/ctsv/semester-timelines');
+          return;
+        }
+        showToast?.('Admin đã duyệt yêu cầu!', 'success');
+      } else {
+        await rejectCtsvTimelineChangeRequest(id, rejectReason || note);
+        showToast?.('Đã từ chối yêu cầu.', 'info');
+      }
+      await refresh();
+    } catch (e) {
+      showToast?.(e.message, 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const runAction = async (action) => {
     setSubmitting(true);
@@ -122,6 +148,31 @@ const CtsvSemesterTimelineDetail = () => {
           </table>
         </div>
       </section>
+
+      {pendingChange && (
+        <section className="ctsv-ed-panel">
+          <h2>Yêu cầu thay đổi — chờ Admin duyệt</h2>
+          <p><strong>{timeline.changeRequest.typeLabel}</strong></p>
+          <p>Lý do CLB: {timeline.changeRequest.reason}</p>
+          {timeline.changeRequest.icpdpNote && <p>Ghi chú IC-PDP: {timeline.changeRequest.icpdpNote}</p>}
+          <label>
+            Ghi chú Admin / CTSV
+            <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
+          </label>
+          <label style={{ marginTop: 12 }}>
+            Lý do từ chối yêu cầu
+            <textarea rows={2} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+          </label>
+          <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
+            <button type="button" className="ctsv-primary-btn" disabled={submitting} onClick={() => runChangeAction('approve')}>
+              Admin duyệt & thực hiện
+            </button>
+            <button type="button" className="ctsv-danger-btn" disabled={submitting} onClick={() => runChangeAction('reject')}>
+              Từ chối yêu cầu
+            </button>
+          </div>
+        </section>
+      )}
 
       {canApprove && (
         <section className="ctsv-ed-panel">

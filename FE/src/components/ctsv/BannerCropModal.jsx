@@ -8,9 +8,10 @@ import {
   zoomCropState
 } from '../../utils/cropImage';
 
-const VIEW_W = 520;
+const VIEW_W = 640;
 const VIEW_H = Math.round((VIEW_W * 9) / 16);
 const ZOOM_MAX_FACTOR = 3;
+const INITIAL_COVER_BOOST = 1.08;
 const PREVIEW_DEBOUNCE_MS = 120;
 
 const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
@@ -58,7 +59,7 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
       clearTimeout(previewTimerRef.current);
       previewTimerRef.current = setTimeout(async () => {
         try {
-          const url = await cropBannerPreview(imageSrc, state);
+          const url = await cropBannerPreview(imageSrc, state, 400, 225);
           setPreviewUrl(url);
         } catch {
           setPreviewUrl('');
@@ -81,7 +82,7 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
       const nw = img.naturalWidth;
       const nh = img.naturalHeight;
       const ms = getMinScale(nw, nh, VIEW_W, VIEW_H);
-      const initial = getInitialCropState(nw, nh, VIEW_W, VIEW_H);
+      const initial = getInitialCropState(nw, nh, VIEW_W, VIEW_H, INITIAL_COVER_BOOST);
 
       setNaturalSize({ w: nw, h: nh });
       setMinScale(ms);
@@ -132,7 +133,7 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
 
   const handleReset = () => {
     if (!naturalSize.w) return;
-    commitCrop(getInitialCropState(naturalSize.w, naturalSize.h, VIEW_W, VIEW_H));
+    commitCrop(getInitialCropState(naturalSize.w, naturalSize.h, VIEW_W, VIEW_H, INITIAL_COVER_BOOST));
   };
 
   const handleFit = () => {

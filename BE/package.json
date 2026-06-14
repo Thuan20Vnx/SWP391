@@ -10,6 +10,7 @@
     "seed:events": "node seed-events.js",
     "seed:clubs": "node seed-clubs.js",
     "seed:reviews": "node seed-event-reviews.js",
+    "fix:orphan-club-data": "node scripts/fix-orphan-club-data.js",
     "db:audit": "node scripts/db-health.js",
     "db:sync-indexes": "node scripts/db-health.js --sync",
     "db:repair-counts": "node scripts/db-health.js --repair-counts",

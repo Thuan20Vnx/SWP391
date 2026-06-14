@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import BannerCropModal from './ctsv/BannerCropModal';
 import AvatarCropModal from './profile/AvatarCropModal';
+import AppSelect from './ui/AppSelect';
 import { API_BASE, getAuthHeaders, parseApiResponse } from '../utils/api';
 import { openImageFilePicker } from '../utils/imageFilePicker';
 import ClubChairmanTransfer from './club/ClubChairmanTransfer';
@@ -77,7 +78,6 @@ const emptyProfile = {
   foundedDate: '',
   scale: '',
   president: '',
-  hotline: '',
   email: '',
   facebook: '',
   website: '',
@@ -115,7 +115,6 @@ const mapClubToForm = (club) => ({
   foundedDate: toDateInputValue(club.foundedDate || club.founded || ''),
   scale: club.scale || '',
   president: club.president || '',
-  hotline: club.hotline || '',
   email: club.email || '',
   facebook: club.facebook || '',
   website: club.website || '',
@@ -526,10 +525,7 @@ const ClubProfileUpdate = ({ showToast }) => {
 
           <section className="clb-profile-card">
             <h2>Ban điều hành &amp; Trạng thái</h2>
-            <div className="clb-profile-grid clb-profile-grid--2">
-              <ProfileValue label="Chủ nhiệm CLB" value={display.president} />
-              <ProfileValue label="Trưởng ban Truyền thông (Hotline)" value={display.hotline} />
-            </div>
+            <ProfileValue label="Chủ nhiệm CLB" value={display.president} />
           </section>
 
           <section className="clb-profile-card">
@@ -592,19 +588,13 @@ const ClubProfileUpdate = ({ showToast }) => {
               </div>
               <div className="clb-profile-field">
                 <label htmlFor="club-activity">Lĩnh vực hoạt động</label>
-                <select
+                <AppSelect
                   id="club-activity"
-                  className="clb-input"
                   value={form.activityField}
                   onChange={(e) => updateField('activityField', e.target.value)}
-                >
-                  <option value="">Chọn lĩnh vực</option>
-                  {ACTIVITY_FIELDS.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
+                  options={ACTIVITY_FIELDS}
+                  placeholder="Chọn lĩnh vực"
+                />
               </div>
               <div className="clb-profile-field">
                 <label htmlFor="club-founded">Ngày thành lập</label>
@@ -618,47 +608,28 @@ const ClubProfileUpdate = ({ showToast }) => {
               </div>
               <div className="clb-profile-field">
                 <label htmlFor="club-scale">Quy mô</label>
-                <select
+                <AppSelect
                   id="club-scale"
-                  className="clb-input"
                   value={form.scale}
                   onChange={(e) => updateField('scale', e.target.value)}
-                >
-                  <option value="">Chọn quy mô</option>
-                  {SCALE_OPTIONS.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
+                  options={SCALE_OPTIONS}
+                  placeholder="Chọn quy mô"
+                />
               </div>
             </div>
           </section>
 
           <section className="clb-profile-card">
             <h2>Ban điều hành &amp; Trạng thái</h2>
-            <div className="clb-profile-grid clb-profile-grid--2">
-              <div className="clb-profile-field">
-                <label htmlFor="club-president">Chủ nhiệm CLB</label>
-                <input
-                  id="club-president"
-                  type="text"
-                  className="clb-input"
-                  value={form.president}
-                  onChange={(e) => updateField('president', e.target.value)}
-                />
-              </div>
-              <div className="clb-profile-field">
-                <label htmlFor="club-hotline">Trưởng ban Truyền thông (Hotline)</label>
-                <input
-                  id="club-hotline"
-                  type="text"
-                  className="clb-input"
-                  placeholder="09xx xxx xxx"
-                  value={form.hotline}
-                  onChange={(e) => updateField('hotline', e.target.value)}
-                />
-              </div>
+            <div className="clb-profile-field">
+              <label htmlFor="club-president">Chủ nhiệm CLB</label>
+              <input
+                id="club-president"
+                type="text"
+                className="clb-input"
+                value={form.president}
+                onChange={(e) => updateField('president', e.target.value)}
+              />
             </div>
           </section>
 

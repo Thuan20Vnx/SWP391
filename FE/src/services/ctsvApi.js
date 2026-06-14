@@ -106,6 +106,18 @@ export const revisionCtsvSemesterTimeline = (id, note = '') =>
     body: JSON.stringify({ note }),
   });
 
+export const adminApproveTimelineChangeRequest = (id, note = '') =>
+  ctsvFetch(`/semester-timelines/${id}/change-request/admin-approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const rejectCtsvTimelineChangeRequest = (id, reason = '') =>
+  ctsvFetch(`/semester-timelines/${id}/change-request/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason, stage: 'admin' }),
+  });
+
 export const fetchCtsvPartners = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
   return ctsvFetch(`/partners${qs ? `?${qs}` : ''}`);

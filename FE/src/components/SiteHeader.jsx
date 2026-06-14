@@ -75,6 +75,7 @@ const SiteHeader = ({
   const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [localSearchValue, setLocalSearchValue] = useState('');
   const [clubSwitchOpen, setClubSwitchOpen] = useState(false);
   const profileRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -206,7 +207,7 @@ const SiteHeader = ({
         navigateClubPortalHome(navigate, pathname);
         return;
       }
-      navigate(routes[action]);
+      navigate(routes[action], { state: { returnTo: pathname } });
       return;
     }
 
@@ -236,11 +237,31 @@ const SiteHeader = ({
   };
 
   const hasShellSidebar = Boolean(onTogglePortalSidebar) || (showAdminMenu && !isAdminPortal);
+  const shellPortalLayout = Boolean(onTogglePortalSidebar);
+  const hasSearchHandler = typeof onSearchChange === 'function';
+  const resolvedSearchValue = hasSearchHandler ? searchValue : localSearchValue;
+  const resolvedOnSearchChange = hasSearchHandler ? onSearchChange : setLocalSearchValue;
   const portalSidebarActive = Boolean(onTogglePortalSidebar) && portalSidebarOpen;
   const adminMenuOpen = showAdminMenu && !isAdminPortal && menuOpen;
   const sidebarLogoCollapsed = portalSidebarActive || adminMenuOpen;
   const searchCollapsed =
-    (adminMenuOpen || portalSidebarActive) && !searchExpanded && !searchValue.trim();
+    adminMenuOpen &&
+    !shellPortalLayout &&
+    !searchExpanded &&
+    !resolvedSearchValue.trim();
+  const showMobileSearch = hasSearchHandler || shellPortalLayout;
+
+  const handleResolvedSearchKeyDown = (e) => {
+    onSearchKeyDown?.(e);
+    if (e.defaultPrevented) return;
+    if (e.key !== 'Enter') return;
+    const query = resolvedSearchValue.trim();
+    if (!query) return;
+    navigate(`/events?q=${encodeURIComponent(query)}`);
+    setSearchExpanded(false);
+    setMobileSearchOpen(false);
+    if (!hasSearchHandler) setLocalSearchValue('');
+  };
 
   useEffect(() => {
     if (!adminMenuOpen && !portalSidebarActive) setSearchExpanded(false);
@@ -260,8 +281,6 @@ const SiteHeader = ({
     }
   }, [searchExpanded]);
 
-  const hasSearchHandler = typeof onSearchChange === 'function';
-  const showMobileSearch = hasSearchHandler;
   const searchToggleLabel = mobileSearchOpen ? 'Đóng tìm kiếm' : 'Mở tìm kiếm';
   const activeNavItem = navItems.find((item) => isNavItemActive(item)) ?? navItems[0];
   const isPublicEventsRoute = pathname === '/events';
@@ -390,11 +409,11 @@ const SiteHeader = ({
                 ref={searchInputRef}
                 type="text"
                 placeholder={resolvedSearchPlaceholder}
-                value={searchValue}
-                onChange={(e) => onSearchChange?.(e.target.value)}
-                onKeyDown={onSearchKeyDown}
+                value={resolvedSearchValue}
+                onChange={(e) => resolvedOnSearchChange?.(e.target.value)}
+                onKeyDown={handleResolvedSearchKeyDown}
                 onBlur={() => {
-                  if ((adminMenuOpen || portalSidebarActive) && !searchValue.trim()) {
+                  if (adminMenuOpen && !resolvedSearchValue.trim()) {
                     setSearchExpanded(false);
                   }
                 }}
@@ -538,9 +557,9 @@ const SiteHeader = ({
               type="search"
               name="site-header-mobile-search"
               placeholder={resolvedSearchPlaceholder}
-              value={searchValue}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              onKeyDown={onSearchKeyDown}
+              value={resolvedSearchValue}
+              onChange={(e) => resolvedOnSearchChange?.(e.target.value)}
+              onKeyDown={handleResolvedSearchKeyDown}
               className="search-input site-header__search-input"
               autoFocus
             />

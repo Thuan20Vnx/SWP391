@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../constants/defaultAvatar';
 import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
@@ -7,6 +7,7 @@ import { resolveUserAvatar } from '../utils/image';
 import { getRoleLabel, isAdminRoleLabel } from '../utils/role';
 import { clearUserProfileCache } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
+import { getUserRole, isClubManagerRole } from '../utils/auth';
 import DashboardSidebarNav from './DashboardSidebarNav';
 
 const StudentDashboardLayout = ({
@@ -18,6 +19,7 @@ const StudentDashboardLayout = ({
   showToast,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarActive, setSidebarActive] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileData, setProfileData] = useState({ fullname: '', picture: '' });
@@ -60,6 +62,22 @@ const StudentDashboardLayout = ({
 
   const displayAvatar = profileData.picture || defaultAvatar;
   const currentCrumb = breadcrumbLabel || pageTitle;
+  const isClubManager = isClubManagerRole(getUserRole() || profileData.role);
+  const dashboardHome = isClubManager ? '/quan-ly-clb' : '/profile';
+  const dashboardHomeLabel = isClubManager ? 'Quản lý CLB' : 'Trang cá nhân';
+  const returnTo = location.state?.returnTo;
+
+  const handleBack = () => {
+    if (returnTo && returnTo !== location.pathname) {
+      navigate(returnTo);
+      return;
+    }
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate(dashboardHome);
+  };
 
   return (
     <div className="profile-page">
@@ -139,8 +157,18 @@ const StudentDashboardLayout = ({
                   <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
               </button>
+              <button
+                type="button"
+                className="dashboard-back-btn"
+                aria-label="Quay lại trang trước"
+                onClick={handleBack}
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+                </svg>
+              </button>
               <div className="breadcrumbs">
-                <Link to="/">Trang chủ</Link>
+                <Link to={dashboardHome}>{dashboardHomeLabel}</Link>
                 <span style={{ color: '#cbd5e1' }}>/</span>
                 <span className="current">{currentCrumb}</span>
               </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { API_BASE, getEventHeaders } from '../../utils/api';
+import AppSelect from '../ui/AppSelect';
+import { API_BASE, getEventHeaders, parseApiResponse } from '../../utils/api';
 
 const STATUS_LABEL = {
   registered: 'Đã đăng ký',
@@ -41,10 +42,10 @@ const ClubParticipantsPanel = ({ events, showToast, onViewEvent }) => {
     let cancelled = false;
     setLoading(true);
     fetch(`${API_BASE}/api/events/${selectedEventId}`, { headers: getEventHeaders(false) })
-      .then((res) => res.json())
-      .then((data) => {
+      .then((res) => parseApiResponse(res))
+      .then(({ ok, data }) => {
         if (cancelled) return;
-        if (data.success) {
+        if (ok && data.success) {
           setParticipants(data.students || []);
         } else {
           setParticipants([]);
@@ -74,11 +75,16 @@ const ClubParticipantsPanel = ({ events, showToast, onViewEvent }) => {
 
   const selectedEvent = eligibleEvents.find((e) => e._id === selectedEventId);
 
+  const eventOptions = useMemo(
+    () => eligibleEvents.map((ev) => ({ value: ev._id, label: ev.title })),
+    [eligibleEvents]
+  );
+
   return (
     <div className="clb-participants-panel">
       <div className="clb-page-header">
         <div>
-          <h1 className="clb-page-title">QUẢN LÝ NGƯỜI THAM GIA</h1>
+          <h1 className="clb-page-title">XEM DANH SÁCH NGƯỜI THAM GIA</h1>
           <p className="clb-page-subtitle">Danh sách sinh viên đăng ký theo từng sự kiện đã duyệt.</p>
         </div>
         {selectedEventId && (
@@ -95,16 +101,13 @@ const ClubParticipantsPanel = ({ events, showToast, onViewEvent }) => {
           <div className="clb-participants-toolbar">
             <div className="clb-profile-field">
               <label htmlFor="clb-participant-event">Chọn sự kiện</label>
-              <select
+              <AppSelect
                 id="clb-participant-event"
-                className="clb-input"
                 value={selectedEventId}
                 onChange={(e) => setSelectedEventId(e.target.value)}
-              >
-                {eligibleEvents.map((ev) => (
-                  <option key={ev._id} value={ev._id}>{ev.title}</option>
-                ))}
-              </select>
+                options={eventOptions}
+                placeholder="— Chọn sự kiện —"
+              />
             </div>
             <div className="clb-profile-field">
               <label htmlFor="clb-participant-search">Tìm theo tên, MSSV, email</label>

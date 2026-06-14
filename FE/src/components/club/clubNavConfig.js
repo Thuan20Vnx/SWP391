@@ -2,7 +2,7 @@ export const CLUB_SIDEBAR_KEY = 'clubSidebarOpen';
 export const CLUB_PUBLIC_SIDEBAR_KEY = 'clubPublicSidebarOpen';
 
 export const CLUB_NAV_ITEMS = [
-  { key: 'profile', label: 'Hồ sơ CLB', icon: 'profile' },
+  { key: 'profile', label: 'Hồ sơ CLB', mobileLabel: 'Hồ sơ CLB', icon: 'profile' },
   { key: 'transfer-chairman', label: 'Chuyển nhượng Chủ nhiệm', mobileLabel: 'Chuyển CN', icon: 'transfer' },
   {
     key: 'semester-timeline',
@@ -19,7 +19,7 @@ export const CLUB_NAV_ITEMS = [
     icon: 'create',
   },
   { key: 'list', label: 'Danh sách Sự kiện quản lý', mobileLabel: 'DS sự kiện', icon: 'publish' },
-  { key: 'participants', label: 'Quản lý người tham gia', mobileLabel: 'Người tham gia', icon: 'participants' },
+  { key: 'participants', label: 'Xem danh sách người tham gia', mobileLabel: 'Danh sách tham gia', icon: 'participants' },
   { key: 'report', label: 'Báo cáo sau sự kiện', mobileLabel: 'Báo cáo SK', section: 'THEO DÕI', icon: 'reports' },
   { key: 'notifications', label: 'Thông báo xét duyệt', mobileLabel: 'Xét duyệt', icon: 'approval' },
   { key: 'announcements', label: 'Đăng thông báo CLB', mobileLabel: 'Thông báo CLB', icon: 'broadcast' },

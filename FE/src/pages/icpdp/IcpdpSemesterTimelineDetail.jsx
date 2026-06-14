@@ -3,7 +3,9 @@ import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom
 import {
   fetchIcpdpSemesterTimeline,
   icpdpApproveSemesterTimeline,
+  icpdpApproveTimelineChangeRequest,
   rejectIcpdpSemesterTimeline,
+  rejectTimelineChangeRequest,
   revisionIcpdpSemesterTimeline,
 } from '../../services/icpdpApi';
 
@@ -37,6 +39,25 @@ const IcpdpSemesterTimelineDetail = () => {
   }
 
   const canApprove = timeline.statusKey === 'pending_icpdp';
+  const pendingChange = timeline.changeRequest?.statusKey === 'pending_icpdp';
+
+  const runChangeAction = async (action) => {
+    setSubmitting(true);
+    try {
+      if (action === 'approve') {
+        await icpdpApproveTimelineChangeRequest(id, note);
+        showToast?.('Đã chuyển yêu cầu lên Admin duyệt!', 'success');
+      } else {
+        await rejectTimelineChangeRequest(id, rejectReason || note, 'icpdp');
+        showToast?.('Đã từ chối yêu cầu.', 'info');
+      }
+      await refresh();
+    } catch (e) {
+      showToast?.(e.message, 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const runAction = async (action) => {
     setSubmitting(true);
@@ -115,6 +136,30 @@ const IcpdpSemesterTimelineDetail = () => {
           </table>
         </div>
       </section>
+
+      {pendingChange && (
+        <section className="ctsv-ed-panel">
+          <h2>Yêu cầu thay đổi từ CLB</h2>
+          <p><strong>{timeline.changeRequest.typeLabel}</strong></p>
+          <p>Lý do CLB: {timeline.changeRequest.reason}</p>
+          <label>
+            Ghi chú IC-PDP
+            <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
+          </label>
+          <label style={{ marginTop: 12 }}>
+            Lý do từ chối yêu cầu
+            <textarea rows={2} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+          </label>
+          <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
+            <button type="button" className="ctsv-primary-btn" disabled={submitting} onClick={() => runChangeAction('approve')}>
+              Duyệt & chuyển Admin
+            </button>
+            <button type="button" className="ctsv-danger-btn" disabled={submitting} onClick={() => runChangeAction('reject')}>
+              Từ chối yêu cầu
+            </button>
+          </div>
+        </section>
+      )}
 
       {canApprove && (
         <section className="ctsv-ed-panel">

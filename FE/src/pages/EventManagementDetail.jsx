@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom';
-import { API_BASE, getAuthHeaders, getEventHeaders } from '../utils/api';
+import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../utils/api';
 import { downloadStudentsExcel } from '../utils/exportStudentsExcel';
 import {
   formatEventRating,
@@ -66,8 +66,14 @@ const EventManagementDetail = ({ portal = 'club' }) => {
   const [searchParams] = useSearchParams();
   const outlet = useOutletContext() || {};
   const showToast = outlet.showToast;
+  const listEvents = outlet.events || [];
   const isCtsvPortal = portal === 'ctsv';
   const config = PORTAL_CONFIG[portal] || PORTAL_CONFIG.club;
+
+  const listEvent = useMemo(
+    () => listEvents.find((ev) => String(ev._id) === String(id)),
+    [listEvents, id]
+  );
 
   const [activeTab, setActiveTab] = useState(() => {
     const tab = new URLSearchParams(window.location.search).get('tab');
@@ -76,67 +82,110 @@ const EventManagementDetail = ({ portal = 'club' }) => {
     return 'tong-quan';
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [eventData, setEventData] = useState(null);
+  const [eventData, setEventData] = useState(() =>
+    listEvent ? normalizeManagementEvent(listEvent) : null
+  );
   const [students, setStudents] = useState([]);
   const [clubMeta, setClubMeta] = useState({ clubName: '', clubPresident: '' });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !listEvent);
+  const [detailRefreshing, setDetailRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const refreshEventData = () => setRefreshKey((key) => key + 1);
 
-  const loadEventData = useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
-      let event = null;
-      let studentList = [];
+  useEffect(() => {
+    if (!listEvent) return;
+    setEventData((prev) => {
+      if (prev && String(getManagementEventId(prev)) === String(id)) return prev;
+      return normalizeManagementEvent(listEvent);
+    });
+    setLoading(false);
+  }, [listEvent, id]);
 
-      if (isCtsvPortal) {
-        try {
-          const ctsvData = await fetchCtsvEvent(id);
-          if (ctsvData?.event) {
-            event = normalizeManagementEvent(ctsvData.event);
-          }
-        } catch {
-          /* fallback public API */
-        }
-      }
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const hasBootstrap = Boolean(listEvent);
+    const controller = new AbortController();
+    let timeoutId;
+
+    const loadEventData = async () => {
+      if (!hasBootstrap) setLoading(true);
+      else setDetailRefreshing(true);
 
       try {
-        const res = await fetch(`${API_BASE}/api/events/${id}`, {
+        let event = hasBootstrap ? normalizeManagementEvent(listEvent) : null;
+        let studentList = [];
+
+        if (isCtsvPortal) {
+          try {
+            const ctsvData = await fetchCtsvEvent(id);
+            if (ctsvData?.event) {
+              event = normalizeManagementEvent({ ...event, ...ctsvData.event });
+            }
+          } catch {
+            /* fallback public API */
+          }
+        }
+
+        timeoutId = window.setTimeout(() => controller.abort(), 20000);
+
+        const res = await fetch(`${API_BASE}/api/events/${id}?includeMedia=1`, {
           headers: isCtsvPortal ? getAuthHeaders(false) : getEventHeaders(false),
+          signal: controller.signal,
         });
-        const data = await res.json();
-        if (data.success && data.event) {
+        window.clearTimeout(timeoutId);
+
+        const { ok, data } = await parseApiResponse(res);
+        if (cancelled) return;
+
+        if (ok && data.success && data.event) {
           event = normalizeManagementEvent({ ...event, ...data.event });
           studentList = data.students || studentList;
         }
-      } catch {
-        /* optional */
-      }
 
-      if (!event) {
-        showToast?.('Không thể lấy thông tin sự kiện', 'error');
-        navigate(config.eventsPath);
-        return;
-      }
+        if (!event) {
+          showToast?.('Không thể lấy thông tin sự kiện', 'error');
+          navigate(config.eventsPath);
+          return;
+        }
 
-      setEventData(event);
-      setStudents(studentList);
-    } catch (error) {
-      console.error('Error fetching event data:', error);
-      showToast?.('Lỗi khi lấy thông tin sự kiện', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [id, isCtsvPortal, navigate, config.eventsPath, showToast]);
+        setEventData(event);
+        setStudents(studentList);
+      } catch (error) {
+        if (cancelled) return;
+        if (error?.name === 'AbortError') {
+          showToast?.('Tải chi tiết sự kiện quá lâu. Vui lòng thử lại.', 'error');
+        } else {
+          console.error('Error fetching event data:', error);
+          if (!hasBootstrap) {
+            showToast?.('Lỗi khi lấy thông tin sự kiện', 'error');
+          }
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+          setDetailRefreshing(false);
+        }
+      }
+    };
+
+    loadEventData();
+    return () => {
+      cancelled = true;
+      controller.abort();
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [id, isCtsvPortal, listEvent, navigate, config.eventsPath, showToast, refreshKey]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'bao-cao') setActiveTab('bao-cao');
     if (tab === 'dieu-phoi' && isCtsvPortal) setActiveTab('dieu-phoi');
   }, [searchParams, isCtsvPortal]);
-
-  useEffect(() => {
-    loadEventData();
-  }, [loadEventData]);
 
   useEffect(() => {
     if (isCtsvPortal || !id) return;
@@ -224,6 +273,19 @@ const EventManagementDetail = ({ portal = 'club' }) => {
     );
   }
 
+  if (!eventData) {
+    return (
+      <div className="ev-detail-content">
+        <main className="ev-detail-main">
+          <p style={{ color: '#94a3b8', marginBottom: 12 }}>Không tải được chi tiết sự kiện.</p>
+          <Link to={config.eventsPath} className="ev-btn-outline" style={{ display: 'inline-flex' }}>
+            Quay lại danh sách
+          </Link>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="ev-detail-content">
       <main className="ev-detail-main">
@@ -246,7 +308,14 @@ const EventManagementDetail = ({ portal = 'club' }) => {
                 <span className="ev-header-label">{config.headerLabel}</span>
                 <span className={`ev-status-badge ev-status-badge--${statusMeta.tone}`}>{statusMeta.label}</span>
               </div>
-              <h1 className="ev-title">{eventData?.title || 'Đang tải...'}</h1>
+              <h1 className="ev-title">
+                {eventData?.title || 'Đang tải...'}
+                {detailRefreshing && (
+                  <span className="ev-detail-refresh-hint" style={{ marginLeft: 8, fontSize: '0.85rem', color: '#94a3b8' }}>
+                    (đang cập nhật…)
+                  </span>
+                )}
+              </h1>
               <p className="ev-subtitle">
                 Mã sự kiện: EVT-{eventIdStr ? eventIdStr.substring(eventIdStr.length - 6).toUpperCase() : '...'}
                 <span className="ev-subtitle-sep">·</span>
@@ -491,7 +560,7 @@ const EventManagementDetail = ({ portal = 'club' }) => {
               event={eventData}
               eventId={id}
               showToast={showToast}
-              onEventUpdated={loadEventData}
+              onEventUpdated={refreshEventData}
             />
           )}
 

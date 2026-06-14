@@ -1437,6 +1437,8 @@ body {
 .navbar-left {
   display: flex;
   align-items: center;
+  gap: 4px;
+  min-width: 0;
 }
 
 .breadcrumbs {
@@ -1445,6 +1447,27 @@ body {
   gap: 8px;
   font-size: 0.85rem;
   color: var(--text-tertiary);
+}
+
+.dashboard-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.dashboard-back-btn:hover {
+  color: #f26f21;
+  border-color: #fdba74;
 }
 
 .breadcrumbs a {
@@ -7462,29 +7485,6 @@ a.club-tag {
   color: #49454f;
 }
 
-.events-page__fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: none;
-  background: var(--primary);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 10px 25px rgba(242, 111, 33, 0.35);
-  z-index: 900;
-  transition: transform 0.2s ease;
-}
-
-.events-page__fab:hover {
-  transform: scale(1.05);
-}
-
 @media (max-width: 1100px) {
   .event-discovery-grid,
   .events-page__grid {
@@ -7507,6 +7507,23 @@ a.club-tag {
 
   .site-header__search {
     display: none;
+  }
+
+  /* Portal CLB/CTSV: sidebar mở — giữ ô tìm kiếm, ẩn nút kính lúp riêng */
+  .site-header--with-shell.site-header--sidebar-open .site-header__search {
+    display: flex !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    margin: 0 4px;
+  }
+
+  .site-header--with-shell.site-header--sidebar-open .header-search-box {
+    max-width: 100%;
+  }
+
+  .site-header--with-shell.site-header--sidebar-open .site-header__mobile-search-btn {
+    display: none !important;
   }
 
   .events-page__main {
@@ -9149,6 +9166,14 @@ a.club-tag {
 
 .event-intro-fields__outcome-row .ctsv-input {
   flex: 1;
+}
+
+.event-intro-fields__textarea.auto-grow-textarea,
+.auto-grow-textarea {
+  resize: none;
+  overflow: hidden;
+  line-height: 1.5;
+  field-sizing: content;
 }
 
 .event-intro-fields__remove {
@@ -12555,7 +12580,7 @@ a.club-tag {
 
 .ctsv-banner-dropzone {
   position: relative;
-  width: 280px;
+  width: 360px;
   max-width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: 10px;
@@ -12996,7 +13021,7 @@ a.club-tag {
 .ctsv-crop-modal {
   position: relative;
   width: 100%;
-  max-width: 920px;
+  max-width: 1000px;
   background: var(--bg-card);
   border-radius: 16px;
   border: 1px solid #e8dfd8;
@@ -13026,7 +13051,7 @@ a.club-tag {
 
 .ctsv-crop-body {
   display: grid;
-  grid-template-columns: 1fr 200px;
+  grid-template-columns: 1fr 260px;
   gap: 24px;
   align-items: start;
 }
@@ -16569,12 +16594,12 @@ a.club-tag {
 }
 
 .app-select__option:hover {
-  background: #ffffff;
+  background: rgba(242, 111, 33, 0.12);
   color: #c2410c;
 }
 
 .app-select__option.is-selected {
-  background: #ffffff;
+  background: rgba(242, 111, 33, 0.16);
   color: #ea580c;
   font-weight: 600;
 }

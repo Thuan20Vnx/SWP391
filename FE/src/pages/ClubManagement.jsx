@@ -94,7 +94,7 @@ const ClubManagement = () => {
     setEditingEventId(editId);
     setEditReturnTo(returnTo);
     setActiveNav('create');
-    fetch(`${API_BASE}/api/events/${editId}`, { headers: getEventHeaders(false) })
+    fetch(`${API_BASE}/api/events/${editId}?includeMedia=1`, { headers: getEventHeaders(false) })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.event) {

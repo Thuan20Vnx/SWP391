@@ -1,4 +1,5 @@
 import React from 'react';
+import AutoGrowTextarea from '../ui/AutoGrowTextarea';
 
 const EventIntroFields = ({
   description = '',
@@ -39,15 +40,16 @@ const EventIntroFields = ({
             </button>
           )}
         </div>
-        <textarea
+        <AutoGrowTextarea
           name="description"
           value={description}
           onChange={onDescriptionChange}
           className="ctsv-textarea event-intro-fields__textarea"
-          rows={5}
+          minRows={5}
           placeholder="Giới thiệu tổng quan về sự kiện, đối tượng tham gia và giá trị mang lại…"
           disabled={disabled}
           required={descriptionRequired}
+          spellCheck={false}
         />
       </div>
 
@@ -69,6 +71,9 @@ const EventIntroFields = ({
                 onChange={(e) => onLearningOutcomeChange(index, e.target.value)}
                 placeholder="VD: Nắm vững kiến thức nền tảng và ứng dụng thực tế…"
                 disabled={disabled}
+                spellCheck={false}
+                autoCorrect="off"
+                autoComplete="off"
               />
               {learningOutcomes.length > 1 && (
                 <button

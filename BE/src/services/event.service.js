@@ -96,8 +96,6 @@ const getMyEvents = async (user, activeClubId = null) => {
     const managedClubs = await findManagedClubs(user._id);
     if (managedClubs.length > 1) {
       query.clubId = activeClubId;
-    } else {
-      query.$or = [{ clubId: activeClubId }, { clubId: null }, { clubId: { $exists: false } }];
     }
   }
 
@@ -241,6 +239,7 @@ const getApprovedEvents = async ({ category, user } = {}) => {
   }
 
   const events = await Event.find(query)
+    .select('-thumbnail -image -banner')
     .populate('createdBy', 'fullname email')
     .sort({ startDate: 1 })
     .limit(300);
@@ -261,23 +260,33 @@ const getApprovedEvents = async ({ category, user } = {}) => {
 };
 
 const getEventById = async (eventId, { user, activeClubId } = {}) => {
-  const event = await Event.findById(eventId).populate('createdBy', 'fullname email studentId role');
+  const event = await Event.findById(eventId).populate(
+    'createdBy',
+    'fullname email studentId role'
+  );
 
   if (!event) {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
 
   const isOwner = user?._id && String(event.createdBy?._id || event.createdBy) === String(user._id);
+  let canManage = isOwner;
+  if (!canManage && user?.role === 'club_manager' && event.clubId) {
+    const club = await resolveManagedClub(user._id, activeClubId);
+    if (club && String(event.clubId) === String(club._id)) {
+      canManage = true;
+    }
+  }
   const isPublic = SCHOOL_EVENT_PUBLIC_STATUSES.includes(event.status) && event.isHidden !== true;
 
-  if (!isPublic && !isOwner) {
+  if (!isPublic && !canManage) {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
 
   const [registeredCount, checkinCount, registrations] = await Promise.all([
     EventRegistration.countDocuments({ event: eventId, status: { $ne: 'cancelled' } }),
     EventRegistration.countDocuments({ event: eventId, status: 'attended' }),
-    isOwner
+    canManage
       ? EventRegistration.find({ event: eventId })
           .populate('user', 'fullname studentId email')
           .sort({ registeredAt: -1 })
@@ -301,7 +310,7 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
     doc.isRegistered = false;
   }
 
-  if (isOwner && doc.source === 'club') {
+  if (canManage && doc.source === 'club') {
     const ownerId = event.createdBy?._id || event.createdBy;
     const club = await resolveManagedClub(user._id, activeClubId)
       || (ownerId ? await resolveManagedClub(ownerId, activeClubId) : null);
@@ -326,7 +335,7 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
 
   return {
     event: enrichEventWithPricing(doc, user),
-    students: isOwner ? students : undefined,
+    students: canManage ? students : undefined,
   };
 };
 

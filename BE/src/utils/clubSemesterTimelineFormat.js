@@ -5,6 +5,22 @@ const STATUS_LABELS = {
   approved: 'Đã phê duyệt',
   rejected: 'Từ chối',
   revision: 'Cần chỉnh sửa',
+  cancelled: 'Đã hủy',
+};
+
+const CHANGE_TYPE_LABELS = {
+  none: '',
+  cancel: 'Hủy đơn timeline',
+  edit: 'Sửa timeline',
+  delete: 'Xóa timeline',
+};
+
+const CHANGE_STATUS_LABELS = {
+  none: '',
+  pending_icpdp: 'Chờ IC-PDP duyệt yêu cầu',
+  pending_admin: 'Chờ Admin duyệt yêu cầu',
+  approved: 'Yêu cầu đã được thực hiện',
+  rejected: 'Yêu cầu bị từ chối',
 };
 
 const TERM_LABELS = {
@@ -29,6 +45,23 @@ const formatTimelineItem = (item) => ({
   expectedAttendees: Number(item.expectedAttendees) || 0,
   notes: item.notes || '',
 });
+
+const formatChangeRequest = (cr) => {
+  if (!cr || !cr.type || cr.type === 'none') return null;
+  const statusKey = cr.status || 'none';
+  return {
+    type: cr.type,
+    typeLabel: CHANGE_TYPE_LABELS[cr.type] || cr.type,
+    status: CHANGE_STATUS_LABELS[statusKey] || statusKey,
+    statusKey,
+    reason: cr.reason || '',
+    payload: cr.payload || null,
+    requestedAt: cr.requestedAt || null,
+    icpdpNote: cr.icpdpNote || '',
+    adminNote: cr.adminNote || '',
+    reviewedAt: cr.reviewedAt || null,
+  };
+};
 
 const formatClubSemesterTimeline = (doc) => {
   if (!doc) return null;
@@ -56,11 +89,14 @@ const formatClubSemesterTimeline = (doc) => {
     submittedAt: r.submittedAt || null,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
+    changeRequest: formatChangeRequest(r.changeRequest),
   };
 };
 
 module.exports = {
   STATUS_LABELS,
+  CHANGE_TYPE_LABELS,
+  CHANGE_STATUS_LABELS,
   TERM_LABELS,
   TERM_ORDER,
   buildSemesterLabel,

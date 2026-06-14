@@ -166,6 +166,54 @@ const submitSemesterTimeline = async (req, res) => {
   }
 };
 
+const deleteSemesterTimeline = async (req, res) => {
+  try {
+    const result = await clubSemesterTimelineService.deleteForClub(
+      req.params.id,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({ success: true, ...result, message: 'Đã xóa timeline.' });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const requestSemesterTimelineChange = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.requestChangeForClub(
+      req.params.id,
+      req.body,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({
+      success: true,
+      timeline,
+      message: 'Đã gửi yêu cầu — chờ IC-PDP và Admin duyệt.',
+    });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const withdrawSemesterTimeline = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.withdrawForClub(
+      req.params.id,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({
+      success: true,
+      timeline,
+      message: 'Đã thu hồi đơn về bản nháp.',
+    });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
 module.exports = {
   getClubs,
   getClubBySlug,
@@ -184,4 +232,7 @@ module.exports = {
   createSemesterTimeline,
   updateSemesterTimeline,
   submitSemesterTimeline,
+  deleteSemesterTimeline,
+  withdrawSemesterTimeline,
+  requestSemesterTimelineChange,
 };

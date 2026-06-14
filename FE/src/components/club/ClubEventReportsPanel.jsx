@@ -126,7 +126,7 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
           <strong>{stats.ended}</strong>
         </article>
         <article className="clb-reports-summary-card">
-          <span>Tỷ lệ lấp đầy TB</span>
+          <span>Tỉ lệ người tham gia</span>
           <strong>{stats.avgFill}%</strong>
         </article>
       </div>
@@ -139,7 +139,7 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
                 <th>SỰ KIỆN</th>
                 <th>THỜI GIAN</th>
                 <th>ĐĂNG KÝ</th>
-                <th>TỶ LỆ LẤP ĐẦY</th>
+                <th>TỈ LỆ NGƯỜI THAM GIA</th>
                 <th>TRẠNG THÁI</th>
                 <th className="clb-table-col-action">HÀNH ĐỘNG</th>
               </tr>
@@ -176,7 +176,7 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
                         {ev.reg}/{ev.cap || '—'}
                       </span>
                     </td>
-                    <td data-label="Lấp đầy">
+                    <td data-label="Tỉ lệ người tham gia">
                       <div className="clb-slot-cell">
                         <span className="clb-slot-nums">{ev.fill}%</span>
                         <div className="clb-slot-bar-bg">

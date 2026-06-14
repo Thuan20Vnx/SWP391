@@ -32,3 +32,15 @@ export const updateClubSemesterTimeline = (id, body) =>
 
 export const submitClubSemesterTimeline = (id) =>
   clubFetch(`/manage/semester-timelines/${id}/submit`, { method: 'POST', body: '{}' });
+
+export const withdrawClubSemesterTimeline = (id) =>
+  clubFetch(`/manage/semester-timelines/${id}/withdraw`, { method: 'POST', body: '{}' });
+
+export const deleteClubSemesterTimeline = (id) =>
+  clubFetch(`/manage/semester-timelines/${id}`, { method: 'DELETE' });
+
+export const requestClubSemesterTimelineChange = (id, body) =>
+  clubFetch(`/manage/semester-timelines/${id}/change-request`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });

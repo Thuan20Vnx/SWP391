@@ -255,6 +255,19 @@
   margin: 0 8px;
 }
 
+.site-header--with-shell.site-header--sidebar-open .site-header__search {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 120px;
+  max-width: 260px;
+  margin: 0 8px;
+}
+
+.site-header--with-shell.site-header--sidebar-open .header-search-box {
+  width: 100%;
+  max-width: 100%;
+}
+
 .site-header__search-toggle {
   display: flex;
   align-items: center;
@@ -281,6 +294,12 @@
   flex: 1 1 auto;
   min-width: 140px;
   max-width: 220px;
+}
+
+/* Portal CLB/CTSV: sidebar mở vẫn giữ ô tìm kiếm đầy đủ (không thu icon) */
+.site-header--with-shell.site-header--sidebar-open .site-header__search:not(.site-header__search--collapsed) {
+  min-width: 120px;
+  max-width: 260px;
 }
 
 @media (min-width: 1024px) {
@@ -454,8 +473,15 @@
   }
 
   .site-header--with-shell.site-header--sidebar-open .site-header__mobile-search-btn {
-    display: inline-flex;
+    display: none;
     flex-shrink: 0;
+  }
+
+  .site-header--with-shell.site-header--sidebar-open .site-header__search {
+    display: flex !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0 4px;
   }
 
   .site-header--with-shell .site-header__search-toggle {

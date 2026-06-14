@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { getSidebarMenuSections } from '../data/studentSidebarMenu';
 import { getUserRole } from '../utils/auth';
 
@@ -85,7 +85,9 @@ const DashboardSidebarNav = ({
   onProfileMenuItem,
   onNavigate,
 }) => {
+  const location = useLocation();
   const sections = getSidebarMenuSections(getUserRole());
+  const navState = { returnTo: location.pathname };
 
   const handleItemClick = (item) => (event) => {
     event.preventDefault();
@@ -97,7 +99,7 @@ const DashboardSidebarNav = ({
     }
 
     if (onNavigate) {
-      onNavigate(item.path);
+      onNavigate(item.path, navState);
       onCloseSidebar?.();
       return;
     }
@@ -131,6 +133,7 @@ const DashboardSidebarNav = ({
               <Link
                 key={item.key}
                 to={item.path}
+                state={navState}
                 className={className}
                 onClick={() => onCloseSidebar?.()}
               >

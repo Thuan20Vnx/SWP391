@@ -147,10 +147,14 @@ const Profile = ({ showToast, embedded = false }) => {
     showToast('Tính năng đang được phát triển.', 'info');
   };
 
-  const handleSidebarNavigate = (path) => (e) => {
-    e.preventDefault();
+  const handleSidebarNavigate = (path, navState) => {
     setSidebarActive(false);
-    navigate(path);
+    navigate(path, navState ? { state: navState } : undefined);
+  };
+
+  const handleFooterNavigate = (path) => (e) => {
+    e.preventDefault();
+    handleSidebarNavigate(path);
   };
 
   const handleScanClick = () => {
@@ -842,7 +846,7 @@ const Profile = ({ showToast, embedded = false }) => {
             onProfileMenuItem={(key, event) => {
               if (key === 'profile') handleNavigateProfile(event);
             }}
-            onNavigate={(path) => navigate(path)}
+            onNavigate={handleSidebarNavigate}
           />
 
           {/* Logout */}
@@ -924,19 +928,19 @@ const Profile = ({ showToast, embedded = false }) => {
                 <div className="footer-column">
                   <h3>Khám phá</h3>
                   <ul className="footer-links">
-                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Sự kiện sắp tới</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Câu lạc bộ nổi bật</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/my-events')}>Thư viện hình ảnh</a></li>
+                    <li><a href="#" onClick={handleFooterNavigate('/events')}>Sự kiện sắp tới</a></li>
+                    <li><a href="#" onClick={handleFooterNavigate('/events')}>Câu lạc bộ nổi bật</a></li>
+                    <li><a href="#" onClick={handleFooterNavigate('/my-events')}>Thư viện hình ảnh</a></li>
                   </ul>
                 </div>
 
                 <div className="footer-column">
                   <h3>Hỗ trợ</h3>
                   <ul className="footer-links">
-                    <li><a href="#" onClick={handleSidebarNavigate('/support')}>Trung tâm hỗ trợ</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/contact')}>Liên hệ chúng tôi</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/terms')}>Điều khoản dịch vụ</a></li>
-                    <li><a href="#" onClick={handleSidebarNavigate('/privacy')}>Chính sách bảo mật</a></li>
+                    <li><a href="#" onClick={handleFooterNavigate('/support')}>Trung tâm hỗ trợ</a></li>
+                    <li><a href="#" onClick={handleFooterNavigate('/contact')}>Liên hệ chúng tôi</a></li>
+                    <li><a href="#" onClick={handleFooterNavigate('/terms')}>Điều khoản dịch vụ</a></li>
+                    <li><a href="#" onClick={handleFooterNavigate('/privacy')}>Chính sách bảo mật</a></li>
                   </ul>
                 </div>
 

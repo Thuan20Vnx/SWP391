@@ -847,6 +847,50 @@ router.patch('/semester-timelines/:id/request-revision', requireProposalModerate
   }
 });
 
+router.patch('/semester-timelines/:id/change-request/icpdp-approve', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.icpdpApproveChangeRequest(req.params.id, {
+      note: req.body.note,
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({ success: true, timeline, message: 'Đã chuyển yêu cầu lên Admin duyệt.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/change-request/admin-approve', requireCtsvApprove, async (req, res) => {
+  try {
+    const result = await clubSemesterTimelineService.adminApproveChangeRequest(req.params.id, {
+      note: req.body.note,
+      reviewerEmail: req.authEmail,
+    });
+    if (result?.deleted) {
+      return res.json({ success: true, ...result, message: 'Admin đã duyệt — timeline đã xóa.' });
+    }
+    return res.json({ success: true, timeline: result, message: 'Admin đã duyệt yêu cầu.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/change-request/reject', requireProposalModerate, async (req, res) => {
+  try {
+    const stage = req.body.stage === 'admin' ? 'admin' : 'icpdp';
+    const timeline = await clubSemesterTimelineService.rejectChangeRequest(req.params.id, {
+      reason: req.body.reason,
+      reviewerEmail: req.authEmail,
+      stage,
+    });
+    return res.json({ success: true, timeline, message: 'Đã từ chối yêu cầu.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
 // --- Partners ---
 
 router.get('/partners', async (req, res) => {

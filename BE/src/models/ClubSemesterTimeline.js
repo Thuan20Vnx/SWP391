@@ -20,7 +20,26 @@ const TIMELINE_STATUSES = [
   'approved',
   'rejected',
   'revision',
+  'cancelled',
 ];
+
+const changeRequestSchema = new mongoose.Schema(
+  {
+    type: { type: String, enum: ['none', 'cancel', 'edit', 'delete'], default: 'none' },
+    status: {
+      type: String,
+      enum: ['none', 'pending_icpdp', 'pending_admin', 'approved', 'rejected'],
+      default: 'none',
+    },
+    reason: { type: String, default: '', maxlength: 1000 },
+    payload: { type: mongoose.Schema.Types.Mixed, default: null },
+    requestedAt: { type: Date, default: null },
+    icpdpNote: { type: String, default: '' },
+    adminNote: { type: String, default: '' },
+    reviewedAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
 
 const clubSemesterTimelineSchema = new mongoose.Schema(
   {
@@ -45,6 +64,7 @@ const clubSemesterTimelineSchema = new mongoose.Schema(
     reviewedByEmail: { type: String, default: '' },
     reviewedAt: { type: Date, default: null },
     submittedAt: { type: Date, default: null },
+    changeRequest: { type: changeRequestSchema, default: () => ({}) },
   },
   { timestamps: true }
 );

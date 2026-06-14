@@ -72,6 +72,24 @@ router.post(
   authorize('club_manager'),
   asyncHandler(clubController.submitSemesterTimeline)
 );
+router.post(
+  '/manage/semester-timelines/:id/withdraw',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.withdrawSemesterTimeline)
+);
+router.delete(
+  '/manage/semester-timelines/:id',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.deleteSemesterTimeline)
+);
+router.post(
+  '/manage/semester-timelines/:id/change-request',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.requestSemesterTimelineChange)
+);
 
 router.get('/:slug', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubBySlug));
 

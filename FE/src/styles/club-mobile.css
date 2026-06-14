@@ -360,32 +360,59 @@
     min-height: 44px;
   }
 
-  /* ── Event proposal form ── */
+  /* ── Event proposal form (đồng bộ CTSV / Thuan_CTSV) ── */
   .clb-create-view.event-proposal-form,
   .clb-create-view {
     padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    max-width: none;
   }
 
-  .clb-steps {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
-    gap: 4px;
-    padding-bottom: 8px;
+  .clb-create-view__header {
+    align-items: center;
     margin-bottom: 16px;
   }
 
-  .clb-step {
-    flex-shrink: 0;
-    min-width: 72px;
+  .clb-create-view__heading .clb-modal-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
   }
 
-  .clb-step-label {
-    font-size: 0.65rem;
+  .clb-create-view__heading .clb-modal-subtitle {
+    font-size: 0.875rem;
   }
 
-  .clb-step-line {
-    min-width: 16px;
+  .clb-modal-form {
+    width: 100%;
+  }
+
+  .clb-form-group--banner .ctsv-banner-upload {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .clb-form-group--banner .ctsv-banner-dropzone,
+  .clb-form-group--banner .clb-banner-dropzone {
+    width: 100%;
+    max-width: none;
+  }
+
+  .clb-form-group--banner .ctsv-banner-meta {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .clb-form-group--banner .ctsv-banner-meta-actions {
+    width: 100%;
+  }
+
+  .clb-form-group--banner .ctsv-btn-banner-secondary,
+  .clb-form-group--banner .ctsv-btn-banner-remove {
+    flex: 1;
+    min-height: 44px;
+    justify-content: center;
   }
 
   .clb-modal-form .clb-form-row {
@@ -529,6 +556,25 @@
   /* ── Profile ── */
   .clb-profile-view {
     padding: 12px 0;
+  }
+
+  .clb-profile-form {
+    overflow: visible;
+  }
+
+  .clb-profile-grid--2,
+  .clb-profile-grid--3 {
+    grid-template-columns: 1fr;
+  }
+
+  .clb-profile-field--span-2 {
+    grid-column: span 1;
+  }
+
+  .clb-profile-cover-wrap,
+  .clb-profile-cover {
+    min-height: 200px;
+    max-height: 220px;
   }
 
   .clb-profile-actions {

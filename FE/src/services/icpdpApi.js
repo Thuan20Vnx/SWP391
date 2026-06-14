@@ -88,6 +88,18 @@ export const revisionIcpdpSemesterTimeline = (id, note = '') =>
     body: JSON.stringify({ note }),
   });
 
+export const icpdpApproveTimelineChangeRequest = (id, note = '') =>
+  icpdpFetch(`/semester-timelines/${id}/change-request/icpdp-approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const rejectTimelineChangeRequest = (id, reason = '', stage = 'icpdp') =>
+  icpdpFetch(`/semester-timelines/${id}/change-request/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason, stage }),
+  });
+
 export const fetchIcpdpPendingModerations = () =>
   icpdpFetch('/events/moderation/pending-icpdp');
 

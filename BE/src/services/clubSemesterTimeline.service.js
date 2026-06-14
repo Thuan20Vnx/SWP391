@@ -1,5 +1,5 @@
 const ClubSemesterTimeline = require('../models/ClubSemesterTimeline');
-const { resolveManagedClub } = require('./club.service');
+const { resolveManagedClub, findManagedClubs } = require('./club.service');
 const {
   buildSemesterLabel,
   formatClubSemesterTimeline,
@@ -26,9 +26,11 @@ const normalizeItems = (items) => {
     .filter((item) => item.title);
 };
 
+const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'pending_icpdp', 'pending_ctsv'];
+
 const assertEditable = (timeline) => {
-  if (!['draft', 'revision'].includes(timeline.status)) {
-    const err = new Error('Timeline chỉ có thể chỉnh sửa khi ở trạng thái bản nháp hoặc cần chỉnh sửa!');
+  if (!DIRECT_EDIT_STATUSES.includes(timeline.status)) {
+    const err = new Error('Timeline chỉ có thể chỉnh sửa trực tiếp khi chưa được phê duyệt!');
     err.statusCode = 400;
     throw err;
   }
@@ -62,7 +64,21 @@ const ensureUniqueSemester = async (clubId, semesterTerm, semesterYear, excludeI
 
 const listForClub = async (userId, activeClubId) => {
   const club = await resolveClubForManager(userId, activeClubId);
-  const rows = await ClubSemesterTimeline.find({ clubId: club._id })
+  const User = require('../models/User');
+  const user = await User.findById(userId).select('email').lean();
+  const managedClubs = await findManagedClubs(userId);
+  const managedClubIds = managedClubs.map((item) => item._id);
+  const filter = managedClubIds.length > 1
+    ? { clubId: club._id }
+    : {
+        $or: [
+          { clubId: club._id },
+          ...(user?.email
+            ? [{ submittedByEmail: String(user.email).trim().toLowerCase(), clubId: { $nin: managedClubIds } }]
+            : []),
+        ],
+      };
+  const rows = await ClubSemesterTimeline.find(filter)
     .sort({ semesterYear: -1, createdAt: -1 });
   return rows
     .map(formatClubSemesterTimeline)
@@ -296,17 +312,251 @@ const requestRevision = async (id, { note, reviewerEmail } = {}) => {
   return formatClubSemesterTimeline(timeline);
 };
 
+const clearChangeRequest = (timeline) => {
+  timeline.changeRequest = {
+    type: 'none',
+    status: 'none',
+    reason: '',
+    payload: null,
+    requestedAt: null,
+    icpdpNote: '',
+    adminNote: '',
+    reviewedAt: null,
+  };
+};
+
+const hasPendingChangeRequest = (timeline) =>
+  timeline.changeRequest?.type &&
+  timeline.changeRequest.type !== 'none' &&
+  ['pending_icpdp', 'pending_admin'].includes(timeline.changeRequest.status);
+
+const deleteForClub = async (id, userId, activeClubId) => {
+  const club = await resolveClubForManager(userId, activeClubId);
+  const timeline = await ClubSemesterTimeline.findById(id);
+  if (!timeline || String(timeline.clubId) !== String(club._id)) {
+    const err = new Error('Không tìm thấy timeline kỳ học!');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (timeline.status !== 'draft') {
+    const err = new Error('Chỉ có thể xóa trực tiếp timeline ở trạng thái bản nháp!');
+    err.statusCode = 400;
+    throw err;
+  }
+  await timeline.deleteOne();
+  return { id: String(id), deleted: true };
+};
+
+const requestChangeForClub = async (id, { type, reason, payload }, userId, activeClubId) => {
+  const club = await resolveClubForManager(userId, activeClubId);
+  const timeline = await ClubSemesterTimeline.findById(id);
+  if (!timeline || String(timeline.clubId) !== String(club._id)) {
+    const err = new Error('Không tìm thấy timeline kỳ học!');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (hasPendingChangeRequest(timeline)) {
+    const err = new Error('Timeline đang có yêu cầu chờ duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const action = String(type || '').trim();
+  if (!['cancel', 'edit', 'delete'].includes(action)) {
+    const err = new Error('Loại yêu cầu không hợp lệ!');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const trimmedReason = String(reason || '').trim();
+  if (!trimmedReason) {
+    const err = new Error('Vui lòng nhập lý do yêu cầu!');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (action === 'cancel' && timeline.status !== 'approved') {
+    const err = new Error('Chỉ timeline đã duyệt mới cần gửi yêu cầu hủy kèm lý do!');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (action === 'delete' && timeline.status !== 'approved') {
+    const err = new Error('Chỉ timeline đã duyệt mới cần gửi yêu cầu xóa kèm lý do!');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (action === 'edit') {
+    if (timeline.status !== 'approved') {
+      const err = new Error('Chỉ có thể gửi yêu cầu sửa timeline đã được phê duyệt!');
+      err.statusCode = 400;
+      throw err;
+    }
+    const items = normalizeItems(payload?.items || []);
+    if (!items.length) {
+      const err = new Error('Yêu cầu sửa cần ít nhất một hoạt động!');
+      err.statusCode = 400;
+      throw err;
+    }
+  }
+
+  timeline.changeRequest = {
+    type: action,
+    status: 'pending_icpdp',
+    reason: trimmedReason,
+    payload: action === 'edit' ? payload : null,
+    requestedAt: new Date(),
+    icpdpNote: '',
+    adminNote: '',
+    reviewedAt: null,
+  };
+  await timeline.save();
+  return formatClubSemesterTimeline(timeline);
+};
+
+const withdrawForClub = async (id, userId, activeClubId) => {
+  const club = await resolveClubForManager(userId, activeClubId);
+  const timeline = await ClubSemesterTimeline.findById(id);
+  if (!timeline || String(timeline.clubId) !== String(club._id)) {
+    const err = new Error('Không tìm thấy timeline kỳ học!');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (!['pending_icpdp', 'pending_ctsv'].includes(timeline.status)) {
+    const err = new Error('Chỉ có thể thu hồi đơn đang chờ duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (hasPendingChangeRequest(timeline)) {
+    const err = new Error('Timeline đang có yêu cầu chờ duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+  timeline.status = 'draft';
+  timeline.submittedAt = null;
+  await timeline.save();
+  return formatClubSemesterTimeline(timeline);
+};
+
+const applyApprovedChange = async (timeline) => {
+  const { type, payload } = timeline.changeRequest || {};
+  if (type === 'cancel') {
+    timeline.status = 'cancelled';
+  } else if (type === 'delete') {
+    await timeline.deleteOne();
+    return { id: String(timeline._id), deleted: true };
+  } else if (type === 'edit' && payload) {
+    if (payload.summary !== undefined) timeline.summary = String(payload.summary || '').trim();
+    if (payload.objectives !== undefined) timeline.objectives = String(payload.objectives || '').trim();
+    if (payload.items !== undefined) timeline.items = normalizeItems(payload.items);
+    timeline.status = 'pending_icpdp';
+    timeline.submittedAt = new Date();
+    timeline.rejectionReason = '';
+    timeline.icpdpNote = '';
+    timeline.ctsvNote = '';
+  }
+  clearChangeRequest(timeline);
+  await timeline.save();
+  return formatClubSemesterTimeline(timeline);
+};
+
+const icpdpApproveChangeRequest = async (id, { note, reviewerEmail } = {}) => {
+  const timeline = await ClubSemesterTimeline.findById(id);
+  if (!timeline) {
+    const err = new Error('Không tìm thấy timeline kỳ học!');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (timeline.changeRequest?.status !== 'pending_icpdp') {
+    const err = new Error('Không có yêu cầu chờ IC-PDP duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+  timeline.changeRequest.status = 'pending_admin';
+  timeline.changeRequest.icpdpNote = String(note || '').trim();
+  timeline.changeRequest.reviewedAt = new Date();
+  timeline.reviewedByEmail = reviewerEmail || '';
+  await timeline.save();
+  return formatClubSemesterTimeline(timeline);
+};
+
+const adminApproveChangeRequest = async (id, { note, reviewerEmail } = {}) => {
+  const timeline = await ClubSemesterTimeline.findById(id);
+  if (!timeline) {
+    const err = new Error('Không tìm thấy timeline kỳ học!');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (timeline.changeRequest?.status !== 'pending_admin') {
+    const err = new Error('Không có yêu cầu chờ Admin duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+  timeline.changeRequest.status = 'approved';
+  timeline.changeRequest.adminNote = String(note || '').trim();
+  timeline.changeRequest.reviewedAt = new Date();
+  timeline.reviewedByEmail = reviewerEmail || '';
+  return applyApprovedChange(timeline);
+};
+
+const rejectChangeRequest = async (id, { reason, reviewerEmail, stage } = {}) => {
+  const timeline = await ClubSemesterTimeline.findById(id);
+  if (!timeline) {
+    const err = new Error('Không tìm thấy timeline kỳ học!');
+    err.statusCode = 404;
+    throw err;
+  }
+  const crStatus = timeline.changeRequest?.status;
+  if (!['pending_icpdp', 'pending_admin'].includes(crStatus)) {
+    const err = new Error('Không có yêu cầu đang chờ duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (stage === 'icpdp' && crStatus !== 'pending_icpdp') {
+    const err = new Error('Yêu cầu không chờ IC-PDP!');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (stage === 'admin' && crStatus !== 'pending_admin') {
+    const err = new Error('Yêu cầu không chờ Admin!');
+    err.statusCode = 400;
+    throw err;
+  }
+  const trimmed = String(reason || '').trim();
+  if (!trimmed) {
+    const err = new Error('Vui lòng nhập lý do từ chối!');
+    err.statusCode = 400;
+    throw err;
+  }
+  timeline.changeRequest.status = 'rejected';
+  if (stage === 'icpdp') timeline.changeRequest.icpdpNote = trimmed;
+  if (stage === 'admin') timeline.changeRequest.adminNote = trimmed;
+  timeline.changeRequest.reviewedAt = new Date();
+  timeline.reviewedByEmail = reviewerEmail || '';
+  await timeline.save();
+  clearChangeRequest(timeline);
+  await timeline.save();
+  return formatClubSemesterTimeline(timeline);
+};
+
 module.exports = {
   listForClub,
   getByIdForClub,
   createForClub,
   updateForClub,
   submitForClub,
+  deleteForClub,
+  withdrawForClub,
+  requestChangeForClub,
   listForReview,
   getById,
   icpdpApprove,
   ctsvApprove,
   rejectTimeline,
   requestRevision,
+  icpdpApproveChangeRequest,
+  adminApproveChangeRequest,
+  rejectChangeRequest,
   formatTimelineItem,
 };

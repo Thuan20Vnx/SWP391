@@ -82,7 +82,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_BASE}/api/events/${eventId}`, { headers: getAuthHeaders(false) })
+    fetch(`${API_BASE}/api/events/${eventId}?includeMedia=1`, { headers: getAuthHeaders(false) })
       .then((res) => {
         if (res.status === 404) {
           setEvent(null);
@@ -202,7 +202,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
       setCancelConfirmOpen(false);
       showToast?.(data.message || 'Đã hủy đăng ký sự kiện.', 'success');
 
-      const refreshRes = await fetch(`${API_BASE}/api/events/${event.id}`, {
+      const refreshRes = await fetch(`${API_BASE}/api/events/${event.id}?includeMedia=1`, {
         headers: getAuthHeaders(false),
       });
       const refreshData = await refreshRes.json();

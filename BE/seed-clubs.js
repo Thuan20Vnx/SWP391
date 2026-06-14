@@ -1,6 +1,8 @@
 /**
  * Code First — seed câu lạc bộ vào MongoDB
  * Chạy: node seed-clubs.js  hoặc  npm run seed:clubs
+ *
+ * Lưu ý: cập nhật theo slug, KHÔNG xóa-tạo lại — giữ _id để sự kiện/timeline không bị mất liên kết.
  */
 require('dotenv').config();
 
@@ -12,21 +14,28 @@ const seedClubs = async () => {
   try {
     await connectDB();
 
-    const slugs = clubSeedData.map((c) => c.slug);
-    const removed = await Club.deleteMany({ slug: { $in: slugs } });
-    console.log(`🗑️  Đã xóa ${removed.deletedCount} CLB seed cũ (nếu có).`);
+    let created = 0;
+    let updated = 0;
 
-    const inserted = await Club.insertMany(
-      clubSeedData.map((club) => ({
+    for (const club of clubSeedData) {
+      const payload = {
         ...club,
-        followerCount: 0,
-        status: 'active',
-      }))
-    );
+        followerCount: club.followerCount ?? 0,
+        status: club.status || 'active',
+      };
+      const existing = await Club.findOne({ slug: club.slug });
+      if (existing) {
+        await Club.updateOne({ slug: club.slug }, { $set: payload });
+        updated += 1;
+      } else {
+        await Club.create(payload);
+        created += 1;
+      }
+    }
 
     console.log('====================================');
-    console.log(`✅ Code First: đã seed ${inserted.length} câu lạc bộ vào MongoDB`);
-    inserted.forEach((c) => {
+    console.log(`✅ Seed CLB: ${created} mới, ${updated} cập nhật (giữ nguyên _id CLB cũ)`);
+    clubSeedData.forEach((c) => {
       console.log(`   • [${c.category}] ${c.name} (${c.slug})`);
     });
     console.log('====================================');

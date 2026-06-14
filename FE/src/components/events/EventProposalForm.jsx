@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import '../../pages/ClubManagement.css';
 import AppSelect from '../ui/AppSelect';
+import AutoGrowTextarea from '../ui/AutoGrowTextarea';
 import BannerCropModal from '../ctsv/BannerCropModal';
 import EventIntroFields from './EventIntroFields';
 import EventTicketTypesEditor from './EventTicketTypesEditor';
@@ -172,44 +173,25 @@ const EventProposalForm = ({
     ? `event-proposal-form-embedded ${className}`.trim()
     : `clb-create-view event-proposal-form ${className}`.trim();
 
-  const wrapperStyle = embedded
-    ? undefined
-    : { width: '100%', maxWidth: '1200px', margin: '0 auto', background: '#fff', borderRadius: '16px', padding: '40px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' };
-
   return (
-    <div className={wrapperClass} style={wrapperStyle}>
+    <div className={wrapperClass}>
       {!hideHeader && (
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="clb-create-view__header">
           {!hideBackButton && onCancel && (
             <button
               type="button"
+              className="clb-create-view__back"
               onClick={onCancel}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#64748b',
-                marginRight: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-              }}
+              aria-label="Quay lại"
             >
-              <svg viewBox="0 0 24 24" width="24" height="24">
+              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
                 <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor" />
               </svg>
             </button>
           )}
-          <div>
-            <h2 className="clb-modal-title" style={{ margin: 0 }}>
-              {title}
-            </h2>
-            <p className="clb-modal-subtitle" style={{ margin: '4px 0 0 0' }}>
-              {subtitle}
-            </p>
+          <div className="clb-create-view__heading">
+            <h2 className="clb-modal-title">{title}</h2>
+            <p className="clb-modal-subtitle">{subtitle}</p>
           </div>
         </div>
       )}
@@ -406,13 +388,14 @@ const EventProposalForm = ({
             />
             <div className="clb-form-group">
               <label>Chương trình dự kiến (Agenda)</label>
-              <textarea
+              <AutoGrowTextarea
                 placeholder="Lịch trình cụ thể của sự kiện..."
                 value={form.agenda}
                 onChange={(e) => patchForm({ agenda: e.target.value })}
-                rows={4}
+                minRows={4}
                 className="clb-input clb-textarea"
                 disabled={disabled}
+                spellCheck={false}
               />
             </div>
           </div>
