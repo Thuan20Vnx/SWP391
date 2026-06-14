@@ -63,11 +63,11 @@ const IcpdpPortalHeader = ({
   useCloseOnClickOutside(profileRef, profilePopupOpen, () => setProfilePopupOpen(false));
 
   const handleLogout = () => {
-    setProfilePopupOpen(false);
     logoutWithConfirm(navigate, {
       showToast,
       toastMessage: 'Đã đăng xuất tài khoản IC-PDP.'
     });
+    setProfilePopupOpen(false);
   };
 
   const handleProfileMenuAction = (action) => {

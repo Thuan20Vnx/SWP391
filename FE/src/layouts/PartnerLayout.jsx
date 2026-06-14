@@ -96,6 +96,7 @@ const PartnerLayout = ({ showToast }) => {
         sidebarOpen={sidebarOpen}
         onClose={closeSidebar}
         userProfile={userProfile}
+        onLogout={handleLogout}
         pathname={location.pathname}
       />
 

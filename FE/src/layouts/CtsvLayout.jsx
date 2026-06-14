@@ -11,8 +11,12 @@ import {
 } from '../components/ctsv/ctsvNavConfig';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { getUserRole, isCtsvRole, normalizeRole } from '../utils/auth';
+import { logoutWithConfirm } from '../utils/logout';
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { resolveUserAvatar } from '../utils/image';
+import { cachedFetchDedup } from '../utils/apiCache';
+import { fetchCtsvEvents, fetchCtsvAnnouncementLinkableEvents } from '../services/ctsvApi';
+import { fetchManagedAnnouncements } from '../services/announcementManageApi';
 
 const CtsvLayout = ({ showToast }) => {
   const navigate = useNavigate();
@@ -30,8 +34,11 @@ const CtsvLayout = ({ showToast }) => {
     }
     const token = localStorage.getItem('authToken');
     if (!token) return;
-    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-      .then((res) => (res.status === 200 ? res.json() : Promise.reject()))
+    cachedFetchDedup('user:profile', () =>
+      fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
+        .then((res) => (res.status === 200 ? res.json() : Promise.reject())),
+      { ttl: 30000 }
+    )
       .then((data) => {
         const role = normalizeRole(data.user?.role);
         if (!isCtsvRole(role)) {
@@ -53,6 +60,25 @@ const CtsvLayout = ({ showToast }) => {
   useEffect(() => {
     loadCtsvUserProfile();
   }, [loadCtsvUserProfile]);
+
+  useEffect(() => {
+    // Prefetch data cho trang Sự kiện và Thông báo trong nền (background)
+    // Dùng setTimeout để không làm chậm quá trình render giao diện lần đầu
+    const timer = setTimeout(() => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+
+      Promise.allSettled([
+        fetchCtsvEvents({ page: 1, limit: 20 }),
+        fetchManagedAnnouncements(),
+        fetchCtsvAnnouncementLinkableEvents()
+      ]).catch(() => {
+        // Lỗi nền không cần thông báo cho user
+      });
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const closeSidebarOnMobile = () => {
@@ -85,6 +111,13 @@ const CtsvLayout = ({ showToast }) => {
     persistSidebarOpen(false);
   }, []);
 
+  const handleLogout = useCallback(() => {
+    logoutWithConfirm(navigate, {
+      showToast,
+      toastMessage: 'Đã đăng xuất tài khoản CTSV.',
+    });
+  }, [navigate, showToast]);
+
   const shellClass = `ctsv-app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
 
   return (
@@ -103,6 +136,7 @@ const CtsvLayout = ({ showToast }) => {
         onClose={closeSidebar}
         userProfile={userProfile}
         pathname={location.pathname}
+        onLogout={handleLogout}
       />
 
       <div className="ctsv-shell-main ctsv-portal-shell">

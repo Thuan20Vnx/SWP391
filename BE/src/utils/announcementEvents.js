@@ -44,6 +44,7 @@ const findLinkableAnnouncementEvents = async () => {
     source: { $in: ['school', 'partner'] },
     status: { $in: ANNOUNCEMENT_EVENT_STATUSES }
   })
+    .select('-image -thumbnail')
     .sort({ startDate: 1 })
     .populate('partnerId', 'status name');
 

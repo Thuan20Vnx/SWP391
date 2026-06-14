@@ -40,7 +40,8 @@ const PortalHeroSlider = ({
             <p className="hero-description">{slide.desc}</p>
             {ctaPath ? (
               <button type="button" className="hero-cta-btn" onClick={() => navigate(ctaPath)}>
-                {ctaLabel}
+                <span className="hero-cta-btn__main">{ctaLabel}</span>
+                <span className="hero-cta-btn__sub">Bấm để truy cập ngay</span>
               </button>
             ) : null}
           </div>

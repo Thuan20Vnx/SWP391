@@ -15,11 +15,12 @@ export const logoutWithConfirm = (
   navigate,
   { showToast, toastMessage = 'Đã đăng xuất.' } = {}
 ) => {
-  if (!confirmLogout()) return false;
-  clearSession();
-  clearUserProfileCache();
-  dispatchAuthChanged();
-  showToast?.(toastMessage, 'info');
   navigate('/login');
+  setTimeout(() => {
+    clearSession();
+    clearUserProfileCache();
+    dispatchAuthChanged();
+    showToast?.(toastMessage, 'info');
+  }, 10);
   return true;
 };

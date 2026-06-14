@@ -4,6 +4,7 @@ export const PARTNER_NAV_ITEMS = [
   { path: '/partner/dashboard', label: 'Bảng điều khiển', icon: 'dashboard' },
   { path: '/partner/profile', label: 'Hồ sơ & Cài đặt', icon: 'profile' },
   { path: '/partner/events', label: 'Quản lý sự kiện', section: 'SỰ KIỆN', icon: 'publish' },
+  { path: '/partner/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
   { path: '/partner/announcements', label: 'Thông báo', icon: 'reports' },
   { path: '/partner/proposals/create', label: 'Tạo sự kiện mới', icon: 'create' },
   { path: '/partner/contracts', label: 'Hợp đồng', section: 'TÀI CHÍNH', icon: 'partners' },
@@ -40,6 +41,9 @@ export const isPartnerNavActive = (path, pathname) => {
   }
   if (path === '/partner/events') {
     return pathname === '/partner/events' || pathname.startsWith('/partner/events/');
+  }
+  if (path === '/partner/calendar') {
+    return pathname === '/partner/calendar' || pathname.startsWith('/partner/calendar/');
   }
   if (path === '/partner/announcements') {
     return pathname.startsWith('/partner/announcements');

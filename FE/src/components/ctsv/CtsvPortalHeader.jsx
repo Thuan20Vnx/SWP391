@@ -72,11 +72,11 @@ const CtsvPortalHeader = ({
   };
 
   const handleLogout = () => {
-    setProfilePopupOpen(false);
     logoutWithConfirm(navigate, {
       showToast,
       toastMessage: 'Đã đăng xuất tài khoản CTSV.'
     });
+    setProfilePopupOpen(false);
   };
 
   const handleProfileMenuAction = (action) => {

@@ -1,5 +1,6 @@
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { buildFillRateHighlight } from '../constants/ctsvReportLabels';
+import { cachedFetchDedup, invalidateCache } from '../utils/apiCache';
 
 const parseJson = async (res) => {
   const data = await res.json().catch(() => ({}));
@@ -17,7 +18,8 @@ const ctsvFetch = (path, options = {}) =>
     headers: { ...getAuthHeaders(), ...options.headers }
   }).then(parseJson);
 
-export const fetchCtsvStats = () => ctsvFetch('/stats');
+export const fetchCtsvStats = () =>
+  cachedFetchDedup('ctsv:stats', () => ctsvFetch('/stats'), { ttl: 60000 });
 
 export const fetchCtsvEvents = (params = {}) => {
   const qs = new URLSearchParams();
@@ -25,16 +27,27 @@ export const fetchCtsvEvents = (params = {}) => {
     if (v && v !== 'Tất cả') qs.set(k, v);
   });
   const q = qs.toString();
-  return ctsvFetch(`/events${q ? `?${q}` : ''}`);
+  const path = `/events${q ? `?${q}` : ''}`;
+  return cachedFetchDedup(`ctsv:events:${q}`, () => ctsvFetch(path), { ttl: 45000 });
 };
 
 export const fetchCtsvEvent = (id) => ctsvFetch(`/events/${id}`);
 
-export const createCtsvEvent = (body) =>
-  ctsvFetch('/events', { method: 'POST', body: JSON.stringify(body) });
+export const createCtsvEvent = (body) => {
+  invalidateCache('ctsv:events');
+  invalidateCache('ctsv:stats');
+  invalidateCache('ctsv:calendar');
+  invalidateCache('events:linkable');
+  return ctsvFetch('/events', { method: 'POST', body: JSON.stringify(body) });
+};
 
-export const updateCtsvEvent = (id, body) =>
-  ctsvFetch(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+export const updateCtsvEvent = (id, body) => {
+  invalidateCache('ctsv:events');
+  invalidateCache('ctsv:stats');
+  invalidateCache('ctsv:calendar');
+  invalidateCache('events:linkable');
+  return ctsvFetch(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+};
 
 export const approveCtsvEvent = (id, note = '') =>
   ctsvFetch(`/events/${id}/approve`, { method: 'PATCH', body: JSON.stringify({ note }) });
@@ -54,9 +67,11 @@ export const requestCtsvEventModeration = (id, { action, reason, isWeatherPostpo
     body: JSON.stringify({ action, reason, isWeatherPostpone })
   });
 
-export const fetchCtsvCalendar = () => ctsvFetch('/events/calendar');
+export const fetchCtsvCalendar = () =>
+  cachedFetchDedup('ctsv:calendar', () => ctsvFetch('/events/calendar'), { ttl: 60000 });
 
-export const fetchCtsvReports = () => ctsvFetch('/reports');
+export const fetchCtsvReports = () =>
+  cachedFetchDedup('ctsv:reports', () => ctsvFetch('/reports'), { ttl: 60000 });
 
 export const fetchCtsvReportDetail = (id) => ctsvFetch(`/reports/${id}`);
 
@@ -67,7 +82,8 @@ export const DEMO_REPORT_EVENT_ID = 'demo-ended-event';
 
 export const fetchCtsvProposals = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
-  return ctsvFetch(`/proposals${qs ? `?${qs}` : ''}`);
+  const path = `/proposals${qs ? `?${qs}` : ''}`;
+  return cachedFetchDedup(`ctsv:proposals:${qs}`, () => ctsvFetch(path), { ttl: 45000 });
 };
 
 export const fetchCtsvProposal = (id) => ctsvFetch(`/proposals/${id}`);
@@ -86,7 +102,8 @@ export const revisionCtsvProposal = (id, note = '') =>
 
 export const fetchCtsvPartners = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
-  return ctsvFetch(`/partners${qs ? `?${qs}` : ''}`);
+  const path = `/partners${qs ? `?${qs}` : ''}`;
+  return cachedFetchDedup(`ctsv:partners:${qs}`, () => ctsvFetch(path), { ttl: 45000 });
 };
 
 export const fetchCtsvPartner = (id) => ctsvFetch(`/partners/${id}`);
@@ -106,11 +123,12 @@ export const requestInfoCtsvPartner = (id, reason = '') =>
 export const approveCtsvContract = (id) =>
   ctsvFetch(`/contracts/${id}/approve`, { method: 'PATCH', body: '{}' });
 
-export const fetchCtsvAnnouncements = () => ctsvFetch('/announcements');
+export const fetchCtsvAnnouncements = () =>
+  cachedFetchDedup('ctsv:announcements', () => ctsvFetch('/announcements'), { ttl: 60000 });
 
 /** Sự kiện cấp trường + đối tác đã duyệt (loại CLB / ICPDP). */
 export const fetchCtsvAnnouncementLinkableEvents = () =>
-  ctsvFetch('/events?forAnnouncement=1');
+  cachedFetchDedup('events:linkable', () => ctsvFetch('/events?forAnnouncement=1'), { ttl: 60000 });
 
 export const publishCtsvAnnouncement = (body) =>
   ctsvFetch('/announcements', { method: 'POST', body: JSON.stringify(body) });

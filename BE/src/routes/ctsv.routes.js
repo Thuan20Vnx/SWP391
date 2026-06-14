@@ -154,12 +154,11 @@ const buildEventFilter = (query) => {
 // GET /api/ctsv/stats
 router.get('/stats', async (req, res) => {
   try {
-    const pendingPartners = await Partner.countDocuments({
-      status: { $in: ['pending', 'info_requested'] }
-    });
-    const liveCount = await Event.countDocuments({ status: 'live' });
-    const agg = await Event.aggregate([
-      { $group: { _id: null, total: { $sum: '$registeredCount' } } }
+    // Chạy song song 3 query thay vì tuần tự — giảm latency ~150-300ms
+    const [pendingPartners, liveCount, agg] = await Promise.all([
+      Partner.countDocuments({ status: { $in: ['pending', 'info_requested'] } }),
+      Event.countDocuments({ status: 'live' }),
+      Event.aggregate([{ $group: { _id: null, total: { $sum: '$registeredCount' } } }])
     ]);
     const participants = agg[0]?.total || 0;
     const participantsLabel =
@@ -192,7 +191,28 @@ router.get('/events', async (req, res) => {
     }
 
     const filter = buildEventFilter(req.query);
-    const events = await Event.find(filter).sort({ startDate: 1 }).limit(100);
+    let queryBuilder = Event.find(filter);
+
+    if (req.query.sort === 'newest') {
+      queryBuilder = queryBuilder.sort({ createdAt: -1 });
+    } else if (req.query.sort === 'updated') {
+      queryBuilder = queryBuilder.sort({ updatedAt: -1 });
+    } else {
+      queryBuilder = queryBuilder.sort({ startDate: 1 });
+    }
+
+    if (req.query.limit) {
+      const limitVal = parseInt(req.query.limit, 10);
+      if (!isNaN(limitVal) && limitVal > 0) {
+        queryBuilder = queryBuilder.limit(limitVal);
+      } else {
+        queryBuilder = queryBuilder.limit(100);
+      }
+    } else {
+      queryBuilder = queryBuilder.limit(100);
+    }
+
+    const events = await queryBuilder.lean();
     return res.json({
       success: true,
       events: events.map(formatEvent)

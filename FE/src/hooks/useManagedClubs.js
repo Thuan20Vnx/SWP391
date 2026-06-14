@@ -16,6 +16,8 @@ import { getUserRole, isClubManagerRole } from '../utils/auth';
 
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 
+import { cachedFetchDedup } from '../utils/apiCache';
+
 
 
 const resolveActiveClubId = (list, serverActiveId = '') => {
@@ -124,9 +126,13 @@ export function useManagedClubs(enabled = true, role = null) {
 
     try {
 
-      const res = await fetch(`${API_BASE}/api/clubs/manage/clubs`, { headers: getAuthHeaders(false) });
+      const res = await cachedFetchDedup('clubs:managed', () =>
+        fetch(`${API_BASE}/api/clubs/manage/clubs`, { headers: getAuthHeaders(false) })
+          .then(parseApiResponse),
+        { ttl: 30000 }
+      );
 
-      const { ok, data, status } = await parseApiResponse(res);
+      const { ok, data, status } = res.ok !== undefined ? res : { ok: true, data: res, status: 200 };
 
       if (seq !== loadSeqRef.current) return;
 

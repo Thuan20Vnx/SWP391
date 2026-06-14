@@ -106,11 +106,28 @@ const listAnnouncements = async (authEmail) => {
   const { role } = await resolvePublisherContext(authEmail);
   const filter = listFilterForRole(role, authEmail);
   const list = await Announcement.find(filter)
+    .select('-image')
     .sort({ publishedAt: -1, published_at: -1 })
     .limit(200)
     .populate('eventId', 'title source category')
     .lean();
   return list.map(formatManageAnnouncement);
+};
+
+const getAnnouncement = async (authEmail, id) => {
+  const { role } = await resolvePublisherContext(authEmail);
+  const doc = await Announcement.findById(id).populate('eventId', 'title source category').lean();
+  if (!doc) {
+    const err = new Error('Không tìm thấy thông báo!');
+    err.status = 404;
+    throw err;
+  }
+  if (!canManageDoc(doc, role, authEmail)) {
+    const err = new Error('Bạn không có quyền xem thông báo này!');
+    err.status = 403;
+    throw err;
+  }
+  return formatManageAnnouncement(doc);
 };
 
 const createAnnouncement = async (authEmail, body) => {
@@ -205,6 +222,7 @@ const deleteAnnouncement = async (authEmail, id) => {
 
 module.exports = {
   listAnnouncements,
+  getAnnouncement,
   createAnnouncement,
   updateAnnouncement,
   hideAnnouncement,
