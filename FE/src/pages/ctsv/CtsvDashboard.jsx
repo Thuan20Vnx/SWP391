@@ -35,29 +35,41 @@ const QUICK_ACTIONS = [
 const CtsvDashboard = () => {
   const navigate = useNavigate();
   const { userProfile } = useOutletContext() || {};
-  const [loading, setLoading] = useState(true);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [loadingPartners, setLoadingPartners] = useState(true);
   const [stats, setStats] = useState(MOCK_STATS);
   const [events, setEvents] = useState([]);
   const [pendingPartners, setPendingPartners] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
 
-    Promise.all([
-      fetchCtsvStats().catch(() => ({ stats: MOCK_STATS })),
-      fetchCtsvEvents().catch(() => ({ events: MOCK_EVENTS })),
-      fetchCtsvPartners({ status: 'pending' }).catch(() => ({ partners: [] }))
-    ])
-      .then(([statsRes, eventsRes, partnersRes]) => {
+    setLoadingStats(true);
+    fetchCtsvStats()
+      .catch(() => ({ stats: MOCK_STATS }))
+      .then((res) => {
         if (cancelled) return;
-        setStats(statsRes.stats?.length ? statsRes.stats : MOCK_STATS);
-        const list = eventsRes.events?.length ? eventsRes.events : MOCK_EVENTS;
-        setEvents(list);
-        setPendingPartners((partnersRes.partners || []).slice(0, 4));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        setStats(res.stats?.length ? res.stats : MOCK_STATS);
+        setLoadingStats(false);
+      });
+
+    setLoadingEvents(true);
+    fetchCtsvEvents({ sort: 'newest', limit: 5 })
+      .catch(() => ({ events: MOCK_EVENTS }))
+      .then((res) => {
+        if (cancelled) return;
+        setEvents(res.events?.length ? res.events : MOCK_EVENTS);
+        setLoadingEvents(false);
+      });
+
+    setLoadingPartners(true);
+    fetchCtsvPartners({ status: 'pending' })
+      .catch(() => ({ partners: [] }))
+      .then((res) => {
+        if (cancelled) return;
+        setPendingPartners((res.partners || []).slice(0, 4));
+        setLoadingPartners(false);
       });
 
     return () => {
@@ -66,11 +78,11 @@ const CtsvDashboard = () => {
   }, []);
 
   const recentEvents = useMemo(() => events.slice(0, 5), [events]);
-
   const pendingPartnerCount = pendingPartners.length;
 
   return (
     <div className="ctsv-dashboard">
+      {/* 1. Hero */}
       <PortalDashHero
         fullname={userProfile?.fullname}
         description="Tổng quan sự kiện cấp trường, đối tác tài trợ, lịch và báo cáo — CTSV không quản lý CLB."
@@ -88,27 +100,75 @@ const CtsvDashboard = () => {
         }
       />
 
-      <Link to="/ctsv/events/create" className="ctsv-dash-create-card">
-        <span className="ctsv-dash-create-card__icon">
-          <CtsvNavIcon type="create" />
-        </span>
-        <span className="ctsv-dash-create-card__body">
-          <strong>Tạo sự kiện trường</strong>
-          <span>Khởi tạo sự kiện cấp trường mới — lịch, địa điểm và thông tin publish.</span>
-        </span>
-        <span className="ctsv-dash-create-card__arrow" aria-hidden>
-          <svg viewBox="0 0 24 24" width="22" height="22">
-            <path
-              d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
-              fill="currentColor"
-            />
-          </svg>
-        </span>
-      </Link>
+      {/* 2. Thao tác nhanh — ngay dưới hero */}
+      <section className="ctsv-dash-quick" aria-label="Thao tác nhanh">
+        <div className="ctsv-dash-quick-grid">
+          {QUICK_ACTIONS.map((action) => (
+            <button
+              key={action.path}
+              type="button"
+              className="ctsv-dash-quick-card"
+              onClick={() => navigate(action.path)}
+            >
+              <span className="ctsv-dash-quick-icon">
+                <CtsvNavIcon type={action.icon} />
+              </span>
+              <span className="ctsv-dash-quick-label">
+                <span className="ctsv-dash-quick-label__full">{action.label}</span>
+                <span className="ctsv-dash-quick-label__short">{action.mobileLabel || action.label}</span>
+              </span>
+              <span className="ctsv-dash-quick-desc">{action.desc}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
+      {/* 3. Cần xử lý — đối tác chờ duyệt (dạng inline ngang) */}
+      <section className="ctsv-dash-panel ctsv-dash-panel--accent ctsv-dash-panel--inline">
+        <div className="ctsv-dash-panel__head">
+          <div>
+            <h2>Cần xử lý</h2>
+            <p>Đối tác chờ xét duyệt</p>
+          </div>
+          {pendingPartnerCount > 0 && (
+            <span className="ctsv-dash-pill-count">{pendingPartnerCount}</span>
+          )}
+        </div>
+        {loadingPartners ? (
+          <div className="ctsv-dash-pending-list ctsv-dash-pending-list--row">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="ctsv-dash-pending-item ctsv-dash-pending-item--skeleton" />
+            ))}
+          </div>
+        ) : pendingPartners.length === 0 ? (
+          <p className="ctsv-dash-side-empty">Không có đơn đối tác chờ duyệt. Tuyệt vời!</p>
+        ) : (
+          <ul className="ctsv-dash-pending-list ctsv-dash-pending-list--row">
+            {pendingPartners.map((p) => (
+              <li key={p._id}>
+                <button
+                  type="button"
+                  className="ctsv-dash-pending-item"
+                  onClick={() => navigate(`/ctsv/partners/${p._id}`)}
+                >
+                  <span className="ctsv-dash-pending-title">{p.name}</span>
+                  <span className="ctsv-dash-pending-meta">
+                    {p.representative || p.email || 'Chưa có thông tin liên hệ'}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Link to="/ctsv/partners" className="ctsv-dash-side-link">
+          Xem tất cả đơn chờ duyệt →
+        </Link>
+      </section>
+
+      {/* 4. Thống kê nhanh */}
       <section className="ctsv-dash-stats" aria-label="Thống kê nhanh">
         <div className="ctsv-dash-stats-grid">
-          {loading
+          {loadingStats
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="ctsv-dash-stat-card ctsv-dash-stat-card--skeleton" />
               ))
@@ -137,32 +197,7 @@ const CtsvDashboard = () => {
         </div>
       </section>
 
-      <section className="ctsv-dash-quick" aria-label="Thao tác nhanh">
-        <div className="ctsv-dash-section-head">
-          <h2>Thao tác nhanh</h2>
-          <p>Lối tắt tới các màn quản trị thường dùng</p>
-        </div>
-        <div className="ctsv-dash-quick-grid">
-          {QUICK_ACTIONS.map((action) => (
-            <button
-              key={action.path}
-              type="button"
-              className="ctsv-dash-quick-card"
-              onClick={() => navigate(action.path)}
-            >
-              <span className="ctsv-dash-quick-icon">
-                <CtsvNavIcon type={action.icon} />
-              </span>
-              <span className="ctsv-dash-quick-label">
-                <span className="ctsv-dash-quick-label__full">{action.label}</span>
-                <span className="ctsv-dash-quick-label__short">{action.mobileLabel || action.label}</span>
-              </span>
-              <span className="ctsv-dash-quick-desc">{action.desc}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
+      {/* 6. Sự kiện gần đây + Gợi ý */}
       <div className="ctsv-dash-columns">
         <section className="ctsv-dash-panel">
           <div className="ctsv-dash-panel__head">
@@ -181,7 +216,7 @@ const CtsvDashboard = () => {
             </Link>
           </div>
 
-          {loading ? (
+          {loadingEvents ? (
             <div className="ctsv-dash-event-list">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="ctsv-dash-event-row ctsv-dash-event-row--skeleton" />
@@ -202,9 +237,14 @@ const CtsvDashboard = () => {
                     <img src={ev.image} alt="" loading="lazy" />
                   </div>
                   <div className="ctsv-dash-event-main">
-                    <span className="ctsv-dash-event-category">
-                      {getCategoryDisplayLabel(ev.category) || ev.category}
-                    </span>
+                    <div className="ctsv-dash-event-meta-row">
+                      <span className="ctsv-dash-event-category">
+                        {getCategoryDisplayLabel(ev.category) || ev.category}
+                      </span>
+                      <span className={`ctsv-dash-event-source ctsv-dash-event-source--${ev.source || 'club'}`}>
+                        {ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : ev.source === 'icpdp' ? 'IC-PDP' : 'CLB'}
+                      </span>
+                    </div>
                     <h3>{ev.title}</h3>
                     <p>
                       {ev.date} · {ev.time}
@@ -229,47 +269,6 @@ const CtsvDashboard = () => {
         </section>
 
         <aside className="ctsv-dash-side">
-          <section className="ctsv-dash-panel ctsv-dash-panel--accent">
-            <div className="ctsv-dash-panel__head">
-              <div>
-                <h2>Cần xử lý</h2>
-                <p>Đối tác chờ xét duyệt</p>
-              </div>
-              {pendingPartnerCount > 0 && (
-                <span className="ctsv-dash-pill-count">{pendingPartnerCount}</span>
-              )}
-            </div>
-            {loading ? (
-              <div className="ctsv-dash-pending-list">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="ctsv-dash-pending-item ctsv-dash-pending-item--skeleton" />
-                ))}
-              </div>
-            ) : pendingPartners.length === 0 ? (
-              <p className="ctsv-dash-side-empty">Không có đơn đối tác chờ duyệt. Tuyệt vời!</p>
-            ) : (
-              <ul className="ctsv-dash-pending-list">
-                {pendingPartners.map((p) => (
-                  <li key={p._id}>
-                    <button
-                      type="button"
-                      className="ctsv-dash-pending-item"
-                      onClick={() => navigate(`/ctsv/partners/${p._id}`)}
-                    >
-                      <span className="ctsv-dash-pending-title">{p.name}</span>
-                      <span className="ctsv-dash-pending-meta">
-                        {p.representative || p.email || 'Chưa có thông tin liên hệ'}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <Link to="/ctsv/partners" className="ctsv-dash-side-link">
-              Xem tất cả đơn chờ duyệt →
-            </Link>
-          </section>
-
           <section className="ctsv-dash-panel ctsv-dash-panel--compact">
             <h2 className="ctsv-dash-side-title">Gợi ý tuần này</h2>
             <ul className="ctsv-dash-tips">

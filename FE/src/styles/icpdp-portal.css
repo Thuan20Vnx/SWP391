@@ -46,11 +46,7 @@
 }
 
 /* ── Hamburger override ── */
-.icpdp-app-shell .ctsv-portal-hamburger:hover {
-  border-color: var(--icpdp-accent) !important;
-  color: var(--icpdp-accent) !important;
-  background: var(--icpdp-accent-bg) !important;
-}
+
 
 /* ── Header pill — same underline style as nav-link (see index.css) ── */
 

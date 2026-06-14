@@ -8,9 +8,11 @@ import {
   createManagedAnnouncement,
   deleteManagedAnnouncement,
   fetchManagedAnnouncements,
+  fetchManagedAnnouncement,
   hideManagedAnnouncement,
   updateManagedAnnouncement
 } from '../../services/announcementManageApi';
+import { API_BASE } from '../../utils/api';
 import { fetchCtsvAnnouncementLinkableEvents } from '../../services/ctsvApi';
 import TargetAudiencePicker from '../../components/announcements/TargetAudiencePicker';
 import NoticeCategoryPicker from '../../components/announcements/NoticeCategoryPicker';
@@ -59,6 +61,8 @@ const CATEGORY_FILTERS = [
   { value: 'general', label: 'Thông báo chung' },
   { value: 'school', label: 'Sự kiện cấp trường' },
   { value: 'partner', label: 'Sự kiện đối tác' },
+  { value: 'icpdp', label: 'Sự kiện ICPDP' },
+  { value: 'club', label: 'Sự kiện CLB' },
   { value: 'hidden', label: 'Đã ẩn' }
 ];
 
@@ -117,6 +121,11 @@ const isPublishedThisWeek = (publishedAt) => {
   if (!publishedAt) return false;
   return new Date(publishedAt) >= getStartOfWeek();
 };
+
+const getAnnouncementPublishedAt = (announcement) =>
+  announcement?.publishedAt || announcement?.published_at || announcement?.createdAt || null;
+
+const isAnnouncementVisible = (announcement) => announcement?.isHidden !== true;
 
 const hasDraftContent = (draft) =>
   !!(draft && (draft.title || draft.content || draft.eventId || draft.image));
@@ -195,10 +204,16 @@ const PortalAnnouncementManage = ({
   const showToastRef = useRef(showToast);
   const autosaveTimerRef = useRef(null);
   const bannerInputRef = useRef(null);
+  const historyCardRef = useRef(null);
 
   showToastRef.current = showToast;
 
   useCloseOnClickOutside(actionMenuWrapRef, Boolean(openActionMenuId), () => setOpenActionMenuId(null));
+
+  const handleStatsClick = (filterVal = 'all') => {
+    setCategoryFilter(filterVal);
+    historyCardRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const linkableEvents = useMemo(
     () => events.filter(isAnnouncementLinkableEvent),
@@ -216,30 +231,44 @@ const PortalAnnouncementManage = ({
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    try {
-      const annRes = await fetchManagedAnnouncements();
-      if (canLinkEvents) {
-        const eventsRes = await fetchCtsvAnnouncementLinkableEvents();
-        const list = eventsRes.events || [];
-        setEvents(list);
-        setForm((f) => {
-          if (!f.eventId) return f;
-          const stillValid = list.some(
-            (ev) => String(ev.id || ev._id) === String(f.eventId)
-          );
-          return stillValid ? f : { ...f, eventId: '' };
-        });
-      }
-      setHistory(annRes || []);
-    } catch (err) {
-      const msg =
-        err?.message?.includes('token') || err?.message?.includes('đăng nhập')
-          ? err.message
-          : 'Không tải dữ liệu thông báo. Hãy restart backend và đăng nhập lại.';
-      showToastRef.current?.(msg, 'error');
-    } finally {
-      setLoading(false);
+
+    const promises = [
+      fetchManagedAnnouncements().catch((err) => {
+        const msg =
+          err?.message?.includes('token') || err?.message?.includes('đăng nhập')
+            ? err.message
+            : 'Không tải dữ liệu thông báo. Hãy restart backend và đăng nhập lại.';
+        showToastRef.current?.(msg, 'error');
+        return [];
+      })
+    ];
+
+    if (canLinkEvents) {
+      promises.push(
+        fetchCtsvAnnouncementLinkableEvents().catch((err) => {
+          console.error('Failed to load linkable events:', err);
+          showToastRef.current?.('Không thể tải danh sách sự kiện liên kết do lỗi kết nối.', 'warning');
+          return { events: [] };
+        })
+      );
     }
+
+    const results = await Promise.all(promises);
+    setHistory(results[0] || []);
+
+    if (canLinkEvents && results[1]) {
+      const list = results[1].events || [];
+      setEvents(list);
+      setForm((f) => {
+        if (!f.eventId) return f;
+        const stillValid = list.some(
+          (ev) => String(ev.id || ev._id) === String(f.eventId)
+        );
+        return stillValid ? f : { ...f, eventId: '' };
+      });
+    }
+
+    setLoading(false);
   }, [canLinkEvents]);
 
   useEffect(() => {
@@ -297,12 +326,15 @@ const PortalAnnouncementManage = ({
   }, [events]);
 
   const visibleHistoryCount = useMemo(
-    () => history.filter((a) => !a.isHidden).length,
+    () => history.filter(isAnnouncementVisible).length,
     [history]
   );
 
   const historyThisWeek = useMemo(
-    () => history.filter((a) => !a.isHidden && isPublishedThisWeek(a.publishedAt)),
+    () =>
+      history.filter(
+        (a) => isAnnouncementVisible(a) && isPublishedThisWeek(getAnnouncementPublishedAt(a))
+      ),
     [history]
   );
 
@@ -434,24 +466,32 @@ const PortalAnnouncementManage = ({
     }
   };
 
-  const startEditAnnouncement = (announcement) => {
+  const startEditAnnouncement = async (announcement) => {
     const id = resolveAnnouncementId(announcement);
     if (!id) {
       showToast?.('Không xác định được thông báo.', 'error');
       return;
     }
-    setEditingId(id);
-    setForm({
-      title: announcement.title || '',
-      content: announcement.content || '',
-      eventId: announcement.eventId?._id || announcement.eventId || '',
-      image: announcement.image || '',
-      imageFileName: announcement.imageFileName || '',
-      targetRoles: normalizeTargetsForPublisher(portalRole, announcement.targetRoles),
-      noticeCategory: announcement.noticeCategory || NOTICE_CATEGORY_INFO
-    });
-    setComposeOpen(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setActionLoading(true);
+    try {
+      const fullDetails = await fetchManagedAnnouncement(id);
+      setEditingId(id);
+      setForm({
+        title: fullDetails.title || '',
+        content: fullDetails.content || '',
+        eventId: fullDetails.eventId?._id || fullDetails.eventId || '',
+        image: fullDetails.image || '',
+        imageFileName: fullDetails.imageFileName || '',
+        targetRoles: normalizeTargetsForPublisher(portalRole, fullDetails.targetRoles),
+        noticeCategory: fullDetails.noticeCategory || NOTICE_CATEGORY_INFO
+      });
+      setComposeOpen(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      showToast?.('Không thể tải chi tiết thông báo: ' + err.message, 'error');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const cancelEdit = () => {
@@ -635,11 +675,30 @@ const PortalAnnouncementManage = ({
           <h1>{portalConfig.title}</h1>
           <p>{portalConfig.subtitle}</p>
         </div>
-        <div className="ctsv-announce-hero-stat" aria-hidden={loading}>
-          <span className="ctsv-announce-hero-stat-num">{visibleHistoryCount}</span>
-          <span className="ctsv-announce-hero-stat-label">Thông báo đang hiển thị</span>
-          <span className="ctsv-announce-hero-stat-sub">{historyThisWeek.length} trong tuần này</span>
-        </div>
+        <aside className="ctsv-announce-hero-aside" aria-hidden={loading}>
+          <div className="ctsv-announce-hero-stats">
+            <div
+              className="ctsv-announce-hero-stat clickable"
+              onClick={() => handleStatsClick('all')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && handleStatsClick('all')}
+            >
+              <span className="ctsv-announce-hero-stat-num">{visibleHistoryCount}</span>
+              <span className="ctsv-announce-hero-stat-label">Tất cả thông báo</span>
+            </div>
+            <div
+              className="ctsv-announce-hero-stat clickable"
+              onClick={() => handleStatsClick('partner')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && handleStatsClick('partner')}
+            >
+              <span className="ctsv-announce-hero-stat-num">{historyThisWeek.length}</span>
+              <span className="ctsv-announce-hero-stat-label">Đã phát hành trong tuần này</span>
+            </div>
+          </div>
+        </aside>
       </header>
 
       <section className="ctsv-announce-compose-card">
@@ -914,7 +973,7 @@ const PortalAnnouncementManage = ({
         </div>
       </section>
 
-      <section className="ctsv-announce-history-card">
+      <section ref={historyCardRef} className="ctsv-announce-history-card">
         <div className="ctsv-announce-card-head">
           <h2>Danh sách thông báo</h2>
           <p>Xem, tìm kiếm và quản lý thông báo đã phát hành trên toàn trường.</p>
@@ -1004,19 +1063,22 @@ const PortalAnnouncementManage = ({
                 a.eventId?.title || (evId && eventTitleById[evId]) || null;
               return (
                 <li key={a._id || annId} className="ctsv-announce-history-item">
-                  {a.image ? (
+                  <div className="ctsv-announce-history-thumb-wrapper">
                     <img
-                      src={a.image}
+                      src={`${API_BASE}/api/announcements/${annId}/image`}
                       alt=""
                       className="ctsv-announce-history-thumb"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
                     />
-                  ) : (
-                  <div className="ctsv-announce-history-icon" aria-hidden>
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
+                    <div className="ctsv-announce-history-icon" aria-hidden style={{ display: 'none' }}>
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                      </svg>
+                    </div>
                   </div>
-                  )}
                   <div className="ctsv-announce-history-body">
                     <div className="ctsv-announce-history-title-row">
                       <h3>{a.title}</h3>
