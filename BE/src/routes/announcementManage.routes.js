@@ -2,6 +2,7 @@ const express = require('express');
 const authMiddleware = require('../middleware/auth');
 const {
   listAnnouncements,
+  getAnnouncement,
   createAnnouncement,
   updateAnnouncement,
   hideAnnouncement,
@@ -31,6 +32,19 @@ router.post('/', async (req, res) => {
     return res.status(201).json({ success: true, announcement });
   } catch (error) {
     console.error('announcement manage create:', error);
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || 'Lỗi máy chủ nội bộ!'
+    });
+  }
+});
+
+router.get('/:id', async (req, res) => {
+  try {
+    const announcement = await getAnnouncement(req.authEmail, req.params.id);
+    return res.json({ success: true, announcement });
+  } catch (error) {
+    console.error('announcement manage get:', error);
     return res.status(error.status || 500).json({
       success: false,
       message: error.message || 'Lỗi máy chủ nội bộ!'

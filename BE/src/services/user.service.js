@@ -37,7 +37,8 @@ const getProfile = async (email) => {
     throw new AppError('Không tìm thấy thông tin người dùng!', 404);
   }
 
-  await User.syncAndPersistUserProfile(user);
+  // Bỏ qua bước sync nặng ở hàm lấy profile (GET) để tối ưu tốc độ
+  // await User.syncAndPersistUserProfile(user);
 
   return { user: sanitizeUser(user) };
 };

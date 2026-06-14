@@ -15,6 +15,7 @@ import {
   filterClubsByTag,
   mapApiClubToListItem,
 } from '../data/clubDiscoveryData';
+import { cachedFetchDedup } from '../utils/apiCache';
 
 const PAGE_SIZE = 3;
 const HERO_IMAGE =
@@ -36,8 +37,11 @@ const Clubs = ({ showToast }) => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_BASE}/api/clubs`, { headers: getAuthHeaders(false) })
-      .then((res) => res.json())
+    cachedFetchDedup('clubs:list', () =>
+      fetch(`${API_BASE}/api/clubs`, { headers: getAuthHeaders(false) })
+        .then((res) => res.json()),
+      { ttl: 60000 }
+    )
       .then((data) => {
         if (data.success && data.clubs?.length > 0) {
           setClubs(data.clubs.map(mapApiClubToListItem));

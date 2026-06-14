@@ -26,6 +26,7 @@ import {
   filterEventsByClub,
   sortEventsByStatePriority,
 } from '../data/eventDiscoveryData';
+import { cachedFetchDedup } from '../utils/apiCache';
 
 const PAGE_SIZE = 6;
 const USE_FIGMA_FALLBACK = false;
@@ -73,8 +74,11 @@ const Events = ({ showToast }) => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
-      .then((res) => res.json())
+    cachedFetchDedup('events:public', () =>
+      fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
+        .then((res) => res.json()),
+      { ttl: 45000 }
+    )
       .then((data) => {
         if (data.success && data.events?.length > 0) {
           setEvents(data.events.map(mapApiEventToCard));

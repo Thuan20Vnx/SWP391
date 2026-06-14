@@ -4,6 +4,7 @@ import { resolveUserAvatar } from '../utils/image';
 import defaultAvatar from '../constants/defaultAvatar';
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { normalizeRole } from '../utils/auth';
+import { cachedFetchDedup, invalidateCache } from '../utils/apiCache';
 
 const PROFILE_CACHE_KEY = 'fevents_user_profile';
 
@@ -47,6 +48,7 @@ const writeCachedProfile = (profile) => {
 
 export const clearUserProfileCache = () => {
   sessionStorage.removeItem(PROFILE_CACHE_KEY);
+  invalidateCache('user:profile');
 };
 
 export const cacheUserProfile = (profile) => {
@@ -80,10 +82,20 @@ const useUserProfile = () => {
       return;
     }
 
-    setProfileLoading(true);
+    // Nếu đã có cached profile (sessionStorage), hiển thị ngay
+    const cached = readCachedProfile();
+    if (cached) {
+      setUserProfile(cached);
+      setProfileLoading(false);
+    } else {
+      setProfileLoading(true);
+    }
 
-    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('profile fetch failed'))))
+    cachedFetchDedup('user:profile', () =>
+      fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error('profile fetch failed')))),
+      { ttl: 30000 }
+    )
       .then((data) => {
         const u = data.user;
         const profile = {
@@ -97,8 +109,8 @@ const useUserProfile = () => {
         writeCachedProfile(profile);
       })
       .catch(() => {
-        const cached = readCachedProfile();
-        if (cached) setUserProfile(cached);
+        const fallback = readCachedProfile();
+        if (fallback) setUserProfile(fallback);
       })
       .finally(() => setProfileLoading(false));
   }, []);

@@ -3024,7 +3024,7 @@ a.club-tag {
     padding-top: 56px;
     padding-bottom: 108px;
     display: grid;
-    grid-template-rows: auto minmax(116px, 116px) minmax(76px, 76px) auto;
+    grid-template-rows: auto minmax(116px, auto) minmax(76px, auto) auto;
     align-content: start;
     gap: 10px;
     transform: none;
@@ -3035,7 +3035,8 @@ a.club-tag {
     transform: none;
   }
 
-  .ctsv-home-layout .portal-home-hero-layout .hero-top-row {
+  .ctsv-home-layout .portal-home-hero-layout .hero-top-row,
+  .ctsv-home-layout .portal-home-hero-layout .hero-tag-badge {
     align-self: start;
   }
 
@@ -3046,11 +3047,12 @@ a.club-tag {
     max-height: 116px;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
   }
 
-  .ctsv-home-layout .portal-home-hero-layout .hero-meta-list {
+  .ctsv-home-layout .portal-home-hero-layout .hero-meta-list,
+  .ctsv-home-layout .portal-home-hero-layout .hero-description {
     align-self: start;
     min-height: 76px;
     max-height: 76px;

@@ -81,11 +81,11 @@ const PartnerPortalHeader = ({
   useCloseOnClickOutside(profileRef, profilePopupOpen, () => setProfilePopupOpen(false));
 
   const handleLogout = () => {
-    setProfilePopupOpen(false);
     logoutWithConfirm(navigate, {
       showToast,
       toastMessage: 'Đã đăng xuất tài khoản đối tác.'
     });
+    setProfilePopupOpen(false);
   };
 
   const handleProfileMenuAction = (action) => {
