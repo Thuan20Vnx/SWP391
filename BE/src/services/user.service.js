@@ -22,6 +22,15 @@ const assertValidImageDataUrl = (value, label) => {
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
+const PROTECTED_PROFILE_ROLES = new Set([
+  'admin',
+  'ctsv',
+  'partner',
+  'icpdp',
+  'club_manager',
+  'staff',
+]);
+
 const fixLegacyUserRole = async (user) => {
   if (!user?.role) return;
   const normalized = normalizeRole(user.role);
@@ -37,7 +46,12 @@ const getProfile = async (email) => {
     throw new AppError('Không tìm thấy thông tin người dùng!', 404);
   }
 
-  await User.syncAndPersistUserProfile(user);
+  const role = normalizeRole(user.role);
+  if (PROTECTED_PROFILE_ROLES.has(role)) {
+    await fixLegacyUserRole(user);
+  } else {
+    await User.syncAndPersistUserProfile(user);
+  }
 
   return { user: sanitizeUser(user) };
 };

@@ -13,7 +13,15 @@ const LocationIcon = () => (
   </svg>
 );
 
-const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
+const EventDiscoveryCard = ({
+  event,
+  onDetail,
+  onPrimaryAction,
+  onManage,
+  manageLabel = 'Quản lý',
+  manageHint = '',
+  viewOnly = false,
+}) => {
   const {
     title,
     thumbnail,
@@ -29,6 +37,7 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
     registered,
     priceLabel,
     studentPrivilegeApplied,
+    organizerLabel,
   } = event;
 
   const fillPercent = getFillPercent(filledSlots, totalSlots);
@@ -37,6 +46,8 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
   const isPostponed = cardState === 'postponed';
   const isRegistered = cardState === 'registered' || registered;
   const showProgress = !isPostponed;
+  const hasManageAction = viewOnly && typeof onManage === 'function';
+  const singleAction = isPostponed || (viewOnly && !hasManageAction);
 
   return (
     <article
@@ -75,45 +86,67 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
       </div>
 
       <div className="event-discovery-card__body">
-        <h3 className="event-discovery-card__title">{title}</h3>
-
-        <div className="event-discovery-card__meta">
-          <div className="event-discovery-card__meta-row">
-            <CalendarIcon />
-            <span>{dateLabel}</span>
-          </div>
-          <div className="event-discovery-card__meta-row">
-            <LocationIcon />
-            <span className="event-discovery-card__location">{location}</span>
-          </div>
-        </div>
-
-        {showProgress && (
-          <div className="event-discovery-card__progress">
-            <div className="event-discovery-card__progress-labels">
-              <span>{filledSlots}/{totalSlots} slot</span>
-              <span className={isExpired ? 'is-muted' : 'is-accent'}>{fillPercent}%</span>
-            </div>
-            <div className="event-discovery-card__progress-track">
-              <div
-                className={`event-discovery-card__progress-fill ${isExpired ? 'is-full' : ''}`}
-                style={{ width: `${fillPercent}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {priceLabel && !isPostponed && (
-          <div className="event-discovery-card__price">
-            <span className="event-discovery-card__price-label">{priceLabel}</span>
-            {studentPrivilegeApplied && (
-              <span className="event-discovery-card__price-badge">Miễn phí</span>
+        <div className="event-discovery-card__body-main">
+          <div className="event-discovery-card__head">
+            <h3 className="event-discovery-card__title">{title}</h3>
+            {organizerLabel && (
+              <span className="event-discovery-card__organizer">{organizerLabel}</span>
             )}
           </div>
-        )}
 
-        <div className={`event-discovery-card__actions ${isPostponed ? 'is-single' : ''}`}>
-          {!isPostponed && (
+          <div className="event-discovery-card__meta">
+            <div className="event-discovery-card__meta-chip">
+              <span className="event-discovery-card__meta-icon" aria-hidden="true">
+                <CalendarIcon />
+              </span>
+              <span className="event-discovery-card__meta-text">{dateLabel}</span>
+            </div>
+            <div className="event-discovery-card__meta-chip">
+              <span className="event-discovery-card__meta-icon" aria-hidden="true">
+                <LocationIcon />
+              </span>
+              <span className="event-discovery-card__meta-text event-discovery-card__location">
+                {location}
+              </span>
+            </div>
+          </div>
+
+          {(showProgress || (priceLabel && !isPostponed)) && (
+            <div className="event-discovery-card__info-panel">
+              {showProgress && (
+                <div className="event-discovery-card__progress">
+                  <div className="event-discovery-card__progress-labels">
+                    <span className="event-discovery-card__progress-slot">
+                      <strong>{filledSlots}</strong>/{totalSlots} chỗ
+                    </span>
+                    <span className={isExpired ? 'is-muted' : 'is-accent'}>{fillPercent}% đã đăng ký</span>
+                  </div>
+                  <div className="event-discovery-card__progress-track">
+                    <div
+                      className={`event-discovery-card__progress-fill ${isExpired ? 'is-full' : ''}`}
+                      style={{ width: `${Math.max(fillPercent, fillPercent > 0 ? 4 : 0)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {priceLabel && !isPostponed && (
+                <div className="event-discovery-card__price">
+                  <span className="event-discovery-card__price-label">{priceLabel}</span>
+                  {studentPrivilegeApplied && (
+                    <span className="event-discovery-card__price-badge">Ưu đãi SV</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className={`event-discovery-card__actions ${singleAction ? 'is-single' : ''}`}>
+          {hasManageAction && manageHint ? (
+            <p className="event-discovery-card__manage-hint">{manageHint}</p>
+          ) : null}
+          {!isPostponed && (!viewOnly || hasManageAction) && (
             <button
               type="button"
               className="event-discovery-card__btn event-discovery-card__btn--outline"
@@ -125,12 +158,16 @@ const EventDiscoveryCard = ({ event, onDetail, onPrimaryAction }) => {
           <button
             type="button"
             className={`event-discovery-card__btn event-discovery-card__btn--primary ${
-              isExpired ? 'is-disabled' : ''
-            } ${isPostponed ? 'is-full' : ''}`}
-            disabled={isExpired}
-            onClick={() => onPrimaryAction?.(event)}
+              hasManageAction ? 'event-discovery-card__btn--manage' : ''
+            } ${isExpired && !viewOnly ? 'is-disabled' : ''} ${singleAction ? 'is-full' : ''}`}
+            disabled={isExpired && !viewOnly}
+            onClick={() => {
+              if (hasManageAction) onManage?.(event);
+              else if (viewOnly) onDetail?.(event);
+              else onPrimaryAction?.(event);
+            }}
           >
-            {primaryLabel}
+            {hasManageAction ? manageLabel : viewOnly ? 'Xem chi tiết' : primaryLabel}
           </button>
         </div>
       </div>

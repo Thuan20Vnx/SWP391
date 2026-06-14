@@ -31,6 +31,7 @@ export const clearSession = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('userRole');
   localStorage.removeItem('userFullname');
+  localStorage.removeItem('activeManagedClubId');
 };
 
 export const getUserRole = () => normalizeRole(localStorage.getItem('userRole'));
@@ -45,6 +46,22 @@ export const isAdminRole = (role = getUserRole()) =>
 
 /** Chỉ CTSV được phê duyệt cuối; ICPDP duyệt bước nội bộ */
 export const isIcpdpRole = (role = getUserRole()) => normalizeRole(role) === USER_ROLES.ICPDP;
+
+/** Admin hoặc ICPDP — bật/tắt chế độ bảo trì hệ thống */
+export const canManageSystemMaintenance = (role = getUserRole()) => {
+  const r = normalizeRole(role);
+  return r === USER_ROLES.ADMIN || r === USER_ROLES.ICPDP;
+};
+
+/** Vào trang /admin/system (admin đầy đủ, ICPDP chỉ khu vực bảo trì) */
+export const canAccessAdminSystemPage = (role = getUserRole()) =>
+  isAdminRole(role) || isIcpdpRole(role);
+
+/** Admin, CTSV, ICPDP vẫn dùng portal khi bảo trì */
+export const isStaffDuringMaintenance = (role = getUserRole()) => {
+  const r = normalizeRole(role);
+  return r === USER_ROLES.ADMIN || r === USER_ROLES.CTSV || r === USER_ROLES.ICPDP;
+};
 
 export const isPartnerRole = (role = getUserRole()) => normalizeRole(role) === USER_ROLES.PARTNER;
 
@@ -62,7 +79,7 @@ export const getHomePathForRole = (role = getUserRole()) => {
   if (r === USER_ROLES.ICPDP) return '/icpdp';
   if (isPartnerRole(r)) return '/partner/dashboard';
   if (isClubManagerRole(r)) return '/quan-ly-clb';
-  if (isCtsvRole(r)) return '/ctsv';
+  if (r === USER_ROLES.CTSV) return '/ctsv/dashboard';
   if (isAdminRole(r)) return '/admin';
   return '/';
 };

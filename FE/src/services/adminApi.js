@@ -14,14 +14,48 @@ const adminFetch = (path, options = {}) =>
     headers: { ...getAuthHeaders(), ...options.headers }
   }).then(parseJson);
 
+export const fetchAdminCalendar = () => adminFetch('/events/calendar');
+
+export const fetchAdminSubmittedCtsvReports = () => adminFetch('/ctsv-report-submissions');
+
+export const fetchAdminSubmittedCtsvReportDetail = (reportId) =>
+  adminFetch(`/ctsv-report-submissions/${encodeURIComponent(reportId)}`);
+
 export const fetchAdminPartners = (status = 'pending_admin') =>
   adminFetch(`/partners?status=${encodeURIComponent(status)}`);
+
+export const fetchAdminPartner = (id) =>
+  adminFetch(`/partners/${encodeURIComponent(String(id).replace(/^partner-/, ''))}`);
+
+export const requestAdminPartnerTermination = (id, reason) =>
+  adminFetch(`/partners/${encodeURIComponent(String(id).replace(/^partner-/, ''))}/request-termination`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason }),
+  });
+
+export const sendAdminPartnerNotice = (id, body) =>
+  adminFetch(`/partners/${encodeURIComponent(String(id).replace(/^partner-/, ''))}/send-notice`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 
 export const approveAdminPartner = (id) =>
   adminFetch(`/partners/${id}/approve`, { method: 'PATCH', body: '{}' });
 
 export const rejectAdminPartner = (id, reason = '') =>
   adminFetch(`/partners/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+
+export const addAdminPartnerMember = (partnerId, body) =>
+  adminFetch(`/partners/${encodeURIComponent(String(partnerId).replace(/^partner-/, ''))}/members`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+export const removeAdminPartnerMember = (partnerId, memberId) =>
+  adminFetch(
+    `/partners/${encodeURIComponent(String(partnerId).replace(/^partner-/, ''))}/members/${encodeURIComponent(memberId)}`,
+    { method: 'DELETE' },
+  );
 
 export const fetchAdminAccounts = async ({ page = 1, limit = 10, role = 'all', search = '' }) => {
   const params = new URLSearchParams({
@@ -77,6 +111,17 @@ export const fetchAdminDataOverview = async () => {
   return parseJson(res);
 };
 
+export const fetchAdminDashboardStats = () => adminFetch('/dashboard/stats');
+
+export const fetchAdminUnitEvents = ({ unitType, unitId, scope = 'unit' } = {}) => {
+  const params = new URLSearchParams({ scope });
+  if (scope === 'unit' && unitType && unitId) {
+    params.set('unitType', unitType);
+    params.set('unitId', unitId);
+  }
+  return adminFetch(`/unit-events?${params}`);
+};
+
 export const deleteAdminAccount = async (id) => {
   const res = await fetch(`${API_BASE}/api/admin/accounts/${id}`, {
     method: 'DELETE',
@@ -130,3 +175,48 @@ export const rejectAdminEventRequest = async (id, adminNote = '') => {
   });
   return parseJson(res);
 };
+
+export const fetchSystemConfig = () => adminFetch('/system-config');
+
+export const updateSystemMaintenance = (payload) =>
+  adminFetch('/system-config', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+
+export const fetchPublicSystemStatus = async () => {
+  const res = await fetch(`${API_BASE}/api/system/status`);
+  return parseJson(res);
+};
+
+export const fetchClubRegistrationsPendingCount = () =>
+  adminFetch('/club-registrations/pending-count');
+
+export const fetchClubRegistrations = (params = {}) => {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v) qs.set(k, v);
+  });
+  const q = qs.toString();
+  return adminFetch(`/club-registrations${q ? `?${q}` : ''}`);
+};
+
+export const fetchClubRegistration = (id) => adminFetch(`/club-registrations/${id}`);
+
+export const approveClubRegistration = (id, note = '') =>
+  adminFetch(`/club-registrations/${id}/approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const rejectClubRegistration = (id, reason = '') =>
+  adminFetch(`/club-registrations/${id}/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason }),
+  });
+
+export const requestClubRegistrationRevision = (id, note = '') =>
+  adminFetch(`/club-registrations/${id}/revision`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });

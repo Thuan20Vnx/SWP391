@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
+import HomeHeroSlider from '../components/home/HomeHeroSlider';
 import { fetchCtsvEvents, fetchCtsvStats, MOCK_EVENTS, MOCK_STATS } from '../services/ctsvApi';
 import { getCtsvEventAccess, isCtsvManagedEvent, isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
 import { statusClass } from '../utils/eventStatus';
@@ -18,6 +19,33 @@ const HOME_CATEGORY_FILTERS = [
 ];
 
 const LIVE_OVERVIEW_LIMIT = 8;
+
+const CTSV_HERO_FALLBACK = [
+  {
+    title: 'FPT Techday 2026: Kiến tạo tương lai số',
+    dateLabel: '25 Tháng 10, 2026',
+    location: 'Sảnh tòa Gamma',
+    categoryLabel: 'Công nghệ',
+    organizerLabel: 'CTSV',
+    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1280&q=80'
+  },
+  {
+    title: 'Đêm Nhạc F-Fest 2026: Bùng cháy sức trẻ',
+    dateLabel: '20 Tháng 5, 2026',
+    location: 'FPT Plaza 2',
+    categoryLabel: 'Âm nhạc',
+    organizerLabel: 'CLB',
+    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1280&q=80'
+  },
+  {
+    title: 'FPT Career Expo 2026: Chạm ngõ thành công',
+    dateLabel: '28 Tháng 5, 2026',
+    location: 'Sân bóng FPTU',
+    categoryLabel: 'Kết nối',
+    organizerLabel: 'CTSV',
+    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1280&q=80'
+  }
+];
 
 const CtsvEventCard = ({ ev, onOpen }) => {
   const access = getCtsvEventAccess(ev);
@@ -68,28 +96,6 @@ const CtsvHome = ({ showToast }) => {
   const searchQuery = outlet.headerSearch ?? '';
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
-  const [activeSlide, setActiveSlide] = useState(0);
-
-  const sliderData = [
-    {
-      tag: 'QUẢN LÝ SỰ KIỆN',
-      title: 'FPT Techday 2026:\nKiến tạo tương lai số',
-      desc: 'Theo dõi, phê duyệt và điều phối sự kiện công nghệ lớn nhất trong năm tại campus Đà Nẵng.',
-      image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1280&q=80'
-    },
-    {
-      tag: 'PHÊ DUYỆT',
-      title: 'Đêm Nhạc F-Fest 2026:\nĐiều phối an toàn',
-      desc: 'Kiểm tra hồ sơ đăng ký, phân bổ vé và giám sát logistik cho sự kiện âm nhạc quy mô lớn.',
-      image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1280&q=80'
-    },
-    {
-      tag: 'BÁO CÁO',
-      title: 'Career Expo 2026:\nTổng hợp dữ liệu',
-      desc: 'Xem thống kê đăng ký, doanh thu dự kiến và báo cáo tham dự theo thời gian thực.',
-      image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1280&q=80'
-    }
-  ];
 
   const [events, setEvents] = useState(MOCK_EVENTS);
   const [filteredEvents, setFilteredEvents] = useState(MOCK_EVENTS);
@@ -111,13 +117,6 @@ const CtsvHome = ({ showToast }) => {
         setFilteredEvents(MOCK_EVENTS);
       });
   }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % sliderData.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [sliderData.length]);
 
   const handleFilterSubmit = useCallback(() => {
     fetchCtsvEvents({
@@ -155,6 +154,22 @@ const CtsvHome = ({ showToast }) => {
     return () => outlet.registerHeaderSearchSubmit?.(null);
   }, [outlet, handleFilterSubmit]);
 
+  const heroSlides = useMemo(() => {
+    const featured = events.slice(0, 3);
+    if (!featured.length) {
+      return CTSV_HERO_FALLBACK.map((slide) => ({ ...slide, eventId: null }));
+    }
+    return featured.map((ev) => ({
+      title: ev.title,
+      dateLabel: ev.date,
+      location: ev.location,
+      categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
+      organizerLabel: ev.organizerLabel || 'CTSV',
+      image: ev.image,
+      eventId: ev.id
+    }));
+  }, [events]);
+
   const liveOverviewEvents = useMemo(
     () => events.filter(isEventLiveOrOngoing).slice(0, LIVE_OVERVIEW_LIMIT),
     [events]
@@ -186,54 +201,23 @@ const CtsvHome = ({ showToast }) => {
   );
 
   return (
-    <>
-      <section className="hero-banner-slider">
-        {sliderData.map((slide, index) => (
-          <div
-            key={index}
-            className={`hero-slide ${index === activeSlide ? 'active' : ''}`}
-            style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.72)), url(${slide.image})` }}
-          >
-            <div className="hero-content-container">
-              <span className="hero-tag-badge">{slide.tag}</span>
-              <h1 className="hero-title">{slide.title}</h1>
-              <p className="hero-description">{slide.desc}</p>
-              <button type="button" className="hero-cta-btn" onClick={() => navigate('/ctsv/dashboard')}>
-                Vào bảng điều khiển
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className="hero-dot-indicators">
-          {sliderData.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              className={`slider-dot ${index === activeSlide ? 'active' : ''}`}
-              onClick={() => setActiveSlide(index)}
-              aria-label={`Slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="ctsv-stats-section">
-        <div className="ctsv-stats-grid">
-          {stats.map((item) => (
-            <article key={item.label} className="ctsv-stat-card">
-              <p className="ctsv-stat-label">{item.label}</p>
-              <div className="ctsv-stat-value-row">
-                <span className="ctsv-stat-value">{item.value}</span>
-                <span className="ctsv-stat-trend">{item.trend}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+    <div className="portal-home-hero-layout">
+      <HomeHeroSlider
+        slides={heroSlides}
+        resolveDetailPath={(slide) => (slide.eventId ? `/ctsv/events/${slide.eventId}` : null)}
+        fallbackCtaPath="/ctsv/dashboard"
+        fallbackCtaMain="Vào bảng điều khiển"
+        fallbackCtaSub="Quản lý sự kiện campus"
+      />
 
       <section className="filter-bar-section">
         <div className="filter-bar-card">
           <div className="filter-group">
+            <span className="filter-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="currentColor" />
+              </svg>
+            </span>
             <div className="filter-control">
               <label htmlFor="ctsv-time-select" className="filter-label">
                 Thời gian
@@ -249,6 +233,11 @@ const CtsvHome = ({ showToast }) => {
           </div>
           <div className="filter-divider-line" />
           <div className="filter-group">
+            <span className="filter-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor" />
+              </svg>
+            </span>
             <div className="filter-control">
               <label htmlFor="ctsv-category-select" className="filter-label">
                 Chủ đề
@@ -265,6 +254,20 @@ const CtsvHome = ({ showToast }) => {
           <button type="button" className="filter-submit-btn" onClick={handleFilterSubmit}>
             Lọc kết quả
           </button>
+        </div>
+      </section>
+
+      <section className="ctsv-stats-section">
+        <div className="ctsv-stats-grid">
+          {stats.map((item) => (
+            <article key={item.label} className="ctsv-stat-card">
+              <p className="ctsv-stat-label">{item.label}</p>
+              <div className="ctsv-stat-value-row">
+                <span className="ctsv-stat-value">{item.value}</span>
+                <span className="ctsv-stat-trend">{item.trend}</span>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -322,7 +325,7 @@ const CtsvHome = ({ showToast }) => {
           </div>
         )}
       </main>
-    </>
+    </div>
   );
 };
 

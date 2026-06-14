@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import ProfilePasswordSection from '../../components/profile/ProfilePasswordSection';
 import {
   loadIcpdpProfile,
   saveIcpdpProfile,
   loadIcpdpNotificationPrefs,
   saveIcpdpNotificationPrefs,
-  changeIcpdpPassword
 } from '../../services/icpdpApi';
 
 const IcpdpProfileSettings = ({ showToast }) => {
@@ -27,22 +27,6 @@ const IcpdpProfileSettings = ({ showToast }) => {
     reportSubmitted: true,
     systemAlerts: false
   });
-
-  const [passwords, setPasswords] = useState({
-    current: '',
-    newPass: '',
-    confirm: ''
-  });
-
-  const [showPass, setShowPass] = useState({
-    current: false,
-    newPass: false,
-    confirm: false
-  });
-
-  const toggleShowPass = (field) => {
-    setShowPass((prev) => ({ ...prev, [field]: !prev[field] }));
-  };
 
   useEffect(() => {
     setProfileData(loadIcpdpProfile());
@@ -72,24 +56,6 @@ const IcpdpProfileSettings = ({ showToast }) => {
     showToast('Đã lưu tùy chọn thông báo', 'info');
   };
 
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
-    if (passwords.newPass !== passwords.confirm) {
-      showToast?.('Mật khẩu xác nhận không khớp', 'error');
-      return;
-    }
-    setLoading(true);
-    try {
-      await changeIcpdpPassword(passwords.current, passwords.newPass);
-      showToast?.('Đổi mật khẩu thành công!', 'success');
-      setPasswords({ current: '', newPass: '', confirm: '' });
-    } catch (e) {
-      showToast?.(e.message || 'Có lỗi xảy ra, vui lòng thử lại.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="ctsv-dashboard partner-settings-page">
       <div className="partner-settings-header">
@@ -108,13 +74,6 @@ const IcpdpProfileSettings = ({ showToast }) => {
               onClick={() => setActiveTab('info')}
             >
               Thông tin cán bộ
-            </button>
-            <button
-              type="button"
-              className={`partner-settings-nav-item ${activeTab === 'security' ? 'active' : ''}`}
-              onClick={() => setActiveTab('security')}
-            >
-              Bảo mật
             </button>
             <button
               type="button"
@@ -255,100 +214,11 @@ const IcpdpProfileSettings = ({ showToast }) => {
                   </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {activeTab === 'security' && (
-            <div className="partner-settings-panel">
-              <div className="partner-settings-panel__head">
-                <h2>Bảo mật tài khoản</h2>
-              </div>
-              <div className="partner-settings-panel__body">
-                <form className="partner-settings-form" style={{ maxWidth: '400px' }} onSubmit={handlePasswordSubmit}>
-                  <div className="form-group ctsv-password-group">
-                    <label>Mật khẩu hiện tại</label>
-                    <div className="ctsv-password-input-wrapper">
-                      <input
-                        type={showPass.current ? 'text' : 'password'}
-                        value={passwords.current}
-                        onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                        required
-                        className="ctsv-input"
-                        placeholder="Nhập mật khẩu hiện tại"
-                      />
-                      <button
-                        type="button"
-                        className="ctsv-password-toggle"
-                        onClick={() => toggleShowPass('current')}
-                        aria-label={showPass.current ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                        tabIndex="-1"
-                      >
-                        {showPass.current ? (
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                        ) : (
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="form-group ctsv-password-group">
-                    <label>Mật khẩu mới</label>
-                    <div className="ctsv-password-input-wrapper">
-                      <input
-                        type={showPass.newPass ? 'text' : 'password'}
-                        value={passwords.newPass}
-                        onChange={(e) => setPasswords({ ...passwords, newPass: e.target.value })}
-                        required
-                        minLength={8}
-                        className="ctsv-input"
-                        placeholder="Tối thiểu 8 ký tự"
-                      />
-                      <button
-                        type="button"
-                        className="ctsv-password-toggle"
-                        onClick={() => toggleShowPass('newPass')}
-                        aria-label={showPass.newPass ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                        tabIndex="-1"
-                      >
-                         {showPass.newPass ? (
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                        ) : (
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="form-group ctsv-password-group">
-                    <label>Xác nhận mật khẩu mới</label>
-                    <div className="ctsv-password-input-wrapper">
-                      <input
-                        type={showPass.confirm ? 'text' : 'password'}
-                        value={passwords.confirm}
-                        onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                        required
-                        className="ctsv-input"
-                        placeholder="Nhập lại mật khẩu mới"
-                      />
-                      <button
-                        type="button"
-                        className="ctsv-password-toggle"
-                        onClick={() => toggleShowPass('confirm')}
-                        aria-label={showPass.confirm ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                        tabIndex="-1"
-                      >
-                         {showPass.confirm ? (
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                        ) : (
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <button type="submit" className="ctsv-dash-btn ctsv-dash-btn--primary" disabled={loading}>
-                    {loading ? 'Đang cập nhật...' : 'Đổi mật khẩu'}
-                  </button>
-                </form>
-              </div>
+              <ProfilePasswordSection
+                showToast={showToast}
+                idPrefix="icpdp"
+                description="Cập nhật mật khẩu đăng nhập tài khoản cán bộ IC-PDP."
+              />
             </div>
           )}
 

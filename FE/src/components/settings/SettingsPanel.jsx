@@ -1,22 +1,22 @@
 import { useState } from 'react';
+import { getUserRole, normalizeRole } from '../../utils/auth';
 import { useSettingsPreferences } from '../../hooks/useSettingsPreferences';
+import { normalizeSettingsRole } from './settingsRoleConfig';
 import SettingsSidebar from './SettingsSidebar';
 import SecuritySection from './sections/SecuritySection';
-import NotificationsSection from './sections/NotificationsSection';
 import AppearanceSection from './sections/AppearanceSection';
 import SupportSection from './sections/SupportSection';
 import AboutSection from './sections/AboutSection';
 
-const SettingsPanel = ({ showToast }) => {
-  const [activeSection, setActiveSection] = useState('security');
+const SettingsPanel = ({ showToast, role: roleProp, initialSection = 'security' }) => {
+  const [activeSection, setActiveSection] = useState(initialSection);
+  const role = normalizeSettingsRole(roleProp || normalizeRole(getUserRole()));
   const { settings, updateSetting } = useSettingsPreferences();
 
   const renderSection = () => {
     switch (activeSection) {
       case 'security':
-        return <SecuritySection showToast={showToast} />;
-      case 'notifications':
-        return <NotificationsSection settings={settings} updateSetting={updateSetting} />;
+        return <SecuritySection showToast={showToast} role={role} />;
       case 'appearance':
         return (
           <AppearanceSection
@@ -26,7 +26,7 @@ const SettingsPanel = ({ showToast }) => {
           />
         );
       case 'support':
-        return <SupportSection />;
+        return <SupportSection role={role} />;
       case 'about':
         return <AboutSection />;
       default:

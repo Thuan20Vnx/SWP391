@@ -42,17 +42,43 @@ const SCHOOL_ORGANIZER = {
     'Sự kiện cấp trường do Phòng Công tác Sinh viên (CTSV) FPT University tổ chức, phục vụ toàn thể sinh viên.',
 };
 
+const ICPDP_ORGANIZER = {
+  kind: 'school',
+  name: 'Ban IC-PDP',
+  slug: null,
+  logo: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=200&q=80',
+  memberCount: null,
+  eventsHeld: null,
+  description:
+    'Sự kiện cấp trường do Ban IC-PDP (Quản lý câu lạc bộ & hoạt động ngoại khóa) tổ chức.',
+};
+
 const resolveEventOrganizer = (event) => {
-  if (event?.source === 'school') return SCHOOL_ORGANIZER;
+  if (event?.source === 'school') {
+    return event?.schoolOrganizerRole === 'icpdp' ? ICPDP_ORGANIZER : SCHOOL_ORGANIZER;
+  }
   if (event?.source === 'partner') {
     return {
       kind: 'partner',
       name: 'Đối tác FPT',
       slug: null,
+      clubId: '',
       logo: CLUB_ORGANIZER.logo,
       memberCount: null,
       eventsHeld: null,
-      description: 'Sự kiện hợp tác cùng đối tác, được CTSV và Admin phê duyệt.'
+      description: 'Sự kiện hợp tác cùng đối tác, được CTSV và Admin phê duyệt.',
+    };
+  }
+  if (event?.clubSlug || event?.clubName || event?.clubId) {
+    return {
+      kind: 'club',
+      name: event.clubName || CLUB_ORGANIZER.name,
+      slug: event.clubSlug || null,
+      clubId: event.clubId ? String(event.clubId) : '',
+      logo: event.clubLogo || CLUB_ORGANIZER.logo,
+      memberCount: event.clubMemberCount ?? CLUB_ORGANIZER.memberCount,
+      eventsHeld: event.clubEventsHeld ?? CLUB_ORGANIZER.eventsHeld,
+      description: event.clubDescription || CLUB_ORGANIZER.description,
     };
   }
   return CLUB_ORGANIZER;
@@ -188,10 +214,14 @@ export const mapApiEventToDetail = (event) => {
     campus: event.campus,
     description: event.description,
     descriptionParagraphs: splitDescription(event.description),
-    learningOutcomes: DEFAULT_LEARNING,
+    learningOutcomes:
+      Array.isArray(event.learningOutcomes) && event.learningOutcomes.length > 0
+        ? event.learningOutcomes
+        : DEFAULT_LEARNING,
     agenda: buildAgenda(event.startDate, event.endDate, event.title),
     speakers: mapSpeakersForDetail(event),
     source: event.source || 'club',
+    schoolOrganizerRole: event.schoolOrganizerRole || 'ctsv',
     organizer: resolveEventOrganizer(event),
     capacity,
     registeredCount,
@@ -215,6 +245,10 @@ export const mapApiEventToDetail = (event) => {
         capacity > 0 &&
         registeredCount >= capacity),
     createdBy: event.createdBy,
+    clubId: event.clubId ? String(event.clubId) : '',
+    clubName: event.clubName || '',
+    createdByEmail: event.createdBy?.email || event.createdByEmail || '',
+    createdById: event.createdBy?._id || event.createdBy || '',
   };
 };
 

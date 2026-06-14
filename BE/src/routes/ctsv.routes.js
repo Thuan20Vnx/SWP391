@@ -4,9 +4,12 @@ const authMiddleware = require('../middleware/auth');
 const {
   requireCtsvPortal,
   requireCtsvApprove,
+  requireSchoolEventSubmit,
+  requireProposalModerate,
   requireIcpdpOrCtsv
 } = require('../middleware/requireRole');
 const Event = require('../models/Event');
+const EventRegistration = require('../models/EventRegistration');
 const EventProposal = require('../models/EventProposal');
 const Partner = require('../models/Partner');
 const { PARTNER_STATUSES } = require('../models/Partner');
@@ -19,20 +22,30 @@ const {
   buildSchoolEventSubmitMeta,
   canCtsvEditSchoolEvent,
   shouldResubmitSchoolEventForAdmin,
+  resolveSchoolOrganizerRole,
+  canRoleManageSchoolEvent,
   SCHOOL_EVENT_SUBMIT_STATUS
 } = require('../constants/eventWorkflow');
 const { getCtsvReportDetail, appendDemoToReportList } = require('../services/ctsvReport.service');
 const { resolveReportPhase, getReportDisplayStatus } = require('../constants/ctsvReportDisplay');
+const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
 const {
   findLinkableAnnouncementEvents,
   isEventLinkableForAnnouncement
 } = require('../utils/announcementEvents');
-const { requestModeration } = require('../services/eventModeration.service');
+const {
+  requestModeration,
+  requestClubModeration,
+  approveIcpdpModeration,
+  rejectIcpdpModeration
+} = require('../services/eventModeration.service');
 const {
   normalizeTicketTypes,
   deriveTicketPriceFromTypes,
   totalQtyFromTypes
 } = require('../utils/ticketTypes');
+const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
+const { buildEventTextSearchOr } = require('../utils/eventSearch');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -41,19 +54,25 @@ const pickSchoolEventFields = (body) => {
     title,
     description,
     category,
+    registrationStartDate,
+    registrationEndDate,
     startDate,
     endDate,
     location,
     totalTickets,
+    capacity,
     image,
+    thumbnail,
     bannerFileName,
     eventType,
     duration,
     format,
     speakers,
     agenda,
+    learningOutcomes,
     expectedAttendees,
-    ticketTypes
+    ticketTypes,
+    ticketPrice
   } = body;
 
   if (image && image.length > MAX_IMAGE_DATA_LEN) {
@@ -72,17 +91,23 @@ const pickSchoolEventFields = (body) => {
   }
 
   const primarySpeaker = normalizedSpeakers[0];
+  const resolvedTickets = Number(totalTickets) || Number(capacity) || 100;
+  const bannerImage = image || thumbnail || '';
 
   return {
     title: title?.trim(),
     description: description || '',
     category: normalizeEventCategory(category || 'Khác'),
+    registrationStartDate,
+    registrationEndDate,
     startDate,
     endDate,
     location: location || '',
-    totalTickets: totalTickets || 100,
-    capacity: totalTickets || 100,
-    image: image || '',
+    totalTickets: resolvedTickets,
+    capacity: resolvedTickets,
+    ticketPrice: Number(ticketPrice) || 0,
+    image: bannerImage,
+    thumbnail: bannerImage,
     bannerFileName: bannerFileName || '',
     eventType: eventType || '',
     duration: duration || '',
@@ -92,6 +117,7 @@ const pickSchoolEventFields = (body) => {
     speakerRole: primarySpeaker?.role || '',
     speakerAvatar: primarySpeaker?.avatar || '',
     agenda: agenda || '',
+    learningOutcomes: normalizeLearningOutcomes(learningOutcomes),
     expectedAttendees: Number(expectedAttendees) || 0,
     ticketTypes: normalizeTicketTypes(ticketTypes)
   };
@@ -104,9 +130,10 @@ const buildEventFilter = (query) => {
   const filter = {};
   if (query.status) filter.status = query.status;
   if (query.category && query.category !== 'Tất cả') filter.category = query.category;
-  if (query.q) {
-    const re = new RegExp(query.q.trim(), 'i');
-    filter.$or = [{ title: re }, { location: re }, { category: re }];
+
+  const searchOr = buildEventTextSearchOr(query.q || query.search);
+  if (searchOr) {
+    filter.$or = searchOr;
   }
   if (query.time === 'Hôm nay') {
     const start = new Date();
@@ -190,6 +217,26 @@ router.get('/events/calendar', async (req, res) => {
   }
 });
 
+// GET /api/ctsv/events/moderation/pending-icpdp — yêu cầu hoãn/hủy CLB chờ IC-PDP
+router.get('/events/moderation/pending-icpdp', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const { ICPDP_MODERATION_PENDING_STATUSES } = require('../constants/eventModeration');
+    const events = await Event.find({
+      source: 'club',
+      status: { $in: ICPDP_MODERATION_PENDING_STATUSES }
+    })
+      .sort({ moderationRequestedAt: -1, updatedAt: -1 })
+      .lean();
+    return res.json({
+      success: true,
+      events: events.map((ev) => formatEvent(ev))
+    });
+  } catch (error) {
+    console.error('icpdp moderation list:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
 // GET /api/ctsv/events/:id
 router.get('/events/:id', async (req, res) => {
   try {
@@ -197,27 +244,53 @@ router.get('/events/:id', async (req, res) => {
     if (!event) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
     }
-    return res.json({ success: true, event: formatEvent(event) });
+    let students;
+    if (canRoleManageSchoolEvent(event, req.userRole)) {
+      const registrations = await EventRegistration.find({ event: event._id })
+        .populate('user', 'fullname studentId email role')
+        .sort({ registeredAt: -1 })
+        .limit(200)
+        .lean();
+
+      students = registrations.map((registration) => ({
+        _id: registration._id,
+        status: registration.status === 'attended' ? 'checked-in' : registration.status,
+        createdAt: registration.createdAt,
+        cancelledAt: registration.cancelledAt || null,
+        checkedInAt: registration.checkedInAt || null,
+        checkedOutAt: registration.checkedOutAt || null,
+        student: registration.user,
+      }));
+    }
+    return res.json({ success: true, event: formatEvent(event), students });
   } catch (error) {
     console.error('ctsv event detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
 
-// POST /api/ctsv/events — tạo sự kiện cấp trường
-router.post('/events', requireCtsvApprove, async (req, res) => {
+// POST /api/ctsv/events — tạo sự kiện cấp trường (CTSV / IC-PDP / Admin)
+router.post('/events', requireSchoolEventSubmit, async (req, res) => {
   try {
     const data = pickSchoolEventFields(req.body);
 
-    if (!data.title || !data.startDate) {
-      return res.status(400).json({ success: false, message: 'Tiêu đề và ngày bắt đầu là bắt buộc!' });
+    if (!data.title || !data.registrationStartDate || !data.startDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tiêu đề, thời gian đăng ký và thời gian sự kiện là bắt buộc!'
+      });
     }
+
+    const schoolOrganizerRole = resolveSchoolOrganizerRole(req.userRole);
 
     const event = await Event.create({
       ...data,
+      registrationStartDate: new Date(data.registrationStartDate),
+      registrationEndDate: data.registrationEndDate ? new Date(data.registrationEndDate) : undefined,
       startDate: new Date(data.startDate),
       endDate: data.endDate ? new Date(data.endDate) : undefined,
       source: 'school',
+      schoolOrganizerRole,
       createdByEmail: req.authEmail,
       ...buildSchoolEventSubmitMeta(req.authEmail)
     });
@@ -253,7 +326,7 @@ router.post('/events', requireCtsvApprove, async (req, res) => {
 });
 
 // PUT /api/ctsv/events/:id — cập nhật sự kiện cấp trường (đầy đủ trường form)
-router.put('/events/:id', requireCtsvApprove, async (req, res) => {
+router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
@@ -261,12 +334,22 @@ router.put('/events/:id', requireCtsvApprove, async (req, res) => {
     }
 
     const data = pickSchoolEventFields(req.body);
-    if (!data.title || !data.startDate) {
-      return res.status(400).json({ success: false, message: 'Tiêu đề và ngày bắt đầu là bắt buộc!' });
+    if (!data.title || !data.registrationStartDate || !data.startDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tiêu đề, thời gian đăng ký và thời gian sự kiện là bắt buộc!'
+      });
     }
 
     if (event.source !== 'school') {
       return res.status(403).json({ success: false, message: 'Chỉ cập nhật sự kiện cấp trường!' });
+    }
+
+    if (!canRoleManageSchoolEvent(event, req.userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền chỉnh sửa sự kiện do đơn vị khác gửi.'
+      });
     }
 
     if (!canCtsvEditSchoolEvent(event)) {
@@ -278,6 +361,10 @@ router.put('/events/:id', requireCtsvApprove, async (req, res) => {
 
     Object.assign(event, {
       ...data,
+      registrationStartDate: new Date(data.registrationStartDate),
+      registrationEndDate: data.registrationEndDate
+        ? new Date(data.registrationEndDate)
+        : event.registrationEndDate,
       startDate: new Date(data.startDate),
       endDate: data.endDate ? new Date(data.endDate) : event.endDate
     });
@@ -333,11 +420,23 @@ router.patch('/events/:id/approve', requireCtsvApprove, async (req, res) => {
 });
 
 // PATCH /api/ctsv/events/:id/reject
-router.patch('/events/:id/reject', requireCtsvApprove, async (req, res) => {
+router.patch('/events/:id/reject', requireProposalModerate, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
+    }
+    if (req.userRole === 'icpdp' && event.status !== 'pending_icpdp') {
+      return res.status(403).json({
+        success: false,
+        message: 'ICPDP chỉ từ chối được sự kiện đang chờ ICPDP duyệt!'
+      });
+    }
+    if (req.userRole !== 'icpdp' && event.source === 'school') {
+      return res.status(400).json({
+        success: false,
+        message: 'Sự kiện cấp trường cần Admin phê duyệt trên trang quản trị.'
+      });
     }
     event.status = 'rejected';
     event.rejectionReason = req.body.reason || req.body.note || '';
@@ -368,7 +467,7 @@ router.patch('/events/:id/request-revision', requireCtsvApprove, async (req, res
 });
 
 // PATCH /api/ctsv/events/:id/publish — chuyển approved -> live
-router.patch('/events/:id/publish', requireCtsvApprove, async (req, res) => {
+router.patch('/events/:id/publish', requireSchoolEventSubmit, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
@@ -376,6 +475,12 @@ router.patch('/events/:id/publish', requireCtsvApprove, async (req, res) => {
     }
     if (event.source !== 'school') {
       return res.status(400).json({ success: false, message: 'Chỉ publish sự kiện cấp trường!' });
+    }
+    if (!canRoleManageSchoolEvent(event, req.userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền publish sự kiện do đơn vị khác gửi.'
+      });
     }
     if (event.status !== 'approved') {
       return res.status(400).json({
@@ -411,6 +516,42 @@ router.patch('/events/:id/moderation', requireCtsvApprove, async (req, res) => {
       return res.status(error.statusCode).json({ success: false, message: error.message });
     }
     console.error('ctsv event moderation:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// PATCH /api/ctsv/events/:id/moderation/icpdp-approve
+router.patch('/events/:id/moderation/icpdp-approve', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const result = await approveIcpdpModeration(req.params.id, req.body?.note, req.authEmail);
+    return res.json({
+      success: true,
+      event: formatEvent(result.event),
+      message: result.message
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('icpdp moderation approve:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// PATCH /api/ctsv/events/:id/moderation/icpdp-reject
+router.patch('/events/:id/moderation/icpdp-reject', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const result = await rejectIcpdpModeration(req.params.id, req.body?.reason, req.authEmail);
+    return res.json({
+      success: true,
+      event: formatEvent(result.event),
+      message: result.message
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('icpdp moderation reject:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
@@ -476,6 +617,44 @@ router.get('/reports/:id', async (req, res) => {
     }
     console.error('ctsv report detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/reports/:id/submit-admin', async (req, res) => {
+  try {
+    const result = await getCtsvReportDetail(req.params.id);
+    const report = result.report;
+    const submission = await SubmittedCtsvReport.findOneAndUpdate(
+      { reportId: String(report.id || req.params.id) },
+      {
+        reportId: String(report.id || req.params.id),
+        eventId: req.params.id && /^[a-f\d]{24}$/i.test(req.params.id) ? req.params.id : null,
+        title: report.title || '',
+        category: report.category || '',
+        source: report.source || 'school',
+        reportPhase: report.reportPhase || 'ended',
+        snapshot: report,
+        submittedByEmail: String(req.authEmail || '').trim().toLowerCase(),
+        submittedAt: new Date(),
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    return res.json({
+      success: true,
+      submission: {
+        reportId: submission.reportId,
+        submittedAt: submission.submittedAt,
+        submittedByEmail: submission.submittedByEmail,
+      },
+      message: 'Da gui bao cao cho Admin xem.',
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('ctsv report submit admin:', error);
+    return res.status(500).json({ success: false, message: 'Loi may chu noi bo!' });
   }
 });
 
@@ -553,6 +732,7 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
     const event = await Event.create({
       title: proposal.title,
       description: proposal.description,
+      learningOutcomes: Array.isArray(proposal.learningOutcomes) ? proposal.learningOutcomes : [],
       category: normalizeEventCategory(proposal.category),
       startDate: proposal.startDate,
       endDate: proposal.endDate,
@@ -587,14 +767,32 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
   }
 });
 
-router.patch('/proposals/:id/reject', requireCtsvApprove, async (req, res) => {
+router.patch('/proposals/:id/reject', requireProposalModerate, async (req, res) => {
   try {
     const proposal = await EventProposal.findById(req.params.id);
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đề xuất!' });
     }
+    const reason = req.body.reason || req.body.note || '';
+    if (!String(reason).trim()) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập lý do từ chối!' });
+    }
+    if (req.userRole === 'icpdp') {
+      if (proposal.status !== 'pending_icpdp') {
+        return res.status(403).json({
+          success: false,
+          message: 'ICPDP chỉ từ chối được đề xuất đang chờ ICPDP duyệt!'
+        });
+      }
+      proposal.icpdpNote = reason;
+    } else if (!['pending_ctsv', 'pending_icpdp', 'revision'].includes(proposal.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đề xuất không ở trạng thái có thể từ chối!'
+      });
+    }
     proposal.status = 'rejected';
-    proposal.rejectionReason = req.body.reason || req.body.note || '';
+    proposal.rejectionReason = reason;
     await proposal.save();
     return res.json({ success: true, proposal: formatProposal(proposal) });
   } catch (error) {
@@ -636,8 +834,25 @@ router.get('/partners', async (req, res) => {
         { category: re }
       ];
     }
-    const partners = await Partner.find(filter).sort({ createdAt: -1 }).limit(200).lean();
-    const ids = partners.map((p) => p._id);
+    const partners = await Partner.find(filter).sort({ updatedAt: -1, createdAt: -1 }).limit(200).lean();
+    const dedupedByEmail = new Map();
+    for (const partner of partners) {
+      const emailKey = String(partner.email || '').trim().toLowerCase() || String(partner._id);
+      const existing = dedupedByEmail.get(emailKey);
+      if (!existing) {
+        dedupedByEmail.set(emailKey, partner);
+        continue;
+      }
+      const existingTs = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+      const partnerTs = new Date(partner.updatedAt || partner.createdAt || 0).getTime();
+      if (partnerTs >= existingTs) {
+        dedupedByEmail.set(emailKey, partner);
+      }
+    }
+    const uniquePartners = Array.from(dedupedByEmail.values()).sort(
+      (a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
+    );
+    const ids = uniquePartners.map((p) => p._id);
     const contracts = ids.length
       ? await Contract.find({ partnerId: { $in: ids } }).sort({ createdAt: -1 }).lean()
       : [];
@@ -646,7 +861,7 @@ router.get('/partners', async (req, res) => {
       const key = String(c.partnerId);
       if (!contractByPartner[key]) contractByPartner[key] = c;
     }
-    const enriched = partners.map((p) => {
+    const enriched = uniquePartners.map((p) => {
       const contract = contractByPartner[String(p._id)];
       return {
         ...p,
@@ -668,13 +883,24 @@ router.get('/partners/:id', async (req, res) => {
     if (!partner) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
     }
+    const { resolvePartnerAvatarForAdmin } = require('../utils/partnerAvatar');
+    const { ensurePrimaryPartnerMember, listPartnerMembers } = require('../services/partnerMember.service');
+    await ensurePrimaryPartnerMember(partner);
+    const partnerPayload = await resolvePartnerAvatarForAdmin(partner);
+    const members = await listPartnerMembers(partner._id);
     const contracts = await Contract.find({ partnerId: partner._id });
     const PartnerEventRequest = require('../models/PartnerEventRequest');
     const eventRequest = await PartnerEventRequest.findOne({
       partnerId: partner._id,
       status: { $nin: ['draft', 'cancelled', 'deleted'] }
     }).sort({ updatedAt: -1 });
-    return res.json({ success: true, partner, contracts, eventRequest: eventRequest || null });
+    return res.json({
+      success: true,
+      partner: partnerPayload,
+      members,
+      contracts,
+      eventRequest: eventRequest || null
+    });
   } catch (error) {
     console.error('ctsv partner detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -721,6 +947,8 @@ router.post('/partners', requireCtsvApprove, async (req, res) => {
         status: 'pending'
       });
     }
+    const { ensurePrimaryPartnerMember } = require('../services/partnerMember.service');
+    await ensurePrimaryPartnerMember(partner);
     return res.status(201).json({ success: true, partner });
   } catch (error) {
     console.error('ctsv create partner:', error);

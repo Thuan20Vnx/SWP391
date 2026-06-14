@@ -42,7 +42,10 @@ const CtsvSidebarAside = ({
           <span className="ctsv-nav-icon">
             <CtsvNavIcon type={item.icon} />
           </span>
-          <span className="ctsv-nav-label">{item.label}</span>
+          <span className="ctsv-nav-label">
+            <span className="ctsv-nav-label__full">{item.label}</span>
+            <span className="ctsv-nav-label__short">{item.mobileLabel || item.label}</span>
+          </span>
         </Link>
       );
     });

@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const Partner = require('../models/Partner');
+const PartnerMember = require('../models/PartnerMember');
 const Contract = require('../models/Contract');
 const { formatEvent } = require('../utils/eventFormat');
 const { resolveReportPhase, getReportDisplayStatus } = require('../constants/ctsvReportDisplay');
@@ -17,6 +18,16 @@ const getPartnerRecordsByEmail = async (email) => {
 };
 
 const getPartnerIdsByEmail = async (email) => {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return [];
+
+  const memberRows = await PartnerMember.find({ email: normalized, isActive: true })
+    .select('partnerId')
+    .lean();
+  if (memberRows.length) {
+    return [...new Set(memberRows.map((r) => r.partnerId))];
+  }
+
   const records = await getPartnerRecordsByEmail(email);
   return records.map((p) => p._id);
 };

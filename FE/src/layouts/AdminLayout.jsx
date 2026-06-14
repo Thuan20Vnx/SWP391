@@ -67,7 +67,7 @@ const AdminLayout = ({ showToast }) => {
           sidebarOpen={sidebarOpen}
         />
 
-        <div className="admin-page admin-layout admin-shell-content">
+        <div className="admin-layout admin-shell-content">
           <Outlet context={{ showToast, adminSearch, setAdminSearch }} />
           <SiteFooter />
           <ChatbotFloating context="admin" />

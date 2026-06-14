@@ -13,6 +13,8 @@ const EVENT_STATUSES = [
   'revision',
   'live',
   'ended',
+  'pending_icpdp_cancel',
+  'pending_icpdp_postpone',
   'pending_cancel',
   'pending_hide',
   'pending_postpone',
@@ -32,6 +34,8 @@ const SCHOOL_EVENT_PUBLIC_STATUSES = ['approved', 'live'];
 const NON_PUBLIC_STATUSES = [
   'cancelled',
   'hidden',
+  'pending_icpdp_cancel',
+  'pending_icpdp_postpone',
   'pending_cancel',
   'pending_hide',
   'pending_postpone',
@@ -66,6 +70,8 @@ const STATUS_LABELS = {
   revision: 'CẦN CHỈNH SỬA',
   live: 'ĐANG DIỄN RA',
   ended: 'ĐÃ KẾT THÚC',
+  pending_icpdp_cancel: 'CHỜ ICPDP — HỦY',
+  pending_icpdp_postpone: 'CHỜ ICPDP — HOÃN',
   pending_cancel: 'CHỜ ADMIN — HỦY',
   pending_hide: 'CHỜ ADMIN — ẨN',
   pending_postpone: 'CHỜ ADMIN — HOÃN',
@@ -94,6 +100,18 @@ const buildSchoolEventSubmitMeta = (authEmail) => ({
   adminApprovedAt: null
 });
 
+const resolveSchoolOrganizerRole = (userRole) =>
+  userRole === 'icpdp' ? 'icpdp' : 'ctsv';
+
+const canRoleManageSchoolEvent = (event, userRole) => {
+  if (!event || event.source !== 'school') return false;
+  if (userRole === 'admin') return true;
+  const org = event.schoolOrganizerRole || 'ctsv';
+  if (userRole === 'icpdp') return org === 'icpdp';
+  if (userRole === 'ctsv') return org === 'ctsv';
+  return false;
+};
+
 const buildSchoolEventAdminApproveMeta = (authEmail) => ({
   status: SCHOOL_EVENT_APPROVED_STATUS,
   approvedByEmail: authEmail || '',
@@ -115,5 +133,7 @@ module.exports = {
   canCtsvEditSchoolEvent,
   shouldResubmitSchoolEventForAdmin,
   buildSchoolEventSubmitMeta,
-  buildSchoolEventAdminApproveMeta
+  buildSchoolEventAdminApproveMeta,
+  resolveSchoolOrganizerRole,
+  canRoleManageSchoolEvent
 };

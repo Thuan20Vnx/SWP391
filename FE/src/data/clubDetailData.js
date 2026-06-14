@@ -110,6 +110,7 @@ export const mapApiClubToDetail = (club) => buildClubDetailFromList({
   followerCount: club.followerCount,
   description: club.description,
   featuredEvent: club.featuredEvent,
+  upcomingEvents: club.upcomingEvents,
   isFollowing: club.isFollowing,
   membershipStatus: club.membershipStatus || null,
   eventsHeld: club.eventsHeld,
@@ -168,21 +169,24 @@ export const buildClubDetailFromList = (club) => ({
     { type: 'share', label: 'Chia sẻ' },
     { type: 'email', label: 'Email' },
   ],
-  upcomingEvents: club.featuredEvent
-    ? [
-        {
-          id: `${club.id}-featured`,
-          title: club.featuredEvent.title,
-          date: `${club.featuredEvent.day}/${club.featuredEvent.monthShort.replace('TH', '')}/2024`,
-          location: 'Sảnh tòa Gamma',
-          description: club.description,
-          image: club.coverImage,
-          isHot: true,
-          primaryLabel: 'Đăng ký tham gia',
-          variant: 'primary',
-        },
-      ]
-    : [],
+  upcomingEvents:
+    Array.isArray(club.upcomingEvents) && club.upcomingEvents.length > 0
+      ? club.upcomingEvents
+      : club.featuredEvent
+        ? [
+            {
+              id: `${club.id}-featured`,
+              title: club.featuredEvent.title,
+              date: `${club.featuredEvent.day}/${club.featuredEvent.monthShort.replace('TH', '')}/2024`,
+              location: 'Sảnh tòa Gamma',
+              description: club.description,
+              image: club.coverImage,
+              isHot: true,
+              primaryLabel: 'Đăng ký tham gia',
+              variant: 'primary',
+            },
+          ]
+        : [],
 });
 
 export const getClubDetailById = (clubId, listClubs = []) => {

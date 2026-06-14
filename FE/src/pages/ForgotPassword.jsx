@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 import { API_BASE } from '../utils/api';
 
 const patterns = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-  phone: /^0[3|5|7|8|9][0-9]{8}$/
+  phone: /^0[3|5|7|8|9][0-9]{8}$/,
 };
 
 const ForgotPassword = ({ showToast }) => {
@@ -15,16 +16,17 @@ const ForgotPassword = ({ showToast }) => {
   const [loading, setLoading] = useState(false);
   const [googleBlocked, setGoogleBlocked] = useState(false);
   const [googleBlockedMsg, setGoogleBlockedMsg] = useState('');
-  
+  const [emailSent, setEmailSent] = useState(false);
+
   const [countdown, setCountdown] = useState(0);
   const [isCounting, setIsCounting] = useState(false);
-  
+
   const timerRef = useRef(null);
 
   useEffect(() => {
     if (countdown > 0) {
       timerRef.current = setTimeout(() => {
-        setCountdown(prev => prev - 1);
+        setCountdown((prev) => prev - 1);
       }, 1000);
     } else if (countdown === 0 && isCounting) {
       setIsCounting(false);
@@ -44,7 +46,7 @@ const ForgotPassword = ({ showToast }) => {
     const isEmail = patterns.email.test(trimmed);
     const isPhone = patterns.phone.test(trimmed);
     const isValid = isEmail || isPhone;
-    
+
     setErrors(!isValid);
     setValidFields(isValid);
     return isValid;
@@ -55,6 +57,7 @@ const ForgotPassword = ({ showToast }) => {
     setContact(value);
     setGoogleBlocked(false);
     setGoogleBlockedMsg('');
+    setEmailSent(false);
     validateContact(value);
   };
 
@@ -68,7 +71,7 @@ const ForgotPassword = ({ showToast }) => {
     if (!isValid) {
       setShakeFields(true);
       setTimeout(() => setShakeFields(false), 1000);
-      showToast('Vui lòng nhập Email hoặc Số điện thoại hợp lệ!', 'error');
+      showToast('Vui lòng nhập email hoặc số điện thoại hợp lệ.', 'error');
       return;
     }
 
@@ -77,152 +80,164 @@ const ForgotPassword = ({ showToast }) => {
     fetch(`${API_BASE}/api/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contact: contact })
+      body: JSON.stringify({ contact }),
     })
-      .then(res => res.json().then(data => ({ status: res.status, data })))
+      .then((res) => res.json().then((data) => ({ status: res.status, data })))
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
           setGoogleBlocked(false);
+          setEmailSent(true);
           setCountdown(60);
           setIsCounting(true);
+          showToast('Đã gửi liên kết khôi phục. Kiểm tra hộp thư của bạn.', 'success');
         } else if (status === 403 && data.code === 'GOOGLE_ACCOUNT') {
           setGoogleBlocked(true);
           setGoogleBlockedMsg(data.message || 'Tài khoản này đăng nhập bằng Google.');
           setErrors(true);
           showToast(data.message, 'error');
         } else {
-          showToast(data.message || 'Gửi mã xác nhận thất bại!', 'error');
+          showToast(data.message || 'Gửi liên kết khôi phục thất bại.', 'error');
         }
       })
-      .catch(err => {
+      .catch(() => {
         setLoading(false);
-        showToast('Không thể kết nối đến máy chủ Backend!', 'error');
+        showToast('Không thể kết nối đến máy chủ Backend.', 'error');
       });
   };
 
-  const getGroupClass = () => {
-    return `input-group ${errors ? 'invalid' : ''} ${validFields ? 'valid' : ''} ${shakeFields ? 'shake' : ''}`;
-  };
+  const getGroupClass = () =>
+    `input-group ${errors ? 'invalid' : ''} ${validFields ? 'valid' : ''} ${shakeFields ? 'shake' : ''}`;
 
   return (
-    <main className="page-container forgot-page">
-      {/* Left Column: Branding (40%) */}
-      <section className="branding-column" aria-label="Giới thiệu FPT Event">
-        <div className="glass-overlay"></div>
+    <main className="page-container">
+      <section className="branding-column" aria-label="Giới thiệu cộng đồng FPT">
+        <div className="glass-overlay" />
         <div className="branding-content">
-          <div className="slogan-container forgot-slogan">
-            <h1 className="slogan-title">FPT Event</h1>
-            <p className="slogan-desc">Kiến tạo trải nghiệm, kết nối cộng đồng.</p>
+          <div className="slogan-container">
+            <p className="slogan-tag">Kiến tạo tương lai</p>
+            <p className="slogan-desc">
+              Kết nối hàng ngàn sinh viên thông qua những sự kiện công nghệ và văn hóa hàng đầu tại FPT.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Right Column: Form (60%) */}
-      <section className="form-column" aria-label="Biểu mẫu khôi phục mật khẩu" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        {/* Forgot Card Container */}
-        <div className="forgot-card">
-          {/* Badge Header */}
-          <header className="forgot-header">
-            <div className="badge-circle">
-              <svg width="28" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                <circle cx="12" cy="11" r="2.5"></circle>
-                <path d="M12 13.5V16"></path>
-              </svg>
-            </div>
-            <h1>Khôi phục mật khẩu</h1>
-            <p>Đừng lo lắng! Vui lòng nhập Email hoặc Số điện thoại bạn đã dùng để đăng ký tài khoản <strong>email/mật khẩu</strong>. Tài khoản đăng nhập Google không hỗ trợ đặt lại mật khẩu tại đây.</p>
-          </header>
+      <section className="form-column" aria-label="Biểu mẫu khôi phục mật khẩu">
+        <div className="auth-form-shell">
+          <Link to="/login" className="auth-page-back">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>Quay lại đăng nhập</span>
+          </Link>
 
-          {googleBlocked && (
-            <div style={{ marginBottom: '12px', padding: '12px 14px', borderRadius: '10px', background: '#fff7ed', border: '1px solid #fdba74', color: '#9a3412', fontSize: '14px', lineHeight: 1.5 }}>
-              {googleBlockedMsg}
-              <div style={{ marginTop: '8px' }}>
-                <Link to="/login" className="accent-link" style={{ fontWeight: 700 }}>
-                  Quay lại đăng nhập bằng Google
+          <div className="form-container">
+            <div className="login-logo-container auth-logo-row">
+              <img src={FE_LOGO} alt={FE_LOGO_ALT} className="auth-logo" />
+            </div>
+
+            <header className="form-header auth-form-header">
+              <h1 id="main-title">Khôi phục mật khẩu</h1>
+              <p className="subtitle">
+                Nhập email hoặc số điện thoại bạn đã dùng khi đăng ký tài khoản email/mật khẩu.
+              </p>
+            </header>
+
+            {googleBlocked && (
+              <div className="auth-notice auth-notice--warning" role="alert">
+                <p>{googleBlockedMsg}</p>
+                <Link to="/login" className="auth-notice__link">
+                  Đăng nhập bằng Google
                 </Link>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Form */}
-          <form id="forgot-form" onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Contact Field */}
-            <div className={getGroupClass()} id="group-contact" style={{ marginBottom: '0px' }}>
-              <div className="input-wrapper">
-                <span className="input-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                  </svg>
-                </span>
-                <input 
-                  type="text" 
-                  id="contact" 
-                  placeholder=" " 
-                  required 
-                  autoComplete="username"
-                  value={contact}
-                  onChange={handleInputChange}
-                  disabled={isCounting}
-                />
-                <label htmlFor="contact">Email hoặc Số điện thoại</label>
-              </div>
-              <span className="error-message" id="error-contact">Vui lòng nhập email hoặc số điện thoại hợp lệ</span>
-            </div>
-
-            {/* Submit Button */}
-            <button 
-              type="submit" 
-              id="forgot-btn" 
-              className={`primary-button ${isCounting ? 'btn-countdown' : ''}`}
-              style={{ height: '46px' }}
-              disabled={loading || isCounting || googleBlocked}
-            >
-              {loading ? (
-                <span className="btn-spinner"></span>
-              ) : isCounting ? (
-                <span className="btn-text">Đã gửi mã ({countdown}s)</span>
-              ) : (
-                <span className="btn-text">Gửi mã xác nhận</span>
-              )}
-            </button>
-
-            {isCounting && (
-              <div style={{ marginTop: '20px', textAlign: 'center', background: '#fdf2eb', padding: '16px', borderRadius: '12px', border: '1px solid #f9b691' }}>
-                <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '8px', lineHeight: '1.4' }}>
-                  Bạn đã nhận được email khôi phục? Nhấp vào liên kết dưới đây để tới trang xác minh và đặt lại mật khẩu mới:
+            {emailSent && isCounting && (
+              <div className="auth-notice auth-notice--success" role="status">
+                <p className="auth-notice__title">Liên kết đã được gửi</p>
+                <p className="auth-notice__text">
+                  Kiểm tra hộp thư hoặc tin nhắn của bạn. Nếu chưa thấy, hãy xem thư mục spam.
                 </p>
-                <Link 
-                  to={`/reset-password?email=${encodeURIComponent(contact)}`} 
-                  className="accent-link"
-                  style={{ fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '700' }}
+                <Link
+                  to={`/reset-password?email=${encodeURIComponent(contact.trim())}`}
+                  className="auth-notice__action"
                 >
-                  Xác minh OTP & Đổi mật khẩu
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
+                  Tiếp tục đặt lại mật khẩu
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
                   </svg>
                 </Link>
               </div>
             )}
 
-            {/* Back Navigation Link */}
-            <Link to="/login" className="back-link">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-              <span>Quay lại Đăng nhập</span>
-            </Link>
-          </form>
-        </div>
+            <form id="forgot-form" className="auth-form-stack" onSubmit={handleSubmit} noValidate>
+              <div className={getGroupClass()} id="group-contact">
+                <div className="input-wrapper">
+                  <span className="input-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                      <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    id="contact"
+                    placeholder=" "
+                    required
+                    autoComplete="username"
+                    value={contact}
+                    onChange={handleInputChange}
+                    disabled={isCounting}
+                  />
+                  <label htmlFor="contact">Email hoặc số điện thoại</label>
+                </div>
+                <span className="error-message" id="error-contact">
+                  Vui lòng nhập email hoặc số điện thoại hợp lệ
+                </span>
+              </div>
 
-        {/* Copyright Footer */}
-        <footer className="copyright-footer">
-          © 2024 FPT EVENT MANAGEMENT. ALL RIGHTS RESERVED.
-        </footer>
+              <button
+                type="submit"
+                id="forgot-btn"
+                className={`primary-button auth-submit-btn ${isCounting ? 'btn-countdown' : ''}`}
+                disabled={loading || isCounting || googleBlocked}
+              >
+                {loading ? (
+                  <span className="btn-spinner" />
+                ) : isCounting ? (
+                  <span className="btn-text">Gửi lại sau {countdown}s</span>
+                ) : (
+                  <span className="btn-text">Gửi liên kết khôi phục</span>
+                )}
+              </button>
+            </form>
+
+            <footer className="form-footer auth-form-footer">
+              <p className="login-redirect">
+                <span className="login-redirect-muted">Nhớ mật khẩu?</span>{' '}
+                <Link to="/login" className="accent-link auth-accent-link">
+                  Đăng nhập
+                </Link>
+              </p>
+              <p className="auth-hint">
+                Tài khoản đăng nhập Google không hỗ trợ đặt lại mật khẩu tại đây.
+              </p>
+            </footer>
+          </div>
+        </div>
       </section>
     </main>
   );

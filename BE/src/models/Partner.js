@@ -34,7 +34,15 @@ const partnerSchema = new mongoose.Schema(
     ctsvApprovedByEmail: { type: String, default: '' },
     ctsvApprovedAt: { type: Date, default: null },
     approvedByEmail: { type: String, default: '' },
-    adminApprovedAt: { type: Date, default: null }
+    adminApprovedAt: { type: Date, default: null },
+    terminationStatus: {
+      type: String,
+      enum: ['none', 'pending'],
+      default: 'none'
+    },
+    terminationReason: { type: String, default: '' },
+    terminationRequestedAt: { type: Date, default: null },
+    terminationRequestedByEmail: { type: String, default: '' }
   },
   { timestamps: true }
 );

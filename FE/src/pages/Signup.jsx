@@ -481,7 +481,7 @@ const Signup = ({ showToast }) => {
                     marginBottom: '12px',
                     padding: '16px',
                     borderRadius: '12px',
-                    background: '#fef2f2',
+                    background: '#ffffff',
                     border: '2px solid #fca5a5',
                     color: '#991b1b',
                     textAlign: 'center',

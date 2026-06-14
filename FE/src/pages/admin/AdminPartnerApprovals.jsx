@@ -101,7 +101,15 @@ const AdminPartnerApprovals = ({ showToast }) => {
                       {PARTNER_STATUS_LABEL[p.status]}
                     </p>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      style={{ background: '#fff', color: 'var(--primary)', border: '1px solid var(--primary)' }}
+                      onClick={() => navigate(`/partners/${p._id}`)}
+                    >
+                      Chi tiết
+                    </button>
                     <button
                       type="button"
                       className="primary-button"

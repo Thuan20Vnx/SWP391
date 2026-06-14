@@ -142,9 +142,26 @@ const readInitialDraftState = (portalRole) => {
   };
 };
 
-const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastProp }) => {
+const PortalAnnouncementManage = ({
+  portalRole = 'ctsv',
+  showToast: showToastProp,
+  detailPathPrefix,
+  eventDetailPathPrefix,
+}) => {
   const portalConfig = PORTAL_ANNOUNCEMENT_CONFIG[portalRole] || PORTAL_ANNOUNCEMENT_CONFIG.ctsv;
   const canLinkEvents = portalRole === 'ctsv';
+  const resolveAnnouncementDetailPath = (id) => {
+    const annId = String(id || '').trim();
+    if (!annId) return detailPathPrefix || getAnnouncementDetailPath(portalRole, '');
+    if (detailPathPrefix) return `${detailPathPrefix}/${annId}`;
+    return getAnnouncementDetailPath(portalRole, annId);
+  };
+  const resolveEventDetailPath = (eventId) => {
+    const id = String(eventId || '').trim();
+    if (!id) return null;
+    if (eventDetailPathPrefix) return `${eventDetailPathPrefix}/${id}`;
+    return getPortalEventDetailPath(portalRole, id);
+  };
   const { showToast: ctxToast } = useOutletContext() || {};
   const showToast = showToastProp || ctxToast;
   const initialDraftRef = useRef(null);
@@ -1045,7 +1062,7 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
                   <div className="ctsv-announce-history-actions">
                     {evId && canLinkEvents && (
                       <Link
-                        to={getPortalEventDetailPath(portalRole, evId)}
+                        to={resolveEventDetailPath(evId)}
                         className="ctsv-announce-history-btn ctsv-announce-history-btn--event"
                         title="Xem sự kiện"
                         aria-label="Xem sự kiện"
@@ -1054,7 +1071,7 @@ const PortalAnnouncementManage = ({ portalRole = 'ctsv', showToast: showToastPro
                       </Link>
                     )}
                     <Link
-                      to={getAnnouncementDetailPath(portalRole, annId)}
+                      to={resolveAnnouncementDetailPath(annId)}
                       className="ctsv-announce-history-btn ctsv-announce-history-btn--detail"
                       title="Chi tiết thông báo"
                       aria-label="Chi tiết thông báo"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 
 const CtsvPortalFooter = () => {
@@ -9,7 +9,9 @@ const CtsvPortalFooter = () => {
     <footer className="home-footer ctsv-portal-footer">
       <div className="footer-top-columns">
         <div className="footer-branding-col">
-          <img src={FE_LOGO} alt={FE_LOGO_ALT} className="footer-logo-img" />
+          <Link to="/" className="footer-logo-link">
+            <img src={FE_LOGO} alt={FE_LOGO_ALT} className="footer-logo-img" />
+          </Link>
           <p className="footer-brand-desc">
             Cổng quản trị F-Events dành cho Ban Công tác sinh viên — phê duyệt, điều phối và báo cáo sự kiện toàn trường.
           </p>

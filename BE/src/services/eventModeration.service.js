@@ -2,10 +2,17 @@ const Event = require('../models/Event');
 const AppError = require('../utils/AppError');
 const {
   MODERATION_ACTIONS,
+  CLUB_MODERATION_ACTIONS,
   MODERATION_STATUS_BY_ACTION,
+  ICPDP_MODERATION_STATUS_BY_ACTION,
   canCtsvRequestModeration,
+  canClubRequestModeration,
+  canClubCancelPending,
+  canClubUnhide,
   isModerationPendingStatus,
-  getModerationActionFromStatus
+  isIcpdpModerationPendingStatus,
+  getModerationActionFromStatus,
+  buildClubModerationReason
 } = require('../constants/eventModeration');
 
 const applyWeatherPostpone = (event, reason, authEmail) => {
@@ -13,6 +20,7 @@ const applyWeatherPostpone = (event, reason, authEmail) => {
   event.postponeReason = reason;
   event.postponeIsWeather = true;
   event.moderationReason = '';
+  event.moderationReasonCategory = '';
   event.moderationRequestedByEmail = authEmail || '';
   event.moderationRequestedAt = new Date();
 };
@@ -50,6 +58,7 @@ const requestModeration = async (eventId, { action, reason, isWeatherPostpone },
   event.statusBeforeModeration = event.status;
   event.status = MODERATION_STATUS_BY_ACTION[action];
   event.moderationReason = trimmedReason;
+  event.moderationReasonCategory = '';
   event.moderationRequestedByEmail = authEmail || '';
   event.moderationRequestedAt = new Date();
   event.postponeIsWeather = false;
@@ -66,6 +75,185 @@ const requestModeration = async (eventId, { action, reason, isWeatherPostpone },
     message: `Đã gửi yêu cầu ${actionLabels[action]} — chờ Admin phê duyệt.`,
     event
   };
+};
+
+const requestClubModeration = async (
+  eventId,
+  { action, reasonCategory, content },
+  authEmail,
+  userId
+) => {
+  const allowedActions = [...CLUB_MODERATION_ACTIONS, 'hide', 'unhide'];
+  if (!allowedActions.includes(action)) {
+    throw new AppError('Hành động không hợp lệ.', 400);
+  }
+
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (event.source !== 'club') {
+    throw new AppError('Chỉ áp dụng cho sự kiện CLB.', 400);
+  }
+  if (userId && String(event.createdBy) !== String(userId)) {
+    throw new AppError('Bạn không có quyền quản lý sự kiện này.', 403);
+  }
+
+  if (action === 'unhide') {
+    if (!canClubUnhide(event)) {
+      throw new AppError('Sự kiện không ở trạng thái ẩn.', 400);
+    }
+    event.status = event.statusBeforeModeration || 'approved';
+    event.statusBeforeModeration = '';
+    event.isHidden = false;
+    event.moderationReason = '';
+    event.moderationReasonCategory = '';
+    event.moderationRequestedByEmail = '';
+    event.moderationRequestedAt = null;
+    await event.save();
+    return {
+      message: 'Đã hiện sự kiện (không cần Admin duyệt).',
+      event,
+    };
+  }
+
+  const trimmedContent = String(content || '').trim();
+  if (!trimmedContent) {
+    throw new AppError('Vui lòng nhập nội dung chi tiết.', 400);
+  }
+  if (!reasonCategory) {
+    throw new AppError('Vui lòng chọn lý do.', 400);
+  }
+
+  const fullReason = buildClubModerationReason(reasonCategory, trimmedContent);
+
+  if (action === 'cancel' && canClubCancelPending(event)) {
+    event.status = 'cancelled';
+    event.eventState = 'expired';
+    event.moderationReason = fullReason;
+    event.moderationReasonCategory = reasonCategory;
+    event.moderationRequestedByEmail = authEmail || '';
+    event.moderationRequestedAt = new Date();
+    await event.save();
+    return {
+      message: 'Đã hủy đề xuất sự kiện (không cần Admin duyệt).',
+      event,
+    };
+  }
+
+  if (action === 'hide') {
+    if (!canClubRequestModeration(event)) {
+      throw new AppError('Sự kiện không thể gửi yêu cầu ẩn ở trạng thái hiện tại.', 400);
+    }
+    event.statusBeforeModeration = event.status;
+    event.status = MODERATION_STATUS_BY_ACTION.hide;
+    event.moderationReason = fullReason;
+    event.moderationReasonCategory = reasonCategory;
+    event.moderationRequestedByEmail = authEmail || '';
+    event.moderationRequestedAt = new Date();
+    await event.save();
+    return {
+      message: 'Đã gửi yêu cầu ẩn — chờ Admin phê duyệt.',
+      event,
+    };
+  }
+
+  if (!CLUB_MODERATION_ACTIONS.includes(action)) {
+    throw new AppError('Hành động không hợp lệ. Chọn hoãn hoặc hủy sự kiện.', 400);
+  }
+  if (!canClubRequestModeration(event)) {
+    throw new AppError('Sự kiện không thể gửi yêu cầu hoãn/hủy ở trạng thái hiện tại.', 400);
+  }
+
+  const isWeatherPostpone = action === 'postpone' && reasonCategory === 'weather';
+
+  if (isWeatherPostpone) {
+    applyWeatherPostpone(event, fullReason, authEmail);
+    event.moderationReasonCategory = reasonCategory;
+    await event.save();
+    return {
+      message: 'Đã hoãn sự kiện do thời tiết (không cần duyệt).',
+      event
+    };
+  }
+
+  event.statusBeforeModeration = event.status;
+  event.status = ICPDP_MODERATION_STATUS_BY_ACTION[action];
+  event.moderationReason = fullReason;
+  event.moderationReasonCategory = reasonCategory;
+  event.moderationRequestedByEmail = authEmail || '';
+  event.moderationRequestedAt = new Date();
+  event.postponeIsWeather = false;
+  event.icpdpNote = '';
+
+  if (action === 'postpone') {
+    event.postponeReason = fullReason;
+  }
+
+  await event.save();
+
+  const actionLabels = { cancel: 'hủy', postpone: 'hoãn' };
+  return {
+    message: `Đã gửi yêu cầu ${actionLabels[action]} — chờ IC-PDP phê duyệt.`,
+    event
+  };
+};
+
+const approveIcpdpModeration = async (eventId, note, authEmail) => {
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (event.source !== 'club') {
+    throw new AppError('Chỉ áp dụng cho sự kiện CLB.', 400);
+  }
+  if (!isIcpdpModerationPendingStatus(event.status)) {
+    throw new AppError('Sự kiện không có yêu cầu chờ IC-PDP.', 400);
+  }
+
+  const action = getModerationActionFromStatus(event.status);
+  event.status = MODERATION_STATUS_BY_ACTION[action];
+  event.icpdpNote = String(note || '').trim();
+  event.moderationRequestedAt = new Date();
+
+  await event.save();
+  return {
+    message: 'IC-PDP đã duyệt — yêu cầu chuyển sang Admin phê duyệt.',
+    event
+  };
+};
+
+const rejectIcpdpModeration = async (eventId, reason, authEmail) => {
+  const trimmedReason = String(reason || '').trim();
+  if (!trimmedReason) {
+    throw new AppError('Vui lòng nhập lý do từ chối.', 400);
+  }
+
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (!isIcpdpModerationPendingStatus(event.status)) {
+    throw new AppError('Sự kiện không có yêu cầu chờ IC-PDP.', 400);
+  }
+
+  const action = getModerationActionFromStatus(event.status);
+  event.status = event.statusBeforeModeration || 'approved';
+  event.statusBeforeModeration = '';
+  event.rejectionReason = trimmedReason;
+  event.icpdpNote = trimmedReason;
+  event.moderationReason = '';
+  event.moderationReasonCategory = '';
+  event.moderationRequestedByEmail = '';
+  event.moderationRequestedAt = null;
+
+  if (action === 'postpone') {
+    event.postponeReason = '';
+    event.eventState = 'active';
+  }
+
+  await event.save();
+  return { message: 'IC-PDP đã từ chối yêu cầu hoãn/hủy.', event };
 };
 
 const approveModeration = async (eventId, authEmail) => {
@@ -97,6 +285,7 @@ const approveModeration = async (eventId, authEmail) => {
 
   event.statusBeforeModeration = '';
   event.moderationReason = '';
+  event.moderationReasonCategory = '';
   event.moderationRequestedByEmail = '';
   event.moderationRequestedAt = null;
   event.adminApprovedByEmail = authEmail || event.adminApprovedByEmail;
@@ -124,6 +313,7 @@ const rejectModeration = async (eventId, reason, authEmail) => {
   event.status = event.statusBeforeModeration || 'approved';
   event.statusBeforeModeration = '';
   event.moderationReason = '';
+  event.moderationReasonCategory = '';
   event.moderationRequestedByEmail = '';
   event.moderationRequestedAt = null;
   event.rejectionReason = trimmedReason;
@@ -143,6 +333,9 @@ const rejectModeration = async (eventId, reason, authEmail) => {
 
 module.exports = {
   requestModeration,
+  requestClubModeration,
+  approveIcpdpModeration,
+  rejectIcpdpModeration,
   approveModeration,
   rejectModeration
 };

@@ -1,32 +1,34 @@
 import SettingsToggle from '../SettingsToggle';
 import { SettingsCard, SettingsSectionHeader } from '../SettingsLayout';
 import { SECTION_META } from '../settingsConfig';
+import { getRoleSectionDescription } from '../settingsRoleConfig';
 
-const NotificationsSection = ({ settings, updateSetting }) => (
-  <div className="settings-section">
-    <SettingsSectionHeader {...SECTION_META.notifications} />
+const NotificationsSection = ({
+  role,
+  notificationOptions,
+  getNotificationValue,
+  setNotificationValue,
+}) => {
+  const description =
+    getRoleSectionDescription('notifications', role) || SECTION_META.notifications.description;
 
-    <SettingsCard>
-      <SettingsToggle
-        label="Nhắc lịch sự kiện"
-        description="Thông báo trước khi sự kiện đã đăng ký bắt đầu"
-        checked={settings.eventReminders}
-        onChange={(value) => updateSetting('eventReminders', value)}
-      />
-      <SettingsToggle
-        label="Thông báo qua email"
-        description="Nhận email khi có cập nhật sự kiện hoặc thông báo mới"
-        checked={settings.emailNotifications}
-        onChange={(value) => updateSetting('emailNotifications', value)}
-      />
-      <SettingsToggle
-        label="Âm thanh thông báo"
-        description="Phát âm thanh khi có thông báo trên trình duyệt"
-        checked={settings.soundNotifications}
-        onChange={(value) => updateSetting('soundNotifications', value)}
-      />
-    </SettingsCard>
-  </div>
-);
+  return (
+    <div className="settings-section">
+      <SettingsSectionHeader title={SECTION_META.notifications.title} description={description} />
+
+      <SettingsCard>
+        {notificationOptions.map((opt) => (
+          <SettingsToggle
+            key={opt.key}
+            label={opt.label}
+            description={opt.description}
+            checked={getNotificationValue(opt.key, opt.defaultValue)}
+            onChange={(value) => setNotificationValue(opt.key, value, opt.universal === true)}
+          />
+        ))}
+      </SettingsCard>
+    </div>
+  );
+};
 
 export default NotificationsSection;

@@ -14,7 +14,7 @@ body {
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fcfcfc;
+  background-color: #ffffff;
 }
 
 /* Glassmorphism Header */
@@ -81,11 +81,11 @@ textarea:focus,
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(242, 111, 33, 0.2);
+  background: #ffffff;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(242, 111, 33, 0.5);
+  background: #ffffff;
 }
 
 /* Modern Typography tweaks */

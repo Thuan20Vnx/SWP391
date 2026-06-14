@@ -3,7 +3,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import AdminActivityLogModal from '../components/admin/AdminActivityLogModal';
 import AdminMetricDetailModal from '../components/admin/AdminMetricDetailModal';
 import { ADMIN_ACTIVITY_PREVIEW_COUNT } from '../data/adminDashboardData';
-import useAdminDashboardLiveData from '../hooks/useAdminDashboardLiveData';
+import useAdminDashboardStats from '../hooks/useAdminDashboardStats';
 import { getUserRole, isAdminRole } from '../utils/auth';
 import { formatAdminDateTime } from '../utils/adminLiveTime';
 import '../styles/admin-dashboard.css';
@@ -34,27 +34,108 @@ const AdminMonitoringDashboard = () => {
   const role = getUserRole();
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [detailModal, setDetailModal] = useState(null);
-  const live = useAdminDashboardLiveData();
-  const {
-    activityLogs,
-    trafficSparkline,
-    trafficOverview,
-    revenueOverview,
-    systemOverall,
-    systemServices,
-    monthlyPerformance,
-    chartSummary,
-    peakMonthIndex,
-    metricDetailMap,
-  } = live;
+  const { stats, loading, error, reload } = useAdminDashboardStats();
 
-  const previewLogs = activityLogs.slice(0, ADMIN_ACTIVITY_PREVIEW_COUNT);
-  const maxSpark = useMemo(() => Math.max(...trafficSparkline), [trafficSparkline]);
-  const maxBar = useMemo(
-    () => Math.max(...monthlyPerformance.map((m) => m.value)),
-    [monthlyPerformance],
-  );
-  const clockLabel = formatAdminDateTime(live.now);
+  const dashboardView = useMemo(() => {
+    if (!stats) return null;
+
+    const monthlyPerformance = stats.monthlyPerformance || [];
+    const maxBar = Math.max(1, ...monthlyPerformance.map((m) => m.value));
+
+    const activityLogs = (stats.activityLogs || []).map((log) => ({
+      ...log,
+      tone: log.tone === 'warning' ? 'danger' : log.tone || 'default',
+      time: formatAdminDateTime(new Date(log.time)),
+      dateKey: formatAdminDateTime(new Date(log.time)).split(',')[0],
+    }));
+
+    const trafficOverview = {
+      totalUsers: stats.users?.total || 0,
+      students: stats.users?.students || 0,
+      pendingEvents: stats.events?.pending || 0,
+      pendingPartners: stats.partners?.pendingAdmin || 0,
+      registrations: stats.registrations?.total || 0,
+      registrationsMonth: stats.registrations?.thisMonth || 0,
+    };
+
+    const revenueOverview = {
+      total: stats.revenue?.totalFormatted || '0',
+      currency: stats.revenue?.currency || 'VND',
+      trend: stats.revenue?.trend || '0%',
+      thisMonth: stats.revenue?.thisMonthFormatted || '0 VND',
+      approvedEvents: stats.events?.approved || 0,
+      liveEvents: stats.events?.live || 0,
+    };
+
+    const systemOverall = {
+      status: stats.system?.status || 'stable',
+      label: stats.system?.label || 'ỔN ĐỊNH',
+      database: stats.system?.database || 'MongoDB',
+      lastCheck: formatAdminDateTime(new Date(stats.checkedAt)),
+    };
+
+    const metricDetailMap = {
+      traffic: {
+        title: 'Chi tiết hoạt động',
+        subtitle: 'Dữ liệu từ MongoDB',
+        summary: [
+          { label: 'Tổng tài khoản', value: String(trafficOverview.totalUsers) },
+          { label: 'Sinh viên', value: String(trafficOverview.students) },
+          { label: 'Đăng ký tháng này', value: String(trafficOverview.registrationsMonth) },
+        ],
+        columns: ['Chỉ số', 'Giá trị'],
+        rows: [
+          { id: '0', label: 'Sự kiện chờ duyệt', value: String(trafficOverview.pendingEvents) },
+          { id: '1', label: 'Đối tác chờ Admin', value: String(trafficOverview.pendingPartners) },
+          { id: '2', label: 'Tổng đăng ký vé', value: trafficOverview.registrations.toLocaleString('vi-VN') },
+        ],
+      },
+      revenue: {
+        title: 'Chi tiết doanh thu',
+        subtitle: 'Ước tính từ giá vé × lượt đăng ký',
+        summary: [
+          { label: 'Tổng', value: `${stats.revenue?.totalFormatted} VND` },
+          { label: 'Tháng này', value: `${stats.revenue?.thisMonthFormatted} VND` },
+        ],
+        columns: ['Hạng mục', 'Giá trị'],
+        rows: [
+          { id: '0', label: 'Sự kiện đã duyệt', value: String(revenueOverview.approvedEvents) },
+          { id: '1', label: 'Đang diễn ra', value: String(revenueOverview.liveEvents) },
+          { id: '2', label: 'Chờ Admin duyệt', value: String(stats.events?.pendingAdmin || 0) },
+          { id: '3', label: 'Đề xuất CLB', value: String(stats.proposals?.pendingTotal || 0) },
+        ],
+      },
+      performance: {
+        title: 'Sự kiện theo tháng',
+        subtitle: stats.chartSummary?.period,
+        summary: [
+          { label: 'Trung bình', value: String(stats.chartSummary?.avg) },
+          { label: 'Cao nhất', value: `${stats.chartSummary?.peak?.label} · ${stats.chartSummary?.peak?.value}` },
+        ],
+        columns: ['Tháng', 'Số sự kiện'],
+        rows: monthlyPerformance.map((m, i) => ({
+          id: String(i),
+          label: m.month,
+          value: String(m.value),
+        })),
+      },
+    };
+
+    return {
+      activityLogs,
+      trafficOverview,
+      revenueOverview,
+      systemOverall,
+      monthlyPerformance,
+      chartSummary: stats.chartSummary,
+      peakMonthIndex: stats.peakMonthIndex ?? 0,
+      metricDetailMap,
+      maxBar,
+    };
+  }, [stats]);
+
+  const previewLogs = (dashboardView?.activityLogs || []).slice(0, ADMIN_ACTIVITY_PREVIEW_COUNT);
+  const clockLabel = stats?.checkedAt ? formatAdminDateTime(new Date(stats.checkedAt)) : '—';
 
   const openDetail = (variant) => setDetailModal(variant);
   const closeDetail = () => setDetailModal(null);
@@ -69,13 +150,48 @@ const AdminMonitoringDashboard = () => {
   useEffect(() => {
     if (!isAdminRole(role)) {
       showToast?.('Bạn không có quyền truy cập trang quản trị!', 'error');
-      navigate('/profile');
+      navigate('/admin');
     }
   }, [role, navigate, showToast]);
+
+  useEffect(() => {
+    if (error) showToast?.(error, 'error');
+  }, [error, showToast]);
 
   if (!isAdminRole(role)) {
     return null;
   }
+
+  if (loading && !dashboardView) {
+    return (
+      <main className="admin-main">
+        <p className="admin-page-header__clock">Đang tải thống kê từ máy chủ…</p>
+      </main>
+    );
+  }
+
+  if (!dashboardView) {
+    return (
+      <main className="admin-main">
+        <p className="admin-page-header__clock">Không có dữ liệu thống kê.</p>
+        <button type="button" className="admin-panel__link" onClick={reload}>
+          Thử lại
+        </button>
+      </main>
+    );
+  }
+
+  const {
+    trafficOverview,
+    revenueOverview,
+    systemOverall,
+    monthlyPerformance,
+    chartSummary,
+    peakMonthIndex,
+    metricDetailMap,
+    activityLogs,
+    maxBar,
+  } = dashboardView;
 
   return (
     <main className="admin-main">
@@ -91,188 +207,94 @@ const AdminMonitoringDashboard = () => {
 
         <section className="admin-stats-grid" aria-label="Thống kê nhanh">
           <article
-            className="admin-stat-card admin-stat-card--traffic admin-stat-card--clickable"
+            className="admin-stat-card admin-stat-card--traffic admin-stat-card--compact admin-stat-card--clickable"
             role="button"
             tabIndex={0}
-            aria-label="Lưu lượng truy cập — nhấn để xem bảng chi tiết"
+            aria-label="Người dùng và hoạt động — nhấn để xem chi tiết"
             onClick={() => openDetail('traffic')}
             onKeyDown={(e) => handleCardKeyDown(e, 'traffic')}
           >
             <div className="admin-stat-card__head">
-              <p className="admin-stat-card__label">Lưu lượng truy cập hiện tại</p>
-              <span className="admin-stat-card__action">
-                <StatIconTraffic />
-                <span className="admin-stat-card__hint">Xem chi tiết</span>
-              </span>
+              <p className="admin-stat-card__label">Người dùng</p>
+              <StatIconTraffic />
             </div>
-            <div className="admin-metric-hero">
-              <div className="admin-metric-hero__main">
-                <span className="admin-stat-card__value">
-                  {trafficOverview.active.toLocaleString('vi-VN')}
-                </span>
-                <span className="admin-live-pill">
-                  <span className="admin-live-pill__dot" aria-hidden="true" />
-                  {trafficOverview.live.pill}
-                </span>
-              </div>
-              <div className="admin-traffic-meta">
-                <div className="admin-traffic-meta__live">
-                  <span className="admin-traffic-meta__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                  </span>
-                  <div className="admin-traffic-meta__text">
-                    <span className="admin-traffic-meta__title">{trafficOverview.live.title}</span>
-                    <span className="admin-traffic-meta__hint">{trafficOverview.live.hint}</span>
-                  </div>
-                </div>
-                <div className="admin-traffic-meta__divider" aria-hidden="true" />
-                <div className="admin-traffic-meta__compare">
-                  <span className="admin-traffic-meta__compare-label">{trafficOverview.compare.label}</span>
-                  <span className="admin-traffic-meta__compare-trend admin-traffic-meta__compare-trend--up">
-                    <span aria-hidden="true">↑</span> {trafficOverview.compare.trend}
-                  </span>
-                  <span className="admin-traffic-meta__compare-ref">{trafficOverview.compare.reference}</span>
-                </div>
-              </div>
-            </div>
-            <ul className="admin-mini-metrics">
-              {trafficOverview.metrics.map((m) => (
-                <li key={m.id} className="admin-mini-metrics__item">
-                  <span className="admin-mini-metrics__label">{m.label}</span>
-                  <span className="admin-mini-metrics__value">{m.value}</span>
-                </li>
-              ))}
+            <p className="admin-stat-card__value">
+              {trafficOverview.totalUsers.toLocaleString('vi-VN')}
+            </p>
+            <p className="admin-stat-card__sub">
+              {trafficOverview.students.toLocaleString('vi-VN')} sinh viên ·{' '}
+              +{trafficOverview.registrationsMonth} đăng ký tháng này
+            </p>
+            <ul className="admin-stat-card__quick">
+              <li>
+                <span>Chờ duyệt</span>
+                <strong>{trafficOverview.pendingEvents}</strong>
+              </li>
+              <li>
+                <span>Đối tác</span>
+                <strong>{trafficOverview.pendingPartners}</strong>
+              </li>
+              <li>
+                <span>Đăng ký vé</span>
+                <strong>{trafficOverview.registrations.toLocaleString('vi-VN')}</strong>
+              </li>
             </ul>
-            <div className="admin-sparkline-block">
-              <div className="admin-sparkline-block__head">
-                <span>{trafficOverview.sparklineCaption}</span>
-                <span className="admin-sparkline-block__peak">
-                  Đỉnh {trafficOverview.peak.value.toLocaleString('vi-VN')} · {trafficOverview.peak.time}
-                </span>
-              </div>
-              <div className="admin-stat-card__sparkline" aria-hidden="true">
-                {trafficSparkline.map((h, i) => (
-                  <span
-                    key={i}
-                    className={h === maxSpark ? 'admin-sparkline-bar--peak' : undefined}
-                    style={{ height: `${(h / maxSpark) * 100}%` }}
-                  />
-                ))}
-              </div>
-              <div className="admin-channel-bars" aria-label="Phân bổ thiết bị">
-                {trafficOverview.channels.map((ch) => (
-                  <div key={ch.id} className="admin-channel-bars__row">
-                    <span className="admin-channel-bars__label">{ch.label}</span>
-                    <div className="admin-channel-bars__track">
-                      <span className="admin-channel-bars__fill" style={{ width: `${ch.percent}%` }} />
-                    </div>
-                    <span className="admin-channel-bars__pct">{ch.percent}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </article>
 
           <article
-            className="admin-stat-card admin-stat-card--revenue admin-stat-card--clickable"
+            className="admin-stat-card admin-stat-card--revenue admin-stat-card--compact admin-stat-card--clickable"
             role="button"
             tabIndex={0}
-            aria-label="Doanh thu bán vé — nhấn để xem bảng chi tiết"
+            aria-label="Doanh thu — nhấn để xem chi tiết"
             onClick={() => openDetail('revenue')}
             onKeyDown={(e) => handleCardKeyDown(e, 'revenue')}
           >
             <div className="admin-stat-card__head">
-              <p className="admin-stat-card__label">Tổng doanh thu bán vé toàn sàn</p>
-              <span className="admin-stat-card__action">
-                <StatIconRevenue />
-                <span className="admin-stat-card__hint">Xem chi tiết</span>
-              </span>
+              <p className="admin-stat-card__label">Doanh thu</p>
+              <StatIconRevenue />
             </div>
-            <div className="admin-metric-hero">
-              <p className="admin-stat-card__value admin-stat-card__value--primary">
-                {revenueOverview.total} {revenueOverview.currency}
-              </p>
-              <p className="admin-stat-card__trend admin-stat-card__trend--inline">
-                <span aria-hidden="true">↑</span> {revenueOverview.trend} {revenueOverview.trendCaption}
-              </p>
-              <p className="admin-metric-hero__sub">Tháng trước: {revenueOverview.previousMonth}</p>
-            </div>
-            <div className="admin-goal-progress">
-              <div className="admin-goal-progress__head">
-                <span>{revenueOverview.goal.label}</span>
-                <span className="admin-goal-progress__pct">{revenueOverview.goal.percent}%</span>
-              </div>
-              <div className="admin-goal-progress__track">
-                <span className="admin-goal-progress__fill" style={{ width: `${revenueOverview.goal.percent}%` }} />
-              </div>
-              <p className="admin-goal-progress__target">Mục tiêu: {revenueOverview.goal.target}</p>
-            </div>
-            <ul className="admin-mini-metrics">
-              {revenueOverview.metrics.map((m) => (
-                <li key={m.id} className="admin-mini-metrics__item">
-                  <span className="admin-mini-metrics__label">{m.label}</span>
-                  <span className="admin-mini-metrics__value">{m.value}</span>
-                </li>
-              ))}
-            </ul>
-            <ul className="admin-revenue-breakdown">
-              {revenueOverview.breakdown.map((row) => (
-                <li key={row.id} className="admin-revenue-breakdown__item">
-                  <div className="admin-revenue-breakdown__top">
-                    <span>{row.label}</span>
-                    <span>{row.amount}</span>
-                  </div>
-                  <div className="admin-revenue-breakdown__track">
-                    <span style={{ width: `${row.percent}%` }} />
-                  </div>
-                </li>
-              ))}
+            <p className="admin-stat-card__value admin-stat-card__value--primary">
+              {revenueOverview.total} {revenueOverview.currency}
+            </p>
+            <p className="admin-stat-card__sub">
+              Tháng này: {revenueOverview.thisMonth} ·{' '}
+              <span className="admin-stat-card__trend-up">↑ {revenueOverview.trend}</span>
+            </p>
+            <ul className="admin-stat-card__quick">
+              <li>
+                <span>Đã duyệt</span>
+                <strong>{revenueOverview.approvedEvents}</strong>
+              </li>
+              <li>
+                <span>Đang diễn ra</span>
+                <strong>{revenueOverview.liveEvents}</strong>
+              </li>
+              <li>
+                <span>Thông báo</span>
+                <strong>{stats?.announcements?.total || 0}</strong>
+              </li>
             </ul>
           </article>
 
-          <article className="admin-stat-card admin-stat-card--system">
+          <article className="admin-stat-card admin-stat-card--system admin-stat-card--compact">
             <div className="admin-stat-card__head">
-              <p className="admin-stat-card__label">Hệ thống Email Server &amp; Payment</p>
+              <p className="admin-stat-card__label">Hệ thống</p>
               <StatIconSystem />
             </div>
-            <div className="admin-system-panel" role="status" aria-label="Trạng thái hạ tầng email và thanh toán">
-              <div className="admin-system-panel__hero">
-                <div className="admin-system-panel__indicator" aria-hidden="true">
-                  <span className="admin-status-dot admin-status-dot--pulse" />
-                </div>
-                <div className="admin-system-panel__summary">
-                  <span className="admin-system-panel__caption">Trạng thái tổng</span>
-                  <span className="admin-status-badge">{systemOverall.label}</span>
-                </div>
-                <div className="admin-system-panel__uptime">
-                  <span className="admin-system-panel__uptime-value">{systemOverall.uptime}</span>
-                  <span className="admin-system-panel__uptime-caption">{systemOverall.uptimeCaption}</span>
-                </div>
-              </div>
-              <ul className="admin-system-services">
-                {systemServices.map((service) => (
-                  <li key={service.id} className="admin-system-services__item">
-                    <span
-                      className={`admin-system-services__dot admin-system-services__dot--${service.status}`}
-                      aria-hidden="true"
-                    />
-                    <div className="admin-system-services__body">
-                      <span className="admin-system-services__name">{service.name}</span>
-                      <span className="admin-system-services__meta">
-                        {service.provider} · {service.metric} {service.metricLabel}
-                      </span>
-                    </div>
-                    <span className={`admin-system-services__pill admin-system-services__pill--${service.status}`}>
-                      {service.statusLabel}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <p className="admin-system-panel__foot">{systemOverall.lastCheck}</p>
+            <div className="admin-stat-card__system">
+              <span className="admin-status-badge">{systemOverall.label}</span>
+              <p className="admin-stat-card__sub">Cập nhật {systemOverall.lastCheck}</p>
             </div>
+            <ul className="admin-stat-card__quick admin-stat-card__quick--system">
+              <li>
+                <span>{systemOverall.database}</span>
+                <strong className="admin-stat-card__ok">Kết nối</strong>
+              </li>
+              <li>
+                <span>API Server</span>
+                <strong className="admin-stat-card__ok">Hoạt động</strong>
+              </li>
+            </ul>
           </article>
         </section>
 
@@ -288,20 +310,20 @@ const AdminMonitoringDashboard = () => {
             <div className="admin-chart-header">
               <span className="admin-panel__detail-hint">Nhấn để xem bảng chi tiết</span>
               <div>
-                <h2 className="admin-panel__title admin-panel__title--flush">Hiệu suất vận hành hệ thống theo tháng</h2>
+                <h2 className="admin-panel__title admin-panel__title--flush">Sự kiện tạo mới theo tháng</h2>
                 <p className="admin-chart-header__sub">
-                  {chartSummary.period} · Chỉ số hiệu suất (%) · {clockLabel}
+                  {chartSummary.period} · Số sự kiện · {clockLabel}
                 </p>
               </div>
               <div className="admin-chart-kpis" aria-label="Tóm tắt biểu đồ">
                 <div className="admin-chart-kpis__item">
                   <span className="admin-chart-kpis__label">Trung bình</span>
-                  <span className="admin-chart-kpis__value">{chartSummary.avg}%</span>
+                  <span className="admin-chart-kpis__value">{chartSummary.avg}</span>
                 </div>
                 <div className="admin-chart-kpis__item admin-chart-kpis__item--peak">
                   <span className="admin-chart-kpis__label">Cao nhất</span>
                   <span className="admin-chart-kpis__value">
-                    {chartSummary.peak.label} · {chartSummary.peak.value}%
+                    {chartSummary.peak.label} · {chartSummary.peak.value} sự kiện
                   </span>
                 </div>
                 <div className="admin-chart-kpis__item admin-chart-kpis__item--growth">
@@ -331,11 +353,11 @@ const AdminMonitoringDashboard = () => {
                       key={item.label}
                       className={`admin-bar-chart__col${index === peakMonthIndex ? ' admin-bar-chart__col--peak' : ''}`}
                     >
-                      <span className="admin-bar-chart__value-label">{item.value}%</span>
+                      <span className="admin-bar-chart__value-label">{item.value}</span>
                       <div
                         className="admin-bar-chart__bar"
                         style={{ height: `${(item.value / maxBar) * 200}px` }}
-                        title={`${item.month}: ${item.value}%`}
+                        title={`${item.month}: ${item.value} sự kiện`}
                       />
                       <span className="admin-bar-chart__x">{item.label}</span>
                       <span className="admin-bar-chart__month">{item.month}</span>
@@ -346,7 +368,7 @@ const AdminMonitoringDashboard = () => {
               <div className="admin-chart-legend" aria-hidden="true">
                 <span className="admin-chart-legend__item">
                   <span className="admin-chart-legend__swatch admin-chart-legend__swatch--primary" />
-                  Hiệu suất tháng
+                  Sự kiện / tháng
                 </span>
                 <span className="admin-chart-legend__item">
                   <span className="admin-chart-legend__swatch admin-chart-legend__swatch--peak" />

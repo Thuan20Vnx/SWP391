@@ -48,6 +48,14 @@ const eventSchema = new mongoose.Schema(
       enum: EVENT_CATEGORIES,
       default: 'Công nghệ'
     },
+    registrationStartDate: {
+      type: Date,
+      default: null
+    },
+    registrationEndDate: {
+      type: Date,
+      default: null
+    },
     startDate: {
       type: Date,
       required: true
@@ -107,6 +115,12 @@ const eventSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
+    moderationReasonCategory: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    icpdpNote: { type: String, default: '', trim: true },
     moderationRequestedByEmail: { type: String, default: '' },
     moderationRequestedAt: { type: Date, default: null },
     /** Admin đã duyệt yêu cầu chỉnh sửa — CTSV mới được mở form (một lần / đến khi lưu) */
@@ -121,6 +135,11 @@ const eventSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
+    },
+    clubId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Club',
+      default: null,
     },
     createdByEmail: { type: String, default: '' },
     approvedByEmail: { type: String, default: '' },
@@ -158,12 +177,19 @@ const eventSchema = new mongoose.Schema(
     speakerAvatar: { type: String, default: '' },
     speakers: { type: [speakerSchema], default: [] },
     agenda: { type: String, default: '' },
+    learningOutcomes: { type: [String], default: [] },
     expectedAttendees: { type: Number, default: 50 },
     ticketTypes: { type: [ticketTypeSchema], default: [] },
     source: {
       type: String,
       enum: ['club', 'school', 'partner'],
       default: 'club'
+    },
+    /** Đơn vị gửi đơn sự kiện cấp trường (CTSV hoặc IC-PDP) */
+    schoolOrganizerRole: {
+      type: String,
+      enum: ['ctsv', 'icpdp'],
+      default: 'ctsv'
     },
     partnerId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -177,7 +203,13 @@ const eventSchema = new mongoose.Schema(
     },
     expectedRevenue: { type: Number, default: 0 },
     isHidden: { type: Boolean, default: false },
-    isDeleted: { type: Boolean, default: false }
+    isDeleted: { type: Boolean, default: false },
+    checkinQrToken: { type: String, default: '' },
+    checkinQrExpiresAt: { type: Date, default: null },
+    checkinAttendanceCode: { type: String, default: '' },
+    checkoutQrToken: { type: String, default: '' },
+    checkoutQrExpiresAt: { type: Date, default: null },
+    checkoutAttendanceCode: { type: String, default: '' },
   },
   { timestamps: true }
 );
@@ -187,6 +219,7 @@ eventSchema.index({ category: 1, status: 1 });
 eventSchema.index({ source: 1, status: 1, startDate: -1 });
 eventSchema.index({ partnerId: 1, startDate: -1 });
 eventSchema.index({ createdBy: 1, createdAt: -1 });
+eventSchema.index({ clubId: 1, createdAt: -1 });
 eventSchema.index({ isHidden: 1, status: 1, startDate: 1 });
 eventSchema.index({ source: 1, status: 1, ctsvSubmittedAt: -1 });
 eventSchema.index({ source: 1, status: 1, moderationRequestedAt: -1 });

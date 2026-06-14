@@ -11,6 +11,8 @@ export const SCHOOL_EVENT_PUBLIC_STATUSES = ['approved', 'live'];
 const NON_PUBLIC_STATUSES = [
   'cancelled',
   'hidden',
+  'pending_icpdp_cancel',
+  'pending_icpdp_postpone',
   'pending_cancel',
   'pending_hide',
   'pending_postpone',
@@ -39,6 +41,8 @@ export const SCHOOL_EVENT_STATUS_LABELS = {
   rejected: 'Từ chối',
   live: 'Đang diễn ra',
   ended: 'Đã kết thúc',
+  pending_icpdp_cancel: 'Chờ IC-PDP — Hủy',
+  pending_icpdp_postpone: 'Chờ IC-PDP — Hoãn',
   pending_cancel: 'Chờ Admin — Hủy',
   pending_hide: 'Chờ Admin — Ẩn',
   pending_postpone: 'Chờ Admin — Hoãn',
@@ -52,6 +56,15 @@ export const canCtsvPublishSchoolEvent = (event) =>
 
 export const canCtsvEditSchoolEvent = (event) =>
   event?.source === 'school' && event?.ctsvEditUnlocked === true;
+
+/** Chỉnh sửa sự kiện cấp trường theo đơn vị gửi đơn (CTSV / IC-PDP) */
+export const canEditSchoolEventForPortal = (event, portalRole = 'ctsv') => {
+  if (!canCtsvEditSchoolEvent(event)) return false;
+  const org = event?.schoolOrganizerRole || 'ctsv';
+  if (portalRole === 'icpdp') return org === 'icpdp';
+  if (portalRole === 'admin') return true;
+  return org === 'ctsv';
+};
 
 export const isSchoolEventPendingAdmin = (event) =>
   event?.source === 'school' && event?.statusKey === SCHOOL_EVENT_SUBMIT_STATUS;

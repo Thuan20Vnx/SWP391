@@ -3,36 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import StudentDashboardLayout from '../components/StudentDashboardLayout';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { getCategoryColor, formatMemberCount } from '../data/clubDiscoveryData';
-
-const tabs = [
-  { key: 'joined', label: 'Đã tham gia' },
-  { key: 'pending', label: 'Đang yêu cầu' },
-  { key: 'following', label: 'Đang theo dõi' },
-];
-
-const emptyCopy = {
-  joined: {
-    title: 'Chưa tham gia CLB nào',
-    desc: 'Gửi yêu cầu tham gia các câu lạc bộ bạn quan tâm để trở thành thành viên chính thức.',
-  },
-  pending: {
-    title: 'Không có yêu cầu đang chờ',
-    desc: 'Các yêu cầu tham gia CLB sẽ hiển thị tại đây cho đến khi được duyệt.',
-  },
-  following: {
-    title: 'Chưa theo dõi CLB nào',
-    desc: 'Theo dõi CLB để nhận cập nhật sự kiện và hoạt động mới nhất.',
-  },
-};
-
-const formatClubDate = (value) => {
-  if (!value) return '';
-  return new Date(value).toLocaleDateString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-};
+import { isClubManagerRole } from '../utils/auth';
 
 const SearchIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -48,6 +19,15 @@ const MembersIcon = () => (
     <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
   </svg>
 );
+
+const formatClubDate = (value) => {
+  if (!value) return '';
+  return new Date(value).toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
 
 const MyClubsSkeleton = () => (
   <div className="my-clubs-grid">
@@ -66,16 +46,21 @@ const MyClubsSkeleton = () => (
 
 const MyClubs = ({ showToast }) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('joined');
   const [clubs, setClubs] = useState([]);
-  const [counts, setCounts] = useState({ joined: 0, pending: 0, following: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('');
 
   useEffect(() => {
+    if (isClubManagerRole()) {
+      navigate('/quan-ly-clb', { replace: true });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (isClubManagerRole()) return undefined;
     setLoading(true);
-    fetch(`${API_BASE}/api/user/my-clubs?tab=${activeTab}`, { headers: getAuthHeaders(false) })
+    fetch(`${API_BASE}/api/user/my-clubs?tab=following`, { headers: getAuthHeaders(false) })
       .then((res) => {
         if (res.status === 401) {
           navigate('/login');
@@ -86,19 +71,18 @@ const MyClubs = ({ showToast }) => {
       .then((data) => {
         if (data.success) {
           setClubs(data.clubs || []);
-          setCounts(data.counts || { joined: 0, pending: 0, following: 0 });
         } else {
           setClubs([]);
         }
       })
       .catch((err) => {
         if (err.message !== 'Unauthorized') {
-          showToast?.('Không thể tải danh sách câu lạc bộ.', 'error');
+          showToast?.('Không thể tải danh sách CLB yêu thích.', 'error');
         }
         setClubs([]);
       })
       .finally(() => setLoading(false));
-  }, [activeTab, navigate, showToast]);
+  }, [navigate, showToast]);
 
   const categories = useMemo(
     () => [...new Set(clubs.map((club) => club.category).filter(Boolean))],
@@ -118,7 +102,7 @@ const MyClubs = ({ showToast }) => {
     });
   }, [clubs, search, activeCategory]);
 
-  const handleUnfollow = async (club) => {
+  const handleRemoveFavorite = async (club) => {
     try {
       const res = await fetch(`${API_BASE}/api/clubs/${club.clubId}/follow`, {
         method: 'DELETE',
@@ -127,126 +111,32 @@ const MyClubs = ({ showToast }) => {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast?.(data.message || 'Không thể bỏ theo dõi.', 'error');
+        showToast?.(data.message || 'Không thể bỏ yêu thích.', 'error');
         return;
       }
 
       setClubs((prev) => prev.filter((c) => c.id !== club.id));
-      setCounts((prev) => ({ ...prev, following: Math.max(0, prev.following - 1) }));
-      showToast?.(data.message || 'Đã bỏ theo dõi câu lạc bộ.', 'success');
+      showToast?.(data.message || 'Đã bỏ khỏi danh sách yêu thích.', 'success');
     } catch (err) {
       console.error(err);
       showToast?.('Không thể kết nối máy chủ.', 'error');
     }
   };
-
-  const handleCancelMembership = async (club) => {
-    const isPending = activeTab === 'pending';
-    const confirmMsg = isPending
-      ? 'Hủy yêu cầu tham gia CLB này?'
-      : 'Rời khỏi câu lạc bộ này?';
-
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-      const res = await fetch(`${API_BASE}/api/clubs/${club.clubId}/join`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        showToast?.(data.message || 'Không thể cập nhật trạng thái CLB.', 'error');
-        return;
-      }
-
-      setClubs((prev) => prev.filter((c) => c.id !== club.id));
-      setCounts((prev) => ({
-        ...prev,
-        [activeTab]: Math.max(0, prev[activeTab] - 1),
-      }));
-      showToast?.(data.message || 'Đã cập nhật.', 'success');
-    } catch (err) {
-      console.error(err);
-      showToast?.('Không thể kết nối máy chủ.', 'error');
-    }
-  };
-
-  const getDateLabel = (club) => {
-    if (activeTab === 'following') {
-      return `Theo dõi từ ${formatClubDate(club.followedAt)}`;
-    }
-    if (activeTab === 'pending') {
-      return `Yêu cầu ngày ${formatClubDate(club.requestedAt)}`;
-    }
-    return `Tham gia từ ${formatClubDate(club.joinedAt)}`;
-  };
-
-  const getSecondaryAction = (club) => {
-    if (activeTab === 'following') {
-      return {
-        label: 'Bỏ theo dõi',
-        handler: () => handleUnfollow(club),
-      };
-    }
-    if (activeTab === 'pending') {
-      return {
-        label: 'Hủy yêu cầu',
-        handler: () => handleCancelMembership(club),
-      };
-    }
-    return {
-      label: 'Rời CLB',
-      handler: () => handleCancelMembership(club),
-    };
-  };
-
-  const empty = emptyCopy[activeTab];
 
   return (
     <StudentDashboardLayout
       activeMenu="my-clubs"
-      pageTitle="Câu lạc bộ của tôi"
-      pageSubtitle="Quản lý CLB đã tham gia, yêu cầu đang chờ và danh sách đang theo dõi."
+      pageTitle="Câu lạc bộ yêu thích"
+      pageSubtitle="Danh sách CLB bạn đã lưu yêu thích để theo dõi thông tin và sự kiện."
       showToast={showToast}
     >
       <div className="my-clubs-page">
         <div className="my-clubs-stats">
-          <article className="my-clubs-stat">
-            <span className="my-clubs-stat__label">Đã tham gia</span>
-            <strong className="my-clubs-stat__value">{loading ? '—' : counts.joined}</strong>
-            <span className="my-clubs-stat__hint">Thành viên chính thức</span>
-          </article>
-          <article className="my-clubs-stat">
-            <span className="my-clubs-stat__label">Đang yêu cầu</span>
-            <strong className="my-clubs-stat__value">{loading ? '—' : counts.pending}</strong>
-            <span className="my-clubs-stat__hint">Chờ CLB duyệt</span>
-          </article>
           <article className="my-clubs-stat my-clubs-stat--highlight">
-            <span className="my-clubs-stat__label">Đang theo dõi</span>
-            <strong className="my-clubs-stat__value">{loading ? '—' : counts.following}</strong>
-            <span className="my-clubs-stat__hint">Cập nhật hoạt động CLB</span>
+            <span className="my-clubs-stat__label">CLB yêu thích</span>
+            <strong className="my-clubs-stat__value">{loading ? '—' : clubs.length}</strong>
+            <span className="my-clubs-stat__hint">Xem thông tin & sự kiện CLB</span>
           </article>
-        </div>
-
-        <div className="student-tabs my-clubs-tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              className={`student-tab ${activeTab === tab.key ? 'student-tab--active' : ''}`}
-              onClick={() => {
-                setActiveTab(tab.key);
-                setSearch('');
-                setActiveCategory('');
-              }}
-            >
-              {tab.label}
-              {!loading && counts[tab.key] > 0 && (
-                <span className="my-clubs-tab-count">{counts[tab.key]}</span>
-              )}
-            </button>
-          ))}
         </div>
 
         <div className="my-clubs-toolbar">
@@ -257,7 +147,7 @@ const MyClubs = ({ showToast }) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Tìm theo tên, lĩnh vực hoặc mô tả..."
-              aria-label="Tìm kiếm câu lạc bộ"
+              aria-label="Tìm kiếm câu lạc bộ yêu thích"
             />
           </div>
           <button
@@ -297,13 +187,18 @@ const MyClubs = ({ showToast }) => {
           <div className="my-clubs-empty">
             <div className="my-clubs-empty__icon" aria-hidden="true">
               <svg viewBox="0 0 64 64" width="56" height="56" fill="none">
-                <rect x="8" y="18" width="48" height="34" rx="6" stroke="currentColor" strokeWidth="2.5" />
-                <path d="M8 26h48" stroke="currentColor" strokeWidth="2.5" />
-                <circle cx="22" cy="38" r="6" stroke="currentColor" strokeWidth="2.5" />
+                <path
+                  d="M32 52s-14-9.5-14-20a8 8 0 0114-5 8 8 0 0114 5c0 10.5-14 20-14 20z"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
-            <h3>{empty.title}</h3>
-            <p>{empty.desc}</p>
+            <h3>Chưa có CLB yêu thích</h3>
+            <p>
+              Vào trang chi tiết CLB và bấm <strong>Yêu thích</strong> để lưu CLB vào danh sách này.
+            </p>
             <button
               type="button"
               className="primary-button my-clubs-empty__cta"
@@ -332,77 +227,74 @@ const MyClubs = ({ showToast }) => {
             <p className="my-clubs-result-meta">
               Hiển thị <strong>{filteredClubs.length}</strong>
               {filteredClubs.length !== clubs.length && <> / {clubs.length}</>}{' '}
-              câu lạc bộ
+              câu lạc bộ yêu thích
             </p>
             <div className="my-clubs-grid">
-              {filteredClubs.map((club) => {
-                const secondary = getSecondaryAction(club);
-                return (
-                  <article key={club.id} className="my-clubs-card">
-                    <div className="my-clubs-card__cover-wrap">
-                      <img
-                        src={club.coverImage}
-                        alt=""
-                        className="my-clubs-card__cover"
-                        loading="lazy"
-                      />
-                      <div className="my-clubs-card__cover-overlay" aria-hidden="true" />
-                      <span
-                        className="my-clubs-card__category"
-                        style={{ backgroundColor: getCategoryColor(club.category) }}
-                      >
-                        {club.category}
-                      </span>
-                      <span
-                        className={`my-clubs-card__status my-clubs-card__status--${activeTab}`}
-                      >
-                        {club.status}
+              {filteredClubs.map((club) => (
+                <article key={club.id} className="my-clubs-card">
+                  <div className="my-clubs-card__cover-wrap">
+                    <img
+                      src={club.coverImage}
+                      alt=""
+                      className="my-clubs-card__cover"
+                      loading="lazy"
+                    />
+                    <div className="my-clubs-card__cover-overlay" aria-hidden="true" />
+                    <span
+                      className="my-clubs-card__category"
+                      style={{ backgroundColor: getCategoryColor(club.category) }}
+                    >
+                      {club.category}
+                    </span>
+                    <span className="my-clubs-card__status my-clubs-card__status--following">
+                      Yêu thích
+                    </span>
+                  </div>
+
+                  <div className="my-clubs-card__body">
+                    <div
+                      className="my-clubs-card__logo"
+                      style={{ backgroundColor: club.logoColor }}
+                      aria-hidden="true"
+                    >
+                      {club.logoText}
+                    </div>
+
+                    <h3 className="my-clubs-card__name">{club.name}</h3>
+
+                    <div className="my-clubs-card__meta">
+                      <span>
+                        <MembersIcon />
+                        {formatMemberCount(club.memberCount)} thành viên
                       </span>
                     </div>
 
-                    <div className="my-clubs-card__body">
-                      <div
-                        className="my-clubs-card__logo"
-                        style={{ backgroundColor: club.logoColor }}
-                        aria-hidden="true"
-                      >
-                        {club.logoText}
-                      </div>
+                    <p className="my-clubs-card__desc">{club.description}</p>
 
-                      <h3 className="my-clubs-card__name">{club.name}</h3>
-
-                      <div className="my-clubs-card__meta">
-                        <span>
-                          <MembersIcon />
-                          {formatMemberCount(club.memberCount)} thành viên
-                        </span>
-                      </div>
-
-                      <p className="my-clubs-card__desc">{club.description}</p>
-
-                      <div className="my-clubs-card__footer">
-                        <time className="my-clubs-card__date">{getDateLabel(club)}</time>
-                        <div className="my-clubs-card__actions">
-                          <button
-                            type="button"
-                            className="my-clubs-card__view-btn"
-                            onClick={() => navigate(`/clubs/${club.slug}`)}
-                          >
-                            Xem chi tiết
-                          </button>
-                          <button
-                            type="button"
-                            className="my-clubs-card__unfollow-btn"
-                            onClick={secondary.handler}
-                          >
-                            {secondary.label}
-                          </button>
-                        </div>
+                    <div className="my-clubs-card__footer">
+                      <time className="my-clubs-card__date">
+                        Yêu thích từ {formatClubDate(club.followedAt)}
+                      </time>
+                      <div className="my-clubs-card__actions">
+                        <button
+                          type="button"
+                          className="my-clubs-card__view-btn"
+                          onClick={() => navigate(`/clubs/${club.slug}`)}
+                        >
+                          Xem chi tiết
+                        </button>
+                        <button
+                          type="button"
+                          className="my-clubs-card__unfollow-btn"
+                          onClick={() => handleRemoveFavorite(club)}
+                        >
+                          Bỏ yêu thích
+                        </button>
                       </div>
                     </div>
-                  </article>
-                );
-              })}
+                  </div>
+                </article>
+              ))}
             </div>
           </>
         )}

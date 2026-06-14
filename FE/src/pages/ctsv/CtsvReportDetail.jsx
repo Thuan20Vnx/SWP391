@@ -3,30 +3,36 @@ import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom
 import {
   DEMO_REPORT_EVENT_ID,
   fetchCtsvReportDetail,
-  MOCK_REPORT_DETAIL
+  MOCK_REPORT_DETAIL,
+  submitCtsvReportToAdmin,
 } from '../../services/ctsvApi';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import {
   REPORT_FILL_RATE_LABEL,
-  normalizeReportHighlightText
+  normalizeReportHighlightText,
 } from '../../constants/ctsvReportLabels';
+import exportCtsvReportExcel from '../../utils/exportCtsvReportExcel';
 
 const SOURCE_META = {
   school: { label: 'Cấp trường', tone: 'school' },
   partner: { label: 'Đối tác', tone: 'partner' },
-  club: { label: 'CLB', tone: 'club' }
+  club: { label: 'CLB', tone: 'club' },
 };
 
 const REG_STATUS_LABELS = {
   attended: 'Có mặt',
   registered: 'Đã đăng ký',
-  cancelled: 'Đã hủy'
+  cancelled: 'Đã hủy',
 };
 
 const formatReviewDate = (iso) => {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return d.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 };
 
 const StatCard = ({ label, value, hint, accent }) => (
@@ -43,6 +49,8 @@ const CtsvReportDetail = () => {
   const { showToast } = useOutletContext() || {};
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -55,18 +63,20 @@ const CtsvReportDetail = () => {
         }
         setReport({
           ...raw,
-          highlights: (raw.highlights || []).map(normalizeReportHighlightText)
+          highlights: (raw.highlights || []).map(normalizeReportHighlightText),
         });
       })
       .catch((err) => {
         const useDemoFallback =
           id === DEMO_REPORT_EVENT_ID ||
           (err.status === 404 && String(err.message || '').includes('endpoint'));
+
         if (useDemoFallback && id === DEMO_REPORT_EVENT_ID) {
           setReport(MOCK_REPORT_DETAIL);
-          showToast?.('Dùng bản demo — hãy restart backend để bật API báo cáo.', 'info');
+          showToast?.('Dùng bản demo, hãy restart backend để bật API báo cáo.', 'info');
           return;
         }
+
         showToast?.(err.message || 'Không tải được báo cáo.', 'error');
         navigate('/ctsv/reports');
       })
@@ -75,15 +85,42 @@ const CtsvReportDetail = () => {
 
   const source = SOURCE_META[report?.source] || SOURCE_META.club;
   const stats = report?.stats;
+
   const timelineMax = useMemo(() => {
     const items = report?.registrationTimeline || [];
-    return Math.max(1, ...items.map((t) => t.count));
+    return Math.max(1, ...items.map((item) => item.count));
   }, [report]);
 
   const ratingMax = useMemo(() => {
     const items = report?.ratingDistribution || [];
-    return Math.max(1, ...items.map((r) => r.count));
+    return Math.max(1, ...items.map((item) => item.count));
   }, [report]);
+
+  const handleExportExcel = async () => {
+    if (!report || exporting) return;
+    setExporting(true);
+    try {
+      await exportCtsvReportExcel(report);
+      showToast?.('Đã xuất file Excel báo cáo CTSV.', 'success');
+    } catch (error) {
+      showToast?.(error.message || 'Không xuất được file Excel.', 'error');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleSubmitAdmin = async () => {
+    if (!report || submitting) return;
+    setSubmitting(true);
+    try {
+      const data = await submitCtsvReportToAdmin(report.id || id);
+      showToast?.(data.message || 'Đã gửi báo cáo cho Admin xem.', 'success');
+    } catch (error) {
+      showToast?.(error.message || 'Không gửi được báo cáo cho Admin.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -133,6 +170,17 @@ const CtsvReportDetail = () => {
             {' · '}
             {report.location}
           </p>
+          <div
+            className="ctsv-rd-footer-actions"
+            style={{ marginTop: 16, justifyContent: 'flex-start', flexWrap: 'wrap' }}
+          >
+            <button type="button" className="ctsv-btn-secondary" onClick={handleExportExcel} disabled={exporting}>
+              {exporting ? 'Đang xuất Excel...' : 'Xuất file Excel'}
+            </button>
+            <button type="button" className="ctsv-btn-primary" onClick={handleSubmitAdmin} disabled={submitting}>
+              {submitting ? 'Đang gửi Admin...' : 'Gửi Admin xem'}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -195,14 +243,14 @@ const CtsvReportDetail = () => {
         <section className="ctsv-rd-panel">
           <h2 className="ctsv-rd-panel-title">Loại vé</h2>
           <ul className="ctsv-rd-tickets">
-            {(report.ticketBreakdown || []).map((t) => {
-              const pct = t.capacity > 0 ? Math.round((t.sold / t.capacity) * 100) : 0;
+            {(report.ticketBreakdown || []).map((ticket) => {
+              const pct = ticket.capacity > 0 ? Math.round((ticket.sold / ticket.capacity) * 100) : 0;
               return (
-                <li key={t.name} className="ctsv-rd-ticket-row">
+                <li key={ticket.name} className="ctsv-rd-ticket-row">
                   <div className="ctsv-rd-ticket-head">
-                    <strong>{t.name}</strong>
+                    <strong>{ticket.name}</strong>
                     <span>
-                      {t.sold}/{t.capacity} ({pct}%)
+                      {ticket.sold}/{ticket.capacity} ({pct}%)
                     </span>
                   </div>
                   <div className="ctsv-rd-ticket-bar" aria-hidden>
@@ -240,14 +288,14 @@ const CtsvReportDetail = () => {
             <p className="ctsv-rd-muted">Chưa có đánh giá sau sự kiện.</p>
           ) : (
             <ul className="ctsv-rd-reviews">
-              {report.recentReviews.map((r) => (
-                <li key={`${r.authorName}-${r.createdAt}`}>
+              {report.recentReviews.map((review) => (
+                <li key={`${review.authorName}-${review.createdAt}`}>
                   <div className="ctsv-rd-review-head">
-                    <strong>{r.authorName}</strong>
-                    <span>{r.rating}/5</span>
-                    <span className="ctsv-rd-muted">{formatReviewDate(r.createdAt)}</span>
+                    <strong>{review.authorName}</strong>
+                    <span>{review.rating}/5</span>
+                    <span className="ctsv-rd-muted">{formatReviewDate(review.createdAt)}</span>
                   </div>
-                  {r.comment ? <p>{r.comment}</p> : null}
+                  {review.comment ? <p>{review.comment}</p> : null}
                 </li>
               ))}
             </ul>
@@ -299,9 +347,15 @@ const CtsvReportDetail = () => {
             Xem hồ sơ sự kiện
           </Link>
         )}
+        <button type="button" className="ctsv-btn-secondary" onClick={handleExportExcel} disabled={exporting}>
+          {exporting ? 'Đang xuất Excel...' : 'Xuất file Excel'}
+        </button>
+        <button type="button" className="ctsv-btn-primary" onClick={handleSubmitAdmin} disabled={submitting}>
+          {submitting ? 'Đang gửi Admin...' : 'Gửi Admin xem'}
+        </button>
         {report.isDemo && (
           <p className="ctsv-rd-demo-note">
-            Sự kiện demo — số liệu mẫu để thử màn hình báo cáo sau khi kết thúc.
+            Sự kiện demo, số liệu mẫu để thử màn hình báo cáo sau khi kết thúc.
           </p>
         )}
       </div>

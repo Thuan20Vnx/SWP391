@@ -55,12 +55,26 @@ export const AdminMenuIcon = ({ type }) => {
           <path d="M4 19V5M10 19V9M16 19v-6M22 19H2" />
         </svg>
       );
+    case 'reports':
+      return (
+        <svg {...iconProps}>
+          <path d="M4 19V9M10 19V6M16 19v-8M22 19H2" />
+        </svg>
+      );
     case 'partners':
       return (
         <svg {...iconProps}>
           <path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z" />
           <rect x="8" y="6" width="8" height="13" rx="1.5" />
           <path d="M11 12l2 2 4-4.5" />
+        </svg>
+      );
+    case 'calendar':
+      return (
+        <svg {...iconProps}>
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+          <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
         </svg>
       );
     case 'events':

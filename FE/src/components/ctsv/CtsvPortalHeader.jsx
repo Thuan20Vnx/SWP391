@@ -27,10 +27,11 @@ const CTSV_MENU_ROUTES = {
   partners: '/ctsv/partners',
   calendar: '/ctsv/calendar',
   'create-event': '/ctsv/events/create',
-  settings: '/ctsv/profile'
+  settings: '/ctsv/settings'
 };
 
 const resolveActiveMenuItem = (pathname) => {
+  if (pathname.startsWith('/ctsv/settings')) return 'settings';
   if (pathname.startsWith('/ctsv/partners')) return 'partners';
   if (pathname.startsWith('/ctsv/calendar')) return 'calendar';
   if (pathname.startsWith('/ctsv/events/create')) return 'create-event';
@@ -95,6 +96,7 @@ const CtsvPortalHeader = ({
           <div className="ctsv-header-brand">
             <CtsvHamburgerButton
               onClick={onToggleSidebar}
+              expanded={sidebarOpen}
               ariaLabel={sidebarOpen ? 'Ẩn menu điều hướng' : 'Mở menu điều hướng'}
             />
 

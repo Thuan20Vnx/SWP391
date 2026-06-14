@@ -30,6 +30,22 @@ export const partnerInitials = (name = '') => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
+export const isPartnerImageSrc = (src) =>
+  typeof src === 'string' &&
+  (src.startsWith('data:image/') || /^https?:\/\//i.test(src.trim()));
+
+/** Logo công ty hoặc avatar đại diện (từ API) */
+export const resolvePartnerAvatarSrc = (partner) => {
+  if (!partner) return '';
+  const candidates = [
+    partner.avatar,
+    partner.logo,
+    partner.representativeAvatar,
+    partner.picture,
+  ];
+  return candidates.find((c) => isPartnerImageSrc(c)) || '';
+};
+
 export const formatPartnerDate = (value) => {
   if (!value) return '—';
   try {

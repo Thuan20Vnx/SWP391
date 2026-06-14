@@ -107,9 +107,9 @@ export const PORTAL_ANNOUNCEMENT_CONFIG = {
   admin: {
     eyebrow: 'Truyền thông Admin',
     title: 'Thông báo hệ thống',
-    subtitle: 'Gửi thông báo tới các nhóm người dùng trong hệ thống.',
+    subtitle: 'Soạn, phát hành và quản lý thông báo tới mọi nhóm người dùng trên nền tảng F-Events.',
     publishLabel: 'Phát hành thông báo',
-    manageLink: '/admin/announcements'
+    manageLink: '/announcements'
   },
   ctsv: {
     eyebrow: 'Truyền thông CTSV',

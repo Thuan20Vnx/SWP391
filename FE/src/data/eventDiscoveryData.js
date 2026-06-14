@@ -27,6 +27,56 @@ export const STATE_FILTERS = [
   { id: 'postponed', label: 'Bị hoãn' },
 ];
 
+/** Đơn vị tổ chức sự kiện (lọc trang Khám phá) */
+export const ORGANIZER_FILTERS = [
+  { id: 'all', label: 'Tất cả' },
+  { id: 'ctsv', label: 'CTSV' },
+  { id: 'club', label: 'CLB' },
+  { id: 'icpdp', label: 'IC-PDP' },
+  { id: 'partner', label: 'Đối tác' },
+];
+
+const ORGANIZER_LABELS = {
+  ctsv: 'CTSV',
+  club: 'CLB',
+  icpdp: 'IC-PDP',
+  partner: 'Đối tác',
+};
+
+/** Suy ra đơn vị tổ chức từ API (source + schoolOrganizerRole) */
+export const resolveEventOrganizerType = (event) => {
+  const source = event?.source || 'club';
+  if (source === 'partner') return 'partner';
+  if (source === 'club') return 'club';
+  if (source === 'school') {
+    return event?.schoolOrganizerRole === 'icpdp' ? 'icpdp' : 'ctsv';
+  }
+  return 'club';
+};
+
+export const getOrganizerLabel = (organizerType) =>
+  ORGANIZER_LABELS[organizerType] || 'CLB';
+
+export const filterEventsByOrganizer = (events, filterId) => {
+  if (!filterId || filterId === 'all') return events;
+  return events.filter((ev) => {
+    const type = ev.organizerType || resolveEventOrganizerType(ev);
+    return type === filterId;
+  });
+};
+
+export const filterEventsByClub = (events, clubKey = '') => {
+  const key = String(clubKey || '').trim().toLowerCase();
+  if (!key) return events;
+  return events.filter((ev) => {
+    const type = ev.organizerType || resolveEventOrganizerType(ev);
+    if (type !== 'club') return false;
+    const slug = String(ev.clubSlug || '').trim().toLowerCase();
+    const id = String(ev.clubId || '').trim().toLowerCase();
+    return slug === key || id === key;
+  });
+};
+
 export const CATEGORY_COLORS = {
   'Công nghệ': '#f26f21',
   'CÔNG NGHỆ': '#f26f21',
@@ -201,10 +251,14 @@ export const mapApiEventToCard = (event) => {
   const listPrice = event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0);
   const amountDue = event.amountDue ?? listPrice;
   const priceLabel = event.priceLabel || (amountDue === 0 ? 'MIỄN PHÍ' : formatVnd(amountDue));
+  const organizerType = resolveEventOrganizerType(event);
+  const organizerLabel = getOrganizerLabel(organizerType);
 
   return {
     id: event._id,
     title: event.title,
+    startDate: event.startDate,
+    createdAt: event.createdAt,
     thumbnail: resolveEventDisplayImage(
       event,
       'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80'
@@ -229,6 +283,18 @@ export const mapApiEventToCard = (event) => {
     amountDue,
     priceLabel,
     studentPrivilegeApplied: event.studentPrivilegeApplied === true,
+    source: event.source || 'club',
+    schoolOrganizerRole: event.schoolOrganizerRole || 'ctsv',
+    status: event.status || '',
+    statusKey: event.statusKey || '',
+    organizerType,
+    organizerLabel,
+    clubId: event.clubId ? String(event.clubId) : '',
+    clubSlug: event.clubSlug || '',
+    clubName: event.clubName || '',
+    createdByEmail: event.createdBy?.email || event.createdByEmail || '',
+    createdById: event.createdBy?._id || event.createdBy || '',
+    partnerId: event.partnerId ? String(event.partnerId) : '',
     fromApi: true,
   };
 };
@@ -301,3 +367,79 @@ export const filterEventsBySearch = (events, query) => {
       ev.category.toLowerCase().includes(q)
   );
 };
+
+export const HOME_RECOMMEND_TABS = [
+  { id: 'newest', label: 'Mới nhất' },
+  { id: 'popular', label: 'Nhiều đăng ký nhất' },
+  { id: 'potential', label: 'Tiềm năng nhất' },
+  { id: 'forYou', label: 'Phù hợp với bạn' },
+];
+
+const eventTime = (value) => {
+  const t = new Date(value).getTime();
+  return Number.isNaN(t) ? 0 : t;
+};
+
+export const sortEventsByNewest = (events) =>
+  [...events].sort((a, b) => eventTime(b.startDate) - eventTime(a.startDate));
+
+export const sortEventsByPopular = (events) =>
+  [...events].sort((a, b) => (b.filledSlots ?? 0) - (a.filledSlots ?? 0));
+
+const potentialScore = (event) => {
+  const fill = getFillPercent(event.filledSlots, event.totalSlots);
+  const remaining = Math.max(0, (event.totalSlots ?? 0) - (event.filledSlots ?? 0));
+  const fillSweet = fill >= 15 && fill <= 80 ? 40 : 0;
+  const slotScore = Math.min(remaining, 60);
+  const freeBonus = (event.amountDue ?? 0) === 0 ? 15 : 0;
+  const soonBonus = eventTime(event.startDate) > Date.now() ? 10 : 0;
+  return fillSweet + slotScore + freeBonus + soonBonus;
+};
+
+export const sortEventsByPotential = (events) =>
+  [...events].sort((a, b) => potentialScore(b) - potentialScore(a));
+
+const categoryHintsFromProfile = (profile = {}) => {
+  const course = String(profile.course || '').toLowerCase();
+  const hints = new Set();
+  if (/se|it|ai|gd|game|soft/.test(course)) {
+    hints.add('công nghệ');
+    hints.add('workshop');
+  }
+  if (/ba|biz|marketing|kinh/.test(course)) {
+    hints.add('kinh tế');
+  }
+  if (/lang|anh|nhật|hàn/.test(course)) {
+    hints.add('văn hóa');
+  }
+  if (/design|art|đồ họa/.test(course)) {
+    hints.add('nghệ thuật');
+  }
+  return [...hints];
+};
+
+export const sortEventsForYou = (events, profile = {}, isLoggedIn = false) => {
+  const hints = isLoggedIn ? categoryHintsFromProfile(profile) : [];
+  const score = (event) => {
+    const cat = (event.category || '').toLowerCase();
+    const matchBoost = hints.some((h) => cat.includes(h)) ? 50 : 0;
+    return matchBoost + potentialScore(event) + (event.filledSlots ?? 0) * 0.2;
+  };
+  return [...events].sort((a, b) => score(b) - score(a));
+};
+
+export const sortHomeEventsByRecommendTab = (events, tabId, profile, isLoggedIn) => {
+  switch (tabId) {
+    case 'popular':
+      return sortEventsByPopular(events);
+    case 'potential':
+      return sortEventsByPotential(events);
+    case 'forYou':
+      return sortEventsForYou(events, profile, isLoggedIn);
+    case 'newest':
+    default:
+      return sortEventsByNewest(events);
+  }
+};
+
+export const HOME_DISPLAY_LIMIT = 6;

@@ -2,11 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
+import PublicAdminShell from '../layouts/PublicAdminShell';
 import ClubUpcomingEventCard from '../components/ClubUpcomingEventCard';
 import useUserProfile from '../hooks/useUserProfile';
+import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
+import { isUserManagingClub, openClubManagerPortal } from '../utils/clubManagerAccess';
+import { isPureCtsvStaff } from '../utils/publicEventStaffAccess';
 import { CLUB_SAMPLE_DATA } from '../data/clubDiscoveryData';
 import { getClubDetailById, mapApiClubToDetail, FU_DEVER_DETAIL } from '../data/clubDetailData';
+import '../styles/admin-public-pages.css';
 
 const RocketIcon = () => (
   <svg viewBox="0 0 24 24" width="28" height="28" fill="#f26f21" aria-hidden="true">
@@ -32,8 +38,12 @@ const ClubDetail = ({ showToast }) => {
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
-  const [joinLoading, setJoinLoading] = useState(false);
-  const { isLoggedIn } = useUserProfile();
+  const { isLoggedIn, userProfile } = useUserProfile();
+  const role = userProfile.role || getUserRole();
+  const isAdminViewer = isLoggedIn && isAdminRole(role);
+  const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
+  const isClubManager = isLoggedIn && isClubManagerRole(role);
+  const { clubs: managedClubs } = useManagedClubs(isClubManager);
 
   useEffect(() => {
     setLoading(true);
@@ -86,10 +96,15 @@ const ClubDetail = ({ showToast }) => {
   }
 
   const clubApiId = club._id || clubId;
+  const isManagingThisClub = isClubManager && isUserManagingClub(club, managedClubs);
+
+  const handleManageClub = () => {
+    openClubManagerPortal({ club, managedClubs, navigate });
+  };
 
   const handleFollow = async () => {
     if (!isLoggedIn) {
-      showToast?.('Vui lòng đăng nhập để theo dõi CLB!', 'error');
+      showToast?.('Vui lòng đăng nhập để lưu CLB yêu thích!', 'error');
       setTimeout(() => navigate('/login'), 1200);
       return;
     }
@@ -106,12 +121,15 @@ const ClubDetail = ({ showToast }) => {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast?.(data.message || 'Không thể cập nhật theo dõi CLB.', 'error');
+        showToast?.(data.message || 'Không thể cập nhật CLB yêu thích.', 'error');
         return;
       }
 
       setClub((prev) => ({ ...prev, isFollowing: !isFollowing }));
-      showToast?.(data.message || (isFollowing ? 'Đã bỏ theo dõi CLB.' : 'Đã theo dõi CLB!'), 'success');
+      showToast?.(
+        data.message || (isFollowing ? 'Đã bỏ khỏi danh sách yêu thích.' : 'Đã thêm vào CLB yêu thích!'),
+        'success'
+      );
     } catch (err) {
       console.error(err);
       showToast?.('Không thể kết nối máy chủ.', 'error');
@@ -120,72 +138,26 @@ const ClubDetail = ({ showToast }) => {
     }
   };
 
-  const handleJoin = async () => {
-    if (!isLoggedIn) {
-      showToast?.('Vui lòng đăng nhập để tham gia CLB!', 'error');
-      setTimeout(() => navigate('/login'), 1200);
-      return;
-    }
-
-    if (club.membershipStatus === 'member') {
-      showToast?.('Bạn đã là thành viên CLB này.', 'info');
-      return;
-    }
-
-    if (club.membershipStatus === 'pending') {
-      showToast?.('Yêu cầu tham gia đang chờ duyệt.', 'info');
-      return;
-    }
-
-    setJoinLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/clubs/${clubApiId}/join`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        showToast?.(data.message || 'Không thể gửi yêu cầu tham gia.', 'error');
-        return;
-      }
-
-      setClub((prev) => ({
-        ...prev,
-        membershipStatus: data.membership?.status || data.club?.membershipStatus || 'pending',
-      }));
-      showToast?.(data.message || 'Đã gửi yêu cầu tham gia CLB!', 'success');
-    } catch (err) {
-      console.error(err);
-      showToast?.('Không thể kết nối máy chủ.', 'error');
-    } finally {
-      setJoinLoading(false);
-    }
-  };
-
-  const joinButtonLabel = () => {
-    if (joinLoading) return 'Đang xử lý...';
-    if (club.membershipStatus === 'member') return 'Đã tham gia';
-    if (club.membershipStatus === 'pending') return 'Đã gửi yêu cầu';
-    return 'Tham gia ngay';
-  };
-
-  const joinDisabled =
-    joinLoading || club.membershipStatus === 'member' || club.membershipStatus === 'pending';
+  const isValidEventId = (id) => /^[a-f0-9]{24}$/i.test(String(id || ''));
 
   const handleEventAction = (event) => {
-    showToast?.(`${event.primaryLabel}: ${event.title}`, 'success');
+    if (isValidEventId(event.id)) {
+      navigate(`/events/${event.id}`);
+      return;
+    }
+    showToast?.('Không tìm thấy trang chi tiết sự kiện này.', 'error');
   };
 
-  return (
-    <div className="club-detail-page home-layout">
-      <SiteHeader
-        activeNav="clubs"
-        searchPlaceholder="Tìm kiếm câu lạc bộ..."
-        searchValue={headerSearch}
-        onSearchChange={setHeaderSearch}
-      />
+  const displayedEvents = isCtsvStaff
+    ? club.upcomingEvents.map((event) => ({
+        ...event,
+        primaryLabel: 'Xem chi tiết',
+        variant: 'outline',
+      }))
+    : club.upcomingEvents;
 
+  const pageBody = (
+    <>
       <section className="club-detail-page__hero">
         <div className="club-detail-page__banner">
           <img src={club.bannerImage} alt="" className="club-detail-page__banner-img" />
@@ -215,22 +187,49 @@ const ClubDetail = ({ showToast }) => {
                 </p>
               </div>
               <div className="club-detail-page__actions">
-                <button
-                  type="button"
-                  className={`club-detail-page__btn club-detail-page__btn--outline ${club.isFollowing ? 'is-active' : ''}`}
-                  onClick={handleFollow}
-                  disabled={followLoading}
-                >
-                  {followLoading ? 'Đang xử lý...' : club.isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
-                </button>
-                <button
-                  type="button"
-                  className="club-detail-page__btn club-detail-page__btn--primary"
-                  onClick={handleJoin}
-                  disabled={joinDisabled}
-                >
-                  {joinButtonLabel()}
-                </button>
+                {isAdminViewer ? (
+                  <div className="club-detail-page__admin-actions">
+                    <button
+                      type="button"
+                      className="club-detail-page__btn club-detail-page__btn--primary"
+                      onClick={() => navigate('/admin/announcements')}
+                    >
+                      Gửi thông báo
+                    </button>
+                    <button
+                      type="button"
+                      className="club-detail-page__btn club-detail-page__btn--outline"
+                      onClick={() => navigate('/admin/accounts')}
+                    >
+                      Quản lý tài khoản
+                    </button>
+                  </div>
+                ) : isManagingThisClub ? (
+                  <button
+                    type="button"
+                    className="club-detail-page__btn club-detail-page__btn--primary club-detail-page__btn--manage"
+                    onClick={handleManageClub}
+                  >
+                    Quản lý
+                  </button>
+                ) : isCtsvStaff ? (
+                  <p className="club-detail-page__staff-note">
+                    CTSV chỉ xem thông tin CLB — không theo dõi hoặc đăng ký tham gia.
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    className={`club-detail-page__btn club-detail-page__btn--primary ${club.isFollowing ? 'is-active' : ''}`}
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                  >
+                    {followLoading
+                      ? 'Đang xử lý...'
+                      : club.isFollowing
+                        ? 'Đã yêu thích'
+                        : 'Yêu thích'}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -263,26 +262,44 @@ const ClubDetail = ({ showToast }) => {
               <h2>Ban chủ nhiệm</h2>
               <div className="club-detail-page__board">
                 {club.board.map((member) => (
-                  <div key={member.name} className="club-detail-page__board-card">
-                    <img src={member.avatar} alt={member.name} />
-                    <strong>{member.name}</strong>
-                    <span>{member.role}</span>
-                  </div>
+                  <article key={member.name} className="club-detail-page__board-card">
+                    <div className="club-detail-page__board-avatar">
+                      <img src={member.avatar} alt={member.name} loading="lazy" />
+                    </div>
+                    <strong className="club-detail-page__board-name">{member.name}</strong>
+                    <span className="club-detail-page__board-role">{member.role}</span>
+                  </article>
                 ))}
               </div>
             </section>
 
-            <section className="club-detail-page__section">
-              <h2>Sự kiện sắp tới</h2>
-              <div className="club-detail-page__events">
-                {club.upcomingEvents.map((event) => (
-                  <ClubUpcomingEventCard
-                    key={event.id}
-                    event={event}
-                    onAction={handleEventAction}
-                  />
-                ))}
+            <section className="club-detail-page__section club-detail-page__section--events">
+              <div className="club-detail-page__events-head">
+                <h2>Sự kiện sắp tới</h2>
+                {displayedEvents.length > 0 && (
+                  <Link
+                    to={`/events?club=${encodeURIComponent(club.id || clubApiId)}`}
+                    className="club-detail-page__view-all"
+                  >
+                    Xem tất cả
+                  </Link>
+                )}
               </div>
+              {displayedEvents.length > 0 ? (
+                <div className="club-detail-page__events-grid">
+                  {displayedEvents.map((event) => (
+                    <ClubUpcomingEventCard
+                      key={event.id}
+                      event={event}
+                      onAction={handleEventAction}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="club-detail-page__events-empty">
+                  CLB chưa có sự kiện sắp tới. Hãy quay lại sau hoặc khám phá sự kiện khác trên nền tảng.
+                </p>
+              )}
             </section>
           </div>
 
@@ -320,6 +337,36 @@ const ClubDetail = ({ showToast }) => {
       </main>
 
       <SiteFooter />
+    </>
+  );
+
+  if (isAdminViewer) {
+    return (
+      <PublicAdminShell
+        activeNav="home"
+        searchPlaceholder="Tìm CLB, cơ sở, danh mục..."
+        searchValue={headerSearch}
+        onSearchChange={setHeaderSearch}
+      >
+        <div className="club-detail-page home-layout">
+          <div className="club-detail-page__admin-back">
+            <Link to="/">← Quay lại Trang chủ</Link>
+          </div>
+          {pageBody}
+        </div>
+      </PublicAdminShell>
+    );
+  }
+
+  return (
+    <div className="club-detail-page home-layout">
+      <SiteHeader
+        activeNav="clubs"
+        searchPlaceholder="Tìm kiếm câu lạc bộ..."
+        searchValue={headerSearch}
+        onSearchChange={setHeaderSearch}
+      />
+      {pageBody}
     </div>
   );
 };

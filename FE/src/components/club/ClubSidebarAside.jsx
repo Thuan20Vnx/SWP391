@@ -1,12 +1,8 @@
 import React from 'react';
 import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 import { getRoleDisplayLabel, getUserRole } from '../../utils/auth';
-import CtsvNavIcon from '../ctsv/CtsvNavIcon';
-import {
-  CLUB_NAV_ITEMS,
-  isClubDesktop,
-  isClubNavActive
-} from './clubNavConfig';
+import { isClubDesktop } from './clubNavConfig';
+import ClubSidebarNav from './ClubSidebarNav';
 
 const ClubSidebarAside = ({
   sidebarOpen,
@@ -14,50 +10,11 @@ const ClubSidebarAside = ({
   userProfile,
   activeNav,
   onNavSelect,
-  hasNewNotifs = false
+  hasNewNotifs = false,
 }) => {
-  const renderNavItems = () => {
-    const out = [];
-    let lastSection = null;
-
-    CLUB_NAV_ITEMS.forEach((item) => {
-      if (item.section && item.section !== lastSection) {
-        lastSection = item.section;
-        out.push(
-          <p key={`sec-${item.section}`} className="ctsv-nav-section">
-            {item.section}
-          </p>
-        );
-      }
-
-      const linkClass = isClubNavActive(item.key, activeNav)
-        ? 'ctsv-nav-link club-nav-link active'
-        : 'ctsv-nav-link club-nav-link';
-
-      out.push(
-        <button
-          key={item.key}
-          type="button"
-          className={linkClass}
-          onClick={() => {
-            onNavSelect(item.key);
-            if (!isClubDesktop()) onClose?.();
-          }}
-        >
-          <span className="ctsv-nav-icon">
-            <CtsvNavIcon type={item.icon} />
-          </span>
-          <span className="ctsv-nav-label">
-            {item.label}
-            {item.key === 'notifications' && hasNewNotifs && (
-              <span className="club-nav-unread-dot" aria-hidden="true" />
-            )}
-          </span>
-        </button>
-      );
-    });
-
-    return out;
+  const handleNavSelect = (key) => {
+    onNavSelect(key);
+    if (!isClubDesktop()) onClose?.();
   };
 
   return (
@@ -65,7 +22,11 @@ const ClubSidebarAside = ({
       <div className="ctsv-sidebar-header">
         <img src={FE_LOGO} alt={FE_LOGO_ALT} className="ctsv-sidebar-logo" />
       </div>
-      <nav className="ctsv-sidebar-nav">{renderNavItems()}</nav>
+      <ClubSidebarNav
+        activeNav={activeNav}
+        onNavSelect={handleNavSelect}
+        hasNewNotifs={hasNewNotifs}
+      />
       <div className="ctsv-sidebar-footer">
         <img src={userProfile.picture} alt="" className="ctsv-sidebar-avatar" />
         <div className="ctsv-sidebar-footer-text">

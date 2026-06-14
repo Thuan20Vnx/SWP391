@@ -1,8 +1,7 @@
 import React, { useCallback, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react-router-dom';
 
 import Home from './pages/Home';
-import CtsvHome from './pages/CtsvHome';
 import CtsvLayout from './layouts/CtsvLayout';
 import CtsvDashboard from './pages/ctsv/CtsvDashboard';
 import CtsvEventList from './pages/ctsv/CtsvEventList';
@@ -28,6 +27,8 @@ import IcpdpHome from './pages/IcpdpHome';
 import IcpdpDashboard from './pages/icpdp/IcpdpDashboard';
 import IcpdpProposalList from './pages/icpdp/IcpdpProposalList';
 import IcpdpProposalDetail from './pages/icpdp/IcpdpProposalDetail';
+import IcpdpClubRegistrationList from './pages/icpdp/IcpdpClubRegistrationList';
+import IcpdpClubRegistrationDetail from './pages/icpdp/IcpdpClubRegistrationDetail';
 import IcpdpEventList from './pages/icpdp/IcpdpEventList';
 import IcpdpEventDetail from './pages/icpdp/IcpdpEventDetail';
 import IcpdpCalendar from './pages/icpdp/IcpdpCalendar';
@@ -35,7 +36,12 @@ import IcpdpReports from './pages/icpdp/IcpdpReports';
 import IcpdpProfileSettings from './pages/icpdp/IcpdpProfileSettings';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
+import GoogleAuthCallback from './pages/GoogleAuthCallback';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import UnlockAccount from './pages/UnlockAccount';
 import Profile from './pages/Profile';
+import PortalSettingsView from './pages/PortalSettingsView';
 import Settings from './pages/Settings';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
@@ -44,15 +50,17 @@ import ClubDetail from './pages/ClubDetail';
 import CreateEvent from './pages/CreateEvent';
 import AdminLayout from './layouts/AdminLayout';
 import AdminMonitoringDashboard from './pages/AdminMonitoringDashboard';
+import AdminCalendar from './pages/admin/AdminCalendar';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminPartnerApprovals from './pages/admin/AdminPartnerApprovals';
 import AdminSystemControl from './pages/admin/AdminSystemControl';
-import AdminDataMaintenance from './pages/admin/AdminDataMaintenance';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminPartners from './pages/admin/AdminPartners';
 import AdminAccountsControl from './pages/admin/AdminAccountsControl';
 import AdminSchoolEventApprovals from './pages/admin/AdminSchoolEventApprovals';
 import AdminEventRequests from './pages/admin/AdminEventRequests';
+import AdminSubmittedReports from './pages/admin/AdminSubmittedReports';
+import AdminSubmittedReportDetail from './pages/admin/AdminSubmittedReportDetail';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
 import Schedule from './pages/Schedule';
@@ -60,10 +68,12 @@ import EventReviews from './pages/EventReviews';
 import Announcements from './pages/Announcements';
 import AnnouncementDetail from './pages/AnnouncementDetail';
 import StaticPage from './pages/StaticPage';
+import ClubManagerLayout from './layouts/ClubManagerLayout';
 import ClubManagement from './pages/ClubManagement';
 import ClubAnnouncementsPage from './pages/ClubAnnouncementsPage';
 import ClubAnnouncementDetailPage from './pages/ClubAnnouncementDetailPage';
 import EventManagementDetail from './pages/EventManagementDetail';
+import QrScanPage from './pages/QrScanPage';
 
 import { ToastContainer } from './components/Toast';
 import PartnerLayout from './layouts/PartnerLayout';
@@ -76,15 +86,39 @@ import PartnerContractList from './pages/partner/PartnerContractList';
 import PartnerAnalytics from './pages/partner/PartnerAnalytics';
 import PartnerReportDetail from './pages/partner/PartnerReportDetail';
 import PartnerProposalCreate from './pages/partner/PartnerProposalCreate';
-import { getHomePathForRole, getUserRole, isCtsvRole, isAdminRole, isClubManagerRole, isPartnerRole } from './utils/auth';
+import {
+  getHomePathForRole,
+  getUserRole,
+  isCtsvRole,
+  isAdminRole,
+  isIcpdpRole,
+  isClubManagerRole,
+  isPartnerRole,
+} from './utils/auth';
+import SystemMaintenanceGate from './components/SystemMaintenanceGate';
+import SystemMaintenanceBanner from './components/SystemMaintenanceBanner';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
+import AdminFptSystem from './pages/admin/public/AdminFptSystem';
+import AdminPartnerDetail from './pages/admin/public/AdminPartnerDetail';
+import AdminFptDeptDetail from './pages/admin/public/AdminFptDeptDetail';
+import AdminFptUnitNotify from './pages/admin/public/AdminFptUnitNotify';
+import AdminFptUnitEvents from './pages/admin/AdminFptUnitEvents';
+import AdminPublicAnnouncements from './pages/admin/public/AdminPublicAnnouncements';
+import PublicAdminShell from './layouts/PublicAdminShell';
+import SiteFooter from './components/SiteFooter';
 import './index.css';
+import './styles/admin-public-pages.css';
 
 initThemeFromStorage();
 
 const ProtectedRoute = ({ children }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   return isLoggedIn ? children : <Navigate to="/login" replace />;
+};
+
+const ScanQrLegacyRedirect = () => {
+  const { search } = useLocation();
+  return <Navigate to={`/quet-qr${search}`} replace />;
 };
 
 const CtsvProtectedRoute = () => {
@@ -113,10 +147,70 @@ const PublicHomeRoute = ({ showToast }) => {
   if (isLoggedIn) {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
     if (isPartnerRole()) return <Navigate to="/partner/dashboard" replace />;
-    if (isCtsvRole()) return <Navigate to="/ctsv" replace />;
-    if (isAdminRole()) return <Navigate to="/admin" replace />;
+    if (isAdminRole()) return <AdminFptSystem showToast={showToast} />;
   }
   return <Home showToast={showToast} />;
+};
+
+const PublicClubsRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (isLoggedIn && isAdminRole()) return <Navigate to="/" replace />;
+  return <Clubs showToast={showToast} />;
+};
+
+const PublicDeptDetailRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (!isAdminRole()) return <Navigate to="/" replace />;
+  return <AdminFptDeptDetail showToast={showToast} />;
+};
+
+const PublicUnitNotifyRoute = () => {
+  const { unitType, unitId } = useParams();
+  const [searchParams] = useSearchParams();
+  const qs = searchParams.toString();
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (!isAdminRole()) return <Navigate to="/" replace />;
+  return (
+    <Navigate
+      to={`/admin/unit-notify/${unitType}/${unitId}${qs ? `?${qs}` : ''}`}
+      replace
+    />
+  );
+};
+
+const PublicPartnerDetailRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (!isAdminRole()) return <Navigate to="/" replace />;
+  return <AdminPartnerDetail showToast={showToast} />;
+};
+
+const PublicAnnouncementsRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (isAdminRole()) return <AdminPublicAnnouncements showToast={showToast} />;
+  return <Announcements showToast={showToast} />;
+};
+
+const PublicAnnouncementDetailRoute = ({ showToast }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (isAdminRole()) {
+    return (
+      <PublicAdminShell activeNav="news">
+        <AnnouncementDetail
+          showToast={showToast}
+          embedded
+          listPath="/announcements"
+          eventBasePath="/events"
+        />
+        <SiteFooter />
+      </PublicAdminShell>
+    );
+  }
+  return <AnnouncementDetail showToast={showToast} />;
 };
 
 const AdminAreaGuard = () => {
@@ -125,6 +219,7 @@ const AdminAreaGuard = () => {
 
   if (!isLoggedIn) return <Navigate to="/login" replace />;
   if (isAdminRole()) return <Outlet />;
+  if (isIcpdpRole() && pathname.startsWith('/admin/system')) return <Outlet />;
   if (
     isCtsvRole() &&
     (pathname.startsWith('/admin/events') || pathname.startsWith('/admin/event-requests'))
@@ -150,12 +245,13 @@ function App() {
     <Router>
       <div className="app-root">
         <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
+        <SystemMaintenanceGate>
         <Routes>
           <Route path="/" element={<PublicHomeRoute showToast={showToast} />} />
 
           <Route path="/ctsv" element={<CtsvProtectedRoute />}>
             <Route element={<CtsvLayout showToast={showToast} />}>
-              <Route index element={<CtsvHome showToast={showToast} />} />
+              <Route index element={<Navigate to="/" replace />} />
               <Route path="dashboard" element={<CtsvDashboard />} />
               <Route path="events" element={<CtsvEventList />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
@@ -181,6 +277,7 @@ function App() {
               <Route path="reports" element={<CtsvReports />} />
               <Route path="reports/:id" element={<CtsvReportDetail />} />
               <Route path="profile" element={<CtsvProfile showToast={showToast} />} />
+              <Route path="settings" element={<PortalSettingsView showToast={showToast} role="ctsv" />} />
             </Route>
           </Route>
 
@@ -190,11 +287,16 @@ function App() {
               <Route path="dashboard" element={<IcpdpDashboard />} />
               <Route path="proposals" element={<IcpdpProposalList />} />
               <Route path="proposals/:id" element={<IcpdpProposalDetail />} />
+              <Route path="club-registrations" element={<IcpdpClubRegistrationList />} />
+              <Route path="club-registrations/:id" element={<IcpdpClubRegistrationDetail />} />
               <Route path="events" element={<IcpdpEventList />} />
+              <Route path="events/create" element={<CtsvEventCreate />} />
+              <Route path="events/:id/edit" element={<CtsvEventCreate />} />
               <Route path="events/:id" element={<IcpdpEventDetail />} />
               <Route path="calendar" element={<IcpdpCalendar />} />
               <Route path="reports" element={<IcpdpReports />} />
               <Route path="profile" element={<IcpdpProfileSettings showToast={showToast} />} />
+              <Route path="settings" element={<PortalSettingsView showToast={showToast} role="icpdp" />} />
               <Route path="announcements" element={<IcpdpAnnouncementManage />} />
               <Route
                 path="announcements/:id"
@@ -216,6 +318,7 @@ function App() {
               <Route path="home" element={<Navigate to="/partner" replace />} />
               <Route path="dashboard" element={<PartnerDashboard />} />
               <Route path="profile" element={<PartnerProfileSettings showToast={showToast} />} />
+              <Route path="settings" element={<PortalSettingsView showToast={showToast} role="partner" />} />
               <Route path="events" element={<PartnerEventList />} />
               <Route path="events/:id" element={<PartnerEventDetail />} />
               <Route path="join/events" element={<Navigate to="/partner" replace />} />
@@ -246,6 +349,11 @@ function App() {
 
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/login" element={<Login showToast={showToast} />} />
+          <Route path="/auth/google/callback" element={<GoogleAuthCallback showToast={showToast} />} />
+          <Route path="/forgot-password" element={<ForgotPassword showToast={showToast} />} />
+          <Route path="/forgot" element={<ForgotPassword showToast={showToast} />} />
+          <Route path="/reset-password" element={<ResetPassword showToast={showToast} />} />
+          <Route path="/unlock-account" element={<UnlockAccount showToast={showToast} />} />
           <Route
             path="/profile"
             element={
@@ -271,40 +379,36 @@ function App() {
 
           <Route path="/events" element={<Events showToast={showToast} />} />
           <Route path="/events/:eventId" element={<EventDetail showToast={showToast} />} />
-          <Route path="/clubs" element={<Clubs showToast={showToast} />} />
+          <Route path="/clubs" element={<PublicClubsRoute showToast={showToast} />} />
           <Route path="/clubs/:clubId" element={<ClubDetail showToast={showToast} />} />
+          <Route path="/dept/:deptType" element={<PublicDeptDetailRoute showToast={showToast} />} />
+          <Route path="/partners/:partnerId" element={<PublicPartnerDetailRoute showToast={showToast} />} />
+          <Route
+            path="/unit-notify/:unitType/:unitId"
+            element={<PublicUnitNotifyRoute showToast={showToast} />}
+          />
           <Route
             path="/quan-ly-clb"
             element={
               <ProtectedRoute>
-                <ClubManagement showToast={showToast} />
+                <ClubManagerLayout showToast={showToast} />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<ClubManagement />} />
+            <Route path="announcements" element={<ClubAnnouncementsPage />} />
+            <Route path="announcements/:id" element={<ClubAnnouncementDetailPage />} />
+            <Route path="su-kien/:id" element={<EventManagementDetail />} />
+          </Route>
           <Route
-            path="/quan-ly-clb/announcements"
+            path="/quet-qr"
             element={
               <ProtectedRoute>
-                <ClubAnnouncementsPage showToast={showToast} />
+                <QrScanPage showToast={showToast} />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/quan-ly-clb/announcements/:id"
-            element={
-              <ProtectedRoute>
-                <ClubAnnouncementDetailPage showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/quan-ly-clb/su-kien/:id"
-            element={
-              <ProtectedRoute>
-                <EventManagementDetail showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/scan-qr" element={<ScanQrLegacyRedirect />} />
           <Route
             path="/create-event"
             element={
@@ -316,16 +420,24 @@ function App() {
           <Route path="/admin" element={<AdminAreaGuard />}>
             <Route element={<AdminLayout showToast={showToast} />}>
               <Route index element={<AdminMonitoringDashboard />} />
+              <Route path="calendar" element={<AdminCalendar />} />
+              <Route path="icpdp/club-registrations" element={<IcpdpClubRegistrationList />} />
+              <Route path="icpdp/club-registrations/:id" element={<IcpdpClubRegistrationDetail />} />
+              <Route path="profile" element={<Profile showToast={showToast} embedded />} />
+              <Route path="settings" element={<PortalSettingsView showToast={showToast} role="admin" />} />
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
               <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />
               <Route path="event-requests" element={<AdminEventRequests showToast={showToast} />} />
+              <Route path="ctsv-reports" element={<AdminSubmittedReports />} />
+              <Route path="ctsv-reports/:id" element={<AdminSubmittedReportDetail />} />
               <Route path="accounts" element={<AdminAccountsControl />} />
               <Route path="system" element={<AdminSystemControl />} />
-              <Route path="data" element={<AdminDataMaintenance />} />
               <Route path="partners" element={<AdminPartners />} />
               <Route path="partners/approvals" element={<AdminPartnerApprovals showToast={showToast} />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="announcements" element={<AdminAnnouncementManage />} />
+              <Route path="unit-events/:unitType/:unitId" element={<AdminFptUnitEvents />} />
+              <Route path="unit-notify/:unitType/:unitId" element={<AdminFptUnitNotify />} />
               <Route
                 path="announcements/:id"
                 element={
@@ -374,28 +486,23 @@ function App() {
           />
           <Route
             path="/announcements"
-            element={
-              <ProtectedRoute>
-                <Announcements showToast={showToast} />
-              </ProtectedRoute>
-            }
+            element={<PublicAnnouncementsRoute showToast={showToast} />}
           />
           <Route
             path="/announcements/:id"
-            element={
-              <ProtectedRoute>
-                <AnnouncementDetail showToast={showToast} />
-              </ProtectedRoute>
-            }
+            element={<PublicAnnouncementDetailRoute showToast={showToast} />}
           />
 
           <Route path="/terms" element={<StaticPage pageKey="terms" />} />
           <Route path="/privacy" element={<StaticPage pageKey="privacy" />} />
           <Route path="/support" element={<StaticPage pageKey="support" />} />
           <Route path="/contact" element={<StaticPage pageKey="contact" />} />
+          <Route path="/guide" element={<StaticPage pageKey="guide" />} />
+          <Route path="/cookies" element={<StaticPage pageKey="cookies" />} />
 
           <Route path="*" element={<Navigate to={getHomePathForRole(getUserRole())} replace />} />
         </Routes>
+        </SystemMaintenanceGate>
       </div>
     </Router>
   );

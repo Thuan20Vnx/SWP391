@@ -128,7 +128,7 @@
 }
 
 .admin-acc-table thead {
-  background: #fafafa;
+  background: #ffffff;
   border-bottom: 2px solid #e0c0b2;
 }
 
@@ -151,7 +151,7 @@
 }
 
 .admin-acc-table tbody tr:hover {
-  background: #fffbf7;
+  background: #ffffff;
 }
 
 .admin-acc-table__empty {
@@ -170,7 +170,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ffedd5, #fed7aa);
+  background: #ffffff;
   color: #c2410c;
   font-size: 0.875rem;
   font-weight: 800;
@@ -196,43 +196,43 @@
 }
 
 .admin-acc-badge--ctsv {
-  background: #ffedd5;
+  background: #ffffff;
   color: #c2410c;
   border: 1px solid #fed7aa;
 }
 
 .admin-acc-badge--student {
-  background: #e0f2fe;
+  background: #ffffff;
   color: #0369a1;
   border: 1px solid #bae6fd;
 }
 
 .admin-acc-badge--attendee {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
   border: 1px solid #e2e8f0;
 }
 
 .admin-acc-badge--icpdp {
-  background: #ede9fe;
+  background: #ffffff;
   color: #6d28d9;
   border: 1px solid #ddd6fe;
 }
 
 .admin-acc-badge--partner {
-  background: #ecfdf5;
+  background: #ffffff;
   color: #047857;
   border: 1px solid #bbf7d0;
 }
 
 .admin-acc-badge--club {
-  background: #fff7ed;
+  background: #ffffff;
   color: #9a3412;
   border: 1px solid #ffedd5;
 }
 
 .admin-acc-badge--admin {
-  background: #fef2f2;
+  background: #ffffff;
   color: #b91c1c;
   border: 1px solid #fecaca;
 }
@@ -284,7 +284,7 @@
   align-items: stretch;
   gap: 4px;
   padding: 4px;
-  background: linear-gradient(180deg, #faf8f6 0%, #f5f0eb 100%);
+  background: #ffffff;
   border: 1px solid #e8ddd6;
   border-radius: 12px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -332,7 +332,7 @@
 
 .admin-acc-action-btn--view:hover:not(:disabled) {
   border-color: #94a3b8;
-  background: #f8fafc;
+  background: #ffffff;
   color: #334155;
 }
 
@@ -342,7 +342,7 @@
 
 .admin-acc-action-btn--edit:hover:not(:disabled) {
   border-color: #fdba74;
-  background: #fff7ed;
+  background: #ffffff;
   color: #ea580c;
 }
 
@@ -353,7 +353,7 @@
 
 .admin-acc-action-btn--reset:hover:not(:disabled) {
   border-color: #fcd34d;
-  background: #fffbeb;
+  background: #ffffff;
   color: #d97706;
 }
 
@@ -368,13 +368,13 @@
 }
 
 .admin-acc-action-btn__icon-wrap--reset {
-  background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
+  background: #ffffff;
   border: 1px solid #fde68a;
   color: #d97706;
 }
 
 .admin-acc-action-btn--reset:hover:not(:disabled) .admin-acc-action-btn__icon-wrap--reset {
-  background: linear-gradient(145deg, #fef3c7 0%, #fde047 100%);
+  background: #ffffff;
   transform: scale(1.05);
 }
 
@@ -415,12 +415,12 @@
 
 .admin-role-picker__card:hover:not(.admin-role-picker__card--disabled) {
   border-color: #fdba74;
-  background: #fffcfa;
+  background: #ffffff;
 }
 
 .admin-role-picker__card--selected {
   border-color: #f26f21;
-  background: linear-gradient(135deg, #fff7ed 0%, #fff 55%);
+  background: #ffffff;
   box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.12);
 }
 
@@ -441,32 +441,32 @@
 }
 
 .admin-role-picker__icon--ctsv {
-  background: #ede9fe;
+  background: #ffffff;
   color: #6d28d9;
 }
 
 .admin-role-picker__icon--icpdp {
-  background: #e0f2fe;
+  background: #ffffff;
   color: #0369a1;
 }
 
 .admin-role-picker__icon--partner {
-  background: #fce7f3;
+  background: #ffffff;
   color: #be185d;
 }
 
 .admin-role-picker__icon--club {
-  background: #fef3c7;
+  background: #ffffff;
   color: #b45309;
 }
 
 .admin-role-picker__icon--student {
-  background: #dcfce7;
+  background: #ffffff;
   color: #15803d;
 }
 
 .admin-role-picker__icon--attendee {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
 }
 
@@ -521,7 +521,7 @@
   padding: 14px 16px;
   margin-bottom: 16px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+  background: #ffffff;
   border: 1px solid #fde68a;
 }
 
@@ -533,7 +533,7 @@
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: linear-gradient(145deg, #fef3c7 0%, #fde047 100%);
+  background: #ffffff;
   border: 1px solid #fcd34d;
   color: #b45309;
   box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
@@ -558,7 +558,7 @@
 
 .admin-acc-action-btn--danger:hover:not(:disabled):not(.admin-acc-action-btn--disabled) {
   border-color: #fca5a5;
-  background: #fef2f2;
+  background: #ffffff;
   color: #991b1b;
 }
 
@@ -644,17 +644,17 @@
 }
 
 .admin-acc-detail-status--active {
-  background: #dcfce7;
+  background: #ffffff;
   color: #166534;
 }
 
 .admin-acc-detail-status--inactive {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #64748b;
 }
 
 .admin-acc-modal__input--readonly {
-  background: #f8fafc;
+  background: #ffffff;
   color: #64748b;
   cursor: not-allowed;
 }
@@ -670,7 +670,7 @@
   margin-bottom: 16px;
   padding: 14px;
   border-radius: 12px;
-  background: #fff7ed;
+  background: #ffffff;
   border: 1px solid #fed7aa;
 }
 
@@ -722,7 +722,7 @@
   gap: 12px;
   padding: 16px 20px;
   border-top: 1px solid #f0e8e2;
-  background: #fafafa;
+  background: #ffffff;
 }
 
 .admin-acc-pagination__info {
@@ -815,14 +815,14 @@
   width: 40px;
   height: 40px;
   border: none;
-  background: #fafafa;
+  background: #ffffff;
   border-radius: 10px;
   color: #584238;
   cursor: pointer;
 }
 
 .admin-acc-modal__close:hover:not(:disabled) {
-  background: #fff7ed;
+  background: #ffffff;
   color: #f26f21;
 }
 
@@ -915,7 +915,7 @@
   gap: 16px;
   padding: 14px 16px;
   border-radius: 10px;
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
 }
 

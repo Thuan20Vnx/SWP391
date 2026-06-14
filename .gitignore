@@ -9,5 +9,8 @@ BE/data/last_otp.txt
 figma-ui-mcp-plugin/
 
 .cursor/
-.understand-anything/
+.understand-anything/intermediate/
+.understand-anything/tmp/
+.understand-anything/diff-overlay.json
+.understand-anything/.trash-*/
 screenshot-current-page.png

@@ -4,7 +4,7 @@
 
 @theme {
   --color-brand: #f26f21;
-  --color-brand-soft: #fff8f4;
+  --color-brand-soft: #ffffff;
 }
 
 @keyframes settings-modal-in {
