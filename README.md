@@ -167,3 +167,23 @@ Tài liệu SRS đóng vai trò là nền tảng chuẩn hóa toàn bộ quá tr
 * Giảm thiểu rủi ro thay đổi yêu cầu trong quá trình phát triển.
 
 ---
+
+## 7. Các Cập nhật & Tối ưu hóa Mới nhất (Recent Updates)
+
+Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các phân hệ nghiệp vụ sau:
+
+### 7.1. Phân hệ Phòng Công tác Sinh viên (CTSV) & ICPDP
+* **Tối ưu hóa Giao diện Mobile:** Cải tiến hệ thống Navigation, Header, Sidebar và Menu Hamburger để mang lại trải nghiệm tối ưu cho người dùng thiết bị di động.
+* **Tích hợp Xuất Excel:** Hỗ trợ xuất trực quan dữ liệu báo cáo sự kiện/sinh viên ra định dạng Excel từ Dashboard.
+* **Quy trình Nộp Báo cáo (Report Submission):** Thiết lập quy trình nộp và xử lý báo cáo tổng kết sự kiện tối giản, minh bạch.
+* **Tối ưu hóa Dashboard & Lọc Thông báo:** Thiết lập điều chỉnh lời chào dựa theo múi giờ Việt Nam, tối ưu bộ lọc thông báo trên dashboard.
+* **Quản trị Thông báo Toàn diện (Announcement Management):** Xây dựng hoàn thiện phân hệ quản trị tin tức/thông báo đa nền tảng (CRUD). Cho phép CTSV và Admin soạn thảo, đính kèm hình ảnh đại diện, liên kết với các sự kiện chính quy/đối tác đã duyệt, cấu hình nhóm đối tượng nhận tin (*Guest, Student, Club Organizer, Partner, ICPDP, CTSV, Admin*) và loại thông báo (*Thông tin thường, Yêu cầu hành động, Khẩn cấp*).
+
+### 7.2. Phân hệ Đối tác (Partner)
+* **Nâng cấp Portal & Mobile Hero:** Tối ưu hóa giao diện hiển thị biểu ngữ (Hero section/Banner) trên di động của Partner, cải tiến thanh điều hướng Sidebar giúp tương thích tốt hơn.
+
+### 7.3. Cải tiến Kỹ thuật & Hiệu năng (Technical Enhancements)
+* **Cơ chế API Caching & Request Deduping:** Triển khai module `apiCache.js` ở Frontend để lưu trữ tạm thời phản hồi API (TTL mặc định 60 giây). Tích hợp cơ chế **Deduping** (`cachedFetchDedup`) nhằm ngăn chặn việc gọi trùng lặp các API Request bất đồng bộ đang thực thi cùng lúc.
+* **Tối ưu hóa `useUserProfile` Hook:** Áp dụng bộ đệm API Cache & Deduping để tối ưu hóa việc tải dữ liệu hồ sơ cá nhân. Tránh tình trạng lặp lại yêu cầu API lấy thông tin người dùng khi chuyển hướng trang hoặc render nhiều thành phần giao diện song song, giảm tải rõ rệt cho Server Backend.
+* **Bảo mật Đăng xuất (Secure Logout):** Tự động dọn sạch toàn bộ cache dữ liệu API (`clearAllCache`) ngay khi người dùng đăng xuất, ngăn ngừa nguy cơ rò rỉ dữ liệu hoặc dùng lại thông tin của phiên làm việc cũ.
+
