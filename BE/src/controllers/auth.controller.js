@@ -62,6 +62,21 @@ const googleCalendarCallback = async (req, res) => {
   }
 };
 
+const unlockAccount = async (req, res) => {
+  const result = await authService.unlockAccount(req.query.token);
+  res.status(200).json({ success: true, ...result });
+};
+
+const forgotPassword = async (req, res) => {
+  const result = await authService.forgotPassword(req.body);
+  res.status(200).json({ success: true, ...result });
+};
+
+const resetPassword = async (req, res) => {
+  const result = await authService.resetPassword(req.body);
+  res.status(200).json({ success: true, ...result });
+};
+
 module.exports = {
   login,
   signup,
@@ -71,4 +86,7 @@ module.exports = {
   googleCallback,
   googleCalendarConnect,
   googleCalendarCallback,
+  unlockAccount,
+  forgotPassword,
+  resetPassword,
 };

@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 require('./SchoolMember');
 const {
   normalizeStudentId,
@@ -43,8 +43,9 @@ const userSchema = new mongoose.Schema({
   // ===========================================================
   course: {
     type: String,
-    default: 'K18'
+    default: ''
   },
+
   campus: {
     type: String,
     default: 'FPT University Da Nang'

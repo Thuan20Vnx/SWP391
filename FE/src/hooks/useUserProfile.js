@@ -4,7 +4,7 @@ import { resolveUserAvatar } from '../utils/image';
 import defaultAvatar from '../constants/defaultAvatar';
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { normalizeRole } from '../utils/auth';
-import { cachedFetchDedup, invalidateCache } from '../utils/apiCache';
+import { clearProfileDetailCache } from '../utils/profileDetailCache';
 
 const PROFILE_CACHE_KEY = 'fevents_user_profile';
 
@@ -46,9 +46,11 @@ const writeCachedProfile = (profile) => {
   }
 };
 
+export const readUserProfileSummaryCache = readCachedProfile;
+
 export const clearUserProfileCache = () => {
   sessionStorage.removeItem(PROFILE_CACHE_KEY);
-  invalidateCache('user:profile');
+  clearProfileDetailCache();
 };
 
 export const cacheUserProfile = (profile) => {
@@ -60,7 +62,7 @@ const useUserProfile = () => {
     () => localStorage.getItem('isLoggedIn') === 'true'
   );
   const [profileLoading, setProfileLoading] = useState(
-    () => localStorage.getItem('isLoggedIn') === 'true'
+    () => localStorage.getItem('isLoggedIn') === 'true' && !readCachedProfile()
   );
   const [userProfile, setUserProfile] = useState(
     () => readCachedProfile() || emptyProfile
@@ -82,20 +84,11 @@ const useUserProfile = () => {
       return;
     }
 
-    // Nếu đã có cached profile (sessionStorage), hiển thị ngay
     const cached = readCachedProfile();
-    if (cached) {
-      setUserProfile(cached);
-      setProfileLoading(false);
-    } else {
-      setProfileLoading(true);
-    }
+    if (!cached) setProfileLoading(true);
 
-    cachedFetchDedup('user:profile', () =>
-      fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-        .then((res) => (res.ok ? res.json() : Promise.reject(new Error('profile fetch failed')))),
-      { ttl: 30000 }
-    )
+    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('profile fetch failed'))))
       .then((data) => {
         const u = data.user;
         const profile = {
@@ -109,8 +102,8 @@ const useUserProfile = () => {
         writeCachedProfile(profile);
       })
       .catch(() => {
-        const fallback = readCachedProfile();
-        if (fallback) setUserProfile(fallback);
+        const cached = readCachedProfile();
+        if (cached) setUserProfile(cached);
       })
       .finally(() => setProfileLoading(false));
   }, []);

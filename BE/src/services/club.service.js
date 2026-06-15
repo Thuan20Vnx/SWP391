@@ -456,10 +456,20 @@ const ALLOWED_PROFILE_FIELDS = [
   'logoColor',
 ];
 
-const findManagedClubs = async (userId) => {
-  const clubs = await Club.find({ managedBy: userId }).sort({ name: 1 });
+const findManagedClubs = async (userId, options = {}) => {
+  const { excludeImages = false, select = null } = options;
+  let query = Club.find({ managedBy: userId }).sort({ name: 1 });
+  if (select) query = query.select(select);
+  else if (excludeImages) query = query.select('-coverImage -logoImage');
+
+  const clubs = await query;
   if (clubs.length) return clubs;
-  const fallback = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
+
+  let fallbackQuery = Club.findOne({ slug: MANAGED_CLUB_SLUG });
+  if (select) fallbackQuery = fallbackQuery.select(select);
+  else if (excludeImages) fallbackQuery = fallbackQuery.select('-coverImage -logoImage');
+
+  const fallback = await fallbackQuery;
   return fallback ? [fallback] : [];
 };
 
@@ -471,8 +481,8 @@ const formatManagedClubBrief = (club) => ({
   logoText: club.logoText || '',
 });
 
-const resolveManagedClub = async (userId, activeClubId = null) => {
-  const clubs = await findManagedClubs(userId);
+const resolveManagedClub = async (userId, activeClubId = null, options = {}) => {
+  const clubs = await findManagedClubs(userId, options);
   if (!clubs.length) return null;
 
   if (activeClubId) {
@@ -541,8 +551,30 @@ const transferClubChairman = async (currentUserId, payload = {}, activeClubId = 
   };
 };
 
-const getManagedClubProfile = async (userId, activeClubId = null) => {
-  const club = await resolveManagedClub(userId, activeClubId);
+const getManagedClubProfile = async (userId, activeClubId = null, { lite = false, mediaOnly = false } = {}) => {
+  if (mediaOnly) {
+    const club = await resolveManagedClub(userId, activeClubId, {
+      select: 'coverImage logoImage coverPositionY managedBy',
+    });
+
+    if (!club) {
+      throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
+    }
+
+    if (club.managedBy && String(club.managedBy) !== String(userId)) {
+      throw new AppError('Bạn không có quyền quản lý hồ sơ CLB này.', 403);
+    }
+
+    return {
+      club: {
+        coverImage: club.coverImage || '',
+        logoImage: club.logoImage || '',
+        coverPositionY: club.coverPositionY ?? 50,
+      },
+    };
+  }
+
+  const club = await resolveManagedClub(userId, activeClubId, { excludeImages: lite });
 
   if (!club) {
     throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);

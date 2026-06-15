@@ -4,6 +4,7 @@ import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { startGoogleLogin } from '../utils/googleAuth';
 import { cacheUserProfile } from '../hooks/useUserProfile';
+import { writeProfileDetailCache, mapUserToProfileDetail } from '../utils/profileDetailCache';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import { getHomePathForRole, normalizeRole, isCtsvRole } from '../utils/auth';
 import { resetCtsvSidebarOnLogin } from '../components/ctsv/ctsvNavConfig';
@@ -26,6 +27,8 @@ const persistProfileFromUser = (user) => {
   };
   localStorage.setItem('userRole', profile.role);
   cacheUserProfile(profile);
+  const detail = mapUserToProfileDetail(user);
+  if (detail) writeProfileDetailCache(detail);
 };
 
 const Login = ({ showToast }) => {
@@ -42,6 +45,35 @@ const Login = ({ showToast }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loginLocked, setLoginLocked] = useState(false);
+  const [emailLocked, setEmailLocked] = useState(false);
+  const [lockCountdown, setLockCountdown] = useState(0);
+  const [remainingAttempts, setRemainingAttempts] = useState(null);
+  const [lockedForEmail, setLockedForEmail] = useState('');
+
+  const normalizeLoginEmail = (email) => email.trim().toLowerCase();
+
+  const resetLoginLockState = () => {
+    setLoginLocked(false);
+    setEmailLocked(false);
+    setLockCountdown(0);
+    setLockedForEmail('');
+    setRemainingAttempts(null);
+  };
+
+  const clearLockStateIfEmailChanged = (nextEmail) => {
+    const normalized = normalizeLoginEmail(nextEmail);
+    if (lockedForEmail && normalized !== lockedForEmail) {
+      resetLoginLockState();
+      setErrors((prev) => ({ ...prev, password: false }));
+    }
+  };
+
+  const isLoginBlockedForCurrentEmail = () => {
+    if (!lockedForEmail) return false;
+    if (normalizeLoginEmail(formData.email) !== lockedForEmail) return false;
+    return emailLocked || lockCountdown > 0;
+  };
 
   useEffect(() => {
     const savedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
@@ -56,38 +88,76 @@ const Login = ({ showToast }) => {
   }, []);
 
   useEffect(() => {
+    if (!loginLocked || lockCountdown <= 0) return undefined;
+
+    const timer = window.setInterval(() => {
+      setLockCountdown((prev) => {
+        if (prev <= 1) {
+          setLoginLocked(false);
+          setLockedForEmail('');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [loginLocked, lockCountdown]);
+
+  const applyLoginLock = (retryAfterSeconds, email) => {
+    const seconds = Math.max(0, Number(retryAfterSeconds) || 30);
+    setLoginLocked(true);
+    setEmailLocked(false);
+    setLockCountdown(seconds);
+    setLockedForEmail(normalizeLoginEmail(email));
+  };
+
+  const applyEmailLock = (email) => {
+    setLoginLocked(true);
+    setEmailLocked(true);
+    setLockCountdown(0);
+    setLockedForEmail(normalizeLoginEmail(email));
+    setErrors((prev) => ({ ...prev, password: false }));
+  };
+
+  const handleLoginError = (status, data) => {
+    setValidFields((prev) => ({ ...prev, password: false }));
+    setErrors((prev) => ({ ...prev, password: true }));
+
+    if (status === 423 && data.code === 'LOGIN_EMAIL_LOCKED') {
+      applyEmailLock(formData.email);
+      triggerShake('password');
+      return;
+    }
+
+    if (status === 423 && data.code === 'LOGIN_LOCKED') {
+      applyLoginLock(data.retryAfterSeconds, formData.email);
+      setErrors((prev) => ({ ...prev, password: false }));
+      triggerShake('password');
+      return;
+    }
+
+    if (typeof data.remainingAttempts === 'number') {
+      setRemainingAttempts(data.remainingAttempts);
+    }
+
+    const errorSpan = document.getElementById('error-password');
+    if (errorSpan) {
+      errorSpan.textContent = data.message || 'Tài khoản hoặc mật khẩu không chính xác.';
+    }
+
+    triggerShake('password');
+  };
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const authStatus = params.get('auth_status');
-    if (authStatus === 'success') {
-      const email = params.get('email');
-      const name = params.get('name');
-      const token = params.get('token');
+    if (!authStatus) return;
 
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('loginMethod', 'google');
-      if (token) localStorage.setItem('authToken', token);
-
-      fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
-        .then(r => r.json())
-        .then(d => {
-          if (d.success && d.user) {
-            persistProfileFromUser(d.user);
-            if (isCtsvRole(normalizeRole(d.user.role))) {
-              resetCtsvSidebarOnLogin();
-            }
-          }
-        })
-        .catch(() => {});
-
-      dispatchAuthChanged();
-      navigate('/', { replace: true });
-    } else if (authStatus === 'error') {
-      const message = params.get('message') || 'Đăng nhập Google thất bại.';
-      showToast(message, 'error');
-      navigate('/login', { replace: true });
-    }
-  }, [navigate, showToast]);
+    // Legacy callback URL — forward to dedicated handler route
+    const query = window.location.search;
+    window.location.replace(`/auth/google/callback${query}`);
+  }, []);
 
   const validateField = (name, value) => {
     let isValid = false;
@@ -118,6 +188,7 @@ const Login = ({ showToast }) => {
 
   const handleEmailChange = (e) => {
     const value = e.target.value;
+    clearLockStateIfEmailChanged(value);
     setFormData(prev => ({ ...prev, email: value }));
 
     const isValid = patterns.email.test(value.trim());
@@ -141,6 +212,8 @@ const Login = ({ showToast }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (isLoginBlockedForCurrentEmail()) return;
 
     const isEmailValid = validateField('email', formData.email);
     const isPasswordValid = validateField('password', formData.password);
@@ -167,6 +240,8 @@ const Login = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
+          resetLoginLockState();
+
           persistProfileFromUser(data.user);
 
           localStorage.setItem('isLoggedIn', 'true');
@@ -187,22 +262,18 @@ const Login = ({ showToast }) => {
           }
           navigate(getHomePathForRole(role));
         } else {
-          setValidFields(prev => ({ ...prev, password: false }));
-          setErrors(prev => ({ ...prev, password: true }));
-
-          const errorSpan = document.getElementById('error-password');
-          if (errorSpan) {
-            errorSpan.textContent = data.message || "Tài khoản hoặc mật khẩu không chính xác.";
-          }
-
-          triggerShake('password');
+          handleLoginError(status, data);
         }
       })
-      .catch(err => {
+      .catch(() => {
         setLoading(false);
         showToast('Không thể kết nối đến máy chủ Backend!', 'error');
       });
   };
+
+  const isSubmitDisabled = loading || isLoginBlockedForCurrentEmail();
+  const showTempLockBanner = isLoginBlockedForCurrentEmail() && !emailLocked && lockCountdown > 0;
+  const showEmailLockBanner = isLoginBlockedForCurrentEmail() && emailLocked;
 
   const handleSsoClick = () => {};
 
@@ -213,23 +284,19 @@ const Login = ({ showToast }) => {
   };
 
   return (
-    <main className="page-container split-50">
-      {/* Left Column: Branding (50%) */}
+    <main className="page-container">
       <section className="branding-column" aria-label="Giới thiệu cộng đồng FPT">
-        <div className="glass-overlay"></div>
+        <div className="glass-overlay" />
         <div className="branding-content">
-          <div className="slogan-container login-slogan">
-            <h2 className="slogan-title" style={{ fontSize: '3rem', fontWeight: 800, lineHeight: '60px', color: '#ffffff', letterSpacing: '-0.5px', marginBottom: '16px' }}>
-              Kết nối tri thức,<br />Kiến tạo tương lai.
-            </h2>
-            <p className="slogan-desc" style={{ fontSize: '1.25rem', fontWeight: 400, lineHeight: '32.5px', color: '#ffffff' }}>
-              Tham gia vào hệ sinh thái sự kiện công nghệ và giáo dục hàng đầu dành cho cộng đồng FPT.
+          <div className="slogan-container">
+            <p className="slogan-tag">Kiến tạo tương lai</p>
+            <p className="slogan-desc">
+              Kết nối hàng ngàn sinh viên thông qua những sự kiện công nghệ và văn hóa hàng đầu tại FPT.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Right Column: Login Form (50%) */}
       <section className="form-column" aria-label="Biểu mẫu đăng nhập tài khoản">
         <div className="auth-form-shell">
           <Link to="/" className="auth-page-back">
@@ -359,7 +426,9 @@ const Login = ({ showToast }) => {
                   )}
                 </button>
               </div>
-              <span className="error-message" id="error-password">Mật khẩu phải từ 8 ký tự trở lên</span>
+              <span className="error-message" id="error-password">
+                {showTempLockBanner || showEmailLockBanner ? '' : 'Mật khẩu phải từ 8 ký tự trở lên'}
+              </span>
             </div>
 
             {/* Remember me & Forgot password */}
@@ -374,10 +443,42 @@ const Login = ({ showToast }) => {
                 <span className="checkbox-checkmark"></span>
                 <span className="checkbox-label">Ghi nhớ tài khoản</span>
               </label>
-              <Link to="/forgot-password" id="forgot-password-link" className="accent-link" style={{ fontSize: '0.875rem' }}>
+              <Link to="/forgot-password" id="forgot-password-link" className="login-forgot-link">
                 Quên mật khẩu?
               </Link>
             </div>
+
+            {showTempLockBanner && (
+              <div
+                style={{
+                  marginBottom: '12px',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  background: '#fff7ed',
+                  color: '#9a3412',
+                  fontSize: '14px',
+                  lineHeight: 1.5,
+                }}
+              >
+                Tạm khóa đăng nhập. Thử lại sau <strong>{lockCountdown}s</strong>.
+              </div>
+            )}
+
+            {showEmailLockBanner && (
+              <div
+                style={{
+                  marginBottom: '12px',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  background: '#fff3f3',
+                  color: '#b42318',
+                  fontSize: '14px',
+                  lineHeight: 1.5,
+                }}
+              >
+                Tài khoản bị khóa. Kiểm tra email và bấm liên kết mở khóa.
+              </div>
+            )}
 
             {/* Submit Button */}
             <button
@@ -385,7 +486,7 @@ const Login = ({ showToast }) => {
               id="login-btn"
               className="primary-button"
               style={{ marginTop: '0px', height: '46px' }}
-              disabled={loading}
+              disabled={isSubmitDisabled}
             >
               {loading ? (
                 <span className="btn-spinner"></span>

@@ -27,6 +27,8 @@ const HOME_CATEGORY_FILTERS = [
 ];
 
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import useDebouncedValue from '../hooks/useDebouncedValue';
+import { fetchPublicEvents } from '../services/eventsApi';
 import useUserProfile from '../hooks/useUserProfile';
 import useManagedClubs from '../hooks/useManagedClubs';
 import {
@@ -46,6 +48,7 @@ const Home = ({ showToast }) => {
 
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery.trim(), 400);
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
 
@@ -97,10 +100,13 @@ const Home = ({ showToast }) => {
     }
   ];
 
-  // Load events from API
+  // Load events from API (search via query param q)
   useEffect(() => {
-    fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
-      .then((res) => res.json())
+    setEventsLoading(true);
+    fetchPublicEvents({
+      q: debouncedSearch || undefined,
+      category: categoryFilter !== 'Tất cả' ? categoryFilter : undefined,
+    })
       .then((data) => {
         if (data.success && data.events?.length > 0) {
           const mapped = filterActiveDiscoveryEvents(data.events).map(mapApiEventToCard);
@@ -111,22 +117,10 @@ const Home = ({ showToast }) => {
       })
       .catch((err) => console.error(err))
       .finally(() => setEventsLoading(false));
-  }, [isLoggedIn, userProfile.role]);
+  }, [isLoggedIn, userProfile.role, debouncedSearch, categoryFilter]);
 
   const applyLocalFilters = (list) => {
     let result = list;
-    if (searchQuery.trim() !== '') {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (ev) =>
-          ev.title.toLowerCase().includes(q) ||
-          ev.category.toLowerCase().includes(q) ||
-          ev.location.toLowerCase().includes(q)
-      );
-    }
-    if (categoryFilter !== 'Tất cả') {
-      result = result.filter((ev) => ev.category === categoryFilter);
-    }
     if (timeFilter === 'Hôm nay') {
       const today = new Date().toDateString();
       result = result.filter((ev) => {
@@ -152,7 +146,7 @@ const Home = ({ showToast }) => {
 
   const filteredEvents = useMemo(
     () => applyLocalFilters(sortedEvents).slice(0, HOME_DISPLAY_LIMIT),
-    [sortedEvents, searchQuery, categoryFilter, timeFilter]
+    [sortedEvents, timeFilter]
   );
 
   const heroSlides = useMemo(() => {

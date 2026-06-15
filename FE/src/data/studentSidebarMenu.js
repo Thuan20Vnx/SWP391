@@ -1,6 +1,11 @@
 import { isClubManagerRole } from '../utils/auth';
+import { PUBLIC_NAV_ITEMS } from './publicNavItems';
 
 export const studentMenuSections = [
+  {
+    header: 'Khám phá',
+    items: PUBLIC_NAV_ITEMS,
+  },
   {
     items: [
       { key: 'profile', label: 'Thông tin cá nhân', path: '/profile', icon: 'user' },
