@@ -3,6 +3,7 @@ const { EVENT_CATEGORIES, normalizeEventCategory } = require('../constants/event
 const { EVENT_CAMPUS, EVENT_VENUES } = require('../constants/eventVenues');
 const { syncPrimarySpeakerFields } = require('../constants/eventSpeaker');
 const { EVENT_STATUSES } = require('../constants/eventWorkflow');
+const { clearEventCache } = require('../utils/eventCache');
 
 const ticketTypeSchema = new mongoose.Schema(
   {
@@ -223,6 +224,9 @@ eventSchema.index({ clubId: 1, createdAt: -1 });
 eventSchema.index({ isHidden: 1, status: 1, startDate: 1 });
 eventSchema.index({ source: 1, status: 1, ctsvSubmittedAt: -1 });
 eventSchema.index({ source: 1, status: 1, moderationRequestedAt: -1 });
+eventSchema.index({ isDeleted: 1, isHidden: 1, status: 1, startDate: 1 });
+eventSchema.index({ isDeleted: 1, isHidden: 1, status: 1, category: 1, startDate: 1 });
+eventSchema.index({ isDeleted: 1, isHidden: 1, status: 1, clubId: 1, startDate: 1 });
 
 eventSchema.virtual('fillPercent').get(function () {
   const cap = this.capacity || this.totalTickets || 0;
@@ -269,6 +273,26 @@ eventSchema.statics.CATEGORIES = EVENT_CATEGORIES;
 eventSchema.statics.CAMPUS = EVENT_CAMPUS;
 eventSchema.statics.VENUES = EVENT_VENUES;
 eventSchema.statics.EVENT_STATUSES = EVENT_STATUSES;
+
+// Register post hooks to clear the cache on any mutations
+eventSchema.post('save', function () {
+  clearEventCache();
+});
+eventSchema.post('remove', function () {
+  clearEventCache();
+});
+eventSchema.post('updateOne', function () {
+  clearEventCache();
+});
+eventSchema.post('updateMany', function () {
+  clearEventCache();
+});
+eventSchema.post('findOneAndUpdate', function () {
+  clearEventCache();
+});
+eventSchema.post('findOneAndDelete', function () {
+  clearEventCache();
+});
 
 const Event = mongoose.model('Event', eventSchema);
 

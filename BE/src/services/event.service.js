@@ -15,6 +15,8 @@ const {
 } = require('../utils/ticketTypes');
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 const { findClubManagedBy, findManagedClubs, resolveManagedClub } = require('./club.service');
+const { applyEventTextSearch, normalizeSearchTerm, escapeRegex } = require('../utils/eventSearch');
+const { getCachedApprovedEvents, setCachedApprovedEvents } = require('../utils/eventCache');
 
 /** Trạng thái chờ duyệt (đồng bộ với luồng CTSV / CLB) */
 const PENDING_EVENT_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'revision'];
@@ -298,29 +300,88 @@ const updateEventStatus = async (eventId, { status, rejectionReason }) => {
   };
 };
 
-const getApprovedEvents = async ({ category, user } = {}) => {
-  const query = {
-    status: { $in: SCHOOL_EVENT_PUBLIC_STATUSES },
-    isHidden: { $ne: true },
-    isDeleted: { $ne: true },
-  };
-  if (category && category !== 'all') {
-    query.category = category;
+const resolveClubRef = async (idOrSlug) => {
+  const raw = String(idOrSlug || '').trim();
+  if (!raw) return null;
+  if (mongoose.Types.ObjectId.isValid(raw)) {
+    const byId = await Club.findById(raw).select('_id').lean();
+    if (byId) return byId;
   }
+  return Club.findOne({ slug: raw }).select('_id').lean();
+};
 
-  const [events, registeredIds] = await Promise.all([
-    Event.find(query)
+const getApprovedEvents = async ({ category, search, q, club, user } = {}) => {
+  let allEvents = getCachedApprovedEvents();
+
+  if (!allEvents) {
+    const query = {
+      status: { $in: SCHOOL_EVENT_PUBLIC_STATUSES },
+      isHidden: { $ne: true },
+      isDeleted: { $ne: true },
+    };
+
+    const rawEvents = await Event.find(query)
       .select(EVENT_PUBLIC_LIST_FIELDS)
       .populate('createdBy', 'fullname email')
       .sort({ startDate: 1 })
-      .limit(300)
-      .lean(),
-    user?._id ? getRegisteredEventIds(user._id) : Promise.resolve([]),
-  ]);
+      .lean();
 
-  const registeredSet = new Set(registeredIds);
+    allEvents = await attachClubMetaBatch(rawEvents);
+    setCachedApprovedEvents(allEvents);
+  }
 
-  const eventsWithRegistration = events.map((event) => {
+  // 1. Filter by category in-memory
+  let filtered = allEvents;
+  const categoryValue = String(category || '').trim();
+  if (categoryValue && categoryValue !== 'all' && categoryValue !== 'Tất cả') {
+    filtered = filtered.filter((event) => event.category === categoryValue);
+  }
+
+  // 2. Filter by club in-memory
+  const clubRef = String(club || '').trim();
+  if (clubRef) {
+    const clubDoc = await resolveClubRef(clubRef);
+    if (!clubDoc) {
+      return { events: [], total: 0 };
+    }
+    filtered = filtered.filter((event) => String(event.clubId) === String(clubDoc._id));
+  }
+
+  // 3. Filter by search term in-memory
+  const searchTerm = normalizeSearchTerm(search || q);
+  if (searchTerm) {
+    const re = new RegExp(escapeRegex(searchTerm), 'i');
+    
+    // Find matching clubs first
+    const matchingClubs = await Club.find({
+      $or: [{ name: re }, { slug: re }],
+    })
+      .select('_id')
+      .lean();
+    const matchingClubIds = new Set(matchingClubs.map((c) => String(c._id)));
+
+    filtered = filtered.filter((event) => {
+      const matchesField = (text) => text && re.test(String(text));
+      
+      const titleMatch = matchesField(event.title);
+      const locMatch = matchesField(event.location);
+      const catMatch = matchesField(event.category);
+      const descMatch = matchesField(event.description);
+      const orgMatch = matchesField(event.schoolOrganizerRole);
+      const clubMatch = event.clubId && matchingClubIds.has(String(event.clubId));
+      
+      return titleMatch || locMatch || catMatch || descMatch || orgMatch || clubMatch;
+    });
+  }
+
+  // Limit to 300 to match database query limit
+  const slicedEvents = filtered.slice(0, 300);
+
+  // 4. Map user-specific properties dynamically
+  const registeredIds = user?._id ? await getRegisteredEventIds(user._id) : [];
+  const registeredSet = new Set(registeredIds.map(id => String(id)));
+
+  const finalEvents = slicedEvents.map((event) => {
     const doc = {
       ...event,
       isRegistered: registeredSet.has(String(event._id)),
@@ -328,9 +389,7 @@ const getApprovedEvents = async ({ category, user } = {}) => {
     return enrichEventWithPricing(doc, user);
   });
 
-  const eventsWithClubMeta = await attachClubMetaBatch(eventsWithRegistration);
-
-  return { events: eventsWithClubMeta };
+  return { events: finalEvents, total: finalEvents.length };
 };
 
 const getEventById = async (eventId, { user, activeClubId } = {}) => {

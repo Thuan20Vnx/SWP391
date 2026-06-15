@@ -55,7 +55,13 @@ const getManagedClubs = async (req, res) => {
 };
 
 const getManagedClubProfile = async (req, res) => {
-  const result = await clubService.getManagedClubProfile(req.user._id, readActiveClubId(req));
+  const lite = ['1', 'true'].includes(String(req.query.lite || '').toLowerCase());
+  const mediaOnly = ['1', 'true'].includes(String(req.query.media || '').toLowerCase());
+  const result = await clubService.getManagedClubProfile(
+    req.user._id,
+    readActiveClubId(req),
+    { lite, mediaOnly }
+  );
   res.status(200).json({ success: true, ...result });
 };
 
