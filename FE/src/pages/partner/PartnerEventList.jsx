@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import AppSelect from '../../components/ui/AppSelect';
+import PartnerCampusEventsSection from '../../components/partner/PartnerCampusEventsSection';
 import { fetchPartnerEvents } from '../../services/partnerApi';
 import { statusClass } from '../../utils/eventStatus';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
@@ -142,15 +143,15 @@ const PartnerEventList = () => {
         )}
       </section>
 
-      <aside className="partner-events-scope-note" aria-label="Phạm vi trang quản lý sự kiện">
-        <p>
-          <strong>Trang này dành cho quản lý sự kiện của bạn.</strong> Muốn khám phá và đăng ký tham gia
-          sự kiện campus khác?
-        </p>
-        <Link to="/partner" className="partner-events-scope-note__link">
-          Xem sự kiện campus trên Trang chủ đối tác →
-        </Link>
-      </aside>
+      <div className="recommended-header-row partner-events-section-header">
+        <div className="recommended-title-container">
+          <h2>Sự kiện đối tác</h2>
+          <p className="ctsv-home-section-desc">
+            Các sự kiện do doanh nghiệp bạn tài trợ hoặc đồng tổ chức cùng FPT University — theo dõi trạng
+            thái, vé và chi tiết vận hành tại đây.
+          </p>
+        </div>
+      </div>
 
       {loading ? (
         <div className="ctsv-events-grid" aria-busy="true" aria-label="Đang tải sự kiện">
@@ -222,6 +223,12 @@ const PartnerEventList = () => {
         </div>
       )}
 
+      <PartnerCampusEventsSection
+        showToast={showToast}
+        title="Sự kiện toàn trường"
+        description="Các sự kiện campus đang mở đăng ký tại FPT University. Sự kiện do bạn tổ chức hiển thị nút Quản lý thay vì Đăng ký."
+        className="partner-campus-section--events-page"
+      />
     </div>
   );
 };
