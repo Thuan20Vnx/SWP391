@@ -79,6 +79,46 @@ export const cachedFetch = async (cacheKey, fetchFn, options = {}) => {
 
 // Dedup: nếu cùng 1 key đang fetch, tái sử dụng promise đang chạy
 const _inflight = new Map();
+const FETCH_TIMEOUT_MS = 20_000;
+
+const runWithTimeout = (promise, cacheKey) => {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        _inflight.delete(cacheKey);
+        reject(new Error('Request timeout'));
+      }, FETCH_TIMEOUT_MS);
+    }),
+  ]).finally(() => clearTimeout(timer));
+};
+
+/**
+ * Cập nhật event trong mọi cache danh sách (events:list:*) còn hạn.
+ */
+export const patchEventsInListCaches = (eventId, patchFn) => {
+  const id = String(eventId || '');
+  if (!id) return;
+
+  for (const [key, entry] of _cache) {
+    if (!key.startsWith('events:list:')) continue;
+    if (Date.now() - entry.ts > entry.ttl) continue;
+    const data = entry.data;
+    if (!Array.isArray(data?.events)) continue;
+
+    let changed = false;
+    const events = data.events.map((ev) => {
+      if (String(ev._id || ev.id) !== id) return ev;
+      changed = true;
+      return patchFn(ev);
+    });
+
+    if (changed) {
+      entry.data = { ...data, events };
+    }
+  }
+};
 
 /**
  * Fetch với cache + dedup (tránh gọi trùng cùng lúc).
@@ -93,16 +133,19 @@ export const cachedFetchDedup = (cacheKey, fetchFn, options = {}) => {
 
   if (_inflight.has(cacheKey)) return _inflight.get(cacheKey);
 
-  const promise = fetchFn()
-    .then((data) => {
-      setCache(cacheKey, data, ttl);
-      _inflight.delete(cacheKey);
-      return data;
-    })
-    .catch((err) => {
-      _inflight.delete(cacheKey);
-      throw err;
-    });
+  const promise = runWithTimeout(
+    fetchFn()
+      .then((data) => {
+        setCache(cacheKey, data, ttl);
+        _inflight.delete(cacheKey);
+        return data;
+      })
+      .catch((err) => {
+        _inflight.delete(cacheKey);
+        throw err;
+      }),
+    cacheKey
+  );
 
   _inflight.set(cacheKey, promise);
   return promise;

@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { getCategoryColor, getFillPercent } from '../data/eventDiscoveryData';
-
+import { prefetchPublicEventById } from '../services/eventsApi';
 const CalendarIcon = () => (
   <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
     <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
@@ -48,11 +49,15 @@ const EventDiscoveryCard = ({
   const showProgress = !isPostponed;
   const hasManageAction = viewOnly && typeof onManage === 'function';
   const singleAction = isPostponed || (viewOnly && !hasManageAction);
+  const detailPath = event?.id ? `/events/${event.id}` : null;
+  const prefetchDetail = () => {
+    if (event?.id) prefetchPublicEventById(event.id);
+  };
 
-  return (
-    <article
+  return (    <article
       className={`event-discovery-card event-discovery-card--${cardState}`}
       data-state={cardState}
+      onMouseEnter={prefetchDetail}
     >
       <div className="event-discovery-card__media">
         <img src={thumbnail} alt={title} className="event-discovery-card__img" />
@@ -88,8 +93,17 @@ const EventDiscoveryCard = ({
       <div className="event-discovery-card__body">
         <div className="event-discovery-card__body-main">
           <div className="event-discovery-card__head">
-            <h3 className="event-discovery-card__title">{title}</h3>
-            {organizerLabel && (
+            {detailPath ? (
+              <Link
+                to={detailPath}
+                className="event-discovery-card__title-link"
+                onFocus={prefetchDetail}
+              >
+                <h3 className="event-discovery-card__title">{title}</h3>
+              </Link>
+            ) : (
+              <h3 className="event-discovery-card__title">{title}</h3>
+            )}            {organizerLabel && (
               <span className="event-discovery-card__organizer">{organizerLabel}</span>
             )}
           </div>
@@ -146,15 +160,24 @@ const EventDiscoveryCard = ({
           {hasManageAction && manageHint ? (
             <p className="event-discovery-card__manage-hint">{manageHint}</p>
           ) : null}
-          {!isPostponed && (!viewOnly || hasManageAction) && (
-            <button
-              type="button"
+          {!isPostponed && (!viewOnly || hasManageAction) && detailPath && (
+            <Link
+              to={detailPath}
               className="event-discovery-card__btn event-discovery-card__btn--outline"
-              onClick={() => onDetail?.(event)}
+              onFocus={prefetchDetail}
             >
               Chi tiết
-            </button>
+            </Link>
           )}
+          {viewOnly && !hasManageAction && detailPath ? (
+            <Link
+              to={detailPath}
+              className={`event-discovery-card__btn event-discovery-card__btn--primary ${singleAction ? 'is-full' : ''}`}
+              onFocus={prefetchDetail}
+            >
+              Xem chi tiết
+            </Link>
+          ) : (
           <button
             type="button"
             className={`event-discovery-card__btn event-discovery-card__btn--primary ${
@@ -163,12 +186,12 @@ const EventDiscoveryCard = ({
             disabled={isExpired && !viewOnly}
             onClick={() => {
               if (hasManageAction) onManage?.(event);
-              else if (viewOnly) onDetail?.(event);
               else onPrimaryAction?.(event);
             }}
           >
-            {hasManageAction ? manageLabel : viewOnly ? 'Xem chi tiết' : primaryLabel}
+            {hasManageAction ? manageLabel : primaryLabel}
           </button>
+          )}
         </div>
       </div>
     </article>

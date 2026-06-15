@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
 import AppSelect from '../components/ui/AppSelect';
@@ -8,7 +8,7 @@ import useUserProfile from '../hooks/useUserProfile';
 import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import useDebouncedValue from '../hooks/useDebouncedValue';
-import { fetchPublicEvents } from '../services/eventsApi';
+import { fetchPublicEvents, getCachedPublicEventsList, prefetchPublicEventById, syncEventRegistrationInCache } from '../services/eventsApi';
 import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
 import {
   isPureCtsvStaff,
@@ -21,6 +21,7 @@ import {
   ORGANIZER_FILTERS,
   FIGMA_SAMPLE_EVENTS,
   mapApiEventToCard,
+  markDiscoveryCardRegistered,
   filterEventsByState,
   filterEventsByOrganizer,
   sortEventsByStatePriority,
@@ -45,14 +46,37 @@ const Events = ({ showToast }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const clubFilter = searchParams.get('club') || '';
   const [clubFilterLabel, setClubFilterLabel] = useState('');
-  const [events, setEvents] = useState(USE_FIGMA_FALLBACK ? FIGMA_SAMPLE_EVENTS : []);
-  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
   const [organizerFilter, setOrganizerFilter] = useState('all');
   const [stateFilter, setStateFilter] = useState(DEFAULT_STATE_FILTER);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebouncedValue(searchQuery.trim(), 400);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const buildEventQuery = () => ({
+    q: debouncedSearch || undefined,
+    category: activeFilter !== 'all' ? activeFilter : undefined,
+    club: clubFilter || undefined,
+  });
+
+  const mapListToCards = (data) => {
+    if (data?.success && data.events?.length > 0) {
+      return data.events.map(mapApiEventToCard);
+    }
+    if (USE_FIGMA_FALLBACK && !debouncedSearch && !clubFilter) {
+      return FIGMA_SAMPLE_EVENTS.filter((ev) => ev.cardState === 'active' && ev.filledSlots < ev.totalSlots);
+    }
+    return [];
+  };
+
+  const initialCards = mapListToCards(getCachedPublicEventsList(buildEventQuery()));
+  const [events, setEvents] = useState(
+    initialCards.length > 0 ? initialCards : USE_FIGMA_FALLBACK ? FIGMA_SAMPLE_EVENTS : []
+  );
+  const [loading, setLoading] = useState(initialCards.length === 0 && !USE_FIGMA_FALLBACK);
+  const filterParamsRef = useRef({ debouncedSearch, activeFilter, clubFilter });
+  filterParamsRef.current = { debouncedSearch, activeFilter, clubFilter };
+
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = userProfile.role || getUserRole();
   const isAdminViewer = isLoggedIn && isAdminRole(role);
@@ -72,28 +96,62 @@ const Events = ({ showToast }) => {
   );
 
   useEffect(() => {
-    setLoading(true);
-    fetchPublicEvents({
-      q: debouncedSearch,
-      category: activeFilter !== 'all' ? activeFilter : undefined,
-      club: clubFilter || undefined,
-    })
+    let cancelled = false;
+    const params = buildEventQuery();
+    const cached = getCachedPublicEventsList(params);
+    const hasCached = Boolean(cached?.events?.length);
+
+    if (hasCached) {
+      setEvents(mapListToCards(cached));
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    fetchPublicEvents(params)
       .then((data) => {
-        if (data.success && data.events?.length > 0) {
-          setEvents(data.events.map(mapApiEventToCard));
-        } else if (USE_FIGMA_FALLBACK && !debouncedSearch && !clubFilter) {
-          setEvents(FIGMA_SAMPLE_EVENTS.filter((ev) => ev.cardState === 'active' && ev.filledSlots < ev.totalSlots));
-        } else {
-          setEvents([]);
-        }
+        if (cancelled) return;
+        setEvents(mapListToCards(data));
       })
       .catch((err) => {
         console.error(err);
-        if (USE_FIGMA_FALLBACK) setEvents(FIGMA_SAMPLE_EVENTS);
-        showToast?.('Không thể tải danh sách sự kiện', 'error');
+        if (cancelled) return;
+        if (!hasCached) {
+          if (USE_FIGMA_FALLBACK) setEvents(FIGMA_SAMPLE_EVENTS);
+          showToast?.('Không thể tải danh sách sự kiện', 'error');
+        }
       })
-      .finally(() => setLoading(false));
-  }, [showToast, isLoggedIn, userProfile.role, debouncedSearch, activeFilter, clubFilter]);
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showToast, debouncedSearch, activeFilter, clubFilter]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return undefined;
+    let cancelled = false;
+    const { debouncedSearch: search, activeFilter: filter, clubFilter: club } = filterParamsRef.current;
+
+    fetchPublicEvents(
+      {
+        q: search || undefined,
+        category: filter !== 'all' ? filter : undefined,
+        club: club || undefined,
+      },
+      { forceRefresh: true }
+    )
+      .then((data) => {
+        if (!cancelled) setEvents(mapListToCards(data));
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, userProfile.role]);
 
   useEffect(() => {
     if (!clubFilter) {
@@ -173,9 +231,13 @@ const Events = ({ showToast }) => {
     }
 
     if (event.cardState === 'registered' || event.registered) {
-      showToast('Mở vé điện tử sự kiện (đang phát triển).', 'success');
+      handleDetail(event);
       return;
     }
+
+    setEvents((prev) =>
+      prev.map((ev) => (ev.id === event.id ? markDiscoveryCardRegistered(ev) : ev))
+    );
 
     try {
       const res = await fetch(`${API_BASE}/api/events/${event.id}/register`, {
@@ -185,29 +247,28 @@ const Events = ({ showToast }) => {
       const data = await res.json();
 
       if (!res.ok) {
+        setEvents((prev) => prev.map((ev) => (ev.id === event.id ? event : ev)));
         showToast(data.message || 'Không thể đăng ký sự kiện.', 'error');
         return;
       }
 
-      const updatedEvent = data.event;
-      setEvents((prev) =>
-        prev.map((ev) =>
-          ev.id === event.id
-            ? mapApiEventToCard({
-                ...updatedEvent,
-                isRegistered: true,
-              })
-            : ev
-        )
-      );
+      const updated = mapApiEventToCard({ ...data.event, isRegistered: true });
+      setEvents((prev) => prev.map((ev) => (ev.id === event.id ? updated : ev)));
+      syncEventRegistrationInCache(event.id, data.event, { registered: true });
       showToast(data.message || 'Đăng ký sự kiện thành công!', 'success');
     } catch (err) {
       console.error(err);
+      setEvents((prev) => prev.map((ev) => (ev.id === event.id ? event : ev)));
       showToast('Không thể kết nối máy chủ. Vui lòng thử lại.', 'error');
     }
   };
 
   const handleDetail = (event) => {
+    if (!event?.id) {
+      showToast?.('Không xác định được sự kiện.', 'error');
+      return;
+    }
+    prefetchPublicEventById(event.id);
     navigate(`/events/${event.id}`);
   };
 

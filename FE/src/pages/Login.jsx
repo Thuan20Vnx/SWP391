@@ -6,8 +6,9 @@ import { startGoogleLogin } from '../utils/googleAuth';
 import { cacheUserProfile } from '../hooks/useUserProfile';
 import { writeProfileDetailCache, mapUserToProfileDetail } from '../utils/profileDetailCache';
 import { dispatchAuthChanged } from '../utils/authEvents';
-import { getHomePathForRole, normalizeRole, isCtsvRole } from '../utils/auth';
+import { getHomePathForRole, normalizeRole, isCtsvRole, USER_ROLES } from '../utils/auth';
 import { resetCtsvSidebarOnLogin } from '../components/ctsv/ctsvNavConfig';
+import { resetStudentPublicSidebarOnLogin } from '../components/student/studentNavConfig';
 import { resolveUserAvatar } from '../utils/image';
 import defaultAvatar from '../constants/defaultAvatar';
 
@@ -259,6 +260,9 @@ const Login = ({ showToast }) => {
           const role = normalizeRole(data.user?.role);
           if (isCtsvRole(role)) {
             resetCtsvSidebarOnLogin();
+          }
+          if (role === USER_ROLES.STUDENT) {
+            resetStudentPublicSidebarOnLogin();
           }
           navigate(getHomePathForRole(role));
         } else {

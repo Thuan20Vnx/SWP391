@@ -45,6 +45,20 @@ const mapClubMeta = (club) => {
   };
 };
 
+const pickClubMetaFromDoc = (doc) => {
+  if (!doc?.clubName) return null;
+  return {
+    clubName: doc.clubName,
+    clubSlug: doc.clubSlug,
+    clubDescription: doc.clubDescription,
+    clubMemberCount: doc.clubMemberCount,
+    clubEventsHeld: doc.clubEventsHeld,
+    clubLogo: doc.clubLogo,
+    clubLogoText: doc.clubLogoText,
+    clubLogoColor: doc.clubLogoColor,
+  };
+};
+
 const attachClubMetaBatch = async (docs) => {
   const clubIds = [...new Set(docs.map((doc) => String(doc.clubId)).filter(isValidClubId))];
   if (!clubIds.length) return docs;
@@ -322,8 +336,8 @@ const getApprovedEvents = async ({ category, search, q, club, user } = {}) => {
 
     const rawEvents = await Event.find(query)
       .select(EVENT_PUBLIC_LIST_FIELDS)
-      .populate('createdBy', 'fullname email')
       .sort({ startDate: 1 })
+      .limit(300)
       .lean();
 
     allEvents = await attachClubMetaBatch(rawEvents);
@@ -393,7 +407,9 @@ const getApprovedEvents = async ({ category, search, q, club, user } = {}) => {
 };
 
 const getEventById = async (eventId, { user, activeClubId } = {}) => {
-  const event = await Event.findById(eventId).populate('createdBy', 'fullname email studentId role');
+  const event = await Event.findById(eventId)
+    .populate('createdBy', 'fullname email studentId role')
+    .lean();
 
   if (!event) {
     throw new AppError('Không tìm thấy sự kiện!', 404);
@@ -407,26 +423,40 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
   }
 
   const clubId = event.clubId;
+  const cachedListEvent = getCachedApprovedEvents()?.find(
+    (item) => String(item._id) === String(eventId)
+  );
 
-  const [registeredCount, checkinCount, registrations, registeredIds, clubMeta] = await Promise.all([
-    EventRegistration.countDocuments({ event: eventId, status: { $ne: 'cancelled' } }),
-    EventRegistration.countDocuments({ event: eventId, status: 'attended' }),
+  const ownerRegistrationPromise = isOwner
+    ? EventRegistration.find({ event: eventId })
+        .populate('user', 'fullname studentId email')
+        .sort({ registeredAt: -1 })
+        .limit(200)
+        .lean()
+    : Promise.resolve([]);
+
+  const [liveRegisteredCount, checkinCount, registrations, registeredIds, clubMeta] = await Promise.all([
     isOwner
-      ? EventRegistration.find({ event: eventId })
-          .populate('user', 'fullname studentId email')
-          .sort({ registeredAt: -1 })
-          .limit(200)
-          .lean()
-      : Promise.resolve([]),
+      ? EventRegistration.countDocuments({ event: eventId, status: { $ne: 'cancelled' } })
+      : Promise.resolve(null),
+    isOwner
+      ? EventRegistration.countDocuments({ event: eventId, status: 'attended' })
+      : Promise.resolve(null),
+    ownerRegistrationPromise,
     user?._id ? getRegisteredEventIds(user._id) : Promise.resolve([]),
-    isValidClubId(clubId)
+    isValidClubId(clubId) && !pickClubMetaFromDoc(cachedListEvent)
       ? Club.findById(clubId).select(CLUB_META_FIELDS).lean()
       : Promise.resolve(null),
   ]);
 
-  const doc = event.toObject();
-  doc.registeredCount = registeredCount;
-  doc.checkinCount = checkinCount;
+  const doc = { ...event };
+  doc.registeredCount =
+    isOwner && liveRegisteredCount != null
+      ? liveRegisteredCount
+      : doc.registeredCount ?? 0;
+  if (isOwner && checkinCount != null) {
+    doc.checkinCount = checkinCount;
+  }
   doc.reach = doc.reach || 0;
   doc.rating = doc.averageRating ?? 0;
   doc.ratingCount = doc.reviewCount ?? 0;
@@ -434,7 +464,10 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
   doc.reviewCount = doc.reviewCount ?? 0;
   doc.isRegistered = registeredIds.includes(String(event._id));
 
-  if (clubMeta) {
+  const cachedClubMeta = pickClubMetaFromDoc(cachedListEvent);
+  if (cachedClubMeta) {
+    Object.assign(doc, cachedClubMeta);
+  } else if (clubMeta) {
     Object.assign(doc, mapClubMeta(clubMeta));
   }
 

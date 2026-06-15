@@ -400,7 +400,7 @@ const SiteHeader = ({
                     ariaLabel={menuOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'}
                   />
                 )}
-                {renderLogo(false)}
+                {renderLogo(sidebarLogoCollapsed)}
               </div>
               {renderNav()}
             </div>

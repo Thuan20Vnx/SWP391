@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
@@ -16,6 +15,13 @@ import {
   navigateClubEventManage,
 } from '../utils/publicEventStaffAccess';
 import { mapApiEventToDetail } from '../data/eventDetailData';
+import {
+  fetchPublicEventById,
+  getCachedEventSummary,
+  syncEventRegistrationInCache,
+  eventDetailCacheKey,
+} from '../services/eventsApi';
+import { getCached } from '../utils/apiCache';
 import { formatVnd } from '../utils/ticketPricing';
 import { buildTicketFromDetailEvent } from '../utils/eventTicket';
 import '../styles/admin-public-pages.css';
@@ -105,27 +111,54 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
   );
 
   useEffect(() => {
-    setLoading(true);
-    fetch(`${API_BASE}/api/events/${eventId}`, { headers: getAuthHeaders(false) })
-      .then((res) => {
-        if (res.status === 404) {
-          setEvent(null);
-          return null;
-        }
-        return res.json();
-      })
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [eventId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const id = String(eventId || '');
+
+    const detailCached = getCached(eventDetailCacheKey(id));
+    const summary = getCachedEventSummary(id);
+    let hasInstant = false;
+
+    if (detailCached?.success && detailCached.event) {
+      setEvent(mapApiEventToDetail(detailCached.event));
+      setLoading(false);
+      hasInstant = true;
+    } else if (summary) {
+      setEvent(mapApiEventToDetail(summary));
+      setLoading(false);
+      hasInstant = true;
+    } else {
+      setEvent(null);
+      setLoading(true);
+    }
+
+    fetchPublicEventById(id)
       .then((data) => {
-        if (!data) return;
-        if (data.success && data.event) {
+        if (cancelled) return;
+        if (data?.notFound) {
+          setEvent(null);
+          return;
+        }
+        if (data?.success && data.event) {
           setEvent(mapApiEventToDetail(data.event));
-        } else {
+        } else if (!hasInstant) {
           setEvent(null);
         }
       })
       .catch(() => {
+        if (cancelled || hasInstant) return;
         setEvent(null);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [eventId, isLoggedIn, userProfile.role]);
 
   const openTicket = () => {
@@ -190,6 +223,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
 
       const updatedEvent = mapApiEventToDetail({ ...data.event, isRegistered: true });
       setEvent(updatedEvent);
+      syncEventRegistrationInCache(event.id, data.event, { registered: true });
       setRegisterConfirmOpen(false);
       showToast?.(data.message || 'Đăng ký sự kiện thành công!', 'success');
       setTicketData(
@@ -226,11 +260,9 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
       setCancelConfirmOpen(false);
       showToast?.(data.message || 'Đã hủy đăng ký sự kiện.', 'success');
 
-      const refreshRes = await fetch(`${API_BASE}/api/events/${event.id}`, {
-        headers: getAuthHeaders(false),
-      });
-      const refreshData = await refreshRes.json();
-      if (refreshRes.ok && refreshData.success && refreshData.event) {
+      syncEventRegistrationInCache(event.id, null, { registered: false });
+      const refreshData = await fetchPublicEventById(event.id, { forceRefresh: true });
+      if (refreshData?.success && refreshData.event) {
         setEvent(mapApiEventToDetail(refreshData.event));
       }
     } catch {
@@ -262,41 +294,43 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     }
   };
 
+  const renderPublicShell = (content) => (
+    <PublicAdminShell activeNav="events" searchPlaceholder="Tìm kiếm sự kiện...">
+      {content}
+    </PublicAdminShell>
+  );
+
   if (loading) {
     const loadingBody = (
-      <main className="event-detail-page__loading">
-        <span className="btn-spinner events-page__spinner" />
-      </main>
+      <div className="event-detail-page home-layout">
+        <main className="event-detail-page__loading" aria-busy="true" aria-live="polite">
+          <span className="btn-spinner events-page__spinner" aria-hidden="true" />
+          <p>Đang tải thông tin sự kiện...</p>
+        </main>
+      </div>
     );
     if (embedded) {
       return <div className="event-detail-page event-detail-page--embedded">{loadingBody}</div>;
     }
-    return (
-      <div className="event-detail-page home-layout">
-        <SiteHeader activeNav="events" searchPlaceholder="Tìm kiếm sự kiện..." />
-        {loadingBody}
-      </div>
-    );
+    return renderPublicShell(loadingBody);
   }
 
   if (!event) {
     const notFoundBody = (
-      <main className="event-detail-page__not-found">
-        <h1>Không tìm thấy sự kiện</h1>
-        <button type="button" className="event-detail-page__back-link" onClick={() => navigate(backPath)}>
-          ← Quay lại
-        </button>
-      </main>
+      <div className="event-detail-page home-layout">
+        <main className="event-detail-page__not-found">
+          <h1>Không tìm thấy sự kiện</h1>
+          <button type="button" className="event-detail-page__back-link" onClick={() => navigate(backPath)}>
+            ← Quay lại
+          </button>
+        </main>
+        <SiteFooter />
+      </div>
     );
     if (embedded) {
       return <div className="event-detail-page event-detail-page--embedded">{notFoundBody}</div>;
     }
-    return (
-      <div className="event-detail-page home-layout">
-        <SiteHeader activeNav="events" searchPlaceholder="Tìm kiếm sự kiện..." />
-        {notFoundBody}
-      </div>
-    );
+    return renderPublicShell(notFoundBody);
   }
 
   const statusClass = `event-detail-page__status event-detail-page__status--${event.registrationStatus.tone}`;
@@ -636,24 +670,14 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     );
   }
 
-  if (readOnly) {
-    return (
-      <PublicAdminShell activeNav="events" searchPlaceholder="Tìm kiếm sự kiện...">
-        <div className="event-detail-page home-layout">
-          {detailMain}
-        </div>
-        <SiteFooter />
-      </PublicAdminShell>
-    );
-  }
-
-  return (
-    <div className="event-detail-page home-layout">
-      <SiteHeader activeNav="events" searchPlaceholder="Tìm kiếm sự kiện..." />
-      {detailMain}
+  return renderPublicShell(
+    <>
+      <div className="event-detail-page home-layout">
+        {detailMain}
+      </div>
       {dialogs}
       <SiteFooter />
-    </div>
+    </>
   );
 };
 
