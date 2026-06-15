@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EventDiscoveryCard from '../EventDiscoveryCard';
 import EventTicketModal from '../EventTicketModal';
@@ -12,10 +12,14 @@ import { resolveDiscoveryCardProps } from '../../utils/publicEventStaffAccess';
 /**
  * Danh sách sự kiện campus (đăng ký tham gia) — dùng trên PartnerHome.
  */
+const PAGE_SIZE = 6;
+
 const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện', description, className = '' }) => {
   const navigate = useNavigate();
+  const sectionRef = useRef(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const [confirmEvent, setConfirmEvent] = useState(null);
   const [ticketData, setTicketData] = useState(null);
   const [registrationIds, setRegistrationIds] = useState({});
@@ -49,6 +53,39 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
       .catch(() => setEvents([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(events.length / PAGE_SIZE)),
+    [events.length]
+  );
+
+  const currentPage = Math.min(page, totalPages);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const visibleEvents = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return events.slice(start, start + PAGE_SIZE);
+  }, [events, currentPage]);
+
+  const rangeStart = events.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, events.length);
+
+  const scrollSectionIntoView = useCallback(() => {
+    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, []);
+
+  const goToPage = useCallback(
+    (nextPage) => {
+      setPage(nextPage);
+      scrollSectionIntoView();
+    },
+    [scrollSectionIntoView]
+  );
 
   const handleDetail = useCallback(
     (event) => {
@@ -138,7 +175,10 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
 
   return (
     <>
-      <section className={`recommended-section ctsv-home-live-section partner-campus-section ${className}`.trim()}>
+      <section
+        ref={sectionRef}
+        className={`recommended-section ctsv-home-live-section partner-campus-section ${className}`.trim()}
+      >
         <div className="recommended-header-row">
           <div className="recommended-title-container">
             <h2>{title}</h2>
@@ -155,29 +195,72 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
             <p>Hiện chưa có sự kiện nào đang mở đăng ký.</p>
           </div>
         ) : (
-          <div className="event-discovery-grid partner-campus-events-grid">
-            {events.map((ev) => {
-              const cardProps = resolveDiscoveryCardProps({
-                event: ev,
-                isPartner: true,
-                partnerContext,
-                onDetail: handleDetail,
-                onRegister: handlePrimaryAction,
-                onManageNavigate: (path) => navigate(path),
-              });
-              return (
-                <EventDiscoveryCard
-                  key={ev.id}
-                  event={ev}
-                  onDetail={cardProps.onDetail}
-                  onPrimaryAction={cardProps.onPrimaryAction}
-                  onManage={cardProps.onManage}
-                  manageLabel={cardProps.manageLabel}
-                  viewOnly={cardProps.viewOnly}
-                />
-              );
-            })}
-          </div>
+          <>
+            <div className="event-discovery-grid partner-campus-events-grid">
+              {visibleEvents.map((ev) => {
+                const cardProps = resolveDiscoveryCardProps({
+                  event: ev,
+                  isPartner: true,
+                  partnerContext,
+                  onDetail: handleDetail,
+                  onRegister: handlePrimaryAction,
+                  onManageNavigate: (path) => navigate(path),
+                });
+                return (
+                  <EventDiscoveryCard
+                    key={ev.id}
+                    event={ev}
+                    onDetail={cardProps.onDetail}
+                    onPrimaryAction={cardProps.onPrimaryAction}
+                    onManage={cardProps.onManage}
+                    manageLabel={cardProps.manageLabel}
+                    viewOnly={cardProps.viewOnly}
+                  />
+                );
+              })}
+            </div>
+
+            {totalPages > 1 && (
+              <nav className="partner-campus-pagination" aria-label="Phân trang sự kiện campus">
+                <p className="partner-campus-pagination__summary" aria-live="polite">
+                  Hiển thị {rangeStart}–{rangeEnd} / {events.length} sự kiện
+                </p>
+                <div className="partner-campus-pagination__controls">
+                  <button
+                    type="button"
+                    className="partner-campus-pagination__btn"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Trang trước"
+                  >
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                      <path
+                        d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </button>
+                  <span className="partner-campus-pagination__status">
+                    Trang {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    className="partner-campus-pagination__btn"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Trang sau"
+                  >
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                      <path
+                        d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </nav>
+            )}
+          </>
         )}
       </section>
 

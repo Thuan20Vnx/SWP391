@@ -48,15 +48,17 @@ const handleError = (res, error, label) => {
 
 router.get('/me', async (req, res) => {
   try {
-    const partner = await getPrimaryPartner(req.authEmail);
-    if (!partner) {
+    const normalized = String(req.authEmail || '').trim().toLowerCase();
+    const records = await Partner.find({ email: normalized }).sort({ createdAt: -1 }).lean();
+    if (!records.length) {
       return res.status(404).json({
         success: false,
         message: 'Chưa có hồ sơ đối tác. Vui lòng gửi đề xuất đầu tiên.',
         partner: null
       });
     }
-    const proposals = await getPartnerRecordsByEmail(req.authEmail);
+    const partner = records.find((item) => item.status === 'approved') || records[0];
+    const proposals = records.map(({ logo, attachments, ...rest }) => rest);
     return res.json({
       success: true,
       partner,

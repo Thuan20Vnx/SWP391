@@ -636,6 +636,53 @@
 
 .ctsv-home-layout .recommended-title-container h2 {
   margin: 0;
+  font-size: clamp(1.25rem, 3.5vw, 1.65rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.ctsv-home-layout .recommended-title-container {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.ctsv-home-layout .recommended-header-row {
+  align-items: flex-start;
+  gap: 16px 24px;
+}
+
+.ctsv-home-layout .recommended-header-row > .see-all-link {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding-top: 4px;
+}
+
+.ctsv-home-layout .ctsv-home-section-desc {
+  margin-top: 6px;
+  max-width: none;
+}
+
+@media (max-width: 768px) {
+  .ctsv-home-layout .recommended-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .ctsv-home-layout .recommended-header-row > .see-all-link {
+    align-self: flex-start;
+    padding-top: 0;
+    font-size: 0.9rem;
+  }
+
+  .ctsv-home-layout .ctsv-home-section-desc {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
 }
 
 .ctsv-stats-section {

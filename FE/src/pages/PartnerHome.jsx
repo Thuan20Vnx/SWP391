@@ -122,10 +122,11 @@ const PartnerHome = ({ showToast }) => {
       });
   }, []);
 
-  const handleFilterSubmit = useCallback(() => {
+  const handleFilterSubmit = useCallback((queryOverride) => {
+    const activeQuery = typeof queryOverride === 'string' ? queryOverride : searchQuery;
     let result = [...events];
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    if (activeQuery.trim()) {
+      const q = activeQuery.toLowerCase();
       result = result.filter(
         (ev) =>
           ev.title.toLowerCase().includes(q) ||
