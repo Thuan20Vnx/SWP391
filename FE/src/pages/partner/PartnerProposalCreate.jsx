@@ -134,20 +134,43 @@ const PartnerProposalCreate = () => {
     if (state.bannerFileName) setBannerFileName(state.bannerFileName);
   }, []);
 
+  const applyPartnerCompanyDefaults = useCallback((partner, representativeFallback = '') => {
+    if (partner) {
+      setCompany((prev) => ({
+        ...prev,
+        companyName: prev.companyName || partner.name || '',
+        phone: prev.phone || partner.phone || '',
+        representative: prev.representative || partner.representative || representativeFallback,
+        address: prev.address || partner.address || '',
+        partnerCode: prev.partnerCode || partner.partnerCode || ''
+      }));
+      return;
+    }
+    if (representativeFallback) {
+      setCompany((prev) => ({
+        ...prev,
+        representative: prev.representative || representativeFallback
+      }));
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
+    const representativeFallback =
+      userProfile?.fullname || localStorage.getItem('userFullname') || '';
 
     const init = async () => {
       setLoading(true);
+      let request = null;
       try {
-        const [activeRes, partnerRes] = await Promise.all([
-          fetchPartnerActiveEventRequest().catch(() => ({ request: null })),
-          fetchPartnerMe().catch(() => ({ partner: null }))
-        ]);
+        const activeRes = await fetchPartnerActiveEventRequest().catch(() => ({
+          request: null,
+          cancelled: []
+        }));
 
         if (cancelled) return;
 
-        const request = activeRes.request;
+        request = activeRes.request;
         setActiveRequest(request || null);
         setCancelledRequests(activeRes.cancelled || []);
 
@@ -183,22 +206,7 @@ const PartnerProposalCreate = () => {
             setActiveRequest(request);
           }
 
-          const partner = partnerRes.partner;
-          if (partner) {
-            setCompany((prev) => ({
-              ...prev,
-              companyName: prev.companyName || partner.name || '',
-              phone: prev.phone || partner.phone || '',
-              representative: prev.representative || partner.representative || userProfile?.fullname || '',
-              address: prev.address || partner.address || '',
-              partnerCode: prev.partnerCode || partner.partnerCode || ''
-            }));
-          } else if (userProfile?.fullname) {
-            setCompany((prev) => ({
-              ...prev,
-              representative: prev.representative || userProfile.fullname
-            }));
-          }
+          applyPartnerCompanyDefaults(null, representativeFallback);
         }
       } finally {
         if (!cancelled) {
@@ -206,13 +214,25 @@ const PartnerProposalCreate = () => {
           autoSaveSkipRef.current = false;
         }
       }
+
+      if (cancelled) return;
+
+      try {
+        const partnerRes = await fetchPartnerMe().catch(() => ({ partner: null }));
+        if (cancelled) return;
+        if (!(request && ACTIVE_STATUSES.has(request?.status))) {
+          applyPartnerCompanyDefaults(partnerRes.partner, representativeFallback);
+        }
+      } catch {
+        /* partner profile is optional for first paint */
+      }
     };
 
     init();
     return () => {
       cancelled = true;
     };
-  }, [applyState, showToast, userProfile]);
+  }, [applyPartnerCompanyDefaults, applyState, showToast, userProfile?.fullname]);
 
   const validateForm = () => {
     if (!company.companyName.trim()) {

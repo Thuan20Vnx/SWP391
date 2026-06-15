@@ -128,25 +128,37 @@ const partnerFetch = (path, options = {}) =>
     headers: { ...getAuthHeaders(), ...options.headers }
   }).then(parseJson);
 
+let partnerMeInflight = null;
+
 export const fetchPartnerMe = async () => {
-  const res = await fetch(`${API_BASE}/api/partner/me`, {
-    headers: getAuthHeaders()
-  });
-  const data = await res.json().catch(() => ({}));
-  if (res.status === 404) {
-    return { success: true, partner: null, proposals: [], hasProfile: false };
+  if (partnerMeInflight) return partnerMeInflight;
+
+  partnerMeInflight = (async () => {
+    const res = await fetch(`${API_BASE}/api/partner/me`, {
+      headers: getAuthHeaders()
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 404) {
+      return { success: true, partner: null, proposals: [], hasProfile: false };
+    }
+    if (res.status === 401 || res.status === 403) {
+      const err = new Error(data.message || 'Không có quyền truy cập hồ sơ đối tác.');
+      err.status = res.status;
+      throw err;
+    }
+    if (!res.ok) {
+      const err = new Error(data.message || 'Yêu cầu thất bại');
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  })();
+
+  try {
+    return await partnerMeInflight;
+  } finally {
+    partnerMeInflight = null;
   }
-  if (res.status === 401 || res.status === 403) {
-    const err = new Error(data.message || 'Không có quyền truy cập hồ sơ đối tác.');
-    err.status = res.status;
-    throw err;
-  }
-  if (!res.ok) {
-    const err = new Error(data.message || 'Yêu cầu thất bại');
-    err.status = res.status;
-    throw err;
-  }
-  return data;
 };
 
 export const updatePartnerMe = (body) =>

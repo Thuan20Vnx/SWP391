@@ -110,9 +110,12 @@ const PartnerLayout = ({ showToast }) => {
             showSearch
             searchQuery={headerSearch}
             onSearchChange={setHeaderSearch}
-            onSearchSubmit={() => {
+            onSearchSubmit={(queryOverride) => {
+              if (typeof queryOverride === 'string') {
+                setHeaderSearch(queryOverride);
+              }
               if (headerSearchSubmitRef.current) {
-                headerSearchSubmitRef.current();
+                headerSearchSubmitRef.current(queryOverride);
               } else {
                 navigate('/partner/events');
               }
