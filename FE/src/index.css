@@ -10420,6 +10420,26 @@ a.club-tag {
   display: none;
 }
 
+@media (max-width: 900px) {
+  .home-header .ctsv-portal-hamburger__icon--menu {
+    display: none;
+  }
+
+  .home-header .ctsv-portal-hamburger__icon--chevron {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .ctsv-portal-hamburger__icon--menu {
+    display: none;
+  }
+
+  .ctsv-portal-hamburger__icon--chevron {
+    display: block;
+  }
+}
+
 .ctsv-portal-hamburger:hover,
 .ctsv-portal-hamburger[aria-expanded='true'] {
   border-color: rgba(242, 111, 33, 0.55);

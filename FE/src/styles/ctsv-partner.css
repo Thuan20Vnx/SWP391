@@ -398,6 +398,7 @@
 
 .ctsv-portal-header .header-container {
   display: flex;
+
   flex-wrap: nowrap;
   justify-content: flex-start;
   gap: 16px;
@@ -5529,6 +5530,7 @@
     height: 38px;
     border-radius: 10px;
     font-size: 0.9rem;
+
   }
 
   .ctsv-partners-add-btn {
@@ -8686,3 +8688,4 @@
   flex: 0 0 auto !important;
   margin-left: auto !important;
 }
+
