@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { getSidebarMenuSections } from '../data/studentSidebarMenu';
-import { isPublicNavItemActive } from '../data/publicNavItems';
+import { getSidebarMenuSections, isStudentSidebarItemActive } from '../data/studentSidebarMenu';
 import { getUserRole } from '../utils/auth';
 
 const MenuIcon = ({ type }) => {
@@ -112,7 +111,7 @@ const DashboardSidebarNav = ({
   const sections = getSidebarMenuSections(getUserRole());
 
   const isItemActive = (item) =>
-    activeMenu === item.key || isPublicNavItemActive(item.key, pathname);
+    activeMenu === item.key || isStudentSidebarItemActive(item.key, pathname);
 
   const handleItemClick = (item) => (event) => {
     event.preventDefault();

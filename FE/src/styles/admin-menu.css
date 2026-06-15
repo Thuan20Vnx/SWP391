@@ -167,7 +167,8 @@
 
 /* Trang chủ / Sự kiện — cùng max-width & padding khi có menu admin */
 .admin-public-shell .recommended-section,
-.admin-public-shell .events-page__main {
+.admin-public-shell .events-page__main,
+.admin-public-shell .event-detail-page__main {
   width: 100%;
   max-width: var(--home-content-max);
   margin-left: auto;
@@ -209,16 +210,18 @@
   margin-right: 0;
 }
 
-/* club_manager / CTSV public shell */
+/* club_manager / CTSV / sinh viên public shell */
 .club-public-shell,
-.ctsv-public-shell {
+.ctsv-public-shell,
+.student-public-shell {
   display: flex;
   width: 100%;
   min-height: 100vh;
 }
 
 .club-public-shell .ctsv-shell-main,
-.ctsv-public-shell .ctsv-shell-main {
+.ctsv-public-shell .ctsv-shell-main,
+.student-public-shell .ctsv-shell-main {
   flex: 1 1 0%;
   min-width: 0;
 }
@@ -233,12 +236,14 @@
 }
 
 .ctsv-app-shell .home-header.site-header,
-.ctsv-public-shell .home-header.site-header {
+.ctsv-public-shell .home-header.site-header,
+.student-public-shell .home-header.site-header {
   padding-top: 10px;
 }
 
 .ctsv-app-shell .home-header.site-header .header-container.site-header__container,
-.ctsv-public-shell .home-header.site-header .header-container.site-header__container {
+.ctsv-public-shell .home-header.site-header .header-container.site-header__container,
+.student-public-shell .home-header.site-header .header-container.site-header__container {
   min-height: 58px;
 }
 
@@ -248,6 +253,24 @@
   gap: 28px;
   flex-shrink: 0;
   min-width: 0;
+}
+
+/* Portal shell — nút hamburger luôn hiện (desktop + mobile) để bật/tắt sidebar */
+.site-header--with-shell.ctsv-portal-header .mobile-hamburger-btn.ctsv-portal-hamburger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Sidebar mở — thu logo header (mọi breakpoint) */
+.site-header--with-shell.site-header--sidebar-open .ctsv-header-logo,
+.site-header--with-shell .ctsv-header-logo.is-collapsed {
+  max-width: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 /* Sidebar mở: thu ô tìm kiếm thành nút kính lúp */
@@ -528,7 +551,8 @@
   }
 
   .ctsv-app-shell .home-header.site-header,
-  .ctsv-public-shell .home-header.site-header {
+  .ctsv-public-shell .home-header.site-header,
+  .student-public-shell .home-header.site-header {
     position: sticky;
     top: 0;
     z-index: 1300;
@@ -1354,4 +1378,41 @@
 .admin-drawer-root .admin-sidebar--overlay.admin-sidebar--open {
   transform: translateX(0);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Student public shell — dùng form sidebar CTSV */
+.student-public-shell.ctsv-app-shell {
+  background: #ffffff;
+}
+
+.student-sidebar-checkin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: auto;
+  padding: 10px 12px;
+  border: 1.5px solid var(--primary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.student-sidebar-checkin:hover {
+  background: var(--primary-light, rgba(242, 111, 33, 0.08));
+  border-color: var(--primary-hover, #e05f1a);
+}
+
+.student-sidebar-checkin--active {
+  background: var(--primary-light, rgba(242, 111, 33, 0.1));
+  border-color: var(--primary-hover, #e05f1a);
 }

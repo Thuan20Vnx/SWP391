@@ -241,6 +241,14 @@ export const sortEventsByStatePriority = (events) =>
       (STATE_SORT_ORDER[getEventCardStateGroup(b)] ?? 0)
   );
 
+export const markDiscoveryCardRegistered = (card) => ({
+  ...card,
+  cardState: 'registered',
+  registered: true,
+  primaryLabel: 'Đã đăng ký',
+  filledSlots: Math.min((card.filledSlots ?? 0) + 1, card.totalSlots ?? Number.MAX_SAFE_INTEGER),
+});
+
 export const mapApiEventToCard = (event) => {
   const eventState = event.eventState || 'active';
   const totalSlots = event.capacity || 100;
@@ -255,7 +263,7 @@ export const mapApiEventToCard = (event) => {
   const organizerLabel = getOrganizerLabel(organizerType);
 
   return {
-    id: event._id,
+    id: String(event._id || event.id || ''),
     title: event.title,
     startDate: event.startDate,
     createdAt: event.createdAt,
@@ -275,7 +283,7 @@ export const mapApiEventToCard = (event) => {
     cardState: isRegistered ? 'registered' : eventState,
     postponeReason: event.postponeReason || '',
     primaryLabel: isRegistered
-      ? 'Xem vé'
+      ? 'Đã đăng ký'
       : (event.primaryActionLabel || getPrimaryLabel(eventState)),
     registered: isRegistered,
     filterTags: [CATEGORY_TO_FILTER[category] || 'all'],
@@ -314,7 +322,7 @@ export const mapApiEventToHomeCard = (event) => {
   else if (fillPercent >= 85) status = 'SẮP HẾT CHỖ';
 
   return {
-    id: event._id,
+    id: String(event._id || event.id || ''),
     title: event.title,
     category: event.category || 'Sự kiện',
     categoryLabel: getCategoryDisplayLabel(event.category || 'Sự kiện'),

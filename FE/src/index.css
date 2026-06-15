@@ -7715,6 +7715,24 @@ a.club-tag {
   overflow: hidden;
 }
 
+.event-discovery-card__title-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s ease;
+}
+
+.event-discovery-card__title-link:hover .event-discovery-card__title {
+  color: var(--primary);
+}
+
+a.event-discovery-card__btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
 .event-discovery-card__organizer {
   align-self: flex-start;
   font-size: 11px;
@@ -9633,6 +9651,12 @@ a.club-tag {
   justify-content: center;
   gap: 16px;
   padding: 96px 24px;
+}
+
+.event-detail-page__loading p {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .event-detail-page__back-link {

@@ -135,6 +135,31 @@ const CtsvNavIcon = ({ type }) => {
           <path d="M14 14h2v2h-2zM18 14h3v3h-3zM14 18h2v3h-2zM18 18h1v1h-1zM20 18h1v3h-1z" />
         </svg>
       );
+    case 'home':
+      return (
+        <svg {...common}>
+          <path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z" />
+        </svg>
+      );
+    case 'ticket':
+      return (
+        <svg {...common}>
+          <path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z" />
+          <path d="M12 6v12" />
+        </svg>
+      );
+    case 'folder':
+      return (
+        <svg {...common}>
+          <path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z" />
+        </svg>
+      );
+    case 'star':
+      return (
+        <svg {...common}>
+          <path d="M12 3.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.8l-4.8 2.6.9-5.4-3.9-3.8 5.4-.8L12 3.5z" />
+        </svg>
+      );
     default:
       return (
         <svg {...common}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ChatbotFloating from '../components/ChatbotFloating';
 import PublicAdminShell from '../layouts/PublicAdminShell';
@@ -28,11 +28,12 @@ const HOME_CATEGORY_FILTERS = [
 
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import useDebouncedValue from '../hooks/useDebouncedValue';
-import { fetchPublicEvents } from '../services/eventsApi';
+import { fetchPublicEvents, getCachedPublicEventsList, prefetchPublicEventById, syncEventRegistrationInCache } from '../services/eventsApi';
 import useUserProfile from '../hooks/useUserProfile';
 import useManagedClubs from '../hooks/useManagedClubs';
 import {
   mapApiEventToCard,
+  markDiscoveryCardRegistered,
   filterActiveDiscoveryEvents,
   HOME_RECOMMEND_TABS,
   sortHomeEventsByRecommendTab,
@@ -46,15 +47,32 @@ const Home = ({ showToast }) => {
   const navigate = useNavigate();
   const { isLoggedIn, userProfile } = useUserProfile();
 
+  const buildEventQuery = (search, category) => ({
+    q: search || undefined,
+    category: category !== 'Tất cả' ? category : undefined,
+  });
+
+  const mapListToCards = (data) => {
+    if (!data?.success || !data.events?.length) return [];
+    return filterActiveDiscoveryEvents(data.events).map(mapApiEventToCard);
+  };
+
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebouncedValue(searchQuery.trim(), 400);
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
 
-  const [events, setEvents] = useState([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
+  const initialEventCards = mapListToCards(
+    getCachedPublicEventsList(buildEventQuery('', 'Tất cả'))
+  );
+
+  const [events, setEvents] = useState(initialEventCards);
+  const [eventsLoading, setEventsLoading] = useState(initialEventCards.length === 0);
+  const [eventsError, setEventsError] = useState(false);
   const [recommendTab, setRecommendTab] = useState('newest');
+  const filterParamsRef = useRef({ debouncedSearch, categoryFilter });
+  filterParamsRef.current = { debouncedSearch, categoryFilter };
 
   const role = userProfile.role || getUserRole();
   const isAdminViewer = isLoggedIn && isAdminRole(role);
@@ -100,24 +118,60 @@ const Home = ({ showToast }) => {
     }
   ];
 
-  // Load events from API (search via query param q)
+  // Load events — hiển thị cache ngay, fetch nền cập nhật
   useEffect(() => {
-    setEventsLoading(true);
-    fetchPublicEvents({
-      q: debouncedSearch || undefined,
-      category: categoryFilter !== 'Tất cả' ? categoryFilter : undefined,
-    })
+    let cancelled = false;
+    const params = buildEventQuery(debouncedSearch, categoryFilter);
+    const cached = getCachedPublicEventsList(params);
+    const hasCached = Boolean(cached?.events?.length);
+
+    if (hasCached) {
+      setEvents(mapListToCards(cached));
+      setEventsLoading(false);
+      setEventsError(false);
+    } else {
+      setEventsLoading(true);
+    }
+
+    fetchPublicEvents(params)
       .then((data) => {
-        if (data.success && data.events?.length > 0) {
-          const mapped = filterActiveDiscoveryEvents(data.events).map(mapApiEventToCard);
-          setEvents(mapped);
-        } else {
+        if (cancelled) return;
+        setEvents(mapListToCards(data));
+        setEventsError(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (cancelled) return;
+        if (!hasCached) {
           setEvents([]);
+          setEventsError(true);
         }
       })
-      .catch((err) => console.error(err))
-      .finally(() => setEventsLoading(false));
-  }, [isLoggedIn, userProfile.role, debouncedSearch, categoryFilter]);
+      .finally(() => {
+        if (!cancelled) setEventsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearch, categoryFilter]);
+
+  // Khi đăng nhập / đổi role — refresh isRegistered, không chặn UI
+  useEffect(() => {
+    if (!isLoggedIn) return undefined;
+    let cancelled = false;
+    const { debouncedSearch: search, categoryFilter: category } = filterParamsRef.current;
+
+    fetchPublicEvents(buildEventQuery(search, category), { forceRefresh: true })
+      .then((data) => {
+        if (!cancelled) setEvents(mapListToCards(data));
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, userProfile.role]);
 
   const applyLocalFilters = (list) => {
     let result = list;
@@ -175,6 +229,7 @@ const Home = ({ showToast }) => {
 
   const handleViewDetail = (event) => {
     if (!event?.id) return;
+    prefetchPublicEventById(event.id);
     navigate(`/events/${event.id}`);
   };
 
@@ -196,9 +251,13 @@ const Home = ({ showToast }) => {
     }
 
     if (event.cardState === 'registered' || event.registered) {
-      showToast('Bạn đã đăng ký sự kiện này.', 'success');
+      handleViewDetail(event);
       return;
     }
+
+    setEvents((prev) =>
+      prev.map((ev) => (ev.id === event.id ? markDiscoveryCardRegistered(ev) : ev))
+    );
 
     try {
       const res = await fetch(`${API_BASE}/api/events/${event.id}/register`, {
@@ -208,15 +267,18 @@ const Home = ({ showToast }) => {
       const data = await res.json();
 
       if (!res.ok) {
+        setEvents((prev) => prev.map((ev) => (ev.id === event.id ? event : ev)));
         showToast(data.message || 'Không thể đăng ký sự kiện.', 'error');
         return;
       }
 
       const updated = mapApiEventToCard({ ...data.event, isRegistered: true });
       setEvents((prev) => prev.map((ev) => (ev.id === event.id ? updated : ev)));
+      syncEventRegistrationInCache(event.id, data.event, { registered: true });
       showToast(data.message || 'Đăng ký sự kiện thành công!', 'success');
     } catch (err) {
       console.error(err);
+      setEvents((prev) => prev.map((ev) => (ev.id === event.id ? event : ev)));
       showToast('Không thể kết nối máy chủ.', 'error');
     }
   };
@@ -320,6 +382,24 @@ const Home = ({ showToast }) => {
         {eventsLoading ? (
           <div className="no-events-card">
             <p>Đang tải sự kiện...</p>
+          </div>
+        ) : eventsError ? (
+          <div className="no-events-card">
+            <p>Không thể tải danh sách sự kiện. Vui lòng thử lại sau.</p>
+            <button
+              type="button"
+              className="reset-filter-btn"
+              onClick={() => {
+                setEventsError(false);
+                setEventsLoading(true);
+                fetchPublicEvents(buildEventQuery(debouncedSearch, categoryFilter), { forceRefresh: true })
+                  .then((data) => setEvents(mapListToCards(data)))
+                  .catch(() => setEventsError(true))
+                  .finally(() => setEventsLoading(false));
+              }}
+            >
+              Thử lại
+            </button>
           </div>
         ) : filteredEvents.length > 0 ? (
           <section className="event-discovery-grid">

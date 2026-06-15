@@ -179,7 +179,7 @@ const getPrimaryActionLabel = (event, isRegistered, amountDue, listPrice) => {
   const eventState = event.eventState || 'active';
   if (eventState === 'expired') return 'Đã hết hạn';
   if (eventState === 'postponed') return 'Xem thông tin';
-  if (isRegistered) return 'Xem vé';
+  if (isRegistered) return 'Đã đăng ký';
   const capacity = event.capacity || 0;
   const registered = event.registeredCount ?? 0;
   if (capacity > 0 && registered >= capacity) return 'Hết chỗ';
@@ -193,7 +193,9 @@ export const mapApiEventToDetail = (event) => {
   const registeredCount = event.registeredCount ?? 0;
   const isRegistered = event.isRegistered === true;
   const fillPercent = getFillPercent(registeredCount, capacity);
-  const registrationStatus = getRegistrationStatus(event);
+  const registrationStatus = isRegistered
+    ? { label: 'Đã đăng ký', tone: 'open' }
+    : getRegistrationStatus(event);
   const listPrice = event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0);
   const amountDue = event.amountDue ?? listPrice;
   const priceLabel = event.priceLabel || (amountDue === 0 ? 'MIỄN PHÍ' : formatVnd(amountDue));

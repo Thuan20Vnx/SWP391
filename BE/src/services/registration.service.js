@@ -113,6 +113,8 @@ const registerForEvent = async (user, eventId) => {
   registration = await EventRegistration.findById(registration._id)
     .populate('event', 'title startDate endDate location thumbnail category capacity registeredCount ticketPrice');
 
+  invalidateRegisteredIdsCache(user._id);
+
   let message = 'Đăng ký sự kiện thành công!';
   if (studentPrivilegeApplied) {
     message = 'Đăng ký thành công! Bạn được miễn phí vé.';
@@ -161,10 +163,36 @@ const cancelRegistration = async (userId, eventId) => {
     await event.save();
   }
 
+  invalidateRegisteredIdsCache(userId);
+
   return { message: 'Đã hủy đăng ký sự kiện.' };
 };
 
+const registeredIdsCache = new Map();
+const REGISTERED_IDS_TTL_MS = 60_000;
+
+const readRegisteredIdsCache = (userId) => {
+  const entry = registeredIdsCache.get(String(userId));
+  if (!entry) return null;
+  if (Date.now() - entry.ts > REGISTERED_IDS_TTL_MS) {
+    registeredIdsCache.delete(String(userId));
+    return null;
+  }
+  return entry.ids;
+};
+
+const writeRegisteredIdsCache = (userId, ids) => {
+  registeredIdsCache.set(String(userId), { ids, ts: Date.now() });
+};
+
+const invalidateRegisteredIdsCache = (userId) => {
+  if (userId) registeredIdsCache.delete(String(userId));
+};
+
 const getRegisteredEventIds = async (userId) => {
+  const cached = readRegisteredIdsCache(userId);
+  if (cached) return cached;
+
   const registrations = await EventRegistration.find({
     user: userId,
     status: 'registered',
@@ -172,7 +200,9 @@ const getRegisteredEventIds = async (userId) => {
     .select('event')
     .lean();
 
-  return registrations.map((r) => String(r.event));
+  const ids = registrations.map((r) => String(r.event));
+  writeRegisteredIdsCache(userId, ids);
+  return ids;
 };
 
 const getMyEvents = async (userId, { tab = 'upcoming' } = {}) => {

@@ -9,7 +9,13 @@ import {
   persistSidebarOpen as persistCtsvSidebarOpen,
   readSidebarPref as readCtsvSidebarPref,
 } from '../components/ctsv/ctsvNavConfig';
+import StudentPublicSidebar from '../components/student/StudentPublicSidebar';
 import SiteHeader from '../components/SiteHeader';
+import {
+  isStudentDesktop,
+  persistStudentPublicSidebarOpen,
+  readStudentPublicSidebarPref,
+} from '../components/student/studentNavConfig';
 import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getEventHeaders, parseApiResponse } from '../utils/api';
 import { getUserRole, isAdminRole, isClubManagerRole, normalizeRole, USER_ROLES } from '../utils/auth';
@@ -33,9 +39,13 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
   const showClubShell = isLoggedIn && isClubManagerRole(role) && !showAdminMenu;
   const showCtsvShell = isLoggedIn && role === USER_ROLES.CTSV && !showAdminMenu;
 
+  const showStudentShell =
+    isLoggedIn && role === USER_ROLES.STUDENT && !showAdminMenu && !showClubShell && !showCtsvShell;
+
   const [adminSidebarOpen, setAdminSidebarOpen] = useState(readSidebarPref);
   const [clubSidebarOpen, setClubSidebarOpen] = useState(readClubPublicSidebarPref);
   const [ctsvSidebarOpen, setCtsvSidebarOpen] = useState(readCtsvSidebarPref);
+  const [studentSidebarOpen, setStudentSidebarOpen] = useState(readStudentPublicSidebarPref);
   const [clubEvents, setClubEvents] = useState([]);
   const [lastSeenNotifs, setLastSeenNotifs] = useState(() =>
     parseInt(localStorage.getItem('clb_last_seen_notifs') || '0', 10)
@@ -47,9 +57,11 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
       setAdminSidebarOpen(false);
       setClubSidebarOpen(false);
       setCtsvSidebarOpen(false);
+      setStudentSidebarOpen(false);
       writeSidebarPref(false);
       persistClubPublicSidebarOpen(false);
       persistCtsvSidebarOpen(false);
+      persistStudentPublicSidebarOpen(false);
     };
 
     collapseShellOnMobile();
@@ -119,6 +131,50 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
     setCtsvSidebarOpen(false);
     persistCtsvSidebarOpen(false);
   }, []);
+
+  const toggleStudentSidebar = useCallback(() => {
+    setStudentSidebarOpen((prev) => {
+      const next = !prev;
+      persistStudentPublicSidebarOpen(next);
+      return next;
+    });
+  }, []);
+  const closeStudentSidebar = useCallback(() => {
+    setStudentSidebarOpen(false);
+    persistStudentPublicSidebarOpen(false);
+  }, []);
+
+  if (showStudentShell) {
+    const shellClass = `ctsv-app-shell student-public-shell${
+      studentSidebarOpen ? ' sidebar-open' : ' sidebar-closed'
+    }`;
+    return (
+      <div className={shellClass}>
+        {!isStudentDesktop() && studentSidebarOpen && (
+          <button
+            type="button"
+            className="ctsv-drawer-backdrop"
+            onClick={closeStudentSidebar}
+            aria-label="Đóng menu"
+          />
+        )}
+        <StudentPublicSidebar
+          open={studentSidebarOpen}
+          pathname={pathname}
+          userProfile={userProfile}
+          onClose={closeStudentSidebar}
+        />
+        <div className="ctsv-shell-main">
+          <SiteHeader
+            {...shellHeaderProps}
+            onTogglePortalSidebar={toggleStudentSidebar}
+            portalSidebarOpen={studentSidebarOpen}
+          />
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   if (!showAdminMenu && !showClubShell && !showCtsvShell) {
     return (

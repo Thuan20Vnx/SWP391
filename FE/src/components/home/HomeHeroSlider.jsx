@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { prefetchPublicEventById } from '../../services/eventsApi';
 
 const HERO_AUTOPLAY_MS = 6000;
 
@@ -37,6 +38,15 @@ const HomeHeroSlider = ({
   useEffect(() => {
     setActiveSlide(0);
   }, [slides]);
+
+  useEffect(() => {
+    const slide = slides[activeSlide];
+    const eventId = slide?.eventId || slide?.id;
+    if (!eventId) return undefined;
+
+    const timer = setTimeout(() => prefetchPublicEventById(eventId), 400);
+    return () => clearTimeout(timer);
+  }, [activeSlide, slides]);
 
   const goToPrevSlide = () => {
     if (slideCount <= 1) return;
