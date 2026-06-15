@@ -568,10 +568,10 @@
     height: 36px;
     margin: 0;
     padding: 0;
-    border: 1px solid rgba(242, 111, 33, 0.32);
+    border: 1px solid #e2e8f0;
     border-radius: 10px;
-    background: rgba(242, 111, 33, 0.08);
-    color: var(--primary);
+    background: #ffffff;
+    color: #334155;
     flex-shrink: 0;
     box-shadow: none;
     transition:
@@ -583,17 +583,17 @@
   }
 
   .site-header:not(.site-header--with-shell) .mobile-hamburger-btn:hover {
-    border-color: rgba(242, 111, 33, 0.55);
-    background: rgba(242, 111, 33, 0.14);
-    color: var(--primary);
-    box-shadow: 0 2px 8px rgba(242, 111, 33, 0.12);
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .site-header:not(.site-header--with-shell) .mobile-hamburger-btn[aria-expanded='true'] {
-    border-color: rgba(242, 111, 33, 0.55);
-    background: rgba(242, 111, 33, 0.14);
-    color: var(--primary);
-    box-shadow: 0 2px 8px rgba(242, 111, 33, 0.12);
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .site-header:not(.site-header--with-shell) .mobile-hamburger-btn:active {

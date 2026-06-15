@@ -32,6 +32,7 @@ const CTSV_PROFILE_MENU_ROUTES = {
 import { navigateClubPortalHome } from './club/clubNavConfig';
 import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
 import CtsvHamburgerButton from './ctsv/CtsvHamburgerButton';
+import { logoutWithConfirm } from '../utils/logout';
 import { ADMIN_PUBLIC_NAV_ITEMS, isAdminPublicNavActive } from '../data/adminPublicNav';
 import { PUBLIC_NAV_ITEMS } from '../data/publicNavItems';
 import { resolveMobileSearchSuggestions } from '../data/mobileSearchSuggestions';
