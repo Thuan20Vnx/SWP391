@@ -62,6 +62,43 @@ export const icpdpApproveProposal = (id, note = '') =>
     body: JSON.stringify({ note })
   });
 
+export const fetchIcpdpSemesterTimelines = (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return icpdpFetch(`/semester-timelines${qs ? `?${qs}` : ''}`);
+};
+
+export const fetchIcpdpSemesterTimeline = (id) => icpdpFetch(`/semester-timelines/${id}`);
+
+export const icpdpApproveSemesterTimeline = (id, note = '') =>
+  icpdpFetch(`/semester-timelines/${id}/icpdp-approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const rejectIcpdpSemesterTimeline = (id, reason = '') =>
+  icpdpFetch(`/semester-timelines/${id}/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason }),
+  });
+
+export const revisionIcpdpSemesterTimeline = (id, note = '') =>
+  icpdpFetch(`/semester-timelines/${id}/request-revision`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const icpdpApproveTimelineChangeRequest = (id, note = '') =>
+  icpdpFetch(`/semester-timelines/${id}/change-request/icpdp-approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const rejectTimelineChangeRequest = (id, reason = '', stage = 'icpdp') =>
+  icpdpFetch(`/semester-timelines/${id}/change-request/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason, stage }),
+  });
+
 export const fetchIcpdpPendingModerations = () =>
   icpdpFetch('/events/moderation/pending-icpdp');
 

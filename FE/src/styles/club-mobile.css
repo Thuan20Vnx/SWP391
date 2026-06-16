@@ -1,0 +1,700 @@
+/**
+ * Mobile UI — Quản lý CLB (/quan-ly-clb)
+ * Breakpoint: max-width 768px (phone)
+ */
+
+.club-m-show-mobile,
+.club-m-event-list,
+.club-m-participant-list,
+.club-m-timeline-list,
+.club-m-dash-events {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .club-app-shell .clb-main {
+    padding: 16px 14px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── Page header ── */
+  .clb-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .clb-page-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .clb-page-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .clb-create-btn,
+  .clb-btn-primary,
+  .clb-profile-save-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+
+  .clb-page-header .clb-create-btn {
+    order: 2;
+  }
+
+  /* Desktop table — hide on mobile */
+  .club-m-hide-mobile {
+    display: none !important;
+  }
+
+  /* Mobile-only blocks */
+  .club-m-show-mobile {
+    display: flex !important;
+  }
+
+  .club-m-event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* ── Event card ── */
+  .club-m-event-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+  }
+
+  .club-m-event-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .club-m-event-card__title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.35;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .club-m-event-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .club-m-event-card__date {
+    font-size: 0.82rem;
+    color: #64748b;
+  }
+
+  .club-m-event-card__slots {
+    margin-bottom: 12px;
+  }
+
+  .club-m-event-card__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .club-m-btn {
+    flex: 1;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+  }
+
+  .club-m-btn--primary {
+    background: #f26f21;
+    border-color: #f26f21;
+    color: #fff;
+  }
+
+  .club-m-btn--danger {
+    color: #dc2626;
+    border-color: #fecaca;
+    background: #fef2f2;
+  }
+
+  .club-m-btn--ghost {
+    background: #fff;
+    color: #475569;
+  }
+
+  /* ── Participant card ── */
+  .club-m-participant-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .club-m-participant-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+  }
+
+  .club-m-participant-card__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f26f21, #fb923c);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .club-m-participant-card__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .club-m-participant-card__name {
+    margin: 0 0 2px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .club-m-participant-card__sub {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #64748b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ── Notifications ── */
+  .club-m-notifications {
+    width: 100%;
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+    border: 1px solid #e2e8f0;
+  }
+
+  .club-m-notifications__header {
+    margin-bottom: 16px;
+  }
+
+  .club-m-notifications__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .club-m-notif-card {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+  }
+
+  .club-m-notif-card--unread {
+    border-color: #fed7aa;
+    background: #fffaf5;
+  }
+
+  .club-m-notif-card__icon {
+    flex-shrink: 0;
+  }
+
+  .club-m-notif-card__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .club-m-notif-card__title {
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .club-m-notif-card__title.is-unread {
+    font-weight: 700;
+  }
+
+  .club-m-notif-card__text {
+    margin: 0 0 8px;
+    font-size: 0.875rem;
+    color: #475569;
+    line-height: 1.45;
+  }
+
+  .club-m-notif-card__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+  }
+
+  .club-m-notif-card__reason-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #ef4444;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .club-m-notif-card__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #f26f21;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  /* ── Timeline list (table hidden via .club-m-hide-mobile) ── */
+
+  .club-m-timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .club-m-timeline-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+
+  .club-m-timeline-card__label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .club-m-timeline-card__summary {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .club-m-timeline-card__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-bottom: 12px;
+  }
+
+  .club-m-timeline-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .clb-timeline-form {
+    max-width: none;
+  }
+
+  .clb-timeline-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .clb-timeline-item-card {
+    padding: 12px;
+  }
+
+  .clb-timeline-form-actions {
+    position: sticky;
+    bottom: 0;
+    background: linear-gradient(transparent, #fff 20%);
+    padding: 12px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+    margin: 0 -2px;
+    z-index: 2;
+  }
+
+  .clb-timeline-form-actions .clb-create-btn,
+  .clb-timeline-form-actions .clb-create-btn--ghost {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  /* ── Event proposal form (đồng bộ CTSV / Thuan_CTSV) ── */
+  .clb-create-view.event-proposal-form,
+  .clb-create-view {
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    max-width: none;
+  }
+
+  .clb-create-view__header {
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .clb-create-view__heading .clb-modal-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .clb-create-view__heading .clb-modal-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .clb-modal-form {
+    width: 100%;
+  }
+
+  .clb-form-group--banner .ctsv-banner-upload {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .clb-form-group--banner .ctsv-banner-dropzone,
+  .clb-form-group--banner .clb-banner-dropzone {
+    width: 100%;
+    max-width: none;
+  }
+
+  .clb-form-group--banner .ctsv-banner-meta {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .clb-form-group--banner .ctsv-banner-meta-actions {
+    width: 100%;
+  }
+
+  .clb-form-group--banner .ctsv-btn-banner-secondary,
+  .clb-form-group--banner .ctsv-btn-banner-remove {
+    flex: 1;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .clb-modal-form .clb-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .clb-modal-actions,
+  .clb-form-actions {
+    flex-direction: column-reverse;
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 12px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid #e2e8f0;
+    margin-top: 16px;
+    z-index: 2;
+  }
+
+  .clb-modal-actions .clb-btn-primary,
+  .clb-modal-actions .clb-btn-secondary,
+  .clb-form-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* ── Dashboard ── */
+  .clb-dash-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .clb-dash-stat-value {
+    font-size: 1.4rem;
+  }
+
+  .clb-dash-section .clb-table-wrapper {
+    display: none;
+  }
+
+  .club-m-dash-events {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ── Participants toolbar ── */
+  .clb-participants-toolbar {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .clb-participants-panel .clb-page-header .clb-btn-primary {
+    width: 100%;
+  }
+
+  .clb-participants-panel .clb-table-wrapper {
+    display: none;
+  }
+
+  /* ── Reports ── */
+  .clb-reports-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .clb-reports-search {
+    width: 100%;
+  }
+
+  .clb-reports-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .clb-reports-filter {
+    flex-shrink: 0;
+    min-height: 40px;
+  }
+
+  .clb-reports-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .clb-reports-panel .clb-table-wrapper {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .clb-reports-panel .clb-table-scroll {
+    overflow-x: visible;
+  }
+
+  .clb-reports-panel .clb-table {
+    min-width: 0;
+  }
+
+  .clb-reports-panel .clb-table thead {
+    display: none;
+  }
+
+  .clb-reports-panel .clb-table tbody tr {
+    display: block;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+  }
+
+  .clb-reports-panel .clb-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border: none;
+    gap: 12px;
+  }
+
+  .clb-reports-panel .clb-table tbody td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .clb-reports-panel .clb-table tbody td.clb-table-col-action {
+    justify-content: flex-end;
+    padding-top: 10px;
+  }
+
+  .clb-reports-panel .clb-table tbody td.clb-table-col-action::before {
+    display: none;
+  }
+
+  /* ── Profile ── */
+  .clb-profile-view {
+    padding: 12px 0;
+  }
+
+  .clb-profile-form {
+    overflow: visible;
+  }
+
+  .clb-profile-grid--2,
+  .clb-profile-grid--3 {
+    grid-template-columns: 1fr;
+  }
+
+  .clb-profile-field--span-2 {
+    grid-column: span 1;
+  }
+
+  .clb-profile-cover-wrap,
+  .clb-profile-cover {
+    min-height: 200px;
+    max-height: 220px;
+  }
+
+  .clb-profile-actions {
+    flex-direction: column-reverse;
+    position: sticky;
+    bottom: 0;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .clb-profile-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .clb-profile-card {
+    padding: 20px 16px;
+  }
+
+  /* ── Sticky action bar ── */
+  .club-m-sticky-actions {
+    display: flex;
+    gap: 8px;
+    position: sticky;
+    bottom: 0;
+    padding: 12px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(transparent, #fff 24%);
+    z-index: 5;
+  }
+
+  .club-m-sticky-actions .club-m-btn,
+  .club-m-sticky-actions .clb-create-btn {
+    flex: 1;
+  }
+
+  /* ── Modal ── */
+  .club-m-modal-backdrop {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .club-m-modal {
+    border-radius: 16px 16px 0 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* ── Pagination hide on mobile card view ── */
+  .club-m-event-list + .clb-pagination,
+  .clb-page-header + .club-m-event-list ~ .clb-pagination {
+    display: none;
+  }
+
+  .clb-transfer-chairman-page {
+    max-width: 100% !important;
+    padding: 0;
+  }
+
+  .clb-panel-empty,
+  .clb-panel-empty-cell {
+    font-size: 0.9rem;
+    padding: 24px 12px;
+    text-align: center;
+  }
+
+  /* ── Chi tiết sự kiện quản lý (/quan-ly-clb/su-kien/:id) ── */
+  .ev-detail-content {
+    padding: 12px 14px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .ev-header-block {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ev-header-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ev-header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ev-header-actions .ev-btn-outline,
+  .ev-header-actions .ev-btn-primary {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .ev-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ev-tab {
+    flex-shrink: 0;
+    min-height: 44px;
+  }
+
+  .ev-breadcrumbs {
+    font-size: 0.78rem;
+    flex-wrap: wrap;
+  }
+
+  .announcements-page__container {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Desktop: hide mobile-only elements */
+@media (min-width: 769px) {
+  .club-m-show-mobile,
+  .club-m-event-list,
+  .club-m-participant-list,
+  .club-m-timeline-list,
+  .club-m-dash-events {
+    display: none !important;
+  }
+}

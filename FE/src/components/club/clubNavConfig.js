@@ -2,15 +2,28 @@ export const CLUB_SIDEBAR_KEY = 'clubSidebarOpen';
 export const CLUB_PUBLIC_SIDEBAR_KEY = 'clubPublicSidebarOpen';
 
 export const CLUB_NAV_ITEMS = [
-  { key: 'profile', label: 'Hồ sơ CLB', icon: 'profile' },
-  { key: 'transfer-chairman', label: 'Chuyển nhượng Chủ nhiệm', icon: 'transfer' },
-  { key: 'create', label: 'Tạo đề xuất sự kiện', section: 'SỰ KIỆN', icon: 'create' },
-  { key: 'list', label: 'Danh sách Sự kiện quản lý', icon: 'publish' },
-  { key: 'participants', label: 'Quản lý người tham gia', icon: 'participants' },
-  { key: 'report', label: 'Báo cáo sau sự kiện', section: 'THEO DÕI', icon: 'reports' },
-  { key: 'notifications', label: 'Thông báo xét duyệt', icon: 'approval' },
-  { key: 'announcements', label: 'Đăng thông báo CLB', icon: 'broadcast' },
-  { key: 'dashboard', label: 'Dashboard Thống kê số liệu', icon: 'dashboard' },
+  { key: 'profile', label: 'Hồ sơ CLB', mobileLabel: 'Hồ sơ CLB', icon: 'profile' },
+  { key: 'transfer-chairman', label: 'Chuyển nhượng Chủ nhiệm', mobileLabel: 'Chuyển CN', icon: 'transfer' },
+  {
+    key: 'semester-timeline',
+    label: 'Timeline Spring/Summer/Fall',
+    mobileLabel: 'Timeline kỳ',
+    section: 'KẾ HOẠCH KỲ',
+    icon: 'calendar',
+  },
+  {
+    key: 'create',
+    label: 'Tạo đề xuất sự kiện',
+    mobileLabel: 'Tạo đề xuất',
+    section: 'SỰ KIỆN',
+    icon: 'create',
+  },
+  { key: 'list', label: 'Danh sách Sự kiện quản lý', mobileLabel: 'DS sự kiện', icon: 'publish' },
+  { key: 'participants', label: 'Xem danh sách người tham gia', mobileLabel: 'Danh sách tham gia', icon: 'participants' },
+  { key: 'report', label: 'Báo cáo sau sự kiện', mobileLabel: 'Báo cáo SK', section: 'THEO DÕI', icon: 'reports' },
+  { key: 'notifications', label: 'Thông báo xét duyệt', mobileLabel: 'Xét duyệt', icon: 'approval' },
+  { key: 'announcements', label: 'Đăng thông báo CLB', mobileLabel: 'Thông báo CLB', icon: 'broadcast' },
+  { key: 'dashboard', label: 'Dashboard Thống kê số liệu', mobileLabel: 'Dashboard', icon: 'dashboard' },
 ];
 
 export const readClubSidebarPref = () => {
@@ -49,7 +62,6 @@ export const resolveClubActiveNav = (pathname) => {
   if (pathname.startsWith('/quan-ly-clb/su-kien')) return 'list';
   try {
     const saved = sessionStorage.getItem('clb_active_nav');
-    // Không khôi phục tab "Tạo đề xuất" — header "Quản lý CLB" luôn vào danh sách
     if (
       saved
       && saved !== 'create'

@@ -2,51 +2,7 @@ const mongoose = require('mongoose');
 const Club = require('../models/Club');
 const ClubFollow = require('../models/ClubFollow');
 const ClubMembership = require('../models/ClubMembership');
-const Event = require('../models/Event');
 const AppError = require('../utils/AppError');
-
-const PUBLIC_EVENT_STATUSES = ['live', 'approved'];
-
-const CLUB_LIST_FIELDS =
-  'name slug category description coverImage logoText logoColor memberCount followerCount eventsHeld featuredEvent status';
-
-const formatEventDateLabel = (date) => {
-  if (!date) return '';
-  const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
-};
-
-const mapEventToUpcomingCard = (event, { isHot = false } = {}) => ({
-  id: String(event._id),
-  title: event.title,
-  date: formatEventDateLabel(event.startDate),
-  location: event.location || 'FPT University',
-  description: event.description || '',
-  image: event.thumbnail || event.image || '',
-  isHot,
-  primaryLabel: 'Đăng ký tham gia',
-  variant: 'primary',
-});
-
-const getClubUpcomingEvents = async (club) => {
-  const clubId = club._id;
-  const now = new Date();
-
-  const clubEvents = await Event.find({
-    clubId,
-    source: 'club',
-    status: { $in: PUBLIC_EVENT_STATUSES },
-    startDate: { $gte: now },
-  })
-    .sort({ startDate: 1 })
-    .limit(6)
-    .lean();
-
-  return clubEvents.map((event, index) => mapEventToUpcomingCard(event, { isHot: index === 0 }));
-};
 
 const resolveClub = async (idOrSlug) => {
   if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
@@ -111,14 +67,11 @@ const buildClubQuery = ({ category, search }) => {
 };
 
 const getClubs = async ({ category, search, userId } = {}) => {
-  const [followedSet, membershipMap, clubs] = await Promise.all([
-    getFollowedClubIds(userId),
-    getMembershipMap(userId),
-    Club.find(buildClubQuery({ category, search }))
-      .select(CLUB_LIST_FIELDS)
-      .sort({ name: 1 })
-      .lean(),
-  ]);
+  const followedSet = await getFollowedClubIds(userId);
+  const membershipMap = await getMembershipMap(userId);
+
+  const clubs = await Club.find(buildClubQuery({ category, search }))
+    .sort({ name: 1 });
 
   return {
     clubs: clubs.map((club) => attachUserClubFlags(club, followedSet, membershipMap)),
@@ -135,11 +88,8 @@ const getClubBySlug = async (idOrSlug, userId) => {
 
   const followedSet = await getFollowedClubIds(userId);
   const membershipMap = await getMembershipMap(userId);
-  const upcomingEvents = await getClubUpcomingEvents(club);
-  const clubDoc = attachUserClubFlags(club, followedSet, membershipMap);
-  clubDoc.upcomingEvents = upcomingEvents;
 
-  return { club: clubDoc };
+  return { club: attachUserClubFlags(club, followedSet, membershipMap) };
 };
 
 const followClub = async (userId, idOrSlug) => {
@@ -456,20 +406,10 @@ const ALLOWED_PROFILE_FIELDS = [
   'logoColor',
 ];
 
-const findManagedClubs = async (userId, options = {}) => {
-  const { excludeImages = false, select = null } = options;
-  let query = Club.find({ managedBy: userId }).sort({ name: 1 });
-  if (select) query = query.select(select);
-  else if (excludeImages) query = query.select('-coverImage -logoImage');
-
-  const clubs = await query;
+const findManagedClubs = async (userId) => {
+  const clubs = await Club.find({ managedBy: userId }).sort({ name: 1 });
   if (clubs.length) return clubs;
-
-  let fallbackQuery = Club.findOne({ slug: MANAGED_CLUB_SLUG });
-  if (select) fallbackQuery = fallbackQuery.select(select);
-  else if (excludeImages) fallbackQuery = fallbackQuery.select('-coverImage -logoImage');
-
-  const fallback = await fallbackQuery;
+  const fallback = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
   return fallback ? [fallback] : [];
 };
 
@@ -481,8 +421,8 @@ const formatManagedClubBrief = (club) => ({
   logoText: club.logoText || '',
 });
 
-const resolveManagedClub = async (userId, activeClubId = null, options = {}) => {
-  const clubs = await findManagedClubs(userId, options);
+const resolveManagedClub = async (userId, activeClubId = null) => {
+  const clubs = await findManagedClubs(userId);
   if (!clubs.length) return null;
 
   if (activeClubId) {
@@ -490,7 +430,7 @@ const resolveManagedClub = async (userId, activeClubId = null, options = {}) => 
     if (matched) return matched;
   }
 
-  return clubs.find((club) => club.slug === 'fu-dever') || clubs[0];
+  return clubs[0];
 };
 
 const findClubManagedBy = async (userId, activeClubId = null) =>
@@ -551,30 +491,8 @@ const transferClubChairman = async (currentUserId, payload = {}, activeClubId = 
   };
 };
 
-const getManagedClubProfile = async (userId, activeClubId = null, { lite = false, mediaOnly = false } = {}) => {
-  if (mediaOnly) {
-    const club = await resolveManagedClub(userId, activeClubId, {
-      select: 'coverImage logoImage coverPositionY managedBy',
-    });
-
-    if (!club) {
-      throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);
-    }
-
-    if (club.managedBy && String(club.managedBy) !== String(userId)) {
-      throw new AppError('Bạn không có quyền quản lý hồ sơ CLB này.', 403);
-    }
-
-    return {
-      club: {
-        coverImage: club.coverImage || '',
-        logoImage: club.logoImage || '',
-        coverPositionY: club.coverPositionY ?? 50,
-      },
-    };
-  }
-
-  const club = await resolveManagedClub(userId, activeClubId, { excludeImages: lite });
+const getManagedClubProfile = async (userId, activeClubId = null) => {
+  const club = await resolveManagedClub(userId, activeClubId);
 
   if (!club) {
     throw new AppError('Không tìm thấy câu lạc bộ được gán cho quản lý.', 404);

@@ -33,6 +33,7 @@ const {
   findLinkableAnnouncementEvents,
   isEventLinkableForAnnouncement
 } = require('../utils/announcementEvents');
+const clubSemesterTimelineService = require('../services/clubSemesterTimeline.service');
 const {
   requestModeration,
   requestClubModeration,
@@ -1181,5 +1182,137 @@ const deleteAnnouncementHandler = async (req, res) => {
 
 router.delete('/announcements/:id', requireCtsvApprove, deleteAnnouncementHandler);
 router.post('/announcements/:id/delete', requireCtsvApprove, deleteAnnouncementHandler);
+
+// --- Semester timelines (CLB kế hoạch kỳ học) ---
+router.get('/semester-timelines', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const role = req.userRole;
+    const defaultStatuses =
+      role === 'icpdp'
+        ? ['pending_icpdp', 'revision']
+        : role === 'ctsv'
+          ? ['pending_ctsv']
+          : ['pending_icpdp', 'pending_ctsv', 'revision'];
+    const timelines = await clubSemesterTimelineService.listForReview({
+      status: req.query.status,
+      q: req.query.q,
+      defaultStatuses: req.query.status ? null : defaultStatuses,
+    });
+    return res.json({ success: true, timelines });
+  } catch (error) {
+    console.error('semester-timelines list:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/semester-timelines/:id', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.getById(req.params.id);
+    return res.json({ success: true, timeline });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/icpdp-approve', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.icpdpApprove(req.params.id, {
+      note: req.body.note,
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({
+      success: true,
+      timeline,
+      message: 'Đã duyệt timeline — chuyển sang CTSV phê duyệt.',
+    });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/approve', requireCtsvApprove, async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.ctsvApprove(req.params.id, {
+      note: req.body.note,
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({ success: true, timeline, message: 'Đã phê duyệt timeline kỳ học.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/reject', requireProposalModerate, async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.rejectTimeline(req.params.id, {
+      reason: req.body.reason,
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({ success: true, timeline });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/request-revision', requireProposalModerate, async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.requestRevision(req.params.id, {
+      note: req.body.note,
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({ success: true, timeline });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/change-request/icpdp-approve', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.icpdpApproveChangeRequest(req.params.id, {
+      note: req.body.note,
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({ success: true, timeline, message: 'Đã chuyển yêu cầu lên Admin duyệt.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/change-request/admin-approve', requireCtsvApprove, async (req, res) => {
+  try {
+    const result = await clubSemesterTimelineService.adminApproveChangeRequest(req.params.id, {
+      note: req.body.note,
+      reviewerEmail: req.authEmail,
+    });
+    if (result?.deleted) {
+      return res.json({ success: true, ...result, message: 'Admin đã duyệt — timeline đã xóa.' });
+    }
+    return res.json({ success: true, timeline: result, message: 'Admin đã duyệt yêu cầu.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/change-request/reject', requireProposalModerate, async (req, res) => {
+  try {
+    const stage = req.body.stage === 'admin' ? 'admin' : 'icpdp';
+    const timeline = await clubSemesterTimelineService.rejectChangeRequest(req.params.id, {
+      reason: req.body.reason,
+      reviewerEmail: req.authEmail,
+      stage,
+    });
+    return res.json({ success: true, timeline, message: 'Đã từ chối yêu cầu.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
 
 module.exports = router;

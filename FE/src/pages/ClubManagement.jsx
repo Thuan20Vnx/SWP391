@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { API_BASE, getEventHeaders, parseApiResponse } from '../utils/api';
 import ClubProfileUpdate from '../components/ClubProfileUpdate';
@@ -7,9 +7,11 @@ import ClubDashboardPanel from '../components/club/ClubDashboardPanel';
 import ClubParticipantsPanel from '../components/club/ClubParticipantsPanel';
 import ClubEventReportsPanel from '../components/club/ClubEventReportsPanel';
 import './ClubManagement.css';
+import '../styles/club-mobile.css';
 import EventProposalForm from '../components/events/EventProposalForm';
+import ClubSemesterTimelinePanel from '../components/club/ClubSemesterTimelinePanel';
+import ClubEventListCard from '../components/club/mobile/ClubEventListCard';
 import { EMPTY_EVENT_FORM, mapApiEventToForm } from '../utils/eventFormState';
-import { canClubEditEventProposal } from '../constants/clubEventModeration';
 
 const ClubManagement = () => {
   const navigate = useNavigate();
@@ -22,7 +24,6 @@ const ClubManagement = () => {
     events = [],
     setEvents,
     lastSeenNotifs,
-    activeClub,
   } = useOutletContext();
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -35,84 +36,7 @@ const ClubManagement = () => {
   const [submittingEvent, setSubmittingEvent] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [bannerFileName, setBannerFileName] = useState('');
-  const [loadingEventForm, setLoadingEventForm] = useState(false);
   const totalEvents = events.length;
-
-  const applyEventToForm = useCallback((event) => {
-    if (!event) return;
-    setEventForm(mapApiEventToForm(event));
-    setBannerFileName(event.bannerFileName || 'event-banner.jpg');
-    setEventFormKey((k) => k + 1);
-  }, []);
-
-  const findCachedEvent = useCallback(
-    (editId) => events.find((ev) => String(ev._id || ev.id) === String(editId)),
-    [events]
-  );
-
-  const isRichEventPrefill = (event) =>
-    Boolean(
-      event &&
-        event.title &&
-        event.startDate &&
-        (event.thumbnail || event.image || event.description !== undefined)
-    );
-
-  const fetchAndApplyEventForEdit = useCallback(
-    async (editId, { prefill, returnTo, silent = false } = {}) => {
-      if (!silent) setLoadingEventForm(true);
-      try {
-        const res = await fetch(`${API_BASE}/api/events/${editId}`, {
-          headers: getEventHeaders(false),
-        });
-        const data = await res.json();
-        if (data.success && data.event) {
-          if (!canClubEditEventProposal(data.event)) {
-            showToast?.('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 'error');
-            setEditingEventId(null);
-            setEditReturnTo(null);
-            setActiveNav('list');
-            return;
-          }
-          applyEventToForm(data.event);
-        } else if (!prefill) {
-          showToast?.(data.message || 'Không tải được sự kiện để chỉnh sửa.', 'error');
-        }
-      } catch {
-        if (!prefill) showToast?.('Lỗi khi tải sự kiện.', 'error');
-      } finally {
-        if (!silent) setLoadingEventForm(false);
-      }
-    },
-    [applyEventToForm, setActiveNav, showToast]
-  );
-
-  const startEditEvent = useCallback(
-    (editId, returnTo, prefill) => {
-      setEditingEventId(editId);
-      setEditReturnTo(returnTo);
-      setActiveNav('create');
-
-      const instantSource =
-        (isRichEventPrefill(prefill) && prefill) ||
-        (isRichEventPrefill(findCachedEvent(editId)) && findCachedEvent(editId));
-
-      if (instantSource) {
-        applyEventToForm(instantSource);
-        setLoadingEventForm(false);
-        if (!isRichEventPrefill(prefill)) {
-          fetchAndApplyEventForEdit(editId, { prefill: instantSource, silent: true });
-        }
-        return;
-      }
-
-      setEventForm(EMPTY_EVENT_FORM);
-      setBannerFileName('');
-      setLoadingEventForm(true);
-      fetchAndApplyEventForEdit(editId, { returnTo });
-    },
-    [applyEventToForm, fetchAndApplyEventForEdit, findCachedEvent, setActiveNav]
-  );
 
   const eventNotifications = useMemo(() => {
     return events
@@ -165,34 +89,24 @@ const ClubManagement = () => {
   }, []);
 
   useEffect(() => {
-    if (!location.state?.clubPortalHome) return;
-    setEditingEventId(null);
-    setEditReturnTo(null);
-    setLoadingEventForm(false);
-    setEventForm(EMPTY_EVENT_FORM);
-    setBannerFileName('');
-    setEventFormKey((k) => k + 1);
-  }, [location.state?.clubPortalHome]);
-
-  useEffect(() => {
-    if (!location.state?.freshCreate) return;
-    setEditingEventId(null);
-    setEditReturnTo(null);
-    setLoadingEventForm(false);
-    setEventForm(EMPTY_EVENT_FORM);
-    setBannerFileName('');
-    setEventFormKey((k) => k + 1);
-    setActiveNav('create');
-    navigate(location.pathname, { replace: true, state: {} });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state?.freshCreate]);
-
-  useEffect(() => {
     const editId = location.state?.editEventId;
     const returnTo = location.state?.returnTo || null;
-    const prefill = location.state?.editEventPrefill || null;
     if (!editId) return;
-    startEditEvent(editId, returnTo, prefill);
+    setEditingEventId(editId);
+    setEditReturnTo(returnTo);
+    setActiveNav('create');
+    fetch(`${API_BASE}/api/events/${editId}?includeMedia=1`, { headers: getEventHeaders(false) })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.event) {
+          setEventForm(mapApiEventToForm(data.event));
+          setBannerFileName(data.event.bannerFileName || 'event-banner.jpg');
+          setEventFormKey((k) => k + 1);
+        } else {
+          showToast?.(data.message || 'Không tải được sự kiện để chỉnh sửa.', 'error');
+        }
+      })
+      .catch(() => showToast?.('Lỗi khi tải sự kiện.', 'error'));
     navigate(location.pathname, { replace: true, state: {} });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state?.editEventId]);
@@ -282,8 +196,7 @@ const ClubManagement = () => {
       const data = await res.json();
       if (data.success) {
         showToast(
-          data.message ||
-            (editingEventId ? 'Đã cập nhật sự kiện!' : 'Đề xuất sự kiện đã được gửi duyệt!'),
+          editingEventId ? 'Đã cập nhật và gửi lại duyệt!' : 'Đề xuất sự kiện đã được gửi duyệt!',
           'success'
         );
         const returnTo = editReturnTo;
@@ -322,17 +235,23 @@ const ClubManagement = () => {
             </div>
           )}
 
+          {activeNav === 'semester-timeline' && (
+            <ClubSemesterTimelinePanel showToast={showToast} />
+          )}
+
           {activeNav === 'list' && (
             <>
               <div className="clb-page-header">
                 <div>
                   <h1 className="clb-page-title">DANH SÁCH SỰ KIỆN QUẢN LÝ</h1>
-                  <p className="clb-page-subtitle">Chào mừng trở lại, <strong>{userProfile.fullname || 'Manager'}</strong>. Bạn đang quản lý <strong>{events.length}</strong> sự kiện{activeClub?.name ? <> thuộc <strong>{activeClub.name}</strong></> : null}.</p>
+                  <p className="clb-page-subtitle">Chào mừng trở lại, <strong>{userProfile.fullname || 'Manager'}</strong>. Bạn đang quản lý <strong>{events.length}</strong> sự kiện.</p>
                 </div>
                 <button
                   className="clb-create-btn"
                   onClick={() => {
-                    navigate('/quan-ly-clb', { state: { freshCreate: true }, replace: true });
+                    setEditingEventId(null);
+                    setEditReturnTo(null);
+                    setActiveNav('create');
                   }}
                 >
                   <svg viewBox="0 0 24 24" width="18" height="18"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" /></svg>
@@ -340,7 +259,7 @@ const ClubManagement = () => {
                 </button>
               </div>
 
-              <div className="clb-table-wrapper">
+              <div className="clb-table-wrapper club-m-hide-mobile">
                 <div className="clb-table-scroll">
                   <table className="clb-table">
                     <thead>
@@ -357,10 +276,7 @@ const ClubManagement = () => {
                       {loadingEvents ? (
                         <tr><td colSpan={6} className="clb-panel-empty-cell">Đang tải...</td></tr>
                       ) : events.length === 0 ? (
-                        <tr><td colSpan={6} className="clb-panel-empty-cell">
-                          Chưa có sự kiện cho CLB đang quản lý.
-                          {' '}Nếu bạn quản lý nhiều CLB, hãy dùng <strong>Đổi câu lạc bộ</strong> trên menu tài khoản.
-                        </td></tr>
+                        <tr><td colSpan={6} className="clb-panel-empty-cell">Chưa có sự kiện nào. Tạo sự kiện đầu tiên của bạn!</td></tr>
                       ) : events.map(ev => {
                         const { label, tone } = getStatusLabel(ev.status);
                         const startDate = ev.startDate ? new Date(ev.startDate).toLocaleDateString('vi-VN') : '--';
@@ -439,6 +355,29 @@ const ClubManagement = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="club-m-event-list club-m-show-mobile">
+                {loadingEvents ? (
+                  <p className="clb-panel-empty">Đang tải...</p>
+                ) : events.length === 0 ? (
+                  <p className="clb-panel-empty">Chưa có sự kiện nào. Tạo sự kiện đầu tiên của bạn!</p>
+                ) : (
+                  events.map((ev) => {
+                    const { label, tone } = getStatusLabel(ev.status);
+                    return (
+                      <ClubEventListCard
+                        key={ev._id}
+                        event={ev}
+                        statusLabel={label}
+                        statusTone={tone}
+                        onView={(id) => navigate(`/quan-ly-clb/su-kien/${id}`)}
+                        onDelete={handleDeleteEvent}
+                        showDelete={ev.status === 'rejected'}
+                      />
+                    );
+                  })
+                )}
+              </div>
             </>
           )}
 
@@ -454,27 +393,15 @@ const ClubManagement = () => {
               bannerFileName={bannerFileName}
               onBannerFileNameChange={setBannerFileName}
               submitting={submittingEvent}
-              loading={loadingEventForm}
               onCancel={() => {
-                const returnTo =
-                  editReturnTo ||
-                  (editingEventId ? `/quan-ly-clb/su-kien/${editingEventId}` : null);
+                const returnTo = editReturnTo;
                 setEditingEventId(null);
                 setEditReturnTo(null);
-                setLoadingEventForm(false);
-                setEventForm(EMPTY_EVENT_FORM);
-                setBannerFileName('');
-                setEventFormKey((k) => k + 1);
                 if (returnTo) {
                   navigate(returnTo);
-                  return;
+                } else {
+                  setActiveNav('list');
                 }
-                try {
-                  sessionStorage.setItem('clb_active_nav', 'list');
-                } catch {
-                  /* ignore */
-                }
-                setActiveNav('list');
               }}
               onDraftSave={() => showToast('Đã lưu bản nháp!', 'info')}
               onSubmit={handleClubEventSubmit}
@@ -509,44 +436,62 @@ const ClubManagement = () => {
           )}
 
           {activeNav === 'notifications' && (
-            <div className="clb-notifications-view" style={{ width: '100%', maxWidth: '900px', margin: '0 auto', background: '#fff', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
-              <div style={{ marginBottom: '24px' }}>
+            <div className="club-m-notifications">
+              <div className="club-m-notifications__header">
                 <h2 className="clb-modal-title" style={{ margin: 0 }}>THÔNG BÁO XÉT DUYỆT</h2>
-                <p className="clb-modal-subtitle" style={{ margin: '4px 0 0 0' }}>Trạng thái phê duyệt các sự kiện của câu lạc bộ.</p>
+                <p className="clb-modal-subtitle" style={{ margin: '4px 0 0 0' }}>
+                  Trạng thái phê duyệt các sự kiện của câu lạc bộ.
+                </p>
               </div>
 
-              <div className="clb-notifications-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="club-m-notifications__list">
                 {eventNotifications.length === 0 ? (
-                  <p style={{ textAlign: 'center', color: '#94a3b8', padding: '32px 0' }}>Chưa có thông báo nào.</p>
+                  <p className="clb-panel-empty">Chưa có thông báo nào.</p>
                 ) : (
-                  eventNotifications.map(notif => (
-                    <div key={notif.id} style={{ display: 'flex', gap: '16px', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#ffffff', transition: 'background 0.2s' }}>
-                      <div style={{ flexShrink: 0, marginTop: '2px' }}>
-                        {notif.tone === 'success' && <svg viewBox="0 0 24 24" width="28" height="28" fill="#22c55e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>}
-                        {notif.tone === 'alert' && <svg viewBox="0 0 24 24" width="28" height="28" fill="#ef4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>}
-                        {notif.tone === 'warning' && <svg viewBox="0 0 24 24" width="28" height="28" fill="#f59e0b"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>}
-                        {notif.tone === 'info' && <svg viewBox="0 0 24 24" width="28" height="28" fill="#3b82f6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>}
+                  eventNotifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={`club-m-notif-card${notif.unread ? ' club-m-notif-card--unread' : ''}`}
+                    >
+                      <div className="club-m-notif-card__icon">
+                        {notif.tone === 'success' && (
+                          <svg viewBox="0 0 24 24" width="28" height="28" fill="#22c55e" aria-hidden="true">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                          </svg>
+                        )}
+                        {notif.tone === 'alert' && (
+                          <svg viewBox="0 0 24 24" width="28" height="28" fill="#ef4444" aria-hidden="true">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                          </svg>
+                        )}
+                        {notif.tone === 'warning' && (
+                          <svg viewBox="0 0 24 24" width="28" height="28" fill="#f59e0b" aria-hidden="true">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                          </svg>
+                        )}
+                        {notif.tone === 'info' && (
+                          <svg viewBox="0 0 24 24" width="28" height="28" fill="#3b82f6" aria-hidden="true">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                          </svg>
+                        )}
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.05rem', color: '#1e293b', fontWeight: notif.unread ? '700' : '600' }}>{notif.title}</h4>
-                        <p style={{ margin: '0 0 10px 0', fontSize: '0.95rem', color: '#475569', lineHeight: '1.5' }}>{notif.body}</p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                          <span style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-                            {notif.time}
-                          </span>
+                      <div className="club-m-notif-card__body">
+                        <h4 className={`club-m-notif-card__title${notif.unread ? ' is-unread' : ''}`}>{notif.title}</h4>
+                        <p className="club-m-notif-card__text">{notif.body}</p>
+                        <div className="club-m-notif-card__footer">
+                          <span>{notif.time}</span>
                           {notif.tone === 'alert' && (
                             <button
-                              style={{ background: 'none', border: 'none', padding: 0, color: '#ef4444', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                              type="button"
+                              className="club-m-notif-card__reason-btn"
                               onClick={() => setRejectModalData({ title: notif.title, reason: notif.reason })}
                             >
-                              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                               Xem lý do chi tiết
                             </button>
                           )}
                         </div>
                       </div>
-                      {notif.unread && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f26f21', alignSelf: 'center' }}></div>}
+                      {notif.unread && <div className="club-m-notif-card__dot" aria-hidden="true" />}
                     </div>
                   ))
                 )}
@@ -554,17 +499,24 @@ const ClubManagement = () => {
             </div>
           )}
 
-          {/* REJECT FEEDBACK MODAL */}
           {rejectModalData && (
-            <div style={{
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
-            }} onClick={() => setRejectModalData(null)}>
-              <div style={{
-                background: '#fff', borderRadius: '12px', padding: '24px',
-                width: '100%', maxWidth: '480px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
-              }} onClick={e => e.stopPropagation()}>
+            <div
+              className="club-m-modal-backdrop"
+              style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
+              }}
+              onClick={() => setRejectModalData(null)}
+            >
+              <div
+                className="club-m-modal"
+                style={{
+                  background: '#fff', borderRadius: '12px', padding: '24px',
+                  width: '100%', maxWidth: '480px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <h3 style={{ margin: 0, color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.25rem' }}>
                   <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                   Phản hồi từ Ban cán bộ

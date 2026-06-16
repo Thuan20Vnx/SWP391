@@ -146,6 +146,43 @@ export const deleteCtsvAnnouncement = (id) => {
   return ctsvFetch(`/announcements/${safeId}/delete`, { method: 'POST', body: '{}' });
 };
 
+export const fetchCtsvSemesterTimelines = (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return ctsvFetch(`/semester-timelines${qs ? `?${qs}` : ''}`);
+};
+
+export const fetchCtsvSemesterTimeline = (id) => ctsvFetch(`/semester-timelines/${id}`);
+
+export const approveCtsvSemesterTimeline = (id, note = '') =>
+  ctsvFetch(`/semester-timelines/${id}/approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const rejectCtsvSemesterTimeline = (id, reason = '') =>
+  ctsvFetch(`/semester-timelines/${id}/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason }),
+  });
+
+export const revisionCtsvSemesterTimeline = (id, note = '') =>
+  ctsvFetch(`/semester-timelines/${id}/request-revision`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const adminApproveTimelineChangeRequest = (id, note = '') =>
+  ctsvFetch(`/semester-timelines/${id}/change-request/admin-approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
+export const rejectCtsvTimelineChangeRequest = (id, reason = '', stage = 'admin') =>
+  ctsvFetch(`/semester-timelines/${id}/change-request/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason, stage }),
+  });
+
 export const MOCK_EVENTS = [
   {
     id: 'ev-1',
