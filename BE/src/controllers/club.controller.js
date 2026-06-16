@@ -1,5 +1,6 @@
 const clubService = require('../services/club.service');
 const clubRegistrationService = require('../services/clubRegistration.service');
+const clubSemesterTimelineService = require('../services/clubSemesterTimeline.service');
 
 const getClubs = async (req, res) => {
   const result = await clubService.getClubs({
@@ -55,13 +56,7 @@ const getManagedClubs = async (req, res) => {
 };
 
 const getManagedClubProfile = async (req, res) => {
-  const lite = ['1', 'true'].includes(String(req.query.lite || '').toLowerCase());
-  const mediaOnly = ['1', 'true'].includes(String(req.query.media || '').toLowerCase());
-  const result = await clubService.getManagedClubProfile(
-    req.user._id,
-    readActiveClubId(req),
-    { lite, mediaOnly }
-  );
+  const result = await clubService.getManagedClubProfile(req.user._id, readActiveClubId(req));
   res.status(200).json({ success: true, ...result });
 };
 
@@ -92,6 +87,133 @@ const submitClubRegistration = async (req, res) => {
   }
 };
 
+const handleTimelineError = (res, error) => {
+  const status = error.statusCode || 500;
+  res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+};
+
+const listSemesterTimelines = async (req, res) => {
+  try {
+    const timelines = await clubSemesterTimelineService.listForClub(
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({ success: true, timelines });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const getSemesterTimeline = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.getByIdForClub(
+      req.params.id,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({ success: true, timeline });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const createSemesterTimeline = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.createForClub(
+      req.body,
+      req.user._id,
+      readActiveClubId(req),
+      req.authEmail
+    );
+    res.status(201).json({
+      success: true,
+      timeline,
+      message: 'Đã tạo timeline kỳ học.',
+    });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const updateSemesterTimeline = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.updateForClub(
+      req.params.id,
+      req.body,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({ success: true, timeline, message: 'Đã cập nhật timeline.' });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const submitSemesterTimeline = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.submitForClub(
+      req.params.id,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({
+      success: true,
+      timeline,
+      message: 'Đã gửi timeline kỳ học — chờ IC-PDP xét duyệt.',
+    });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const deleteSemesterTimeline = async (req, res) => {
+  try {
+    const result = await clubSemesterTimelineService.deleteForClub(
+      req.params.id,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({ success: true, ...result, message: 'Đã xóa timeline.' });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const requestSemesterTimelineChange = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.requestChangeForClub(
+      req.params.id,
+      req.body,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({
+      success: true,
+      timeline,
+      message: 'Đã gửi yêu cầu — chờ IC-PDP và Admin duyệt.',
+    });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const withdrawSemesterTimeline = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.withdrawForClub(
+      req.params.id,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({
+      success: true,
+      timeline,
+      message: 'Đã thu hồi đơn về bản nháp.',
+    });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
 module.exports = {
   getClubs,
   getClubBySlug,
@@ -105,4 +227,12 @@ module.exports = {
   transferClubChairman,
   getManagedClubs,
   submitClubRegistration,
+  listSemesterTimelines,
+  getSemesterTimeline,
+  createSemesterTimeline,
+  updateSemesterTimeline,
+  submitSemesterTimeline,
+  deleteSemesterTimeline,
+  withdrawSemesterTimeline,
+  requestSemesterTimelineChange,
 };

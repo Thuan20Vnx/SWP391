@@ -637,6 +637,48 @@
   font-size: 0.9rem;
 }
 
+.clb-reason-modal {
+  max-width: 520px;
+}
+
+.clb-reason-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.clb-reason-modal-field .auto-grow-textarea {
+  font-weight: 400;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #1e293b;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.5;
+  outline: none;
+}
+
+.clb-reason-modal-field .auto-grow-textarea:focus {
+  border-color: #f26f21 !important;
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.15) !important;
+  transform: none !important;
+}
+
+.clb-reason-modal-field .auto-grow-textarea::placeholder {
+  color: #94a3b8;
+}
+
+.clb-reason-modal-required {
+  color: #f26f21;
+}
+
 .clb-steps {
   display: flex;
   align-items: center;
@@ -699,6 +741,58 @@
   background: #22c55e;
 }
 
+/* ── Form tạo / sửa đề xuất sự kiện ── */
+.clb-create-view.event-proposal-form {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.clb-create-view__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.clb-create-view__back {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.clb-create-view__back:hover {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.clb-create-view__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.clb-create-view__heading .clb-modal-title {
+  margin: 0 0 8px;
+}
+
+.clb-create-view__heading .clb-modal-subtitle {
+  margin: 0;
+}
+
 .clb-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -741,6 +835,12 @@
 .clb-textarea {
   resize: vertical;
   min-height: 100px;
+}
+
+.clb-textarea.auto-grow-textarea {
+  resize: none;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .clb-toggle-row {
@@ -1080,6 +1180,19 @@
     padding: 20px 16px;
   }
 
+  .clb-create-view.event-proposal-form {
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    max-width: none;
+  }
+
+  .clb-create-view__header {
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
   .clb-steps {
     display: flex;
     flex-direction: column;
@@ -1171,6 +1284,22 @@
 
   .clb-step.done .clb-step-circle {
     box-shadow: 0 8px 18px rgba(34, 197, 94, 0.2);
+  }
+
+  .clb-form-group--banner .ctsv-banner-upload {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .clb-form-group--banner .ctsv-banner-dropzone,
+  .clb-form-group--banner .clb-banner-dropzone {
+    width: 100%;
+    max-width: none;
+  }
+
+  .clb-form-group--banner .ctsv-banner-meta {
+    width: 100%;
+    min-width: 0;
   }
 
   .clb-form-row {
@@ -1325,7 +1454,7 @@
 
 .clb-banner-dropzone {
   width: 100%;
-  max-width: 420px;
+  max-width: 560px;
 }
 
 .clb-confirm-banner {
@@ -1600,6 +1729,12 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.clb-profile-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .clb-profile-field {
   display: flex;
   flex-direction: column;
@@ -1615,6 +1750,10 @@
   font-size: 0.82rem;
   font-weight: 600;
   color: #475569;
+}
+
+.clb-profile-field .app-select {
+  width: 100%;
 }
 
 .clb-profile-field--view .clb-profile-field__label {
@@ -1714,6 +1853,10 @@
 @media (max-width: 900px) {
   .clb-profile-view {
     padding: 16px;
+  }
+
+  .clb-profile-form {
+    overflow: visible;
   }
 
   .clb-profile-grid--2,
@@ -1874,73 +2017,375 @@
   }
 }
 
-/* Form skeleton — chỉnh sửa / tạo sự kiện đang tải */
-@keyframes clb-form-skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+.clb-timeline-page {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
-.clb-form-skeleton__line {
-  height: 44px;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-  background-size: 200% 100%;
-  animation: clb-form-skeleton-shimmer 1.2s ease-in-out infinite;
+.clb-timeline-page .clb-page-header {
+  width: 100%;
 }
 
-.clb-form-skeleton__label {
-  height: 14px;
-  width: 38%;
-  margin-bottom: 8px;
-}
-
-.clb-form-skeleton__banner {
-  height: 180px;
-  border-radius: 12px;
-}
-
-.clb-form-skeleton__actions {
+.clb-timeline-form {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
-.clb-form-skeleton__btn {
-  width: 120px;
-  height: 42px;
-}
-
-.clb-form-skeleton__btn--primary {
-  width: 140px;
-}
-
-.clb-form-skeleton__hint {
-  margin: 8px 0 0;
+.clb-timeline-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   font-size: 0.85rem;
-  color: #94a3b8;
+  font-weight: 600;
+  color: #475569;
 }
 
-.clb-form-skeleton__back {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #64748b;
-  margin-right: 16px;
+.clb-timeline-form label .app-select {
+  width: 100%;
+}
+
+.clb-timeline-form input,
+.clb-timeline-form select,
+.clb-timeline-form textarea {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.clb-timeline-form textarea,
+.clb-timeline-form .auto-grow-textarea {
+  resize: none;
+  overflow: hidden;
+  line-height: 1.5;
+  field-sizing: content;
+}
+
+.clb-timeline-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.clb-timeline-items-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.clb-timeline-items-head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.clb-timeline-item-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clb-timeline-item-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clb-timeline-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+.clb-create-btn--ghost {
+  background: #fff !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.clb-create-btn--sm {
+  padding: 6px 12px !important;
+  font-size: 0.82rem !important;
+}
+
+.clb-table-sub {
+  display: block;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.clb-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: #1e293b;
+  cursor: pointer;
+  text-align: left;
+}
+
+.clb-link-btn:hover {
+  color: #f26f21;
+}
+
+.clb-timeline-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.clb-view-detail-btn {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  gap: 6px;
+  padding: 8px 16px;
+  min-height: 42px;
+  border: 1px solid #f26f21;
+  border-radius: 10px;
+  background: #fff;
+  color: #f26f21;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.clb-view-detail-btn:hover:not(:disabled) {
+  background: #fff7ed;
+  border-color: #e05f15;
+  color: #e05f15;
+}
+
+.clb-view-detail-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.clb-action-btn--success {
+  color: #059669 !important;
+  border-color: #a7f3d0 !important;
+}
+
+/* ── Timeline table: cột KỲ căn trên, các cột còn lại căn giữa theo chiều dọc ── */
+.clb-table--timeline td:first-child {
+  vertical-align: top;
+}
+
+.clb-table--timeline td.clb-table-col-compact,
+.clb-table--timeline td.clb-table-col-status,
+.clb-table--timeline td.clb-table-col-action {
+  vertical-align: middle;
+}
+
+.clb-table--timeline th.clb-table-col-status,
+.clb-table--timeline td.clb-table-col-status {
+  text-align: left;
+}
+
+/* Badge trạng thái thẳng hàng với header TRẠNG THÁI (bỏ chấm + padding trái) */
+.clb-table--timeline td.clb-table-col-status .clb-table-status {
+  padding-left: 0;
+  gap: 0;
+}
+
+.clb-table--timeline td.clb-table-col-status .clb-table-status::before {
+  display: none;
+}
+
+/* ── Timeline detail / trạng thái đơn ── */
+.clb-timeline-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.clb-timeline-status-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clb-timeline-status-badge {
+  margin: 0;
+}
+
+.clb-timeline-status-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.clb-timeline-status-step {
+  flex: 1 1 140px;
+  min-width: 120px;
+  min-height: 68px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.clb-timeline-status-step.is-done {
+  border-color: rgba(242, 111, 33, 0.35);
+  background: rgba(242, 111, 33, 0.06);
+}
+
+.clb-timeline-status-step.is-current {
+  border-color: #f26f21;
+  background: rgba(242, 111, 33, 0.12);
+  box-shadow: 0 0 0 1px rgba(242, 111, 33, 0.15);
+}
+
+.clb-timeline-status-step__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.clb-timeline-status-step.is-done .clb-timeline-status-step__label,
+.clb-timeline-status-step.is-current .clb-timeline-status-step__label {
+  color: #f26f21;
+}
+
+.clb-timeline-status-step__text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.clb-timeline-change-banner {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  font-size: 0.88rem;
+  color: #92400e;
+}
+
+.clb-timeline-change-banner strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #78350f;
+}
+
+.clb-timeline-detail-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  background: #fff;
+}
+
+.clb-timeline-detail-panel h2 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.clb-timeline-detail-panel p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.clb-timeline-milestone-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clb-timeline-milestone-list li {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.clb-timeline-milestone-list li strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #1e293b;
+}
+
+.clb-timeline-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 4px;
+  align-items: center;
+}
+
+.clb-timeline-detail-actions .clb-create-btn {
+  min-height: 42px;
+}
+
+.clb-timeline-detail-actions .clb-action-btn--icon {
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
 }
 
-.clb-form-skeleton__back:hover {
-  background: #f1f5f9;
+@media (max-width: 768px) {
+  .clb-timeline-status-track {
+    flex-direction: column;
+  }
+
+  .clb-timeline-status-step {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .clb-timeline-detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .clb-timeline-detail-actions .clb-create-btn,
+  .clb-timeline-detail-actions .clb-view-detail-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .clb-timeline-detail-actions .clb-action-btn--icon {
+    width: 100%;
+  }
 }
 
-.clb-form-skeleton__steps .clb-step-circle,
-.clb-form-skeleton__steps .clb-step-label {
-  opacity: 0.55;
-}

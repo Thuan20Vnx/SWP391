@@ -21,6 +21,8 @@ import CtsvCalendar from './pages/ctsv/CtsvCalendar';
 import CtsvReports from './pages/ctsv/CtsvReports';
 import CtsvReportDetail from './pages/ctsv/CtsvReportDetail';
 import CtsvProfile from './pages/ctsv/CtsvProfile';
+import CtsvSemesterTimelineList from './pages/ctsv/CtsvSemesterTimelineList';
+import CtsvSemesterTimelineDetail from './pages/ctsv/CtsvSemesterTimelineDetail';
 
 import IcpdpLayout from './layouts/IcpdpLayout';
 import IcpdpHome from './pages/IcpdpHome';
@@ -34,6 +36,8 @@ import IcpdpEventDetail from './pages/icpdp/IcpdpEventDetail';
 import IcpdpCalendar from './pages/icpdp/IcpdpCalendar';
 import IcpdpReports from './pages/icpdp/IcpdpReports';
 import IcpdpProfileSettings from './pages/icpdp/IcpdpProfileSettings';
+import IcpdpSemesterTimelineList from './pages/icpdp/IcpdpSemesterTimelineList';
+import IcpdpSemesterTimelineDetail from './pages/icpdp/IcpdpSemesterTimelineDetail';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import GoogleAuthCallback from './pages/GoogleAuthCallback';
@@ -262,6 +266,8 @@ function App() {
               <Route path="proposals/:id" element={<CtsvProposalDetail />} />
               <Route path="partners" element={<CtsvPartnerList />} />
               <Route path="partners/:id" element={<CtsvPartnerDetail />} />
+              <Route path="semester-timelines" element={<CtsvSemesterTimelineList />} />
+              <Route path="semester-timelines/:id" element={<CtsvSemesterTimelineDetail />} />
               <Route path="announcements/publish" element={<CtsvAnnouncementPublish />} />
               <Route
                 path="announcements/:id"
@@ -290,6 +296,8 @@ function App() {
               <Route path="proposals/:id" element={<IcpdpProposalDetail />} />
               <Route path="club-registrations" element={<IcpdpClubRegistrationList />} />
               <Route path="club-registrations/:id" element={<IcpdpClubRegistrationDetail />} />
+              <Route path="semester-timelines" element={<IcpdpSemesterTimelineList />} />
+              <Route path="semester-timelines/:id" element={<IcpdpSemesterTimelineDetail />} />
               <Route path="events" element={<IcpdpEventList />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
               <Route path="events/:id/edit" element={<CtsvEventCreate />} />

@@ -126,7 +126,7 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
           <strong>{stats.ended}</strong>
         </article>
         <article className="clb-reports-summary-card">
-          <span>Tỷ lệ lấp đầy TB</span>
+          <span>Tỉ lệ người tham gia</span>
           <strong>{stats.avgFill}%</strong>
         </article>
       </div>
@@ -139,7 +139,7 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
                 <th>SỰ KIỆN</th>
                 <th>THỜI GIAN</th>
                 <th>ĐĂNG KÝ</th>
-                <th>TỶ LỆ LẤP ĐẦY</th>
+                <th>TỈ LỆ NGƯỜI THAM GIA</th>
                 <th>TRẠNG THÁI</th>
                 <th className="clb-table-col-action">HÀNH ĐỘNG</th>
               </tr>
@@ -162,21 +162,21 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
               ) : (
                 filtered.map((ev) => (
                   <tr key={ev.id}>
-                    <td>
+                    <td data-label="Sự kiện">
                       <span className="clb-event-name">{ev.title}</span>
                     </td>
-                    <td>
+                    <td data-label="Thời gian">
                       <div className="clb-table-date">
                         <strong>{ev.date}</strong>
                         <span>{ev.time}</span>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Đăng ký">
                       <span className="clb-slot-nums">
                         {ev.reg}/{ev.cap || '—'}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Tỉ lệ người tham gia">
                       <div className="clb-slot-cell">
                         <span className="clb-slot-nums">{ev.fill}%</span>
                         <div className="clb-slot-bar-bg">
@@ -184,12 +184,12 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Trạng thái">
                       <span className={`clb-reports-phase clb-reports-phase--${ev.phase}`}>
                         {phaseLabel(ev.phase)}
                       </span>
                     </td>
-                    <td className="clb-table-col-action">
+                    <td className="clb-table-col-action" data-label="">
                       <button
                         type="button"
                         className="clb-btn-secondary clb-reports-view-btn"

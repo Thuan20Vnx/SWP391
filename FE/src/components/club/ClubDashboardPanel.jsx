@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import ClubEventListCard from './mobile/ClubEventListCard';
 
 const ClubDashboardPanel = ({ events, loadingEvents, userProfile, onViewEvent }) => {
   const stats = useMemo(() => {
@@ -59,7 +60,8 @@ const ClubDashboardPanel = ({ events, loadingEvents, userProfile, onViewEvent })
             {recentEvents.length === 0 ? (
               <p className="clb-panel-empty">Chưa có sự kiện nào. Tạo đề xuất đầu tiên từ sidebar.</p>
             ) : (
-              <div className="clb-table-wrapper">
+              <>
+              <div className="clb-table-wrapper club-m-hide-mobile">
                 <div className="clb-table-scroll">
                   <table className="clb-table">
                     <thead>
@@ -105,6 +107,25 @@ const ClubDashboardPanel = ({ events, loadingEvents, userProfile, onViewEvent })
                   </table>
                 </div>
               </div>
+
+              <div className="club-m-dash-events club-m-show-mobile">
+                {recentEvents.map((ev) => {
+                  const statusLabel =
+                    ev.status === 'approved' ? 'Đã duyệt' : ev.status === 'pending' ? 'Chờ duyệt' : 'Từ chối';
+                  const statusTone =
+                    ev.status === 'approved' ? 'approved' : ev.status === 'pending' ? 'pending' : 'rejected';
+                  return (
+                    <ClubEventListCard
+                      key={ev._id}
+                      event={ev}
+                      statusLabel={statusLabel}
+                      statusTone={statusTone}
+                      onView={onViewEvent}
+                    />
+                  );
+                })}
+              </div>
+              </>
             )}
           </section>
         </>

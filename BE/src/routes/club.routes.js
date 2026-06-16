@@ -42,6 +42,55 @@ router.post(
   asyncHandler(clubController.transferClubChairman)
 );
 
+router.get(
+  '/manage/semester-timelines',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.listSemesterTimelines)
+);
+router.get(
+  '/manage/semester-timelines/:id',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.getSemesterTimeline)
+);
+router.post(
+  '/manage/semester-timelines',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.createSemesterTimeline)
+);
+router.put(
+  '/manage/semester-timelines/:id',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.updateSemesterTimeline)
+);
+router.post(
+  '/manage/semester-timelines/:id/submit',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.submitSemesterTimeline)
+);
+router.post(
+  '/manage/semester-timelines/:id/withdraw',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.withdrawSemesterTimeline)
+);
+router.delete(
+  '/manage/semester-timelines/:id',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.deleteSemesterTimeline)
+);
+router.post(
+  '/manage/semester-timelines/:id/change-request',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.requestSemesterTimelineChange)
+);
+
 router.get('/:slug', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubBySlug));
 
 router.post(

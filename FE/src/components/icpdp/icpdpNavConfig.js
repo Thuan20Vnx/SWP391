@@ -5,6 +5,11 @@ export const ICPDP_NAV_ITEMS = [
   { path: '/icpdp/profile', label: 'Hồ sơ', icon: 'profile' },
   { path: '/icpdp/proposals', label: 'Duyệt đề xuất sự kiện', section: 'QUẢN LÝ CLB', icon: 'publish' },
   { path: '/icpdp/club-registrations', label: 'Duyệt thành lập CLB', icon: 'accounts' },
+  {
+    path: '/icpdp/semester-timelines',
+    label: 'Duyệt timeline Spring/Summer/Fall',
+    icon: 'calendar',
+  },
   { path: '/icpdp/events', label: 'Xem sự kiện', icon: 'calendar' },
   { path: '/icpdp/events/create', label: 'Tạo sự kiện cấp trường', section: 'SỰ KIỆN', icon: 'create' },
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
@@ -62,6 +67,9 @@ export const isIcpdpNavActive = (path, pathname) => {
       pathname.startsWith('/icpdp/club-registrations/') ||
       pathname.startsWith('/admin/icpdp/club-registrations')
     );
+  }
+  if (path === '/icpdp/semester-timelines') {
+    return pathname === '/icpdp/semester-timelines' || pathname.startsWith('/icpdp/semester-timelines/');
   }
   if (path === '/icpdp/announcements') {
     return pathname.startsWith('/icpdp/announcements');
