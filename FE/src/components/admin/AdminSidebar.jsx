@@ -4,6 +4,7 @@ import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 import defaultAvatar from '../../constants/defaultAvatar';
 import { ADMIN_NAV_ITEMS, ICPDP_ADMIN_NAV_ITEMS } from '../../data/adminNavItems';
 import { getRoleDisplayLabel, getUserRole, isIcpdpRole } from '../../utils/auth';
+import { useTranslation } from '../../i18n/I18nContext';
 import { AdminMenuIcon } from './AdminMenuIcons';
 
 const AdminSidebar = ({
@@ -12,6 +13,8 @@ const AdminSidebar = ({
   userProfile,
   overlay = false,
 }) => {
+  const { t } = useTranslation();
+
   const isActive = (item) => {
     if (item.end) return pathname === item.path;
     if (item.path === '/admin/events') return pathname === '/admin/events';
@@ -22,13 +25,13 @@ const AdminSidebar = ({
 
   const renderNavItems = () => {
     const out = [];
-    let lastSection = null;
+    let lastSectionKey = null;
     navItems.forEach((item) => {
-      if (item.section && item.section !== lastSection) {
-        lastSection = item.section;
+      if (item.sectionKey && item.sectionKey !== lastSectionKey) {
+        lastSectionKey = item.sectionKey;
         out.push(
-          <p key={`sec-${item.section}`} className="ctsv-nav-section">
-            {item.section}
+          <p key={`sec-${item.sectionKey}`} className="ctsv-nav-section">
+            {t(item.sectionKey)}
           </p>
         );
         return;
@@ -44,7 +47,7 @@ const AdminSidebar = ({
           <span className="ctsv-nav-icon">
             <AdminMenuIcon type={item.icon} />
           </span>
-          <span className="ctsv-nav-label">{item.label}</span>
+          <span className="ctsv-nav-label">{t(item.labelKey)}</span>
         </Link>
       );
     });
@@ -54,7 +57,7 @@ const AdminSidebar = ({
   const asideClass = `ctsv-sidebar admin-sidebar${overlay ? ' admin-sidebar--overlay' : ''}${open ? ' admin-sidebar--open' : ''}`;
 
   return (
-    <aside className={asideClass} aria-hidden={!open} aria-label="Menu quản trị">
+    <aside className={asideClass} aria-hidden={!open} aria-label={t('admin.sidebarLabel')}>
       <div className="ctsv-sidebar-header">
         <img src={FE_LOGO} alt={FE_LOGO_ALT} className="ctsv-sidebar-logo" />
       </div>
@@ -66,7 +69,7 @@ const AdminSidebar = ({
           className="ctsv-sidebar-avatar"
         />
         <div className="ctsv-sidebar-footer-text">
-          <p className="ctsv-sidebar-user">{userProfile?.fullname || 'Quản trị viên'}</p>
+          <p className="ctsv-sidebar-user">{userProfile?.fullname || t('header.defaultAdmin')}</p>
           <p className="ctsv-sidebar-role profile-role-admin">{getRoleDisplayLabel(getUserRole())}</p>
         </div>
       </div>

@@ -9,15 +9,6 @@ export const PARTNER_FIELD_OPTIONS = CLUB_ACTIVITY_FIELDS.map((label) => ({
   label,
 }));
 
-export const PARTNER_SPONSOR_PROGRAM_OPTIONS = [
-  { value: 'unset', label: 'Chưa xác định' },
-  { value: 'cash', label: 'Tài trợ tài chính' },
-  { value: 'in_kind', label: 'Tài trợ hiện vật' },
-  { value: 'media', label: 'Đồng hành truyền thông' },
-  { value: 'venue', label: 'Hỗ trợ địa điểm / cơ sở' },
-  { value: 'scholarship', label: 'Học bổng / quỹ tài trợ' },
-];
-
 export const PARTNER_UPLOAD_ACCEPT = '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 export const PARTNER_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
@@ -28,17 +19,7 @@ export const emptyPartnerForm = () => ({
   representative: '',
   email: '',
   phone: '',
-  sponsorValue: '',
-  sponsorProgram: 'unset',
 });
-
-export const formatVndInput = (raw) => {
-  const digits = String(raw).replace(/\D/g, '');
-  if (!digits) return '';
-  return Number(digits).toLocaleString('vi-VN');
-};
-
-export const parseVndInput = (formatted) => String(formatted).replace(/\D/g, '');
 
 export const loadStoredPartners = () => {
   try {
@@ -62,8 +43,6 @@ export const partnerFormToRecord = (form, fileMeta = null) => ({
   representative: form.representative.trim(),
   email: form.email.trim(),
   phone: form.phone.trim(),
-  sponsorValue: parseVndInput(form.sponsorValue),
-  sponsorProgram: form.sponsorProgram,
   attachmentName: fileMeta?.name || null,
   status: 'pending',
   createdAt: new Date().toISOString(),

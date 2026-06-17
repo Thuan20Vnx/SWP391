@@ -10,15 +10,17 @@ import {
 } from '../../services/ctsvApi';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import { FPT_TYPE_META } from '../../data/adminFptSystemData';
+import { useTranslation } from '../../i18n/I18nContext';
+import { resolveLabel } from '../../i18n/helpers';
 import { statusClass } from '../../utils/eventStatus';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-public-pages.css';
 import '../../styles/premium-ui.css';
 
 const SOURCE_META = {
-  school: { label: 'Cấp trường', tone: 'school' },
-  partner: { label: 'Đối tác', tone: 'partner' },
-  club: { label: 'CLB', tone: 'club' },
+  school: { labelKey: 'admin.unitEvents.source.school', tone: 'school' },
+  partner: { labelKey: 'admin.unitEvents.source.partner', tone: 'partner' },
+  club: { labelKey: 'admin.unitEvents.source.club', tone: 'club' },
 };
 
 const PENDING_KEYS = ['pending', 'pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'];
@@ -48,6 +50,7 @@ const AdminFptUnitEvents = () => {
   const unitName = searchParams.get('name') || '';
   const navigate = useNavigate();
   const { showToast } = useOutletContext() || {};
+  const { t } = useTranslation();
 
   const [scope, setScope] = useState('unit');
   const [events, setEvents] = useState([]);
@@ -65,7 +68,7 @@ const AdminFptUnitEvents = () => {
       setEvents(res.events || []);
       setProposals(res.proposals || []);
     } catch (e) {
-      const msg = e.message || 'Không tải được danh sách sự kiện.';
+      const msg = e.message || t('admin.unitEvents.toast.loadFail');
       setLoadError(msg);
       showToast?.(msg, 'error');
       setEvents([]);
@@ -73,20 +76,20 @@ const AdminFptUnitEvents = () => {
     } finally {
       setLoading(false);
     }
-  }, [unitType, unitId, scope, showToast]);
+  }, [unitType, unitId, scope, showToast, t]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const pageTitle = unitName || unitId || 'Đơn vị';
+  const pageTitle = unitName || unitId || t('admin.unitEvents.fallbackUnit');
   const badgeKind = unitType === 'clb' ? 'clb' : 'partner';
   const badgeMeta = FPT_TYPE_META[badgeKind] || FPT_TYPE_META.partner;
 
   const scopeHint = useMemo(() => {
-    if (scope === 'all') return 'Toàn bộ sự kiện trên hệ thống F-Events.';
-    return `Sự kiện chờ duyệt và đã duyệt thuộc ${pageTitle}.`;
-  }, [scope, pageTitle]);
+    if (scope === 'all') return t('admin.unitEvents.scopeHint.all');
+    return t('admin.unitEvents.scopeHint.unit', { unit: pageTitle });
+  }, [scope, pageTitle, t]);
 
   const filteredEvents = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -110,9 +113,9 @@ const AdminFptUnitEvents = () => {
     try {
       await approveCtsvEvent(eventId);
       setEvents((prev) => prev.filter((e) => String(e.id || e._id) !== String(eventId)));
-      showToast?.('Đã phê duyệt sự kiện.', 'success');
+      showToast?.(t('admin.unitEvents.toast.approved'), 'success');
     } catch (err) {
-      showToast?.(err.message || 'Không thể phê duyệt sự kiện', 'error');
+      showToast?.(err.message || t('admin.unitEvents.toast.approveFail'), 'error');
     } finally {
       setActingId(null);
     }
@@ -123,9 +126,9 @@ const AdminFptUnitEvents = () => {
     try {
       await rejectCtsvEvent(eventId, reason);
       setEvents((prev) => prev.filter((e) => String(e.id || e._id) !== String(eventId)));
-      showToast?.('Đã từ chối sự kiện.', 'info');
+      showToast?.(t('admin.unitEvents.toast.rejected'), 'info');
     } catch (err) {
-      showToast?.(err.message || 'Không thể từ chối sự kiện', 'error');
+      showToast?.(err.message || t('admin.unitEvents.toast.rejectFail'), 'error');
       throw err;
     } finally {
       setActingId(null);
@@ -137,10 +140,10 @@ const AdminFptUnitEvents = () => {
     try {
       await approveCtsvProposal(proposalId);
       setProposals((prev) => prev.filter((p) => p.id !== proposalId));
-      showToast?.('Đã phê duyệt đề xuất — sự kiện đã được tạo.', 'success');
+      showToast?.(t('admin.unitEvents.toast.proposalApproved'), 'success');
       await load();
     } catch (err) {
-      showToast?.(err.message || 'Không thể phê duyệt đề xuất', 'error');
+      showToast?.(err.message || t('admin.unitEvents.toast.proposalApproveFail'), 'error');
     } finally {
       setActingId(null);
     }
@@ -151,9 +154,9 @@ const AdminFptUnitEvents = () => {
     try {
       await rejectCtsvProposal(proposalId, reason);
       setProposals((prev) => prev.filter((p) => p.id !== proposalId));
-      showToast?.('Đã từ chối đề xuất.', 'info');
+      showToast?.(t('admin.unitEvents.toast.proposalRejected'), 'info');
     } catch (err) {
-      showToast?.(err.message || 'Không thể từ chối đề xuất', 'error');
+      showToast?.(err.message || t('admin.unitEvents.toast.proposalRejectFail'), 'error');
       throw err;
     } finally {
       setActingId(null);
@@ -165,22 +168,22 @@ const AdminFptUnitEvents = () => {
   return (
     <main className="admin-main admin-fpt-unit-events ctsv-announce-page">
       <Link to="/" className="admin-fpt-unit-events__back">
-        ← Quay lại Hệ thống FPT
+        {t('admin.unitEvents.back')}
       </Link>
 
       <header className="admin-fpt-unit-events__hero">
         <div className="admin-fpt-unit-events__hero-text">
           <span className={`admin-fpt-unit-events__badge admin-fpt-unit-events__badge--${badgeKind}`}>
-            {badgeMeta.label}
+            {resolveLabel(badgeMeta, t)}
           </span>
-          <h1>Quản lý sự kiện</h1>
+          <h1>{t('admin.unitEvents.title')}</h1>
           <p className="admin-fpt-unit-events__unit-name">{pageTitle}</p>
           <p className="admin-fpt-unit-events__hint">{scopeHint}</p>
         </div>
         <div className="admin-fpt-unit-events__hero-aside">
           <div className="admin-fpt-unit-events__stat" aria-live="polite">
-            <strong>{loading ? '—' : filteredEvents.length + proposals.length}</strong>
-            <span>mục hiển thị</span>
+            <strong>{loading ? t('admin.common.empty') : filteredEvents.length + proposals.length}</strong>
+            <span>{t('admin.unitEvents.itemsShown')}</span>
           </div>
           {unitType === 'partner' && (
             <button
@@ -188,14 +191,14 @@ const AdminFptUnitEvents = () => {
               className="admin-fpt-unit-events__aside-btn"
               onClick={() => navigate(`/partners/${partnerDetailId}`)}
             >
-              Chi tiết đối tác
+              {t('admin.unitEvents.partnerDetail')}
             </button>
           )}
         </div>
       </header>
 
       <section className="admin-fpt-unit-events__toolbar">
-        <div className="admin-fpt-unit-events__scope" role="tablist" aria-label="Phạm vi sự kiện">
+        <div className="admin-fpt-unit-events__scope" role="tablist" aria-label={t('admin.unitEvents.scopeAria')}>
           <button
             type="button"
             role="tab"
@@ -203,7 +206,7 @@ const AdminFptUnitEvents = () => {
             className={`admin-fpt-unit-events__scope-btn${scope === 'unit' ? ' is-active' : ''}`}
             onClick={() => setScope('unit')}
           >
-            Sự kiện đơn vị
+            {t('admin.unitEvents.scope.unit')}
           </button>
           <button
             type="button"
@@ -212,7 +215,7 @@ const AdminFptUnitEvents = () => {
             className={`admin-fpt-unit-events__scope-btn${scope === 'all' ? ' is-active' : ''}`}
             onClick={() => setScope('all')}
           >
-            Tất cả sự kiện
+            {t('admin.unitEvents.scope.all')}
           </button>
         </div>
 
@@ -225,7 +228,7 @@ const AdminFptUnitEvents = () => {
           </svg>
           <input
             type="search"
-            placeholder="Tìm theo tên, địa điểm, trạng thái..."
+            placeholder={t('admin.unitEvents.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -234,7 +237,7 @@ const AdminFptUnitEvents = () => {
 
       {!loading && !loadError && pendingCount > 0 && scope === 'unit' && (
         <p className="admin-fpt-unit-events__pending-note">
-          <strong>{pendingCount}</strong> mục đang chờ phê duyệt
+          {t('admin.unitEvents.pendingNote', { count: pendingCount })}
         </p>
       )}
 
@@ -248,14 +251,14 @@ const AdminFptUnitEvents = () => {
         <div className="admin-fpt-unit-events__error">
           <p>{loadError}</p>
           <button type="button" className="admin-fpt-unit-events__retry" onClick={load}>
-            Thử tải lại
+            {t('admin.unitEvents.retry')}
           </button>
         </div>
       ) : (
         <>
           {scope === 'unit' && proposals.length > 0 && (
             <section className="admin-fpt-unit-events__proposals">
-              <h2>Đề xuất chờ duyệt ({proposals.length})</h2>
+              <h2>{t('admin.unitEvents.proposalsTitle', { count: proposals.length })}</h2>
               <ul className="admin-fpt-unit-events__proposal-list">
                 {proposals.map((proposal) => {
                   const proposalId = proposal.id;
@@ -265,7 +268,8 @@ const AdminFptUnitEvents = () => {
                       <div>
                         <strong>{proposal.title}</strong>
                         <span>
-                          {proposal.clubName || 'CLB'} · {proposal.date || '—'} {proposal.time || ''}
+                          {proposal.clubName || t('admin.common.club')} · {proposal.date || t('admin.common.empty')}{' '}
+                          {proposal.time || ''}
                         </span>
                       </div>
                       <AdminProposalActions
@@ -290,21 +294,21 @@ const AdminFptUnitEvents = () => {
               </svg>
               <h2>
                 {searchQuery
-                  ? 'Không tìm thấy sự kiện phù hợp'
+                  ? t('admin.unitEvents.empty.searchTitle')
                   : scope === 'unit'
-                    ? 'Chưa có sự kiện cho đơn vị này'
-                    : 'Không có sự kiện nào'}
+                    ? t('admin.unitEvents.empty.unitTitle')
+                    : t('admin.unitEvents.empty.allTitle')}
               </h2>
               <p>
                 {searchQuery
-                  ? 'Thử từ khóa khác hoặc xóa bộ lọc tìm kiếm.'
+                  ? t('admin.unitEvents.empty.searchDesc')
                   : scope === 'unit'
-                    ? 'Đơn vị chưa gửi đề xuất hoặc chưa có sự kiện được duyệt.'
-                    : 'Hệ thống chưa có dữ liệu sự kiện.'}
+                    ? t('admin.unitEvents.empty.unitDesc')
+                    : t('admin.unitEvents.empty.allDesc')}
               </p>
               {scope === 'unit' && !searchQuery && (
                 <button type="button" className="admin-fpt-unit-events__retry" onClick={() => setScope('all')}>
-                  Xem tất cả sự kiện
+                  {t('admin.unitEvents.viewAll')}
                 </button>
               )}
             </div>
@@ -328,7 +332,7 @@ const AdminFptUnitEvents = () => {
                         {getCategoryDisplayLabel(ev.category) || ev.category}
                       </span>
                       <span className={`ctsv-events-card-source ctsv-events-card-source--${source.tone}`}>
-                        {source.label}
+                        {resolveLabel(source, t)}
                       </span>
                     </div>
                     <div className="ctsv-events-card-body">
@@ -338,7 +342,7 @@ const AdminFptUnitEvents = () => {
                           <span>{ev.date || formatDateTime(ev.startDate)}</span>
                         </li>
                         <li>
-                          <span>{ev.location || 'Chưa có địa điểm'}</span>
+                          <span>{ev.location || t('admin.unitEvents.noLocation')}</span>
                         </li>
                       </ul>
                       <div className="ctsv-events-card-stats">
@@ -348,7 +352,7 @@ const AdminFptUnitEvents = () => {
                       </div>
                       <div className="admin-fpt-unit-events__card-actions">
                         <Link to={`/events/${eventId}`} className="ctsv-events-card-action btn-card-register">
-                          Xem chi tiết
+                          {t('admin.common.viewDetail')}
                         </Link>
                         {pending && scope === 'unit' && (
                           <div className="admin-fpt-unit-events__card-moderate">

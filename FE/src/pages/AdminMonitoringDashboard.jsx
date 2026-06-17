@@ -6,6 +6,7 @@ import { ADMIN_ACTIVITY_PREVIEW_COUNT } from '../data/adminDashboardData';
 import useAdminDashboardStats from '../hooks/useAdminDashboardStats';
 import { getUserRole, isAdminRole } from '../utils/auth';
 import { formatAdminDateTime } from '../utils/adminLiveTime';
+import { useTranslation } from '../i18n/I18nContext';
 import '../styles/admin-dashboard.css';
 
 const StatIconTraffic = () => (
@@ -30,6 +31,7 @@ const StatIconSystem = () => (
 
 const AdminMonitoringDashboard = () => {
   const navigate = useNavigate();
+  const { t, language } = useTranslation();
   const { showToast } = useOutletContext() || {};
   const role = getUserRole();
   const [activityModalOpen, setActivityModalOpen] = useState(false);
@@ -45,8 +47,8 @@ const AdminMonitoringDashboard = () => {
     const activityLogs = (stats.activityLogs || []).map((log) => ({
       ...log,
       tone: log.tone === 'warning' ? 'danger' : log.tone || 'default',
-      time: formatAdminDateTime(new Date(log.time)),
-      dateKey: formatAdminDateTime(new Date(log.time)).split(',')[0],
+      time: formatAdminDateTime(new Date(log.time), language),
+      dateKey: formatAdminDateTime(new Date(log.time), language).split(',')[0],
     }));
 
     const trafficOverview = {
@@ -69,50 +71,87 @@ const AdminMonitoringDashboard = () => {
 
     const systemOverall = {
       status: stats.system?.status || 'stable',
-      label: stats.system?.label || 'ỔN ĐỊNH',
+      label: stats.system?.label || t('admin.monitor.stable'),
       database: stats.system?.database || 'MongoDB',
-      lastCheck: formatAdminDateTime(new Date(stats.checkedAt)),
+      lastCheck: formatAdminDateTime(new Date(stats.checkedAt), language),
     };
 
     const metricDetailMap = {
       traffic: {
-        title: 'Chi tiết hoạt động',
-        subtitle: 'Dữ liệu từ MongoDB',
+        title: t('admin.monitor.detail.traffic.title'),
+        subtitle: t('admin.monitor.detail.traffic.subtitle'),
         summary: [
-          { label: 'Tổng tài khoản', value: String(trafficOverview.totalUsers) },
-          { label: 'Sinh viên', value: String(trafficOverview.students) },
-          { label: 'Đăng ký tháng này', value: String(trafficOverview.registrationsMonth) },
+          { label: t('admin.monitor.detail.traffic.totalAccounts'), value: String(trafficOverview.totalUsers) },
+          { label: t('admin.monitor.detail.traffic.students'), value: String(trafficOverview.students) },
+          {
+            label: t('admin.monitor.detail.traffic.registrationsMonth'),
+            value: String(trafficOverview.registrationsMonth),
+          },
         ],
-        columns: ['Chỉ số', 'Giá trị'],
+        columns: [t('admin.monitor.detail.traffic.col.metric'), t('admin.monitor.detail.traffic.col.value')],
         rows: [
-          { id: '0', label: 'Sự kiện chờ duyệt', value: String(trafficOverview.pendingEvents) },
-          { id: '1', label: 'Đối tác chờ Admin', value: String(trafficOverview.pendingPartners) },
-          { id: '2', label: 'Tổng đăng ký vé', value: trafficOverview.registrations.toLocaleString('vi-VN') },
+          {
+            id: '0',
+            label: t('admin.monitor.detail.traffic.pendingEvents'),
+            value: String(trafficOverview.pendingEvents),
+          },
+          {
+            id: '1',
+            label: t('admin.monitor.detail.traffic.pendingPartners'),
+            value: String(trafficOverview.pendingPartners),
+          },
+          {
+            id: '2',
+            label: t('admin.monitor.detail.traffic.totalRegistrations'),
+            value: trafficOverview.registrations.toLocaleString('vi-VN'),
+          },
         ],
       },
       revenue: {
-        title: 'Chi tiết doanh thu',
-        subtitle: 'Ước tính từ giá vé × lượt đăng ký',
+        title: t('admin.monitor.detail.revenue.title'),
+        subtitle: t('admin.monitor.detail.revenue.subtitle'),
         summary: [
-          { label: 'Tổng', value: `${stats.revenue?.totalFormatted} VND` },
-          { label: 'Tháng này', value: `${stats.revenue?.thisMonthFormatted} VND` },
+          { label: t('admin.monitor.detail.revenue.total'), value: `${stats.revenue?.totalFormatted} VND` },
+          { label: t('admin.monitor.detail.revenue.thisMonth'), value: `${stats.revenue?.thisMonthFormatted} VND` },
         ],
-        columns: ['Hạng mục', 'Giá trị'],
+        columns: [t('admin.monitor.detail.revenue.col.item'), t('admin.monitor.detail.revenue.col.value')],
         rows: [
-          { id: '0', label: 'Sự kiện đã duyệt', value: String(revenueOverview.approvedEvents) },
-          { id: '1', label: 'Đang diễn ra', value: String(revenueOverview.liveEvents) },
-          { id: '2', label: 'Chờ Admin duyệt', value: String(stats.events?.pendingAdmin || 0) },
-          { id: '3', label: 'Đề xuất CLB', value: String(stats.proposals?.pendingTotal || 0) },
+          {
+            id: '0',
+            label: t('admin.monitor.detail.revenue.approvedEvents'),
+            value: String(revenueOverview.approvedEvents),
+          },
+          {
+            id: '1',
+            label: t('admin.monitor.detail.revenue.liveEvents'),
+            value: String(revenueOverview.liveEvents),
+          },
+          {
+            id: '2',
+            label: t('admin.monitor.detail.revenue.pendingAdmin'),
+            value: String(stats.events?.pendingAdmin || 0),
+          },
+          {
+            id: '3',
+            label: t('admin.monitor.detail.revenue.clubProposals'),
+            value: String(stats.proposals?.pendingTotal || 0),
+          },
         ],
       },
       performance: {
-        title: 'Sự kiện theo tháng',
+        title: t('admin.monitor.detail.performance.title'),
         subtitle: stats.chartSummary?.period,
         summary: [
-          { label: 'Trung bình', value: String(stats.chartSummary?.avg) },
-          { label: 'Cao nhất', value: `${stats.chartSummary?.peak?.label} · ${stats.chartSummary?.peak?.value}` },
+          { label: t('admin.monitor.avg'), value: String(stats.chartSummary?.avg) },
+          {
+            label: t('admin.monitor.peak'),
+            value: `${stats.chartSummary?.peak?.label} · ${stats.chartSummary?.peak?.value}`,
+          },
         ],
-        columns: ['Tháng', 'Số sự kiện'],
+        columns: [
+          t('admin.monitor.detail.performance.col.month'),
+          t('admin.monitor.detail.performance.col.count'),
+        ],
         rows: monthlyPerformance.map((m, i) => ({
           id: String(i),
           label: m.month,
@@ -132,10 +171,10 @@ const AdminMonitoringDashboard = () => {
       metricDetailMap,
       maxBar,
     };
-  }, [stats]);
+  }, [stats, t, language]);
 
   const previewLogs = (dashboardView?.activityLogs || []).slice(0, ADMIN_ACTIVITY_PREVIEW_COUNT);
-  const clockLabel = stats?.checkedAt ? formatAdminDateTime(new Date(stats.checkedAt)) : '—';
+  const clockLabel = stats?.checkedAt ? formatAdminDateTime(new Date(stats.checkedAt), language) : '—';
 
   const openDetail = (variant) => setDetailModal(variant);
   const closeDetail = () => setDetailModal(null);
@@ -149,10 +188,10 @@ const AdminMonitoringDashboard = () => {
 
   useEffect(() => {
     if (!isAdminRole(role)) {
-      showToast?.('Bạn không có quyền truy cập trang quản trị!', 'error');
+      showToast?.(t('admin.common.noAccess'), 'error');
       navigate('/admin');
     }
-  }, [role, navigate, showToast]);
+  }, [role, navigate, showToast, t]);
 
   useEffect(() => {
     if (error) showToast?.(error, 'error');
@@ -165,7 +204,7 @@ const AdminMonitoringDashboard = () => {
   if (loading && !dashboardView) {
     return (
       <main className="admin-main">
-        <p className="admin-page-header__clock">Đang tải thống kê từ máy chủ…</p>
+        <p className="admin-page-header__clock">{t('admin.monitor.loading')}</p>
       </main>
     );
   }
@@ -173,9 +212,9 @@ const AdminMonitoringDashboard = () => {
   if (!dashboardView) {
     return (
       <main className="admin-main">
-        <p className="admin-page-header__clock">Không có dữ liệu thống kê.</p>
+        <p className="admin-page-header__clock">{t('admin.monitor.noData')}</p>
         <button type="button" className="admin-panel__link" onClick={reload}>
-          Thử lại
+          {t('common.retry')}
         </button>
       </main>
     );
@@ -198,44 +237,46 @@ const AdminMonitoringDashboard = () => {
       <div className="admin-dashboard-grid">
         <header className="admin-page-header">
           <div>
-            <h1 className="admin-main__title">Dashboard Giám sát</h1>
+            <h1 className="admin-main__title">{t('admin.monitor.title')}</h1>
             <p className="admin-page-header__clock" aria-live="polite">
-              Cập nhật: {clockLabel}
+              {t('admin.monitor.updated', { time: clockLabel })}
             </p>
           </div>
         </header>
 
-        <section className="admin-stats-grid" aria-label="Thống kê nhanh">
+        <section className="admin-stats-grid" aria-label={t('admin.monitor.stats')}>
           <article
             className="admin-stat-card admin-stat-card--traffic admin-stat-card--compact admin-stat-card--clickable"
             role="button"
             tabIndex={0}
-            aria-label="Người dùng và hoạt động — nhấn để xem chi tiết"
+            aria-label={`${t('admin.monitor.users')} — ${t('admin.monitor.chartHint')}`}
             onClick={() => openDetail('traffic')}
             onKeyDown={(e) => handleCardKeyDown(e, 'traffic')}
           >
             <div className="admin-stat-card__head">
-              <p className="admin-stat-card__label">Người dùng</p>
+              <p className="admin-stat-card__label">{t('admin.monitor.users')}</p>
               <StatIconTraffic />
             </div>
             <p className="admin-stat-card__value">
               {trafficOverview.totalUsers.toLocaleString('vi-VN')}
             </p>
             <p className="admin-stat-card__sub">
-              {trafficOverview.students.toLocaleString('vi-VN')} sinh viên ·{' '}
-              +{trafficOverview.registrationsMonth} đăng ký tháng này
+              {t('admin.monitor.students', {
+                count: trafficOverview.students.toLocaleString('vi-VN'),
+                month: trafficOverview.registrationsMonth,
+              })}
             </p>
             <ul className="admin-stat-card__quick">
               <li>
-                <span>Chờ duyệt</span>
+                <span>{t('admin.monitor.pending')}</span>
                 <strong>{trafficOverview.pendingEvents}</strong>
               </li>
               <li>
-                <span>Đối tác</span>
+                <span>{t('admin.monitor.partners')}</span>
                 <strong>{trafficOverview.pendingPartners}</strong>
               </li>
               <li>
-                <span>Đăng ký vé</span>
+                <span>{t('admin.monitor.tickets')}</span>
                 <strong>{trafficOverview.registrations.toLocaleString('vi-VN')}</strong>
               </li>
             </ul>
@@ -245,32 +286,34 @@ const AdminMonitoringDashboard = () => {
             className="admin-stat-card admin-stat-card--revenue admin-stat-card--compact admin-stat-card--clickable"
             role="button"
             tabIndex={0}
-            aria-label="Doanh thu — nhấn để xem chi tiết"
+            aria-label={t('admin.monitor.revenue')}
             onClick={() => openDetail('revenue')}
             onKeyDown={(e) => handleCardKeyDown(e, 'revenue')}
           >
             <div className="admin-stat-card__head">
-              <p className="admin-stat-card__label">Doanh thu</p>
+              <p className="admin-stat-card__label">{t('admin.monitor.revenue')}</p>
               <StatIconRevenue />
             </div>
             <p className="admin-stat-card__value admin-stat-card__value--primary">
               {revenueOverview.total} {revenueOverview.currency}
             </p>
             <p className="admin-stat-card__sub">
-              Tháng này: {revenueOverview.thisMonth} ·{' '}
-              <span className="admin-stat-card__trend-up">↑ {revenueOverview.trend}</span>
+              {t('admin.monitor.revenueMonth', {
+                amount: revenueOverview.thisMonth,
+                trend: revenueOverview.trend,
+              })}
             </p>
             <ul className="admin-stat-card__quick">
               <li>
-                <span>Đã duyệt</span>
+                <span>{t('admin.monitor.approved')}</span>
                 <strong>{revenueOverview.approvedEvents}</strong>
               </li>
               <li>
-                <span>Đang diễn ra</span>
+                <span>{t('admin.monitor.live')}</span>
                 <strong>{revenueOverview.liveEvents}</strong>
               </li>
               <li>
-                <span>Thông báo</span>
+                <span>{t('admin.monitor.announcements')}</span>
                 <strong>{stats?.announcements?.total || 0}</strong>
               </li>
             </ul>
@@ -278,21 +321,23 @@ const AdminMonitoringDashboard = () => {
 
           <article className="admin-stat-card admin-stat-card--system admin-stat-card--compact">
             <div className="admin-stat-card__head">
-              <p className="admin-stat-card__label">Hệ thống</p>
+              <p className="admin-stat-card__label">{t('admin.monitor.system')}</p>
               <StatIconSystem />
             </div>
             <div className="admin-stat-card__system">
               <span className="admin-status-badge">{systemOverall.label}</span>
-              <p className="admin-stat-card__sub">Cập nhật {systemOverall.lastCheck}</p>
+              <p className="admin-stat-card__sub">
+                {t('admin.monitor.systemUpdated', { time: systemOverall.lastCheck })}
+              </p>
             </div>
             <ul className="admin-stat-card__quick admin-stat-card__quick--system">
               <li>
                 <span>{systemOverall.database}</span>
-                <strong className="admin-stat-card__ok">Kết nối</strong>
+                <strong className="admin-stat-card__ok">{t('admin.monitor.connected')}</strong>
               </li>
               <li>
                 <span>API Server</span>
-                <strong className="admin-stat-card__ok">Hoạt động</strong>
+                <strong className="admin-stat-card__ok">{t('admin.monitor.apiActive')}</strong>
               </li>
             </ul>
           </article>
@@ -303,38 +348,38 @@ const AdminMonitoringDashboard = () => {
             className="admin-panel admin-panel--chart admin-panel--clickable"
             role="button"
             tabIndex={0}
-            aria-label="Hiệu suất vận hành theo tháng — nhấn để xem bảng chi tiết"
+            aria-label={t('admin.monitor.chartAria')}
             onClick={() => openDetail('performance')}
             onKeyDown={(e) => handleCardKeyDown(e, 'performance')}
           >
             <div className="admin-chart-header">
-              <span className="admin-panel__detail-hint">Nhấn để xem bảng chi tiết</span>
+              <span className="admin-panel__detail-hint">{t('admin.monitor.chartHint')}</span>
               <div>
-                <h2 className="admin-panel__title admin-panel__title--flush">Sự kiện tạo mới theo tháng</h2>
+                <h2 className="admin-panel__title admin-panel__title--flush">{t('admin.monitor.chartTitle')}</h2>
                 <p className="admin-chart-header__sub">
-                  {chartSummary.period} · Số sự kiện · {clockLabel}
+                  {t('admin.monitor.chartSub', { period: chartSummary.period, time: clockLabel })}
                 </p>
               </div>
-              <div className="admin-chart-kpis" aria-label="Tóm tắt biểu đồ">
+              <div className="admin-chart-kpis" aria-label={t('admin.monitor.chartSummaryAria')}>
                 <div className="admin-chart-kpis__item">
-                  <span className="admin-chart-kpis__label">Trung bình</span>
+                  <span className="admin-chart-kpis__label">{t('admin.monitor.avg')}</span>
                   <span className="admin-chart-kpis__value">{chartSummary.avg}</span>
                 </div>
                 <div className="admin-chart-kpis__item admin-chart-kpis__item--peak">
-                  <span className="admin-chart-kpis__label">Cao nhất</span>
+                  <span className="admin-chart-kpis__label">{t('admin.monitor.peak')}</span>
                   <span className="admin-chart-kpis__value">
-                    {chartSummary.peak.label} · {chartSummary.peak.value} sự kiện
+                    {chartSummary.peak.label} · {t('admin.monitor.eventsCount', { count: chartSummary.peak.value })}
                   </span>
                 </div>
                 <div className="admin-chart-kpis__item admin-chart-kpis__item--growth">
-                  <span className="admin-chart-kpis__label">Tăng trưởng</span>
+                  <span className="admin-chart-kpis__label">{t('admin.monitor.growth')}</span>
                   <span className="admin-chart-kpis__value">{chartSummary.growth}</span>
                   <span className="admin-chart-kpis__hint">{chartSummary.growthCaption}</span>
                 </div>
               </div>
             </div>
             <div className="admin-bar-chart-wrap">
-              <div className="admin-bar-chart" role="img" aria-label="Biểu đồ hiệu suất theo tháng">
+              <div className="admin-bar-chart" role="img" aria-label={t('admin.monitor.chartAria')}>
                 <div className="admin-bar-chart__grid" aria-hidden="true">
                   {[100, 75, 50, 25, 0].map((line) => (
                     <span key={line} className="admin-bar-chart__grid-line" />
@@ -357,7 +402,7 @@ const AdminMonitoringDashboard = () => {
                       <div
                         className="admin-bar-chart__bar"
                         style={{ height: `${(item.value / maxBar) * 200}px` }}
-                        title={`${item.month}: ${item.value} sự kiện`}
+                        title={t('admin.monitor.barTitle', { month: item.month, count: item.value })}
                       />
                       <span className="admin-bar-chart__x">{item.label}</span>
                       <span className="admin-bar-chart__month">{item.month}</span>
@@ -368,11 +413,11 @@ const AdminMonitoringDashboard = () => {
               <div className="admin-chart-legend" aria-hidden="true">
                 <span className="admin-chart-legend__item">
                   <span className="admin-chart-legend__swatch admin-chart-legend__swatch--primary" />
-                  Sự kiện / tháng
+                  {t('admin.monitor.eventsPerMonth')}
                 </span>
                 <span className="admin-chart-legend__item">
                   <span className="admin-chart-legend__swatch admin-chart-legend__swatch--peak" />
-                  Tháng cao nhất ({chartSummary.peak.label})
+                  {t('admin.monitor.peakMonth', { label: chartSummary.peak.label })}
                 </span>
               </div>
             </div>
@@ -380,13 +425,13 @@ const AdminMonitoringDashboard = () => {
 
           <article className="admin-panel admin-panel--activity">
             <div className="admin-panel__head">
-              <h2 className="admin-panel__title admin-panel__title--inline">Nhật ký hoạt động</h2>
+              <h2 className="admin-panel__title admin-panel__title--inline">{t('admin.monitor.activityLog')}</h2>
               <button
                 type="button"
                 className="admin-panel__link"
                 onClick={() => setActivityModalOpen(true)}
               >
-                Xem tất cả
+                {t('admin.monitor.viewAll')}
               </button>
             </div>
             <ul className="admin-activity-list">

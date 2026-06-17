@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ANALYTICS_VIEW_ALL_META } from '../../data/adminAnalyticsData';
+import { useTranslation } from '../../i18n/I18nContext';
+import { resolveLabel } from '../../i18n/helpers';
 
 const IconStar = ({ filled, size = 14 }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
@@ -27,7 +28,6 @@ const AdminAnalyticsViewAllModal = ({
   section,
   open,
   onClose,
-  starDistribution = [],
   starDetailRows = [],
   maxStarCount = 1,
   categoryRatings = [],
@@ -35,9 +35,13 @@ const AdminAnalyticsViewAllModal = ({
   allEvents = [],
   allClubs = [],
   allReviews = [],
+  viewAllMeta = {},
+  language = 'vi',
 }) => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
-  const meta = section ? ANALYTICS_VIEW_ALL_META[section] : null;
+  const meta = section ? viewAllMeta[section] : null;
+  const numberLocale = language === 'en' ? 'en-US' : 'vi-VN';
 
   useEffect(() => {
     if (!open) return undefined;
@@ -82,9 +86,9 @@ const AdminAnalyticsViewAllModal = ({
   const filteredCategories = useMemo(() => {
     if (!q) return categoryRatings;
     return categoryRatings.filter((row) =>
-      [row.label, String(row.avg), String(row.reviews)].join(' ').toLowerCase().includes(q),
+      [resolveLabel(row, t), String(row.avg), String(row.reviews)].join(' ').toLowerCase().includes(q),
     );
-  }, [categoryRatings, q]);
+  }, [categoryRatings, q, t]);
 
   if (!open || !section || !meta) return null;
 
@@ -113,7 +117,7 @@ const AdminAnalyticsViewAllModal = ({
             <h2 id="admin-analytics-view-modal-title">{meta.title}</h2>
             <p>{meta.subtitle}</p>
           </div>
-          <button type="button" className="admin-log-modal__close" onClick={onClose} aria-label="Đóng">
+          <button type="button" className="admin-log-modal__close" onClick={onClose} aria-label={t('admin.analytics.modal.closeAria')}>
             ×
           </button>
         </header>
@@ -132,13 +136,15 @@ const AdminAnalyticsViewAllModal = ({
               <input
                 type="search"
                 className="admin-log-search__input"
-                placeholder="Tìm trong danh sách..."
+                placeholder={t('admin.analytics.modal.searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                aria-label="Tìm kiếm"
+                aria-label={t('admin.analytics.modal.searchAria')}
               />
             </div>
-            <span className="admin-analytics-view-modal__count">{resultCount} mục</span>
+            <span className="admin-analytics-view-modal__count">
+              {t('admin.analytics.modal.resultCount', { count: resultCount })}
+            </span>
           </div>
         )}
 
@@ -147,10 +153,10 @@ const AdminAnalyticsViewAllModal = ({
             <table className="admin-analytics-table admin-analytics-table--modal">
               <thead>
                 <tr>
-                  <th>Mức sao</th>
-                  <th>Số đánh giá</th>
-                  <th>Tỷ lệ</th>
-                  <th>Sự kiện liên quan</th>
+                  <th>{t('admin.analytics.modal.starLevel')}</th>
+                  <th>{t('admin.analytics.modal.reviewCount')}</th>
+                  <th>{t('admin.analytics.modal.sharePct')}</th>
+                  <th>{t('admin.analytics.modal.relatedEvents')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,11 +175,11 @@ const AdminAnalyticsViewAllModal = ({
                             style={{ width: `${(row.count / maxStarCount) * 100}%` }}
                           />
                         </div>
-                        <span>{row.count.toLocaleString('vi-VN')}</span>
+                        <span>{row.count.toLocaleString(numberLocale)}</span>
                       </div>
                     </td>
                     <td>{row.percent}%</td>
-                    <td>{row.events} sự kiện</td>
+                    <td>{t('admin.analytics.modal.eventsCount', { count: row.events })}</td>
                   </tr>
                 ))}
               </tbody>
@@ -185,7 +191,7 @@ const AdminAnalyticsViewAllModal = ({
               {filteredCategories.map((cat) => (
                 <li key={cat.id} className="admin-analytics-cat-list__item">
                   <div className="admin-analytics-cat-list__head">
-                    <span className="admin-analytics-cat-list__name">{cat.label}</span>
+                    <span className="admin-analytics-cat-list__name">{resolveLabel(cat, t)}</span>
                     <span className="admin-analytics-cat-list__avg">{cat.avg}/5</span>
                   </div>
                   <div className="admin-analytics-cat-list__track">
@@ -194,7 +200,9 @@ const AdminAnalyticsViewAllModal = ({
                       style={{ width: `${(cat.reviews / maxCategoryReviews) * 100}%` }}
                     />
                   </div>
-                  <span className="admin-analytics-cat-list__reviews">{cat.reviews} phản hồi</span>
+                  <span className="admin-analytics-cat-list__reviews">
+                    {t('admin.analytics.reviewsCount', { count: cat.reviews })}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -204,11 +212,11 @@ const AdminAnalyticsViewAllModal = ({
             <table className="admin-analytics-table admin-analytics-table--modal">
               <thead>
                 <tr>
-                  <th>Sự kiện</th>
-                  <th>Đơn vị tổ chức</th>
-                  <th>Danh mục</th>
-                  <th>Điểm TB</th>
-                  <th>Phản hồi</th>
+                  <th>{t('admin.analytics.table.event')}</th>
+                  <th>{t('admin.analytics.table.org')}</th>
+                  <th>{t('admin.analytics.table.category')}</th>
+                  <th>{t('admin.analytics.table.avgRating')}</th>
+                  <th>{t('admin.analytics.table.feedback')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -234,10 +242,10 @@ const AdminAnalyticsViewAllModal = ({
             <table className="admin-analytics-table admin-analytics-table--modal">
               <thead>
                 <tr>
-                  <th>Mã CLB</th>
-                  <th>Tên câu lạc bộ</th>
-                  <th>Điểm TB</th>
-                  <th>Phản hồi</th>
+                  <th>{t('admin.analytics.table.clubCode')}</th>
+                  <th>{t('admin.analytics.table.clubName')}</th>
+                  <th>{t('admin.analytics.table.avgRating')}</th>
+                  <th>{t('admin.analytics.table.feedback')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -280,9 +288,9 @@ const AdminAnalyticsViewAllModal = ({
         </div>
 
         <footer className="admin-log-modal__footer">
-          <p className="admin-detail-modal__hint">Dữ liệu mô phỏng · Sẽ kết nối API khi triển khai backend</p>
+          <p className="admin-detail-modal__hint">{t('admin.analytics.modal.hint')}</p>
           <button type="button" className="admin-log-modal__btn-close" onClick={onClose}>
-            Đóng
+            {t('admin.analytics.modal.close')}
           </button>
         </footer>
       </div>

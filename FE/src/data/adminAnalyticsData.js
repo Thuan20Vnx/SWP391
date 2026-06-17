@@ -1,9 +1,9 @@
 /** Mock data — Đánh giá & Phân tích (Figma SWP391_2, cùng hệ thống admin) */
 
 export const ADMIN_ANALYTICS_PERIODS = [
-  { value: 'month', label: 'Tháng này' },
-  { value: 'quarter', label: 'Quý này' },
-  { value: 'year', label: 'Năm nay' },
+  { value: 'month', labelKey: 'admin.analytics.period.month' },
+  { value: 'quarter', labelKey: 'admin.analytics.period.quarter' },
+  { value: 'year', labelKey: 'admin.analytics.period.year' },
 ];
 
 export const ADMIN_STAR_DISTRIBUTION = [
@@ -15,20 +15,58 @@ export const ADMIN_STAR_DISTRIBUTION = [
 ];
 
 export const ADMIN_CATEGORY_RATINGS = [
-  { id: 'tech', label: 'Học thuật & Công nghệ', avg: 4.8, reviews: 312 },
-  { id: 'arts', label: 'Nghệ thuật & Sáng tạo', avg: 4.6, reviews: 198 },
-  { id: 'sport', label: 'Thể thao & Sức khỏe', avg: 4.5, reviews: 156 },
-  { id: 'music', label: 'Âm nhạc & Giải trí', avg: 4.7, reviews: 142 },
-  { id: 'work', label: 'Kỹ năng & Workshop', avg: 4.4, reviews: 128 },
-  { id: 'vol', label: 'Tình nguyện & Xã hội', avg: 4.9, reviews: 89 },
+  { id: 'tech', labelKey: 'admin.analytics.cat.tech', avg: 4.8, reviews: 312 },
+  { id: 'arts', labelKey: 'admin.analytics.cat.arts', avg: 4.6, reviews: 198 },
+  { id: 'sport', labelKey: 'admin.analytics.cat.sport', avg: 4.5, reviews: 156 },
+  { id: 'music', labelKey: 'admin.analytics.cat.music', avg: 4.7, reviews: 142 },
+  { id: 'work', labelKey: 'admin.analytics.cat.work', avg: 4.4, reviews: 128 },
+  { id: 'vol', labelKey: 'admin.analytics.cat.vol', avg: 4.9, reviews: 89 },
 ];
 
 export const ADMIN_TOP_RATED_EVENTS = [
-  { id: 'e1', name: 'FPT TechDay 2024', org: 'F-Code Team', rating: 4.9, reviews: 186, category: 'Học thuật & Công nghệ' },
-  { id: 'e2', name: 'Gala FPT 2024', org: 'Ban tổ chức', rating: 4.8, reviews: 124, category: 'Âm nhạc & Giải trí' },
-  { id: 'e3', name: 'Workshop AI cơ bản', org: 'FPT AI Club', rating: 4.7, reviews: 98, category: 'Học thuật & Công nghệ' },
-  { id: 'e4', name: 'Giải bóng rổ nội bộ', org: 'FPT Basketball', rating: 4.6, reviews: 76, category: 'Thể thao & Sức khỏe' },
-  { id: 'e5', name: 'Career Fair 2024', org: 'CTSV', rating: 4.5, reviews: 65, category: 'Kinh tế & Khởi nghiệp' },
+  {
+    id: 'e1',
+    name: 'FPT TechDay 2024',
+    org: 'F-Code Team',
+    rating: 4.9,
+    reviews: 186,
+    categoryKey: 'admin.analytics.cat.tech',
+  },
+  {
+    id: 'e2',
+    name: 'Gala FPT 2024',
+    org: 'Ban tổ chức',
+    orgKey: 'admin.analytics.org.organizingCommittee',
+    rating: 4.8,
+    reviews: 124,
+    categoryKey: 'admin.analytics.cat.music',
+  },
+  {
+    id: 'e3',
+    name: 'Workshop AI cơ bản',
+    nameKey: 'admin.analytics.event.workshopAi',
+    org: 'FPT AI Club',
+    rating: 4.7,
+    reviews: 98,
+    categoryKey: 'admin.analytics.cat.tech',
+  },
+  {
+    id: 'e4',
+    name: 'Giải bóng rổ nội bộ',
+    nameKey: 'admin.analytics.event.internalBasketball',
+    org: 'FPT Basketball',
+    rating: 4.6,
+    reviews: 76,
+    categoryKey: 'admin.analytics.cat.sport',
+  },
+  {
+    id: 'e5',
+    name: 'Career Fair 2024',
+    org: 'CTSV',
+    rating: 4.5,
+    reviews: 65,
+    categoryKey: 'admin.analytics.cat.business',
+  },
 ];
 
 export const ADMIN_TOP_CLUBS_BY_FEEDBACK = [
@@ -40,11 +78,48 @@ export const ADMIN_TOP_CLUBS_BY_FEEDBACK = [
 ];
 
 const RECENT_REVIEW_TEMPLATES = [
-  { minutesAgo: 12, user: 'Nguyễn Văn A', event: 'FPT TechDay 2024', stars: 5, excerpt: 'Sự kiện rất chuyên nghiệp, nội dung hữu ích.' },
-  { minutesAgo: 45, user: 'Trần Thị B', event: 'Workshop AI cơ bản', stars: 4, excerpt: 'Diễn giả tốt, mong có thêm phần thực hành.' },
-  { minutesAgo: 120, user: 'Lê Minh C', event: 'Giải bóng rổ nội bộ', stars: 5, excerpt: 'Không khí sôi động, tổ chức ổn định.' },
-  { minutesAgo: 180, user: 'Phạm Thu D', event: 'Gala FPT 2024', stars: 5, excerpt: 'Chương trình đa dạng, âm thanh ánh sáng đẹp.' },
-  { minutesAgo: 240, user: 'Hoàng Yến E', event: 'Career Fair 2024', stars: 4, excerpt: 'Nhiều doanh nghiệp tham gia, hỗ trợ việc làm tốt.' },
+  {
+    minutesAgo: 12,
+    user: 'Nguyễn Văn A',
+    event: 'FPT TechDay 2024',
+    stars: 5,
+    excerpt: 'Sự kiện rất chuyên nghiệp, nội dung hữu ích.',
+    excerptKey: 'admin.analytics.review.1.excerpt',
+  },
+  {
+    minutesAgo: 45,
+    user: 'Trần Thị B',
+    event: 'Workshop AI cơ bản',
+    eventNameKey: 'admin.analytics.event.workshopAi',
+    stars: 4,
+    excerpt: 'Diễn giả tốt, mong có thêm phần thực hành.',
+    excerptKey: 'admin.analytics.review.2.excerpt',
+  },
+  {
+    minutesAgo: 120,
+    user: 'Lê Minh C',
+    event: 'Giải bóng rổ nội bộ',
+    eventNameKey: 'admin.analytics.event.internalBasketball',
+    stars: 5,
+    excerpt: 'Không khí sôi động, tổ chức ổn định.',
+    excerptKey: 'admin.analytics.review.3.excerpt',
+  },
+  {
+    minutesAgo: 180,
+    user: 'Phạm Thu D',
+    event: 'Gala FPT 2024',
+    stars: 5,
+    excerpt: 'Chương trình đa dạng, âm thanh ánh sáng đẹp.',
+    excerptKey: 'admin.analytics.review.4.excerpt',
+  },
+  {
+    minutesAgo: 240,
+    user: 'Hoàng Yến E',
+    event: 'Career Fair 2024',
+    stars: 4,
+    excerpt: 'Nhiều doanh nghiệp tham gia, hỗ trợ việc làm tốt.',
+    excerptKey: 'admin.analytics.review.5.excerpt',
+  },
 ];
 
 export const buildAnalyticsOverview = (period = 'month') => {
@@ -59,6 +134,7 @@ export const buildAnalyticsOverview = (period = 'month') => {
     trendAvg: '+0.2',
     trendReviews: '+12%',
     trendCaption: 'so với kỳ trước',
+    trendCaptionKey: 'admin.analytics.trendCaption',
   };
 };
 
@@ -70,13 +146,63 @@ export const ANALYTICS_PREVIEW_LIMITS = {
 };
 
 const MORE_EVENTS = [
-  { id: 'e6', name: 'Hackathon FPT 2024', org: 'F-Code Team', rating: 4.4, reviews: 58, category: 'Học thuật & Công nghệ' },
-  { id: 'e7', name: 'Ngày hội CLB', org: 'CTSV', rating: 4.3, reviews: 52, category: 'Tình nguyện & Xã hội' },
-  { id: 'e8', name: 'Acoustic Night', org: 'Guitar Club DN', rating: 4.6, reviews: 48, category: 'Âm nhạc & Giải trí' },
-  { id: 'e9', name: 'FPT Run 2024', org: 'FPT Running', rating: 4.2, reviews: 41, category: 'Thể thao & Sức khỏe' },
-  { id: 'e10', name: 'Design Thinking Day', org: 'FPT Design', rating: 4.5, reviews: 36, category: 'Nghệ thuật & Sáng tạo' },
-  { id: 'e11', name: 'Startup Pitch', org: 'FPT Startup', rating: 4.1, reviews: 32, category: 'Kinh tế & Khởi nghiệp' },
-  { id: 'e12', name: 'Volunteer Day', org: 'Green Heart FPT', rating: 4.9, reviews: 29, category: 'Tình nguyện & Xã hội' },
+  {
+    id: 'e6',
+    name: 'Hackathon FPT 2024',
+    org: 'F-Code Team',
+    rating: 4.4,
+    reviews: 58,
+    categoryKey: 'admin.analytics.cat.tech',
+  },
+  {
+    id: 'e7',
+    name: 'Ngày hội CLB',
+    nameKey: 'admin.analytics.event.clubFestival',
+    org: 'CTSV',
+    rating: 4.3,
+    reviews: 52,
+    categoryKey: 'admin.analytics.cat.vol',
+  },
+  {
+    id: 'e8',
+    name: 'Acoustic Night',
+    org: 'Guitar Club DN',
+    rating: 4.6,
+    reviews: 48,
+    categoryKey: 'admin.analytics.cat.music',
+  },
+  {
+    id: 'e9',
+    name: 'FPT Run 2024',
+    org: 'FPT Running',
+    rating: 4.2,
+    reviews: 41,
+    categoryKey: 'admin.analytics.cat.sport',
+  },
+  {
+    id: 'e10',
+    name: 'Design Thinking Day',
+    org: 'FPT Design',
+    rating: 4.5,
+    reviews: 36,
+    categoryKey: 'admin.analytics.cat.arts',
+  },
+  {
+    id: 'e11',
+    name: 'Startup Pitch',
+    org: 'FPT Startup',
+    rating: 4.1,
+    reviews: 32,
+    categoryKey: 'admin.analytics.cat.business',
+  },
+  {
+    id: 'e12',
+    name: 'Volunteer Day',
+    org: 'Green Heart FPT',
+    rating: 4.9,
+    reviews: 29,
+    categoryKey: 'admin.analytics.cat.vol',
+  },
 ];
 
 const MORE_CLUBS = [
@@ -90,16 +216,88 @@ const MORE_CLUBS = [
 ];
 
 const MORE_REVIEW_TEMPLATES = [
-  { minutesAgo: 300, user: 'Võ An F', event: 'Hackathon FPT 2024', stars: 4, excerpt: 'Đội ngũ BTC hỗ trợ nhanh, mentor nhiệt tình.' },
-  { minutesAgo: 360, user: 'Đặng Bảo G', event: 'Acoustic Night', stars: 5, excerpt: 'Không gian ấm cúng, MC dẫn chương trình hay.' },
-  { minutesAgo: 420, user: 'Bùi Hạ H', event: 'FPT Run 2024', stars: 3, excerpt: 'Đường chạy hơi đông, cần thêm điểm cấp nước.' },
-  { minutesAgo: 480, user: 'Ngô Kiên I', event: 'Design Thinking Day', stars: 4, excerpt: 'Bài tập nhóm thực tế, phù hợp sinh viên năm 2.' },
-  { minutesAgo: 540, user: 'Dương Lan J', event: 'Startup Pitch', stars: 4, excerpt: 'Jury feedback chi tiết, hữu ích cho ý tưởng khởi nghiệp.' },
-  { minutesAgo: 600, user: 'Trịnh Nam K', event: 'Volunteer Day', stars: 5, excerpt: 'Hoạt động ý nghĩa, tổ chức an toàn và rõ ràng.' },
-  { minutesAgo: 720, user: 'Lý Phương L', event: 'Ngày hội CLB', stars: 4, excerpt: 'Nhiều gian hàng CLB, dễ tìm thông tin tuyển thành viên.' },
-  { minutesAgo: 840, user: 'Mai Quốc M', event: 'FPT TechDay 2024', stars: 5, excerpt: 'Keynote chất lượng, booth demo đa dạng.' },
-  { minutesAgo: 960, user: 'Phan Uyên N', event: 'Workshop AI cơ bản', stars: 3, excerpt: 'Slide hơi nhanh, cần tài liệu ôn tập sau buổi.' },
-  { minutesAgo: 1080, user: 'Hồ Thảo O', event: 'Gala FPT 2024', stars: 5, excerpt: 'Trang phục và tiết mục văn nghệ ấn tượng.' },
+  {
+    minutesAgo: 300,
+    user: 'Võ An F',
+    event: 'Hackathon FPT 2024',
+    stars: 4,
+    excerpt: 'Đội ngũ BTC hỗ trợ nhanh, mentor nhiệt tình.',
+    excerptKey: 'admin.analytics.review.6.excerpt',
+  },
+  {
+    minutesAgo: 360,
+    user: 'Đặng Bảo G',
+    event: 'Acoustic Night',
+    stars: 5,
+    excerpt: 'Không gian ấm cúng, MC dẫn chương trình hay.',
+    excerptKey: 'admin.analytics.review.7.excerpt',
+  },
+  {
+    minutesAgo: 420,
+    user: 'Bùi Hạ H',
+    event: 'FPT Run 2024',
+    stars: 3,
+    excerpt: 'Đường chạy hơi đông, cần thêm điểm cấp nước.',
+    excerptKey: 'admin.analytics.review.8.excerpt',
+  },
+  {
+    minutesAgo: 480,
+    user: 'Ngô Kiên I',
+    event: 'Design Thinking Day',
+    stars: 4,
+    excerpt: 'Bài tập nhóm thực tế, phù hợp sinh viên năm 2.',
+    excerptKey: 'admin.analytics.review.9.excerpt',
+  },
+  {
+    minutesAgo: 540,
+    user: 'Dương Lan J',
+    event: 'Startup Pitch',
+    stars: 4,
+    excerpt: 'Jury feedback chi tiết, hữu ích cho ý tưởng khởi nghiệp.',
+    excerptKey: 'admin.analytics.review.10.excerpt',
+  },
+  {
+    minutesAgo: 600,
+    user: 'Trịnh Nam K',
+    event: 'Volunteer Day',
+    stars: 5,
+    excerpt: 'Hoạt động ý nghĩa, tổ chức an toàn và rõ ràng.',
+    excerptKey: 'admin.analytics.review.11.excerpt',
+  },
+  {
+    minutesAgo: 720,
+    user: 'Lý Phương L',
+    event: 'Ngày hội CLB',
+    eventNameKey: 'admin.analytics.event.clubFestival',
+    stars: 4,
+    excerpt: 'Nhiều gian hàng CLB, dễ tìm thông tin tuyển thành viên.',
+    excerptKey: 'admin.analytics.review.12.excerpt',
+  },
+  {
+    minutesAgo: 840,
+    user: 'Mai Quốc M',
+    event: 'FPT TechDay 2024',
+    stars: 5,
+    excerpt: 'Keynote chất lượng, booth demo đa dạng.',
+    excerptKey: 'admin.analytics.review.13.excerpt',
+  },
+  {
+    minutesAgo: 960,
+    user: 'Phan Uyên N',
+    event: 'Workshop AI cơ bản',
+    eventNameKey: 'admin.analytics.event.workshopAi',
+    stars: 3,
+    excerpt: 'Slide hơi nhanh, cần tài liệu ôn tập sau buổi.',
+    excerptKey: 'admin.analytics.review.14.excerpt',
+  },
+  {
+    minutesAgo: 1080,
+    user: 'Hồ Thảo O',
+    event: 'Gala FPT 2024',
+    stars: 5,
+    excerpt: 'Trang phục và tiết mục văn nghệ ấn tượng.',
+    excerptKey: 'admin.analytics.review.15.excerpt',
+  },
 ];
 
 export const ADMIN_ALL_RATED_EVENTS = [...ADMIN_TOP_RATED_EVENTS, ...MORE_EVENTS];
@@ -114,57 +312,67 @@ export const ADMIN_STAR_DETAIL_ROWS = ADMIN_STAR_DISTRIBUTION.map((row) => ({
 
 export const ANALYTICS_VIEW_ALL_META = {
   stars: {
-    title: 'Phân bổ điểm sao — Chi tiết',
-    subtitle: 'Thống kê đầy đủ theo mức sao trong kỳ đã chọn',
+    titleKey: 'admin.analytics.viewAll.stars.title',
+    subtitleKey: 'admin.analytics.viewAll.stars.subtitle',
   },
   categories: {
-    title: 'Đánh giá theo danh mục',
-    subtitle: 'Toàn bộ danh mục sự kiện và chỉ số phản hồi',
+    titleKey: 'admin.analytics.viewAll.categories.title',
+    subtitleKey: 'admin.analytics.viewAll.categories.subtitle',
   },
   events: {
-    title: 'Sự kiện được đánh giá cao',
-    subtitle: 'Danh sách đầy đủ sự kiện theo điểm trung bình',
+    titleKey: 'admin.analytics.viewAll.events.title',
+    subtitleKey: 'admin.analytics.viewAll.events.subtitle',
   },
   clubs: {
-    title: 'Câu lạc bộ theo phản hồi',
-    subtitle: 'Danh sách đầy đủ CLB và lượng đánh giá',
+    titleKey: 'admin.analytics.viewAll.clubs.title',
+    subtitleKey: 'admin.analytics.viewAll.clubs.subtitle',
   },
   reviews: {
-    title: 'Đánh giá gần đây',
-    subtitle: 'Toàn bộ phản hồi mới nhất từ người tham dự',
+    titleKey: 'admin.analytics.viewAll.reviews.title',
+    subtitleKey: 'admin.analytics.viewAll.reviews.subtitle',
   },
 };
 
-export const buildRecentReviews = (now = new Date()) =>
+export const getAnalyticsViewAllMeta = (t) =>
+  Object.fromEntries(
+    Object.entries(ANALYTICS_VIEW_ALL_META).map(([key, meta]) => [
+      key,
+      {
+        title: t(meta.titleKey),
+        subtitle: t(meta.subtitleKey),
+      },
+    ]),
+  );
+
+const formatReviewTime = (date, language = 'vi') => {
+  const locale = language === 'en' ? 'en-US' : 'vi-VN';
+  return date.toLocaleString(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
+
+export const buildRecentReviews = (now = new Date(), language = 'vi') =>
   RECENT_REVIEW_TEMPLATES.map((item, index) => {
     const date = new Date(now.getTime() - item.minutesAgo * 60 * 1000);
     return {
       id: String(index + 1),
       ...item,
-      time: date.toLocaleString('vi-VN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }),
+      time: formatReviewTime(date, language),
     };
   });
 
-export const buildAllRecentReviews = (now = new Date()) => {
+export const buildAllRecentReviews = (now = new Date(), language = 'vi') => {
   const allTemplates = [...RECENT_REVIEW_TEMPLATES, ...MORE_REVIEW_TEMPLATES];
   return allTemplates.map((item, index) => {
     const date = new Date(now.getTime() - item.minutesAgo * 60 * 1000);
     return {
       id: String(index + 1),
       ...item,
-      time: date.toLocaleString('vi-VN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }),
+      time: formatReviewTime(date, language),
     };
   });
 };

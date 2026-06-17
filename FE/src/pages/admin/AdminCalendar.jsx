@@ -1,11 +1,13 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import EventCalendarPage from '../../components/calendar/EventCalendarPage';
 import { fetchAdminCalendar } from '../../services/adminApi';
+import { useTranslation } from '../../i18n/I18nContext';
+import { resolveLabel } from '../../i18n/helpers';
 
 const ADMIN_STATUS_FILTERS = [
-  { id: 'pending_admin', label: 'Chờ Admin' },
-  { id: 'pending_any', label: 'Mọi trạng thái chờ' },
+  { id: 'pending_admin', labelKey: 'admin.calendar.filter.pendingAdmin' },
+  { id: 'pending_any', labelKey: 'admin.calendar.filter.pendingAny' },
 ];
 
 const resolveAdminEventLink = (event) => {
@@ -20,17 +22,23 @@ const resolveAdminEventLink = (event) => {
 
 const AdminCalendar = () => {
   const { showToast } = useOutletContext() || {};
+  const { t } = useTranslation();
   const loadEvents = useCallback(() => fetchAdminCalendar(), []);
+
+  const statusFilters = useMemo(
+    () => ADMIN_STATUS_FILTERS.map((f) => ({ ...f, label: resolveLabel(f, t) })),
+    [t],
+  );
 
   return (
     <EventCalendarPage
       showToast={showToast}
       fetchEvents={loadEvents}
       resolveEventLink={resolveAdminEventLink}
-      eyebrow="Lịch Admin"
-      title="Lịch sự kiện hệ thống"
-      description="Theo dõi sự kiện cấp trường, đối tác và CLB — lọc nhanh các mục chờ Admin phê duyệt."
-      statusFilters={ADMIN_STATUS_FILTERS}
+      eyebrow={t('admin.calendar.eyebrow')}
+      title={t('admin.calendar.title')}
+      description={t('admin.calendar.description')}
+      statusFilters={statusFilters}
       computeStats={(eventsInMonth) => ({
         total: eventsInMonth.length,
         pending: eventsInMonth.filter((e) => e.isPending).length,

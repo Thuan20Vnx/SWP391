@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import AdminFilterDropdown from './AdminFilterDropdown';
 import AdminRolePicker from './AdminRolePicker';
 import {
@@ -7,10 +7,16 @@ import {
   ADMIN_COURSE_OPTIONS,
   accountToEditForm,
 } from '../../data/adminAccountsData';
+import { useTranslation } from '../../i18n/I18nContext';
+import { mapSelectOptions, resolveLabel } from '../../i18n/helpers';
 
 const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting }) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState(accountToEditForm(account || {}));
   const [openMenu, setOpenMenu] = useState(null);
+
+  const courseOptions = useMemo(() => mapSelectOptions(ADMIN_COURSE_OPTIONS, t), [t]);
+  const campusOptions = useMemo(() => mapSelectOptions(ADMIN_CAMPUS_OPTIONS, t), [t]);
 
   useEffect(() => {
     if (!open || !account) return undefined;
@@ -57,13 +63,13 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
         onClick={(e) => e.stopPropagation()}
       >
         <header className="admin-acc-modal__header">
-          <h2 id="admin-edit-account-title">Chỉnh sửa tài khoản</h2>
+          <h2 id="admin-edit-account-title">{t('admin.accounts.modal.edit.title')}</h2>
           <button
             type="button"
             className="admin-acc-modal__close"
             onClick={onClose}
             disabled={submitting}
-            aria-label="Đóng"
+            aria-label={t('admin.common.close')}
           >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -73,12 +79,12 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
 
         <form className="admin-acc-modal__form" onSubmit={handleSubmit}>
           <label className="admin-acc-modal__field">
-            <span className="admin-acc-modal__label">Vai trò hệ thống</span>
+            <span className="admin-acc-modal__label">{t('admin.accounts.modal.edit.systemRole')}</span>
             {isAdmin ? (
               <input
                 type="text"
                 className="admin-acc-modal__input admin-acc-modal__input--readonly"
-                value={ADMIN_ACCOUNT_ROLE_META.admin?.label || 'IT Admin'}
+                value={resolveLabel(ADMIN_ACCOUNT_ROLE_META.admin, t)}
                 readOnly
               />
             ) : (
@@ -91,11 +97,11 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
           </label>
 
           <label className="admin-acc-modal__field">
-            <span className="admin-acc-modal__label">Họ tên / Tên đơn vị</span>
+            <span className="admin-acc-modal__label">{t('admin.accounts.modal.edit.fullname')}</span>
             <input
               type="text"
               className="admin-acc-modal__input"
-              placeholder="Nguyễn Văn A, Công ty FPT Software..."
+              placeholder={t('admin.accounts.modal.edit.fullnamePlaceholder')}
               value={form.fullname}
               onChange={(e) => patch('fullname', e.target.value)}
               required
@@ -103,7 +109,7 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
           </label>
 
           <label className="admin-acc-modal__field">
-            <span className="admin-acc-modal__label">Email liên hệ</span>
+            <span className="admin-acc-modal__label">{t('admin.accounts.modal.edit.email')}</span>
             <input
               type="email"
               className={`admin-acc-modal__input${isAdmin ? ' admin-acc-modal__input--readonly' : ''}`}
@@ -113,25 +119,23 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
               required
             />
             {isAdmin && (
-              <span className="admin-acc-modal__note">
-                Tài khoản IT Admin: không thể đổi vai trò hoặc email qua giao diện này.
-              </span>
+              <span className="admin-acc-modal__note">{t('admin.accounts.modal.edit.adminNote')}</span>
             )}
           </label>
 
           <div className="admin-acc-modal__row">
             <label className="admin-acc-modal__field">
-              <span className="admin-acc-modal__label">Mã số SV / Mã định danh</span>
+              <span className="admin-acc-modal__label">{t('admin.accounts.modal.edit.mssv')}</span>
               <input
                 type="text"
                 className="admin-acc-modal__input"
-                placeholder="DE200000, mã đối tác..."
+                placeholder={t('admin.accounts.modal.edit.mssvPlaceholder')}
                 value={form.mssv}
                 onChange={(e) => patch('mssv', e.target.value)}
               />
             </label>
             <label className="admin-acc-modal__field">
-              <span className="admin-acc-modal__label">Số điện thoại</span>
+              <span className="admin-acc-modal__label">{t('admin.accounts.modal.edit.phone')}</span>
               <input
                 type="tel"
                 className="admin-acc-modal__input"
@@ -144,12 +148,12 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
 
           <div className="admin-acc-modal__row">
             <label className="admin-acc-modal__field">
-              <span className="admin-acc-modal__label">Khóa học</span>
+              <span className="admin-acc-modal__label">{t('admin.accounts.modal.edit.course')}</span>
               {showStudentFields ? (
                 <AdminFilterDropdown
                   label=""
                   value={form.course || 'K18'}
-                  options={ADMIN_COURSE_OPTIONS}
+                  options={courseOptions}
                   onChange={(v) => patch('course', v)}
                   menuOpen={openMenu === 'course'}
                   onMenuToggle={setOpenMenu}
@@ -166,11 +170,11 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
               )}
             </label>
             <label className="admin-acc-modal__field">
-              <span className="admin-acc-modal__label">Cơ sở</span>
+              <span className="admin-acc-modal__label">{t('admin.accounts.modal.edit.campus')}</span>
               <AdminFilterDropdown
                 label=""
                 value={form.campus || ADMIN_CAMPUS_OPTIONS[0].value}
-                options={ADMIN_CAMPUS_OPTIONS}
+                options={campusOptions}
                 onChange={(v) => patch('campus', v)}
                 menuOpen={openMenu === 'campus'}
                 onMenuToggle={setOpenMenu}
@@ -180,11 +184,11 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
           </div>
 
           <label className="admin-acc-modal__field">
-            <span className="admin-acc-modal__label">Thông tin đơn vị / Chuyên ngành</span>
+            <span className="admin-acc-modal__label">{t('admin.accounts.modal.edit.unitInfo')}</span>
             <input
               type="text"
               className="admin-acc-modal__input"
-              placeholder="Điện K20, Phòng CTSV, Người đại diện đối tác..."
+              placeholder={t('admin.accounts.modal.edit.unitInfoPlaceholder')}
               value={form.unitInfo}
               onChange={(e) => patch('unitInfo', e.target.value)}
             />
@@ -192,10 +196,8 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
 
           <div className="admin-acc-modal__toggle-row">
             <div>
-              <p className="admin-acc-modal__toggle-label">Kích hoạt tài khoản</p>
-              <p className="admin-acc-modal__toggle-desc">
-                Tắt để khóa đăng nhập; bật lại sẽ cấp mật khẩu mặc định Fpt@2026
-              </p>
+              <p className="admin-acc-modal__toggle-label">{t('admin.accounts.modal.edit.activate')}</p>
+              <p className="admin-acc-modal__toggle-desc">{t('admin.accounts.modal.edit.activateDesc')}</p>
             </div>
             <button
               type="button"
@@ -210,11 +212,16 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, submitting })
           </div>
 
           <footer className="admin-acc-modal__footer">
-            <button type="button" className="admin-acc-btn admin-acc-btn--ghost" onClick={onClose} disabled={submitting}>
-              Hủy bỏ
+            <button
+              type="button"
+              className="admin-acc-btn admin-acc-btn--ghost"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              {t('admin.common.cancel')}
             </button>
             <button type="submit" className="admin-acc-btn admin-acc-btn--primary" disabled={submitting}>
-              {submitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {submitting ? t('admin.accounts.modal.edit.saving') : t('admin.accounts.modal.edit.submit')}
             </button>
           </footer>
         </form>

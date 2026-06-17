@@ -52,8 +52,35 @@
 
 .admin-acc-filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  max-width: 240px;
+}
+
+.admin-acc-filters .admin-filter-dropdown {
+  width: 100%;
+  gap: 0;
+}
+
+.admin-acc-filters .admin-filter-dropdown__trigger {
+  height: 40px;
+  padding: 0 14px 0 16px;
+  border-radius: 9999px;
+  border-color: #e0c0b2;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #584238;
+}
+
+.admin-acc-filters .admin-filter-dropdown__trigger:hover,
+.admin-acc-filters .admin-filter-dropdown__trigger--open {
+  border-color: #f26f21;
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.1);
+}
+
+.admin-acc-filters .admin-filter-dropdown__menu {
+  min-width: 100%;
+  width: max-content;
+  max-width: min(100vw - 32px, 280px);
 }
 
 .admin-acc-filter-tab {
@@ -756,9 +783,16 @@
   color: #f26f21;
 }
 
-.admin-acc-page-btn--active {
+.admin-acc-page-btn--active,
+.admin-acc-page-btn--active:hover:not(:disabled),
+.admin-acc-page-btn--active:focus-visible {
   background: #f26f21;
   border-color: #f26f21;
+  color: #fff;
+}
+
+.admin-acc-page-btn--active:disabled {
+  opacity: 1;
   color: #fff;
 }
 
@@ -979,6 +1013,11 @@
 }
 
 @media (max-width: 900px) {
+  .admin-acc-filters {
+    max-width: none;
+    width: 100%;
+  }
+
   .admin-acc-table thead {
     display: none;
   }

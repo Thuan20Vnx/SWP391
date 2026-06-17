@@ -42,7 +42,9 @@
   background: #ffffff;
 }
 
-.admin-analytics-period__btn--active {
+.admin-analytics-period__btn--active,
+.admin-analytics-period__btn--active:hover,
+.admin-analytics-period__btn--active:focus-visible {
   background: #f26f21;
   color: #ffffff;
   box-shadow: 0 2px 8px rgba(242, 111, 33, 0.3);

@@ -1,5 +1,7 @@
 import React from 'react';
 import { ADMIN_ROLE_PICKER_OPTIONS } from '../../data/adminAccountsData';
+import { useTranslation } from '../../i18n/I18nContext';
+import { resolveDescription, resolveLabel } from '../../i18n/helpers';
 
 const RoleIcon = ({ tone }) => {
   const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round' };
@@ -50,49 +52,53 @@ const RoleIcon = ({ tone }) => {
   }
 };
 
-const AdminRolePicker = ({ value, onChange, disabled = false, name = 'account-role' }) => (
-  <div className="admin-role-picker" role="radiogroup" aria-label="Vai trò hệ thống">
-    {ADMIN_ROLE_PICKER_OPTIONS.map((opt) => {
-      const selected = value === opt.value;
-      return (
-        <label
-          key={opt.value}
-          className={`admin-role-picker__card admin-role-picker__card--${opt.tone}${selected ? ' admin-role-picker__card--selected' : ''}${disabled ? ' admin-role-picker__card--disabled' : ''}`}
-        >
-          <input
-            type="radio"
-            name={name}
-            value={opt.value}
-            checked={selected}
-            disabled={disabled}
-            onChange={() => onChange(opt.value)}
-            className="admin-role-picker__input"
-          />
-          <span className={`admin-role-picker__icon admin-role-picker__icon--${opt.tone}`}>
-            <RoleIcon tone={opt.tone} />
-          </span>
-          <span className="admin-role-picker__text">
-            <span className="admin-role-picker__title">{opt.label}</span>
-            <span className="admin-role-picker__desc">{opt.desc}</span>
-          </span>
-          <span className="admin-role-picker__check" aria-hidden="true">
-            {selected && (
-              <svg viewBox="0 0 24 24" width="18" height="18">
-                <path
-                  d="M20 6L9 17l-5-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-          </span>
-        </label>
-      );
-    })}
-  </div>
-);
+const AdminRolePicker = ({ value, onChange, disabled = false, name = 'account-role' }) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="admin-role-picker" role="radiogroup" aria-label={t('admin.accounts.rolePicker.aria')}>
+      {ADMIN_ROLE_PICKER_OPTIONS.map((opt) => {
+        const selected = value === opt.value;
+        return (
+          <label
+            key={opt.value}
+            className={`admin-role-picker__card admin-role-picker__card--${opt.tone}${selected ? ' admin-role-picker__card--selected' : ''}${disabled ? ' admin-role-picker__card--disabled' : ''}`}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={opt.value}
+              checked={selected}
+              disabled={disabled}
+              onChange={() => onChange(opt.value)}
+              className="admin-role-picker__input"
+            />
+            <span className={`admin-role-picker__icon admin-role-picker__icon--${opt.tone}`}>
+              <RoleIcon tone={opt.tone} />
+            </span>
+            <span className="admin-role-picker__text">
+              <span className="admin-role-picker__title">{resolveLabel(opt, t)}</span>
+              <span className="admin-role-picker__desc">{resolveDescription(opt, t)}</span>
+            </span>
+            <span className="admin-role-picker__check" aria-hidden="true">
+              {selected && (
+                <svg viewBox="0 0 24 24" width="18" height="18">
+                  <path
+                    d="M20 6L9 17l-5-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </span>
+          </label>
+        );
+      })}
+    </div>
+  );
+};
 
 export default AdminRolePicker;

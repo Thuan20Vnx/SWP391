@@ -4,6 +4,7 @@ import AdminFptDeptCard from '../../../components/admin/AdminFptDeptCard';
 import AdminFptNotifBell from '../../../components/admin/AdminFptNotifBell';
 import AdminFptUnitCard from '../../../components/admin/AdminFptUnitCard';
 import AppSelect from '../../../components/ui/AppSelect';
+import AdminFilterDropdown from '../../../components/admin/AdminFilterDropdown';
 import PublicAdminShell from '../../../layouts/PublicAdminShell';
 import SiteFooter from '../../../components/SiteFooter';
 import { API_BASE, getAuthHeaders } from '../../../utils/api';
@@ -16,27 +17,32 @@ import {
   FPT_UNIT_TYPES,
   FPT_SORT_OPTIONS,
   buildDepartmentUnits,
+  localizeDepartmentUnit,
   mapClubToFptUnit,
   mapPartnerToFptUnit,
   filterClubs,
   filterPartners,
-  sortClubs,
+  sortFptUnits,
   buildFptSummary,
 } from '../../../data/adminFptSystemData';
-import { PARTNER_STATUS_LABEL, partnerInitials } from '../../../utils/partnerDisplay';
+import { getPartnerStatusLabel, partnerInitials } from '../../../utils/partnerDisplay';
+import { useTranslation } from '../../../i18n/I18nContext';
+import { mapSelectOptions, resolveLabel } from '../../../i18n/helpers';
+import '../../../styles/admin-dashboard.css';
 import '../../../styles/admin-public-pages.css';
 
 const PAGE_SIZE = 9;
 
 const QUICK_LINKS = [
-  { label: 'Bảng điều khiển', to: '/admin' },
-  { label: 'Duyệt đề xuất sự kiện', to: '/admin/events' },
-  { label: 'Quản lý đối tác', to: '/admin/partners' },
-  { label: 'Phát hành tin tức', to: '/admin/announcements' },
+  { labelKey: 'admin.fpt.quick.dashboard', to: '/admin' },
+  { labelKey: 'admin.fpt.quick.eventApprovals', to: '/admin/events' },
+  { labelKey: 'admin.fpt.quick.partners', to: '/admin/partners' },
+  { labelKey: 'admin.fpt.quick.announcements', to: '/admin/announcements' },
 ];
 
 const AdminFptSystem = ({ showToast }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const clubsRef = useRef(null);
   const deptsRef = useRef(null);
   const partnersRef = useRef(null);
@@ -59,6 +65,17 @@ const AdminFptSystem = ({ showToast }) => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name_asc');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [openMenu, setOpenMenu] = useState(null);
+
+  const quickLinkOptions = useMemo(
+    () => QUICK_LINKS.map((link) => ({ value: link.to, label: t(link.labelKey) })),
+    [t],
+  );
+  const sortOptions = useMemo(() => mapSelectOptions(FPT_SORT_OPTIONS, t), [t]);
+  const localizedDepartments = useMemo(
+    () => departments.map((unit) => localizeDepartmentUnit(unit, t)),
+    [departments, t],
+  );
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -76,13 +93,16 @@ const AdminFptSystem = ({ showToast }) => {
           ? clubsRes.clubs.map(mapApiClubToListItem)
           : CLUB_SAMPLE_DATA;
 
-      const clubUnits = clubList.map(mapClubToFptUnit);
+      const clubUnits = clubList.map((club) => mapClubToFptUnit(club, t));
       const partnerUnits = (partnersRes.partners || []).map((partner) =>
-        mapPartnerToFptUnit({
-          ...partner,
-          statusLabel: PARTNER_STATUS_LABEL[partner.status] || partner.status,
-          logoText: partnerInitials(partner.name),
-        }),
+        mapPartnerToFptUnit(
+          {
+            ...partner,
+            statusLabel: getPartnerStatusLabel(partner.status, t),
+            logoText: partnerInitials(partner.name),
+          },
+          t,
+        ),
       );
       const ctsvStaff = ctsvRes.total ?? ctsvRes.accounts?.length ?? 0;
       const icpdpStaff = icpdpRes.total ?? icpdpRes.accounts?.length ?? 0;
@@ -102,16 +122,16 @@ const AdminFptSystem = ({ showToast }) => {
         }),
       );
     } catch {
-      const clubUnits = CLUB_SAMPLE_DATA.map(mapClubToFptUnit);
+      const clubUnits = CLUB_SAMPLE_DATA.map((club) => mapClubToFptUnit(club, t));
       setClubs(clubUnits);
       setPartners([]);
       setDepartments(buildDepartmentUnits({ ctsvStaff: 0, icpdpStaff: 0 }));
       setSummary(buildFptSummary({ clubs: clubUnits, partners: [] }));
-      showToast?.('Không thể tải đầy đủ dữ liệu hệ thống', 'error');
+      showToast?.(t('admin.fpt.loadFail'), 'error');
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   useEffect(() => {
     loadData();
@@ -119,21 +139,23 @@ const AdminFptSystem = ({ showToast }) => {
 
   const visibleDepartments = useMemo(() => {
     if (typeFilter === 'clb' || typeFilter === 'partner') return [];
-    if (typeFilter === 'ctsv') return departments.filter((d) => d.type === 'ctsv');
-    if (typeFilter === 'icpdp') return departments.filter((d) => d.type === 'icpdp');
-    return departments;
-  }, [departments, typeFilter]);
+    const source = localizedDepartments;
+    let filtered = source;
+    if (typeFilter === 'ctsv') filtered = source.filter((d) => d.type === 'ctsv');
+    else if (typeFilter === 'icpdp') filtered = source.filter((d) => d.type === 'icpdp');
+    return sortFptUnits(filtered, sortBy);
+  }, [localizedDepartments, typeFilter, sortBy]);
 
   const filteredClubs = useMemo(() => {
     if (typeFilter === 'ctsv' || typeFilter === 'icpdp' || typeFilter === 'partner') return [];
     const filtered = filterClubs(clubs, searchQuery);
-    return sortClubs(filtered, sortBy);
+    return sortFptUnits(filtered, sortBy);
   }, [clubs, searchQuery, sortBy, typeFilter]);
 
   const filteredPartners = useMemo(() => {
     if (typeFilter === 'clb' || typeFilter === 'ctsv' || typeFilter === 'icpdp') return [];
     const filtered = filterPartners(partners, searchQuery);
-    return sortClubs(filtered, sortBy);
+    return sortFptUnits(filtered, sortBy);
   }, [partners, searchQuery, sortBy, typeFilter]);
 
   const visibleClubs = filteredClubs.slice(0, visibleCount);
@@ -144,6 +166,8 @@ const AdminFptSystem = ({ showToast }) => {
   const showClubSection = typeFilter === 'all' || typeFilter === 'clb';
   const showPartnerSection = typeFilter === 'all' || typeFilter === 'partner';
   const showDeptSection = typeFilter === 'all' || typeFilter === 'ctsv' || typeFilter === 'icpdp';
+  const showSortControl =
+    visibleDepartments.length > 0 || filteredClubs.length > 0 || filteredPartners.length > 0;
   const isEmpty =
     !loading &&
     visibleDepartments.length === 0 &&
@@ -183,10 +207,24 @@ const AdminFptSystem = ({ showToast }) => {
     navigate(unit.manageLink || '/admin/events');
   };
 
+  const partnersSubtitle = loading
+    ? t('admin.fpt.section.partnersLoading')
+    : `${t('admin.fpt.section.partnersCount', { count: filteredPartners.length })}${
+        summary.pendingPartners > 0
+          ? t('admin.fpt.section.partnersPendingAdmin', { count: summary.pendingPartners })
+          : ''
+      }${searchQuery ? t('admin.fpt.section.partnersSearchSuffix', { query: searchQuery }) : ''}`;
+
+  const clubsSubtitle = loading
+    ? t('admin.fpt.section.partnersLoading')
+    : `${t('admin.fpt.section.clubsCount', { count: filteredClubs.length })}${
+        searchQuery ? t('admin.fpt.section.clubsSearchSuffix', { query: searchQuery }) : ''
+      }`;
+
   return (
     <PublicAdminShell
       activeNav="home"
-      searchPlaceholder="Tìm CLB, đối tác theo tên, lĩnh vực..."
+      searchPlaceholder={t('admin.fpt.searchPlaceholder')}
       searchValue={searchQuery}
       onSearchChange={(value) => {
         setSearchQuery(value);
@@ -199,29 +237,31 @@ const AdminFptSystem = ({ showToast }) => {
           <section className="admin-fpt-hero">
             <div className="admin-fpt-hero__inner">
               <div className="admin-fpt-hero__content">
-                <span className="admin-fpt-hero__eyebrow">Hệ thống FPT</span>
-                <h1>Quản lý hệ sinh thái F-Events</h1>
-                <p>
-                  Đơn vị điều phối (CTSV &amp; IC-PDP), câu lạc bộ và đối tác doanh nghiệp trên campus —
-                  tra cứu, quản trị và gửi thông báo tập trung.
-                </p>
+                <span className="admin-fpt-hero__eyebrow">{t('admin.fpt.eyebrow')}</span>
+                <h1>{t('admin.fpt.heroTitle')}</h1>
+                <p>{t('admin.fpt.heroDesc')}</p>
                 <div className="admin-fpt-hero__quick">
-                  {QUICK_LINKS.map((link) => (
-                    <button key={link.to} type="button" onClick={() => navigate(link.to)}>
-                      {link.label}
-                    </button>
-                  ))}
+                  <AdminFilterDropdown
+                    label=""
+                    triggerLabel={t('admin.fpt.quickAccess')}
+                    value=""
+                    options={quickLinkOptions}
+                    onChange={(to) => navigate(to)}
+                    menuOpen={openMenu === 'quick'}
+                    onMenuToggle={setOpenMenu}
+                    menuId="quick"
+                  />
                 </div>
               </div>
 
-              <div className="admin-fpt-hero__stats" aria-label="Thống kê hệ thống">
+              <div className="admin-fpt-hero__stats" aria-label={t('admin.fpt.statsAria')}>
                 <button
                   type="button"
                   className={`admin-fpt-hero__stat${typeFilter === 'clb' ? ' is-active' : ''}`}
                   onClick={() => handleHeroFilter('clb')}
                 >
                   <strong>{loading ? '…' : summary.clb}</strong>
-                  <span>Câu lạc bộ</span>
+                  <span>{t('admin.fpt.stats.clubs')}</span>
                 </button>
                 <button
                   type="button"
@@ -229,7 +269,7 @@ const AdminFptSystem = ({ showToast }) => {
                   onClick={() => handleHeroFilter('ctsv')}
                 >
                   <strong>{loading ? '…' : summary.ctsvStaff}</strong>
-                  <span>Cán bộ CTSV</span>
+                  <span>{t('admin.fpt.stats.ctsvStaff')}</span>
                 </button>
                 <button
                   type="button"
@@ -237,7 +277,7 @@ const AdminFptSystem = ({ showToast }) => {
                   onClick={() => handleHeroFilter('icpdp')}
                 >
                   <strong>{loading ? '…' : summary.icpdpStaff}</strong>
-                  <span>Cán bộ IC-PDP</span>
+                  <span>{t('admin.fpt.stats.icpdpStaff')}</span>
                 </button>
                 <button
                   type="button"
@@ -246,19 +286,22 @@ const AdminFptSystem = ({ showToast }) => {
                 >
                   <strong>{loading ? '…' : summary.partner}</strong>
                   <span>
-                    Đối tác{summary.pendingPartners > 0 ? ` · ${summary.pendingPartners} chờ duyệt` : ''}
+                    {t('admin.fpt.stats.partners')}
+                    {summary.pendingPartners > 0
+                      ? t('admin.fpt.stats.partnersPending', { count: summary.pendingPartners })
+                      : ''}
                   </span>
                 </button>
                 <div className="admin-fpt-hero__stat admin-fpt-hero__stat--total">
                   <strong>{loading ? '…' : summary.all}</strong>
-                  <span>Đơn vị trong hệ thống</span>
+                  <span>{t('admin.fpt.stats.unitsTotal')}</span>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="admin-fpt-toolbar" aria-label="Lọc và sắp xếp">
-            <div className="admin-fpt-toolbar__filters" role="tablist" aria-label="Phân loại">
+          <section className="admin-fpt-toolbar" aria-label={t('admin.fpt.filterAria')}>
+            <div className="admin-fpt-toolbar__filters" role="tablist" aria-label={t('admin.fpt.classifyAria')}>
               {FPT_UNIT_TYPES.map((type) => (
                 <button
                   key={type.id}
@@ -271,38 +314,39 @@ const AdminFptSystem = ({ showToast }) => {
                     setVisibleCount(PAGE_SIZE);
                   }}
                 >
-                  {type.label}
+                  {resolveLabel(type, t)}
                 </button>
               ))}
             </div>
 
-            {(showClubSection || showPartnerSection) && (
+            {showSortControl && (
               <div className="admin-fpt-toolbar__sort">
-                <label htmlFor="admin-fpt-sort">Sắp xếp danh sách</label>
+                <label htmlFor="admin-fpt-sort">{t('admin.fpt.sortLabel')}</label>
                 <AppSelect
                   id="admin-fpt-sort"
                   value={sortBy}
+                  usePortal
                   onChange={(e) => {
                     setSortBy(e.target.value);
                     setVisibleCount(PAGE_SIZE);
                   }}
-                  options={FPT_SORT_OPTIONS}
+                  options={sortOptions}
                 />
               </div>
             )}
 
             {(searchQuery || typeFilter !== 'all') && (
               <button type="button" className="admin-fpt-toolbar__reset" onClick={handleReset}>
-                Xóa bộ lọc
+                {t('admin.fpt.clearFilters')}
               </button>
             )}
           </section>
 
           {isEmpty ? (
             <div className="admin-fpt-list__empty">
-              <p>Không tìm thấy kết quả phù hợp.</p>
+              <p>{t('admin.fpt.emptyResults')}</p>
               <button type="button" className="admin-fpt-list__reset" onClick={handleReset}>
-                Xem toàn bộ hệ thống
+                {t('admin.fpt.viewAllSystem')}
               </button>
             </div>
           ) : (
@@ -311,8 +355,8 @@ const AdminFptSystem = ({ showToast }) => {
                 <section className="admin-fpt-section" ref={deptsRef}>
                   <header className="admin-fpt-section__head">
                     <div>
-                      <h2>Đơn vị điều phối</h2>
-                      <p>CTSV và IC-PDP — quản lý cấp trường trên nền tảng F-Events</p>
+                      <h2>{t('admin.fpt.section.coordUnits')}</h2>
+                      <p>{t('admin.fpt.section.coordUnitsDesc')}</p>
                     </div>
                     <AdminFptNotifBell className="admin-fpt-section__notif" />
                   </header>
@@ -333,16 +377,8 @@ const AdminFptSystem = ({ showToast }) => {
                 <section className="admin-fpt-section" ref={partnersRef}>
                   <header className="admin-fpt-section__head">
                     <div>
-                      <h2>Đối tác doanh nghiệp</h2>
-                      <p>
-                        {loading
-                          ? 'Đang tải...'
-                          : `${filteredPartners.length} đối tác đã duyệt${
-                              summary.pendingPartners > 0
-                                ? ` · ${summary.pendingPartners} đơn chờ Admin`
-                                : ''
-                            }${searchQuery ? ` · "${searchQuery}"` : ''}`}
-                      </p>
+                      <h2>{t('admin.fpt.section.partners')}</h2>
+                      <p>{partnersSubtitle}</p>
                     </div>
                     {summary.pendingPartners > 0 && (
                       <button
@@ -350,19 +386,19 @@ const AdminFptSystem = ({ showToast }) => {
                         className="admin-fpt-section__cta"
                         onClick={() => navigate('/admin/partners/approvals')}
                       >
-                        Phê duyệt ({summary.pendingPartners})
+                        {t('admin.fpt.approvePartners', { count: summary.pendingPartners })}
                       </button>
                     )}
                     <AdminFptNotifBell className="admin-fpt-section__notif" />
                   </header>
 
                   {loading ? (
-                    <div className="admin-fpt-list__empty">Đang tải danh sách đối tác...</div>
+                    <div className="admin-fpt-list__empty">{t('admin.fpt.partnersLoadingList')}</div>
                   ) : filteredPartners.length === 0 ? (
                     <div className="admin-fpt-list__empty">
-                      <p>Chưa có đối tác phù hợp với bộ lọc hiện tại.</p>
+                      <p>{t('admin.fpt.partnersEmpty')}</p>
                       <button type="button" className="admin-fpt-list__reset" onClick={() => navigate('/admin/partners')}>
-                        Thêm / quản lý đối tác
+                        {t('admin.fpt.partnersManage')}
                       </button>
                     </div>
                   ) : (
@@ -380,7 +416,9 @@ const AdminFptSystem = ({ showToast }) => {
                       {hasMorePartners && (
                         <div className="admin-fpt-list__more">
                           <button type="button" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
-                            Xem thêm ({filteredPartners.length - visibleCount} đối tác)
+                            {t('admin.fpt.loadMorePartners', {
+                              count: filteredPartners.length - visibleCount,
+                            })}
                           </button>
                         </div>
                       )}
@@ -393,21 +431,17 @@ const AdminFptSystem = ({ showToast }) => {
                 <section className="admin-fpt-section" ref={clubsRef}>
                   <header className="admin-fpt-section__head">
                     <div>
-                      <h2>Câu lạc bộ</h2>
-                      <p>
-                        {loading
-                          ? 'Đang tải...'
-                          : `${filteredClubs.length} CLB${searchQuery ? ` · "${searchQuery}"` : ''}`}
-                      </p>
+                      <h2>{t('admin.fpt.section.clubs')}</h2>
+                      <p>{clubsSubtitle}</p>
                     </div>
                     <AdminFptNotifBell className="admin-fpt-section__notif" />
                   </header>
 
                   {loading ? (
-                    <div className="admin-fpt-list__empty">Đang tải danh sách CLB...</div>
+                    <div className="admin-fpt-list__empty">{t('admin.fpt.clubsLoadingList')}</div>
                   ) : filteredClubs.length === 0 ? (
                     <div className="admin-fpt-list__empty">
-                      <p>Không có CLB phù hợp với bộ lọc hiện tại.</p>
+                      <p>{t('admin.fpt.clubsEmpty')}</p>
                     </div>
                   ) : (
                     <>
@@ -424,7 +458,9 @@ const AdminFptSystem = ({ showToast }) => {
                       {hasMoreClubs && (
                         <div className="admin-fpt-list__more">
                           <button type="button" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
-                            Xem thêm ({filteredClubs.length - visibleCount} CLB)
+                            {t('admin.fpt.loadMoreClubs', {
+                              count: filteredClubs.length - visibleCount,
+                            })}
                           </button>
                         </div>
                       )}

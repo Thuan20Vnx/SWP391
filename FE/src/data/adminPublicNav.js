@@ -1,10 +1,10 @@
-/** Top header nav — admin trên trang public (Trang chủ = Hệ thống FPT, Sự kiện, Tin tức) */
+/** Top header nav — admin trên trang public */
 
 export const ADMIN_PUBLIC_NAV_ITEMS = [
-  { key: 'home', label: 'Trang chủ', to: '/' },
-  { key: 'events', label: 'Sự kiện', to: '/events' },
-  { key: 'news', label: 'Tin tức', to: '/announcements' },
-  { key: 'admin', label: 'Quản trị viên', to: '/admin' },
+  { key: 'home', labelKey: 'nav.home', to: '/' },
+  { key: 'events', labelKey: 'nav.events', to: '/events' },
+  { key: 'news', labelKey: 'nav.news', to: '/announcements' },
+  { key: 'admin', labelKey: 'nav.admin', to: '/admin' },
 ];
 
 export const isAdminPublicNavActive = (key, pathname) => {

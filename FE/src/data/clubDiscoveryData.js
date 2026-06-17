@@ -164,3 +164,27 @@ export const filterClubsByTag = (clubs, tag) => {
       club.tags.some((t) => t.includes(normalized))
   );
 };
+
+export const CLUB_CATEGORY_KEYS = {
+  'Công nghệ': 'clubs.cat.tech',
+  'Nghệ thuật': 'clubs.cat.art',
+  'Kinh doanh': 'clubs.cat.business',
+  'Văn hóa': 'clubs.cat.culture',
+  'Thể thao': 'clubs.cat.sport',
+  'Tình nguyện': 'clubs.cat.volunteer',
+  'Âm nhạc': 'clubs.cat.music',
+};
+
+export const getClubCategoryLabel = (category, t) => {
+  const key = CLUB_CATEGORY_KEYS[category];
+  return key && t ? t(key) : category;
+};
+
+export const localizeClubItem = (club, t) => {
+  if (!club || !t) return club;
+  return {
+    ...club,
+    category: getClubCategoryLabel(club.category, t),
+    description: club.descriptionKey ? t(club.descriptionKey) : club.description,
+  };
+};

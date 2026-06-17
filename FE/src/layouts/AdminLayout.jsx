@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import ChatbotFloating from '../components/ChatbotFloating';
 import AdminTopHeader from '../components/admin/AdminTopHeader';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import SiteFooter from '../components/SiteFooter';
+import ChatbotFloating from '../components/ChatbotFloating';
 import useUserProfile from '../hooks/useUserProfile';
 import { readSidebarPref, writeSidebarPref } from '../utils/adminSidebarStorage';
 import '../styles/admin-menu.css';
@@ -70,8 +70,8 @@ const AdminLayout = ({ showToast }) => {
         <div className="admin-layout admin-shell-content">
           <Outlet context={{ showToast, adminSearch, setAdminSearch }} />
           <SiteFooter />
-          <ChatbotFloating context="admin" />
         </div>
+        <ChatbotFloating context="admin" />
       </div>
     </div>
   );

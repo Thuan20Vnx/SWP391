@@ -1,0 +1,242 @@
+/**
+ * Dark theme — trang thông báo (ctsv-announce) & AppSelect
+ */
+
+/* AppSelect toàn hệ thống */
+html.dark .app-select__trigger {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .app-select__trigger:hover:not(:disabled),
+html.dark .app-select.is-open .app-select__trigger,
+html.dark .app-select__trigger:focus-visible {
+  background: var(--bg-card);
+  border-color: var(--primary);
+}
+
+html.dark .app-select__value.is-placeholder {
+  color: var(--text-muted);
+}
+
+html.dark .app-select__menu {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  box-shadow: var(--shadow-lg);
+}
+
+html.dark .app-select__option {
+  color: var(--text-secondary);
+}
+
+html.dark .app-select__option:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+html.dark .app-select__option.is-selected {
+  background: rgba(242, 111, 33, 0.14);
+  color: var(--primary);
+}
+
+/* Confirm dialog */
+html.dark .app-confirm-dialog {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  box-shadow: var(--shadow-lg);
+}
+
+html.dark .app-confirm-title {
+  color: var(--text-heading);
+}
+
+html.dark .app-confirm-message {
+  color: var(--text-muted);
+}
+
+html.dark .app-confirm-cancel {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-secondary);
+}
+
+/* Trang phát hành / quản lý thông báo */
+html.dark .ctsv-announce-hero {
+  background: var(--bg-card);
+  border-color: rgba(242, 111, 33, 0.22);
+  color: var(--text-main);
+  box-shadow: var(--shadow-md);
+}
+
+html.dark .ctsv-announce-hero h1,
+html.dark .ctsv-announce-compose-toggle-main h2,
+html.dark .ctsv-announce-card-head h2,
+html.dark .ctsv-announce-tip-card h3,
+html.dark .ctsv-announce-preview-card h3,
+html.dark .ctsv-announce-history-body h3,
+html.dark .ctsv-announce-history-title-row h3,
+html.dark .ctsv-announce-preview-title {
+  color: var(--text-heading);
+}
+
+html.dark .ctsv-announce-hero p,
+html.dark .ctsv-announce-compose-toggle-main p,
+html.dark .ctsv-announce-card-head p,
+html.dark .ctsv-announce-history-body p,
+html.dark .ctsv-announce-hint,
+html.dark .ctsv-announce-cover-hint,
+html.dark .ctsv-announce-preview-body,
+html.dark .ctsv-announce-char,
+html.dark .ctsv-announce-history-meta,
+html.dark .ctsv-announce-history-author {
+  color: var(--text-muted);
+}
+
+html.dark .ctsv-announce-hint strong {
+  color: var(--text-main);
+}
+
+html.dark .ctsv-announce-hero-stat {
+  background: var(--surface-muted);
+  border-color: rgba(242, 111, 33, 0.28);
+}
+
+html.dark .ctsv-announce-compose-card,
+html.dark .ctsv-announce-form-card:not(.ctsv-announce-form-card--nested),
+html.dark .ctsv-announce-history-card {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  box-shadow: var(--shadow-sm);
+}
+
+html.dark .ctsv-announce-compose-toggle:hover {
+  background: var(--surface-hover);
+}
+
+html.dark .ctsv-announce-compose-chevron,
+html.dark .ctsv-announce-compose-toggle:hover .ctsv-announce-compose-chevron {
+  background: var(--surface-muted);
+}
+
+html.dark .ctsv-announce-compose-panel .ctsv-announce-layout {
+  border-top-color: var(--surface-border);
+}
+
+html.dark .ctsv-announce-input,
+html.dark .ctsv-announce-textarea,
+html.dark .ctsv-announce-select {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .ctsv-announce-input:focus,
+html.dark .ctsv-announce-textarea:focus,
+html.dark .ctsv-announce-select:focus {
+  background: var(--bg-card);
+  border-color: var(--primary);
+}
+
+html.dark .ctsv-announce-reset {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-secondary);
+}
+
+html.dark .ctsv-announce-reset:hover:not(:disabled) {
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .ctsv-announce-tip-card,
+html.dark .ctsv-announce-preview-card {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+}
+
+html.dark .ctsv-announce-tip-card ul {
+  color: var(--text-secondary);
+}
+
+html.dark .ctsv-announce-preview-event {
+  background: rgba(242, 111, 33, 0.12);
+  color: var(--primary);
+}
+
+html.dark .ctsv-announce-history-list {
+  background: transparent;
+}
+
+html.dark .ctsv-announce-history-item {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+}
+
+html.dark .ctsv-announce-history-item:hover {
+  border-color: rgba(242, 111, 33, 0.35);
+  box-shadow: var(--shadow-sm);
+}
+
+html.dark .ctsv-announce-history-icon {
+  background: rgba(242, 111, 33, 0.12);
+}
+
+html.dark .ctsv-announce-history-btn {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-secondary);
+}
+
+html.dark .ctsv-announce-history-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+html.dark .ctsv-announce-cat-pill--general {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+html.dark .ctsv-announce-cat-pill--school {
+  background: rgba(242, 111, 33, 0.14);
+  color: var(--primary);
+}
+
+html.dark .ctsv-announce-cat-pill--partner {
+  background: rgba(124, 58, 237, 0.18);
+  color: #c4b5fd;
+}
+
+html.dark .ctsv-announce-cat-pill--hidden {
+  background: var(--surface-hover);
+  color: var(--text-muted);
+}
+
+html.dark .ctsv-events-search {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+}
+
+html.dark .ctsv-events-search:focus-within {
+  background: var(--bg-card);
+  border-color: var(--primary);
+}
+
+html.dark .ctsv-events-search-input {
+  color: var(--text-main);
+}
+
+html.dark .ctsv-events-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+html.dark .ctsv-events-filter-summary {
+  background: var(--surface-muted);
+  border-color: rgba(242, 111, 33, 0.22);
+  color: var(--text-secondary);
+}
+
+html.dark .admin-public-announcements {
+  background: transparent;
+}

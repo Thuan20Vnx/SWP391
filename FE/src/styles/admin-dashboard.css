@@ -754,17 +754,24 @@
 }
 
 .admin-system-services__pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
   font-size: 0.625rem;
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 9999px;
+  border: 1px solid transparent;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .admin-system-services__pill--online {
   background: #ffffff;
   color: #166534;
-  border: 1px solid #bbf7d0;
+  border-color: #bbf7d0;
 }
 
 .admin-system-panel__foot {

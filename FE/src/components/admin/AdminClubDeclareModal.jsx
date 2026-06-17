@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AdminDataSelect from './AdminDataSelect';
-import { CLUB_ACTIVITY_FIELDS } from '../../data/adminDataMaintenanceData';
+import { CLUB_ACTIVITY_FIELD_OPTIONS } from '../../data/adminDataMaintenanceData';
+import { useTranslation } from '../../i18n/I18nContext';
+import { mapSelectOptions } from '../../i18n/helpers';
 import '../../styles/admin-data-fields.css';
 
 const IconPlus = () => (
@@ -50,16 +52,16 @@ export const clubToForm = (item) => ({
   isActive: item?.status !== 'inactive',
 });
 
-const FIELD_OPTIONS = CLUB_ACTIVITY_FIELDS.map((label) => ({ value: label, label }));
-
-const buildFieldOptions = (currentField) => {
-  if (!currentField || FIELD_OPTIONS.some((o) => o.value === currentField)) {
-    return FIELD_OPTIONS;
+const buildFieldOptions = (currentField, t) => {
+  const options = mapSelectOptions(CLUB_ACTIVITY_FIELD_OPTIONS, t);
+  if (!currentField || options.some((o) => o.value === currentField)) {
+    return options;
   }
-  return [{ value: currentField, label: currentField }, ...FIELD_OPTIONS];
+  return [{ value: currentField, label: currentField }, ...options];
 };
 
 const AdminClubDeclareModal = ({ open, editingItem, onClose, onSubmit, submitting }) => {
+  const { t } = useTranslation();
   const [values, setValues] = useState(emptyClubForm);
 
   useEffect(() => {
@@ -82,8 +84,14 @@ const AdminClubDeclareModal = ({ open, editingItem, onClose, onSubmit, submittin
   }, [open, onClose, submitting]);
 
   const title = useMemo(
-    () => (editingItem ? 'Chỉnh sửa câu lạc bộ' : 'Khai báo câu lạc bộ mới'),
-    [editingItem],
+    () =>
+      editingItem ? t('admin.dataMaintenance.club.editTitle') : t('admin.dataMaintenance.club.addTitle'),
+    [editingItem, t],
+  );
+
+  const fieldOptions = useMemo(
+    () => buildFieldOptions(values.field, t),
+    [values.field, t],
   );
 
   if (!open) return null;
@@ -118,8 +126,8 @@ const AdminClubDeclareModal = ({ open, editingItem, onClose, onSubmit, submittin
             </h2>
             <p className="admin-data-modal__subtitle">
               {editingItem
-                ? 'Cập nhật thông tin câu lạc bộ trên hệ thống.'
-                : 'Vui lòng điền đầy đủ thông tin để khởi tạo dữ liệu câu lạc bộ mới trên hệ thống.'}
+                ? t('admin.dataMaintenance.club.editSubtitle')
+                : t('admin.dataMaintenance.club.addSubtitle')}
             </p>
           </div>
           <button
@@ -127,7 +135,7 @@ const AdminClubDeclareModal = ({ open, editingItem, onClose, onSubmit, submittin
             className="admin-data-modal__close"
             onClick={onClose}
             disabled={submitting}
-            aria-label="Đóng"
+            aria-label={t('admin.common.close')}
           >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -137,14 +145,16 @@ const AdminClubDeclareModal = ({ open, editingItem, onClose, onSubmit, submittin
 
         <form onSubmit={handleSubmit} className="admin-data-modal__form">
           <div className="admin-data-field">
-            <span className="admin-data-field__label admin-data-field__label--dark">Mã câu lạc bộ</span>
+            <span className="admin-data-field__label admin-data-field__label--dark">
+              {t('admin.dataMaintenance.club.code')}
+            </span>
             <div className="admin-data-input-wrap">
               <input
                 type="text"
                 className="admin-data-input"
                 value={values.code}
                 onChange={(e) => setField('code', e.target.value.toUpperCase())}
-                placeholder="Ví dụ: CLB_FCODE..."
+                placeholder={t('admin.dataMaintenance.club.codePlaceholder')}
                 required
                 disabled={submitting}
               />
@@ -155,14 +165,16 @@ const AdminClubDeclareModal = ({ open, editingItem, onClose, onSubmit, submittin
           </div>
 
           <div className="admin-data-field">
-            <span className="admin-data-field__label admin-data-field__label--dark">Tên câu lạc bộ</span>
+            <span className="admin-data-field__label admin-data-field__label--dark">
+              {t('admin.dataMaintenance.club.name')}
+            </span>
             <div className="admin-data-input-wrap">
               <input
                 type="text"
                 className="admin-data-input"
                 value={values.name}
                 onChange={(e) => setField('name', e.target.value)}
-                placeholder="Nhập tên đầy đủ của câu lạc bộ..."
+                placeholder={t('admin.dataMaintenance.club.namePlaceholder')}
                 required
                 disabled={submitting}
               />
@@ -173,25 +185,27 @@ const AdminClubDeclareModal = ({ open, editingItem, onClose, onSubmit, submittin
           </div>
 
           <AdminDataSelect
-            label="Lĩnh vực hoạt động"
+            label={t('admin.dataMaintenance.club.field')}
             labelClassName="admin-data-field__label--dark"
             value={values.field}
-            options={buildFieldOptions(values.field)}
-            placeholder="Chọn lĩnh vực (Ví dụ: Học thuật, Nghệ thuật...)"
+            options={fieldOptions}
+            placeholder={t('admin.dataMaintenance.club.fieldPlaceholder')}
             onChange={(v) => setField('field', v)}
             disabled={submitting}
             required
           />
 
           <div className="admin-data-field">
-            <span className="admin-data-field__label admin-data-field__label--dark">Chủ nhiệm hiện tại</span>
+            <span className="admin-data-field__label admin-data-field__label--dark">
+              {t('admin.dataMaintenance.club.president')}
+            </span>
             <div className="admin-data-input-wrap">
               <input
                 type="text"
                 className="admin-data-input"
                 value={values.president}
                 onChange={(e) => setField('president', e.target.value)}
-                placeholder="Nhập tên người đại diện/chủ nhiệm..."
+                placeholder={t('admin.dataMaintenance.club.presidentPlaceholder')}
                 required
                 disabled={submitting}
               />
@@ -203,8 +217,8 @@ const AdminClubDeclareModal = ({ open, editingItem, onClose, onSubmit, submittin
 
           <div className="admin-data-toggle admin-data-toggle--stacked">
             <div className="admin-data-toggle__copy">
-              <span className="admin-data-toggle__title">Trạng thái hoạt động</span>
-              <p className="admin-data-toggle__hint">Kích hoạt câu lạc bộ này ngay lập tức.</p>
+              <span className="admin-data-toggle__title">{t('admin.dataMaintenance.club.activeStatus')}</span>
+              <p className="admin-data-toggle__hint">{t('admin.dataMaintenance.club.activeHint')}</p>
             </div>
             <button
               type="button"
@@ -222,11 +236,15 @@ const AdminClubDeclareModal = ({ open, editingItem, onClose, onSubmit, submittin
 
           <footer className="admin-data-modal__footer">
             <button type="button" className="admin-acc-btn admin-acc-btn--ghost" onClick={onClose} disabled={submitting}>
-              Hủy bỏ
+              {t('admin.common.cancel')}
             </button>
             <button type="submit" className="admin-data-btn-add" disabled={submitting}>
               {!editingItem && <IconPlus />}
-              {submitting ? 'Đang lưu...' : editingItem ? 'Xác nhận lưu' : 'Xác nhận tạo'}
+              {submitting
+                ? t('admin.dataMaintenance.modal.saving')
+                : editingItem
+                  ? t('admin.dataMaintenance.modal.confirmSave')
+                  : t('admin.dataMaintenance.modal.confirmCreate')}
             </button>
           </footer>
         </form>
