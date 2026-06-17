@@ -38,7 +38,7 @@ const IcpdpSemesterTimelineDetail = () => {
     return <div className="ctsv-ed-page"><p>Đang tải...</p></div>;
   }
 
-  const canApprove = timeline.statusKey === 'pending_icpdp';
+  const canApprove = ['pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
   const pendingChange = timeline.changeRequest?.statusKey === 'pending_icpdp';
 
   const runChangeAction = async (action) => {
@@ -64,7 +64,7 @@ const IcpdpSemesterTimelineDetail = () => {
     try {
       if (action === 'approve') {
         await icpdpApproveSemesterTimeline(id, note);
-        showToast?.('Đã duyệt — chuyển sang CTSV!', 'success');
+        showToast?.('Đã phê duyệt timeline kỳ học!', 'success');
       } else if (action === 'reject') {
         await rejectIcpdpSemesterTimeline(id, rejectReason);
         showToast?.('Đã từ chối timeline.', 'info');
@@ -174,7 +174,7 @@ const IcpdpSemesterTimelineDetail = () => {
           </label>
           <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
             <button type="button" className="ctsv-primary-btn" disabled={submitting} onClick={() => runAction('approve')}>
-              Duyệt & chuyển CTSV
+              Phê duyệt timeline
             </button>
             <button type="button" className="ctsv-secondary-btn" disabled={submitting} onClick={() => runAction('revision')}>
               Yêu cầu chỉnh sửa

@@ -6,7 +6,6 @@ import { statusClass } from '../../utils/eventStatus';
 const STATUS_FILTERS = [
   { id: '', label: 'Chờ xử lý' },
   { id: 'pending_icpdp', label: 'Chờ IC-PDP' },
-  { id: 'pending_ctsv', label: 'Đã chuyển CTSV' },
   { id: 'approved', label: 'Đã duyệt' },
   { id: 'revision', label: 'Cần chỉnh sửa' },
   { id: 'rejected', label: 'Từ chối' },
@@ -56,7 +55,7 @@ const IcpdpSemesterTimelineList = () => {
   }, [timelines, searchQuery]);
 
   const pendingCount = useMemo(
-    () => timelines.filter((t) => t.statusKey === 'pending_icpdp').length,
+    () => timelines.filter((t) => ['pending_icpdp', 'pending_ctsv'].includes(t.statusKey)).length,
     [timelines]
   );
 
@@ -67,7 +66,7 @@ const IcpdpSemesterTimelineList = () => {
           <span className="ctsv-events-eyebrow">IC-PDP · Kế hoạch kỳ</span>
           <h1>Duyệt timeline kỳ CLB</h1>
           <p>
-            CLB gửi kế hoạch hoạt động trước mỗi kỳ Spring / Summer / Fall. IC-PDP thẩm định trước khi chuyển CTSV phê duyệt cuối.
+            CLB gửi kế hoạch hoạt động trước mỗi kỳ Spring / Summer / Fall. IC-PDP thẩm định và phê duyệt timeline.
           </p>
         </div>
         <div className="ctsv-events-hero-aside">

@@ -22,12 +22,18 @@ const phaseLabel = (phase) => {
   return 'Đã diễn ra';
 };
 
+const fillTier = (pct) => {
+  if (pct >= 80) return 'high';
+  if (pct >= 40) return 'mid';
+  if (pct > 0) return 'low';
+  return 'empty';
+};
+
 const ReportRowSkeleton = () => (
   <tr className="ctsv-reports-row ctsv-reports-row--skeleton" aria-hidden>
     <td><div className="sk sk-line sk-line--lg" /></td>
     <td><div className="sk sk-line" /></td>
-    <td><div className="sk sk-line sk-line--short" /></td>
-    <td className="ctsv-reports-fill-cell"><div className="sk sk-line sk-line--short" /></td>
+    <td className="ctsv-reports-metric-cell"><div className="sk sk-line sk-line--short" /></td>
     <td className="ctsv-reports-actions-cell"><div className="sk sk-btn" /></td>
   </tr>
 );
@@ -147,13 +153,18 @@ const CtsvReports = () => {
       </div>
 
       <div className="ctsv-reports-table-card">
+        <div className="ctsv-reports-table-head">
+          <p className="ctsv-reports-table-head-title">Danh sách sự kiện</p>
+          {!loading && (
+            <span className="ctsv-reports-table-head-count">{filtered.length} sự kiện</span>
+          )}
+        </div>
         <table className="ctsv-reports-table">
           <thead>
             <tr>
               <th>Sự kiện</th>
-              <th>Ngày</th>
-              <th>Đăng ký</th>
-              <th className="ctsv-reports-th-fill">{REPORT_FILL_RATE_LABEL}</th>
+              <th className="ctsv-reports-th-date">Ngày</th>
+              <th className="ctsv-reports-th-metric">Đăng ký · {REPORT_FILL_RATE_LABEL.toLowerCase()}</th>
               <th className="ctsv-reports-th-actions">Trạng thái</th>
             </tr>
           </thead>
@@ -166,7 +177,7 @@ const CtsvReports = () => {
               </>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={4}>
                   <div className="ctsv-reports-empty">
                     <p className="ctsv-reports-empty-title">Chưa có báo cáo phù hợp</p>
                     <p className="ctsv-reports-empty-desc">
@@ -184,8 +195,18 @@ const CtsvReports = () => {
               filtered.map((r) => {
                 const source = SOURCE_META[r.source] || SOURCE_META.club;
                 const fill = Math.min(100, Math.max(0, r.attendanceRate ?? 0));
+                const tier = fillTier(fill);
+                const isLive = r.reportPhase === 'live';
+                const detailPath = ['ended', 'completed'].includes(r.reportPhase)
+                  ? `/ctsv/reports/${r.id}`
+                  : `/ctsv/events/${r.id}`;
+                const detailLabel = ['ended', 'completed'].includes(r.reportPhase) ? 'Xem báo cáo' : 'Chi tiết';
+
                 return (
-                  <tr key={r.id} className="ctsv-reports-row">
+                  <tr
+                    key={r.id}
+                    className={`ctsv-reports-row${isLive ? ' ctsv-reports-row--live' : ''}`}
+                  >
                     <td className="ctsv-reports-event-cell">
                       <strong>{r.title}</strong>
                       <div className="ctsv-reports-event-meta">
@@ -196,23 +217,42 @@ const CtsvReports = () => {
                           {phaseLabel(r.reportPhase)}
                         </span>
                       </div>
+                      {r.location ? (
+                        <span className="ctsv-reports-event-location">{r.location}</span>
+                      ) : null}
                     </td>
                     <td>
-                      <span className="ctsv-reports-date">{r.date}</span>
-                      <span className="ctsv-reports-time">{r.time}</span>
-                    </td>
-                    <td>
-                      <span className="ctsv-reports-reg">
-                        {r.registeredCount ?? 0}
-                        <span className="ctsv-reports-reg-cap"> / {r.totalTickets ?? 0}</span>
-                      </span>
-                    </td>
-                    <td className="ctsv-reports-fill-cell">
-                      <div className="ctsv-reports-fill">
-                        <div className="ctsv-reports-fill-bar" aria-hidden>
-                          <span className="ctsv-reports-fill-progress" style={{ width: `${fill}%` }} />
+                      <div className="ctsv-reports-date-cell">
+                        <span className="ctsv-reports-date-icon" aria-hidden>
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <path d="M16 2v4M8 2v4M3 10h18" />
+                          </svg>
+                        </span>
+                        <div>
+                          <span className="ctsv-reports-date">{r.date}</span>
+                          <span className="ctsv-reports-time">{r.time}</span>
                         </div>
-                        <span className="ctsv-reports-fill-pct">{fill}%</span>
+                      </div>
+                    </td>
+                    <td className={`ctsv-reports-metric-cell${tier === 'empty' ? ' ctsv-reports-metric-cell--empty' : ''}`}>
+                      <div className="ctsv-reports-metric-top">
+                        <span className="ctsv-reports-reg">
+                          <strong>{r.registeredCount ?? 0}</strong>
+                          <span className="ctsv-reports-reg-cap"> / {r.totalTickets ?? 0}</span>
+                        </span>
+                        <span className={`ctsv-reports-fill-pct ctsv-reports-fill-pct--${tier}`}>{fill}%</span>
+                      </div>
+                      <div
+                        className={`ctsv-reports-fill${tier === 'empty' ? ' ctsv-reports-fill--empty' : ''}`}
+                        title={`${REPORT_FILL_RATE_LABEL}: ${fill}%`}
+                      >
+                        <div className="ctsv-reports-fill-bar" aria-hidden>
+                          <span
+                            className={`ctsv-reports-fill-progress ctsv-reports-fill-progress--${tier}`}
+                            style={{ width: `${fill}%` }}
+                          />
+                        </div>
                       </div>
                     </td>
                     <td className="ctsv-reports-actions-cell">
@@ -220,19 +260,16 @@ const CtsvReports = () => {
                         <span className={`status-pill ${reportStatusClass(r.statusKey)}`}>
                           {r.status}
                         </span>
-                        {['ended', 'completed'].includes(r.reportPhase) ? (
-                          <Link
-                            to={`/ctsv/reports/${r.id}`}
-                            className="ctsv-reports-detail-link"
-                            state={r.id === DEMO_REPORT_EVENT_ID ? { demo: true } : undefined}
-                          >
-                            Xem báo cáo
-                          </Link>
-                        ) : (
-                          <Link to={`/ctsv/events/${r.id}`} className="ctsv-reports-detail-link">
-                            Chi tiết
-                          </Link>
-                        )}
+                        <Link
+                          to={detailPath}
+                          className="ctsv-reports-detail-btn"
+                          state={r.id === DEMO_REPORT_EVENT_ID ? { demo: true } : undefined}
+                        >
+                          {detailLabel}
+                          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+                            <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </Link>
                       </div>
                     </td>
                   </tr>
