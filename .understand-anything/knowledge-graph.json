@@ -14,8 +14,8 @@
       "Express",
       "Vite"
     ],
-    "description": "Hệ thống quản lý sự kiện đại học tích hợp AI, RBAC đa vai trò, quy trình phê duyệt CLB/IC-PDP/CTSV/Partner và gợi ý sự kiện.",
-    "analyzedAt": "2026-06-17T16:20:01.468Z",
+    "description": "Hệ thống quản lý sự kiện đại học: RBAC đa vai trò, timeline kỳ học CLB (CLB→ICPDP→Admin), sự kiện cấp trường ICPDP (ICPDP→Admin→Publish), đề xuất sự kiện CLB sau timeline approved.",
+    "analyzedAt": "2026-06-17T16:29:32.118Z",
     "gitCommitHash": "e5917aefd811f042e8b3d6cdf168282b7e123be0"
   },
   "nodes": [
@@ -25031,6 +25031,99 @@
         "jsx"
       ],
       "complexity": "simple"
+    },
+    {
+      "id": "file:FE/src/components/club/ClubSemesterTimelinePanel.jsx",
+      "type": "file",
+      "name": "ClubSemesterTimelinePanel.jsx",
+      "filePath": "FE/src/components/club/ClubSemesterTimelinePanel.jsx",
+      "summary": "UI CLB lập và gửi timeline kỳ học (Spring/Summer/Fall) lên IC-PDP; hiển thị trạng thái duyệt và yêu cầu sửa.",
+      "tags": [
+        "club",
+        "timeline",
+        "semester",
+        "workflow",
+        "ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:FE/src/services/clubTimelineApi.js",
+      "type": "file",
+      "name": "clubTimelineApi.js",
+      "filePath": "FE/src/services/clubTimelineApi.js",
+      "summary": "Client API CLB cho timeline kỳ học: tạo, cập nhật, gửi duyệt, thu hồi và yêu cầu thay đổi.",
+      "tags": [
+        "club",
+        "timeline",
+        "api-client",
+        "semester"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:FE/src/components/events/EventProposalForm.jsx",
+      "type": "file",
+      "name": "EventProposalForm.jsx",
+      "filePath": "FE/src/components/events/EventProposalForm.jsx",
+      "summary": "Form CLB tạo đề xuất sự kiện sau khi có timeline kỳ học đã được phê duyệt.",
+      "tags": [
+        "club",
+        "event-proposal",
+        "form",
+        "workflow"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "concept:flow-icpdp-school-event",
+      "type": "concept",
+      "name": "Luồng sự kiện cấp trường (ICPDP)",
+      "filePath": "",
+      "summary": "ICPDP tạo sự kiện cấp trường → trạng thái pending_admin → Admin phê duyệt (approved) → ICPDP/đơn vị tạo publish (live). Sinh viên chỉ thấy sau publish.",
+      "tags": [
+        "workflow",
+        "icpdp",
+        "admin",
+        "school-event",
+        "erd"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Thực thể ERD: Event (source=school, schoolOrganizerRole=icpdp). Trạng thái: draft → pending_admin → approved → live. Ràng buộc: chỉ publish khi status=approved."
+    },
+    {
+      "id": "concept:flow-club-semester-timeline",
+      "type": "concept",
+      "name": "Luồng timeline kỳ học CLB",
+      "filePath": "",
+      "summary": "CLB lập timeline kỳ học → gửi IC-PDP (pending_icpdp) → IC-PDP duyệt → Admin duyệt (approved) → kết quả trả về CLB và IC-PDP. CLB chỉ được tạo sự kiện khi timeline đã approved.",
+      "tags": [
+        "workflow",
+        "club",
+        "icpdp",
+        "admin",
+        "timeline",
+        "erd"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Thực thể ERD: ClubSemesterTimeline (clubId, semesterTerm, semesterYear, items[], status). Quan hệ: Club 1—N ClubSemesterTimeline. Trạng thái nghiệp vụ: draft → pending_icpdp → pending_admin → approved | rejected | revision."
+    },
+    {
+      "id": "concept:flow-club-event-after-timeline",
+      "type": "concept",
+      "name": "Luồng sự kiện CLB (sau timeline)",
+      "filePath": "",
+      "summary": "Sau khi timeline kỳ học approved, CLB tạo đề xuất sự kiện (EventProposal/Event) → IC-PDP duyệt (pending_icpdp → pending_admin) → Admin duyệt → approved. Liên kết proposal với event qua proposalId/linkedEventId.",
+      "tags": [
+        "workflow",
+        "club",
+        "icpdp",
+        "admin",
+        "event-proposal",
+        "erd"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Thực thể ERD: EventProposal, Event (source=club, clubId). FK: Event.proposalId → EventProposal._id. Tiền điều kiện nghiệp vụ: ClubSemesterTimeline.status=approved cho cùng clubId + kỳ học."
     }
   ],
   "edges": [
@@ -52847,6 +52940,156 @@
       "direction": "forward",
       "weight": 0.7,
       "recoveredFromImportMap": true
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+      "type": "documents",
+      "weight": 0.8
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "function:FE/src/services/icpdpApi.js:createIcpdpSchoolEvent",
+      "type": "documents",
+      "weight": 0.8
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "file:BE/src/routes/ctsv.routes.js",
+      "type": "documents",
+      "weight": 0.7
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "file:BE/src/constants/eventWorkflow.js",
+      "type": "documents",
+      "weight": 0.9
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "file:FE/src/constants/eventWorkflow.js",
+      "type": "documents",
+      "weight": 0.9
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "file:FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+      "type": "documents",
+      "weight": 0.8
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "function:FE/src/services/adminApi.js:approveAdminSchoolEvent",
+      "type": "documents",
+      "weight": 0.8
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "file:BE/src/routes/admin.routes.js",
+      "type": "documents",
+      "weight": 0.7
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "file:FE/src/components/events/CtsvEventActionsPanel.jsx",
+      "type": "documents",
+      "weight": 0.7
+    },
+    {
+      "source": "concept:flow-icpdp-school-event",
+      "target": "file:BE/src/models/Event.js",
+      "type": "defines_schema",
+      "weight": 0.9
+    },
+    {
+      "source": "concept:flow-club-semester-timeline",
+      "target": "file:FE/src/components/club/ClubSemesterTimelinePanel.jsx",
+      "type": "documents",
+      "weight": 0.9
+    },
+    {
+      "source": "concept:flow-club-semester-timeline",
+      "target": "file:FE/src/services/clubTimelineApi.js",
+      "type": "documents",
+      "weight": 0.8
+    },
+    {
+      "source": "concept:flow-club-semester-timeline",
+      "target": "file:FE/src/pages/icpdp/IcpdpSemesterTimelineDetail.jsx",
+      "type": "documents",
+      "weight": 0.8
+    },
+    {
+      "source": "concept:flow-club-semester-timeline",
+      "target": "function:FE/src/services/icpdpApi.js:icpdpApproveSemesterTimeline",
+      "type": "documents",
+      "weight": 0.8
+    },
+    {
+      "source": "concept:flow-club-semester-timeline",
+      "target": "file:BE/src/services/clubSemesterTimeline.service.js",
+      "type": "documents",
+      "weight": 0.9
+    },
+    {
+      "source": "concept:flow-club-semester-timeline",
+      "target": "file:BE/src/models/ClubSemesterTimeline.js",
+      "type": "defines_schema",
+      "weight": 1
+    },
+    {
+      "source": "concept:flow-club-semester-timeline",
+      "target": "file:BE/src/models/Club.js",
+      "type": "defines_schema",
+      "weight": 0.8
+    },
+    {
+      "source": "concept:flow-club-semester-timeline",
+      "target": "file:BE/src/routes/ctsv.routes.js",
+      "type": "documents",
+      "weight": 0.7
+    },
+    {
+      "source": "concept:flow-club-event-after-timeline",
+      "target": "concept:flow-club-semester-timeline",
+      "type": "depends_on",
+      "weight": 0.9
+    },
+    {
+      "source": "concept:flow-club-event-after-timeline",
+      "target": "file:FE/src/components/events/EventProposalForm.jsx",
+      "type": "documents",
+      "weight": 0.9
+    },
+    {
+      "source": "concept:flow-club-event-after-timeline",
+      "target": "file:BE/src/models/EventProposal.js",
+      "type": "defines_schema",
+      "weight": 1
+    },
+    {
+      "source": "concept:flow-club-event-after-timeline",
+      "target": "file:BE/src/models/Event.js",
+      "type": "defines_schema",
+      "weight": 0.9
+    },
+    {
+      "source": "concept:flow-club-event-after-timeline",
+      "target": "function:FE/src/services/icpdpApi.js:icpdpApproveProposal",
+      "type": "documents",
+      "weight": 0.8
+    },
+    {
+      "source": "concept:flow-club-event-after-timeline",
+      "target": "file:BE/src/routes/ctsv.routes.js",
+      "type": "documents",
+      "weight": 0.7
+    },
+    {
+      "source": "concept:flow-club-event-after-timeline",
+      "target": "file:BE/src/services/event.service.js",
+      "type": "documents",
+      "weight": 0.7
     }
   ],
   "layers": [
@@ -53416,6 +53659,16 @@
         "file:test_api.ps1",
         "file:test_role_detection.ps1"
       ]
+    },
+    {
+      "id": "layer:business-flows",
+      "name": "Luồng nghiệp vụ (ERD)",
+      "description": "Các concept workflow phục vụ vẽ ERD và hiểu quy trình phê duyệt đa vai trò.",
+      "nodeIds": [
+        "concept:flow-icpdp-school-event",
+        "concept:flow-club-semester-timeline",
+        "concept:flow-club-event-after-timeline"
+      ]
     }
   ],
   "tour": [
@@ -53541,6 +53794,53 @@
         "config:FE/package.json"
       ],
       "languageLesson": "File .env.example là hợp đồng cấu hình: liệt kê biến bắt buộc mà không chứa secret thật — pattern an toàn cho onboarding developer mới."
+    },
+    {
+      "order": 13,
+      "title": "[ERD] Sự kiện cấp trường — ICPDP → Admin → Publish",
+      "description": "Luồng nghiệp vụ: IC-PDP tạo sự kiện cấp trường qua CtsvEventCreate (/icpdp/events/create) → API createIcpdpSchoolEvent → Event (source=school, status=pending_admin). Admin xét tại AdminSchoolEventApprovals → approveAdminSchoolEvent → status=approved. Chỉ khi approved, IC-PDP mới publish (approved→live) qua CtsvEventActionsPanel. Đây là luồng độc lập với timeline CLB.",
+      "nodeIds": [
+        "concept:flow-icpdp-school-event",
+        "file:FE/src/pages/ctsv/CtsvEventCreate.jsx",
+        "function:FE/src/services/icpdpApi.js:createIcpdpSchoolEvent",
+        "file:FE/src/pages/admin/AdminSchoolEventApprovals.jsx",
+        "function:FE/src/services/adminApi.js:approveAdminSchoolEvent",
+        "file:FE/src/components/events/CtsvEventActionsPanel.jsx",
+        "file:BE/src/constants/eventWorkflow.js",
+        "file:BE/src/models/Event.js"
+      ],
+      "languageLesson": "ERD: Event có schoolOrganizerRole (icpdp|ctsv), adminApprovedAt, adminApprovedByEmail. Trạng thái: pending_admin → approved → live. Publish bị chặn nếu chưa approved."
+    },
+    {
+      "order": 14,
+      "title": "[ERD] Timeline kỳ học — CLB → ICPDP → Admin",
+      "description": "Luồng nghiệp vụ: CLB lập timeline kỳ học (ClubSemesterTimelinePanel + clubTimelineApi) gồm các mốc sự kiện dự kiến → gửi duyệt (pending_icpdp) → IC-PDP duyệt tại IcpdpSemesterTimelineDetail → Admin duyệt → status=approved. Kết quả đồng bộ về CLB và IC-PDP. Thực thể chính: ClubSemesterTimeline (clubId, semesterTerm, semesterYear, items[], status, reviewedByEmail).",
+      "nodeIds": [
+        "concept:flow-club-semester-timeline",
+        "file:FE/src/components/club/ClubSemesterTimelinePanel.jsx",
+        "file:FE/src/services/clubTimelineApi.js",
+        "file:FE/src/pages/icpdp/IcpdpSemesterTimelineDetail.jsx",
+        "function:FE/src/services/icpdpApi.js:icpdpApproveSemesterTimeline",
+        "file:BE/src/models/ClubSemesterTimeline.js",
+        "file:BE/src/services/clubSemesterTimeline.service.js",
+        "file:BE/src/models/Club.js"
+      ],
+      "languageLesson": "ERD: Club 1—N ClubSemesterTimeline. items[] là embedded sub-documents (title, plannedDate, category, location). Trạng thái: draft → pending_icpdp → pending_admin → approved. Yêu cầu sửa sau approved dùng changeRequest (pending_icpdp → pending_admin → approved)."
+    },
+    {
+      "order": 15,
+      "title": "[ERD] Sự kiện CLB — sau timeline approved",
+      "description": "Tiền điều kiện: ClubSemesterTimeline.status=approved cho CLB và kỳ học tương ứng. CLB tạo đề xuất sự kiện qua EventProposalForm → EventProposal + Event (source=club) status=pending_icpdp → IC-PDP duyệt (icpdpApproveProposal) → pending_admin → Admin duyệt → approved. Liên kết Event.proposalId ↔ EventProposal._id.",
+      "nodeIds": [
+        "concept:flow-club-event-after-timeline",
+        "concept:flow-club-semester-timeline",
+        "file:FE/src/components/events/EventProposalForm.jsx",
+        "file:BE/src/models/EventProposal.js",
+        "file:BE/src/models/Event.js",
+        "function:FE/src/services/icpdpApi.js:icpdpApproveProposal",
+        "file:BE/src/services/event.service.js"
+      ],
+      "languageLesson": "ERD: EventProposal (clubId, status, linkedEventId/eventId) —N—1— Event (clubId, proposalId, source=club). Ràng buộc nghiệp vụ (cần enforce code): chỉ tạo proposal khi có timeline approved cùng clubId + semester."
     }
   ]
 }
