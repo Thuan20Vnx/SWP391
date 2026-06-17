@@ -1,10 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import BannerCropModal from './ctsv/BannerCropModal';
 import AvatarCropModal from './profile/AvatarCropModal';
+import AppSelect from './ui/AppSelect';
+import {
+  CLUB_COVER_ASPECT_H,
+  CLUB_COVER_ASPECT_LABEL,
+  CLUB_COVER_ASPECT_W,
+  CLUB_COVER_OUTPUT_HEIGHT,
+  CLUB_COVER_OUTPUT_WIDTH,
+} from '../constants/clubCover';
 import { API_BASE, getAuthHeaders, parseApiResponse } from '../utils/api';
 import { openImageFilePicker } from '../utils/imageFilePicker';
-import { readClubProfileCache, writeClubProfileCache } from '../utils/clubProfileCache';
-import { ACTIVE_CLUB_CHANGED, getActiveManagedClubId } from '../utils/activeManagedClub';
 import ClubChairmanTransfer from './club/ClubChairmanTransfer';
 
 const ACTIVITY_FIELDS = [
@@ -57,10 +63,10 @@ const prepareProfileForSave = async (profile) => {
   let { coverImage, logoImage } = profile;
   const coverPositionY = normalizeCoverPositionY(profile.coverPositionY);
 
-  if (coverImage?.startsWith('data:') && coverImage.length > 800000) {
-    coverImage = await compressDataUrl(coverImage, 1600, 0.82);
+  if (coverImage?.startsWith('data:')) {
+    coverImage = await compressDataUrl(coverImage, CLUB_COVER_OUTPUT_WIDTH, 0.85);
   }
-  if (logoImage?.startsWith('data:') && logoImage.length > 400000) {
+  if (logoImage?.startsWith('data:')) {
     logoImage = await compressDataUrl(logoImage, 512, 0.85);
   }
 
@@ -79,7 +85,6 @@ const emptyProfile = {
   foundedDate: '',
   scale: '',
   president: '',
-  hotline: '',
   email: '',
   facebook: '',
   website: '',
@@ -117,7 +122,6 @@ const mapClubToForm = (club) => ({
   foundedDate: toDateInputValue(club.foundedDate || club.founded || ''),
   scale: club.scale || '',
   president: club.president || '',
-  hotline: club.hotline || '',
   email: club.email || '',
   facebook: club.facebook || '',
   website: club.website || '',
@@ -146,57 +150,31 @@ const ProfileCoverSection = ({
   onCoverPointerUp,
   onCoverFileChange,
   onLogoFileChange,
-  onPickCover,
   onRecropCover,
 }) => (
   <section className={`clb-profile-visual${isEditing ? ' clb-profile-visual--edit' : ''}`}>
     <div
-      className={`clb-profile-cover-wrap${isEditing ? ' clb-profile-cover-wrap--draggable' : ''}${isDraggingCover ? ' is-dragging' : ''}`}
-      onPointerDown={isEditing ? onCoverPointerDown : undefined}
-      onPointerMove={isEditing ? onCoverPointerMove : undefined}
-      onPointerUp={isEditing ? onCoverPointerUp : undefined}
-      onPointerCancel={isEditing ? onCoverPointerUp : undefined}
+      className={`clb-profile-cover-wrap${isEditing ? ' clb-profile-cover-wrap--editable' : ''}`}
     >
       <img
         src={data.coverImage || DEFAULT_COVER}
         alt="Ảnh bìa CLB"
         className="clb-profile-cover"
-        style={{ objectPosition: `center ${normalizeCoverPositionY(data.coverPositionY)}%` }}
         draggable={false}
       />
       {isEditing && (
         <>
-          <div className="clb-profile-cover-drag-hint">Kéo để căn chỉnh ảnh bìa</div>
           <button
             type="button"
             className="clb-profile-cover-btn"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
-              onPickCover();
+              onRecropCover?.();
             }}
           >
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <path
-                d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
-                fill="currentColor"
-              />
-            </svg>
-            Tải ảnh bìa (16:9)
+            Chỉnh sửa khung ảnh
           </button>
-          {data.coverImage && data.coverImage !== DEFAULT_COVER && (
-            <button
-              type="button"
-              className="clb-profile-cover-btn clb-profile-cover-btn--secondary"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                onRecropCover?.();
-              }}
-            >
-              Chỉnh sửa khung ảnh
-            </button>
-          )}
           <input
             ref={coverInputRef}
             type="file"
@@ -247,10 +225,9 @@ const ProfileCoverSection = ({
 );
 
 const ClubProfileUpdate = ({ showToast }) => {
-  const initialCached = readClubProfileCache();
-  const [form, setForm] = useState(initialCached || emptyProfile);
-  const [savedForm, setSavedForm] = useState(initialCached || emptyProfile);
-  const [loading, setLoading] = useState(!initialCached);
+  const [form, setForm] = useState(emptyProfile);
+  const [savedForm, setSavedForm] = useState(emptyProfile);
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -264,99 +241,91 @@ const ClubProfileUpdate = ({ showToast }) => {
   const [logoCropOpen, setLogoCropOpen] = useState(false);
   const [logoCropSrc, setLogoCropSrc] = useState('');
   const [logoCropFileName, setLogoCropFileName] = useState('');
+  const [savingMedia, setSavingMedia] = useState(false);
 
-  const applyClubForm = useCallback((mapped, clubId) => {
-    setForm(mapped);
-    setSavedForm(mapped);
-    writeClubProfileCache(mapped, clubId);
-  }, []);
+  const syncSavedClub = (club, payload = {}) => {
+    const mapped = mapClubToForm(club);
+    const synced = {
+      ...mapped,
+      coverImage: payload.coverImage ?? mapped.coverImage,
+      logoImage: payload.logoImage ?? mapped.logoImage,
+      coverPositionY: normalizeCoverPositionY(payload.coverPositionY ?? mapped.coverPositionY),
+    };
+    setForm(synced);
+    setSavedForm(synced);
+    return synced;
+  };
 
-  const loadProfileMedia = useCallback(async (signal, clubId) => {
+  const saveProfilePatch = async (patch, successMessage) => {
+    setSavingMedia(true);
     try {
-      const res = await fetch(`${API_BASE}/api/clubs/manage/profile?media=1`, {
-        headers: getAuthHeaders(false),
-        signal,
+      const payload = await prepareProfileForSave({ ...form, ...patch });
+      const body = {};
+      if (patch.coverImage !== undefined) {
+        body.coverImage = payload.coverImage;
+        body.coverPositionY = payload.coverPositionY;
+      }
+      if (patch.logoImage !== undefined) {
+        body.logoImage = payload.logoImage;
+      }
+      const res = await fetch(`${API_BASE}/api/clubs/manage/profile`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(true),
+        body: JSON.stringify(body),
       });
       const { ok, data } = await parseApiResponse(res);
-      if (!ok || !data.success || !data.club) return;
-
-      const mergeMedia = (prev) => {
-        const next = {
-          ...prev,
-          coverImage: data.club.coverImage || prev.coverImage,
-          logoImage: data.club.logoImage || prev.logoImage,
-          coverPositionY: normalizeCoverPositionY(
-            data.club.coverPositionY ?? prev.coverPositionY
-          ),
-        };
-        writeClubProfileCache(next, clubId);
-        return next;
-      };
-
-      setForm(mergeMedia);
-      setSavedForm(mergeMedia);
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        /* Ảnh tải nền — không chặn form */
+      if (ok && data.success && data.club) {
+        syncSavedClub(data.club, payload);
+        showToast(successMessage, 'success');
+        return true;
       }
+      showToast(data.message || 'Lưu ảnh thất bại.', 'error');
+      return false;
+    } catch {
+      showToast('Lỗi kết nối server.', 'error');
+      return false;
+    } finally {
+      setSavingMedia(false);
     }
-  }, []);
+  };
 
   const loadProfile = useCallback(async (signal) => {
-    const clubId = getActiveManagedClubId();
-    const cached = readClubProfileCache(clubId);
-    if (!cached) setLoading(true);
+    setLoading(true);
     setLoadError('');
-
     try {
-      const res = await fetch(`${API_BASE}/api/clubs/manage/profile?lite=1`, {
+      const res = await fetch(`${API_BASE}/api/clubs/manage/profile`, {
         headers: getAuthHeaders(false),
         signal,
       });
       const { ok, data } = await parseApiResponse(res);
       if (ok && data.success && data.club) {
-        const resolvedClubId = String(data.club._id || data.club.id || clubId || '');
-        const mapped = mapClubToForm({
-          ...data.club,
-          coverImage: cached?.coverImage || '',
-          logoImage: cached?.logoImage || '',
-          coverPositionY: cached?.coverPositionY ?? 50,
-        });
-        applyClubForm(mapped, resolvedClubId);
-        void loadProfileMedia(signal, resolvedClubId);
+        const mapped = mapClubToForm(data.club);
+        setForm(mapped);
+        setSavedForm(mapped);
       } else if (res.status === 404) {
         const msg = 'Backend chưa có API mới. Hãy restart server BE (npm run dev).';
         setLoadError(msg);
-        if (!cached) showToast(msg, 'error');
+        showToast(msg, 'error');
       } else {
         const msg = data.message || 'Không tải được hồ sơ CLB.';
         setLoadError(msg);
-        if (!cached) showToast(msg, 'error');
+        showToast(msg, 'error');
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
         const msg = 'Không kết nối được server.';
         setLoadError(msg);
-        if (!cached) showToast(msg, 'error');
+        showToast(msg, 'error');
       }
     } finally {
       setLoading(false);
     }
-  }, [applyClubForm, loadProfileMedia, showToast]);
+  }, [showToast]);
 
   useEffect(() => {
     const controller = new AbortController();
     loadProfile(controller.signal);
     return () => controller.abort();
-  }, [loadProfile]);
-
-  useEffect(() => {
-    const handleClubChanged = () => {
-      const controller = new AbortController();
-      loadProfile(controller.signal);
-    };
-    window.addEventListener(ACTIVE_CLUB_CHANGED, handleClubChanged);
-    return () => window.removeEventListener(ACTIVE_CLUB_CHANGED, handleClubChanged);
   }, [loadProfile]);
 
   const updateField = (field, value) => {
@@ -395,26 +364,31 @@ const ClubProfileUpdate = ({ showToast }) => {
     if (dataUrl) openLogoCrop(dataUrl, file?.name);
   };
 
-  const onBannerCropConfirm = (dataUrl) => {
+  const onBannerCropConfirm = async (dataUrl) => {
     setBannerCropOpen(false);
     setBannerCropSrc('');
     if (!dataUrl) {
       showToast('Không xử lý được ảnh bìa. Vui lòng thử lại.', 'error');
       return;
     }
-    setForm((prev) => ({ ...prev, coverImage: dataUrl, coverPositionY: 50 }));
-    showToast('Đã áp dụng ảnh bìa (tỷ lệ 16:9).', 'success');
+    const next = { coverImage: dataUrl, coverPositionY: 50 };
+    setForm((prev) => ({ ...prev, ...next }));
+    await saveProfilePatch(
+      next,
+      `Đã lưu ảnh bìa (${CLUB_COVER_ASPECT_LABEL}).`
+    );
   };
 
-  const onLogoCropConfirm = (dataUrl) => {
+  const onLogoCropConfirm = async (dataUrl) => {
     setLogoCropOpen(false);
     setLogoCropSrc('');
     if (!dataUrl) {
       showToast('Không xử lý được logo. Vui lòng thử lại.', 'error');
       return;
     }
-    setForm((prev) => ({ ...prev, logoImage: dataUrl }));
-    showToast('Đã áp dụng logo CLB (tỷ lệ 1:1).', 'success');
+    const next = { logoImage: dataUrl };
+    setForm((prev) => ({ ...prev, ...next }));
+    await saveProfilePatch(next, 'Đã lưu logo CLB.');
   };
 
   const handleCoverPointerDown = (e) => {
@@ -479,16 +453,7 @@ const ClubProfileUpdate = ({ showToast }) => {
       });
       const { ok, data } = await parseApiResponse(res);
       if (ok && data.success) {
-        const mapped = mapClubToForm(data.club);
-        const synced = {
-          ...mapped,
-          coverImage: payload.coverImage || mapped.coverImage,
-          logoImage: payload.logoImage || mapped.logoImage,
-          coverPositionY: normalizeCoverPositionY(payload.coverPositionY),
-        };
-        setForm(synced);
-        setSavedForm(synced);
-        writeClubProfileCache(synced, getActiveManagedClubId());
+        syncSavedClub(data.club, payload);
         setIsEditing(false);
         showToast('Đã lưu hồ sơ CLB.', 'success');
       } else {
@@ -516,7 +481,7 @@ const ClubProfileUpdate = ({ showToast }) => {
     );
   }
 
-  if (loadError && !savedForm.name) {
+  if (loadError) {
     return (
       <div className="clb-profile-view">
         <p className="clb-profile-loading">{loadError}</p>
@@ -585,10 +550,7 @@ const ClubProfileUpdate = ({ showToast }) => {
 
           <section className="clb-profile-card">
             <h2>Ban điều hành &amp; Trạng thái</h2>
-            <div className="clb-profile-grid clb-profile-grid--2">
-              <ProfileValue label="Chủ nhiệm CLB" value={display.president} />
-              <ProfileValue label="Trưởng ban Truyền thông (Hotline)" value={display.hotline} />
-            </div>
+            <ProfileValue label="Chủ nhiệm CLB" value={display.president} />
           </section>
 
           <section className="clb-profile-card">
@@ -622,7 +584,6 @@ const ClubProfileUpdate = ({ showToast }) => {
             onCoverPointerUp={handleCoverPointerUp}
             onCoverFileChange={handleCoverFileChange}
             onLogoFileChange={handleLogoFileChange}
-            onPickCover={() => coverInputRef.current?.click()}
             onRecropCover={handleRecropCover}
           />
 
@@ -651,19 +612,13 @@ const ClubProfileUpdate = ({ showToast }) => {
               </div>
               <div className="clb-profile-field">
                 <label htmlFor="club-activity">Lĩnh vực hoạt động</label>
-                <select
+                <AppSelect
                   id="club-activity"
-                  className="clb-input"
                   value={form.activityField}
                   onChange={(e) => updateField('activityField', e.target.value)}
-                >
-                  <option value="">Chọn lĩnh vực</option>
-                  {ACTIVITY_FIELDS.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
+                  options={ACTIVITY_FIELDS}
+                  placeholder="Chọn lĩnh vực"
+                />
               </div>
               <div className="clb-profile-field">
                 <label htmlFor="club-founded">Ngày thành lập</label>
@@ -677,47 +632,28 @@ const ClubProfileUpdate = ({ showToast }) => {
               </div>
               <div className="clb-profile-field">
                 <label htmlFor="club-scale">Quy mô</label>
-                <select
+                <AppSelect
                   id="club-scale"
-                  className="clb-input"
                   value={form.scale}
                   onChange={(e) => updateField('scale', e.target.value)}
-                >
-                  <option value="">Chọn quy mô</option>
-                  {SCALE_OPTIONS.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
+                  options={SCALE_OPTIONS}
+                  placeholder="Chọn quy mô"
+                />
               </div>
             </div>
           </section>
 
           <section className="clb-profile-card">
             <h2>Ban điều hành &amp; Trạng thái</h2>
-            <div className="clb-profile-grid clb-profile-grid--2">
-              <div className="clb-profile-field">
-                <label htmlFor="club-president">Chủ nhiệm CLB</label>
-                <input
-                  id="club-president"
-                  type="text"
-                  className="clb-input"
-                  value={form.president}
-                  onChange={(e) => updateField('president', e.target.value)}
-                />
-              </div>
-              <div className="clb-profile-field">
-                <label htmlFor="club-hotline">Trưởng ban Truyền thông (Hotline)</label>
-                <input
-                  id="club-hotline"
-                  type="text"
-                  className="clb-input"
-                  placeholder="09xx xxx xxx"
-                  value={form.hotline}
-                  onChange={(e) => updateField('hotline', e.target.value)}
-                />
-              </div>
+            <div className="clb-profile-field">
+              <label htmlFor="club-president">Chủ nhiệm CLB</label>
+              <input
+                id="club-president"
+                type="text"
+                className="clb-input"
+                value={form.president}
+                onChange={(e) => updateField('president', e.target.value)}
+              />
             </div>
           </section>
 
@@ -835,6 +771,10 @@ const ClubProfileUpdate = ({ showToast }) => {
         open={bannerCropOpen}
         imageSrc={bannerCropSrc}
         fileName={bannerCropFileName}
+        aspectWidth={CLUB_COVER_ASPECT_W}
+        aspectHeight={CLUB_COVER_ASPECT_H}
+        outputWidth={CLUB_COVER_OUTPUT_WIDTH}
+        outputHeight={CLUB_COVER_OUTPUT_HEIGHT}
         onConfirm={onBannerCropConfirm}
         onCancel={() => {
           setBannerCropOpen(false);

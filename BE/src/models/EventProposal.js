@@ -15,6 +15,7 @@ const PROPOSAL_STATUSES = [
   'draft',
   'pending_icpdp',
   'pending_ctsv',
+  'pending_admin',
   'approved',
   'rejected',
   'revision'
@@ -45,7 +46,9 @@ const eventProposalSchema = new mongoose.Schema(
     icpdpNote: { type: String, default: '' },
     ctsvNote: { type: String, default: '' },
     rejectionReason: { type: String, default: '' },
-    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null }
+    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null },
+    /** Sự kiện CLB đã tạo trước — IC-PDP duyệt đề xuất rồi chuyển Admin */
+    linkedEventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null }
   },
   { timestamps: true }
 );

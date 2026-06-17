@@ -11,7 +11,10 @@ const getPendingEvents = async (req, res) => {
 };
 
 const updateEventStatus = async (req, res) => {
-  const result = await eventService.updateEventStatus(req.params.id, req.body);
+  const result = await eventService.updateEventStatus(req.params.id, {
+    ...req.body,
+    authEmail: req.authEmail,
+  });
   res.status(200).json({ success: true, ...result });
 };
 

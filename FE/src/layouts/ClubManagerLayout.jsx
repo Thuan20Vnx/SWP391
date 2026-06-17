@@ -12,15 +12,13 @@ import {
 } from '../components/club/clubNavConfig';
 import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../utils/api';
 import { ACTIVE_CLUB_CHANGED } from '../utils/activeManagedClub';
-import { useManagedClubs } from '../hooks/useManagedClubs';
 import { resolveUserAvatar } from '../utils/image';
-import { cacheUserProfile } from '../hooks/useUserProfile';
-import { mapUserToProfileDetail, writeProfileDetailCache } from '../utils/profileDetailCache';
 import '../styles/club-portal.css';
+import '../styles/club-mobile.css';
 
 const ClubManagerLayout = ({ showToast }) => {
   const navigate = useNavigate();
-  const { pathname, state: locationState } = useLocation();
+  const { pathname } = useLocation();
   const [userProfile, setUserProfile] = useState({
     fullname: '',
     course: 'K18',
@@ -33,22 +31,22 @@ const ClubManagerLayout = ({ showToast }) => {
   const [lastSeenNotifs, setLastSeenNotifs] = useState(() =>
     parseInt(localStorage.getItem('clb_last_seen_notifs') || '0', 10)
   );
-  const { activeClub } = useManagedClubs(true);
 
   useEffect(() => {
     setActiveNav(resolveClubActiveNav(pathname));
   }, [pathname]);
 
   useEffect(() => {
-    if (!locationState?.clubPortalHome) return;
-    setActiveNav('list');
-    try {
-      sessionStorage.setItem('clb_active_nav', 'list');
-    } catch {
-      /* ignore */
-    }
-    navigate('/quan-ly-clb', { replace: true, state: {} });
-  }, [locationState?.clubPortalHome, navigate]);
+    const closeSidebarOnMobile = () => {
+      if (window.innerWidth > 900) return;
+      setSidebarOpen(false);
+      persistClubSidebarOpen(false);
+    };
+
+    closeSidebarOnMobile();
+    window.addEventListener('resize', closeSidebarOnMobile);
+    return () => window.removeEventListener('resize', closeSidebarOnMobile);
+  }, []);
 
   useEffect(() => {
     if (!pathname.startsWith('/quan-ly-clb') || pathname.startsWith('/quan-ly-clb/announcements')) return;
@@ -75,14 +73,6 @@ const ClubManagerLayout = ({ showToast }) => {
           picture: resolveUserAvatar(u, defaultAvatar),
           role,
         });
-        cacheUserProfile({
-          fullname: u.fullname || '',
-          course: u.course || 'K18',
-          picture: resolveUserAvatar(u, defaultAvatar),
-          role,
-        });
-        const detail = mapUserToProfileDetail(u);
-        if (detail) writeProfileDetailCache(detail);
         if (role && role !== 'club_manager') {
           showToast?.('Bạn không có quyền truy cập trang quản lý CLB!', 'error');
           localStorage.setItem('userRole', role);
@@ -103,7 +93,7 @@ const ClubManagerLayout = ({ showToast }) => {
 
   useEffect(() => {
     loadEvents();
-  }, [loadEvents, activeClub?.id]);
+  }, [loadEvents]);
 
   useEffect(() => {
     const handleClubChanged = () => loadEvents();
@@ -192,7 +182,6 @@ const ClubManagerLayout = ({ showToast }) => {
                 setEvents,
                 lastSeenNotifs,
                 setLastSeenNotifs,
-                activeClub,
               }}
             />
           </main>

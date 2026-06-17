@@ -5,11 +5,8 @@ import SiteFooter from '../components/SiteFooter';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import ClubUpcomingEventCard from '../components/ClubUpcomingEventCard';
 import useUserProfile from '../hooks/useUserProfile';
-import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
-import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
-import { isUserManagingClub, openClubManagerPortal } from '../utils/clubManagerAccess';
-import { isPureCtsvStaff } from '../utils/publicEventStaffAccess';
+import { getUserRole, isAdminRole } from '../utils/auth';
 import { CLUB_SAMPLE_DATA } from '../data/clubDiscoveryData';
 import { getClubDetailById, mapApiClubToDetail, FU_DEVER_DETAIL } from '../data/clubDetailData';
 import '../styles/admin-public-pages.css';
@@ -39,11 +36,7 @@ const ClubDetail = ({ showToast }) => {
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
   const { isLoggedIn, userProfile } = useUserProfile();
-  const role = userProfile.role || getUserRole();
-  const isAdminViewer = isLoggedIn && isAdminRole(role);
-  const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
-  const isClubManager = isLoggedIn && isClubManagerRole(role);
-  const { clubs: managedClubs } = useManagedClubs(isClubManager);
+  const isAdminViewer = isLoggedIn && isAdminRole(userProfile.role || getUserRole());
 
   useEffect(() => {
     setLoading(true);
@@ -96,11 +89,6 @@ const ClubDetail = ({ showToast }) => {
   }
 
   const clubApiId = club._id || clubId;
-  const isManagingThisClub = isClubManager && isUserManagingClub(club, managedClubs);
-
-  const handleManageClub = () => {
-    openClubManagerPortal({ club, managedClubs, navigate });
-  };
 
   const handleFollow = async () => {
     if (!isLoggedIn) {
@@ -138,23 +126,13 @@ const ClubDetail = ({ showToast }) => {
     }
   };
 
-  const isValidEventId = (id) => /^[a-f0-9]{24}$/i.test(String(id || ''));
-
   const handleEventAction = (event) => {
-    if (isValidEventId(event.id)) {
+    if (isAdminViewer && event.id) {
       navigate(`/events/${event.id}`);
       return;
     }
-    showToast?.('Không tìm thấy trang chi tiết sự kiện này.', 'error');
+    showToast?.(`${event.primaryLabel}: ${event.title}`, 'success');
   };
-
-  const displayedEvents = isCtsvStaff
-    ? club.upcomingEvents.map((event) => ({
-        ...event,
-        primaryLabel: 'Xem chi tiết',
-        variant: 'outline',
-      }))
-    : club.upcomingEvents;
 
   const pageBody = (
     <>
@@ -204,18 +182,6 @@ const ClubDetail = ({ showToast }) => {
                       Quản lý tài khoản
                     </button>
                   </div>
-                ) : isManagingThisClub ? (
-                  <button
-                    type="button"
-                    className="club-detail-page__btn club-detail-page__btn--primary club-detail-page__btn--manage"
-                    onClick={handleManageClub}
-                  >
-                    Quản lý
-                  </button>
-                ) : isCtsvStaff ? (
-                  <p className="club-detail-page__staff-note">
-                    CTSV chỉ xem thông tin CLB — không theo dõi hoặc đăng ký tham gia.
-                  </p>
                 ) : (
                   <button
                     type="button"
@@ -273,33 +239,17 @@ const ClubDetail = ({ showToast }) => {
               </div>
             </section>
 
-            <section className="club-detail-page__section club-detail-page__section--events">
-              <div className="club-detail-page__events-head">
-                <h2>Sự kiện sắp tới</h2>
-                {displayedEvents.length > 0 && (
-                  <Link
-                    to={`/events?club=${encodeURIComponent(club.id || clubApiId)}`}
-                    className="club-detail-page__view-all"
-                  >
-                    Xem tất cả
-                  </Link>
-                )}
+            <section className="club-detail-page__section">
+              <h2>Sự kiện sắp tới</h2>
+              <div className="club-detail-page__events">
+                {club.upcomingEvents.map((event) => (
+                  <ClubUpcomingEventCard
+                    key={event.id}
+                    event={event}
+                    onAction={handleEventAction}
+                  />
+                ))}
               </div>
-              {displayedEvents.length > 0 ? (
-                <div className="club-detail-page__events-grid">
-                  {displayedEvents.map((event) => (
-                    <ClubUpcomingEventCard
-                      key={event.id}
-                      event={event}
-                      onAction={handleEventAction}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="club-detail-page__events-empty">
-                  CLB chưa có sự kiện sắp tới. Hãy quay lại sau hoặc khám phá sự kiện khác trên nền tảng.
-                </p>
-              )}
             </section>
           </div>
 
