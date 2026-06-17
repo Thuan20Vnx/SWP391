@@ -2,8 +2,10 @@ import React, { useEffect, useMemo } from 'react';
 import {
   FACILITY_STATUS,
   getFacilityEquipmentLabels,
+  getFacilityStatusLabel,
   getResourceTypeLabel,
 } from '../../data/adminDataMaintenanceData';
+import { useTranslation } from '../../i18n/I18nContext';
 import '../../styles/admin-data-fields.css';
 
 const DetailRow = ({ label, value, fullWidth, children }) => (
@@ -14,6 +16,8 @@ const DetailRow = ({ label, value, fullWidth, children }) => (
 );
 
 const AdminCoreDataDetailModal = ({ open, activeTab, item, onClose, onEdit }) => {
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => {
@@ -29,32 +33,45 @@ const AdminCoreDataDetailModal = ({ open, activeTab, item, onClose, onEdit }) =>
 
   const content = useMemo(() => {
     if (!item) return null;
+    const empty = t('admin.common.empty');
 
     if (activeTab === 'facilities') {
       const statusMeta = FACILITY_STATUS[item.status] || FACILITY_STATUS.ready;
-      const equipmentLabels = getFacilityEquipmentLabels(item.equipment);
+      const equipmentLabels = getFacilityEquipmentLabels(item.equipment, t);
       const isActive = item.isActive !== false && item.status !== 'maintenance';
 
       return {
         title: item.name,
-        subtitle: getResourceTypeLabel(item.resourceType),
+        subtitle: getResourceTypeLabel(item.resourceType, t),
         rows: (
           <>
-            <DetailRow label="Loại tài nguyên" value={getResourceTypeLabel(item.resourceType)} />
             <DetailRow
-              label="Sức chứa tối đa"
-              value={`${Number(item.capacity || 0).toLocaleString('vi-VN')} người`}
+              label={t('admin.dataMaintenance.detail.resourceType')}
+              value={getResourceTypeLabel(item.resourceType, t)}
             />
-            <DetailRow label="Vị trí tòa nhà" value={item.building} />
-            <DetailRow label="Trạng thái vận hành">
+            <DetailRow
+              label={t('admin.dataMaintenance.detail.maxCapacity')}
+              value={t('admin.dataMaintenance.capacityPeople', {
+                count: Number(item.capacity || 0).toLocaleString('vi-VN'),
+              })}
+            />
+            <DetailRow label={t('admin.dataMaintenance.detail.buildingLocation')} value={item.building} />
+            <DetailRow label={t('admin.dataMaintenance.detail.operatingStatus')}>
               <span className={`admin-data-status admin-data-status--${statusMeta.tone}`}>
                 <span className="admin-data-status__dot" aria-hidden="true" />
-                {statusMeta.label}
+                {getFacilityStatusLabel(item.status, t)}
               </span>
             </DetailRow>
-            <DetailRow label="Đặt lịch CLB" value={isActive ? 'Đang hiển thị công khai' : 'Tạm ẩn — không cho đặt lịch'} />
-            <DetailRow label="Mã hệ thống" value={item.id} />
-            <DetailRow label="Trang thiết bị sẵn có" fullWidth>
+            <DetailRow
+              label={t('admin.dataMaintenance.detail.clubBooking')}
+              value={
+                isActive
+                  ? t('admin.dataMaintenance.detail.bookingPublic')
+                  : t('admin.dataMaintenance.detail.bookingHidden')
+              }
+            />
+            <DetailRow label={t('admin.dataMaintenance.detail.systemId')} value={item.id} />
+            <DetailRow label={t('admin.dataMaintenance.detail.equipment')} fullWidth>
               {equipmentLabels.length > 0 ? (
                 <ul className="admin-data-detail__tags">
                   {equipmentLabels.map((label) => (
@@ -62,7 +79,9 @@ const AdminCoreDataDetailModal = ({ open, activeTab, item, onClose, onEdit }) =>
                   ))}
                 </ul>
               ) : (
-                <span className="admin-data-detail__muted">Chưa khai báo thiết bị</span>
+                <span className="admin-data-detail__muted">
+                  {t('admin.dataMaintenance.detail.noEquipment')}
+                </span>
               )}
             </DetailRow>
           </>
@@ -73,21 +92,31 @@ const AdminCoreDataDetailModal = ({ open, activeTab, item, onClose, onEdit }) =>
     if (activeTab === 'categories') {
       return {
         title: item.name,
-        subtitle: item.code || 'Danh mục sự kiện',
+        subtitle: item.code || t('admin.dataMaintenance.detail.categoryFallback'),
         rows: (
           <>
-            <DetailRow label="Mã danh mục" value={item.code} />
-            <DetailRow label="Tên danh mục sự kiện" value={item.name} />
+            <DetailRow label={t('admin.dataMaintenance.detail.categoryCode')} value={item.code} />
+            <DetailRow label={t('admin.dataMaintenance.detail.categoryName')} value={item.name} />
             <DetailRow
-              label="Số sự kiện đã tổ chức"
-              value={`${(item.eventCount ?? 0).toLocaleString('vi-VN')} sự kiện`}
+              label={t('admin.dataMaintenance.detail.eventsHeld')}
+              value={t('admin.dataMaintenance.eventCount', {
+                count: (item.eventCount ?? 0).toLocaleString('vi-VN'),
+              })}
             />
             <DetailRow
-              label="Trạng thái hiển thị"
-              value={item.active ? 'Đang dùng' : 'Tạm ẩn'}
+              label={t('admin.dataMaintenance.detail.displayStatus')}
+              value={
+                item.active
+                  ? t('admin.dataMaintenance.detail.statusActive')
+                  : t('admin.dataMaintenance.detail.statusHidden')
+              }
             />
-            <DetailRow label="Mô tả khái quát" fullWidth value={item.description || '—'} />
-            <DetailRow label="Mã hệ thống" value={item.id} />
+            <DetailRow
+              label={t('admin.dataMaintenance.detail.overviewDesc')}
+              fullWidth
+              value={item.description || empty}
+            />
+            <DetailRow label={t('admin.dataMaintenance.detail.systemId')} value={item.id} />
           </>
         ),
       };
@@ -98,26 +127,30 @@ const AdminCoreDataDetailModal = ({ open, activeTab, item, onClose, onEdit }) =>
       subtitle: item.code,
       rows: (
         <>
-          <DetailRow label="Mã CLB" value={item.code} />
-          <DetailRow label="Tên câu lạc bộ" value={item.name} />
-          <DetailRow label="Lĩnh vực hoạt động" value={item.field || '—'} />
-          <DetailRow label="Chủ nhiệm hiện tại" value={item.president || '—'} />
+          <DetailRow label={t('admin.dataMaintenance.detail.clubCode')} value={item.code} />
+          <DetailRow label={t('admin.dataMaintenance.detail.clubName')} value={item.name} />
+          <DetailRow label={t('admin.dataMaintenance.detail.clubField')} value={item.field || empty} />
+          <DetailRow label={t('admin.dataMaintenance.detail.president')} value={item.president || empty} />
           <DetailRow
-            label="Trạng thái"
-            value={item.status === 'active' ? 'Hoạt động' : 'Tạm dừng'}
+            label={t('admin.dataMaintenance.table.status')}
+            value={
+              item.status === 'active'
+                ? t('admin.dataMaintenance.detail.clubStatusActive')
+                : t('admin.dataMaintenance.detail.clubStatusPaused')
+            }
           />
-          <DetailRow label="Mã hệ thống" value={item.id} />
+          <DetailRow label={t('admin.dataMaintenance.detail.systemId')} value={item.id} />
         </>
       ),
     };
-  }, [activeTab, item]);
+  }, [activeTab, item, t]);
 
   if (!open || !item || !content) return null;
 
   const tabTitles = {
-    facilities: 'Chi tiết phòng / hội trường',
-    categories: 'Chi tiết danh mục',
-    clubs: 'Chi tiết CLB gốc',
+    facilities: t('admin.dataMaintenance.detail.facilities'),
+    categories: t('admin.dataMaintenance.detail.categories'),
+    clubs: t('admin.dataMaintenance.detail.clubs'),
   };
 
   return (
@@ -136,7 +169,12 @@ const AdminCoreDataDetailModal = ({ open, activeTab, item, onClose, onEdit }) =>
             </h2>
             <p className="admin-data-modal__subtitle">{content.subtitle}</p>
           </div>
-          <button type="button" className="admin-data-modal__close" onClick={onClose} aria-label="Đóng">
+          <button
+            type="button"
+            className="admin-data-modal__close"
+            onClick={onClose}
+            aria-label={t('admin.common.close')}
+          >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
@@ -147,7 +185,7 @@ const AdminCoreDataDetailModal = ({ open, activeTab, item, onClose, onEdit }) =>
 
         <footer className="admin-data-detail__footer">
           <button type="button" className="admin-acc-btn admin-acc-btn--ghost" onClick={onClose}>
-            Đóng
+            {t('admin.common.close')}
           </button>
           <button
             type="button"
@@ -157,7 +195,7 @@ const AdminCoreDataDetailModal = ({ open, activeTab, item, onClose, onEdit }) =>
               onEdit(item);
             }}
           >
-            Chỉnh sửa
+            {t('admin.common.edit')}
           </button>
         </footer>
       </div>

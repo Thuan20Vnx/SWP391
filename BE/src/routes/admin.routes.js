@@ -306,6 +306,8 @@ router.patch('/accounts/:id/status', adminOnly, asyncHandler(adminController.upd
 router.delete('/accounts/:id', adminOnly, asyncHandler(adminController.deleteAccount));
 router.get('/data/overview', adminOnly, asyncHandler(adminController.getDataOverview));
 router.get('/dashboard/stats', adminOnly, asyncHandler(adminController.getDashboardStats));
+router.get('/system-health', adminOnly, asyncHandler(adminController.getSystemHealth));
+router.get('/analytics', adminOnly, asyncHandler(adminController.getAnalytics));
 
 router.get('/event-requests', adminOrCtsv, asyncHandler(eventChangeRequestController.list));
 router.get('/event-requests/:id', adminOrCtsv, asyncHandler(eventChangeRequestController.getById));

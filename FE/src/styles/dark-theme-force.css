@@ -1,0 +1,3308 @@
+/* AUTO-GENERATED dark mode surface overrides — no white backgrounds */
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: var(--surface-border) !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted) !important;
+}
+
+html.dark .page-container.forgot-page .glass-overlay {
+  background: var(--bg-card) !important;
+}
+
+html.dark .badge-circle {
+  background: var(--bg-card) !important;
+}
+
+html.dark .primary-button.btn-countdown {
+  background: var(--bg-card) !important;
+}
+
+html.dark .primary-button.btn-countdown:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .dashboard-body {
+  background: var(--bg-card) !important;
+}
+
+html.dark .btn-logout:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .card-status-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-tag:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .profile-password-strength__bar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .interest-tag-content {
+  background: var(--bg-card) !important;
+}
+
+html.dark .interest-tag-checkbox:hover:not(.disabled) .interest-tag-content {
+  background: var(--bg-card) !important;
+}
+
+html.dark .profile-password-notice {
+  background: var(--bg-card) !important;
+}
+
+html.dark .login-centered-container {
+  background: var(--bg-card) !important;
+}
+
+html.dark .login-centered-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .feid-button-custom {
+  background: var(--bg-card) !important;
+}
+
+html.dark .google-button-custom {
+  background: var(--bg-card) !important;
+}
+
+html.dark .google-button-custom:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .notif-bell-btn:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .notif-bell-btn--open {
+  background: var(--bg-card) !important;
+}
+
+html.dark .btn-card-detail:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .status-neutral {
+  background: var(--bg-card) !important;
+}
+
+html.dark .no-events-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .home-footer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .footer-back-top {
+  background: var(--bg-card) !important;
+}
+
+html.dark .role-badge--student {
+  background: var(--bg-card) !important;
+}
+
+html.dark .role-badge--staff {
+  background: var(--bg-card) !important;
+}
+
+html.dark .role-badge--guest {
+  background: var(--bg-card) !important;
+}
+
+html.dark .role-info-section {
+  background: var(--bg-card) !important;
+}
+
+html.dark .role-info-section--staff {
+  background: var(--bg-card) !important;
+}
+
+html.dark .role-info-section--guest {
+  background: var(--bg-card) !important;
+}
+
+html.dark .profile-display-card-link:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .profile-display-card-link--open {
+  background: var(--bg-card) !important;
+}
+
+html.dark .profile-menu-dropdown {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-item:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-item--unread {
+  background: var(--bg-card) !important;
+}
+
+html.dark .nav-hub::-webkit-scrollbar-thumb {
+  background: var(--bg-card) !important;
+}
+
+html.dark .nav-hub__header {
+  background: var(--bg-card) !important;
+}
+
+html.dark .nav-hub__item:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .nav-hub__item--active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .nav-hub__logout-btn:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .nav-hub__item--disconnect:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .nav-hub__qr-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .nav-hub__qr-btn:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-switch-modal__panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-switch-modal__option {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-switch-modal__close {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-info-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .profile-skeleton {
+  background: var(--bg-card) !important;
+}
+
+html.dark .settings-sidebar__nav {
+  background: var(--bg-card) !important;
+}
+
+html.dark .settings-panel__content {
+  background: var(--bg-card) !important;
+}
+
+html.dark .settings-group__body {
+  background: var(--bg-card) !important;
+}
+
+html.dark .settings-row {
+  background: var(--bg-card) !important;
+}
+
+html.dark .settings-row:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .settings-version-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-timeline-item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-badge--warning {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-badge--muted {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-event-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-empty-state {
+  background: var(--bg-card) !important;
+}
+
+html.dark .my-clubs-stat--highlight {
+  background: var(--bg-card) !important;
+}
+
+html.dark .my-clubs-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .my-clubs-card__unfollow-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .my-clubs-empty {
+  background: var(--bg-card) !important;
+}
+
+html.dark .my-clubs-empty__icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .shimmer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-calendar-nav__btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-calendar-nav__btn:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-calendar-nav__today {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-calendar-nav__today:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-view-toggle {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-view-toggle__btn--active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-calendar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-calendar__weekdays {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-calendar__cell--today {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-calendar__cell--past {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-calendar__cell--future {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-schedule-sidebar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-review-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-tag {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-review-done {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-announcement-item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-announcement-item--unread {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-announcement-item__icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .student-announcement-detail {
+  background: var(--bg-card) !important;
+}
+
+html.dark .static-page {
+  background: var(--bg-card) !important;
+}
+
+html.dark .static-page__hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .static-page__content section {
+  background: var(--bg-card) !important;
+}
+
+html.dark .events-page__load-more {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-discovery-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-discovery-card__media {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-discovery-card__registered-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-discovery-card__postponed-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-discovery-card__info-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-discovery-card__actions {
+  background: var(--bg-card) !important;
+}
+
+html.dark .events-page__footer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .events-page__social-row a {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page__hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page__hero-tag {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page__hero-tag:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page__hero-tag.is-active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page__hero-stat {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page__hero-stat-icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page__view-toggle button {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page__view-toggle button.is-active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-discovery-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-discovery-card__featured {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-discovery-card__date-box {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clubs-page__footer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-detail-page {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-detail-page__logo-wrap {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-detail-page__section {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-detail-page__stats-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-detail-page__links-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-detail-page__quick-info {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-detail-page__quick-icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-detail-page__link-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .club-upcoming-event-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page__card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page__speaker-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page__organizer-logo img {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page__organizer-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page__register-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page__share-actions button:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-app-shell {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-app-shell {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-portal-shell {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-portal-layout {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-portal-layout.home-layout {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-home-layout.home-layout {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-portal-body {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-portal-layout .home-header {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-portal-layout .home-footer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-portal-hamburger {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-portal-hamburger:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-header-nav-toggle {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-home-section-empty {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-stat-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .btn-card-view {
+  background: var(--bg-card) !important;
+}
+
+html.dark .btn-card-view:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-app-shell .ctsv-sidebar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-top-header {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-nav-link:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-nav-link.active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-sidebar-logout {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-hero-media {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-hero-img--placeholder {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-source--school {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-source--partner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-source--club {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-hero-stat {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-banner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-info-quick-item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-info-quick-icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-info-quick-icon--status {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-info-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-moderation-edit-ready {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-ticket-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-ticket-card--accent {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-fill-bar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-ticket-types li {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-actions {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-collapse-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-collapse-toggle:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-collapse-chevron {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-collapse-toggle:hover .ctsv-ed-collapse-chevron {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-cal-toolbar-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-cal-cell:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-cal-sidebar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-cal-sidebar-item:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-cal-source-tag--school {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-cal-source-tag--partner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-cal-source-tag--club {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-profile-hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-profile-interests {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-profile-security-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-profile-security-toggle:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-profile-security-chevron {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-profile-security-toggle:hover .ctsv-profile-security-chevron {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-profile-security-note {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-create-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-form-section {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-radio-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-radio-card:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-radio-indicator {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-price-type-btn.active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ticket-table th {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ticket-remove {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-btn-add-ticket {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-btn-add-ticket:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-banner-dropzone {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-banner-dropzone:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-banner-dropzone.is-dragover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-btn-banner-remove {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-speaker-table-wrap {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-speaker-table th {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-speaker-avatar-dropzone {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-speaker-avatar-dropzone:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-speaker-avatar-remove {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-ed-speaker-avatar--fallback {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-btn-draft {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-crop-close {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-crop-tool-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-crop-preview-box {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-hero::before {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-hero::after {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-hero-stat {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-hero__badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-create-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-stat-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-stat-card--skeleton {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-stat-icon--amber {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-stat-icon--green {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-quick-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-quick-card:hover .ctsv-dash-quick-icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-panel--accent {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-event-row:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-event-row--skeleton {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-pending-item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-dash-pending-item--skeleton {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-table thead tr {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-table tbody tr:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-badge--amber {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-badge--green {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-badge--red {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-badge--blue {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-badge--slate {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-detail-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partners-pager-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-status--amber {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-status--blue {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-status--green {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-status--red {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-status--slate {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-contact-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-avatar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-banner--info {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-banner--danger {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-banner--warn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-stat {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-file {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-file-icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-pd-action-bar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partner-dialog {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partner-dialog-cancel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-partner-form-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-hero-stat {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-compose-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-compose-toggle:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-compose-chevron {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-compose-toggle:hover .ctsv-announce-compose-chevron {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-form-card:not(.ctsv-announce-form-card--nested) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .app-confirm-dialog {
+  background: var(--bg-card) !important;
+}
+
+html.dark .app-confirm-cancel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-tip-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-preview-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-preview-event {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-event {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-btn:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-btn--event:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-btn--hide:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-btn--delete:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-btn--edit:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-btn--more.is-open {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-history-btn--more:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-kebab-menu {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-kebab-item:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-announce-kebab-item--danger:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-events-hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-events-hero-stat {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-events-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-events-card-media {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-events-empty {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-events-card--skeleton .sk {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-reports-toolbar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-reports-summary-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-reports-table-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-reports-table th {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-reports-row:hover td {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-reports-source--school {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-reports-source--partner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-reports-source--club {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-reports-fill-bar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-hero-img--placeholder {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-demo-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-source--school {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-source--partner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-source--club {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-phase {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-highlights {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-stat {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-stat--green {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-timeline-bar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-ticket-bar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-rating-bar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-table th {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-reg-status--attended {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-reg-status--registered {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-rd-reg-status--cancelled {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-ticket-modal {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-ticket-modal__close {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-ticket-modal__badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-ticket-modal__footer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-ticket-modal__qr {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page__cancel-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page__cancel-btn:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-page {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-page .nav-link-manager.active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-sidebar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-identity-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-identity-icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-sidebar-divider {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-nav-item:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-nav-item--active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-table-wrapper {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-status-active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-status-pending {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-status-ended {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-action-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-dropdown-menu {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-page-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-modal {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-modal-close {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-step-circle {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-step-line {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-toggle::after {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-confirm-details {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-main:has(.clb-profile-view) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-profile-edit-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-profile-edit-btn:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-profile-form {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-profile-cover-wrap {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-profile-cover-btn:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-profile-avatar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-profile-ai-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-profile-ai-btn:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-profile-actions {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-reports-summary-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-header-block {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-status-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-bento-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-table-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-icon-btn:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-table th {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-pagination {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-page-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-detail-footer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-cancel-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-report-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-overview-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-moderation-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-moderation-radio {
+  background: var(--bg-card) !important;
+}
+
+html.dark .qr-scan-page {
+  background: var(--bg-card) !important;
+}
+
+html.dark .qr-scan-action-toggle__btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-table thead {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-table tbody tr:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-user__avatar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-badge--ctsv {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-badge--student {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-badge--attendee {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-badge--icpdp {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-badge--partner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-badge--club {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-badge--admin {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-actions {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-action-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-action-btn--view:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-action-btn--edit:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-role-picker__card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-role-picker__card:hover:not(.admin-role-picker__card--disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-role-picker__icon--ctsv {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-role-picker__icon--icpdp {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-role-picker__icon--partner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-role-picker__icon--club {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-role-picker__icon--student {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-role-picker__icon--attendee {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-action-btn--danger:hover:not(:disabled):not(.admin-acc-action-btn--disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-detail-status--active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-detail-status--inactive {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-pagination {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-page-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-page-btn--active,
+html.dark .admin-acc-page-btn--active:hover:not(:disabled),
+html.dark .admin-acc-page-btn--active:disabled {
+  background: #f26f21 !important;
+  border-color: #f26f21 !important;
+  color: #fff !important;
+  opacity: 1;
+}
+
+html.dark .admin-acc-modal {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-modal__close {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-modal__close:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-modal__toggle-row {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-modal__switch-thumb {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-period {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-period__btn:hover:not(.admin-analytics-period__btn--active) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-period__btn--active,
+html.dark .admin-analytics-period__btn--active:hover,
+html.dark .admin-analytics-period__btn--active:focus-visible {
+  background: #f26f21 !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(242, 111, 33, 0.3);
+}
+
+html.dark .admin-analytics-export {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-export:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-star-bars__track {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-cat-list__track {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-table thead th {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-code {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-page {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-stat-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-metric-hero__badge--up {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-traffic-meta {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-traffic-meta__icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-mini-metrics__item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sparkline-block {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-channel-bars__track {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-goal-progress {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-goal-progress__track {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-revenue-breakdown__track {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-system-panel__hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-system-services__item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-status-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-chart-kpis__item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-chart-kpis__item--peak {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-chart-kpis__item--growth {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-modal {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-modal__toolbar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-modal__close {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-modal__close:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-table thead {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-table tbody tr:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-badge--danger {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-badge--default {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-modal__footer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-log-modal__btn-close {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-detail-summary {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-detail-summary__item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-detail-table__row--highlight {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-detail-delta--up {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-detail-delta--down {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-events-page__count {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-events-empty {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-card__head {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-card__badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-card__thumb-wrap {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-card__desc {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-tickets__table th {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-card__footer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-card__actions-bar {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-btn--reject {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-proposal-btn--reject:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-check-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-check-card:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-check-card--checked {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-check-card__box {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-toggle {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-toggle__switch {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-acc-modal.admin-data-modal {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-modal {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-modal__header {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-modal__form {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-modal__close {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-modal__close:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-detail__grid {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-detail__tags li {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-detail__footer {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-cat-code {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-table thead tr {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-table td {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-table tbody tr.admin-data-row--clickable:hover td {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-table tbody tr.admin-data-row--clickable:focus-visible td {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-room__icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-code {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-status--ready {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-status--maintenance {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-icon-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-icon-btn:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-icon-btn--danger:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-pagination {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-page-arrow {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-page-arrow:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-data-page-num {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-requests__empty {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-requests__empty code {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-request-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-request-badge--edit {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-request-badge--hide {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-request-badge--delete {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-request-badge--pending {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-request-badge--done {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-request-badge--rejected {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-request-reason {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-event-request-diff__col--new {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-app-shell .admin-shell-main {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-app-shell .admin-layout.admin-shell-content {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-hamburger-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-drawer-root .admin-sidebar--overlay {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partners-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partners-upload__zone {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partners-upload__zone:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partners-upload__zone--drag {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partners-upload__zone--has-file {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partners-upload__icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partners-btn-cancel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partners-btn-cancel:hover:not(:disabled) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-public-home__link-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-system__action-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-system__action-card:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .event-detail-page__admin-info-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-hero__quick .admin-filter-dropdown__trigger {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-hero__stat {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-hero__stat--total {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-dept-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-list__more button {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-card__status {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-card__status--approved {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-card__status--pending_admin {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-dept-detail__accounts {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-dept-detail__club-approvals {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-collapsible {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-notify__detail-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-notify__history {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-notify__compose {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partner-detail__header--company {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partner-detail__contact {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partner-detail__panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partner-detail__links button {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-partner-detail__modal-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-events__aside-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-events__proposals {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-events__empty {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-events__error {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-fpt-unit-events__scope-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-btn--danger {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-btn--danger:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-metric {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-infra-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-infra-card__head {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-maint-preview {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-detail-block {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-test-result--ok {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-test-result--err {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-env-item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-status-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-group__title {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-changelog__item {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-changelog__item--danger {
+  background: var(--bg-card) !important;
+}
+
+html.dark .admin-sys-danger {
+  background: var(--bg-card) !important;
+}
+
+html.dark .system-maint-page__card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-page {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-stat {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-stat--accent {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-mark-read {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-card--unread {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-card__icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-card__category {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-empty {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-empty__icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-skeleton {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail-back {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__hero {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__badge--category {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__badge--important {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__badge--notice-info {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__badge--notice-action {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__badge--notice-urgent {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__sender {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__avatar--photo {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__role--ctsv {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__role--icpdp {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__role--partner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__role--club {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__role--school {
+  background: var(--bg-card) !important;
+}
+
+html.dark .announcements-detail__sender-icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-chairman-transfer__toggle {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-chairman-transfer__panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-chairman-transfer__alert {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-chairman-transfer__steps {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-qr-generate-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-qr-generate-card__body {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-qr-expiry-mode__btn {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-qr-expiry-datetime {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ev-qr-zoom-modal {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-dash-stat-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .clb-dash-section {
+  background: var(--bg-card) !important;
+}
+
+html.dark .icpdp-proposal-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .icpdp-action-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .icpdp-app-shell .hero-tag-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark [data-theme="dark"] .icpdp-action-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark [data-theme="dark"] .icpdp-view-banner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .icpdp-app-shell .ctsv-portal-body {
+  background: var(--bg-card) !important;
+}
+
+html.dark .icpdp-app-shell .ctsv-portal-body:has(.hero-banner-slider) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .icpdp-proposal-note-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-settings-nav {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-settings-nav-item:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-settings-nav-item.active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-settings-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .notif-toggle-item:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark [data-theme="dark"] .partner-settings-nav-item.active {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-panel__head {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-panel__icon {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-item--unread:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-item__tone--warning {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-item__new {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-panel__link {
+  background: var(--bg-card) !important;
+}
+
+html.dark .header-notif-panel__link:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-app-shell .partner-portal-inner {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-app-shell .ctsv-portal-body:has(.hero-banner-slider) {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-app-shell .hero-tag-badge {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-perf-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-perf-bar-track {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-profile-card {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-profile-collapse-toggle:hover {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-profile-collapse-chevron {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-profile-collapse-toggle:hover .partner-profile-collapse-chevron {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-user-avatar-preview {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-company-logo-preview {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-toggle__slider::before {
+  background: var(--bg-card) !important;
+}
+
+html.dark .partner-app-shell .event-detail-page--embedded {
+  background: var(--bg-card) !important;
+}
+
+html.dark .ctsv-panel {
+  background: var(--bg-card) !important;
+}
+
+html.dark .interest-tag-checkbox input:checked ~ .interest-tag-content {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .site-header__search-input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .site-header__search .search-input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .search-input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .search-input:focus {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .home-recommend-tab {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .home-recommend-tab.is-active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .chat-input-form {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .settings-switch__thumb {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .student-outline-btn {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .my-clubs-search {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .my-clubs-filter {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .my-clubs-filter:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .my-clubs-filter.is-active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .my-clubs-tab-count {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .student-tab--active .my-clubs-tab-count {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .events-page__filter-field {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .events-page__state-pill {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .events-page__state-pill:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .events-page__state-pill.is-active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .event-discovery-card__meta-chip {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .event-discovery-card__btn--outline {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .clubs-page__hero-search-field {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .club-detail-page__btn--outline.is-active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .status-pill.status-warning {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-btn-secondary {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-tabs button {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-ed-tabs {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-ed-tab.is-active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-cal-filter-chip {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-cal-filter-chip.is-active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-cal-cell--selected {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-profile-page .profile-input-group input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-profile-page .profile-input-group textarea {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-profile-page .profile-input-group input:focus {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-profile-page .profile-input-group textarea:focus {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-profile-page .profile-input-group input[readonly] {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-profile-page .profile-input-group input:disabled {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-profile-page .profile-input-group textarea:disabled {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-radio-card.is-selected {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-btn-banner-secondary {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-btn-banner-secondary:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-input--error {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .otp-input__box {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .otp-input.is-disabled .otp-input__box {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-dash-btn--ghost {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-dash-btn--ghost:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-dash-btn--outline {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-partners-search input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-partners-search input:focus {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-partners-filter select {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-pd-btn--outline {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-pd-btn--outline:hover:not(:disabled) {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-pd-btn--danger-outline {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-pd-btn--danger-outline:hover:not(:disabled) {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-cat-pill--school {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-textarea {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-select {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-input:focus {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-textarea:focus {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-select:focus {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-reset {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .announce-target-chip {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .announce-target-chip--active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .announce-notice-category-chip--action.announce-target-chip--active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-notice-pill--info {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-notice-pill--action {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-announce-notice-pill--urgent {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .app-select__trigger {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .app-select__trigger:hover:not(:disabled) {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .app-select.is-open .app-select__trigger {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .app-select__trigger:focus-visible {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .app-select__menu {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .app-select__option:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .app-select__option.is-selected {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-events-filter-card {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-events-search {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-events-search:focus-within {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-events-filter-summary {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-reports-search {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-reports-phase-chip {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ctsv-reports-phase-chip.is-active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .clb-input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .clb-btn-secondary {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .clb-reports-search {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .clb-reports-filter {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ev-btn-outline:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ev-btn-outline:first-child:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ev-search-box {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ev-empty-tab {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ev-moderation-select {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .ev-moderation-textarea {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .qr-scan-code-input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-filter-tab {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-search {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-toggle__thumb {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-action-btn--reset:hover:not(:disabled) {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-action-btn__icon-wrap--reset {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-action-btn--reset:hover:not(:disabled) .admin-acc-action-btn__icon-wrap--reset {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-role-picker__card--selected {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-reset-banner {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-reset-hero-icon {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-modal__input--readonly {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-reset-user {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-modal__field .admin-filter-dropdown__trigger {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-acc-btn--ghost {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-live-pill {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-system-services__pill--online {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-modal__filters-toggle {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-modal__filters-toggle:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-modal__filters-toggle--open {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-modal__filters-badge {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-modal__filters {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-filters-card {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-search__input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-search__input:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-search__input:focus {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-filter-tabs {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-filter-tab--active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-filter-dropdown__trigger {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-filter-dropdown__trigger:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-filter-dropdown__trigger--open {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-filter-dropdown__menu {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-filter-dropdown__option:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-filter-dropdown__option--active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-filter-dropdown__option-icon {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-filter-dropdown__option--active .admin-filter-dropdown__option-icon {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-filter-reset {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-log-filter-reset:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-proposal-btn--ghost {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-proposal-btn--ghost:hover:not(:disabled) {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-select__trigger {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-select__trigger:disabled {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-select__menu {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-select__option:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-select__option--active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-textarea {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-input:disabled {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-textarea:disabled {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-toggle__thumb {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-tabs {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-tab:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-data-tab--active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-event-requests__filter-group .admin-filter-dropdown__trigger {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .site-header__search-toggle {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .site-header__search-toggle:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-fpt-toolbar__reset {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-fpt-dept-card__btn--ghost {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-fpt-toolbar__pill {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-fpt-toolbar__pill.is-active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-fpt-toolbar__pill.is-active .admin-fpt-toolbar__pill-count {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-fpt-list__reset {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-fpt-unit-card__btn--ghost {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-partner-detail__btn--ghost {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-fpt-unit-events__search {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-sys-btn--ghost {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-sys-tab {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-sys-tab--active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-system-services__pill--degraded {
+  background: var(--surface-muted) !important;
+  border: 1px solid #fde68a !important;
+  color: #fbbf24 !important;
+}
+
+html.dark .admin-sys-switch__thumb {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-sys-input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .admin-sys-input:disabled {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .announcements-tab {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .icpdp-proposals-search {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .icpdp-status-chip {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .icpdp-status-chip.is-active {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .header-notif-panel__count-pill {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .header-notif-item__chip--warning {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .partner-btn-outline--danger {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .partner-btn-outline--danger:hover {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .partner-field input {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .partner-field textarea {
+  background: var(--surface-muted) !important;
+}
+
+html.dark .partner-field input:disabled {
+  background: var(--surface-muted) !important;
+}
+
+/* ── Inline styles, shells, text, primary CTAs ── */
+html.dark [style*="background: #fff"],
+html.dark [style*="background:#fff"],
+html.dark [style*="background: #ffffff"],
+html.dark [style*="background:#ffffff"],
+html.dark [style*="background: rgb(255, 255, 255)"],
+html.dark [style*="background-color: #fff"],
+html.dark [style*="background-color:#fff"],
+html.dark [style*="background-color: #ffffff"],
+html.dark [style*="background-color:#ffffff"] {
+  background: var(--bg-card) !important;
+  border-color: var(--surface-border) !important;
+}
+
+html.dark .admin-app-shell,
+html.dark .admin-public-shell,
+html.dark .ctsv-app-shell,
+html.dark .partner-app-shell,
+html.dark .icpdp-app-shell,
+html.dark .ctsv-portal-body,
+html.dark .partner-portal-inner {
+  background-color: var(--bg-light) !important;
+  color: var(--text-main);
+}
+
+html.dark .ctsv-btn-primary,
+html.dark .ctsv-dash-btn--primary,
+html.dark .btn-auth-signup,
+html.dark .ctsv-announce-submit,
+html.dark button[class*="--primary"],
+html.dark button[class*="btn-primary"],
+html.dark a[class*="--primary"] {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+html.dark .logo-container,
+html.dark .chatbot-window,
+html.dark .my-clubs-card__status,
+html.dark .admin-fpt-unit-card__dept-tag,
+html.dark .clb-profile-cover-btn {
+  background: var(--bg-card) !important;
+  color: var(--text-main);
+}
+
+html.dark .ctsv-events-card-source--club {
+  background: var(--surface-muted) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--surface-border) !important;
+}
+
+html.dark .chatbot-window {
+  border-color: var(--surface-border) !important;
+}
+
+html.dark body {
+  background-color: var(--bg-light) !important;
+}

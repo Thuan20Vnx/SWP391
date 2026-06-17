@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { dispatchSettingsSync } from '../utils/settingsEvents';
 
 const STORAGE_KEY = 'fevents_settings';
 
@@ -22,15 +23,23 @@ export const loadSettings = () => {
 
 export const saveSettings = (settings) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  dispatchSettingsSync();
 };
 
 export const applyDarkMode = (enabled) => {
   document.documentElement.classList.toggle('dark', enabled);
   document.body.classList.toggle('dark', enabled);
+  document.documentElement.setAttribute('data-theme', enabled ? 'dark' : 'light');
+};
+
+export const applyLanguage = (language = 'vi') => {
+  document.documentElement.lang = language;
 };
 
 export const initThemeFromStorage = () => {
-  applyDarkMode(loadSettings().darkMode);
+  const settings = loadSettings();
+  applyDarkMode(settings.darkMode);
+  applyLanguage(settings.language);
 };
 
 export const useSettingsPreferences = () => {
@@ -41,6 +50,7 @@ export const useSettingsPreferences = () => {
       const next = { ...prev, [key]: value };
       saveSettings(next);
       if (key === 'darkMode') applyDarkMode(value);
+      if (key === 'language') applyLanguage(value);
       return next;
     });
   }, []);

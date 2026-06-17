@@ -1,23 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import AdminFptNotifBell from '../../../components/admin/AdminFptNotifBell';
 import PublicAdminShell from '../../../layouts/PublicAdminShell';
 import SiteFooter from '../../../components/SiteFooter';
 import { fetchAdminAccounts, fetchClubRegistrations } from '../../../services/adminApi';
-import { buildDepartmentUnits, FPT_TYPE_META } from '../../../data/adminFptSystemData';
+import {
+  buildDepartmentUnits,
+  localizeDepartmentUnit,
+  resolveFptTypeLabel,
+} from '../../../data/adminFptSystemData';
 import { getAccountInitials } from '../../../data/adminAccountsData';
+import { useTranslation } from '../../../i18n/I18nContext';
 import '../../../styles/admin-public-pages.css';
-
-const ROLE_LABELS = {
-  ctsv: 'Phòng Công tác Sinh viên (CTSV)',
-  icpdp: 'IC-PDP · Chương trình Quốc tế',
-};
 
 const AdminFptDeptDetail = ({ showToast }) => {
   const { deptType } = useParams();
   const navigate = useNavigate();
-  const unit = buildDepartmentUnits().find((d) => d.type === deptType);
-  const meta = FPT_TYPE_META[deptType] || FPT_TYPE_META.ctsv;
+  const { t } = useTranslation();
+  const rawUnit = buildDepartmentUnits().find((d) => d.type === deptType);
+  const unit = useMemo(
+    () => (rawUnit ? localizeDepartmentUnit(rawUnit, t) : null),
+    [rawUnit, t],
+  );
+  const typeLabel = resolveFptTypeLabel(deptType, t);
 
   const [accounts, setAccounts] = useState([]);
   const [total, setTotal] = useState(0);
@@ -38,9 +43,9 @@ const AdminFptDeptDetail = ({ showToast }) => {
         setAccounts(res.accounts || []);
         setTotal(res.total ?? res.accounts?.length ?? 0);
       })
-      .catch(() => showToast?.('Không tải được danh sách tài khoản.', 'error'))
+      .catch(() => showToast?.(t('admin.fpt.dept.loadAccountsFail'), 'error'))
       .finally(() => setLoading(false));
-  }, [unit?.accountsRole, showToast]);
+  }, [unit?.accountsRole, showToast, t]);
 
   useEffect(() => {
     if (!isIcpdpDept) return;
@@ -55,29 +60,33 @@ const AdminFptDeptDetail = ({ showToast }) => {
     return (
       <PublicAdminShell activeNav="home">
         <div className="admin-fpt-dept-detail">
-          <p>Không tìm thấy đơn vị.</p>
-          <Link to="/">← Quay lại</Link>
+          <p>{t('admin.fpt.dept.notFound')}</p>
+          <Link to="/">{t('admin.fpt.dept.back')}</Link>
         </div>
         <SiteFooter />
       </PublicAdminShell>
     );
   }
 
+  const managePrimaryLabel = isIcpdpDept ? t('admin.fpt.dept.icpdp.manage') : unit.manageLabel;
+
   return (
     <PublicAdminShell activeNav="home">
       <div className="admin-fpt-system home-layout">
         <main className="admin-fpt-dept-detail">
           <Link to="/" className="admin-partner-detail__back">
-            ← Quay lại Hệ thống FPT
+            {t('admin.fpt.dept.back')}
           </Link>
 
           <div className="admin-fpt-dept-detail__hero">
             <div className="admin-fpt-dept-detail__cover-wrap">
               <img src={unit.coverImage} alt="" className="admin-fpt-dept-detail__cover" />
-              <span className={`admin-fpt-unit-card__badge ${meta.badgeClass}`}>{meta.label}</span>
+              <span className={`admin-fpt-unit-card__badge ${unit.type === 'icpdp' ? 'admin-fpt-unit-card__badge--icpdp' : 'admin-fpt-unit-card__badge--ctsv'}`}>
+                {typeLabel}
+              </span>
             </div>
             <div className="admin-fpt-dept-detail__intro">
-              <span className="admin-fpt-dept-detail__role">{ROLE_LABELS[deptType] || unit.subtitle}</span>
+              <span className="admin-fpt-dept-detail__role">{unit.roleLabel || unit.subtitle}</span>
               <h1>{unit.name}</h1>
               <p>{unit.description}</p>
               <div className="admin-fpt-dept-detail__hero-actions">
@@ -86,7 +95,7 @@ const AdminFptDeptDetail = ({ showToast }) => {
                   className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--primary"
                   onClick={() => navigate(isIcpdpDept ? clubRegListPath : unit.manageLink)}
                 >
-                  {isIcpdpDept ? 'Duyệt CLB mới' : unit.manageLabel}
+                  {managePrimaryLabel}
                 </button>
                 {isIcpdpDept && (
                   <button
@@ -94,7 +103,7 @@ const AdminFptDeptDetail = ({ showToast }) => {
                     className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--ghost"
                     onClick={() => navigate('/admin/event-requests')}
                   >
-                    Yêu cầu sự kiện
+                    {t('admin.fpt.dept.eventRequests')}
                   </button>
                 )}
                 <button
@@ -102,7 +111,7 @@ const AdminFptDeptDetail = ({ showToast }) => {
                   className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--ghost"
                   onClick={() => navigate('/admin/announcements')}
                 >
-                  Gửi thông báo
+                  {t('admin.fpt.dept.sendNotification')}
                 </button>
                 <AdminFptNotifBell className="admin-fpt-notif-bell--inline" />
               </div>
@@ -111,16 +120,20 @@ const AdminFptDeptDetail = ({ showToast }) => {
 
           <section className="admin-fpt-dept-detail__accounts">
             <header>
-              <h2>Tài khoản {meta.label}</h2>
+              <h2>{t('admin.fpt.dept.accountsTitle', { label: typeLabel })}</h2>
               <p>
-                {loading ? 'Đang tải...' : `${total} tài khoản trong hệ thống`}
+                {loading
+                  ? t('admin.fpt.section.partnersLoading')
+                  : t('admin.fpt.dept.accountsCount', { count: total })}
               </p>
             </header>
 
             {loading ? (
-              <p className="admin-partner-detail__muted">Đang tải danh sách...</p>
+              <p className="admin-partner-detail__muted">{t('admin.fpt.dept.accountsLoading')}</p>
             ) : accounts.length === 0 ? (
-              <p className="admin-partner-detail__muted">Chưa có tài khoản {meta.label}.</p>
+              <p className="admin-partner-detail__muted">
+                {t('admin.fpt.dept.accountsEmpty', { label: typeLabel })}
+              </p>
             ) : (
               <ul className="admin-fpt-dept-detail__account-list">
                 {accounts.map((acc) => (
@@ -138,7 +151,9 @@ const AdminFptDeptDetail = ({ showToast }) => {
                         acc.isActive !== false ? ' is-active' : ''
                       }`}
                     >
-                      {acc.isActive !== false ? 'Hoạt động' : 'Tạm khóa'}
+                      {acc.isActive !== false
+                        ? t('admin.fpt.dept.accountActive')
+                        : t('admin.fpt.dept.accountLocked')}
                     </span>
                   </li>
                 ))}
@@ -150,29 +165,27 @@ const AdminFptDeptDetail = ({ showToast }) => {
               className="admin-fpt-dept-detail__manage-link"
               onClick={() => navigate(`/admin/accounts?role=${unit.accountsRole}`)}
             >
-              Quản lý tất cả tài khoản {meta.label} →
+              {t('admin.fpt.dept.manageAllAccounts', { label: typeLabel })}
             </button>
           </section>
 
           {isIcpdpDept && (
             <section className="admin-fpt-dept-detail__club-approvals">
               <header>
-                <h2>Duyệt CLB mới</h2>
+                <h2>{t('admin.fpt.dept.clubApprovals')}</h2>
                 <p>
                   {clubRegsLoading
-                    ? 'Đang tải...'
+                    ? t('admin.fpt.section.partnersLoading')
                     : clubRegistrations.length > 0
-                      ? `${clubRegistrations.length} đơn đang chờ IC-PDP xét duyệt`
-                      : 'Không có đơn thành lập CLB đang chờ'}
+                      ? t('admin.fpt.dept.clubPendingCount', { count: clubRegistrations.length })
+                      : t('admin.fpt.dept.clubPendingEmpty')}
                 </p>
               </header>
 
               {clubRegsLoading ? (
-                <p className="admin-partner-detail__muted">Đang tải danh sách...</p>
+                <p className="admin-partner-detail__muted">{t('admin.fpt.dept.accountsLoading')}</p>
               ) : clubRegistrations.length === 0 ? (
-                <p className="admin-partner-detail__muted">
-                  Sinh viên có thể gửi đơn thành lập CLB qua API — hiện chưa có đơn chờ duyệt.
-                </p>
+                <p className="admin-partner-detail__muted">{t('admin.fpt.dept.clubPendingHint')}</p>
               ) : (
                 <ul className="admin-fpt-dept-detail__club-reg-list">
                   {clubRegistrations.map((reg) => (
@@ -188,7 +201,7 @@ const AdminFptDeptDetail = ({ showToast }) => {
                         className="admin-fpt-dept-detail__club-reg-btn"
                         onClick={() => navigate(`${clubRegListPath}/${reg.id}`)}
                       >
-                        Xét duyệt
+                        {t('admin.fpt.dept.review')}
                       </button>
                     </li>
                   ))}
@@ -200,7 +213,7 @@ const AdminFptDeptDetail = ({ showToast }) => {
                 className="admin-fpt-dept-detail__manage-link"
                 onClick={() => navigate(clubRegListPath)}
               >
-                Xem tất cả đơn đăng ký CLB →
+                {t('admin.fpt.dept.viewAllClubRegs')}
               </button>
             </section>
           )}

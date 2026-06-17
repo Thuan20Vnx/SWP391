@@ -1,6 +1,8 @@
 const adminService = require('../services/admin.service');
 const adminDataService = require('../services/admin.data.service');
 const adminDashboardService = require('../services/admin.dashboard.service');
+const systemHealthService = require('../services/systemHealth.service');
+const adminAnalyticsService = require('../services/admin.analytics.service');
 
 const listAccounts = async (req, res) => {
   const result = await adminService.listAccounts({
@@ -47,6 +49,17 @@ const getDashboardStats = async (req, res) => {
   res.status(200).json({ success: true, stats });
 };
 
+const getSystemHealth = async (req, res) => {
+  const health = await systemHealthService.getSystemHealth();
+  res.status(200).json({ success: true, health });
+};
+
+const getAnalytics = async (req, res) => {
+  const period = req.query.period || 'month';
+  const analytics = await adminAnalyticsService.getAdminAnalytics(period);
+  res.status(200).json({ success: true, analytics });
+};
+
 module.exports = {
   listAccounts,
   getAccount,
@@ -56,4 +69,6 @@ module.exports = {
   deleteAccount,
   getDataOverview,
   getDashboardStats,
+  getSystemHealth,
+  getAnalytics,
 };

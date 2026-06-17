@@ -33,6 +33,7 @@ const AdminFilterDropdown = ({
   menuOpen,
   onMenuToggle,
   menuId,
+  triggerLabel,
 }) => {
   const rootRef = useRef(null);
   const selected = options.find((opt) => opt.value === value) || options[0];
@@ -65,14 +66,14 @@ const AdminFilterDropdown = ({
         aria-expanded={menuOpen}
         onClick={() => onMenuToggle(menuOpen ? null : menuId)}
       >
-        <span className="admin-filter-dropdown__value">{selected?.label}</span>
+        <span className="admin-filter-dropdown__value">{triggerLabel || selected?.label}</span>
         <ChevronIcon open={menuOpen} />
       </button>
 
       {menuOpen && (
         <ul className="admin-filter-dropdown__menu" role="listbox" aria-label={label}>
           {options.map((opt) => {
-            const isActive = opt.value === value;
+            const isActive = !triggerLabel && opt.value === value;
             return (
               <li key={opt.value} role="option" aria-selected={isActive}>
                 <button

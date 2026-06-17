@@ -14,12 +14,12 @@ import {
   requestAdminPartnerTermination,
 } from '../../../services/adminApi';
 import {
-  PARTNER_STATUS_LABEL,
-  PARTNER_STATUS_LABEL_DETAIL,
   PARTNER_STATUS_TONE,
   formatPartnerDate,
   formatVnd,
+  getPartnerStatusDetailLabel,
 } from '../../../utils/partnerDisplay';
+import { useTranslation } from '../../../i18n/I18nContext';
 
 const resolvePartnerId = (raw) => String(raw || '').replace(/^partner-/, '').trim();
 
@@ -32,6 +32,7 @@ const EMPTY_MEMBER_FORM = {
 };
 
 const AdminPartnerDetail = ({ showToast }) => {
+  const { t } = useTranslation();
   const { partnerId: routePartnerId } = useParams();
   const partnerId = resolvePartnerId(routePartnerId);
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ const AdminPartnerDetail = ({ showToast }) => {
 
   const load = useCallback(async () => {
     if (!partnerId) {
-      setLoadError('ID đối tác không hợp lệ.');
+      setLoadError(t('admin.partnerDetail.invalidId'));
       return;
     }
     try {
@@ -65,11 +66,11 @@ const AdminPartnerDetail = ({ showToast }) => {
       setEventRequest(d.eventRequest || null);
       setLoadError('');
     } catch (e) {
-      setLoadError(e.message || 'Không tải được thông tin đối tác.');
+      setLoadError(e.message || t('admin.partnerDetail.loadError'));
       setPartner(null);
       setMembers([]);
     }
-  }, [partnerId]);
+  }, [partnerId, t]);
 
   useEffect(() => {
     setLoading(true);
@@ -80,7 +81,7 @@ const AdminPartnerDetail = ({ showToast }) => {
     setBusy(true);
     try {
       await approveAdminPartner(partnerId);
-      showToast?.('Đã phê duyệt đối tác thành công.', 'success');
+      showToast?.(t('admin.partnerApprovals.toast.approved'), 'success');
       setConfirmApprove(false);
       await load();
     } catch (e) {
@@ -95,7 +96,7 @@ const AdminPartnerDetail = ({ showToast }) => {
     setBusy(true);
     try {
       await rejectAdminPartner(partnerId, rejectReason.trim());
-      showToast?.('Đã từ chối đơn đối tác.', 'info');
+      showToast?.(t('admin.partnerDetail.toast.rejected'), 'info');
       setRejectOpen(false);
       setRejectReason('');
       await load();
@@ -108,13 +109,13 @@ const AdminPartnerDetail = ({ showToast }) => {
 
   const handleTermination = async () => {
     if (!terminationReason.trim()) {
-      showToast?.('Vui lòng nhập lý do yêu cầu hủy.', 'error');
+      showToast?.(t('admin.partnerDetail.toast.terminationReasonRequired'), 'error');
       return;
     }
     setBusy(true);
     try {
       await requestAdminPartnerTermination(partnerId, terminationReason.trim());
-      showToast?.('Đã gửi yêu cầu hủy tới đối tác (email + thông báo).', 'success');
+      showToast?.(t('admin.partnerDetail.toast.terminationSent'), 'success');
       setTerminationConfirm(false);
       setTerminationOpen(false);
       setTerminationReason('');
@@ -129,7 +130,7 @@ const AdminPartnerDetail = ({ showToast }) => {
   const handleAddMember = async () => {
     const { fullname, email, phone, title, activateNow } = memberForm;
     if (!fullname.trim() || !email.trim()) {
-      showToast?.('Họ tên và email là bắt buộc.', 'error');
+      showToast?.(t('admin.partnerDetail.toast.memberRequired'), 'error');
       return;
     }
     setBusy(true);
@@ -142,9 +143,9 @@ const AdminPartnerDetail = ({ showToast }) => {
         activateNow,
       });
       const pwdNote = res.defaultPassword
-        ? ` Mật khẩu mặc định: ${res.defaultPassword}`
+        ? t('admin.partnerDetail.toast.defaultPassword', { password: res.defaultPassword })
         : '';
-      showToast?.(`${res.message || 'Đã thêm tài khoản.'}${pwdNote}`, 'success');
+      showToast?.(`${res.message || t('admin.partnerDetail.toast.memberAdded')}${pwdNote}`, 'success');
       setAddMemberOpen(false);
       setMemberForm(EMPTY_MEMBER_FORM);
       await load();
@@ -160,7 +161,7 @@ const AdminPartnerDetail = ({ showToast }) => {
     setBusy(true);
     try {
       await removeAdminPartnerMember(partnerId, removeMemberTarget.id);
-      showToast?.('Đã vô hiệu hóa tài khoản quản lý.', 'info');
+      showToast?.(t('admin.partnerDetail.toast.memberDeactivated'), 'info');
       setRemoveMemberTarget(null);
       await load();
     } catch (e) {
@@ -174,7 +175,7 @@ const AdminPartnerDetail = ({ showToast }) => {
     if (loading) {
       return (
         <div className="admin-partner-detail">
-          <p className="admin-partner-detail__muted">Đang tải...</p>
+          <p className="admin-partner-detail__muted">{t('admin.common.loading')}</p>
         </div>
       );
     }
@@ -183,28 +184,26 @@ const AdminPartnerDetail = ({ showToast }) => {
       return (
         <div className="admin-partner-detail">
           <Link to="/" className="admin-partner-detail__back">
-            ← Quay lại Hệ thống FPT
+            {t('admin.fpt.dept.back')}
           </Link>
-          <p className="admin-partner-detail__muted">{loadError || 'Không tìm thấy đối tác.'}</p>
+          <p className="admin-partner-detail__muted">{loadError || t('admin.partnerDetail.notFound')}</p>
           <button
             type="button"
             className="admin-partner-detail__btn admin-partner-detail__btn--primary"
             onClick={() => load()}
           >
-            Thử tải lại
+            {t('common.retry')}
           </button>
         </div>
       );
     }
 
     const tone = PARTNER_STATUS_TONE[partner.status] || 'slate';
-    const statusLabel =
-      PARTNER_STATUS_LABEL_DETAIL[partner.status] ||
-      PARTNER_STATUS_LABEL[partner.status] ||
-      partner.status;
+    const statusLabel = getPartnerStatusDetailLabel(partner.status, t);
+    const empty = t('admin.common.empty');
     const mainContract = contracts[0];
     const eventTitle =
-      eventRequest?.title || partner.proposedEventTitle || mainContract?.title || '—';
+      eventRequest?.title || partner.proposedEventTitle || mainContract?.title || empty;
     const amount =
       eventRequest?.expectedSponsorAmount ?? partner.expectedSponsorAmount ?? mainContract?.amount;
     const canAdminAct = partner.status === 'pending_admin';
@@ -220,16 +219,16 @@ const AdminPartnerDetail = ({ showToast }) => {
       null;
     const otherActiveMembers = activeMembers.filter((m) => !m.isPrimary);
     const registrantName =
-      primaryMember?.fullname || partner.representative || '—';
+      primaryMember?.fullname || partner.representative || empty;
     const registrantTitle =
-      primaryMember?.title || partner.representativeTitle || '—';
-    const registrantEmail = primaryMember?.email || partner.email || '—';
-    const registrantPhone = primaryMember?.phone || partner.phone || '—';
+      primaryMember?.title || partner.representativeTitle || empty;
+    const registrantEmail = primaryMember?.email || partner.email || empty;
+    const registrantPhone = primaryMember?.phone || partner.phone || empty;
 
     return (
       <div className="admin-partner-detail">
         <Link to="/" className="admin-partner-detail__back">
-          ← Quay lại Hệ thống FPT
+          {t('admin.fpt.dept.back')}
         </Link>
 
         <header className="admin-partner-detail__header admin-partner-detail__header--company">
@@ -242,66 +241,79 @@ const AdminPartnerDetail = ({ showToast }) => {
               </span>
             </div>
             {partner.category && (
-              <p className="admin-partner-detail__meta">Lĩnh vực: {partner.category}</p>
+              <p className="admin-partner-detail__meta">
+                {t('admin.partnerDetail.fieldCategory', { category: partner.category })}
+              </p>
             )}
             <p className="admin-partner-detail__meta">
-              Ngày gửi đơn: {formatPartnerDate(partner.createdAt)}
-              {partner.partnerCode ? ` · Mã: ${partner.partnerCode}` : ''}
+              {t('admin.partnerDetail.submittedDate', { date: formatPartnerDate(partner.createdAt) })}
+              {partner.partnerCode
+                ? t('admin.partnerDetail.partnerCodeSuffix', { code: partner.partnerCode })
+                : ''}
             </p>
           </div>
         </header>
 
         {canAdminAct && (
           <div className="admin-partner-detail__banner">
-            Đơn đã được CTSV phê duyệt
-            {partner.ctsvApprovedByEmail ? ` (${partner.ctsvApprovedByEmail})` : ''}. Admin xác nhận
-            lần cuối để hoàn tất.
+            {t('admin.partnerDetail.banner.ctsvApproved', {
+              email: partner.ctsvApprovedByEmail
+                ? t('admin.partnerDetail.banner.ctsvEmail', { email: partner.ctsvApprovedByEmail })
+                : '',
+            })}
           </div>
         )}
 
         {partner.terminationStatus === 'pending' && (
           <div className="admin-partner-detail__banner admin-partner-detail__banner--warn">
-            Đã gửi yêu cầu hủy
-            {partner.terminationRequestedAt
-              ? ` · ${formatPartnerDate(partner.terminationRequestedAt)}`
-              : ''}
-            {partner.terminationReason ? ` — ${partner.terminationReason}` : ''}
+            {t('admin.partnerDetail.banner.terminationSent', {
+              date: partner.terminationRequestedAt
+                ? t('admin.partnerDetail.banner.terminationDate', {
+                    date: formatPartnerDate(partner.terminationRequestedAt),
+                  })
+                : '',
+              reason: partner.terminationReason
+                ? t('admin.partnerDetail.banner.terminationReasonSep', {
+                    reason: partner.terminationReason,
+                  })
+                : '',
+            })}
           </div>
         )}
 
         <div className="admin-partner-detail__sections">
           <section className="admin-partner-detail__panel admin-partner-detail__panel--company">
-            <h2>Thông tin công ty đối tác</h2>
+            <h2>{t('admin.partnerDetail.section.companyInfo')}</h2>
             <dl className="admin-partner-detail__dl">
               <div>
-                <dt>Tên doanh nghiệp</dt>
+                <dt>{t('admin.partnerDetail.label.companyName')}</dt>
                 <dd>{partner.name}</dd>
               </div>
               <div>
-                <dt>Mã / Mã số đối tác</dt>
-                <dd>{partner.partnerCode || '—'}</dd>
+                <dt>{t('admin.partnerDetail.label.partnerCode')}</dt>
+                <dd>{partner.partnerCode || empty}</dd>
               </div>
               <div>
-                <dt>Lĩnh vực</dt>
-                <dd>{partner.category || '—'}</dd>
+                <dt>{t('admin.partnerDetail.label.field')}</dt>
+                <dd>{partner.category || empty}</dd>
               </div>
               <div>
-                <dt>Địa chỉ</dt>
-                <dd>{partner.address || '—'}</dd>
+                <dt>{t('admin.partnerDetail.label.address')}</dt>
+                <dd>{partner.address || empty}</dd>
               </div>
               <div>
-                <dt>Điện thoại công ty</dt>
-                <dd>{partner.phone || '—'}</dd>
+                <dt>{t('admin.partnerDetail.label.companyPhone')}</dt>
+                <dd>{partner.phone || empty}</dd>
               </div>
               <div>
-                <dt>Mô tả công ty</dt>
-                <dd>{partner.description || '—'}</dd>
+                <dt>{t('admin.partnerDetail.label.companyDesc')}</dt>
+                <dd>{partner.description || empty}</dd>
               </div>
             </dl>
           </section>
 
           <section className="admin-partner-detail__panel admin-partner-detail__panel--registrant">
-            <h2>Thông tin người đăng ký đối tác</h2>
+            <h2>{t('admin.partnerDetail.section.registrantInfo')}</h2>
             <div className="admin-partner-detail__registrant-row">
               <PartnerAvatar
                 partner={{
@@ -313,24 +325,24 @@ const AdminPartnerDetail = ({ showToast }) => {
               />
               <dl className="admin-partner-detail__dl admin-partner-detail__dl--inline">
                 <div>
-                  <dt>Họ tên</dt>
+                  <dt>{t('admin.partnerDetail.label.fullName')}</dt>
                   <dd>{registrantName}</dd>
                 </div>
                 <div>
-                  <dt>Chức danh</dt>
+                  <dt>{t('admin.partnerDetail.label.title')}</dt>
                   <dd>{registrantTitle}</dd>
                 </div>
                 <div>
-                  <dt>Email</dt>
+                  <dt>{t('admin.partnerDetail.label.email')}</dt>
                   <dd>{registrantEmail}</dd>
                 </div>
                 <div>
-                  <dt>Điện thoại</dt>
+                  <dt>{t('admin.partnerDetail.label.phone')}</dt>
                   <dd>{registrantPhone}</dd>
                 </div>
                 {primaryMember?.hasAccount && (
                   <div>
-                    <dt>Trạng thái tài khoản</dt>
+                    <dt>{t('admin.partnerDetail.label.accountStatus')}</dt>
                     <dd>
                       <span
                         className={`admin-partner-detail__badge ${
@@ -339,7 +351,9 @@ const AdminPartnerDetail = ({ showToast }) => {
                             : 'admin-partner-detail__badge--inactive'
                         }`}
                       >
-                        {primaryMember.accountActive ? 'Đã kích hoạt' : 'Chưa kích hoạt'}
+                        {primaryMember.accountActive
+                          ? t('admin.partnerDetail.accountStatus.active')
+                          : t('admin.partnerDetail.accountStatus.inactive')}
                       </span>
                     </dd>
                   </div>
@@ -351,9 +365,9 @@ const AdminPartnerDetail = ({ showToast }) => {
           <section className="admin-partner-detail__panel admin-partner-detail__panel--members">
             <div className="admin-partner-detail__panel-head">
               <div>
-                <h2>Tài khoản quản lý bổ sung</h2>
+                <h2>{t('admin.partnerDetail.section.extraManagers')}</h2>
                 <p className="admin-partner-detail__panel-desc">
-                  Admin có thể tạo thêm nhiều tài khoản cùng quản lý một công ty đối tác.
+                  {t('admin.partnerDetail.extraManagers.desc')}
                 </p>
               </div>
               {canManageMembers && (
@@ -363,14 +377,14 @@ const AdminPartnerDetail = ({ showToast }) => {
                   disabled={busy}
                   onClick={() => setAddMemberOpen(true)}
                 >
-                  + Thêm tài khoản
+                  {t('admin.partnerDetail.addAccount')}
                 </button>
               )}
             </div>
 
             {otherActiveMembers.length === 0 ? (
               <p className="admin-partner-detail__muted-inline">
-                Chưa có tài khoản quản lý bổ sung.
+                {t('admin.partnerDetail.noExtraManagers')}
               </p>
             ) : (
               <ul className="admin-partner-detail__member-list">
@@ -391,7 +405,9 @@ const AdminPartnerDetail = ({ showToast }) => {
                                 : 'admin-partner-detail__badge--inactive'
                             }`}
                           >
-                            {m.accountActive ? 'Đã kích hoạt' : 'Chưa kích hoạt'}
+                            {m.accountActive
+                              ? t('admin.partnerDetail.accountStatus.active')
+                              : t('admin.partnerDetail.accountStatus.inactive')}
                           </span>
                         )}
                       </div>
@@ -407,7 +423,7 @@ const AdminPartnerDetail = ({ showToast }) => {
                         disabled={busy}
                         onClick={() => setRemoveMemberTarget(m)}
                       >
-                        Gỡ quyền
+                        {t('admin.partnerDetail.revokeAccess')}
                       </button>
                     )}
                   </li>
@@ -417,7 +433,7 @@ const AdminPartnerDetail = ({ showToast }) => {
 
             {inactiveMembers.length > 0 && (
               <div className="admin-partner-detail__member-inactive">
-                <h3>Đã vô hiệu hóa</h3>
+                <h3>{t('admin.partnerDetail.deactivated')}</h3>
                 <ul className="admin-partner-detail__member-list admin-partner-detail__member-list--inactive">
                   {inactiveMembers.map((m) => (
                     <li key={m.id} className="admin-partner-detail__member-card">
@@ -431,23 +447,23 @@ const AdminPartnerDetail = ({ showToast }) => {
           </section>
 
           <section className="admin-partner-detail__panel">
-            <h2>Đề xuất & hợp đồng</h2>
+            <h2>{t('admin.partnerDetail.section.proposalContract')}</h2>
             <dl className="admin-partner-detail__dl">
               <div>
-                <dt>Chương trình đề xuất</dt>
+                <dt>{t('admin.partnerDetail.label.proposedProgram')}</dt>
                 <dd>{eventTitle}</dd>
               </div>
               <div>
-                <dt>Mô tả sự kiện</dt>
-                <dd>{eventRequest?.description || partner.description || '—'}</dd>
+                <dt>{t('admin.partnerDetail.label.eventDesc')}</dt>
+                <dd>{eventRequest?.description || partner.description || empty}</dd>
               </div>
               <div>
-                <dt>Giá trị tài trợ dự kiến</dt>
+                <dt>{t('admin.partnerDetail.label.expectedSponsor')}</dt>
                 <dd>{formatVnd(amount)}</dd>
               </div>
               {eventRequest?.location && (
                 <div>
-                  <dt>Địa điểm / Hình thức</dt>
+                  <dt>{t('admin.partnerDetail.label.locationFormat')}</dt>
                   <dd>
                     {eventRequest.location}
                     {eventRequest.format ? ` · ${eventRequest.format}` : ''}
@@ -455,15 +471,17 @@ const AdminPartnerDetail = ({ showToast }) => {
                 </div>
               )}
               <div>
-                <dt>Hợp đồng</dt>
+                <dt>{t('admin.partnerDetail.label.contract')}</dt>
                 <dd>
                   {contracts.length
-                    ? contracts.map((c) => c.title || 'Hợp đồng tài trợ').join(', ')
-                    : '—'}
+                    ? contracts
+                        .map((c) => c.title || t('admin.partnerDetail.contract.sponsorDefault'))
+                        .join(', ')
+                    : empty}
                 </dd>
               </div>
               <div>
-                <dt>Thông báo</dt>
+                <dt>{t('admin.partnerDetail.label.notifications')}</dt>
                 <dd>
                   <button
                     type="button"
@@ -474,7 +492,7 @@ const AdminPartnerDetail = ({ showToast }) => {
                       )
                     }
                   >
-                    Xem & gửi thông báo cho đối tác này
+                    {t('admin.partnerDetail.notifyLink')}
                   </button>
                 </dd>
               </div>
@@ -484,24 +502,25 @@ const AdminPartnerDetail = ({ showToast }) => {
 
         {canTerminate && (
           <AdminFptCollapsible
-            title="Yêu cầu hủy"
-            subtitle="Gửi email và thông báo tới đối tác — cần xác nhận 2 lần"
+            title={t('admin.partnerDetail.termination.title')}
+            subtitle={t('admin.partnerDetail.termination.subtitle')}
             tone="danger"
             open={terminationOpen}
             onToggle={() => setTerminationOpen((v) => !v)}
             panelId="partner-termination-panel"
           >
             <p className="admin-partner-detail__hint">
-              Hành động này thông báo cho <strong>{partner.name}</strong> về yêu cầu chấm dứt hợp
-              tác trên F-Events. Đối tác sẽ nhận email và thông báo trên cổng đối tác.
+              {t('admin.partnerDetail.termination.hintPrefix')}{' '}
+              <strong>{partner.name}</strong>{' '}
+              {t('admin.partnerDetail.termination.hintSuffix')}
             </p>
             <label className="admin-partner-detail__field">
-              <span>Lý do yêu cầu hủy</span>
+              <span>{t('admin.partnerDetail.termination.reasonLabel')}</span>
               <textarea
                 rows={4}
                 value={terminationReason}
                 onChange={(e) => setTerminationReason(e.target.value)}
-                placeholder="Nhập lý do cụ thể..."
+                placeholder={t('admin.partnerDetail.termination.reasonPlaceholder')}
                 disabled={busy}
               />
             </label>
@@ -511,7 +530,7 @@ const AdminPartnerDetail = ({ showToast }) => {
               disabled={busy || !terminationReason.trim()}
               onClick={() => setTerminationConfirm(true)}
             >
-              Gửi yêu cầu hủy
+              {t('admin.partnerDetail.termination.submit')}
             </button>
           </AdminFptCollapsible>
         )}
@@ -524,7 +543,7 @@ const AdminPartnerDetail = ({ showToast }) => {
               disabled={busy}
               onClick={() => setRejectOpen(true)}
             >
-              Từ chối
+              {t('admin.common.reject')}
             </button>
             <button
               type="button"
@@ -532,17 +551,17 @@ const AdminPartnerDetail = ({ showToast }) => {
               disabled={busy}
               onClick={() => setConfirmApprove(true)}
             >
-              Phê duyệt đối tác
+              {t('admin.partnerDetail.approvePartner')}
             </button>
           </div>
         )}
 
         <ConfirmDialog
           open={confirmApprove}
-          title="Phê duyệt đối tác"
-          message="Xác nhận phê duyệt đối tác này? Đối tác sẽ được kích hoạt trên hệ thống."
-          confirmLabel="Phê duyệt"
-          cancelLabel="Hủy"
+          title={t('admin.partnerDetail.confirm.approve.title')}
+          message={t('admin.partnerDetail.confirm.approve.message')}
+          confirmLabel={t('admin.common.approve')}
+          cancelLabel={t('admin.common.cancel')}
           loading={busy}
           onCancel={() => !busy && setConfirmApprove(false)}
           onConfirm={handleApprove}
@@ -550,10 +569,10 @@ const AdminPartnerDetail = ({ showToast }) => {
 
         <ConfirmDialog
           open={terminationConfirm}
-          title="Xác nhận lần 2 — Yêu cầu hủy"
-          message={`Bạn chắc chắn muốn gửi yêu cầu hủy hợp tác tới "${partner.name}"? Email và thông báo sẽ được gửi ngay.`}
-          confirmLabel="Xác nhận gửi"
-          cancelLabel="Quay lại"
+          title={t('admin.partnerDetail.confirm.termination.title')}
+          message={t('admin.partnerDetail.confirm.termination.message', { name: partner.name })}
+          confirmLabel={t('admin.partnerDetail.confirmSend')}
+          cancelLabel={t('announce.dialog.back')}
           loading={busy}
           onCancel={() => !busy && setTerminationConfirm(false)}
           onConfirm={handleTermination}
@@ -561,10 +580,13 @@ const AdminPartnerDetail = ({ showToast }) => {
 
         <ConfirmDialog
           open={Boolean(removeMemberTarget)}
-          title="Gỡ quyền quản lý"
-          message={`Vô hiệu hóa tài khoản "${removeMemberTarget?.fullname || removeMemberTarget?.email}" khỏi công ty ${partner.name}?`}
-          confirmLabel="Gỡ quyền"
-          cancelLabel="Hủy"
+          title={t('admin.partnerDetail.confirm.revoke.title')}
+          message={t('admin.partnerDetail.confirm.revoke.message', {
+            name: removeMemberTarget?.fullname || removeMemberTarget?.email,
+            company: partner.name,
+          })}
+          confirmLabel={t('admin.partnerDetail.revokeAccess')}
+          cancelLabel={t('admin.common.cancel')}
           loading={busy}
           onCancel={() => !busy && setRemoveMemberTarget(null)}
           onConfirm={handleRemoveMember}
@@ -573,16 +595,16 @@ const AdminPartnerDetail = ({ showToast }) => {
         {rejectOpen && (
           <div className="admin-partner-detail__modal" role="dialog" aria-modal="true">
             <div className="admin-partner-detail__modal-card">
-              <h3>Từ chối đối tác</h3>
+              <h3>{t('admin.partnerDetail.reject.title')}</h3>
               <textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Nhập lý do từ chối..."
+                placeholder={t('admin.partnerDetail.reject.placeholder')}
                 rows={4}
               />
               <div className="admin-partner-detail__modal-actions">
                 <button type="button" disabled={busy} onClick={() => setRejectOpen(false)}>
-                  Hủy
+                  {t('admin.common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -590,7 +612,7 @@ const AdminPartnerDetail = ({ showToast }) => {
                   disabled={busy || !rejectReason.trim()}
                   onClick={handleReject}
                 >
-                  Xác nhận từ chối
+                  {t('admin.partnerDetail.reject.confirm')}
                 </button>
               </div>
             </div>
@@ -600,23 +622,24 @@ const AdminPartnerDetail = ({ showToast }) => {
         {addMemberOpen && (
           <div className="admin-partner-detail__modal" role="dialog" aria-modal="true">
             <div className="admin-partner-detail__modal-card admin-partner-detail__modal-card--wide">
-              <h3>Thêm tài khoản quản lý</h3>
+              <h3>{t('admin.partnerDetail.addMember.title')}</h3>
               <p className="admin-partner-detail__hint">
-                Tài khoản mới được gắn với công ty <strong>{partner.name}</strong> và có quyền truy
-                cập cổng đối tác.
+                {t('admin.partnerDetail.addMember.hintPrefix')}{' '}
+                <strong>{partner.name}</strong>{' '}
+                {t('admin.partnerDetail.addMember.hintSuffix')}
               </p>
               <label className="admin-partner-detail__field">
-                <span>Họ tên</span>
+                <span>{t('admin.partnerDetail.label.fullName')}</span>
                 <input
                   type="text"
                   value={memberForm.fullname}
                   onChange={(e) => setMemberForm((f) => ({ ...f, fullname: e.target.value }))}
-                  placeholder="Nguyễn Văn A"
+                  placeholder={t('admin.partnerDetail.placeholder.fullName')}
                   disabled={busy}
                 />
               </label>
               <label className="admin-partner-detail__field">
-                <span>Email đăng nhập</span>
+                <span>{t('admin.partnerDetail.addMember.loginEmail')}</span>
                 <input
                   type="email"
                   value={memberForm.email}
@@ -626,17 +649,17 @@ const AdminPartnerDetail = ({ showToast }) => {
                 />
               </label>
               <label className="admin-partner-detail__field">
-                <span>Chức danh</span>
+                <span>{t('admin.partnerDetail.label.title')}</span>
                 <input
                   type="text"
                   value={memberForm.title}
                   onChange={(e) => setMemberForm((f) => ({ ...f, title: e.target.value }))}
-                  placeholder="Trưởng phòng Marketing"
+                  placeholder={t('admin.partnerDetail.placeholder.title')}
                   disabled={busy}
                 />
               </label>
               <label className="admin-partner-detail__field">
-                <span>Số điện thoại</span>
+                <span>{t('admin.partnerDetail.label.phone')}</span>
                 <input
                   type="tel"
                   value={memberForm.phone}
@@ -653,7 +676,7 @@ const AdminPartnerDetail = ({ showToast }) => {
                   }
                   disabled={busy}
                 />
-                <span>Kích hoạt ngay và gửi mật khẩu mặc định qua email</span>
+                <span>{t('admin.partnerDetail.addMember.activateNow')}</span>
               </label>
               <div className="admin-partner-detail__modal-actions">
                 <button
@@ -664,7 +687,7 @@ const AdminPartnerDetail = ({ showToast }) => {
                     setMemberForm(EMPTY_MEMBER_FORM);
                   }}
                 >
-                  Hủy
+                  {t('admin.common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -672,7 +695,7 @@ const AdminPartnerDetail = ({ showToast }) => {
                   disabled={busy}
                   onClick={handleAddMember}
                 >
-                  Tạo tài khoản
+                  {t('admin.partnerDetail.addMember.create')}
                 </button>
               </div>
             </div>

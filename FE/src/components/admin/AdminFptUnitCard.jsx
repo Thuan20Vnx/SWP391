@@ -1,5 +1,6 @@
 import React from 'react';
-import { FPT_TYPE_META } from '../../data/adminFptSystemData';
+import { FPT_TYPE_META, resolveFptTypeLabel } from '../../data/adminFptSystemData';
+import { useTranslation } from '../../i18n/I18nContext';
 
 const formatMembers = (count) => {
   if (count == null) return null;
@@ -8,9 +9,12 @@ const formatMembers = (count) => {
 };
 
 const AdminFptUnitCard = ({ unit, onDetail, onApprove }) => {
+  const { t } = useTranslation();
   const meta = FPT_TYPE_META[unit.type] || FPT_TYPE_META.clb;
+  const badgeLabel = resolveFptTypeLabel(unit.type, t);
   const members = unit.type === 'clb' ? formatMembers(unit.memberCount) : null;
   const isPartner = unit.type === 'partner';
+  const secondaryLabel = unit.manageLabel || t('admin.fpt.card.manageEvents');
 
   return (
     <article className={`admin-fpt-unit-card${isPartner ? ' admin-fpt-unit-card--partner' : ''}`}>
@@ -25,7 +29,7 @@ const AdminFptUnitCard = ({ unit, onDetail, onApprove }) => {
             <span>{unit.logoText || unit.name?.slice(0, 2)?.toUpperCase()}</span>
           </div>
         )}
-        <span className={`admin-fpt-unit-card__badge ${meta.badgeClass}`}>{meta.label}</span>
+        <span className={`admin-fpt-unit-card__badge ${meta.badgeClass}`}>{badgeLabel}</span>
       </div>
 
       <div className="admin-fpt-unit-card__body">
@@ -36,7 +40,9 @@ const AdminFptUnitCard = ({ unit, onDetail, onApprove }) => {
               {unit.statusLabel}
             </span>
           ) : members != null ? (
-            <span className="admin-fpt-unit-card__members">{members} thành viên</span>
+            <span className="admin-fpt-unit-card__members">
+              {t('admin.fpt.card.members', { count: members })}
+            </span>
           ) : null}
         </div>
         {unit.subtitle && <p className="admin-fpt-unit-card__subtitle">{unit.subtitle}</p>}
@@ -48,14 +54,14 @@ const AdminFptUnitCard = ({ unit, onDetail, onApprove }) => {
             className="admin-fpt-unit-card__btn admin-fpt-unit-card__btn--primary"
             onClick={() => onDetail?.(unit)}
           >
-            Chi tiết
+            {t('admin.fpt.card.detail')}
           </button>
           <button
             type="button"
             className="admin-fpt-unit-card__btn admin-fpt-unit-card__btn--ghost"
             onClick={() => onApprove?.(unit)}
           >
-            Quản lý sự kiện
+            {secondaryLabel}
           </button>
         </div>
       </div>

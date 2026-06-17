@@ -1,10 +1,10 @@
 /** Cấu hình & dữ liệu hiển thị — Kiểm soát hệ thống */
 
 export const ADMIN_SYSTEM_TABS = [
-  { id: 'overview', label: 'Tổng quan' },
-  { id: 'email', label: 'Email Server' },
-  { id: 'payment', label: 'Payment Gateway' },
-  { id: 'security', label: 'Bảo mật & API' },
+  { id: 'overview', labelKey: 'admin.system.tab.overview' },
+  { id: 'email', labelKey: 'admin.system.tab.email' },
+  { id: 'payment', labelKey: 'admin.system.tab.payment' },
+  { id: 'security', labelKey: 'admin.system.tab.security' },
 ];
 
 export const ADMIN_SYSTEM_DEFAULT_CONFIG = {
@@ -51,98 +51,98 @@ export const ADMIN_SYSTEM_DEFAULT_CONFIG = {
 export const ADMIN_SYSTEM_STATUS_CARDS = [
   {
     id: 'api',
-    title: 'API Backend',
+    titleKey: 'admin.system.status.api',
     status: 'online',
-    statusLabel: 'Hoạt động',
+    statusLabelKey: 'admin.system.status.online',
     metric: '99.9%',
-    metricLabel: 'uptime 30 ngày',
-    detail: 'Express · port 5000',
+    metricLabelKey: 'admin.system.status.uptime30',
+    detailKey: 'admin.system.status.apiDetail',
   },
   {
     id: 'db',
-    title: 'MongoDB',
+    titleKey: 'admin.system.status.db',
     status: 'online',
-    statusLabel: 'Kết nối ổn',
+    statusLabelKey: 'admin.system.status.connected',
     metric: 'FEventsDB',
-    metricLabel: 'database',
-    detail: 'Atlas cluster · replica set',
+    metricLabelKey: 'admin.system.status.database',
+    detailKey: 'admin.system.status.dbDetail',
   },
   {
     id: 'email',
-    title: 'Email Server',
+    titleKey: 'admin.system.status.email',
     status: 'online',
-    statusLabel: 'Hoạt động',
+    statusLabelKey: 'admin.system.status.online',
     metric: '42ms',
-    metricLabel: 'phản hồi SMTP',
-    detail: 'Gmail SMTP · App Password',
+    metricLabelKey: 'admin.system.status.smtpResponse',
+    detailKey: 'admin.system.status.emailDetail',
   },
   {
     id: 'payment',
-    title: 'Payment Gateway',
+    titleKey: 'admin.system.status.payment',
     status: 'online',
-    statusLabel: 'Sandbox',
+    statusLabelKey: 'admin.system.status.sandbox',
     metric: '0',
-    metricLabel: 'lỗi 24h',
-    detail: 'VNPay / MoMo · thử nghiệm',
+    metricLabelKey: 'admin.system.status.errors24h',
+    detailKey: 'admin.system.status.paymentDetail',
   },
 ];
 
 export const ADMIN_INFRA_SERVICES = [
   {
     id: 'fe',
-    name: 'Frontend (Vite)',
+    nameKey: 'admin.system.infra.fe',
     endpoint: 'http://localhost:5173',
     version: 'React 18 · Vite 5',
     status: 'online',
-    statusLabel: 'Đang chạy',
+    statusLabelKey: 'admin.system.status.running',
     latency: '—',
-    note: 'Giao diện người dùng & admin',
+    noteKey: 'admin.system.infra.feNote',
   },
   {
     id: 'be',
-    name: 'Backend API',
+    nameKey: 'admin.system.infra.be',
     endpoint: 'http://localhost:5000',
     version: 'Node.js · Express 4',
     status: 'online',
-    statusLabel: 'Đang chạy',
+    statusLabelKey: 'admin.system.status.running',
     latency: '~25ms',
-    note: 'REST API · JWT auth',
+    noteKey: 'admin.system.infra.beNote',
   },
   {
     id: 'db',
-    name: 'MongoDB Atlas',
+    nameKey: 'admin.system.infra.db',
     endpoint: 'FEventsDB',
     version: 'Mongoose 9',
     status: 'online',
-    statusLabel: 'Đã kết nối',
+    statusLabelKey: 'admin.system.status.configured',
     latency: '~80ms',
-    note: 'Users, Events, Clubs, Proposals',
+    noteKey: 'admin.system.infra.dbNote',
   },
   {
     id: 'smtp',
-    name: 'SMTP (Gmail)',
+    nameKey: 'admin.system.infra.smtp',
     endpoint: 'smtp.gmail.com:587',
     version: 'Nodemailer 8',
     status: 'online',
-    statusLabel: 'Đã cấu hình',
+    statusLabelKey: 'admin.system.status.configured',
     latency: '42ms',
-    note: 'OTP đăng ký · email kích hoạt tài khoản',
+    noteKey: 'admin.system.infra.smtpNote',
   },
 ];
 
 export const ADMIN_PLATFORM_INFO = [
-  { label: 'Phiên bản sản phẩm', value: 'F-Events v1.0 (SWP391)' },
-  { label: 'Môi trường', value: 'Development (local)' },
-  { label: 'JWT hết hạn', value: 'Theo cấu hình tab Bảo mật' },
-  { label: 'CORS cho phép', value: 'http://localhost:5173' },
-  { label: 'Lưu cấu hình', value: 'Trình duyệt (localStorage)' },
+  { labelKey: 'admin.system.platform.version', value: 'F-Events v1.0 (SWP391)' },
+  { labelKey: 'admin.system.platform.env', value: 'Development (local)' },
+  { labelKey: 'admin.system.platform.jwt', valueKey: 'admin.system.platform.jwtValue' },
+  { labelKey: 'admin.system.platform.cors', value: 'http://localhost:5173' },
+  { labelKey: 'admin.system.platform.storage', valueKey: 'admin.system.platform.storageValue' },
 ];
 
 export const ADMIN_QUICK_METRICS = [
-  { id: 'accounts', label: 'Tài khoản hệ thống', value: '—', hint: 'Tổng user trong DB' },
-  { id: 'pending', label: 'Sự kiện chờ duyệt', value: '—', hint: 'status = pending' },
-  { id: 'live', label: 'Sự kiện đang live', value: '—', hint: 'Đã publish' },
-  { id: 'clubs', label: 'Câu lạc bộ', value: '—', hint: 'CLB active' },
+  { id: 'accounts', labelKey: 'admin.system.metric.accounts', value: '—', hintKey: 'admin.system.metric.accountsHint' },
+  { id: 'pending', labelKey: 'admin.system.metric.pending', value: '—', hintKey: 'admin.system.metric.pendingHint' },
+  { id: 'live', labelKey: 'admin.system.metric.live', value: '—', hintKey: 'admin.system.metric.liveHint' },
+  { id: 'clubs', labelKey: 'admin.system.metric.clubs', value: '—', hintKey: 'admin.system.metric.clubsHint' },
 ];
 
 export const ADMIN_ENV_DISPLAY = [
@@ -152,22 +152,22 @@ export const ADMIN_ENV_DISPLAY = [
   { key: 'EMAIL_USER', value: 'nhatlink888@gmail.com', masked: false },
   { key: 'EMAIL_PASS', value: '••••••••••••••••', masked: true },
   { key: 'APP_URL', value: 'http://localhost:5173', masked: false },
-  { key: 'GOOGLE_CLIENT_ID', value: '(chưa cấu hình)', masked: false },
+  { key: 'GOOGLE_CLIENT_ID', valueKey: 'admin.system.env.notConfigured', masked: false },
 ];
 
 export const ADMIN_SYSTEM_CHANGE_LOG = [
-  { id: '1', minutesAgo: 12, actor: 'IT_Admin', action: 'Bật chế độ sandbox VNPay', tone: 'default' },
-  { id: '2', minutesAgo: 45, actor: 'Admin_System', action: 'Cập nhật SMTP Relay port 587', tone: 'default' },
-  { id: '3', minutesAgo: 120, actor: 'SYSTEM_ALERT', action: 'Cảnh báo OTP timeout < 3 phút', tone: 'danger' },
-  { id: '4', minutesAgo: 240, actor: 'IT_Admin', action: 'Lưu cấu hình JWT 168h', tone: 'primary' },
-  { id: '5', minutesAgo: 360, actor: 'Admin_System', action: 'Tắt chế độ bảo trì', tone: 'default' },
-  { id: '6', minutesAgo: 480, actor: 'SYSTEM', action: 'Sao lưu snapshot MongoDB (mock)', tone: 'default' },
+  { id: '1', minutesAgo: 12, actor: 'IT_Admin', actionKey: 'admin.system.changelog.sandboxVnpay', tone: 'default' },
+  { id: '2', minutesAgo: 45, actor: 'Admin_System', actionKey: 'admin.system.changelog.smtpPort', tone: 'default' },
+  { id: '3', minutesAgo: 120, actor: 'SYSTEM_ALERT', actionKey: 'admin.system.changelog.otpAlert', tone: 'danger' },
+  { id: '4', minutesAgo: 240, actor: 'IT_Admin', actionKey: 'admin.system.changelog.jwt168', tone: 'primary' },
+  { id: '5', minutesAgo: 360, actor: 'Admin_System', actionKey: 'admin.system.changelog.maintenanceOff', tone: 'default' },
+  { id: '6', minutesAgo: 480, actor: 'SYSTEM', actionKey: 'admin.system.changelog.dbBackup', tone: 'default' },
 ];
 
 export const ENCRYPTION_OPTIONS = [
   { value: 'TLS', label: 'TLS' },
   { value: 'SSL', label: 'SSL' },
-  { value: 'NONE', label: 'Không mã hóa' },
+  { value: 'NONE', labelKey: 'admin.system.email.encryption.none' },
 ];
 
 export const PAYMENT_PROVIDER_OPTIONS = [

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../../i18n/I18nContext';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import PartnerActionDialog from '../ctsv/PartnerActionDialog';
 
@@ -9,6 +10,7 @@ const AdminProposalActions = ({
   onApprove,
   onReject,
 }) => {
+  const { t } = useTranslation();
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
 
@@ -33,9 +35,7 @@ const AdminProposalActions = ({
   return (
     <>
       <div className="admin-proposal-card__actions-bar">
-        <p className="admin-proposal-card__actions-note">
-          Xác nhận trước khi phê duyệt hoặc từ chối — thao tác sẽ gửi thông báo tới CLB.
-        </p>
+        <p className="admin-proposal-card__actions-note">{t('admin.proposal.actionsNote')}</p>
         <div className="admin-proposal-card__actions">
           <button
             type="button"
@@ -46,7 +46,7 @@ const AdminProposalActions = ({
             <span className="admin-proposal-btn__icon" aria-hidden="true">
               ✕
             </span>
-            Từ chối
+            {t('admin.common.reject')}
           </button>
           <button
             type="button"
@@ -57,20 +57,20 @@ const AdminProposalActions = ({
             <span className="admin-proposal-btn__icon" aria-hidden="true">
               ✓
             </span>
-            {busy ? 'Đang xử lý…' : 'Phê duyệt'}
+            {busy ? t('admin.common.processing') : t('admin.proposal.approve')}
           </button>
         </div>
       </div>
 
       <ConfirmDialog
         open={approveOpen}
-        title="Xác nhận phê duyệt"
+        title={t('admin.proposal.approveTitle')}
         message={
           itemTitle
-            ? `Bạn có chắc muốn phê duyệt "${itemTitle}"? Sự kiện sẽ được tạo hoặc chuyển sang bước tiếp theo.`
-            : 'Bạn có chắc muốn phê duyệt đề xuất này?'
+            ? t('admin.proposal.approveMessageNamed', { title: itemTitle })
+            : t('admin.proposal.approveMessage')
         }
-        confirmLabel="Xác nhận phê duyệt"
+        confirmLabel={t('admin.proposal.approveConfirm')}
         loading={busy}
         onCancel={() => !busy && setApproveOpen(false)}
         onConfirm={handleApprove}

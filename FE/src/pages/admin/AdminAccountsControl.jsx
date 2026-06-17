@@ -4,6 +4,7 @@ import AdminAccountActionBar from '../../components/admin/AdminAccountActionBar'
 import AdminAccountEditModal from '../../components/admin/AdminAccountEditModal';
 import AdminAccountViewModal from '../../components/admin/AdminAccountViewModal';
 import AdminAddAccountModal from '../../components/admin/AdminAddAccountModal';
+import AdminFilterDropdown from '../../components/admin/AdminFilterDropdown';
 import {
   ADMIN_ACCOUNT_ROLE_FILTERS,
   ADMIN_ACCOUNT_ROLE_META,
@@ -21,6 +22,8 @@ import {
   updateAdminAccountStatus,
 } from '../../services/adminApi';
 import { getUserRole, isAdminRole } from '../../utils/auth';
+import { useTranslation } from '../../i18n/I18nContext';
+import { resolveLabel } from '../../i18n/helpers';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-accounts.css';
 
@@ -49,9 +52,10 @@ const AdminAccountsControl = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast, adminSearch = '' } = useOutletContext() || {};
+  const { t } = useTranslation();
   const role = getUserRole();
   const initialRole = searchParams.get('role');
-  const validInitialRole = ADMIN_ACCOUNT_ROLE_FILTERS.some((t) => t.key === initialRole)
+  const validInitialRole = ADMIN_ACCOUNT_ROLE_FILTERS.some((tab) => tab.key === initialRole)
     ? initialRole
     : 'all';
   const [roleFilter, setRoleFilter] = useState(validInitialRole);
@@ -65,14 +69,15 @@ const AdminAccountsControl = () => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
   const search = adminSearch;
 
   useEffect(() => {
     if (!isAdminRole(role)) {
-      showToast?.('Bạn không có quyền truy cập trang quản trị!', 'error');
+      showToast?.(t('admin.common.noAccess'), 'error');
       navigate('/profile');
     }
-  }, [role, navigate, showToast]);
+  }, [role, navigate, showToast, t]);
 
   const loadAccounts = useCallback(async () => {
     if (!isAdminRole(role)) return;
@@ -88,14 +93,14 @@ const AdminAccountsControl = () => {
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
-      showToast?.(err.message || 'Không tải được danh sách tài khoản', 'error');
+      showToast?.(err.message || t('admin.accounts.toast.loadFail'), 'error');
       setAccounts([]);
       setTotal(0);
       setTotalPages(1);
     } finally {
       setLoading(false);
     }
-  }, [page, roleFilter, search, role]);
+  }, [page, roleFilter, search, role, showToast, t]);
 
   useEffect(() => {
     loadAccounts();
@@ -123,20 +128,29 @@ const AdminAccountsControl = () => {
     return nums;
   }, [page, totalPages]);
 
+  const roleOptions = useMemo(
+    () =>
+      ADMIN_ACCOUNT_ROLE_FILTERS.map((tab) => ({
+        value: tab.key,
+        label: resolveLabel(tab, t),
+      })),
+    [t],
+  );
+
   const toggleActive = async (acc) => {
     const next = !acc.active;
     try {
       const data = await updateAdminAccountStatus(acc.id, next);
       patchAccountInList(data.account);
-      showToast?.(data.message || 'Đã cập nhật trạng thái tài khoản', 'success');
+      showToast?.(data.message || t('admin.accounts.toast.statusUpdated'), 'success');
     } catch (err) {
-      showToast?.(err.message || 'Cập nhật thất bại', 'error');
+      showToast?.(err.message || t('admin.accounts.toast.updateFail'), 'error');
     }
   };
 
   const handleCreateAccount = async (form) => {
     if (!form.role) {
-      showToast?.('Vui lòng chọn vai trò hệ thống!', 'error');
+      showToast?.(t('admin.accounts.toast.roleRequired'), 'error');
       return;
     }
     setSubmitting(true);
@@ -150,14 +164,14 @@ const AdminAccountsControl = () => {
         activateNow: form.activateNow,
       });
       setModalOpen(false);
-      showToast?.(data.message || 'Tạo tài khoản thành công!', 'success');
+      showToast?.(data.message || t('admin.accounts.toast.createSuccess'), 'success');
       if (page !== 1) {
         setPage(1);
       } else {
         await loadAccounts();
       }
     } catch (err) {
-      showToast?.(err.message || 'Tạo tài khoản thất bại', 'error');
+      showToast?.(err.message || t('admin.accounts.toast.createFail'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -165,23 +179,20 @@ const AdminAccountsControl = () => {
 
   const handleDeleteAccount = async (acc) => {
     if (!canAdminDeleteAccount(acc.role)) {
-      showToast?.(
-        'Không được xóa tài khoản sinh viên hoặc người dùng FPT. Chỉ được xóa khách tham gia hoặc đối tác bên ngoài.',
-        'error',
-      );
+      showToast?.(t('admin.accounts.toast.deleteNotAllowed'), 'error');
       return;
     }
     const ok = window.confirm(
-      `Bạn có chắc muốn xóa vĩnh viễn tài khoản "${acc.name}" (${acc.email})?`,
+      t('admin.accounts.toast.deleteConfirm', { name: acc.name, email: acc.email }),
     );
     if (!ok) return;
 
     try {
       const data = await deleteAdminAccount(acc.id);
-      showToast?.(data.message || 'Đã xóa tài khoản', 'success');
+      showToast?.(data.message || t('admin.accounts.toast.deleteSuccess'), 'success');
       await loadAccounts();
     } catch (err) {
-      showToast?.(err.message || 'Xóa tài khoản thất bại', 'error');
+      showToast?.(err.message || t('admin.accounts.toast.deleteFail'), 'error');
     }
   };
 
@@ -207,9 +218,9 @@ const AdminAccountsControl = () => {
       const data = await updateAdminAccount(selectedAccount.id, payload);
       patchAccountInList(data.account);
       setEditOpen(false);
-      showToast?.(data.message || 'Đã cập nhật tài khoản', 'success');
+      showToast?.(data.message || t('admin.accounts.toast.editSuccess'), 'success');
     } catch (err) {
-      showToast?.(err.message || 'Cập nhật thất bại', 'error');
+      showToast?.(err.message || t('admin.accounts.toast.updateFail'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -221,33 +232,30 @@ const AdminAccountsControl = () => {
     <main className="admin-main">
       <div className="admin-acc-page">
         <header className="admin-acc-page__header">
-          <h1 className="admin-main__title">Kiểm soát tài khoản hệ thống</h1>
+          <h1 className="admin-main__title">{t('admin.accounts.title')}</h1>
           <button
             type="button"
             className="admin-acc-btn admin-acc-btn--primary"
             onClick={() => setModalOpen(true)}
           >
             <IconPlus />
-            Thêm tài khoản mới
+            {t('admin.accounts.addAccount')}
           </button>
         </header>
 
-        <div className="admin-acc-filters" role="tablist" aria-label="Lọc theo vai trò">
-          {ADMIN_ACCOUNT_ROLE_FILTERS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              role="tab"
-              aria-selected={roleFilter === tab.key}
-              className={`admin-acc-filter-tab${roleFilter === tab.key ? ' admin-acc-filter-tab--active' : ''}`}
-              onClick={() => {
-                setRoleFilter(tab.key);
-                setPage(1);
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="admin-acc-filters" aria-label={t('admin.accounts.filterByRole')}>
+          <AdminFilterDropdown
+            label=""
+            value={roleFilter}
+            options={roleOptions}
+            onChange={(next) => {
+              setRoleFilter(next);
+              setPage(1);
+            }}
+            menuOpen={openMenu === 'role'}
+            onMenuToggle={setOpenMenu}
+            menuId="role"
+          />
         </div>
 
         <section className="admin-panel admin-acc-table-panel">
@@ -255,25 +263,25 @@ const AdminAccountsControl = () => {
             <table className="admin-acc-table">
               <thead>
                 <tr>
-                  <th>Họ và tên</th>
-                  <th>Vai trò</th>
-                  <th>Email</th>
-                  <th>Ngày tạo</th>
-                  <th>Trạng thái</th>
-                  <th>Hành động</th>
+                  <th>{t('admin.accounts.col.fullName')}</th>
+                  <th>{t('admin.accounts.col.role')}</th>
+                  <th>{t('admin.accounts.col.email')}</th>
+                  <th>{t('admin.accounts.col.createdAt')}</th>
+                  <th>{t('admin.accounts.col.status')}</th>
+                  <th>{t('admin.accounts.col.actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="admin-acc-table__empty">
-                      Đang tải danh sách tài khoản...
+                      {t('admin.accounts.loadingList')}
                     </td>
                   </tr>
                 ) : pageRows.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="admin-acc-table__empty">
-                      Không có tài khoản phù hợp với bộ lọc hiện tại.
+                      {t('admin.accounts.emptyList')}
                     </td>
                   </tr>
                 ) : (
@@ -284,7 +292,7 @@ const AdminAccountsControl = () => {
                     };
                     return (
                       <tr key={acc.id}>
-                        <td data-label="Họ và tên">
+                        <td data-label={t('admin.accounts.col.fullName')}>
                           <div className="admin-acc-user">
                             <span className="admin-acc-user__avatar" aria-hidden="true">
                               {getAccountInitials(acc.name)}
@@ -292,19 +300,23 @@ const AdminAccountsControl = () => {
                             <span className="admin-acc-user__name">{acc.name}</span>
                           </div>
                         </td>
-                        <td data-label="Vai trò">
-                          <span className={`admin-acc-badge ${meta.badgeClass}`}>{meta.label}</span>
+                        <td data-label={t('admin.accounts.col.role')}>
+                          <span className={`admin-acc-badge ${meta.badgeClass}`}>
+                            {resolveLabel(meta, t)}
+                          </span>
                         </td>
-                        <td data-label="Email">{acc.email}</td>
-                        <td data-label="Ngày tạo">{formatAccountDate(acc.createdAt)}</td>
-                        <td data-label="Trạng thái">
+                        <td data-label={t('admin.accounts.col.email')}>{acc.email}</td>
+                        <td data-label={t('admin.accounts.col.createdAt')}>
+                          {formatAccountDate(acc.createdAt)}
+                        </td>
+                        <td data-label={t('admin.accounts.col.status')}>
                           <StatusToggle
                             active={acc.active}
                             onChange={() => toggleActive(acc)}
-                            label={`Trạng thái ${acc.name}`}
+                            label={t('admin.accounts.statusToggle', { name: acc.name })}
                           />
                         </td>
-                        <td data-label="Hành động">
+                        <td data-label={t('admin.accounts.col.actions')}>
                           <AdminAccountActionBar
                             account={acc}
                             onView={openView}
@@ -323,16 +335,20 @@ const AdminAccountsControl = () => {
           <footer className="admin-acc-pagination">
             <p className="admin-acc-pagination__info">
               {total === 0
-                ? 'Không có tài khoản nào'
-                : `Hiển thị ${pageStart}-${pageEnd} trong số ${total} tài khoản`}
+                ? t('admin.accounts.pagination.none')
+                : t('admin.accounts.pagination.range', {
+                    start: pageStart,
+                    end: pageEnd,
+                    total,
+                  })}
             </p>
-            <nav className="admin-acc-pagination__nav" aria-label="Phân trang">
+            <nav className="admin-acc-pagination__nav" aria-label={t('admin.common.pagination')}>
               <button
                 type="button"
                 className="admin-acc-page-btn"
                 disabled={page <= 1 || loading}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-label="Trang trước"
+                aria-label={t('admin.common.prevPage')}
               >
                 ‹
               </button>
@@ -343,7 +359,7 @@ const AdminAccountsControl = () => {
                   className={`admin-acc-page-btn${page === n ? ' admin-acc-page-btn--active' : ''}`}
                   onClick={() => setPage(n)}
                   aria-current={page === n ? 'page' : undefined}
-                  disabled={loading}
+                  disabled={loading && page !== n}
                 >
                   {n}
                 </button>
@@ -353,7 +369,7 @@ const AdminAccountsControl = () => {
                 className="admin-acc-page-btn"
                 disabled={page >= totalPages || loading}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                aria-label="Trang sau"
+                aria-label={t('admin.common.nextPage')}
               >
                 ›
               </button>

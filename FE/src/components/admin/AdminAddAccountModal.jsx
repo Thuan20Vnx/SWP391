@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import AdminFilterDropdown from './AdminFilterDropdown';
 import AdminRolePicker from './AdminRolePicker';
-import { ADMIN_CREATE_ROLE_OPTIONS } from '../../data/adminAccountsData';
+import { useTranslation } from '../../i18n/I18nContext';
 
 const EMPTY_FORM = {
   role: '',
@@ -13,8 +12,8 @@ const EMPTY_FORM = {
 };
 
 const AdminAddAccountModal = ({ open, onClose, onSubmit, submitting }) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState(EMPTY_FORM);
-  const [openMenu, setOpenMenu] = useState(null);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -34,7 +33,6 @@ const AdminAddAccountModal = ({ open, onClose, onSubmit, submitting }) => {
   useEffect(() => {
     if (!open) {
       setForm(EMPTY_FORM);
-      setOpenMenu(null);
     }
   }, [open]);
 
@@ -56,13 +54,13 @@ const AdminAddAccountModal = ({ open, onClose, onSubmit, submitting }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <header className="admin-acc-modal__header">
-          <h2 id="admin-add-account-title">Thêm tài khoản mới</h2>
+          <h2 id="admin-add-account-title">{t('admin.accounts.modal.add.title')}</h2>
           <button
             type="button"
             className="admin-acc-modal__close"
             onClick={onClose}
             disabled={submitting}
-            aria-label="Đóng"
+            aria-label={t('admin.common.close')}
           >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -72,23 +70,23 @@ const AdminAddAccountModal = ({ open, onClose, onSubmit, submitting }) => {
 
         <form className="admin-acc-modal__form" onSubmit={handleSubmit}>
           <div className="admin-acc-modal__field">
-            <span className="admin-acc-modal__label">Vai trò hệ thống</span>
+            <span className="admin-acc-modal__label">{t('admin.accounts.modal.add.systemRole')}</span>
             <AdminRolePicker
               value={form.role || ''}
               onChange={(v) => patch('role', v)}
               name="add-account-role"
             />
             {!form.role && (
-              <span className="admin-acc-modal__note">Chọn một vai trò trước khi tạo tài khoản.</span>
+              <span className="admin-acc-modal__note">{t('admin.accounts.modal.add.selectRoleNote')}</span>
             )}
           </div>
 
           <label className="admin-acc-modal__field">
-            <span className="admin-acc-modal__label">Họ tên / Tên đơn vị</span>
+            <span className="admin-acc-modal__label">{t('admin.accounts.modal.add.fullname')}</span>
             <input
               type="text"
               className="admin-acc-modal__input"
-              placeholder="Tên (Sinh viên/Cán bộ), CLB FU-DEVER, Công ty FPT Software..."
+              placeholder={t('admin.accounts.modal.add.fullnamePlaceholder')}
               value={form.fullname}
               onChange={(e) => patch('fullname', e.target.value)}
               required
@@ -96,38 +94,35 @@ const AdminAddAccountModal = ({ open, onClose, onSubmit, submitting }) => {
           </label>
 
           <label className="admin-acc-modal__field">
-            <span className="admin-acc-modal__label">Email liên hệ</span>
+            <span className="admin-acc-modal__label">{t('admin.accounts.modal.add.email')}</span>
             <input
               type="email"
               className="admin-acc-modal__input"
-              placeholder="anv@fpt.edu.vn (Sinh viên/Cán bộ) HOẶC partner@gmail.com (Đối tác)..."
+              placeholder={t('admin.accounts.modal.add.emailPlaceholder')}
               value={form.email}
               onChange={(e) => patch('email', e.target.value)}
               required
             />
-            <span className="admin-acc-modal__note">
-              Hệ thống tự động cấp mật khẩu mặc định là &apos;Fpt@2026&apos; và gửi về Email kích hoạt của
-              người dùng.
-            </span>
+            <span className="admin-acc-modal__note">{t('admin.accounts.modal.add.emailNote')}</span>
           </label>
 
           <label className="admin-acc-modal__field">
-            <span className="admin-acc-modal__label">Mã định danh / Số điện thoại</span>
+            <span className="admin-acc-modal__label">{t('admin.accounts.modal.add.identifier')}</span>
             <input
               type="text"
               className="admin-acc-modal__input"
-              placeholder="Mã số SV (Ví dụ: DE200000), Mã số thuế đối tác, SĐT liên hệ của CLB..."
+              placeholder={t('admin.accounts.modal.add.identifierPlaceholder')}
               value={form.identifier}
               onChange={(e) => patch('identifier', e.target.value)}
             />
           </label>
 
           <label className="admin-acc-modal__field">
-            <span className="admin-acc-modal__label">Thông tin đơn vị / Khóa học (Không bắt buộc)</span>
+            <span className="admin-acc-modal__label">{t('admin.accounts.modal.add.unitInfo')}</span>
             <input
               type="text"
               className="admin-acc-modal__input"
-              placeholder="Điện K20/Chuyên ngành (nếu là SV) HOẶC Phòng ban công tác (nếu là CTSV/ICPDP)..."
+              placeholder={t('admin.accounts.modal.add.unitInfoPlaceholder')}
               value={form.unitInfo}
               onChange={(e) => patch('unitInfo', e.target.value)}
             />
@@ -135,8 +130,8 @@ const AdminAddAccountModal = ({ open, onClose, onSubmit, submitting }) => {
 
           <div className="admin-acc-modal__toggle-row">
             <div>
-              <p className="admin-acc-modal__toggle-label">Kích hoạt tài khoản ngay</p>
-              <p className="admin-acc-modal__toggle-desc">Cho phép đăng nhập ngay với mật khẩu mặc định</p>
+              <p className="admin-acc-modal__toggle-label">{t('admin.accounts.modal.add.activateNow')}</p>
+              <p className="admin-acc-modal__toggle-desc">{t('admin.accounts.modal.add.activateNowDesc')}</p>
             </div>
             <button
               type="button"
@@ -150,11 +145,16 @@ const AdminAddAccountModal = ({ open, onClose, onSubmit, submitting }) => {
           </div>
 
           <footer className="admin-acc-modal__footer">
-            <button type="button" className="admin-acc-btn admin-acc-btn--ghost" onClick={onClose} disabled={submitting}>
-              Hủy bỏ
+            <button
+              type="button"
+              className="admin-acc-btn admin-acc-btn--ghost"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              {t('admin.common.cancel')}
             </button>
             <button type="submit" className="admin-acc-btn admin-acc-btn--primary" disabled={submitting}>
-              {submitting ? 'Đang tạo...' : 'Xác nhận tạo'}
+              {submitting ? t('admin.accounts.modal.add.creating') : t('admin.accounts.modal.add.submit')}
             </button>
           </footer>
         </form>

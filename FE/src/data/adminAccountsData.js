@@ -1,42 +1,75 @@
 /** Mock — Figma Kiểm soát tài khoản hệ thống */
 
 export const ADMIN_CREATE_ROLE_OPTIONS = [
-  { value: 'ctsv', label: 'CTSV' },
-  { value: 'icpdp', label: 'ICPDP' },
-  { value: 'partner', label: 'Partner' },
-  { value: 'club_organizer', label: 'ClubOrganizer' },
-  { value: 'student', label: 'Student' },
-  { value: 'attendee', label: 'Attendee' },
+  { value: 'ctsv', labelKey: 'admin.accounts.role.ctsv' },
+  { value: 'icpdp', labelKey: 'admin.accounts.role.icpdp' },
+  { value: 'partner', labelKey: 'admin.accounts.role.partner' },
+  { value: 'club_organizer', labelKey: 'admin.accounts.role.club_organizer' },
+  { value: 'student', labelKey: 'admin.accounts.role.student' },
+  { value: 'attendee', labelKey: 'admin.accounts.role.attendee' },
 ];
 
 /** Thẻ chọn vai trò — form thêm/sửa tài khoản */
 export const ADMIN_ROLE_PICKER_OPTIONS = [
-  { value: 'ctsv', label: 'CTSV', desc: 'Cán bộ công tác sinh viên', tone: 'ctsv' },
-  { value: 'icpdp', label: 'ICPDP', desc: 'Chương trình quốc tế', tone: 'icpdp' },
-  { value: 'partner', label: 'Partner', desc: 'Đối tác / doanh nghiệp', tone: 'partner' },
-  { value: 'club_organizer', label: 'Club Organizer', desc: 'Chủ nhiệm / quản lý CLB', tone: 'club' },
-  { value: 'student', label: 'Sinh viên', desc: 'Học viên FPT', tone: 'student' },
-  { value: 'attendee', label: 'Khách tham gia', desc: 'Người dùng bên ngoài', tone: 'attendee' },
+  {
+    value: 'ctsv',
+    labelKey: 'admin.accounts.role.ctsv',
+    descKey: 'admin.accounts.roleDesc.ctsv',
+    tone: 'ctsv',
+  },
+  {
+    value: 'icpdp',
+    labelKey: 'admin.accounts.role.icpdp',
+    descKey: 'admin.accounts.roleDesc.icpdp',
+    tone: 'icpdp',
+  },
+  {
+    value: 'partner',
+    labelKey: 'admin.accounts.role.partner',
+    descKey: 'admin.accounts.roleDesc.partner',
+    tone: 'partner',
+  },
+  {
+    value: 'club_organizer',
+    labelKey: 'admin.accounts.role.club_organizer',
+    descKey: 'admin.accounts.roleDesc.club_organizer',
+    tone: 'club',
+  },
+  {
+    value: 'student',
+    labelKey: 'admin.accounts.role.student',
+    descKey: 'admin.accounts.roleDesc.student',
+    tone: 'student',
+  },
+  {
+    value: 'attendee',
+    labelKey: 'admin.accounts.role.attendee',
+    descKey: 'admin.accounts.roleDesc.attendee',
+    tone: 'attendee',
+  },
 ];
 
 export const ADMIN_ACCOUNT_ROLE_FILTERS = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'ctsv', label: 'CTSV' },
-  { key: 'icpdp', label: 'ICPDP' },
-  { key: 'partner', label: 'Partner' },
-  { key: 'club_organizer', label: 'ClubOrganizer' },
-  { key: 'student', label: 'Student' },
-  { key: 'attendee', label: 'Attendee' },
+  { key: 'all', labelKey: 'admin.accounts.filter.all' },
+  { key: 'ctsv', labelKey: 'admin.accounts.role.ctsv' },
+  { key: 'icpdp', labelKey: 'admin.accounts.role.icpdp' },
+  { key: 'partner', labelKey: 'admin.accounts.role.partner' },
+  { key: 'club_organizer', labelKey: 'admin.accounts.role.club_organizer' },
+  { key: 'student', labelKey: 'admin.accounts.role.student' },
+  { key: 'attendee', labelKey: 'admin.accounts.role.attendee' },
 ];
 
 export const ADMIN_ACCOUNT_ROLE_META = {
-  ctsv: { label: 'CTSV', badgeClass: 'admin-acc-badge--ctsv' },
-  icpdp: { label: 'ICPDP', badgeClass: 'admin-acc-badge--icpdp' },
-  partner: { label: 'Partner', badgeClass: 'admin-acc-badge--partner' },
-  club_organizer: { label: 'ClubOrganizer', badgeClass: 'admin-acc-badge--club' },
-  student: { label: 'Sinh viên', badgeClass: 'admin-acc-badge--student' },
-  attendee: { label: 'Khách tham gia', badgeClass: 'admin-acc-badge--attendee' },
-  admin: { label: 'IT Admin', badgeClass: 'admin-acc-badge--admin' },
+  ctsv: { labelKey: 'admin.accounts.role.ctsv', badgeClass: 'admin-acc-badge--ctsv' },
+  icpdp: { labelKey: 'admin.accounts.role.icpdp', badgeClass: 'admin-acc-badge--icpdp' },
+  partner: { labelKey: 'admin.accounts.role.partner', badgeClass: 'admin-acc-badge--partner' },
+  club_organizer: {
+    labelKey: 'admin.accounts.role.club_organizer',
+    badgeClass: 'admin-acc-badge--club',
+  },
+  student: { labelKey: 'admin.accounts.role.student', badgeClass: 'admin-acc-badge--student' },
+  attendee: { labelKey: 'admin.accounts.role.attendee', badgeClass: 'admin-acc-badge--attendee' },
+  admin: { labelKey: 'admin.accounts.role.admin', badgeClass: 'admin-acc-badge--admin' },
 };
 
 export const ADMIN_ACCOUNTS_MOCK = [
@@ -74,10 +107,22 @@ export const ADMIN_COURSE_OPTIONS = [
 ];
 
 export const ADMIN_CAMPUS_OPTIONS = [
-  { value: 'FPT University Da Nang', label: 'FPT University Da Nang' },
-  { value: 'FPT University Hà Nội', label: 'FPT University Hà Nội' },
-  { value: 'FPT University Hồ Chí Minh', label: 'FPT University Hồ Chí Minh' },
-  { value: 'FPT University Cần Thơ', label: 'FPT University Cần Thơ' },
+  {
+    value: 'FPT University Da Nang',
+    labelKey: 'admin.accounts.campus.danang',
+  },
+  {
+    value: 'FPT University Hà Nội',
+    labelKey: 'admin.accounts.campus.hanoi',
+  },
+  {
+    value: 'FPT University Hồ Chí Minh',
+    labelKey: 'admin.accounts.campus.hcm',
+  },
+  {
+    value: 'FPT University Cần Thơ',
+    labelKey: 'admin.accounts.campus.cantho',
+  },
 ];
 
 export const getAccountIdentifier = (acc) => acc.mssv || acc.phone || '';
