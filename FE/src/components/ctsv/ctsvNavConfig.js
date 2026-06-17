@@ -5,12 +5,6 @@ export const CTSV_NAV_ITEMS = [
   { path: '/ctsv/profile', label: 'Hồ sơ', icon: 'profile' },
   { path: '/ctsv/partners', label: 'Duyệt đơn đối tác', mobileLabel: 'Duyệt đối tác', icon: 'partners' },
   {
-    path: '/ctsv/semester-timelines',
-    label: 'Duyệt timeline Spring/Summer/Fall',
-    mobileLabel: 'Timeline kỳ học',
-    icon: 'calendar',
-  },
-  {
     path: '/ctsv/events/create',
     label: 'Tạo sự kiện cấp trường',
     mobileLabel: 'Tạo sự kiện trường',
@@ -59,9 +53,6 @@ export const isCtsvNavActive = (path, pathname) => {
       pathname === '/ctsv/events' ||
       (pathname.startsWith('/ctsv/events/') && !pathname.includes('/create'))
     );
-  }
-  if (path === '/ctsv/semester-timelines') {
-    return pathname === '/ctsv/semester-timelines' || pathname.startsWith('/ctsv/semester-timelines/');
   }
   return pathname === path || pathname.startsWith(`${path}/`);
 };

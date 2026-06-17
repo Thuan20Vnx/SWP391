@@ -55,8 +55,7 @@ const ClbEyeIcon = ({ size = 16 }) => (
 
 const STATUS_STEPS = [
   { key: 'draft', label: 'Tạo đơn', match: ['draft', 'revision'] },
-  { key: 'pending_icpdp', label: 'IC-PDP', match: ['pending_icpdp'] },
-  { key: 'pending_ctsv', label: 'Admin / CTSV', match: ['pending_ctsv'] },
+  { key: 'pending_icpdp', label: 'IC-PDP', match: ['pending_icpdp', 'pending_ctsv'] },
   { key: 'approved', label: 'Hoàn tất', match: ['approved', 'rejected', 'cancelled'] },
 ];
 
@@ -93,10 +92,10 @@ const formatDate = (value) => {
 };
 
 const canEditTimeline = (timeline) =>
-  timeline && ['draft', 'revision', 'pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
+  timeline && ['draft', 'revision', 'pending_icpdp'].includes(timeline.statusKey);
 
 const canWithdrawTimeline = (timeline) =>
-  timeline && ['pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
+  timeline && timeline.statusKey === 'pending_icpdp';
 
 const hasPendingChange = (timeline) =>
   timeline?.changeRequest &&
@@ -143,7 +142,7 @@ const getStepState = (timeline, step) => {
 const getStepStatusText = (timeline, step, state) => {
   if (state === 'done') return 'Đã qua';
   if (state !== 'current') return 'Chờ';
-  if (step.key === 'pending_icpdp' || step.key === 'pending_ctsv') return 'Chờ duyệt';
+  if (step.key === 'pending_icpdp') return 'Chờ duyệt';
   if (step.key === 'approved') {
     if (timeline.statusKey === 'approved') return 'Đã duyệt';
     if (timeline.statusKey === 'rejected') return 'Từ chối';
@@ -345,7 +344,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   };
 
   const handleSubmitExisting = async (id) => {
-    if (!window.confirm('Gửi timeline này cho IC-PDP và CTSV duyệt?')) return;
+    if (!window.confirm('Gửi timeline này cho IC-PDP duyệt?')) return;
     setSubmitting(true);
     try {
       await submitClubSemesterTimeline(id);
@@ -528,9 +527,9 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
           <p className="clb-page-subtitle">
             {editRequestMode
               ? 'Chỉnh sửa nội dung — sau khi lưu sẽ gửi yêu cầu sửa lên IC-PDP và Admin duyệt.'
-              : ['pending_icpdp', 'pending_ctsv'].includes(editingStatusKey)
+              : editingStatusKey === 'pending_icpdp'
                 ? 'Chỉnh sửa trực tiếp — đơn đang chờ duyệt, thay đổi được lưu ngay không cần phê duyệt lại.'
-                : 'Lập kế hoạch hoạt động theo kỳ Spring / Summer / Fall và gửi IC-PDP / CTSV phê duyệt.'}
+                : 'Lập kế hoạch hoạt động theo kỳ Spring / Summer / Fall và gửi IC-PDP phê duyệt.'}
           </p>
         </div>
         <button
@@ -675,17 +674,17 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         ))}
 
         <div className="clb-timeline-form-actions">
-          {!editRequestMode && !['pending_icpdp', 'pending_ctsv'].includes(editingStatusKey) && (
+          {!editRequestMode && editingStatusKey !== 'pending_icpdp' && (
             <button type="button" className="clb-create-btn clb-create-btn--ghost" disabled={submitting} onClick={() => handleSave(false)}>
               Lưu nháp
             </button>
           )}
-          {!editRequestMode && ['pending_icpdp', 'pending_ctsv'].includes(editingStatusKey) && (
+          {!editRequestMode && editingStatusKey === 'pending_icpdp' && (
             <button type="button" className="clb-create-btn" disabled={submitting} onClick={() => handleSave(false)}>
               {submitting ? 'Đang lưu...' : 'Lưu thay đổi'}
             </button>
           )}
-          {(!['pending_icpdp', 'pending_ctsv'].includes(editingStatusKey) || editRequestMode) && (
+          {(editingStatusKey !== 'pending_icpdp' || editRequestMode) && (
             <button type="button" className="clb-create-btn" disabled={submitting} onClick={() => handleSave(!editRequestMode)}>
               {submitting
                 ? 'Đang gửi...'
@@ -920,7 +919,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         <div>
           <h1 className="clb-page-title">TIMELINE KỲ HỌC</h1>
           <p className="clb-page-subtitle">
-            Trước mỗi kỳ Spring / Summer / Fall, CLB lập timeline hoạt động và gửi IC-PDP / CTSV phê duyệt.
+            Trước mỗi kỳ Spring / Summer / Fall, CLB lập timeline hoạt động và gửi IC-PDP phê duyệt.
           </p>
         </div>
         <button type="button" className="clb-create-btn" onClick={openCreate}>

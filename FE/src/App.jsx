@@ -21,9 +21,6 @@ import CtsvCalendar from './pages/ctsv/CtsvCalendar';
 import CtsvReports from './pages/ctsv/CtsvReports';
 import CtsvReportDetail from './pages/ctsv/CtsvReportDetail';
 import CtsvProfile from './pages/ctsv/CtsvProfile';
-import CtsvSemesterTimelineList from './pages/ctsv/CtsvSemesterTimelineList';
-import CtsvSemesterTimelineDetail from './pages/ctsv/CtsvSemesterTimelineDetail';
-
 import IcpdpLayout from './layouts/IcpdpLayout';
 import IcpdpHome from './pages/IcpdpHome';
 import IcpdpDashboard from './pages/icpdp/IcpdpDashboard';
@@ -266,8 +263,8 @@ function App() {
               <Route path="proposals/:id" element={<CtsvProposalDetail />} />
               <Route path="partners" element={<CtsvPartnerList />} />
               <Route path="partners/:id" element={<CtsvPartnerDetail />} />
-              <Route path="semester-timelines" element={<CtsvSemesterTimelineList />} />
-              <Route path="semester-timelines/:id" element={<CtsvSemesterTimelineDetail />} />
+              <Route path="semester-timelines" element={<Navigate to="/ctsv/dashboard" replace />} />
+              <Route path="semester-timelines/*" element={<Navigate to="/ctsv/dashboard" replace />} />
               <Route path="announcements/publish" element={<CtsvAnnouncementPublish />} />
               <Route
                 path="announcements/:id"

@@ -18368,6 +18368,32 @@ a.event-discovery-card__btn {
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
 }
 
+.ctsv-reports-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+}
+
+.ctsv-reports-table-head-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ctsv-reports-table-head-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+}
+
 .ctsv-reports-table {
   width: 100%;
   border-collapse: collapse;
@@ -18375,21 +18401,29 @@ a.event-discovery-card__btn {
 }
 
 .ctsv-reports-table th {
-  padding: 14px 18px;
+  padding: 12px 18px;
   text-align: left;
   font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #64748b;
-  background: #ffffff;
+  background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .ctsv-reports-table td {
-  padding: 14px 18px;
+  padding: 12px 18px;
   vertical-align: top;
   border-bottom: 1px solid #f1f5f9;
+}
+
+.ctsv-reports-th-date {
+  width: 118px;
+}
+
+.ctsv-reports-th-metric {
+  width: min(240px, 28%);
 }
 
 .ctsv-reports-th-fill {
@@ -18397,8 +18431,20 @@ a.event-discovery-card__btn {
 }
 
 .ctsv-reports-th-actions {
-  width: 132px;
+  width: 148px;
   text-align: right;
+}
+
+.ctsv-reports-row:nth-child(even):not(.ctsv-reports-row--skeleton) td {
+  background: #fafbfc;
+}
+
+.ctsv-reports-row--live td {
+  background: rgba(34, 197, 94, 0.04);
+}
+
+.ctsv-reports-row--live td:first-child {
+  box-shadow: inset 3px 0 0 #22c55e;
 }
 
 .ctsv-reports-row:last-child td {
@@ -18406,14 +18452,20 @@ a.event-discovery-card__btn {
 }
 
 .ctsv-reports-row:hover td {
-  background: #ffffff;
+  background: #fff7ed;
+}
+
+.ctsv-reports-row--live:hover td {
+  background: rgba(34, 197, 94, 0.08);
 }
 
 .ctsv-reports-event-cell strong {
   display: block;
   font-size: 0.9375rem;
+  font-weight: 700;
   color: #0f172a;
   margin-bottom: 6px;
+  line-height: 1.35;
 }
 
 .ctsv-reports-event-meta {
@@ -18422,54 +18474,82 @@ a.event-discovery-card__btn {
   gap: 6px;
 }
 
+.ctsv-reports-event-location {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
 .ctsv-reports-source {
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 999px;
   font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .ctsv-reports-source--school {
-  background: #ffffff;
+  background: #fff7ed;
   color: #c2410c;
   border: 1px solid #fed7aa;
 }
 
 .ctsv-reports-source--partner {
-  background: #ffffff;
+  background: #f5f3ff;
   color: #6d28d9;
   border: 1px solid #ddd6fe;
 }
 
 .ctsv-reports-source--club {
-  background: #ffffff;
+  background: #f8fafc;
   color: #475569;
   border: 1px solid #e2e8f0;
 }
 
 .ctsv-reports-phase {
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 999px;
   font-size: 0.625rem;
   font-weight: 700;
 }
 
 .ctsv-reports-phase--live {
-  background: rgba(34, 197, 94, 0.12);
+  background: rgba(34, 197, 94, 0.14);
   color: #15803d;
 }
 
 .ctsv-reports-phase--ended,
 .ctsv-reports-phase--completed {
-  background: rgba(148, 163, 184, 0.15);
+  background: rgba(148, 163, 184, 0.16);
   color: #475569;
+}
+
+.ctsv-reports-date-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ctsv-reports-date-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #64748b;
+  flex-shrink: 0;
 }
 
 .ctsv-reports-date {
   display: block;
-  font-weight: 600;
+  font-weight: 700;
   color: #0f172a;
+  font-size: 0.8125rem;
 }
 
 .ctsv-reports-time {
@@ -18479,56 +18559,104 @@ a.event-discovery-card__btn {
   margin-top: 2px;
 }
 
+.ctsv-reports-metric-cell,
+.ctsv-reports-fill-cell {
+  min-width: 180px;
+  padding-top: 2px;
+}
+
+.ctsv-reports-metric-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.ctsv-reports-metric-cell--empty .ctsv-reports-metric-top {
+  margin-bottom: 0;
+}
+
 .ctsv-reports-reg {
-  font-weight: 700;
+  font-size: 0.9375rem;
   color: #0f172a;
+}
+
+.ctsv-reports-reg strong {
+  font-weight: 800;
 }
 
 .ctsv-reports-reg-cap {
   font-weight: 500;
   color: #94a3b8;
-}
-
-.ctsv-reports-fill-cell {
-  width: 140px;
+  font-size: 0.8125rem;
 }
 
 .ctsv-reports-fill {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
   width: 100%;
-  max-width: 120px;
 }
 
 .ctsv-reports-fill-bar {
-  flex: 1;
   height: 8px;
   border-radius: 999px;
-  background: #ffffff;
+  background: #e2e8f0;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
 .ctsv-reports-fill-progress {
   display: block;
   height: 100%;
   border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.ctsv-reports-fill-progress--high {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.ctsv-reports-fill-progress--mid {
   background: linear-gradient(90deg, #ea580c, #f97316);
-  transition: width 0.2s;
+}
+
+.ctsv-reports-fill-progress--low {
+  background: linear-gradient(90deg, #d97706, #fbbf24);
+}
+
+.ctsv-reports-fill--empty {
+  display: none;
 }
 
 .ctsv-reports-fill-pct {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: #ea580c;
-  text-align: right;
+  font-size: 0.875rem;
+  font-weight: 800;
   line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.ctsv-reports-fill-pct--high {
+  color: #15803d;
+}
+
+.ctsv-reports-fill-pct--mid {
+  color: #ea580c;
+}
+
+.ctsv-reports-fill-pct--low {
+  color: #d97706;
+}
+
+.ctsv-reports-fill-pct--empty {
+  color: #94a3b8;
 }
 
 .ctsv-reports-actions-cell {
-  width: 132px;
+  width: 148px;
   white-space: nowrap;
+  padding-top: 2px;
 }
 
 .ctsv-reports-actions-stack {
@@ -18547,18 +18675,31 @@ a.event-discovery-card__btn {
   flex-shrink: 0;
 }
 
-.ctsv-reports-detail-link {
-  display: inline-block;
+.ctsv-reports-detail-link,
+.ctsv-reports-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #ea580c;
+  color: #c2410c;
   text-decoration: none;
   line-height: 1.2;
-  text-align: right;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.ctsv-reports-detail-link:hover {
-  text-decoration: underline;
+.ctsv-reports-detail-link:hover,
+.ctsv-reports-detail-btn:hover {
+  background: #ffedd5;
+  border-color: #fdba74;
+  color: #9a3412;
+  text-decoration: none;
 }
 
 .ctsv-reports-empty {

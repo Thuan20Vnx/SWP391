@@ -1,7 +1,7 @@
 const STATUS_LABELS = {
   draft: 'Bản nháp',
   pending_icpdp: 'Chờ IC-PDP duyệt',
-  pending_ctsv: 'Chờ CTSV duyệt',
+  pending_ctsv: 'Chờ IC-PDP duyệt',
   approved: 'Đã phê duyệt',
   rejected: 'Từ chối',
   revision: 'Cần chỉnh sửa',

@@ -6,7 +6,8 @@ const {
   requireCtsvApprove,
   requireSchoolEventSubmit,
   requireProposalModerate,
-  requireIcpdpOrCtsv
+  requireIcpdpOrCtsv,
+  requireIcpdpTimeline
 } = require('../middleware/requireRole');
 const Event = require('../models/Event');
 const EventRegistration = require('../models/EventRegistration');
@@ -1259,16 +1260,10 @@ const deleteAnnouncementHandler = async (req, res) => {
 router.delete('/announcements/:id', requireCtsvApprove, deleteAnnouncementHandler);
 router.post('/announcements/:id/delete', requireCtsvApprove, deleteAnnouncementHandler);
 
-// --- Semester timelines (CLB kế hoạch kỳ học) ---
-router.get('/semester-timelines', requireIcpdpOrCtsv, async (req, res) => {
+// --- Semester timelines (CLB kế hoạch kỳ học — chỉ IC-PDP duyệt) ---
+router.get('/semester-timelines', requireIcpdpTimeline, async (req, res) => {
   try {
-    const role = req.userRole;
-    const defaultStatuses =
-      role === 'icpdp'
-        ? ['pending_icpdp', 'revision']
-        : role === 'ctsv'
-          ? ['pending_ctsv']
-          : ['pending_icpdp', 'pending_ctsv', 'revision'];
+    const defaultStatuses = ['pending_icpdp', 'pending_ctsv', 'revision'];
     const timelines = await clubSemesterTimelineService.listForReview({
       status: req.query.status,
       q: req.query.q,
@@ -1281,7 +1276,7 @@ router.get('/semester-timelines', requireIcpdpOrCtsv, async (req, res) => {
   }
 });
 
-router.get('/semester-timelines/:id', requireIcpdpOrCtsv, async (req, res) => {
+router.get('/semester-timelines/:id', requireIcpdpTimeline, async (req, res) => {
   try {
     const timeline = await clubSemesterTimelineService.getById(req.params.id);
     return res.json({ success: true, timeline });
@@ -1291,7 +1286,7 @@ router.get('/semester-timelines/:id', requireIcpdpOrCtsv, async (req, res) => {
   }
 });
 
-router.patch('/semester-timelines/:id/icpdp-approve', requireIcpdpOrCtsv, async (req, res) => {
+router.patch('/semester-timelines/:id/icpdp-approve', requireIcpdpTimeline, async (req, res) => {
   try {
     const timeline = await clubSemesterTimelineService.icpdpApprove(req.params.id, {
       note: req.body.note,
@@ -1300,7 +1295,7 @@ router.patch('/semester-timelines/:id/icpdp-approve', requireIcpdpOrCtsv, async 
     return res.json({
       success: true,
       timeline,
-      message: 'Đã duyệt timeline — chuyển sang CTSV phê duyệt.',
+      message: 'Đã phê duyệt timeline kỳ học.',
     });
   } catch (error) {
     const status = error.statusCode || 500;
@@ -1308,20 +1303,7 @@ router.patch('/semester-timelines/:id/icpdp-approve', requireIcpdpOrCtsv, async 
   }
 });
 
-router.patch('/semester-timelines/:id/approve', requireCtsvApprove, async (req, res) => {
-  try {
-    const timeline = await clubSemesterTimelineService.ctsvApprove(req.params.id, {
-      note: req.body.note,
-      reviewerEmail: req.authEmail,
-    });
-    return res.json({ success: true, timeline, message: 'Đã phê duyệt timeline kỳ học.' });
-  } catch (error) {
-    const status = error.statusCode || 500;
-    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
-  }
-});
-
-router.patch('/semester-timelines/:id/reject', requireProposalModerate, async (req, res) => {
+router.patch('/semester-timelines/:id/reject', requireIcpdpTimeline, async (req, res) => {
   try {
     const timeline = await clubSemesterTimelineService.rejectTimeline(req.params.id, {
       reason: req.body.reason,
@@ -1334,7 +1316,7 @@ router.patch('/semester-timelines/:id/reject', requireProposalModerate, async (r
   }
 });
 
-router.patch('/semester-timelines/:id/request-revision', requireProposalModerate, async (req, res) => {
+router.patch('/semester-timelines/:id/request-revision', requireIcpdpTimeline, async (req, res) => {
   try {
     const timeline = await clubSemesterTimelineService.requestRevision(req.params.id, {
       note: req.body.note,
@@ -1347,7 +1329,7 @@ router.patch('/semester-timelines/:id/request-revision', requireProposalModerate
   }
 });
 
-router.patch('/semester-timelines/:id/change-request/icpdp-approve', requireIcpdpOrCtsv, async (req, res) => {
+router.patch('/semester-timelines/:id/change-request/icpdp-approve', requireIcpdpTimeline, async (req, res) => {
   try {
     const timeline = await clubSemesterTimelineService.icpdpApproveChangeRequest(req.params.id, {
       note: req.body.note,

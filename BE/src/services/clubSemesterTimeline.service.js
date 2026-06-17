@@ -222,33 +222,13 @@ const icpdpApprove = async (id, { note, reviewerEmail } = {}) => {
     err.statusCode = 404;
     throw err;
   }
-  if (timeline.status !== 'pending_icpdp') {
+  if (!['pending_icpdp', 'pending_ctsv'].includes(timeline.status)) {
     const err = new Error('Timeline không chờ IC-PDP duyệt!');
     err.statusCode = 400;
     throw err;
   }
-  timeline.status = 'pending_ctsv';
-  timeline.icpdpNote = String(note || '').trim();
-  timeline.reviewedByEmail = reviewerEmail || '';
-  timeline.reviewedAt = new Date();
-  await timeline.save();
-  return formatClubSemesterTimeline(timeline);
-};
-
-const ctsvApprove = async (id, { note, reviewerEmail } = {}) => {
-  const timeline = await ClubSemesterTimeline.findById(id);
-  if (!timeline) {
-    const err = new Error('Không tìm thấy timeline kỳ học!');
-    err.statusCode = 404;
-    throw err;
-  }
-  if (timeline.status !== 'pending_ctsv') {
-    const err = new Error('Timeline không chờ CTSV duyệt!');
-    err.statusCode = 400;
-    throw err;
-  }
   timeline.status = 'approved';
-  timeline.ctsvNote = String(note || '').trim();
+  timeline.icpdpNote = String(note || '').trim();
   timeline.reviewedByEmail = reviewerEmail || '';
   timeline.reviewedAt = new Date();
   await timeline.save();
@@ -299,12 +279,7 @@ const requestRevision = async (id, { note, reviewerEmail } = {}) => {
     err.statusCode = 400;
     throw err;
   }
-  if (timeline.status === 'pending_icpdp') {
-    timeline.icpdpNote = trimmed;
-  }
-  if (timeline.status === 'pending_ctsv') {
-    timeline.ctsvNote = trimmed;
-  }
+  timeline.icpdpNote = trimmed;
   timeline.status = 'revision';
   timeline.reviewedByEmail = reviewerEmail || '';
   timeline.reviewedAt = new Date();
@@ -423,7 +398,7 @@ const withdrawForClub = async (id, userId, activeClubId) => {
     err.statusCode = 404;
     throw err;
   }
-  if (!['pending_icpdp', 'pending_ctsv'].includes(timeline.status)) {
+  if (timeline.status !== 'pending_icpdp') {
     const err = new Error('Chỉ có thể thu hồi đơn đang chờ duyệt!');
     err.statusCode = 400;
     throw err;
@@ -552,7 +527,6 @@ module.exports = {
   listForReview,
   getById,
   icpdpApprove,
-  ctsvApprove,
   rejectTimeline,
   requestRevision,
   icpdpApproveChangeRequest,
