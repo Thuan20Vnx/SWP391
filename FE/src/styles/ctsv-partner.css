@@ -2384,9 +2384,12 @@
   width: 100%;
 }
 
-.partner-settings-panel > .ctsv-profile-security-card,
-.partner-profile-stack > .ctsv-profile-security-card {
+.partner-settings-panel > .ctsv-profile-security-card {
   margin-top: 24px;
+}
+
+.partner-profile-stack > .ctsv-profile-security-card {
+  margin-top: 0;
 }
 
 .ctsv-profile-avatar-card {

@@ -10,53 +10,147 @@ const {
   DEMO_REPORT_EVENT_ID
 } = require('./ctsvReport.service');
 const AppError = require('../utils/AppError');
+const partnerQueryCache = require('../utils/partnerQueryCache');
 
-const getPartnerRecordsByEmail = async (email) => {
-  const normalized = String(email || '').trim().toLowerCase();
-  if (!normalized) return [];
-  return Partner.find({ email: normalized }).sort({ createdAt: -1 });
-};
+const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+
+const PARTNER_SUMMARY_FIELDS =
+  'name email phone representative address description partnerCode category proposedEventTitle expectedSponsorAmount benefits representativeTitle status rejectionReason supplementReason createdAt updatedAt';
+
+const PARTNER_LOGO_FIELDS = `${PARTNER_SUMMARY_FIELDS} logo attachments`;
+
+const EVENT_LIST_FIELDS =
+  'title category startDate endDate registrationStartDate registrationEndDate status location image thumbnail registeredCount capacity totalTickets eventType format campus eventState partnerId source ticketPrice ticketTypes speakers.name speakers.role bannerFileName duration isHidden postponeReason postponeIsWeather statusBeforeModeration moderationReason moderationReasonCategory moderationRequestedByEmail moderationRequestedAt icpdpNote ctsvEditUnlocked createdByEmail approvedByEmail ctsvSubmittedByEmail ctsvSubmittedAt adminApprovedByEmail adminApprovedAt ctsvNote rejectionReason expectedRevenue proposalId';
+
+const EVENT_REPORT_FIELDS = `${EVENT_LIST_FIELDS} agenda learningOutcomes expectedAttendees`;
 
 const getPartnerIdsByEmail = async (email) => {
-  const normalized = String(email || '').trim().toLowerCase();
+  const normalized = normalizeEmail(email);
   if (!normalized) return [];
 
-  const memberRows = await PartnerMember.find({ email: normalized, isActive: true })
-    .select('partnerId')
+  const cacheKey = `${normalized}:partnerIds`;
+  const cached = partnerQueryCache.get(cacheKey);
+  if (cached) return cached;
+
+  const [memberRows, partnerRows] = await Promise.all([
+    PartnerMember.find({ email: normalized, isActive: true }).select('partnerId').lean(),
+    Partner.find({ email: normalized }).select('_id').lean()
+  ]);
+
+  const ids =
+    memberRows.length > 0
+      ? [...new Set(memberRows.map((r) => r.partnerId))]
+      : partnerRows.map((p) => p._id);
+
+  partnerQueryCache.set(cacheKey, ids);
+  return ids;
+};
+
+const getPartnerRecordsByEmail = async (email, { includeHeavy = false, limit = 50 } = {}) => {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return [];
+
+  const select = includeHeavy ? PARTNER_LOGO_FIELDS : PARTNER_SUMMARY_FIELDS;
+  return Partner.find({ email: normalized })
+    .sort({ createdAt: -1 })
+    .select(select)
+    .limit(limit)
     .lean();
-  if (memberRows.length) {
-    return [...new Set(memberRows.map((r) => r.partnerId))];
+};
+
+const getPrimaryPartner = async (email, { includeHeavy = true } = {}) => {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return null;
+
+  const select = includeHeavy ? PARTNER_LOGO_FIELDS : PARTNER_SUMMARY_FIELDS;
+  const [approved, latest] = await Promise.all([
+    Partner.findOne({ email: normalized, status: 'approved' }).select(select).lean(),
+    Partner.findOne({ email: normalized }).sort({ createdAt: -1 }).select(select).lean()
+  ]);
+
+  return approved || latest || null;
+};
+
+const getPartnerMePayload = async (email) => {
+  const normalized = normalizeEmail(email);
+  if (!normalized) {
+    return { partner: null, proposals: [], hasProfile: false };
   }
 
-  const records = await getPartnerRecordsByEmail(email);
-  return records.map((p) => p._id);
+  const proposals = await getPartnerRecordsByEmail(normalized, { includeHeavy: false });
+  if (!proposals.length) {
+    return { partner: null, proposals: [], hasProfile: false };
+  }
+
+  const primaryBase = proposals.find((item) => item.status === 'approved') || proposals[0];
+  const logoDoc = await Partner.findById(primaryBase._id).select('logo attachments').lean();
+  const partner = {
+    ...primaryBase,
+    logo: logoDoc?.logo || '',
+    attachments: logoDoc?.attachments || []
+  };
+
+  return { partner, proposals, hasProfile: true };
 };
 
-const getPrimaryPartner = async (email) => {
-  const records = await getPartnerRecordsByEmail(email);
-  if (!records.length) return null;
-  const approved = records.find((p) => p.status === 'approved');
-  return approved || records[0];
-};
+const buildPartnerStats = async (email, partnerIds = null) => {
+  const ids = partnerIds || (await getPartnerIdsByEmail(email));
+  if (!ids.length) {
+    return {
+      stats: [
+        { label: 'Tổng số sự kiện', value: '0', trend: 'Chưa có sự kiện' },
+        { label: 'Tổng lượt đăng ký', value: '0', trend: '—' },
+        { label: 'Sự kiện sắp diễn ra', value: '00', trend: 'Không có trong 48h' },
+        { label: 'Tổng doanh thu tài trợ', value: '—', trend: 'Kỳ hiện tại' }
+      ],
+      raw: { totalEvents: 0, totalRegistered: 0, upcomingCount: 0, totalContractAmount: 0 }
+    };
+  }
 
-const buildPartnerStats = async (email) => {
-  const partnerIds = await getPartnerIdsByEmail(email);
-  const contracts = partnerIds.length
-    ? await Contract.find({ partnerId: { $in: partnerIds } }).lean()
-    : [];
-  const events = partnerIds.length
-    ? await Event.find({ partnerId: { $in: partnerIds } }).lean()
-    : [];
-
-  const totalEvents = events.length;
-  const totalRegistered = events.reduce((s, e) => s + (e.registeredCount || 0), 0);
   const now = new Date();
   const in48h = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-  const upcomingCount = events.filter((e) => {
-    const start = e.startDate ? new Date(e.startDate) : null;
-    return start && start >= now && start <= in48h && ['approved', 'live'].includes(e.status);
-  }).length;
-  const totalContractAmount = contracts.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+
+  const [eventAgg, contractAgg] = await Promise.all([
+    Event.aggregate([
+      { $match: { partnerId: { $in: ids } } },
+      {
+        $group: {
+          _id: null,
+          totalEvents: { $sum: 1 },
+          totalRegistered: { $sum: { $ifNull: ['$registeredCount', 0] } },
+          upcomingCount: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ['$startDate', now] },
+                    { $lte: ['$startDate', in48h] },
+                    { $in: ['$status', ['approved', 'live']] }
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          }
+        }
+      }
+    ]),
+    Contract.aggregate([
+      { $match: { partnerId: { $in: ids } } },
+      {
+        $group: {
+          _id: null,
+          totalContractAmount: { $sum: { $ifNull: ['$amount', 0] } }
+        }
+      }
+    ])
+  ]);
+
+  const totalEvents = eventAgg[0]?.totalEvents || 0;
+  const totalRegistered = eventAgg[0]?.totalRegistered || 0;
+  const upcomingCount = eventAgg[0]?.upcomingCount || 0;
+  const totalContractAmount = contractAgg[0]?.totalContractAmount || 0;
   const amountLabel =
     totalContractAmount >= 1_000_000
       ? `${Math.round(totalContractAmount / 1_000_000)}M VNĐ`
@@ -91,30 +185,50 @@ const buildPartnerStats = async (email) => {
   };
 };
 
+const buildPartnerStatsBundle = async (email) => {
+  const normalized = normalizeEmail(email);
+  const partnerIds = await getPartnerIdsByEmail(normalized);
+
+  const [statsPayload, proposals] = await Promise.all([
+    buildPartnerStats(normalized, partnerIds),
+    normalized
+      ? Partner.find({ email: normalized })
+          .sort({ createdAt: -1 })
+          .select(PARTNER_SUMMARY_FIELDS)
+          .limit(20)
+          .lean()
+      : Promise.resolve([])
+  ]);
+
+  return {
+    ...statsPayload,
+    activity: buildActivityFeed(proposals)
+  };
+};
+
 const getPartnerEvents = async (email, query = {}) => {
   const partnerIds = await getPartnerIdsByEmail(email);
   if (!partnerIds.length) return [];
 
   const filter = { partnerId: { $in: partnerIds } };
-  const events = await Event.find(filter).sort({ startDate: -1 }).limit(100);
-  let formatted = events.map(formatEvent);
-
-  const q = String(query.q || '').trim().toLowerCase();
+  const q = String(query.q || '').trim();
   if (q) {
-    formatted = formatted.filter(
-      (e) =>
-        (e.title || '').toLowerCase().includes(q) ||
-        (e.location || '').toLowerCase().includes(q) ||
-        (e.category || '').toLowerCase().includes(q)
-    );
+    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    filter.$or = [{ title: regex }, { location: regex }, { category: regex }];
   }
 
   const category = query.category;
   if (category && category !== 'Tất cả') {
-    formatted = formatted.filter((e) => e.category === category);
+    filter.category = category;
   }
 
-  return formatted;
+  const events = await Event.find(filter)
+    .select(EVENT_LIST_FIELDS)
+    .sort({ startDate: -1 })
+    .limit(100)
+    .lean();
+
+  return events.map(formatEvent);
 };
 
 const getPartnerEventById = async (email, eventId) => {
@@ -123,7 +237,7 @@ const getPartnerEventById = async (email, eventId) => {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
 
-  const event = await Event.findById(eventId);
+  const event = await Event.findById(eventId).lean();
   if (!event) {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
@@ -142,6 +256,7 @@ const getPartnerContracts = async (email) => {
 
   const contracts = await Contract.find({ partnerId: { $in: partnerIds } })
     .sort({ createdAt: -1 })
+    .select('partnerId title amount status fileUrl signedAt createdAt updatedAt')
     .populate('partnerId', 'name proposedEventTitle status')
     .lean();
 
@@ -186,8 +301,10 @@ const getPartnerReports = async (email) => {
       { endDate: { $exists: false }, startDate: { $lte: now } }
     ]
   })
+    .select(EVENT_REPORT_FIELDS)
     .sort({ startDate: -1 })
-    .limit(100);
+    .limit(100)
+    .lean();
 
   const reports = events.map((e) => {
     const cap = e.capacity || e.totalTickets || 0;
@@ -214,7 +331,7 @@ const getPartnerReportDetail = async (email, eventId) => {
   const result = await getCtsvReportDetail(eventId);
 
   if (eventId !== DEMO_REPORT_EVENT_ID && partnerIds.length) {
-    const event = await Event.findById(eventId);
+    const event = await Event.findById(eventId).select('partnerId').lean();
     if (event) {
       const owns = partnerIds.some((id) => String(event.partnerId) === String(id));
       if (!owns) {
@@ -255,7 +372,9 @@ module.exports = {
   getPartnerRecordsByEmail,
   getPartnerIdsByEmail,
   getPrimaryPartner,
+  getPartnerMePayload,
   buildPartnerStats,
+  buildPartnerStatsBundle,
   getPartnerEvents,
   getPartnerEventById,
   getPartnerContracts,

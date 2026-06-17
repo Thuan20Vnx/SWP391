@@ -8,17 +8,15 @@ const AppError = require('../utils/AppError');
 const {
   getPartnerRecordsByEmail,
   getPrimaryPartner,
-  buildPartnerStats,
+  getPartnerMePayload,
+  buildPartnerStatsBundle,
   getPartnerEvents,
   getPartnerEventById,
   getPartnerContracts,
   getPartnerReports,
-  getPartnerReportDetail,
-  buildActivityFeed
+  getPartnerReportDetail
 } = require('../services/partner.service');
 const {
-  getActiveRequestForEmail,
-  getDraftForEmail,
   saveDraft,
   submitRequest,
   cancelRequest,
@@ -27,8 +25,9 @@ const {
   hideRequest,
   deleteRequest,
   supplementRequest,
-  listCancelledForEmail
+  getActiveEventRequestBundle
 } = require('../services/partnerEventRequest.service');
+const partnerQueryCache = require('../utils/partnerQueryCache');
 
 router.use(authMiddleware);
 router.use(requireRole(['partner']));
@@ -48,23 +47,15 @@ const handleError = (res, error, label) => {
 
 router.get('/me', async (req, res) => {
   try {
-    const normalized = String(req.authEmail || '').trim().toLowerCase();
-    const records = await Partner.find({ email: normalized }).sort({ createdAt: -1 }).lean();
-    if (!records.length) {
+    const payload = await getPartnerMePayload(req.authEmail);
+    if (!payload.hasProfile) {
       return res.status(404).json({
         success: false,
         message: 'Chưa có hồ sơ đối tác. Vui lòng gửi đề xuất đầu tiên.',
         partner: null
       });
     }
-    const partner = records.find((item) => item.status === 'approved') || records[0];
-    const proposals = records.map(({ logo, attachments, ...rest }) => rest);
-    return res.json({
-      success: true,
-      partner,
-      proposals,
-      hasProfile: true
-    });
+    return res.json({ success: true, ...payload });
   } catch (error) {
     return handleError(res, error, 'partner me');
   }
@@ -122,7 +113,9 @@ router.patch('/me', async (req, res) => {
       partner._id,
       { $set: updates },
       { new: true, runValidators: true }
-    );
+    ).select('-attachments');
+
+    partnerQueryCache.invalidateEmail(req.authEmail);
 
     return res.json({ success: true, partner: updated });
   } catch (error) {
@@ -132,10 +125,8 @@ router.patch('/me', async (req, res) => {
 
 router.get('/stats', async (req, res) => {
   try {
-    const data = await buildPartnerStats(req.authEmail);
-    const proposals = await getPartnerRecordsByEmail(req.authEmail);
-    const activity = buildActivityFeed(proposals);
-    return res.json({ success: true, ...data, activity });
+    const data = await buildPartnerStatsBundle(req.authEmail);
+    return res.json({ success: true, ...data });
   } catch (error) {
     return handleError(res, error, 'partner stats');
   }
@@ -188,7 +179,7 @@ router.get('/reports/:id', async (req, res) => {
 
 router.get('/proposals', async (req, res) => {
   try {
-    const proposals = await getPartnerRecordsByEmail(req.authEmail);
+    const proposals = await getPartnerRecordsByEmail(req.authEmail, { includeHeavy: false });
     return res.json({ success: true, proposals });
   } catch (error) {
     return handleError(res, error, 'partner proposals');
@@ -245,6 +236,8 @@ router.post('/proposals', async (req, res) => {
     const { ensurePrimaryPartnerMember } = require('../services/partnerMember.service');
     await ensurePrimaryPartnerMember(partner);
 
+    partnerQueryCache.invalidateEmail(email);
+
     return res.status(201).json({
       success: true,
       partner,
@@ -271,15 +264,8 @@ router.patch('/proposals/:id/supplement', async (req, res) => {
 
 router.get('/event-requests/active', async (req, res) => {
   try {
-    const request = await getActiveRequestForEmail(req.authEmail);
-    const draft = request?.status === 'draft' ? request : await getDraftForEmail(req.authEmail);
-    const cancelled = await listCancelledForEmail(req.authEmail);
-    return res.json({
-      success: true,
-      request: request || draft || null,
-      draft: draft || null,
-      cancelled
-    });
+    const bundle = await getActiveEventRequestBundle(req.authEmail);
+    return res.json({ success: true, ...bundle });
   } catch (error) {
     return handleError(res, error, 'partner event active');
   }
