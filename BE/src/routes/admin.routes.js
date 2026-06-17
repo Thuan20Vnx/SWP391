@@ -50,7 +50,7 @@ const UNIT_EVENT_PENDING_APPROVED = [
   'live',
 ];
 
-const CLUB_PROPOSAL_PENDING = ['pending_icpdp', 'pending_ctsv', 'revision'];
+const CLUB_PROPOSAL_PENDING = ['pending_icpdp', 'pending_ctsv', 'pending_admin', 'revision'];
 
 const listEventsForAdmin = (filter, limit = 200) =>
   Event.aggregate([

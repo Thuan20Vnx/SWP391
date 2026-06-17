@@ -32,7 +32,9 @@ const CtsvProposalDetail = () => {
 
   if (!proposal) return <div className="ctsv-page"><p className="ctsv-muted">Đang tải...</p></div>;
 
-  const canCtsvAct = ['pending_ctsv', 'pending_icpdp'].includes(proposal.statusKey);
+  const canCtsvAct =
+    proposal.statusKey === 'pending_admin' ||
+    (['pending_ctsv', 'pending_icpdp'].includes(proposal.statusKey) && !proposal.linkedEventId);
 
   return (
     <div className="ctsv-page">

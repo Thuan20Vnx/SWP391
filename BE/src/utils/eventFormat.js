@@ -116,7 +116,8 @@ const formatProposal = (doc) => {
     icpdpNote: o.icpdpNote,
     ctsvNote: o.ctsvNote,
     rejectionReason: o.rejectionReason,
-    eventId: o.eventId?.toString?.() || o.eventId
+    eventId: o.eventId?.toString?.() || o.eventId,
+    linkedEventId: o.linkedEventId?.toString?.() || o.linkedEventId
   };
 };
 

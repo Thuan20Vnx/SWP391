@@ -10,6 +10,9 @@ const connectDB = require('./src/config/db');
 const Club = require('./src/models/Club');
 const clubSeedData = require('./src/data/clubSeedData');
 
+/** Không ghi đè ảnh/logo do quản lý CLB đã tải lên khi chạy lại seed */
+const PRESERVE_IF_SET_FIELDS = ['coverImage', 'logoImage', 'managedBy'];
+
 const seedClubs = async () => {
   try {
     await connectDB();
@@ -25,7 +28,14 @@ const seedClubs = async () => {
       };
       const existing = await Club.findOne({ slug: club.slug });
       if (existing) {
-        await Club.updateOne({ slug: club.slug }, { $set: payload });
+        const updates = { ...payload };
+        for (const field of PRESERVE_IF_SET_FIELDS) {
+          const current = existing[field];
+          if (current !== undefined && current !== null && String(current).trim() !== '') {
+            delete updates[field];
+          }
+        }
+        await Club.updateOne({ slug: club.slug }, { $set: updates });
         updated += 1;
       } else {
         await Club.create(payload);

@@ -8254,15 +8254,19 @@ a.club-tag {
 }
 
 .club-detail-page__banner {
-  height: 500px;
+  width: 100%;
+  aspect-ratio: 3 / 1;
   overflow: hidden;
   margin-bottom: -128px;
+  background: #0f172a;
 }
 
 .club-detail-page__banner-img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center center;
 }
 
 .club-detail-page__identity {
@@ -8845,7 +8849,7 @@ a.club-tag {
 
 @media (max-width: 768px) {
   .club-detail-page__banner {
-    height: 280px;
+    aspect-ratio: 3 / 1;
     margin-bottom: -80px;
   }
 
@@ -10285,6 +10289,10 @@ a.club-tag {
 .ctsv-nav-label {
   line-height: 1.3;
   min-width: 0;
+}
+
+.ctsv-nav-label__sub {
+  display: block;
 }
 
 .ctsv-nav-label__short {

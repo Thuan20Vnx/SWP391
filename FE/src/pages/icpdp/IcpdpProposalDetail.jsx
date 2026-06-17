@@ -33,7 +33,8 @@ const IconClub = () => (
 
 const STATUS_LABELS = {
   pending_icpdp: { label: 'Chờ IC-PDP duyệt', tone: 'warning' },
-  pending_ctsv: { label: 'Đã chuyển Admin', tone: 'info' },
+  pending_admin: { label: 'Chờ Admin duyệt', tone: 'info' },
+  pending_ctsv: { label: 'Chờ CTSV duyệt', tone: 'info' },
   approved: { label: 'Đã phê duyệt', tone: 'success' },
   rejected: { label: 'Từ chối', tone: 'danger' },
   revision: { label: 'Cần chỉnh sửa', tone: 'warning' }

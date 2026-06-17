@@ -141,8 +141,12 @@ const ClubManagement = () => {
 
   const getStatusLabel = (status) => {
     if (status === 'approved') return { label: 'Đã duyệt', tone: 'approved' };
-    if (status === 'pending') return { label: 'Chờ duyệt', tone: 'pending' };
-    return { label: 'Từ chối', tone: 'rejected' };
+    if (status === 'pending_icpdp') return { label: 'Chờ IC-PDP', tone: 'pending' };
+    if (status === 'pending_admin') return { label: 'Chờ Admin', tone: 'pending' };
+    if (status === 'pending' || status === 'pending_ctsv') return { label: 'Chờ duyệt', tone: 'pending' };
+    if (status === 'revision') return { label: 'Cần chỉnh sửa', tone: 'pending' };
+    if (status === 'rejected') return { label: 'Từ chối', tone: 'rejected' };
+    return { label: status || 'Không rõ', tone: 'pending' };
   };
 
   const handleDeleteEvent = async (id) => {
