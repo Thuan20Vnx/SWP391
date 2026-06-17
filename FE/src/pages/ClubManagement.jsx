@@ -7,7 +7,6 @@ import ClubDashboardPanel from '../components/club/ClubDashboardPanel';
 import ClubParticipantsPanel from '../components/club/ClubParticipantsPanel';
 import ClubEventReportsPanel from '../components/club/ClubEventReportsPanel';
 import './ClubManagement.css';
-import '../styles/club-mobile.css';
 import EventProposalForm from '../components/events/EventProposalForm';
 import ClubSemesterTimelinePanel from '../components/club/ClubSemesterTimelinePanel';
 import ClubEventListCard from '../components/club/mobile/ClubEventListCard';
@@ -142,8 +141,12 @@ const ClubManagement = () => {
 
   const getStatusLabel = (status) => {
     if (status === 'approved') return { label: 'Đã duyệt', tone: 'approved' };
-    if (status === 'pending') return { label: 'Chờ duyệt', tone: 'pending' };
-    return { label: 'Từ chối', tone: 'rejected' };
+    if (status === 'pending_icpdp') return { label: 'Chờ IC-PDP', tone: 'pending' };
+    if (status === 'pending_admin') return { label: 'Chờ Admin', tone: 'pending' };
+    if (status === 'pending' || status === 'pending_ctsv') return { label: 'Chờ duyệt', tone: 'pending' };
+    if (status === 'revision') return { label: 'Cần chỉnh sửa', tone: 'pending' };
+    if (status === 'rejected') return { label: 'Từ chối', tone: 'rejected' };
+    return { label: status || 'Không rõ', tone: 'pending' };
   };
 
   const handleDeleteEvent = async (id) => {

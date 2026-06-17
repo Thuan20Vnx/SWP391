@@ -1558,35 +1558,28 @@
 
 .clb-profile-visual {
   position: relative;
-  margin-bottom: 0;
+  width: 100%;
 }
 
+/* Khung 3:1 — trùng crop modal hồ sơ CLB, cân với logo */
 .clb-profile-cover-wrap {
   position: relative;
   width: 100%;
-  min-height: 320px;
-  max-height: 400px;
+  aspect-ratio: 3 / 1;
   overflow: hidden;
-  background: #ffffff;
+  background: #0f172a;
 }
 
-.clb-profile-cover-wrap--draggable {
-  cursor: grab;
-  touch-action: none;
-}
-
-.clb-profile-cover-wrap--draggable.is-dragging {
-  cursor: grabbing;
+.clb-profile-cover-wrap--editable {
+  cursor: default;
 }
 
 .clb-profile-cover {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 320px;
-  max-height: 400px;
   object-fit: cover;
-  object-position: center 50%;
+  object-position: center center;
   user-select: none;
   pointer-events: none;
 }

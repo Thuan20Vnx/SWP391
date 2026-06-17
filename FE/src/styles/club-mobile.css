@@ -571,10 +571,8 @@
     grid-column: span 1;
   }
 
-  .clb-profile-cover-wrap,
-  .clb-profile-cover {
-    min-height: 200px;
-    max-height: 220px;
+  .clb-profile-cover-wrap {
+    aspect-ratio: 3 / 1;
   }
 
   .clb-profile-actions {

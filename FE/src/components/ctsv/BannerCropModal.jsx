@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   clampCropState,
   cropBannerImage,
@@ -8,12 +8,41 @@ import {
   zoomCropState
 } from '../../utils/cropImage';
 
-const VIEW_W = 520;
-const VIEW_H = Math.round((VIEW_W * 9) / 16);
+const BASE_VIEW_W = 640;
 const ZOOM_MAX_FACTOR = 3;
+const INITIAL_COVER_BOOST = 1.08;
 const PREVIEW_DEBOUNCE_MS = 120;
 
-const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
+const BannerCropModal = ({
+  open,
+  imageSrc,
+  fileName,
+  onConfirm,
+  onCancel,
+  aspectWidth = 16,
+  aspectHeight = 9,
+  outputWidth = 1200,
+  outputHeight: outputHeightProp,
+}) => {
+  const { viewW, viewH, outputHeight, previewW, previewH, aspectLabel } = useMemo(() => {
+    const vw = BASE_VIEW_W;
+    const vh = Math.round((vw * aspectHeight) / aspectWidth);
+    const outH = outputHeightProp ?? Math.round((outputWidth * aspectHeight) / aspectWidth);
+    const pW = 400;
+    const pH = Math.round((pW * aspectHeight) / aspectWidth);
+    const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+    const g = gcd(aspectWidth, aspectHeight);
+    const label = `${aspectWidth / g}:${aspectHeight / g}`;
+    return {
+      viewW: vw,
+      viewH: vh,
+      outputHeight: outH,
+      previewW: pW,
+      previewH: pH,
+      aspectLabel: label,
+    };
+  }, [aspectWidth, aspectHeight, outputWidth, outputHeightProp]);
+
   const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 });
   const [minScale, setMinScale] = useState(1);
   const [maxScale, setMaxScale] = useState(3);
@@ -58,14 +87,14 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
       clearTimeout(previewTimerRef.current);
       previewTimerRef.current = setTimeout(async () => {
         try {
-          const url = await cropBannerPreview(imageSrc, state);
+          const url = await cropBannerPreview(imageSrc, state, previewW, previewH);
           setPreviewUrl(url);
         } catch {
           setPreviewUrl('');
         }
       }, PREVIEW_DEBOUNCE_MS);
     },
-    [imageSrc]
+    [imageSrc, previewW, previewH]
   );
 
   useEffect(() => {
@@ -80,8 +109,8 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
     img.onload = () => {
       const nw = img.naturalWidth;
       const nh = img.naturalHeight;
-      const ms = getMinScale(nw, nh, VIEW_W, VIEW_H);
-      const initial = getInitialCropState(nw, nh, VIEW_W, VIEW_H);
+      const ms = getMinScale(nw, nh, viewW, viewH);
+      const initial = getInitialCropState(nw, nh, viewW, viewH, INITIAL_COVER_BOOST);
 
       setNaturalSize({ w: nw, h: nh });
       setMinScale(ms);
@@ -99,7 +128,7 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
     img.src = imageSrc;
 
     return () => clearTimeout(previewTimerRef.current);
-  }, [open, imageSrc, applyImageTransform, schedulePreview, onCancel]);
+  }, [open, imageSrc, viewW, viewH, applyImageTransform, schedulePreview, onCancel]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -120,19 +149,19 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
   }, [crop, loading, schedulePreview]);
 
   const setZoom = useCallback(
-    (newScale, anchorX = VIEW_W / 2, anchorY = VIEW_H / 2) => {
+    (newScale, anchorX = viewW / 2, anchorY = viewH / 2) => {
       const c = cropRef.current;
       if (!c || !naturalSize.w) return;
       const clampedScale = Math.min(maxScale, Math.max(minScale, newScale));
       const next = zoomCropState(c, naturalSize.w, naturalSize.h, clampedScale, anchorX, anchorY);
       commitCrop(next);
     },
-    [naturalSize.w, naturalSize.h, minScale, maxScale, commitCrop]
+    [naturalSize.w, naturalSize.h, minScale, maxScale, commitCrop, viewW, viewH]
   );
 
   const handleReset = () => {
     if (!naturalSize.w) return;
-    commitCrop(getInitialCropState(naturalSize.w, naturalSize.h, VIEW_W, VIEW_H));
+    commitCrop(getInitialCropState(naturalSize.w, naturalSize.h, viewW, viewH, INITIAL_COVER_BOOST));
   };
 
   const handleFit = () => {
@@ -191,8 +220,8 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
     if (!cropRef.current || loading) return;
     e.preventDefault();
     const rect = viewportRef.current?.getBoundingClientRect();
-    const anchorX = rect ? e.clientX - rect.left : VIEW_W / 2;
-    const anchorY = rect ? e.clientY - rect.top : VIEW_H / 2;
+    const anchorX = rect ? e.clientX - rect.left : viewW / 2;
+    const anchorY = rect ? e.clientY - rect.top : viewH / 2;
     const delta = e.deltaY > 0 ? -0.08 : 0.08;
     const nextScale = cropRef.current.scale * (1 + delta);
     setZoom(nextScale, anchorX, anchorY);
@@ -207,7 +236,7 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
     if (!c) return;
     setProcessing(true);
     try {
-      const dataUrl = await cropBannerImage(imageSrc, c);
+      const dataUrl = await cropBannerImage(imageSrc, c, outputWidth, outputHeight);
       onConfirm(dataUrl, fileName);
     } catch {
       onConfirm(null);
@@ -241,7 +270,9 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
         <header className="ctsv-crop-modal-header">
           <div>
             <h2 id="crop-modal-title">Chỉnh sửa ảnh bìa</h2>
-            <p>Kéo để căn chỉnh · Cuộn chuột hoặc thanh trượt để zoom · Tỷ lệ 16:9</p>
+            <p>
+              Kéo để căn chỉnh · Cuộn chuột hoặc thanh trượt để zoom · Tỷ lệ {aspectLabel}
+            </p>
           </div>
           <button type="button" className="ctsv-crop-close" onClick={onCancel} aria-label="Đóng">
             ×
@@ -253,7 +284,7 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
             <div
               ref={viewportRef}
               className={`ctsv-crop-viewport ${loading ? 'is-loading' : ''}`}
-              style={{ width: VIEW_W, height: VIEW_H }}
+              style={{ width: viewW, height: viewH }}
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
@@ -304,14 +335,19 @@ const BannerCropModal = ({ open, imageSrc, fileName, onConfirm, onCancel }) => {
 
           <aside className="ctsv-crop-preview-panel">
             <span className="ctsv-crop-preview-label">Xem trước banner</span>
-            <div className="ctsv-crop-preview-box">
+            <div
+              className="ctsv-crop-preview-box"
+              style={{ aspectRatio: `${aspectWidth} / ${aspectHeight}` }}
+            >
               {previewUrl ? (
                 <img src={previewUrl} alt="Xem trước ảnh bìa sau khi cắt" />
               ) : (
                 <div className="ctsv-crop-preview-placeholder">Đang tạo preview...</div>
               )}
             </div>
-            <p className="ctsv-crop-preview-meta">Xuất: 1200 × 675 px · JPEG</p>
+            <p className="ctsv-crop-preview-meta">
+              Xuất: {outputWidth} × {outputHeight} px · JPEG
+            </p>
           </aside>
         </div>
 

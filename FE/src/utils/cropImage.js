@@ -10,8 +10,9 @@ const createImage = (url) =>
 export const getMinScale = (imgW, imgH, viewW, viewH) =>
   Math.max(viewW / imgW, viewH / imgH);
 
-export const getInitialCropState = (imgW, imgH, viewW, viewH) => {
-  const scale = getMinScale(imgW, imgH, viewW, viewH);
+export const getInitialCropState = (imgW, imgH, viewW, viewH, coverBoost = 1) => {
+  const minScale = getMinScale(imgW, imgH, viewW, viewH);
+  const scale = minScale * Math.max(1, coverBoost);
   return clampCropState(
     {
       scale,

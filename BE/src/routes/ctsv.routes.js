@@ -426,6 +426,35 @@ router.patch('/events/:id/approve', requireCtsvApprove, async (req, res) => {
         message: 'Sự kiện cấp trường cần Admin phê duyệt trước khi mở đăng ký.'
       });
     }
+    const isClubEvent = event.source === 'club' || event.clubId;
+    if (isClubEvent) {
+      if (event.status === 'pending_icpdp') {
+        return res.status(400).json({
+          success: false,
+          message: 'Sự kiện CLB cần IC-PDP duyệt trước, sau đó Admin phê duyệt.'
+        });
+      }
+      if (event.status !== 'pending_admin') {
+        return res.status(400).json({
+          success: false,
+          message: 'Sự kiện CLB chỉ được phê duyệt khi đang chờ Admin duyệt!'
+        });
+      }
+      event.status = 'approved';
+      event.approvedByEmail = req.authEmail;
+      event.adminApprovedByEmail = req.authEmail;
+      event.adminApprovedAt = new Date();
+      event.ctsvNote = req.body.note || '';
+      await event.save();
+      if (event.proposalId) {
+        await EventProposal.findByIdAndUpdate(event.proposalId, {
+          status: 'approved',
+          eventId: event._id,
+          ctsvNote: req.body.note || '',
+        });
+      }
+      return res.json({ success: true, event: formatEvent(event) });
+    }
     if (!['pending_ctsv', 'pending_icpdp', 'revision'].includes(event.status)) {
       return res.status(400).json({ success: false, message: 'Sự kiện không ở trạng thái chờ duyệt!' });
     }
@@ -463,6 +492,13 @@ router.patch('/events/:id/reject', requireProposalModerate, async (req, res) => 
     event.rejectionReason = req.body.reason || req.body.note || '';
     event.approvedByEmail = req.authEmail;
     await event.save();
+    if (event.proposalId) {
+      await EventProposal.findByIdAndUpdate(event.proposalId, {
+        status: 'rejected',
+        rejectionReason: event.rejectionReason,
+        ...(req.userRole === 'icpdp' ? { icpdpNote: event.rejectionReason } : {}),
+      });
+    }
     return res.json({ success: true, event: formatEvent(event) });
   } catch (error) {
     console.error('ctsv reject event:', error);
@@ -685,7 +721,7 @@ router.get('/proposals', async (req, res) => {
   try {
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
-    else filter.status = { $in: ['pending_ctsv', 'pending_icpdp', 'revision'] };
+    else filter.status = { $in: ['pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'] };
     if (req.query.q) {
       const re = new RegExp(req.query.q.trim(), 'i');
       filter.$or = [{ title: re }, { clubName: re }];
@@ -720,8 +756,19 @@ router.patch('/proposals/:id/icpdp-approve', requireIcpdpOrCtsv, async (req, res
     if (req.userRole === 'icpdp' && proposal.status !== 'pending_icpdp') {
       return res.status(400).json({ success: false, message: 'Đề xuất không chờ ICPDP duyệt!' });
     }
+    const note = req.body.note || '';
+    if (proposal.linkedEventId) {
+      proposal.status = 'pending_admin';
+      proposal.icpdpNote = note;
+      await proposal.save();
+      await Event.findByIdAndUpdate(proposal.linkedEventId, {
+        status: 'pending_admin',
+        icpdpNote: note,
+      });
+      return res.json({ success: true, proposal: formatProposal(proposal) });
+    }
     proposal.status = 'pending_ctsv';
-    proposal.icpdpNote = req.body.note || '';
+    proposal.icpdpNote = note;
     await proposal.save();
     return res.json({ success: true, proposal: formatProposal(proposal) });
   } catch (error) {
@@ -736,6 +783,35 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đề xuất!' });
     }
+
+    if (proposal.linkedEventId) {
+      if (proposal.status !== 'pending_admin') {
+        return res.status(400).json({
+          success: false,
+          message: 'Đề xuất CLB chỉ được Admin phê duyệt sau khi IC-PDP đã duyệt!'
+        });
+      }
+      const event = await Event.findById(proposal.linkedEventId);
+      if (!event) {
+        return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện liên kết!' });
+      }
+      event.status = 'approved';
+      event.approvedByEmail = req.authEmail;
+      event.adminApprovedByEmail = req.authEmail;
+      event.adminApprovedAt = new Date();
+      event.ctsvNote = req.body.note || '';
+      await event.save();
+      proposal.status = 'approved';
+      proposal.eventId = event._id;
+      proposal.ctsvNote = req.body.note || '';
+      await proposal.save();
+      return res.json({
+        success: true,
+        proposal: formatProposal(proposal),
+        event: formatEvent(event)
+      });
+    }
+
     if (!['pending_ctsv', 'pending_icpdp'].includes(proposal.status)) {
       return res.status(400).json({ success: false, message: 'Đề xuất không thể phê duyệt!' });
     }

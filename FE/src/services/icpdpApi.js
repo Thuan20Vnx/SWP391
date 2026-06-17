@@ -55,7 +55,7 @@ export const fetchIcpdpProposals = (params = {}) => {
 
 export const fetchIcpdpProposal = (id) => icpdpFetch(`/proposals/${id}`);
 
-/** Duyệt nội bộ ICPDP → chuyển pending_icpdp → pending_ctsv */
+/** Duyệt nội bộ ICPDP — đề xuất CLB liên kết sự kiện → pending_admin, còn lại → pending_ctsv */
 export const icpdpApproveProposal = (id, note = '') =>
   icpdpFetch(`/proposals/${id}/icpdp-approve`, {
     method: 'PATCH',

@@ -17,6 +17,23 @@
   flex-direction: column;
 }
 
+/* Header Quản lý CLB — sidebar mở vẫn giữ ô tìm kiếm đầy đủ */
+.club-app-shell .site-header--sidebar-open .site-header__search {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 120px;
+  max-width: 260px;
+}
+
+.club-app-shell .site-header--sidebar-open .header-search-box {
+  width: 100%;
+  max-width: 100%;
+}
+
+.club-app-shell .site-header--sidebar-open .site-header__mobile-search-btn {
+  display: none;
+}
+
 .club-sidebar .ctsv-nav-link.active {
   background: var(--club-accent-bg-strong) !important;
   color: var(--club-accent) !important;
@@ -37,6 +54,93 @@
   cursor: pointer;
   text-align: left;
   font: inherit;
+}
+
+/* Mobile: header sticky (z-index 1300) che mục đầu sidebar — Hồ sơ CLB */
+@media (max-width: 1023px) {
+  .club-app-shell.sidebar-open .ctsv-sidebar {
+    padding-top: calc(58px + env(safe-area-inset-top, 0px));
+  }
+
+  .club-app-shell.sidebar-open .ctsv-sidebar-header {
+    display: none;
+  }
+}
+
+/* Mobile header — giống CTSV: ☰ logo | Quản lý CLB | icon (phải) */
+@media (max-width: 900px) {
+  .club-app-shell .home-header.site-header.site-header--with-shell {
+    flex-wrap: nowrap;
+    align-items: center;
+    align-content: center;
+  }
+
+  .club-app-shell .home-header.site-header .header-container.site-header__container,
+  .club-app-shell .site-header--with-shell .site-header__container {
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .club-app-shell .site-header--with-shell .site-header__start {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .club-app-shell .site-header--with-shell .ctsv-header-brand {
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .club-app-shell .site-header--with-shell .ctsv-header-logo {
+    flex-shrink: 0;
+    max-width: 76px;
+  }
+
+  .club-app-shell .site-header--with-shell .site-header__nav:not(.mobile-active) {
+    display: none !important;
+  }
+
+  /* Quản lý CLB sát logo — không đẩy sang phải */
+  .club-app-shell .site-header--with-shell .site-header__nav-toggle {
+    margin-left: 4px;
+    margin-right: 0;
+    flex-shrink: 0;
+    max-width: none;
+  }
+
+  .club-app-shell .site-header--with-shell .site-header__nav-toggle-label {
+    max-width: none;
+  }
+
+  /* Icon tìm kiếm / chuông / avatar đẩy về phải */
+  .club-app-shell .site-header--with-shell .header-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .club-app-shell .site-header--with-shell:not(.site-header--sidebar-open) .site-header__search {
+    display: none !important;
+  }
+
+  /* Sidebar mở: chỉ ☰ + ô tìm kiếm (ẩn Quản lý CLB & icon — giống CTSV) */
+  .club-app-shell .site-header--with-shell.site-header--sidebar-open .site-header__start {
+    flex: 0 0 auto;
+  }
+
+  .club-app-shell .site-header--with-shell.site-header--sidebar-open .site-header__search {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    margin: 0 10px 0 4px;
+    display: flex !important;
+  }
+
+  .club-app-shell .site-header--with-shell.site-header--sidebar-open .site-header__nav-toggle,
+  .club-app-shell .site-header--with-shell.site-header--sidebar-open .header-actions {
+    display: none !important;
+  }
 }
 
 .club-nav-unread-dot {
@@ -520,6 +624,10 @@
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.clb-participants-toolbar .clb-profile-field .app-select {
+  width: 100%;
 }
 
 @media (max-width: 720px) {
