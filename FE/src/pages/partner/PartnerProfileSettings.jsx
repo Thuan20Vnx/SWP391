@@ -126,47 +126,29 @@ const IconChevronDown = () => (
 
 
 const PartnerProfileCollapseSection = ({ id, title, desc, open, onToggle, children }) => (
-
-  <section className="partner-profile-card partner-profile-card--collapse">
-
+  <section className="ctsv-profile-security-card">
     <button
-
       type="button"
-
-      className="partner-profile-collapse-toggle"
-
+      className="ctsv-profile-security-toggle"
       aria-expanded={open}
-
       aria-controls={id}
-
       onClick={onToggle}
-
     >
-
-      <div className="partner-profile-collapse-toggle-main">
-
-        <h2 className="partner-profile-card__title">{title}</h2>
-
-        {desc && <p className="partner-profile-card__desc partner-profile-card__desc--toggle">{desc}</p>}
-
+      <div className="ctsv-profile-security-toggle-main">
+        <h2>{title}</h2>
+        {desc && <p>{desc}</p>}
       </div>
-
-      <span className={`partner-profile-collapse-chevron${open ? ' is-open' : ''}`} aria-hidden>
-
+      <span className={`ctsv-profile-security-chevron${open ? ' is-open' : ''}`} aria-hidden>
         <IconChevronDown />
-
       </span>
-
     </button>
 
-    <div id={id} className={`partner-profile-collapse-panel${open ? ' is-open' : ''}`}>
-
-      <div className="partner-profile-collapse-panel-inner">{children}</div>
-
+    <div id={id} className={`ctsv-profile-security-panel${open ? ' is-open' : ''}`}>
+      <div className="ctsv-profile-security-panel-inner">
+        <div className="ctsv-profile-security-body">{children}</div>
+      </div>
     </div>
-
   </section>
-
 );
 
 

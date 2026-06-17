@@ -638,8 +638,12 @@
   margin-top: 0;
 }
 
-.partner-profile-collapse-panel-inner form > .partner-company-logo-row:first-child {
-  margin-top: 0;
+.partner-profile-stack .ctsv-profile-security-body form > .partner-company-logo-row:first-child {
+  margin-top: 20px;
+}
+
+.partner-profile-stack .ctsv-profile-security-body > .partner-toggle-row:first-child {
+  margin-top: 4px;
 }
 
 .partner-company-logo-row {

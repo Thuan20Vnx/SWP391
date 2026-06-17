@@ -3,11 +3,17 @@ const PartnerEventRequest = require('../models/PartnerEventRequest');
 const Contract = require('../models/Contract');
 const AppError = require('../utils/AppError');
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
+const partnerQueryCache = require('../utils/partnerQueryCache');
 
 const MAX_IMAGE_LEN = 4_500_000;
 const MAX_ATTACHMENT_LEN = 2_000_000;
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+
+const bumpPartnerCache = (email) => partnerQueryCache.invalidateEmail(email);
+
+const CANCELLED_SUMMARY_FIELDS =
+  'title companyName status updatedAt createdAt submittedAt supplementReason expectedSponsorAmount category partnerId';
 
 const assertImageField = (value, label) => {
   if (!value || typeof value !== 'string') return;
@@ -97,16 +103,52 @@ const getActiveRequestForEmail = async (email) => {
   return PartnerEventRequest.findOne({
     partnerEmail: normalized,
     status: { $nin: ['cancelled', 'deleted'] }
-  }).sort({ updatedAt: -1 });
+  })
+    .sort({ updatedAt: -1 })
+    .lean();
 };
 
 const getDraftForEmail = async (email) => {
   const normalized = normalizeEmail(email);
-  const draft = await PartnerEventRequest.findOne({
+  return PartnerEventRequest.findOne({
     partnerEmail: normalized,
     status: 'draft'
-  }).sort({ updatedAt: -1 });
-  return draft;
+  })
+    .sort({ updatedAt: -1 })
+    .lean();
+};
+
+const getActiveEventRequestBundle = async (email) => {
+  const normalized = normalizeEmail(email);
+  const [request, cancelled] = await Promise.all([
+    PartnerEventRequest.findOne({
+      partnerEmail: normalized,
+      status: { $nin: ['cancelled', 'deleted'] }
+    })
+      .sort({ updatedAt: -1 })
+      .lean(),
+    PartnerEventRequest.find({
+      partnerEmail: normalized,
+      status: 'cancelled'
+    })
+      .sort({ updatedAt: -1 })
+      .limit(20)
+      .select(CANCELLED_SUMMARY_FIELDS)
+      .lean()
+  ]);
+
+  let draft = null;
+  if (request?.status === 'draft') {
+    draft = request;
+  } else {
+    draft = await getDraftForEmail(normalized);
+  }
+
+  return {
+    request: request || draft || null,
+    draft,
+    cancelled
+  };
 };
 
 const saveDraft = async (email, body) => {
@@ -125,7 +167,8 @@ const saveDraft = async (email, body) => {
   }
   Object.assign(doc, payload, { status: 'draft' });
   await doc.save();
-  return doc;
+  bumpPartnerCache(normalized);
+  return doc.toObject ? doc.toObject() : doc;
 };
 
 const { ensurePrimaryPartnerMember } = require('./partnerMember.service');
@@ -174,6 +217,7 @@ const syncPartnerRecord = async (email, payload, status = 'pending') => {
     }
   }
   await ensurePrimaryPartnerMember(partner);
+  bumpPartnerCache(normalized);
   return partner;
 };
 
@@ -226,7 +270,8 @@ const submitRequest = async (email, body) => {
     { $set: { status: 'deleted', deletedAt: new Date() } }
   );
 
-  return { request: doc, partner };
+  bumpPartnerCache(normalized);
+  return { request: doc.toObject ? doc.toObject() : doc, partner };
 };
 
 const cancelRequest = async (email, requestId) => {
@@ -244,7 +289,8 @@ const cancelRequest = async (email, requestId) => {
       $set: { status: 'rejected', rejectionReason: SELF_CANCEL_REASON }
     });
   }
-  return doc;
+  bumpPartnerCache(doc.partnerEmail);
+  return doc.toObject ? doc.toObject() : doc;
 };
 
 const updatePendingRequest = async (email, requestId, body) => {
@@ -263,7 +309,8 @@ const updatePendingRequest = async (email, requestId, body) => {
   const partner = await syncPartnerRecord(email, payload, 'pending');
   doc.partnerId = partner._id;
   await doc.save();
-  return doc;
+  bumpPartnerCache(doc.partnerEmail);
+  return doc.toObject ? doc.toObject() : doc;
 };
 
 const updateApprovedRequest = async (email, requestId, body) => {
@@ -278,7 +325,8 @@ const updateApprovedRequest = async (email, requestId, body) => {
   Object.assign(doc, payload, { status: 'approved', hiddenAt: null });
   await doc.save();
   if (doc.partnerId) await syncPartnerRecord(email, payload, 'approved');
-  return doc;
+  bumpPartnerCache(doc.partnerEmail);
+  return doc.toObject ? doc.toObject() : doc;
 };
 
 const hideRequest = async (email, requestId) => {
@@ -292,7 +340,8 @@ const hideRequest = async (email, requestId) => {
   doc.status = 'hidden';
   doc.hiddenAt = new Date();
   await doc.save();
-  return doc;
+  bumpPartnerCache(doc.partnerEmail);
+  return doc.toObject ? doc.toObject() : doc;
 };
 
 const deleteRequest = async (email, requestId) => {
@@ -325,7 +374,8 @@ const deleteRequest = async (email, requestId) => {
     }
   }
 
-  return doc;
+  bumpPartnerCache(partnerEmail);
+  return doc.toObject ? doc.toObject() : doc;
 };
 
 const listCancelledForEmail = async (email) => {
@@ -356,12 +406,17 @@ const supplementRequest = async (email, requestId, body) => {
   const partner = await syncPartnerRecord(email, payload, 'pending');
   doc.partnerId = partner._id;
   await doc.save();
-  return { request: doc, partner };
+  bumpPartnerCache(doc.partnerEmail);
+  return {
+    request: doc.toObject ? doc.toObject() : doc,
+    partner
+  };
 };
 
 module.exports = {
   getActiveRequestForEmail,
   getDraftForEmail,
+  getActiveEventRequestBundle,
   saveDraft,
   submitRequest,
   cancelRequest,
