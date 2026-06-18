@@ -16,6 +16,7 @@ const timelineItemSchema = new mongoose.Schema(
 const TIMELINE_STATUSES = [
   'draft',
   'pending_icpdp',
+  'pending_admin',
   'pending_ctsv',
   'approved',
   'rejected',

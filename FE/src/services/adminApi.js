@@ -208,6 +208,12 @@ export const fetchClubRegistrations = (params = {}) => {
 
 export const fetchClubRegistration = (id) => adminFetch(`/club-registrations/${id}`);
 
+export const forwardClubRegistrationToAdmin = (id, note = '') =>
+  adminFetch(`/club-registrations/${id}/forward-admin`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
 export const approveClubRegistration = (id, note = '') =>
   adminFetch(`/club-registrations/${id}/approve`, {
     method: 'PATCH',

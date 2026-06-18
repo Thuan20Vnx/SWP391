@@ -30,6 +30,7 @@ const authorize = (...allowedRoles) => asyncHandler(async (req, res, next) => {
   }
 
   req.user = user;
+  req.userRole = normalizeRole(user.role);
   next();
 });
 

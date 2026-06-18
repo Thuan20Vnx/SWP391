@@ -7,7 +7,8 @@ const {
   requireSchoolEventSubmit,
   requireProposalModerate,
   requireIcpdpOrCtsv,
-  requireIcpdpTimeline
+  requireIcpdpTimeline,
+  requireAdmin,
 } = require('../middleware/requireRole');
 const Event = require('../models/Event');
 const EventRegistration = require('../models/EventRegistration');
@@ -28,8 +29,11 @@ const {
   SCHOOL_EVENT_SUBMIT_STATUS
 } = require('../constants/eventWorkflow');
 const { getCtsvReportDetail, appendDemoToReportList } = require('../services/ctsvReport.service');
+const {
+  submitCtsvReport,
+  getSubmissionMeta,
+} = require('../services/ctsvReportSubmission.service');
 const { resolveReportPhase, getReportDisplayStatus } = require('../constants/ctsvReportDisplay');
-const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
 const {
   findLinkableAnnouncementEvents,
   isEventLinkableForAnnouncement
@@ -429,6 +433,12 @@ router.patch('/events/:id/approve', requireCtsvApprove, async (req, res) => {
     }
     const isClubEvent = event.source === 'club' || event.clubId;
     if (isClubEvent) {
+      if (req.userRole !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Sự kiện CLB chỉ Admin được phê duyệt cuối.',
+        });
+      }
       if (event.status === 'pending_icpdp') {
         return res.status(400).json({
           success: false,
@@ -668,7 +678,8 @@ router.get('/reports', async (req, res) => {
 router.get('/reports/:id', async (req, res) => {
   try {
     const result = await getCtsvReportDetail(req.params.id);
-    return res.json({ success: true, report: result.report });
+    const submission = await getSubmissionMeta(req.params.id);
+    return res.json({ success: true, report: result.report, submission });
   } catch (error) {
     if (error.statusCode) {
       return res.status(error.statusCode).json({ success: false, message: error.message });
@@ -680,39 +691,20 @@ router.get('/reports/:id', async (req, res) => {
 
 router.post('/reports/:id/submit-admin', async (req, res) => {
   try {
-    const result = await getCtsvReportDetail(req.params.id);
-    const report = result.report;
-    const submission = await SubmittedCtsvReport.findOneAndUpdate(
-      { reportId: String(report.id || req.params.id) },
-      {
-        reportId: String(report.id || req.params.id),
-        eventId: req.params.id && /^[a-f\d]{24}$/i.test(req.params.id) ? req.params.id : null,
-        title: report.title || '',
-        category: report.category || '',
-        source: report.source || 'school',
-        reportPhase: report.reportPhase || 'ended',
-        snapshot: report,
-        submittedByEmail: String(req.authEmail || '').trim().toLowerCase(),
-        submittedAt: new Date(),
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-
+    const result = await submitCtsvReport(req.params.id, req.authEmail);
     return res.json({
       success: true,
-      submission: {
-        reportId: submission.reportId,
-        submittedAt: submission.submittedAt,
-        submittedByEmail: submission.submittedByEmail,
-      },
-      message: 'Da gui bao cao cho Admin xem.',
+      submission: result.submission,
+      sentToAdmin: result.sentToAdmin,
+      sentToPartner: result.sentToPartner,
+      message: result.message,
     });
   } catch (error) {
     if (error.statusCode) {
       return res.status(error.statusCode).json({ success: false, message: error.message });
     }
-    console.error('ctsv report submit admin:', error);
-    return res.status(500).json({ success: false, message: 'Loi may chu noi bo!' });
+    console.error('ctsv report submit:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
 
@@ -758,14 +750,17 @@ router.patch('/proposals/:id/icpdp-approve', requireIcpdpOrCtsv, async (req, res
       return res.status(400).json({ success: false, message: 'Đề xuất không chờ ICPDP duyệt!' });
     }
     const note = req.body.note || '';
-    if (proposal.linkedEventId) {
+    const isClubProposal = Boolean(proposal.clubId || proposal.linkedEventId);
+    if (isClubProposal) {
       proposal.status = 'pending_admin';
       proposal.icpdpNote = note;
       await proposal.save();
-      await Event.findByIdAndUpdate(proposal.linkedEventId, {
-        status: 'pending_admin',
-        icpdpNote: note,
-      });
+      if (proposal.linkedEventId) {
+        await Event.findByIdAndUpdate(proposal.linkedEventId, {
+          status: 'pending_admin',
+          icpdpNote: note,
+        });
+      }
       return res.json({ success: true, proposal: formatProposal(proposal) });
     }
     proposal.status = 'pending_ctsv';
@@ -783,6 +778,14 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
     const proposal = await EventProposal.findById(req.params.id);
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đề xuất!' });
+    }
+
+    const isClubProposal = Boolean(proposal.clubId || proposal.linkedEventId);
+    if (isClubProposal && req.userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Đề xuất CLB chỉ Admin được phê duyệt cuối.',
+      });
     }
 
     if (proposal.linkedEventId) {
@@ -813,11 +816,20 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
       });
     }
 
-    if (!['pending_ctsv', 'pending_icpdp'].includes(proposal.status)) {
-      return res.status(400).json({ success: false, message: 'Đề xuất không thể phê duyệt!' });
-    }
+    if (!proposal.linkedEventId) {
+      const isClubProposal = Boolean(proposal.clubId);
+      if (isClubProposal) {
+        if (proposal.status !== 'pending_admin') {
+          return res.status(400).json({
+            success: false,
+            message: 'Đề xuất CLB chỉ được Admin phê duyệt khi đang chờ Admin duyệt!',
+          });
+        }
+      } else if (!['pending_ctsv', 'pending_icpdp'].includes(proposal.status)) {
+        return res.status(400).json({ success: false, message: 'Đề xuất không thể phê duyệt!' });
+      }
 
-    const ticketTypes = normalizeTicketTypes(proposal.ticketTypes);
+      const ticketTypes = normalizeTicketTypes(proposal.ticketTypes);
     const ticketPrice =
       proposal.ticketPrice > 0
         ? proposal.ticketPrice
@@ -843,9 +855,11 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
       image: proposal.image,
       thumbnail: proposal.image,
       status: 'approved',
-      source: 'club',
+      source: isClubProposal ? 'club' : undefined,
       createdByEmail: proposal.submittedByEmail,
       approvedByEmail: req.authEmail,
+      adminApprovedByEmail: isClubProposal ? req.authEmail : undefined,
+      adminApprovedAt: isClubProposal ? new Date() : undefined,
       proposalId: proposal._id
     });
 
@@ -859,6 +873,7 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
       proposal: formatProposal(proposal),
       event: formatEvent(event)
     });
+    }
   } catch (error) {
     console.error('ctsv approve proposal:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -1263,7 +1278,10 @@ router.post('/announcements/:id/delete', requireCtsvApprove, deleteAnnouncementH
 // --- Semester timelines (CLB kế hoạch kỳ học — chỉ IC-PDP duyệt) ---
 router.get('/semester-timelines', requireIcpdpTimeline, async (req, res) => {
   try {
-    const defaultStatuses = ['pending_icpdp', 'pending_ctsv', 'revision'];
+    const defaultStatuses =
+      req.userRole === 'admin'
+        ? ['pending_admin']
+        : ['pending_icpdp', 'pending_ctsv', 'revision'];
     const timelines = await clubSemesterTimelineService.listForReview({
       status: req.query.status,
       q: req.query.q,
@@ -1295,6 +1313,23 @@ router.patch('/semester-timelines/:id/icpdp-approve', requireIcpdpTimeline, asyn
     return res.json({
       success: true,
       timeline,
+      message: 'Đã chuyển timeline lên Admin phê duyệt.',
+    });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/semester-timelines/:id/admin-approve', requireAdmin, async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.adminApprove(req.params.id, {
+      note: req.body.note,
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({
+      success: true,
+      timeline,
       message: 'Đã phê duyệt timeline kỳ học.',
     });
   } catch (error) {
@@ -1308,6 +1343,7 @@ router.patch('/semester-timelines/:id/reject', requireIcpdpTimeline, async (req,
     const timeline = await clubSemesterTimelineService.rejectTimeline(req.params.id, {
       reason: req.body.reason,
       reviewerEmail: req.authEmail,
+      reviewerRole: req.userRole,
     });
     return res.json({ success: true, timeline });
   } catch (error) {
@@ -1342,7 +1378,7 @@ router.patch('/semester-timelines/:id/change-request/icpdp-approve', requireIcpd
   }
 });
 
-router.patch('/semester-timelines/:id/change-request/admin-approve', requireCtsvApprove, async (req, res) => {
+router.patch('/semester-timelines/:id/change-request/admin-approve', requireAdmin, async (req, res) => {
   try {
     const result = await clubSemesterTimelineService.adminApproveChangeRequest(req.params.id, {
       note: req.body.note,

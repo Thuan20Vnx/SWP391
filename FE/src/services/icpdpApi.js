@@ -69,6 +69,12 @@ export const fetchIcpdpSemesterTimelines = (params = {}) => {
 
 export const fetchIcpdpSemesterTimeline = (id) => icpdpFetch(`/semester-timelines/${id}`);
 
+export const adminApproveSemesterTimeline = (id, note = '') =>
+  icpdpFetch(`/semester-timelines/${id}/admin-approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
 export const icpdpApproveSemesterTimeline = (id, note = '') =>
   icpdpFetch(`/semester-timelines/${id}/icpdp-approve`, {
     method: 'PATCH',

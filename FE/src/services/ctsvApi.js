@@ -75,8 +75,12 @@ export const fetchCtsvReports = () =>
 
 export const fetchCtsvReportDetail = (id) => ctsvFetch(`/reports/${id}`);
 
-export const submitCtsvReportToAdmin = (id) =>
+/** Gửi báo cáo: SK đối tác → Partner + Admin; các SK khác → Admin */
+export const submitCtsvReport = (id) =>
   ctsvFetch(`/reports/${id}/submit-admin`, { method: 'POST', body: '{}' });
+
+/** @deprecated dùng submitCtsvReport */
+export const submitCtsvReportToAdmin = submitCtsvReport;
 
 export const DEMO_REPORT_EVENT_ID = 'demo-ended-event';
 

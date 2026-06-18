@@ -86,6 +86,25 @@ const IconChevronDown = () => (
   </svg>
 );
 
+const formatHistoryMetaTime = (value) => {
+  if (!value) return '—';
+  try {
+    const d = new Date(value);
+    const clock = new Intl.DateTimeFormat('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+    const date = new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(d);
+    return `${clock} · ${date}`;
+  } catch {
+    return formatPartnerDate(value);
+  }
+};
+
 const formatDateTime = (value) => {
   if (!value) return '—';
   try {
@@ -1059,8 +1078,6 @@ const PortalAnnouncementManage = ({
               const cat = resolveAnnouncementCategory(a, eventSourceById);
               const isExpanded = expandedId === annId;
               const evId = a.eventId?._id || a.eventId;
-              const linkedTitle =
-                a.eventId?.title || (evId && eventTitleById[evId]) || null;
               return (
                 <li key={a._id || annId} className="ctsv-announce-history-item">
                   <div className="ctsv-announce-history-thumb-wrapper">
@@ -1089,7 +1106,17 @@ const PortalAnnouncementManage = ({
                         {getNoticeCategoryLabel(a.noticeCategory)}
                       </span>
                     </div>
-                    <p>{isExpanded ? a.content : excerpt(a.content)}</p>
+                  </div>
+                  <div className="ctsv-announce-history-meta">
+                    <time dateTime={a.publishedAt}>{formatHistoryMetaTime(a.publishedAt)}</time>
+                    <span className="ctsv-announce-history-targets">
+                      Gửi tới: {formatTargetRolesLabel(a.targetRoles)}
+                    </span>
+                  </div>
+                  <div className="ctsv-announce-history-content">
+                    <p className={isExpanded ? 'is-expanded' : undefined}>
+                      {isExpanded ? a.content : excerpt(a.content)}
+                    </p>
                     {isExpanded && a.content && a.content.length > 120 && (
                       <button
                         type="button"
@@ -1108,18 +1135,6 @@ const PortalAnnouncementManage = ({
                         Xem đầy đủ
                       </button>
                     )}
-                    <div className="ctsv-announce-history-meta">
-                      <time dateTime={a.publishedAt}>{formatDateTime(a.publishedAt)}</time>
-                      {linkedTitle && (
-                        <span className="ctsv-announce-history-event">{linkedTitle}</span>
-                      )}
-                      {a.publishedByEmail && (
-                        <span className="ctsv-announce-history-author">{a.publishedByEmail}</span>
-                      )}
-                      <span className="ctsv-announce-history-targets">
-                        Gửi tới: {formatTargetRolesLabel(a.targetRoles)}
-                      </span>
-                    </div>
                   </div>
                   <div className="ctsv-announce-history-actions">
                     {evId && canLinkEvents && (

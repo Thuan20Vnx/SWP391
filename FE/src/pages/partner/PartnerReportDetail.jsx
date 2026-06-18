@@ -93,6 +93,16 @@ const PartnerReportDetail = () => {
         Danh sách báo cáo
       </Link>
 
+      {report.ctsvDelivered ? (
+        <p className="ctsv-rd-muted" style={{ margin: '0 0 12px' }}>
+          Báo cáo do CTSV gửi
+          {report.submittedByEmail ? ` (${report.submittedByEmail})` : ''}
+          {report.sentToPartnerAt
+            ? ` · ${new Date(report.sentToPartnerAt).toLocaleString('vi-VN')}`
+            : ''}
+        </p>
+      ) : null}
+
       <header className="ctsv-rd-hero">
         <div className="ctsv-rd-hero-media">
           {report.image ? (

@@ -1,5 +1,6 @@
 const STATUS_LABELS = {
   pending_icpdp: 'Chờ IC-PDP duyệt',
+  pending_admin: 'Chờ Admin duyệt',
   approved: 'Đã phê duyệt',
   rejected: 'Từ chối',
   revision: 'Cần chỉnh sửa',
@@ -30,6 +31,7 @@ const formatClubRegistration = (doc) => {
     statusKey,
     submittedByEmail: r.submittedByEmail || '',
     icpdpNote: r.icpdpNote || '',
+    adminNote: r.adminNote || '',
     rejectionReason: r.rejectionReason || '',
     reviewedByEmail: r.reviewedByEmail || '',
     reviewedAt: r.reviewedAt || null,

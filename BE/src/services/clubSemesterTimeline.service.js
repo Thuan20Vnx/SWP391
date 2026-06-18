@@ -9,7 +9,7 @@ const {
 
 const VALID_TERMS = ['spring', 'summer', 'fall'];
 
-const ACTIVE_STATUSES = ['draft', 'pending_icpdp', 'pending_ctsv', 'approved', 'revision'];
+const ACTIVE_STATUSES = ['draft', 'pending_icpdp', 'pending_admin', 'pending_ctsv', 'approved', 'revision'];
 
 const normalizeItems = (items) => {
   if (!Array.isArray(items)) return [];
@@ -26,7 +26,7 @@ const normalizeItems = (items) => {
     .filter((item) => item.title);
 };
 
-const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'pending_icpdp', 'pending_ctsv'];
+const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'pending_icpdp', 'pending_ctsv', 'pending_admin'];
 
 const assertEditable = (timeline) => {
   if (!DIRECT_EDIT_STATUSES.includes(timeline.status)) {
@@ -227,7 +227,7 @@ const icpdpApprove = async (id, { note, reviewerEmail } = {}) => {
     err.statusCode = 400;
     throw err;
   }
-  timeline.status = 'approved';
+  timeline.status = 'pending_admin';
   timeline.icpdpNote = String(note || '').trim();
   timeline.reviewedByEmail = reviewerEmail || '';
   timeline.reviewedAt = new Date();
@@ -235,14 +235,40 @@ const icpdpApprove = async (id, { note, reviewerEmail } = {}) => {
   return formatClubSemesterTimeline(timeline);
 };
 
-const rejectTimeline = async (id, { reason, reviewerEmail } = {}) => {
+const adminApprove = async (id, { note, reviewerEmail } = {}) => {
   const timeline = await ClubSemesterTimeline.findById(id);
   if (!timeline) {
     const err = new Error('Không tìm thấy timeline kỳ học!');
     err.statusCode = 404;
     throw err;
   }
-  if (!['pending_icpdp', 'pending_ctsv'].includes(timeline.status)) {
+  if (timeline.status !== 'pending_admin') {
+    const err = new Error('Timeline không chờ Admin duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+  timeline.status = 'approved';
+  timeline.ctsvNote = String(note || '').trim();
+  timeline.reviewedByEmail = reviewerEmail || '';
+  timeline.reviewedAt = new Date();
+  await timeline.save();
+  return formatClubSemesterTimeline(timeline);
+};
+
+const rejectTimeline = async (id, { reason, reviewerEmail, reviewerRole } = {}) => {
+  const timeline = await ClubSemesterTimeline.findById(id);
+  if (!timeline) {
+    const err = new Error('Không tìm thấy timeline kỳ học!');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const allowedStatuses =
+    reviewerRole === 'admin'
+      ? ['pending_admin']
+      : ['pending_icpdp', 'pending_ctsv'];
+
+  if (!allowedStatuses.includes(timeline.status)) {
     const err = new Error('Timeline không thể từ chối ở trạng thái hiện tại!');
     err.statusCode = 400;
     throw err;
@@ -527,6 +553,7 @@ module.exports = {
   listForReview,
   getById,
   icpdpApprove,
+  adminApprove,
   rejectTimeline,
   requestRevision,
   icpdpApproveChangeRequest,

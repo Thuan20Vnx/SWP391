@@ -58,6 +58,22 @@ const syncClubEventProposal = async (event, { managedClub, userEmail, proposalSt
   await event.save();
 };
 
+const ClubSemesterTimeline = require('../models/ClubSemesterTimeline');
+
+const assertApprovedTimelineForClub = async (clubId) => {
+  const approved = await ClubSemesterTimeline.findOne({
+    clubId,
+    status: 'approved',
+  }).select('_id semesterLabel').lean();
+
+  if (!approved) {
+    throw new AppError(
+      'CLB cần có timeline kỳ học đã được phê duyệt trước khi tạo đề xuất sự kiện.',
+      400
+    );
+  }
+};
+
 const isClubManagedEvent = (event) => event.source === 'club' || Boolean(event.clubId);
 
 const CLUB_META_FIELDS = 'name slug description memberCount eventsHeld coverImage logoText logoColor';
@@ -149,6 +165,13 @@ const createEvent = async (user, body, activeClubId = null) => {
       'Địa điểm không hợp lệ. Chọn một trong: Sảnh tòa Gamma, Sảnh tòa Beta, Tầng 4 tòa Beta, Tầng 5 tòa Alpha.',
       400
     );
+  }
+
+  if (isClubManager) {
+    if (!managedClub?._id) {
+      throw new AppError('Không tìm thấy CLB bạn đang quản lý.', 400);
+    }
+    await assertApprovedTimelineForClub(managedClub._id);
   }
 
   const initialStatus = isClubManager ? 'pending_icpdp' : 'pending';

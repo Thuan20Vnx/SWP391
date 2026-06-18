@@ -59,6 +59,7 @@ const coreVi = {
   'admin.nav.eventRequests': 'Yêu cầu sửa / ẩn / xóa',
   'admin.nav.icpdpHome': 'Về cổng IC-PDP',
   'admin.nav.clubRegistrations': 'Duyệt thành lập CLB',
+  'admin.nav.semesterTimelines': 'Duyệt timeline CLB',
   'admin.nav.maintenance': 'Bảo trì hệ thống',
   'admin.sidebarLabel': 'Menu quản trị',
 
@@ -175,6 +176,7 @@ const coreEn = {
   'admin.nav.eventRequests': 'Edit / hide / delete requests',
   'admin.nav.icpdpHome': 'Back to IC-PDP portal',
   'admin.nav.clubRegistrations': 'Approve club registration',
+  'admin.nav.semesterTimelines': 'Approve club timelines',
   'admin.nav.maintenance': 'System maintenance',
   'admin.sidebarLabel': 'Admin menu',
 

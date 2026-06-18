@@ -1,5 +1,16 @@
 # .understandignore
 .understand-anything/
+.agents/
+.claude/
+.codegraph/
+*.png
+*.log
+*.err.log
+app_semester.txt
+icpdp_nav_semester.txt
+FE_src_services_icpdpApi_exports.txt
+ctsv_nav_club.js
+temp_site_header.jsx
 
 # --- From .gitignore ---
 

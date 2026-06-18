@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpSemesterTimelines } from '../../services/icpdpApi';
 import { statusClass } from '../../utils/eventStatus';
+import { getUserRole } from '../../utils/auth';
 
 const STATUS_FILTERS = [
   { id: '', label: 'Chờ xử lý' },
   { id: 'pending_icpdp', label: 'Chờ IC-PDP' },
+  { id: 'pending_admin', label: 'Chờ Admin' },
   { id: 'approved', label: 'Đã duyệt' },
   { id: 'revision', label: 'Cần chỉnh sửa' },
   { id: 'rejected', label: 'Từ chối' },
@@ -54,10 +56,15 @@ const IcpdpSemesterTimelineList = () => {
     );
   }, [timelines, searchQuery]);
 
-  const pendingCount = useMemo(
-    () => timelines.filter((t) => ['pending_icpdp', 'pending_ctsv'].includes(t.statusKey)).length,
-    [timelines]
-  );
+  const userRole = getUserRole();
+  const isAdmin = userRole === 'admin';
+
+  const pendingCount = useMemo(() => {
+    const pendingStatus = isAdmin ? 'pending_admin' : 'pending_icpdp';
+    return timelines.filter((t) => t.statusKey === pendingStatus).length;
+  }, [timelines, isAdmin]);
+
+  const pendingLabel = isAdmin ? 'chờ Admin duyệt' : 'chờ IC-PDP duyệt';
 
   return (
     <div className="ctsv-events-page">
@@ -66,7 +73,7 @@ const IcpdpSemesterTimelineList = () => {
           <span className="ctsv-events-eyebrow">IC-PDP · Kế hoạch kỳ</span>
           <h1>Duyệt timeline kỳ CLB</h1>
           <p>
-            CLB gửi kế hoạch hoạt động trước mỗi kỳ Spring / Summer / Fall. IC-PDP thẩm định và phê duyệt timeline.
+            CLB gửi kế hoạch hoạt động trước mỗi kỳ Spring / Summer / Fall. IC-PDP thẩm định, chuyển Admin phê duyệt cuối.
           </p>
         </div>
         <div className="ctsv-events-hero-aside">
@@ -76,7 +83,7 @@ const IcpdpSemesterTimelineList = () => {
           </div>
           {!loading && pendingCount > 0 && (
             <p style={{ fontSize: '0.82rem', color: '#7c3aed', fontWeight: 600, marginTop: 4 }}>
-              {pendingCount} chờ IC-PDP duyệt
+              {pendingCount} {pendingLabel}
             </p>
           )}
         </div>

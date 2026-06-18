@@ -108,7 +108,6 @@ import AdminFptUnitEvents from './pages/admin/AdminFptUnitEvents';
 import AdminPublicAnnouncements from './pages/admin/public/AdminPublicAnnouncements';
 import PublicAdminShell from './layouts/PublicAdminShell';
 import SiteFooter from './components/SiteFooter';
-import './index.css';
 import './styles/admin-public-pages.css';
 
 initThemeFromStorage();
