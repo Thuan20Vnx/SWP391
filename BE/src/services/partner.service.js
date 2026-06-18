@@ -3,12 +3,11 @@ const Partner = require('../models/Partner');
 const PartnerMember = require('../models/PartnerMember');
 const Contract = require('../models/Contract');
 const { formatEvent } = require('../utils/eventFormat');
-const { resolveReportPhase, getReportDisplayStatus } = require('../constants/ctsvReportDisplay');
+const { appendDemoToReportList } = require('./ctsvReport.service');
 const {
-  getCtsvReportDetail,
-  appendDemoToReportList,
-  DEMO_REPORT_EVENT_ID
-} = require('./ctsvReport.service');
+  listPartnerSubmittedReports,
+  getPartnerSubmittedReportDetail,
+} = require('./ctsvReportSubmission.service');
 const AppError = require('../utils/AppError');
 const partnerQueryCache = require('../utils/partnerQueryCache');
 
@@ -21,8 +20,6 @@ const PARTNER_LOGO_FIELDS = `${PARTNER_SUMMARY_FIELDS} logo attachments`;
 
 const EVENT_LIST_FIELDS =
   'title category startDate endDate registrationStartDate registrationEndDate status location image thumbnail registeredCount capacity totalTickets eventType format campus eventState partnerId source ticketPrice ticketTypes speakers.name speakers.role bannerFileName duration isHidden postponeReason postponeIsWeather statusBeforeModeration moderationReason moderationReasonCategory moderationRequestedByEmail moderationRequestedAt icpdpNote ctsvEditUnlocked createdByEmail approvedByEmail ctsvSubmittedByEmail ctsvSubmittedAt adminApprovedByEmail adminApprovedAt ctsvNote rejectionReason expectedRevenue proposalId';
-
-const EVENT_REPORT_FIELDS = `${EVENT_LIST_FIELDS} agenda learningOutcomes expectedAttendees`;
 
 const getPartnerIdsByEmail = async (email) => {
   const normalized = normalizeEmail(email);
@@ -276,71 +273,12 @@ const getPartnerContracts = async (email) => {
 };
 
 const getPartnerReports = async (email) => {
-  const partnerIds = await getPartnerIdsByEmail(email);
-  if (!partnerIds.length) return appendDemoToReportList([]);
-
-  const now = new Date();
-  const excludedStatuses = [
-    'draft',
-    'rejected',
-    'pending',
-    'pending_ctsv',
-    'pending_icpdp',
-    'pending_admin',
-    'revision'
-  ];
-
-  const events = await Event.find({
-    partnerId: { $in: partnerIds },
-    status: { $nin: excludedStatuses },
-    $or: [
-      { status: { $in: ['live', 'ended'] } },
-      { eventState: 'expired' },
-      { endDate: { $lte: now } },
-      { endDate: null, startDate: { $lte: now } },
-      { endDate: { $exists: false }, startDate: { $lte: now } }
-    ]
-  })
-    .select(EVENT_REPORT_FIELDS)
-    .sort({ startDate: -1 })
-    .limit(100)
-    .lean();
-
-  const reports = events.map((e) => {
-    const cap = e.capacity || e.totalTickets || 0;
-    const registered = e.registeredCount || 0;
-    const reportPhase = resolveReportPhase(e);
-    const display = getReportDisplayStatus(reportPhase, e.status);
-
-    return {
-      ...formatEvent(e),
-      status: display.label,
-      statusKey: display.statusKey,
-      registeredCount: registered,
-      totalTickets: cap,
-      attendanceRate: cap > 0 ? Math.round((registered / cap) * 100) : 0,
-      reportPhase
-    };
-  });
-
+  const reports = await listPartnerSubmittedReports(email);
   return appendDemoToReportList(reports);
 };
 
 const getPartnerReportDetail = async (email, eventId) => {
-  const partnerIds = await getPartnerIdsByEmail(email);
-  const result = await getCtsvReportDetail(eventId);
-
-  if (eventId !== DEMO_REPORT_EVENT_ID && partnerIds.length) {
-    const event = await Event.findById(eventId).select('partnerId').lean();
-    if (event) {
-      const owns = partnerIds.some((id) => String(event.partnerId) === String(id));
-      if (!owns) {
-        throw new AppError('Bạn không có quyền xem báo cáo này!', 403);
-      }
-    }
-  }
-
-  return result.report;
+  return getPartnerSubmittedReportDetail(email, eventId);
 };
 
 const buildActivityFeed = (proposals) =>

@@ -164,97 +164,12 @@ const unfollowClub = async (userId, idOrSlug) => {
   };
 };
 
-const joinClub = async (userId, idOrSlug, note = '') => {
-  const club = await resolveClub(idOrSlug);
-
-  if (!club || club.status !== 'active') {
-    throw new AppError('Không tìm thấy câu lạc bộ!', 404);
-  }
-
-  let membership = await ClubMembership.findOne({ user: userId, club: club._id });
-
-  if (membership?.status === 'pending') {
-    throw new AppError('Bạn đã gửi yêu cầu tham gia CLB này rồi.', 409);
-  }
-
-  if (membership?.status === 'member') {
-    throw new AppError('Bạn đã là thành viên của CLB này.', 409);
-  }
-
-  const isOpenJoin = club.joinMode === 'open';
-  const now = new Date();
-
-  if (membership) {
-    membership.status = isOpenJoin ? 'member' : 'pending';
-    membership.requestedAt = now;
-    membership.joinedAt = isOpenJoin ? now : null;
-    membership.leftAt = null;
-    membership.note = note?.trim?.() || '';
-    await membership.save();
-  } else {
-    membership = await ClubMembership.create({
-      user: userId,
-      club: club._id,
-      status: isOpenJoin ? 'member' : 'pending',
-      requestedAt: now,
-      joinedAt: isOpenJoin ? now : null,
-      note: note?.trim?.() || '',
-    });
-  }
-
-  if (isOpenJoin) {
-    club.memberCount = Math.max(0, (club.memberCount || 0) + 1);
-    await club.save();
-  }
-
-  const followedSet = await getFollowedClubIds(userId);
-  const membershipMap = await getMembershipMap(userId);
-  const updatedClub = attachUserClubFlags(club, followedSet, membershipMap);
-
-  return {
-    message: isOpenJoin
-      ? 'Đã tham gia câu lạc bộ thành công!'
-      : 'Đã gửi yêu cầu tham gia câu lạc bộ!',
-    club: updatedClub,
-    membership,
-  };
+const joinClub = async () => {
+  throw new AppError('Tính năng tham gia CLB đã ngừng. Vui lòng dùng Yêu thích CLB để theo dõi.', 403);
 };
 
-const cancelJoinClub = async (userId, idOrSlug) => {
-  const club = await resolveClub(idOrSlug);
-
-  if (!club) {
-    throw new AppError('Không tìm thấy câu lạc bộ!', 404);
-  }
-
-  const membership = await ClubMembership.findOne({
-    user: userId,
-    club: club._id,
-    status: { $in: ['pending', 'member'] },
-  });
-
-  if (!membership) {
-    throw new AppError('Bạn chưa có yêu cầu hoặc tư cách thành viên tại CLB này.', 404);
-  }
-
-  const wasMember = membership.status === 'member';
-  membership.status = wasMember ? 'left' : 'cancelled';
-  membership.leftAt = new Date();
-  await membership.save();
-
-  if (wasMember) {
-    club.memberCount = Math.max(0, (club.memberCount || 0) - 1);
-    await club.save();
-  }
-
-  const followedSet = await getFollowedClubIds(userId);
-  const membershipMap = await getMembershipMap(userId);
-  const updatedClub = attachUserClubFlags(club, followedSet, membershipMap);
-
-  return {
-    message: wasMember ? 'Đã rời câu lạc bộ.' : 'Đã hủy yêu cầu tham gia.',
-    club: updatedClub,
-  };
+const cancelJoinClub = async () => {
+  throw new AppError('Tính năng tham gia CLB đã ngừng.', 403);
 };
 
 const approveMembership = async (staffUserId, idOrSlug, targetUserId) => {
@@ -346,9 +261,9 @@ const getMyClubsCounts = async (userId) => {
   return { following, pending, joined };
 };
 
-const getMyClubs = async (userId, tab = 'joined') => {
+const getMyClubs = async (userId, tab = 'following') => {
   const counts = await getMyClubsCounts(userId);
-  const normalizedTab = ['joined', 'pending', 'following'].includes(tab) ? tab : 'joined';
+  const normalizedTab = ['following'].includes(tab) ? tab : 'following';
 
   if (normalizedTab === 'following') {
     const follows = await ClubFollow.find({

@@ -3,9 +3,11 @@ import { Link, useLocation, useNavigate, useOutletContext, useParams } from 'rea
 import {
   approveClubRegistration,
   fetchClubRegistration,
+  forwardClubRegistrationToAdmin,
   rejectClubRegistration,
   requestClubRegistrationRevision,
 } from '../../services/adminApi';
+import { getUserRole, isAdminRole } from '../../utils/auth';
 import { statusClass } from '../../utils/eventStatus';
 
 const resolveBasePath = (pathname) =>
@@ -23,6 +25,7 @@ const IcpdpClubRegistrationDetail = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const basePath = resolveBasePath(pathname);
+  const isAdmin = isAdminRole(getUserRole());
   const [registration, setRegistration] = useState(null);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -46,9 +49,25 @@ const IcpdpClubRegistrationDetail = () => {
     );
   }
 
-  const canApprove = registration.statusKey === 'pending_icpdp';
+  const canIcpdpForward = !isAdmin && ['pending_icpdp', 'revision'].includes(registration.statusKey);
+  const canAdminApprove = isAdmin && registration.statusKey === 'pending_admin';
+  const canIcpdpReject = !isAdmin && ['pending_icpdp', 'revision'].includes(registration.statusKey);
+  const canAdminReject = isAdmin && registration.statusKey === 'pending_admin';
 
-  const handleApprove = async () => {
+  const handleForward = async () => {
+    setSubmitting(true);
+    try {
+      const res = await forwardClubRegistrationToAdmin(id, note);
+      showToast?.(res.message || 'Đã chuyển đơn lên Admin.', 'success');
+      refresh();
+    } catch (e) {
+      showToast?.(e.message, 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAdminApprove = async () => {
     setSubmitting(true);
     try {
       const res = await approveClubRegistration(id, note);
@@ -125,11 +144,18 @@ const IcpdpClubRegistrationDetail = () => {
         </div>
       </section>
 
-      {canApprove && (
+      {canIcpdpForward && (
         <div className="icpdp-view-banner" style={{ borderColor: 'rgba(124, 58, 237, 0.35)', background: '#fff' }}>
           <p>
-            Đơn đang chờ <strong>IC-PDP phê duyệt thành lập CLB</strong>. Sau khi duyệt, hệ thống tạo CLB chính thức
-            trên F-Events.
+            IC-PDP rà soát đơn, sau đó <strong>chuyển Admin phê duyệt cuối</strong> để tạo CLB trên hệ thống.
+          </p>
+        </div>
+      )}
+
+      {canAdminApprove && (
+        <div className="icpdp-view-banner" style={{ borderColor: 'rgba(34, 197, 94, 0.3)', background: '#fff' }}>
+          <p>
+            Đơn đã qua IC-PDP. <strong>Admin phê duyệt cuối</strong> để tạo CLB và gán quyền Chủ nhiệm.
           </p>
         </div>
       )}
@@ -164,35 +190,28 @@ const IcpdpClubRegistrationDetail = () => {
               <span className="ctsv-ed-info-label">Ngày gửi</span>
               <strong>{formatDateTime(registration.createdAt)}</strong>
             </div>
-            {registration.facebook && (
-              <div className="ctsv-ed-info-card">
-                <span className="ctsv-ed-info-label">Facebook</span>
-                <strong>{registration.facebook}</strong>
-              </div>
-            )}
-            {registration.website && (
-              <div className="ctsv-ed-info-card">
-                <span className="ctsv-ed-info-label">Website</span>
-                <strong>{registration.website}</strong>
-              </div>
-            )}
           </div>
           {registration.rejectionReason && (
             <p className="ctsv-ed-reject-reason">
               <strong>Lý do từ chối:</strong> {registration.rejectionReason}
             </p>
           )}
-          {registration.icpdpNote && registration.statusKey !== 'pending_icpdp' && (
+          {registration.icpdpNote && (
             <p className="ctsv-ed-note">
               <strong>Ghi chú IC-PDP:</strong> {registration.icpdpNote}
             </p>
           )}
+          {registration.adminNote && (
+            <p className="ctsv-ed-note">
+              <strong>Ghi chú Admin:</strong> {registration.adminNote}
+            </p>
+          )}
         </div>
 
-        {canApprove && (
+        {(canIcpdpForward || canAdminApprove) && (
           <aside className="ctsv-ed-actions icpdp-club-reg-actions">
-            <h2>Quyết định IC-PDP</h2>
-            <label htmlFor="club-reg-note">Ghi chú / lý do (bắt buộc khi từ chối hoặc yêu cầu sửa)</label>
+            <h2>{canAdminApprove ? 'Quyết định Admin' : 'Quyết định IC-PDP'}</h2>
+            <label htmlFor="club-reg-note">Ghi chú / lý do</label>
             <textarea
               id="club-reg-note"
               rows={4}
@@ -201,30 +220,54 @@ const IcpdpClubRegistrationDetail = () => {
               placeholder="Nhập ghi chú nội bộ hoặc hướng dẫn chỉnh sửa…"
             />
             <div className="icpdp-club-reg-actions__btns">
-              <button
-                type="button"
-                className="ctsv-dash-btn ctsv-dash-btn--primary"
-                disabled={submitting}
-                onClick={handleApprove}
-              >
-                Phê duyệt & tạo CLB
-              </button>
-              <button
-                type="button"
-                className="ctsv-dash-btn ctsv-dash-btn--outline"
-                disabled={submitting}
-                onClick={handleRevision}
-              >
-                Yêu cầu chỉnh sửa
-              </button>
-              <button
-                type="button"
-                className="ctsv-dash-btn ctsv-dash-btn--danger"
-                disabled={submitting}
-                onClick={handleReject}
-              >
-                Từ chối
-              </button>
+              {canIcpdpForward && (
+                <>
+                  <button
+                    type="button"
+                    className="ctsv-dash-btn ctsv-dash-btn--primary"
+                    disabled={submitting}
+                    onClick={handleForward}
+                  >
+                    Chuyển Admin duyệt
+                  </button>
+                  <button
+                    type="button"
+                    className="ctsv-dash-btn ctsv-dash-btn--outline"
+                    disabled={submitting}
+                    onClick={handleRevision}
+                  >
+                    Yêu cầu chỉnh sửa
+                  </button>
+                  <button
+                    type="button"
+                    className="ctsv-dash-btn ctsv-dash-btn--danger"
+                    disabled={submitting}
+                    onClick={handleReject}
+                  >
+                    Từ chối
+                  </button>
+                </>
+              )}
+              {canAdminApprove && (
+                <>
+                  <button
+                    type="button"
+                    className="ctsv-dash-btn ctsv-dash-btn--primary"
+                    disabled={submitting}
+                    onClick={handleAdminApprove}
+                  >
+                    Phê duyệt & tạo CLB
+                  </button>
+                  <button
+                    type="button"
+                    className="ctsv-dash-btn ctsv-dash-btn--danger"
+                    disabled={submitting}
+                    onClick={handleReject}
+                  >
+                    Từ chối
+                  </button>
+                </>
+              )}
             </div>
           </aside>
         )}

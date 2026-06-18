@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const CLUB_REGISTRATION_STATUSES = ['pending_icpdp', 'approved', 'rejected', 'revision'];
+const CLUB_REGISTRATION_STATUSES = ['pending_icpdp', 'pending_admin', 'approved', 'rejected', 'revision'];
 
 const clubRegistrationSchema = new mongoose.Schema(
   {
@@ -27,6 +27,7 @@ const clubRegistrationSchema = new mongoose.Schema(
     submittedByEmail: { type: String, trim: true, lowercase: true },
     submittedByUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     icpdpNote: { type: String, default: '' },
+    adminNote: { type: String, default: '' },
     rejectionReason: { type: String, default: '' },
     reviewedByEmail: { type: String, default: '' },
     reviewedAt: { type: Date, default: null },

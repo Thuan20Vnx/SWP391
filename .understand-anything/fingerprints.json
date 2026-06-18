@@ -1,168 +1,8 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "e5917aefd811f042e8b3d6cdf168282b7e123be0",
-  "generatedAt": "2026-06-17T16:20:09.687Z",
+  "gitCommitHash": "6529079ad5484c2448cb9aaa409814f46ffe3c2a",
+  "generatedAt": "2026-06-18T13:42:51.714Z",
   "files": {
-    ".agents/skills/brandkit/SKILL.md": {
-      "filePath": ".agents/skills/brandkit/SKILL.md",
-      "contentHash": "a250c7b41aecacc412260de2fb429d36ada5f668388aad1770289fa3e5c4f740",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 799,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/design-taste-frontend-v1/SKILL.md": {
-      "filePath": ".agents/skills/design-taste-frontend-v1/SKILL.md",
-      "contentHash": "b7d3715c36c93ce1ac44c60586dd7974a2c2c094aff06c3a72b736314e60d8ac",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 227,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/design-taste-frontend/SKILL.md": {
-      "filePath": ".agents/skills/design-taste-frontend/SKILL.md",
-      "contentHash": "2e064e92aca020b2e0bad69326fe7ea55d59005ed53d1a8cbce1bd135d44b8b3",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 1207,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/full-output-enforcement/SKILL.md": {
-      "filePath": ".agents/skills/full-output-enforcement/SKILL.md",
-      "contentHash": "7b2275b591af7760b36a2dfb1dbcf3c99c5054c52298a1066c4979f39ed947d9",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 50,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/gpt-taste/SKILL.md": {
-      "filePath": ".agents/skills/gpt-taste/SKILL.md",
-      "contentHash": "6a19b70e6b53761d5788f284c615bf93a07cd9f94d5f0a452520260d9d951523",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 75,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/high-end-visual-design/SKILL.md": {
-      "filePath": ".agents/skills/high-end-visual-design/SKILL.md",
-      "contentHash": "2d11cdcefc8bf319429ee17d94d69a390802e2acf7163662d1eacbcf5be3ff79",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 99,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/image-to-code/SKILL.md": {
-      "filePath": ".agents/skills/image-to-code/SKILL.md",
-      "contentHash": "2944189b448e2a77cbbf55014030b1890a9ec5891acc9fa97fb8c215e0008407",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 1229,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/imagegen-frontend-mobile/SKILL.md": {
-      "filePath": ".agents/skills/imagegen-frontend-mobile/SKILL.md",
-      "contentHash": "3cadf1bfbe836d377832d090e5db8479f98903453a4d1342be9636178755f9dd",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 1466,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/imagegen-frontend-web/SKILL.md": {
-      "filePath": ".agents/skills/imagegen-frontend-web/SKILL.md",
-      "contentHash": "23e6d27ab410e97fe5e844d18db97c8e674d317abd8567f4c7726ee16f56da6e",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 988,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/industrial-brutalist-ui/SKILL.md": {
-      "filePath": ".agents/skills/industrial-brutalist-ui/SKILL.md",
-      "contentHash": "bd9c7fd04ae149531eb6bd0d4e8dceee57aa6877fcef3d67ced90e68e755affa",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 93,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/minimalist-ui/SKILL.md": {
-      "filePath": ".agents/skills/minimalist-ui/SKILL.md",
-      "contentHash": "1a292d1459292649dc5b422e029093259b6127e7df2f37ad8c22033174333a57",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 86,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/redesign-existing-projects/SKILL.md": {
-      "filePath": ".agents/skills/redesign-existing-projects/SKILL.md",
-      "contentHash": "d5a62efaf36fa52ea1966e06ce74452b3466a4f179af34fbce65f2c8e5461349",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 179,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/stitch-design-taste/DESIGN.md": {
-      "filePath": ".agents/skills/stitch-design-taste/DESIGN.md",
-      "contentHash": "4d13f63345ee4a0774fa910c6019d0579e05ff565699ff1a79e3f648f5db1d35",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 122,
-      "hasStructuralAnalysis": true
-    },
-    ".agents/skills/stitch-design-taste/SKILL.md": {
-      "filePath": ".agents/skills/stitch-design-taste/SKILL.md",
-      "contentHash": "56e41363d61ff565dbba8c8c05c3d8e6538ccd6f49180a504737edfcdbfff409",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 185,
-      "hasStructuralAnalysis": true
-    },
-    ".codegraph/daemon.pid": {
-      "filePath": ".codegraph/daemon.pid",
-      "contentHash": "c20e1fdb6952014d8ede275a993792f83c062ba683ab3abf26cbb7ce8edd59c9",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 7,
-      "hasStructuralAnalysis": false
-    },
-    "app_semester.txt": {
-      "filePath": "app_semester.txt",
-      "contentHash": "443d14994ea5123bf41bf18f22f1ab8cb3384283bf6a682837f4ffe16f5eb465",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 9,
-      "hasStructuralAnalysis": false
-    },
     "BE/.env.example": {
       "filePath": "BE/.env.example",
       "contentHash": "d8188fcc8c2e181f7bc17ec5ba687ec6063fbfa68ad0e3bdc0a564de39e18251",
@@ -455,6 +295,78 @@
       "imports": [],
       "exports": [],
       "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "BE/scripts/smoke-business-flows.js": {
+      "filePath": "BE/scripts/smoke-business-flows.js",
+      "contentHash": "c411fd52539a9ff8e62db9cb764cb61ca0042d919a22b1b9c25f05f91bcd8ec0",
+      "functions": [
+        {
+          "name": "log",
+          "params": [
+            "icon",
+            "name"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "fail",
+          "params": [
+            "name",
+            "detail"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "pass",
+          "params": [
+            "name"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "api",
+          "params": [
+            "method",
+            "path"
+          ],
+          "exported": false,
+          "lineCount": 27
+        },
+        {
+          "name": "login",
+          "params": [
+            "email"
+          ],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "setupData",
+          "params": [],
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "ensurePartnerEndedEvent",
+          "params": [],
+          "exported": false,
+          "lineCount": 36
+        },
+        {
+          "name": "run",
+          "params": [],
+          "exported": false,
+          "lineCount": 285
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 435,
       "hasStructuralAnalysis": true
     },
     "BE/scripts/test-avatar-save.js": {
@@ -2161,7 +2073,7 @@
     },
     "BE/src/middleware/authorize.js": {
       "filePath": "BE/src/middleware/authorize.js",
-      "contentHash": "99e8fc07450526073ca24e4e6f1dbefff875cf0f007c706c03ffc24926e20f3d",
+      "contentHash": "097ec24e5fb8ce1bf0871f55a289bcc4a110337eb18b9c4dfd074b79756d0dc7",
       "functions": [
         {
           "name": "resolveEmail",
@@ -2177,13 +2089,13 @@
             "...allowedRoles"
           ],
           "exported": false,
-          "lineCount": 23
+          "lineCount": 24
         }
       ],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 37,
+      "totalLines": 38,
       "hasStructuralAnalysis": true
     },
     "BE/src/middleware/authorizeEventParticipant.js": {
@@ -2378,22 +2290,22 @@
     },
     "BE/src/models/ClubRegistration.js": {
       "filePath": "BE/src/models/ClubRegistration.js",
-      "contentHash": "4d1918c05086bd60b5faee592b6c94c7baed849bd3b378ec9bd53d8f14a1d11d",
+      "contentHash": "9d680bd6407cc7678d79a723dd55e35db5532ed316deee1658595aa42ac44b9f",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 47,
+      "totalLines": 48,
       "hasStructuralAnalysis": true
     },
     "BE/src/models/ClubSemesterTimeline.js": {
       "filePath": "BE/src/models/ClubSemesterTimeline.js",
-      "contentHash": "f08c294adcf9ce2144ee992f83402d2296cefa1f252d2324ba432d573dc1fe59",
+      "contentHash": "62fe47e8cf8369863659b3b581990042885bf4826c9ced3daff974687fa791f2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 82,
+      "totalLines": 83,
       "hasStructuralAnalysis": true
     },
     "BE/src/models/Contract.js": {
@@ -2528,12 +2440,12 @@
     },
     "BE/src/models/SubmittedCtsvReport.js": {
       "filePath": "BE/src/models/SubmittedCtsvReport.js",
-      "contentHash": "adaf15102f319c7269924c513d64d9e990d4ce7ed70d84a666728a1dfd0bc0fa",
+      "contentHash": "39414c5d2f3058e7f1afa87f5092ca81ec5e94ebb7d5055990f9375a209e116c",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 56,
+      "totalLines": 79,
       "hasStructuralAnalysis": true
     },
     "BE/src/models/SystemSettings.js": {
@@ -2558,7 +2470,7 @@
     },
     "BE/src/routes/admin.routes.js": {
       "filePath": "BE/src/routes/admin.routes.js",
-      "contentHash": "f2ee9f99faf780e1bf3ef96681702564d4e1d3176fe26daa37b958a8e940dc30",
+      "contentHash": "e4c1bd2b280086734515232d1e46d13937a2ef960b0c18d2975c65cae81a3165",
       "functions": [
         {
           "name": "listEventsForAdmin",
@@ -2580,7 +2492,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 690,
+      "totalLines": 715,
       "hasStructuralAnalysis": true
     },
     "BE/src/routes/announcement.routes.js": {
@@ -2652,7 +2564,7 @@
     },
     "BE/src/routes/ctsv.routes.js": {
       "filePath": "BE/src/routes/ctsv.routes.js",
-      "contentHash": "7cb617a0d4ac5a92c6ca3e1b640d1370460832d837cdeb851fd572763e8b5566",
+      "contentHash": "29bd4e617e06701193a588f972e473a0dab82de92d3a787e4cae72f0e90801fc",
       "functions": [
         {
           "name": "pickSchoolEventFields",
@@ -2683,7 +2595,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 1377,
+      "totalLines": 1413,
       "hasStructuralAnalysis": true
     },
     "BE/src/routes/event.routes.js": {
@@ -3263,7 +3175,7 @@
     },
     "BE/src/services/club.service.js": {
       "filePath": "BE/src/services/club.service.js",
-      "contentHash": "6d6dfe132d89d5ba26be97f5546960e1e97c9eac13b8f2afdbbab8cf2b784965",
+      "contentHash": "79f9d93714d54dc73a93b2ba4d04da4d76207fba96279bd701d3dc3a763dacc6",
       "functions": [
         {
           "name": "resolveClub",
@@ -3340,21 +3252,15 @@
         },
         {
           "name": "joinClub",
-          "params": [
-            "userId",
-            "idOrSlug"
-          ],
+          "params": [],
           "exported": false,
-          "lineCount": 55
+          "lineCount": 3
         },
         {
           "name": "cancelJoinClub",
-          "params": [
-            "userId",
-            "idOrSlug"
-          ],
+          "params": [],
           "exported": false,
-          "lineCount": 36
+          "lineCount": 3
         },
         {
           "name": "approveMembership",
@@ -3466,12 +3372,12 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 567,
+      "totalLines": 482,
       "hasStructuralAnalysis": true
     },
     "BE/src/services/clubRegistration.service.js": {
       "filePath": "BE/src/services/clubRegistration.service.js",
-      "contentHash": "0c7358220b46ced058cfd7a1afa8c5bd01a95f20996a7c1ac7cd700bd7e7e04c",
+      "contentHash": "d5d55e960d53c431be8b0ddcb28d4df566310cd89893bc25f8a2c2b18a05e8ea",
       "functions": [
         {
           "name": "slugify",
@@ -3488,6 +3394,14 @@
           ],
           "exported": false,
           "lineCount": 9
+        },
+        {
+          "name": "defaultStatusFilterForRole",
+          "params": [
+            "viewerRole"
+          ],
+          "exported": false,
+          "lineCount": 6
         },
         {
           "name": "listRegistrations",
@@ -3512,12 +3426,28 @@
           "lineCount": 30
         },
         {
-          "name": "approveRegistration",
+          "name": "createClubFromRegistration",
+          "params": [
+            "registration"
+          ],
+          "exported": false,
+          "lineCount": 42
+        },
+        {
+          "name": "icpdpForwardToAdmin",
           "params": [
             "id"
           ],
           "exported": false,
-          "lineCount": 69
+          "lineCount": 21
+        },
+        {
+          "name": "adminApproveRegistration",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 30
         },
         {
           "name": "rejectRegistration",
@@ -3525,7 +3455,7 @@
             "id"
           ],
           "exported": false,
-          "lineCount": 25
+          "lineCount": 32
         },
         {
           "name": "requestRevision",
@@ -3536,21 +3466,23 @@
           "lineCount": 25
         },
         {
-          "name": "countPending",
-          "params": [],
+          "name": "countPendingForRole",
+          "params": [
+            "viewerRole"
+          ],
           "exported": false,
-          "lineCount": 1
+          "lineCount": 6
         }
       ],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 215,
+      "totalLines": 263,
       "hasStructuralAnalysis": true
     },
     "BE/src/services/clubSemesterTimeline.service.js": {
       "filePath": "BE/src/services/clubSemesterTimeline.service.js",
-      "contentHash": "bd30f56955425bfb3a1ec55a6e4f59d2489ebf16db726a3062d840e3d0292281",
+      "contentHash": "53a50685862e03cd57d958116a96afe576fca35705fc445fdfbc5be249d83bba",
       "functions": [
         {
           "name": "normalizeItems",
@@ -3660,12 +3592,20 @@
           "lineCount": 19
         },
         {
+          "name": "adminApprove",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 19
+        },
+        {
           "name": "rejectTimeline",
           "params": [
             "id"
           ],
           "exported": false,
-          "lineCount": 25
+          "lineCount": 31
         },
         {
           "name": "requestRevision",
@@ -3757,7 +3697,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 537,
+      "totalLines": 564,
       "hasStructuralAnalysis": true
     },
     "BE/src/services/ctsvReport.service.js": {
@@ -3819,9 +3759,90 @@
       "totalLines": 190,
       "hasStructuralAnalysis": true
     },
+    "BE/src/services/ctsvReportSubmission.service.js": {
+      "filePath": "BE/src/services/ctsvReportSubmission.service.js",
+      "contentHash": "130cb14400c12c725cf4af99dd56685bb200d6c795b5360a297af183d638d5ef",
+      "functions": [
+        {
+          "name": "normalizeEmail",
+          "params": [
+            "email"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "buildPartnerAnnouncementContent",
+          "params": [
+            "report"
+          ],
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "resolvePartnerFromEvent",
+          "params": [
+            "eventId"
+          ],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getSubmissionMeta",
+          "params": [
+            "reportId"
+          ],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "upsertSubmission",
+          "params": [],
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "notifyPartner",
+          "params": [],
+          "exported": false,
+          "lineCount": 29
+        },
+        {
+          "name": "submitCtsvReport",
+          "params": [
+            "eventId",
+            "authEmail"
+          ],
+          "exported": false,
+          "lineCount": 57
+        },
+        {
+          "name": "listPartnerSubmittedReports",
+          "params": [
+            "email"
+          ],
+          "exported": false,
+          "lineCount": 29
+        },
+        {
+          "name": "getPartnerSubmittedReportDetail",
+          "params": [
+            "email",
+            "eventId"
+          ],
+          "exported": false,
+          "lineCount": 25
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 247,
+      "hasStructuralAnalysis": true
+    },
     "BE/src/services/email.service.js": {
       "filePath": "BE/src/services/email.service.js",
-      "contentHash": "fe9b356e54b6311973fa8651ee5ea22c9f578fe4738406fb60b3790f6dbafe64",
+      "contentHash": "52cbef501be06db07d4ca39c1b7009ddb619264bd1116bdab5a2b444686fab64",
       "functions": [
         {
           "name": "hasSmtpCredentials",
@@ -3931,17 +3952,23 @@
           ],
           "exported": false,
           "lineCount": 34
+        },
+        {
+          "name": "sendPartnerCtsvReportEmail",
+          "params": [],
+          "exported": false,
+          "lineCount": 33
         }
       ],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 327,
+      "totalLines": 362,
       "hasStructuralAnalysis": true
     },
     "BE/src/services/event.service.js": {
       "filePath": "BE/src/services/event.service.js",
-      "contentHash": "935d4b6c37bca0f41d3dd35ff4f1c2cee460535ee31e70ad57c8b5dc61399cab",
+      "contentHash": "cac9f74b0111e8a25748f423b10610c7a27b40576ad93a02baf4f4bb7dc8ab98",
       "functions": [
         {
           "name": "buildProposalPayloadFromEvent",
@@ -3960,6 +3987,14 @@
           ],
           "exported": false,
           "lineCount": 15
+        },
+        {
+          "name": "assertApprovedTimelineForClub",
+          "params": [
+            "clubId"
+          ],
+          "exported": false,
+          "lineCount": 13
         },
         {
           "name": "isClubManagedEvent",
@@ -4008,7 +4043,7 @@
             "body"
           ],
           "exported": false,
-          "lineCount": 82
+          "lineCount": 89
         },
         {
           "name": "getMyEvents",
@@ -4077,7 +4112,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 615,
+      "totalLines": 638,
       "hasStructuralAnalysis": true
     },
     "BE/src/services/eventChangeRequest.service.js": {
@@ -4343,7 +4378,7 @@
     },
     "BE/src/services/partner.service.js": {
       "filePath": "BE/src/services/partner.service.js",
-      "contentHash": "e5ff1d190c4c197823b02c16df455fcac5870dff95eb91f040a0e1271cb74cf3",
+      "contentHash": "e70f288ca5c573ee42a07cd96f62297c6588611ee132f64d7709cc04b128338d",
       "functions": [
         {
           "name": "normalizeEmail",
@@ -4432,7 +4467,7 @@
             "email"
           ],
           "exported": false,
-          "lineCount": 50
+          "lineCount": 4
         },
         {
           "name": "getPartnerReportDetail",
@@ -4441,7 +4476,7 @@
             "eventId"
           ],
           "exported": false,
-          "lineCount": 16
+          "lineCount": 3
         },
         {
           "name": "buildActivityFeed",
@@ -4455,7 +4490,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 385,
+      "totalLines": 323,
       "hasStructuralAnalysis": true
     },
     "BE/src/services/partnerEventRequest.service.js": {
@@ -5447,7 +5482,7 @@
     },
     "BE/src/utils/clubRegistrationFormat.js": {
       "filePath": "BE/src/utils/clubRegistrationFormat.js",
-      "contentHash": "e193871057e1c9baa23096e9a57e32218908934bcb41f2512cd77b47f4dade17",
+      "contentHash": "125257c546bd402cc5f228bec6f41d8b6d6c32f481e7c614b6b7f8d9c8606776",
       "functions": [
         {
           "name": "formatClubRegistration",
@@ -5455,18 +5490,18 @@
             "doc"
           ],
           "exported": false,
-          "lineCount": 34
+          "lineCount": 35
         }
       ],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 44,
+      "totalLines": 46,
       "hasStructuralAnalysis": true
     },
     "BE/src/utils/clubSemesterTimelineFormat.js": {
       "filePath": "BE/src/utils/clubSemesterTimelineFormat.js",
-      "contentHash": "ec1beeae3c3d18c6671d6df88180df7d564594ee755111f02095168d56db9763",
+      "contentHash": "f6fd7687cb4bb972b08afa97ff782e170f6e753b90980cdabb1191eac0c9a859",
       "functions": [
         {
           "name": "buildSemesterLabel",
@@ -5505,7 +5540,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 106,
+      "totalLines": 107,
       "hasStructuralAnalysis": true
     },
     "BE/src/utils/eventCache.js": {
@@ -5983,70 +6018,6 @@
       "totalLines": 29,
       "hasStructuralAnalysis": true
     },
-    "ctsv_nav_club.js": {
-      "filePath": "ctsv_nav_club.js",
-      "contentHash": "af902558ebe1fe74bb9ace818ec1533acb04ac5e7991b19d3695b2a831b4e969",
-      "functions": [
-        {
-          "name": "readSidebarPref",
-          "params": [],
-          "exported": true,
-          "lineCount": 10
-        },
-        {
-          "name": "persistSidebarOpen",
-          "params": [
-            "open"
-          ],
-          "exported": true,
-          "lineCount": 7
-        },
-        {
-          "name": "resetCtsvSidebarOnLogin",
-          "params": [],
-          "exported": true,
-          "lineCount": 3
-        },
-        {
-          "name": "isCtsvDesktop",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "isCtsvNavActive",
-          "params": [
-            "path",
-            "pathname"
-          ],
-          "exported": true,
-          "lineCount": 16
-        }
-      ],
-      "classes": [],
-      "imports": [],
-      "exports": [
-        "SIDEBAR_KEY",
-        "CTSV_NAV_ITEMS",
-        "readSidebarPref",
-        "persistSidebarOpen",
-        "resetCtsvSidebarOnLogin",
-        "isCtsvDesktop",
-        "isCtsvNavActive"
-      ],
-      "totalLines": 68,
-      "hasStructuralAnalysis": true
-    },
-    "FE_src_services_icpdpApi_exports.txt": {
-      "filePath": "FE_src_services_icpdpApi_exports.txt",
-      "contentHash": "437bab6c47ad212e350597ad94931cdd39112b2e3ccd0e98c447fd5938dd7d5d",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 54,
-      "hasStructuralAnalysis": false
-    },
     "FE/eslint.config.js": {
       "filePath": "FE/eslint.config.js",
       "contentHash": "9f9b44b8e55768eaf86e417b96919510b12055d87806e0e2f0703c5a0eb64817",
@@ -6195,7 +6166,7 @@
     },
     "FE/src/App.jsx": {
       "filePath": "FE/src/App.jsx",
-      "contentHash": "72ecbc7af6d1b97526a675fc73caeb74c16e82be12658bdb006adef67048ab84",
+      "contentHash": "7538e0d93c69255e68f7e45c1b61b1080ec020977e050b6d0d61bf3479b3a168",
       "functions": [
         {
           "name": "ProtectedRoute",
@@ -6874,16 +6845,12 @@
           ]
         },
         {
-          "source": "./index.css",
-          "specifiers": []
-        },
-        {
           "source": "./styles/admin-public-pages.css",
           "specifiers": []
         }
       ],
       "exports": [],
-      "totalLines": 519,
+      "totalLines": 518,
       "hasStructuralAnalysis": true
     },
     "FE/src/assets/brand.js": {
@@ -13949,7 +13916,7 @@
     },
     "FE/src/data/adminNavItems.js": {
       "filePath": "FE/src/data/adminNavItems.js",
-      "contentHash": "9603d5090517b684ea67080ad8451b6b7dfeb22c97dc0c8a2e6df3d1544b5a9c",
+      "contentHash": "710ad50b61bdf44af56ef3f282d7ea1ebb1df30e7f73df8637797290ae6b5016",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -13957,7 +13924,7 @@
         "ICPDP_ADMIN_NAV_ITEMS",
         "ADMIN_NAV_ITEMS"
       ],
-      "totalLines": 25,
+      "totalLines": 27,
       "hasStructuralAnalysis": true
     },
     "FE/src/data/adminPartnersData.js": {
@@ -15462,7 +15429,7 @@
     },
     "FE/src/i18n/translations.js": {
       "filePath": "FE/src/i18n/translations.js",
-      "contentHash": "48fe01c0c5c2564d79cf5993d15f01bd90a6a603fc50e039aa0e59076c262655",
+      "contentHash": "54d5b0fb82d06a46703985c159d50113b168e243094906180c2639c24b86c040",
       "functions": [],
       "classes": [],
       "imports": [
@@ -15482,7 +15449,7 @@
       "exports": [
         "translations"
       ],
-      "totalLines": 240,
+      "totalLines": 242,
       "hasStructuralAnalysis": true
     },
     "FE/src/index.css": {
@@ -17238,7 +17205,7 @@
     },
     "FE/src/pages/admin/AdminSubmittedReports.jsx": {
       "filePath": "FE/src/pages/admin/AdminSubmittedReports.jsx",
-      "contentHash": "8dccbb0ee6245ec035223f0feeae2987696f1ceb54fd27d4ab540ee8d4557780",
+      "contentHash": "404739db24dc2aaf1b459729c379a8877df72c3bd297d836964cfd5c8e4670f7",
       "functions": [
         {
           "name": "AdminSubmittedReports",
@@ -18669,7 +18636,7 @@
     },
     "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx": {
       "filePath": "FE/src/pages/ctsv/CtsvAnnouncementPublish.jsx",
-      "contentHash": "95e5cd4cec28ff0ed46034d0c76fb28c083913b91f15d939f51cce05fae97d66",
+      "contentHash": "07e28e1f63bcba9d052a03e7cd610f3ad986f714a5f02b3608cd0ea40e2b7d74",
       "functions": [
         {
           "name": "IconSearch",
@@ -18682,6 +18649,14 @@
           "params": [],
           "exported": false,
           "lineCount": 5
+        },
+        {
+          "name": "formatHistoryMetaTime",
+          "params": [
+            "value"
+          ],
+          "exported": false,
+          "lineCount": 18
         },
         {
           "name": "formatDateTime",
@@ -18749,7 +18724,7 @@
           "name": "PortalAnnouncementManage",
           "params": [],
           "exported": true,
-          "lineCount": 1074
+          "lineCount": 1070
         },
         {
           "name": "CtsvAnnouncementPublish",
@@ -18924,7 +18899,7 @@
         "ClubAnnouncementManage",
         "PartnerAnnouncementManage"
       ],
-      "totalLines": 1240,
+      "totalLines": 1255,
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/ctsv/CtsvCalendar.jsx": {
@@ -19532,7 +19507,7 @@
     },
     "FE/src/pages/ctsv/CtsvReportDetail.jsx": {
       "filePath": "FE/src/pages/ctsv/CtsvReportDetail.jsx",
-      "contentHash": "3ac68db82f76f2720f59198d9cf0b25d8d3e388e3e31782c14d6a77097bc6a97",
+      "contentHash": "8e1ebff0527c809f917e366aa8b546cb414bd8fef3233a2073d70a5311807ff1",
       "functions": [
         {
           "name": "formatReviewDate",
@@ -19552,7 +19527,7 @@
           "name": "CtsvReportDetail",
           "params": [],
           "exported": false,
-          "lineCount": 319
+          "lineCount": 358
         }
       ],
       "classes": [],
@@ -19581,7 +19556,7 @@
             "DEMO_REPORT_EVENT_ID",
             "fetchCtsvReportDetail",
             "MOCK_REPORT_DETAIL",
-            "submitCtsvReportToAdmin"
+            "submitCtsvReport"
           ]
         },
         {
@@ -19605,7 +19580,7 @@
         }
       ],
       "exports": [],
-      "totalLines": 367,
+      "totalLines": 406,
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/ctsv/CtsvReports.jsx": {
@@ -20629,7 +20604,7 @@
     },
     "FE/src/pages/icpdp/IcpdpClubRegistrationDetail.jsx": {
       "filePath": "FE/src/pages/icpdp/IcpdpClubRegistrationDetail.jsx",
-      "contentHash": "8da094cffaf4060dfe5002963d15103f60f87a412aabe0e1dd7a1e997afc34d1",
+      "contentHash": "0d9b155862719f83e9fda15745f5a8ead48020491eb0257a93b7cd2b198af6d0",
       "functions": [
         {
           "name": "resolveBasePath",
@@ -20651,7 +20626,7 @@
           "name": "IcpdpClubRegistrationDetail",
           "params": [],
           "exported": false,
-          "lineCount": 215
+          "lineCount": 256
         }
       ],
       "classes": [],
@@ -20678,8 +20653,16 @@
           "specifiers": [
             "approveClubRegistration",
             "fetchClubRegistration",
+            "forwardClubRegistrationToAdmin",
             "rejectClubRegistration",
             "requestClubRegistrationRevision"
+          ]
+        },
+        {
+          "source": "../../utils/auth",
+          "specifiers": [
+            "getUserRole",
+            "isAdminRole"
           ]
         },
         {
@@ -20690,12 +20673,12 @@
         }
       ],
       "exports": [],
-      "totalLines": 237,
+      "totalLines": 280,
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/icpdp/IcpdpClubRegistrationList.jsx": {
       "filePath": "FE/src/pages/icpdp/IcpdpClubRegistrationList.jsx",
-      "contentHash": "4afd59dfeb81490f09af723ca054e8bf5733505786504d8b37aef1ca13c30ae1",
+      "contentHash": "84e5666725e101543edd633d026a7018957517cf1878ba251a294712bb5f3d7e",
       "functions": [
         {
           "name": "resolveBasePath",
@@ -20753,7 +20736,7 @@
         }
       ],
       "exports": [],
-      "totalLines": 188,
+      "totalLines": 189,
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/icpdp/IcpdpDashboard.jsx": {
@@ -21256,7 +21239,7 @@
     },
     "FE/src/pages/icpdp/IcpdpSemesterTimelineDetail.jsx": {
       "filePath": "FE/src/pages/icpdp/IcpdpSemesterTimelineDetail.jsx",
-      "contentHash": "ca345906ba8a92d5334573216ff94d180ea0586a36eb0d5ad04d6b922d60384f",
+      "contentHash": "0451e7b2c4ac80378c9dcd33bbcb3f697982c2ffb269486576ce0d4686ff9fa3",
       "functions": [
         {
           "name": "formatDate",
@@ -21270,7 +21253,7 @@
           "name": "IcpdpSemesterTimelineDetail",
           "params": [],
           "exported": false,
-          "lineCount": 181
+          "lineCount": 227
         }
       ],
       "classes": [],
@@ -21294,6 +21277,7 @@
         {
           "source": "../../services/icpdpApi",
           "specifiers": [
+            "adminApproveSemesterTimeline",
             "fetchIcpdpSemesterTimeline",
             "icpdpApproveSemesterTimeline",
             "icpdpApproveTimelineChangeRequest",
@@ -21301,15 +21285,22 @@
             "rejectTimelineChangeRequest",
             "revisionIcpdpSemesterTimeline"
           ]
+        },
+        {
+          "source": "../../utils/auth",
+          "specifiers": [
+            "getUserRole",
+            "isAdminRole"
+          ]
         }
       ],
       "exports": [],
-      "totalLines": 201,
+      "totalLines": 249,
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/icpdp/IcpdpSemesterTimelineList.jsx": {
       "filePath": "FE/src/pages/icpdp/IcpdpSemesterTimelineList.jsx",
-      "contentHash": "ad6056ac5c87ad53fb5d2e3e6a63beaf5cae2fe9dd055c65b8d92d96a5a158de",
+      "contentHash": "c1225981dcd65a60c6154e96cd9019839dfb30778d21ecd24d0f79d995f388bc",
       "functions": [
         {
           "name": "formatDate",
@@ -21323,7 +21314,7 @@
           "name": "IcpdpSemesterTimelineList",
           "params": [],
           "exported": false,
-          "lineCount": 129
+          "lineCount": 134
         }
       ],
       "classes": [],
@@ -21355,10 +21346,16 @@
           "specifiers": [
             "statusClass"
           ]
+        },
+        {
+          "source": "../../utils/auth",
+          "specifiers": [
+            "getUserRole"
+          ]
         }
       ],
       "exports": [],
-      "totalLines": 152,
+      "totalLines": 159,
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/IcpdpHome.jsx": {
@@ -21672,7 +21669,7 @@
     },
     "FE/src/pages/partner/PartnerAnalytics.jsx": {
       "filePath": "FE/src/pages/partner/PartnerAnalytics.jsx",
-      "contentHash": "917938a6ed57abab83dc25052607529c492c7d13f92e7aeb859fdd012924985f",
+      "contentHash": "e24db2dcc327b7e33dd1223765b67434f85636612d8ccaf13eb111038267f630",
       "functions": [
         {
           "name": "phaseLabel",
@@ -21692,7 +21689,7 @@
           "name": "PartnerAnalytics",
           "params": [],
           "exported": false,
-          "lineCount": 197
+          "lineCount": 200
         }
       ],
       "classes": [],
@@ -21736,7 +21733,7 @@
         }
       ],
       "exports": [],
-      "totalLines": 228,
+      "totalLines": 231,
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/partner/PartnerCalendar.jsx": {
@@ -22415,7 +22412,7 @@
     },
     "FE/src/pages/partner/PartnerReportDetail.jsx": {
       "filePath": "FE/src/pages/partner/PartnerReportDetail.jsx",
-      "contentHash": "ce477d4c259842fab8fe4c0b8384be496b8b1633c29fa81b0b1173d21fcfcbaa",
+      "contentHash": "662d63815b65fa03007d187801160e9bfbd0d45510b4f061808a2400c12155b6",
       "functions": [
         {
           "name": "formatReviewDate",
@@ -22435,7 +22432,7 @@
           "name": "PartnerReportDetail",
           "params": [],
           "exported": false,
-          "lineCount": 195
+          "lineCount": 205
         }
       ],
       "classes": [],
@@ -22486,7 +22483,7 @@
         }
       ],
       "exports": [],
-      "totalLines": 228,
+      "totalLines": 238,
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/PartnerHome.jsx": {
@@ -23236,7 +23233,7 @@
     },
     "FE/src/services/adminApi.js": {
       "filePath": "FE/src/services/adminApi.js",
-      "contentHash": "ca23c56ee51286c2b27f11802fde22dcee33c548b49b07c1774f59e247c9c238",
+      "contentHash": "7469e42a6e3c13e499b1f2d2f9215aab82dacbf6f59b9ccec4ead7af25846630",
       "functions": [
         {
           "name": "parseJson",
@@ -23525,6 +23522,14 @@
           "lineCount": 1
         },
         {
+          "name": "forwardClubRegistrationToAdmin",
+          "params": [
+            "id"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
           "name": "approveClubRegistration",
           "params": [
             "id"
@@ -23597,11 +23602,12 @@
         "fetchClubRegistrationsPendingCount",
         "fetchClubRegistrations",
         "fetchClubRegistration",
+        "forwardClubRegistrationToAdmin",
         "approveClubRegistration",
         "rejectClubRegistration",
         "requestClubRegistrationRevision"
       ],
-      "totalLines": 228,
+      "totalLines": 234,
       "hasStructuralAnalysis": true
     },
     "FE/src/services/announcementApi.js": {
@@ -23839,7 +23845,7 @@
     },
     "FE/src/services/ctsvApi.js": {
       "filePath": "FE/src/services/ctsvApi.js",
-      "contentHash": "4486c3250bff56f8e743ff4c2d99ce3426f2734e57e8dd4861b0f979aef981d7",
+      "contentHash": "e89310f762b30ed98bf48d88b6755dd2a23357a66a26bb4c9b11311dc1443280",
       "functions": [
         {
           "name": "parseJson",
@@ -23955,7 +23961,7 @@
           "lineCount": 1
         },
         {
-          "name": "submitCtsvReportToAdmin",
+          "name": "submitCtsvReport",
           "params": [
             "id"
           ],
@@ -24152,6 +24158,7 @@
         "fetchCtsvCalendar",
         "fetchCtsvReports",
         "fetchCtsvReportDetail",
+        "submitCtsvReport",
         "submitCtsvReportToAdmin",
         "DEMO_REPORT_EVENT_ID",
         "fetchCtsvProposals",
@@ -24179,7 +24186,7 @@
         "MOCK_REPORT_DETAIL",
         "MOCK_REPORTS"
       ],
-      "totalLines": 362,
+      "totalLines": 366,
       "hasStructuralAnalysis": true
     },
     "FE/src/services/eventsApi.js": {
@@ -24320,7 +24327,7 @@
     },
     "FE/src/services/icpdpApi.js": {
       "filePath": "FE/src/services/icpdpApi.js",
-      "contentHash": "42342511e25319cb2fb05d8c47273262668cff52f253057fb3a1afefcbe70fda",
+      "contentHash": "b21b5ce24519d90997e6fe889d218c2ccca9afdebef836dc260fa9c1d88c0c5a",
       "functions": [
         {
           "name": "parseJson",
@@ -24422,6 +24429,14 @@
           ],
           "exported": true,
           "lineCount": 1
+        },
+        {
+          "name": "adminApproveSemesterTimeline",
+          "params": [
+            "id"
+          ],
+          "exported": true,
+          "lineCount": 5
         },
         {
           "name": "icpdpApproveSemesterTimeline",
@@ -24546,6 +24561,7 @@
         "icpdpApproveProposal",
         "fetchIcpdpSemesterTimelines",
         "fetchIcpdpSemesterTimeline",
+        "adminApproveSemesterTimeline",
         "icpdpApproveSemesterTimeline",
         "rejectIcpdpSemesterTimeline",
         "revisionIcpdpSemesterTimeline",
@@ -24565,7 +24581,7 @@
         "saveIcpdpNotificationPrefs",
         "changeIcpdpPassword"
       ],
-      "totalLines": 262,
+      "totalLines": 268,
       "hasStructuralAnalysis": true
     },
     "FE/src/services/partnerApi.js": {
@@ -25009,12 +25025,12 @@
     },
     "FE/src/styles/admin-menu.css": {
       "filePath": "FE/src/styles/admin-menu.css",
-      "contentHash": "06c4f6b9ef9f504d361e07ad4ca16e1910b3dbb8c71d065d159773026340da4d",
+      "contentHash": "21ba823c1af4bf32dd8103c960f4873aaa03772b7d70ca5865c849060e264e4f",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 682,
+      "totalLines": 1413,
       "hasStructuralAnalysis": false
     },
     "FE/src/styles/admin-partners.css": {
@@ -25099,12 +25115,12 @@
     },
     "FE/src/styles/ctsv-partner.css": {
       "filePath": "FE/src/styles/ctsv-partner.css",
-      "contentHash": "6246370091b69bef1ab4e53e6636b0b7b24989eb888eff5bd51cdca41b583b46",
+      "contentHash": "a4c2a200db083b3e4e4c8cf827f64001c87f441d5e7038f74fdaf32fb3982f2a",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 8883,
+      "totalLines": 9084,
       "hasStructuralAnalysis": false
     },
     "FE/src/styles/dark-theme-force.css": {
@@ -28239,16 +28255,6 @@
       "totalLines": 1,
       "hasStructuralAnalysis": true
     },
-    "icpdp_nav_semester.txt": {
-      "filePath": "icpdp_nav_semester.txt",
-      "contentHash": "53072fa0b2c7e6aad94fe145a68262e28e3a3a5910e23a4ee8ccede33482570a",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 4,
-      "hasStructuralAnalysis": false
-    },
     "README.md": {
       "filePath": "README.md",
       "contentHash": "845054ca2075d5532aa9649cc4ccfe5530a4eacabc704eabbf56594a2c41b387",
@@ -28267,16 +28273,6 @@
       "imports": [],
       "exports": [],
       "totalLines": 84,
-      "hasStructuralAnalysis": true
-    },
-    "temp_site_header.jsx": {
-      "filePath": "temp_site_header.jsx",
-      "contentHash": "a35e21354bfceafaea00c72b3fc7da11784f1a5f3375cb6330e9705c26070e53",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 578,
       "hasStructuralAnalysis": true
     },
     "test_api.ps1": {

@@ -314,6 +314,40 @@ const sendLoginLockAlertEmail = async (email, fullname, unlockToken) => {
   });
 };
 
+const sendPartnerCtsvReportEmail = async ({
+  to,
+  partnerName,
+  eventTitle,
+  ctsvEmail,
+  analyticsPath = '/partner/analytics',
+}) => {
+  const detailUrl = `${APP_URL}${analyticsPath}`;
+  const htmlContent = buildEmailShell({
+    title: 'Báo cáo sau sự kiện',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Báo cáo từ CTSV → ${partnerName}</p>
+      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Báo cáo sau sự kiện — ${eventTitle}</h1>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;">
+        Công tác Sinh viên đã gửi báo cáo kết quả sau sự kiện của bạn. Vui lòng đăng nhập cổng đối tác để xem chi tiết số liệu đăng ký, check-in và đánh giá.
+      </p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin-bottom:24px;">
+        <tr>
+          <td align="center">
+            <a href="${detailUrl}" style="display:inline-block;background-color:#f26f21;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 28px;border-radius:8px;">Xem báo cáo</a>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:0;font-size:13px;line-height:20px;color:#8a7b72;">Gửi bởi ${ctsvEmail || 'CTSV F-Events'}.</p>
+    `,
+  });
+
+  return sendMail({
+    to,
+    subject: `[F-Events] Báo cáo sau sự kiện — ${eventTitle}`,
+    html: htmlContent,
+  });
+};
+
 module.exports = {
   sendOtpEmail,
   sendResetEmail,
@@ -323,4 +357,5 @@ module.exports = {
   sendMail,
   sendPartnerTerminationEmail,
   sendPartnerAdminNoticeEmail,
+  sendPartnerCtsvReportEmail,
 };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import {
+  adminApproveSemesterTimeline,
   fetchIcpdpSemesterTimeline,
   icpdpApproveSemesterTimeline,
   icpdpApproveTimelineChangeRequest,
@@ -8,6 +9,7 @@ import {
   rejectTimelineChangeRequest,
   revisionIcpdpSemesterTimeline,
 } from '../../services/icpdpApi';
+import { getUserRole, isAdminRole } from '../../utils/auth';
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -19,6 +21,7 @@ const IcpdpSemesterTimelineDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { showToast } = useOutletContext() || {};
+  const isAdmin = isAdminRole(getUserRole());
   const [timeline, setTimeline] = useState(null);
   const [note, setNote] = useState('');
   const [rejectReason, setRejectReason] = useState('');
@@ -38,8 +41,10 @@ const IcpdpSemesterTimelineDetail = () => {
     return <div className="ctsv-ed-page"><p>Đang tải...</p></div>;
   }
 
-  const canApprove = ['pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
+  const canIcpdpForward = !isAdmin && ['pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
+  const canAdminApprove = isAdmin && timeline.statusKey === 'pending_admin';
   const pendingChange = timeline.changeRequest?.statusKey === 'pending_icpdp';
+  const pendingAdminChange = isAdmin && timeline.changeRequest?.statusKey === 'pending_admin';
 
   const runChangeAction = async (action) => {
     setSubmitting(true);
@@ -62,8 +67,11 @@ const IcpdpSemesterTimelineDetail = () => {
   const runAction = async (action) => {
     setSubmitting(true);
     try {
-      if (action === 'approve') {
+      if (action === 'forward') {
         await icpdpApproveSemesterTimeline(id, note);
+        showToast?.('Đã chuyển timeline lên Admin phê duyệt!', 'success');
+      } else if (action === 'admin-approve') {
+        await adminApproveSemesterTimeline(id, note);
         showToast?.('Đã phê duyệt timeline kỳ học!', 'success');
       } else if (action === 'reject') {
         await rejectIcpdpSemesterTimeline(id, rejectReason);
@@ -91,6 +99,18 @@ const IcpdpSemesterTimelineDetail = () => {
           <p>{timeline.status}</p>
         </div>
       </header>
+
+      {canIcpdpForward && (
+        <div className="icpdp-view-banner" style={{ borderColor: 'rgba(124, 58, 237, 0.35)', background: '#fff' }}>
+          <p>IC-PDP rà soát timeline, sau đó <strong>chuyển Admin phê duyệt cuối</strong>.</p>
+        </div>
+      )}
+
+      {canAdminApprove && (
+        <div className="icpdp-view-banner" style={{ borderColor: 'rgba(34, 197, 94, 0.3)', background: '#fff' }}>
+          <p>Timeline đã qua IC-PDP. <strong>Admin phê duyệt cuối</strong> để CLB bắt đầu tạo đề xuất sự kiện.</p>
+        </div>
+      )}
 
       {timeline.summary && (
         <section className="ctsv-ed-panel">
@@ -139,16 +159,12 @@ const IcpdpSemesterTimelineDetail = () => {
 
       {pendingChange && (
         <section className="ctsv-ed-panel">
-          <h2>Yêu cầu thay đổi từ CLB</h2>
+          <h2>Yêu cầu thay đổi từ CLB (IC-PDP)</h2>
           <p><strong>{timeline.changeRequest.typeLabel}</strong></p>
           <p>Lý do CLB: {timeline.changeRequest.reason}</p>
           <label>
             Ghi chú IC-PDP
             <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
-          </label>
-          <label style={{ marginTop: 12 }}>
-            Lý do từ chối yêu cầu
-            <textarea rows={2} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
           </label>
           <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
             <button type="button" className="ctsv-primary-btn" disabled={submitting} onClick={() => runChangeAction('approve')}>
@@ -161,7 +177,16 @@ const IcpdpSemesterTimelineDetail = () => {
         </section>
       )}
 
-      {canApprove && (
+      {pendingAdminChange && (
+        <section className="ctsv-ed-panel">
+          <h2>Yêu cầu thay đổi — chờ Admin</h2>
+          <p><strong>{timeline.changeRequest.typeLabel}</strong></p>
+          <p>Lý do CLB: {timeline.changeRequest.reason}</p>
+          <p>Ghi chú IC-PDP: {timeline.changeRequest.icpdpNote || '—'}</p>
+        </section>
+      )}
+
+      {canIcpdpForward && (
         <section className="ctsv-ed-panel">
           <h2>Quyết định IC-PDP</h2>
           <label>
@@ -173,8 +198,8 @@ const IcpdpSemesterTimelineDetail = () => {
             <textarea rows={2} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
           </label>
           <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
-            <button type="button" className="ctsv-primary-btn" disabled={submitting} onClick={() => runAction('approve')}>
-              Phê duyệt timeline
+            <button type="button" className="ctsv-primary-btn" disabled={submitting} onClick={() => runAction('forward')}>
+              Chuyển Admin duyệt
             </button>
             <button type="button" className="ctsv-secondary-btn" disabled={submitting} onClick={() => runAction('revision')}>
               Yêu cầu chỉnh sửa
@@ -186,10 +211,33 @@ const IcpdpSemesterTimelineDetail = () => {
         </section>
       )}
 
-      {(timeline.icpdpNote || timeline.rejectionReason) && (
+      {canAdminApprove && (
+        <section className="ctsv-ed-panel">
+          <h2>Quyết định Admin</h2>
+          <label>
+            Ghi chú Admin
+            <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
+          </label>
+          <label style={{ marginTop: 12 }}>
+            Lý do từ chối (nếu từ chối)
+            <textarea rows={2} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+          </label>
+          <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
+            <button type="button" className="ctsv-primary-btn" disabled={submitting} onClick={() => runAction('admin-approve')}>
+              Phê duyệt timeline
+            </button>
+            <button type="button" className="ctsv-danger-btn" disabled={submitting} onClick={() => runAction('reject')}>
+              Từ chối
+            </button>
+          </div>
+        </section>
+      )}
+
+      {(timeline.icpdpNote || timeline.ctsvNote || timeline.rejectionReason) && (
         <section className="ctsv-ed-panel">
           <h2>Ghi chú xét duyệt</h2>
           {timeline.icpdpNote && <p><strong>IC-PDP:</strong> {timeline.icpdpNote}</p>}
+          {timeline.ctsvNote && <p><strong>Admin:</strong> {timeline.ctsvNote}</p>}
           {timeline.rejectionReason && <p><strong>Từ chối:</strong> {timeline.rejectionReason}</p>}
         </section>
       )}

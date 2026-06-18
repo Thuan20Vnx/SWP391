@@ -85,7 +85,7 @@ const PartnerAnalytics = () => {
           <span className="ctsv-events-eyebrow">Phân tích báo cáo</span>
           <h1>Hiệu suất sự kiện tài trợ</h1>
           <p>
-            Báo cáo hiệu suất sự kiện, tỷ lệ check-in, ROI tài trợ và đánh giá từ sinh viên.
+            Báo cáo sau sự kiện do CTSV gửi cho đối tác. Chỉ hiển thị các báo cáo đã được CTSV phát hành.
           </p>
         </div>
         <div className="ctsv-events-hero-aside">
@@ -156,7 +156,10 @@ const PartnerAnalytics = () => {
               <tr>
                 <td colSpan={5}>
                   <div className="ctsv-reports-empty">
-                    <p className="ctsv-reports-empty-title">Chưa có báo cáo phù hợp</p>
+                    <p className="ctsv-reports-empty-title">Chưa có báo cáo từ CTSV</p>
+                    <p className="ctsv-reports-empty-desc">
+                      Sau khi sự kiện kết thúc, CTSV sẽ gửi báo cáo cho bạn tại đây.
+                    </p>
                     <Link to="/partner/events" className="ctsv-events-hero-cta">
                       Xem danh sách sự kiện
                     </Link>
@@ -175,7 +178,7 @@ const PartnerAnalytics = () => {
                           Đối tác
                         </span>
                         <span className={`ctsv-reports-phase ctsv-reports-phase--${r.reportPhase || 'completed'}`}>
-                          {phaseLabel(r.reportPhase)}
+                          {r.ctsvDelivered ? 'CTSV đã gửi' : phaseLabel(r.reportPhase)}
                         </span>
                       </div>
                     </td>

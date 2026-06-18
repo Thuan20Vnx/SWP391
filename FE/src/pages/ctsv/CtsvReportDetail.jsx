@@ -4,7 +4,7 @@ import {
   DEMO_REPORT_EVENT_ID,
   fetchCtsvReportDetail,
   MOCK_REPORT_DETAIL,
-  submitCtsvReportToAdmin,
+  submitCtsvReport,
 } from '../../services/ctsvApi';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import {
@@ -51,6 +51,7 @@ const CtsvReportDetail = () => {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submission, setSubmission] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -59,12 +60,14 @@ const CtsvReportDetail = () => {
         const raw = d.report;
         if (!raw) {
           setReport(null);
+          setSubmission(null);
           return;
         }
         setReport({
           ...raw,
           highlights: (raw.highlights || []).map(normalizeReportHighlightText),
         });
+        setSubmission(d.submission || null);
       })
       .catch((err) => {
         const useDemoFallback =
@@ -85,6 +88,16 @@ const CtsvReportDetail = () => {
 
   const source = SOURCE_META[report?.source] || SOURCE_META.club;
   const stats = report?.stats;
+  const isPartnerReport = report?.source === 'partner';
+  const alreadySent = Boolean(submission?.submittedAt);
+  const alreadySentToPartner = Boolean(submission?.sentToPartnerAt);
+  const submitLabel = isPartnerReport
+    ? alreadySentToPartner
+      ? 'Đã gửi Partner & Admin'
+      : 'Gửi Partner & Admin'
+    : alreadySent
+      ? 'Đã gửi Admin'
+      : 'Gửi Admin xem';
 
   const timelineMax = useMemo(() => {
     const items = report?.registrationTimeline || [];
@@ -109,14 +122,26 @@ const CtsvReportDetail = () => {
     }
   };
 
-  const handleSubmitAdmin = async () => {
-    if (!report || submitting) return;
+  const handleSubmitReport = async () => {
+    if (!report || submitting || (isPartnerReport ? alreadySentToPartner : alreadySent)) return;
     setSubmitting(true);
     try {
-      const data = await submitCtsvReportToAdmin(report.id || id);
-      showToast?.(data.message || 'Đã gửi báo cáo cho Admin xem.', 'success');
+      const data = await submitCtsvReport(report.id || id);
+      setSubmission({
+        reportId: data.submission?.reportId || report.id || id,
+        submittedAt: data.submission?.submittedAt || new Date().toISOString(),
+        submittedByEmail: data.submission?.submittedByEmail || '',
+        sentToPartnerAt: data.submission?.sentToPartnerAt || (data.sentToPartner ? new Date().toISOString() : null),
+        partnerEmail: data.submission?.partnerEmail || submission?.partnerEmail || '',
+        sentToPartner: Boolean(data.sentToPartner),
+        sentToAdmin: Boolean(data.sentToAdmin),
+      });
+      showToast?.(
+        data.message || (isPartnerReport ? 'Đã gửi báo cáo cho Partner và Admin.' : 'Đã gửi báo cáo cho Admin xem.'),
+        'success'
+      );
     } catch (error) {
-      showToast?.(error.message || 'Không gửi được báo cáo cho Admin.', 'error');
+      showToast?.(error.message || 'Không gửi được báo cáo.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -177,9 +202,23 @@ const CtsvReportDetail = () => {
             <button type="button" className="ctsv-btn-secondary" onClick={handleExportExcel} disabled={exporting}>
               {exporting ? 'Đang xuất Excel...' : 'Xuất file Excel'}
             </button>
-            <button type="button" className="ctsv-btn-primary" onClick={handleSubmitAdmin} disabled={submitting}>
-              {submitting ? 'Đang gửi Admin...' : 'Gửi Admin xem'}
+            <button
+              type="button"
+              className="ctsv-btn-primary"
+              onClick={handleSubmitReport}
+              disabled={submitting || (isPartnerReport ? alreadySentToPartner : alreadySent)}
+            >
+              {submitting
+                ? isPartnerReport
+                  ? 'Đang gửi Partner & Admin...'
+                  : 'Đang gửi Admin...'
+                : submitLabel}
             </button>
+            {isPartnerReport && alreadySentToPartner && submission?.partnerEmail ? (
+              <p className="ctsv-rd-muted" style={{ width: '100%', margin: '8px 0 0' }}>
+                Đã gửi cho Partner ({submission.partnerEmail}) và Admin.
+              </p>
+            ) : null}
           </div>
         </div>
       </header>

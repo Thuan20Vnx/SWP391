@@ -19,6 +19,8 @@ export const ADMIN_NAV_ITEMS = [
   { path: '/admin/partners', labelKey: 'admin.nav.partners', icon: 'partners' },
   { path: '/admin/analytics', labelKey: 'admin.nav.analytics', icon: 'analytics' },
   { sectionKey: 'admin.section.events' },
+  { path: '/admin/icpdp/club-registrations', labelKey: 'admin.nav.clubRegistrations', icon: 'accounts' },
+  { path: '/icpdp/semester-timelines', labelKey: 'admin.nav.semesterTimelines', icon: 'calendar' },
   { path: '/admin/events', labelKey: 'admin.nav.eventApprovals', icon: 'events' },
   { path: '/admin/event-requests', labelKey: 'admin.nav.eventRequests', icon: 'event-requests' },
 ];

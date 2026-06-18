@@ -23,12 +23,19 @@ const ensureUniqueSlug = async (base) => {
   return slug;
 };
 
-const listRegistrations = async ({ status, q, limit = 100 } = {}) => {
+const defaultStatusFilterForRole = (viewerRole) => {
+  if (viewerRole === 'admin') {
+    return { status: { $in: ['pending_admin'] } };
+  }
+  return { status: { $in: ['pending_icpdp', 'revision'] } };
+};
+
+const listRegistrations = async ({ status, q, limit = 100, viewerRole } = {}) => {
   const filter = {};
   if (status && status !== 'all') {
     filter.status = status;
   } else if (!status) {
-    filter.status = { $in: ['pending_icpdp', 'revision'] };
+    Object.assign(filter, defaultStatusFilterForRole(viewerRole));
   }
   if (q && String(q).trim()) {
     const re = new RegExp(String(q).trim(), 'i');
@@ -79,22 +86,9 @@ const createRegistration = async (payload, submitter = {}) => {
   return formatClubRegistration(registration);
 };
 
-const approveRegistration = async (id, { note, reviewerEmail } = {}) => {
-  const registration = await ClubRegistration.findById(id);
-  if (!registration) {
-    const err = new Error('Không tìm thấy đơn đăng ký CLB!');
-    err.statusCode = 404;
-    throw err;
-  }
-  if (registration.status !== 'pending_icpdp') {
-    const err = new Error('Đơn không ở trạng thái chờ IC-PDP duyệt!');
-    err.statusCode = 400;
-    throw err;
-  }
-
+const createClubFromRegistration = async (registration) => {
   const baseSlug = slugify(registration.proposedSlug || registration.clubName);
   const slug = await ensureUniqueSlug(baseSlug);
-
   const managerEmail = registration.presidentEmail;
   let managerUser = await User.findOne({ email: managerEmail });
 
@@ -130,12 +124,53 @@ const approveRegistration = async (id, { note, reviewerEmail } = {}) => {
     }
   }
 
-  registration.status = 'approved';
-  registration.icpdpNote = note || '';
-  registration.reviewedByEmail = reviewerEmail || '';
-  registration.reviewedAt = new Date();
   registration.clubId = club._id;
   registration.clubSlug = club.slug;
+  return club;
+};
+
+/** IC-PDP rà soát và chuyển Admin phê duyệt cuối */
+const icpdpForwardToAdmin = async (id, { note, reviewerEmail } = {}) => {
+  const registration = await ClubRegistration.findById(id);
+  if (!registration) {
+    const err = new Error('Không tìm thấy đơn đăng ký CLB!');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (!['pending_icpdp', 'revision'].includes(registration.status)) {
+    const err = new Error('Đơn không ở trạng thái chờ IC-PDP xử lý!');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  registration.status = 'pending_admin';
+  registration.icpdpNote = String(note || '').trim();
+  registration.reviewedByEmail = reviewerEmail || '';
+  registration.reviewedAt = new Date();
+  await registration.save();
+
+  return formatClubRegistration(registration);
+};
+
+/** Admin phê duyệt cuối — tạo CLB */
+const adminApproveRegistration = async (id, { note, reviewerEmail } = {}) => {
+  const registration = await ClubRegistration.findById(id);
+  if (!registration) {
+    const err = new Error('Không tìm thấy đơn đăng ký CLB!');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (registration.status !== 'pending_admin') {
+    const err = new Error('Đơn không ở trạng thái chờ Admin duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const club = await createClubFromRegistration(registration);
+  registration.status = 'approved';
+  registration.adminNote = String(note || '').trim();
+  registration.reviewedByEmail = reviewerEmail || '';
+  registration.reviewedAt = new Date();
   await registration.save();
 
   return {
@@ -149,18 +184,25 @@ const approveRegistration = async (id, { note, reviewerEmail } = {}) => {
   };
 };
 
-const rejectRegistration = async (id, { reason, reviewerEmail } = {}) => {
+const rejectRegistration = async (id, { reason, reviewerEmail, reviewerRole } = {}) => {
   const registration = await ClubRegistration.findById(id);
   if (!registration) {
     const err = new Error('Không tìm thấy đơn đăng ký CLB!');
     err.statusCode = 404;
     throw err;
   }
-  if (!['pending_icpdp', 'revision'].includes(registration.status)) {
+
+  const allowedByRole =
+    reviewerRole === 'admin'
+      ? ['pending_admin']
+      : ['pending_icpdp', 'revision'];
+
+  if (!allowedByRole.includes(registration.status)) {
     const err = new Error('Đơn không thể từ chối ở trạng thái hiện tại!');
     err.statusCode = 400;
     throw err;
   }
+
   const trimmed = String(reason || '').trim();
   if (!trimmed) {
     const err = new Error('Vui lòng nhập lý do từ chối!');
@@ -182,8 +224,8 @@ const requestRevision = async (id, { note, reviewerEmail } = {}) => {
     err.statusCode = 404;
     throw err;
   }
-  if (registration.status !== 'pending_icpdp') {
-    const err = new Error('Chỉ có thể yêu cầu chỉnh sửa đơn đang chờ duyệt!');
+  if (!['pending_icpdp', 'revision'].includes(registration.status)) {
+    const err = new Error('Chỉ có thể yêu cầu chỉnh sửa đơn đang chờ IC-PDP!');
     err.statusCode = 400;
     throw err;
   }
@@ -201,14 +243,20 @@ const requestRevision = async (id, { note, reviewerEmail } = {}) => {
   return formatClubRegistration(registration);
 };
 
-const countPending = () => ClubRegistration.countDocuments({ status: 'pending_icpdp' });
+const countPendingForRole = (viewerRole) => {
+  if (viewerRole === 'admin') {
+    return ClubRegistration.countDocuments({ status: 'pending_admin' });
+  }
+  return ClubRegistration.countDocuments({ status: 'pending_icpdp' });
+};
 
 module.exports = {
   listRegistrations,
   getRegistrationById,
   createRegistration,
-  approveRegistration,
+  icpdpForwardToAdmin,
+  adminApproveRegistration,
   rejectRegistration,
   requestRevision,
-  countPending,
+  countPendingForRole,
 };

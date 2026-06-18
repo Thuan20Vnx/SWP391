@@ -40,6 +40,7 @@ router.use(authMiddleware);
 const adminOnly = authorize('admin');
 const adminOrCtsv = authorize('admin', 'ctsv');
 const adminOrIcpdp = authorize('admin', 'icpdp');
+const icpdpOnly = authorize('icpdp');
 
 const UNIT_EVENT_PENDING_APPROVED = [
   'pending',
@@ -168,6 +169,8 @@ router.get('/ctsv-report-submissions', adminOnly, asyncHandler(async (req, res) 
       fillRate: stats.fillRate ?? 0,
       submittedAt: item.submittedAt,
       submittedByEmail: item.submittedByEmail || '',
+      sentToPartnerAt: item.sentToPartnerAt || null,
+      partnerEmail: item.partnerEmail || '',
     };
   });
 
@@ -216,7 +219,7 @@ router.get('/events/calendar', adminOnly, async (req, res) => {
 
 router.get('/club-registrations/pending-count', adminOrIcpdp, async (req, res) => {
   try {
-    const count = await clubRegistrationService.countPending();
+    const count = await clubRegistrationService.countPendingForRole(req.userRole);
     return res.json({ success: true, count });
   } catch (error) {
     console.error('club-registrations count:', error);
@@ -229,6 +232,7 @@ router.get('/club-registrations', adminOrIcpdp, async (req, res) => {
     const registrations = await clubRegistrationService.listRegistrations({
       status: req.query.status || '',
       q: req.query.q || '',
+      viewerRole: req.userRole,
     });
     return res.json({ success: true, registrations });
   } catch (error) {
@@ -250,9 +254,29 @@ router.get('/club-registrations/:id', adminOrIcpdp, async (req, res) => {
   }
 });
 
-router.patch('/club-registrations/:id/approve', adminOrIcpdp, async (req, res) => {
+router.patch('/club-registrations/:id/forward-admin', icpdpOnly, async (req, res) => {
   try {
-    const result = await clubRegistrationService.approveRegistration(req.params.id, {
+    const registration = await clubRegistrationService.icpdpForwardToAdmin(req.params.id, {
+      note: req.body.note || '',
+      reviewerEmail: req.authEmail,
+    });
+    return res.json({
+      success: true,
+      registration,
+      message: 'Đã chuyển đơn lên Admin phê duyệt.',
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('club-registrations forward:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/club-registrations/:id/approve', adminOnly, async (req, res) => {
+  try {
+    const result = await clubRegistrationService.adminApproveRegistration(req.params.id, {
       note: req.body.note || '',
       reviewerEmail: req.authEmail,
     });
@@ -271,6 +295,7 @@ router.patch('/club-registrations/:id/reject', adminOrIcpdp, async (req, res) =>
     const registration = await clubRegistrationService.rejectRegistration(req.params.id, {
       reason: req.body.reason || req.body.note || '',
       reviewerEmail: req.authEmail,
+      reviewerRole: req.userRole,
     });
     return res.json({ success: true, registration });
   } catch (error) {
@@ -282,7 +307,7 @@ router.patch('/club-registrations/:id/reject', adminOrIcpdp, async (req, res) =>
   }
 });
 
-router.patch('/club-registrations/:id/revision', adminOrIcpdp, async (req, res) => {
+router.patch('/club-registrations/:id/revision', icpdpOnly, async (req, res) => {
   try {
     const registration = await clubRegistrationService.requestRevision(req.params.id, {
       note: req.body.note || '',
