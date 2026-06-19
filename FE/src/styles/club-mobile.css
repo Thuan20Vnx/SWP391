@@ -11,6 +11,107 @@
   display: none;
 }
 
+/* ── Notifications — desktop + mobile ── */
+.club-m-notifications {
+  width: 100%;
+}
+
+.club-m-notifications__header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.club-m-notifications__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.club-m-notif-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.15s;
+}
+
+.club-m-notif-card:hover {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+
+.club-m-notif-card--unread {
+  border-color: #fed7aa;
+  background: #fffaf5;
+}
+
+.club-m-notif-card__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.club-m-notif-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.club-m-notif-card__title {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.club-m-notif-card__title.is-unread {
+  font-weight: 700;
+}
+
+.club-m-notif-card__text {
+  margin: 0 0 10px;
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.club-m-notif-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.club-m-notif-card__reason-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.club-m-notif-card__reason-btn:hover {
+  color: #b91c1c;
+}
+
+.club-m-notif-card__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f26f21;
+  flex-shrink: 0;
+  align-self: center;
+}
+
 @media (max-width: 768px) {
   .club-app-shell .clb-main {
     padding: 16px 14px calc(24px + env(safe-area-inset-bottom, 0px));
@@ -194,96 +295,18 @@
     white-space: nowrap;
   }
 
-  /* ── Notifications ── */
+  /* ── Notifications (mobile overrides) ── */
   .club-m-notifications {
-    width: 100%;
-    background: #fff;
-    border-radius: 14px;
-    padding: 16px;
-    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
-    border: 1px solid #e2e8f0;
-  }
-
-  .club-m-notifications__header {
-    margin-bottom: 16px;
-  }
-
-  .club-m-notifications__list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    max-width: none;
   }
 
   .club-m-notif-card {
-    display: flex;
-    gap: 12px;
     padding: 14px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    background: #fff;
-  }
-
-  .club-m-notif-card--unread {
-    border-color: #fed7aa;
-    background: #fffaf5;
-  }
-
-  .club-m-notif-card__icon {
-    flex-shrink: 0;
-  }
-
-  .club-m-notif-card__body {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .club-m-notif-card__title {
-    margin: 0 0 4px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #1e293b;
-  }
-
-  .club-m-notif-card__title.is-unread {
-    font-weight: 700;
-  }
-
-  .club-m-notif-card__text {
-    margin: 0 0 8px;
-    font-size: 0.875rem;
-    color: #475569;
-    line-height: 1.45;
-  }
-
-  .club-m-notif-card__footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
     gap: 12px;
-    font-size: 0.8rem;
-    color: #94a3b8;
   }
 
   .club-m-notif-card__reason-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    color: #ef4444;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
     min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-  }
-
-  .club-m-notif-card__dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #f26f21;
-    flex-shrink: 0;
-    align-self: center;
   }
 
   /* ── Timeline list (table hidden via .club-m-hide-mobile) ── */

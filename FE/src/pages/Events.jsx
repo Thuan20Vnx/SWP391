@@ -192,8 +192,15 @@ const Events = ({ showToast }) => {
     return sortEventsByStatePriority(result);
   }, [events, clubFilter, stateFilter, organizerFilter]);
 
-  const visibleEvents = filteredEvents.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredEvents.length;
+  const totalPages = Math.max(1, Math.ceil(filteredEvents.length / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, Math.ceil(visibleCount / PAGE_SIZE)), totalPages);
+  const visibleEvents = filteredEvents.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const hasPagination = totalPages > 1;
+
+  const goToPage = (page) => {
+    const nextPage = Math.min(Math.max(1, page), totalPages);
+    setVisibleCount(nextPage * PAGE_SIZE);
+  };
 
   const hasSecondaryFilters = organizerFilter !== 'all' || activeFilter !== 'all';
 
@@ -430,19 +437,28 @@ const Events = ({ showToast }) => {
           </section>
         )}
 
-        {hasMore && !loading && (
-          <div className="events-page__load-more-wrap">
+        {hasPagination && !loading && (
+          <nav className="events-page__load-more-wrap" aria-label="Phân trang sự kiện">
             <button
               type="button"
-              className="events-page__load-more"
-              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              className="events-page__page-btn"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
             >
-              Xem thêm sự kiện
-              <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden="true">
-                <path d="M1 1l5 5 5-5" stroke="currentColor" strokeWidth="2" fill="none" />
-              </svg>
+              Trước
             </button>
-          </div>
+            <span className="events-page__page-status" aria-live="polite">
+              Trang {currentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              className="events-page__page-btn"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Sau
+            </button>
+          </nav>
         )}
       </main>
 

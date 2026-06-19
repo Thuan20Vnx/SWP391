@@ -5,6 +5,8 @@ const { requireRole } = require('../middleware/requireRole');
 const Partner = require('../models/Partner');
 const Contract = require('../models/Contract');
 const AppError = require('../utils/AppError');
+const Event = require('../models/Event');
+const { formatEvent } = require('../utils/eventFormat');
 const {
   getPartnerRecordsByEmail,
   getPrimaryPartner,
@@ -339,6 +341,19 @@ router.delete('/event-requests/:id', async (req, res) => {
     return res.json({ success: true, request, message: 'Đã xóa yêu cầu sự kiện.' });
   } catch (error) {
     return handleError(res, error, 'partner event delete');
+  }
+});
+
+// GET /api/partner/events/calendar — lịch sự kiện toàn trường cho đối tác
+router.get('/events/calendar', async (req, res) => {
+  try {
+    const events = await Event.find({ status: { $in: ['approved', 'live', 'ended'] } })
+      .sort({ startDate: 1 })
+      .limit(500);
+    return res.json({ success: true, events: events.map(formatEvent) });
+  } catch (error) {
+    console.error('partner calendar:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
 

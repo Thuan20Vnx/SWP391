@@ -143,6 +143,26 @@
   }
 }
 
+.club-sidebar .ctsv-nav-label__full:has(.ctsv-nav-label__sub) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  line-height: 1.25;
+}
+
+.club-sidebar .ctsv-nav-label__sub {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #94a3b8;
+  line-height: 1.2;
+}
+
+.club-sidebar .ctsv-nav-link.active .ctsv-nav-label__sub {
+  color: color-mix(in srgb, var(--club-accent) 72%, #64748b);
+}
+
 .club-nav-unread-dot {
   display: inline-block;
   width: 8px;

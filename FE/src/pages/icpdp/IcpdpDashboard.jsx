@@ -4,11 +4,11 @@ import CtsvNavIcon from '../../components/ctsv/CtsvNavIcon';
 import PortalDashHero from '../../components/portal/PortalDashHero';
 import {
   fetchIcpdpEvents,
+  fetchIcpdpPerformance,
   fetchIcpdpProposals,
   fetchIcpdpStats,
   ICPDP_MOCK_EVENTS,
   ICPDP_MOCK_STATS,
-  ICPDP_PERFORMANCE,
   ICPDP_RECENT_ACTIVITY
 } from '../../services/icpdpApi';
 import { isPendingApproval, statusClass } from '../../utils/eventStatus';
@@ -34,6 +34,7 @@ const IcpdpDashboard = () => {
   const [stats, setStats] = useState(ICPDP_MOCK_STATS);
   const [events, setEvents] = useState([]);
   const [pendingProposals, setPendingProposals] = useState([]);
+  const [performance, setPerformance] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,14 +43,16 @@ const IcpdpDashboard = () => {
     Promise.all([
       fetchIcpdpStats().catch(() => ({ stats: ICPDP_MOCK_STATS })),
       fetchIcpdpEvents().catch(() => ({ events: [] })),
-      fetchIcpdpProposals({ status: 'pending_icpdp' }).catch(() => ({ proposals: [] }))
+      fetchIcpdpProposals({ status: 'pending_icpdp' }).catch(() => ({ proposals: [] })),
+      fetchIcpdpPerformance().catch(() => ({ performance: [] })),
     ])
-      .then(([statsRes, eventsRes, proposalsRes]) => {
+      .then(([statsRes, eventsRes, proposalsRes, perfRes]) => {
         if (cancelled) return;
         setStats(statsRes.stats?.length ? statsRes.stats : ICPDP_MOCK_STATS);
         const list = eventsRes.events || [];
         setEvents(list);
         setPendingProposals((proposalsRes.proposals || []).slice(0, 5));
+        setPerformance(perfRes.performance || []);
       })
       .catch(() => {
         if (cancelled) return;
@@ -90,7 +93,9 @@ const IcpdpDashboard = () => {
 
       <Link to="/icpdp/proposals" className="ctsv-dash-create-card">
         <span className="ctsv-dash-create-card__icon">
-          <CtsvNavIcon type="publish" />
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+          </svg>
         </span>
         <span className="ctsv-dash-create-card__body">
           <strong>Duyệt đề xuất CLB</strong>
@@ -105,6 +110,29 @@ const IcpdpDashboard = () => {
           </svg>
         </span>
       </Link>
+
+      <section className="ctsv-dash-quick" aria-label="Thao tác nhanh">
+        <div className="ctsv-dash-section-head">
+          <h2>Thao tác nhanh</h2>
+          <p>Lối tắt tới các màn quản trị CLB</p>
+        </div>
+        <div className="ctsv-dash-quick-grid">
+          {QUICK_ACTIONS.map((action) => (
+            <button
+              key={action.path}
+              type="button"
+              className="ctsv-dash-quick-card"
+              onClick={() => navigate(action.path)}
+            >
+              <span className="ctsv-dash-quick-icon">
+                <CtsvNavIcon type={action.icon} />
+              </span>
+              <span className="ctsv-dash-quick-label">{action.label}</span>
+              <span className="ctsv-dash-quick-desc">{action.desc}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="ctsv-dash-stats" aria-label="Thống kê nhanh">
         <div className="ctsv-dash-stats-grid">
@@ -137,52 +165,41 @@ const IcpdpDashboard = () => {
         </div>
       </section>
 
-      <section className="partner-perf-section" aria-label="Hiệu suất quản lý">
-        <div className="partner-perf-grid">
-          <div className="partner-perf-card">
-            <h3 className="partner-perf-card__title">Tỷ lệ duyệt đúng hạn</h3>
-            <div className="partner-perf-ring">
-              <span className="partner-perf-ring__value" style={{ color: 'var(--icpdp-accent)' }}>95%</span>
-              <span className="partner-perf-ring__label">Trung bình 30 ngày qua</span>
-            </div>
-          </div>
-          <div className="partner-perf-card">
-            <h3 className="partner-perf-card__title">Đánh giá chung</h3>
-            {ICPDP_PERFORMANCE.map((item) => (
-              <div key={item.name} className="partner-perf-bar-row">
-                <div className="partner-perf-bar-head">
-                  <span>{item.name}</span>
-                  <strong>{item.rate}%</strong>
+      <section className="icpdp-perf-section" aria-label="Hiệu suất quản lý">
+        <div className="icpdp-perf-grid">
+          {performance.map((item, i) => {
+            const accents = ['#f26f21', '#10b981', '#6366f1'];
+            const accent = accents[i] || accents[0];
+            const r = 36;
+            const circ = 2 * Math.PI * r;
+            const offset = circ - (item.rate / 100) * circ;
+            return (
+              <div key={item.name} className="icpdp-perf-card" style={{ '--perf-accent': accent, '--perf-track': '#e2e8f0' }}>
+                <div className="icpdp-perf-card__ring-wrap">
+                  <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden>
+                    <circle cx="44" cy="44" r={r} fill="none" stroke="#e2e8f0" strokeWidth="8" />
+                    <circle
+                      cx="44" cy="44" r={r} fill="none"
+                      stroke={accent} strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={circ}
+                      strokeDashoffset={offset}
+                      transform="rotate(-90 44 44)"
+                      style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+                    />
+                  </svg>
+                  <span className="icpdp-perf-card__ring-value">{item.rate}%</span>
                 </div>
-                <div className="partner-perf-bar-track">
-                  <div className="partner-perf-bar-fill" style={{ width: `${item.rate}%`, background: 'var(--icpdp-accent)' }} />
+                <div className="icpdp-perf-card__body">
+                  <span className="icpdp-perf-card__name">{item.name}</span>
+                  <div className="icpdp-perf-card__bar-track">
+                    <div className="icpdp-perf-card__bar-fill" style={{ width: `${item.rate}%` }} />
+                  </div>
+                  <span className="icpdp-perf-card__sub">30 ngày qua</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="ctsv-dash-quick" aria-label="Thao tác nhanh">
-        <div className="ctsv-dash-section-head">
-          <h2>Thao tác nhanh</h2>
-          <p>Lối tắt tới các màn quản trị CLB</p>
-        </div>
-        <div className="ctsv-dash-quick-grid">
-          {QUICK_ACTIONS.map((action) => (
-            <button
-              key={action.path}
-              type="button"
-              className="ctsv-dash-quick-card"
-              onClick={() => navigate(action.path)}
-            >
-              <span className="ctsv-dash-quick-icon">
-                <CtsvNavIcon type={action.icon} />
-              </span>
-              <span className="ctsv-dash-quick-label">{action.label}</span>
-              <span className="ctsv-dash-quick-desc">{action.desc}</span>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </section>
 

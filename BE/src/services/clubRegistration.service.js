@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Club = require('../models/Club');
 const ClubRegistration = require('../models/ClubRegistration');
 const User = require('../models/User');
@@ -86,41 +87,46 @@ const createRegistration = async (payload, submitter = {}) => {
   return formatClubRegistration(registration);
 };
 
-const createClubFromRegistration = async (registration) => {
+const createClubFromRegistration = async (registration, session) => {
   const baseSlug = slugify(registration.proposedSlug || registration.clubName);
   const slug = await ensureUniqueSlug(baseSlug);
   const managerEmail = registration.presidentEmail;
-  let managerUser = await User.findOne({ email: managerEmail });
+  let managerUser = await User.findOne({ email: managerEmail }).session(session);
 
-  const club = await Club.create({
-    slug,
-    name: registration.clubName,
-    category: registration.category,
-    description: registration.description,
-    president: registration.president,
-    email: registration.contactEmail || registration.presidentEmail,
-    phone: registration.phone,
-    facebook: registration.facebook,
-    website: registration.website,
-    activityField: registration.activityField,
-    scale: registration.scale,
-    logoText: registration.logoText || registration.clubName.slice(0, 8),
-    logoColor: registration.logoColor,
-    coverImage: registration.coverImage,
-    status: 'active',
-    joinMode: 'approval',
-    managedBy: managerUser?._id || registration.submittedByUser || null,
-  });
+  const [club] = await Club.create(
+    [
+      {
+        slug,
+        name: registration.clubName,
+        category: registration.category,
+        description: registration.description,
+        president: registration.president,
+        email: registration.contactEmail || registration.presidentEmail,
+        phone: registration.phone,
+        facebook: registration.facebook,
+        website: registration.website,
+        activityField: registration.activityField,
+        scale: registration.scale,
+        logoText: registration.logoText || registration.clubName.slice(0, 8),
+        logoColor: registration.logoColor,
+        coverImage: registration.coverImage,
+        status: 'active',
+        joinMode: 'approval',
+        managedBy: managerUser?._id || registration.submittedByUser || null,
+      },
+    ],
+    { session }
+  );
 
   if (managerEmail) {
     await SchoolMember.updateOne(
       { email: managerEmail },
       { $set: { role: 'club_manager' } },
-      { upsert: true }
+      { upsert: true, session }
     );
     if (managerUser) {
       managerUser.role = 'club_manager';
-      await managerUser.save();
+      await managerUser.save({ session });
     }
   }
 
@@ -166,12 +172,20 @@ const adminApproveRegistration = async (id, { note, reviewerEmail } = {}) => {
     throw err;
   }
 
-  const club = await createClubFromRegistration(registration);
-  registration.status = 'approved';
-  registration.adminNote = String(note || '').trim();
-  registration.reviewedByEmail = reviewerEmail || '';
-  registration.reviewedAt = new Date();
-  await registration.save();
+  const session = await mongoose.startSession();
+  let club;
+  try {
+    await session.withTransaction(async () => {
+      club = await createClubFromRegistration(registration, session);
+      registration.status = 'approved';
+      registration.adminNote = String(note || '').trim();
+      registration.reviewedByEmail = reviewerEmail || '';
+      registration.reviewedAt = new Date();
+      await registration.save({ session });
+    });
+  } finally {
+    session.endSession();
+  }
 
   return {
     registration: formatClubRegistration(registration),

@@ -9,7 +9,7 @@ const {
 
 const VALID_TERMS = ['spring', 'summer', 'fall'];
 
-const ACTIVE_STATUSES = ['draft', 'pending_icpdp', 'pending_admin', 'pending_ctsv', 'approved', 'revision'];
+const ACTIVE_STATUSES = ['draft', 'pending_icpdp', 'pending_admin', 'approved', 'revision'];
 
 const normalizeItems = (items) => {
   if (!Array.isArray(items)) return [];
@@ -26,7 +26,7 @@ const normalizeItems = (items) => {
     .filter((item) => item.title);
 };
 
-const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'pending_icpdp', 'pending_ctsv', 'pending_admin'];
+const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'pending_icpdp', 'pending_admin'];
 
 const assertEditable = (timeline) => {
   if (!DIRECT_EDIT_STATUSES.includes(timeline.status)) {
@@ -222,7 +222,7 @@ const icpdpApprove = async (id, { note, reviewerEmail } = {}) => {
     err.statusCode = 404;
     throw err;
   }
-  if (!['pending_icpdp', 'pending_ctsv'].includes(timeline.status)) {
+  if (timeline.status !== 'pending_icpdp') {
     const err = new Error('Timeline không chờ IC-PDP duyệt!');
     err.statusCode = 400;
     throw err;
@@ -266,7 +266,7 @@ const rejectTimeline = async (id, { reason, reviewerEmail, reviewerRole } = {}) 
   const allowedStatuses =
     reviewerRole === 'admin'
       ? ['pending_admin']
-      : ['pending_icpdp', 'pending_ctsv'];
+      : ['pending_icpdp'];
 
   if (!allowedStatuses.includes(timeline.status)) {
     const err = new Error('Timeline không thể từ chối ở trạng thái hiện tại!');
@@ -294,7 +294,7 @@ const requestRevision = async (id, { note, reviewerEmail } = {}) => {
     err.statusCode = 404;
     throw err;
   }
-  if (!['pending_icpdp', 'pending_ctsv'].includes(timeline.status)) {
+  if (timeline.status !== 'pending_icpdp') {
     const err = new Error('Chỉ có thể yêu cầu chỉnh sửa timeline đang chờ duyệt!');
     err.statusCode = 400;
     throw err;
@@ -530,12 +530,9 @@ const rejectChangeRequest = async (id, { reason, reviewerEmail, stage } = {}) =>
     err.statusCode = 400;
     throw err;
   }
-  timeline.changeRequest.status = 'rejected';
   if (stage === 'icpdp') timeline.changeRequest.icpdpNote = trimmed;
   if (stage === 'admin') timeline.changeRequest.adminNote = trimmed;
-  timeline.changeRequest.reviewedAt = new Date();
   timeline.reviewedByEmail = reviewerEmail || '';
-  await timeline.save();
   clearChangeRequest(timeline);
   await timeline.save();
   return formatClubSemesterTimeline(timeline);

@@ -1,13 +1,13 @@
 import React, { useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import EventCalendarPage from '../../components/calendar/EventCalendarPage';
-import { fetchCtsvCalendar } from '../../services/ctsvApi';
+import { fetchPartnerCalendar } from '../../services/partnerApi';
 
 const resolvePartnerEventLink = (event) => `/partner/events/${event.id}`;
 
 const PartnerCalendar = () => {
   const { showToast } = useOutletContext() || {};
-  const loadEvents = useCallback(() => fetchCtsvCalendar(), []);
+  const loadEvents = useCallback(() => fetchPartnerCalendar(), []);
 
   return (
     <EventCalendarPage

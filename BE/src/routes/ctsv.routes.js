@@ -33,6 +33,7 @@ const {
   submitCtsvReport,
   getSubmissionMeta,
 } = require('../services/ctsvReportSubmission.service');
+const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
 const { resolveReportPhase, getReportDisplayStatus } = require('../constants/ctsvReportDisplay');
 const {
   findLinkableAnnouncementEvents,
@@ -181,6 +182,43 @@ router.get('/stats', async (req, res) => {
     });
   } catch (error) {
     console.error('ctsv stats:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// GET /api/ctsv/performance — tỷ lệ hiệu suất thực từ DB
+router.get('/performance', async (req, res) => {
+  try {
+    const [
+      totalProposals,
+      approvedProposals,
+      totalEndedEvents,
+      submittedReports,
+      allClubs,
+      activeClubs,
+    ] = await Promise.all([
+      EventProposal.countDocuments({ status: { $nin: ['draft'] } }),
+      EventProposal.countDocuments({ status: { $in: ['pending_admin', 'pending_ctsv', 'approved', 'live', 'ended'] } }),
+      Event.countDocuments({ status: { $in: ['ended', 'live'] } }),
+      SubmittedCtsvReport.countDocuments({}),
+      EventProposal.distinct('clubId', { clubId: { $nin: ['', null] } }),
+      EventProposal.distinct('clubId', { clubId: { $nin: ['', null] }, status: { $in: ['approved', 'live', 'ended', 'pending_admin', 'pending_ctsv'] } }),
+    ]);
+
+    const proposalRate = totalProposals > 0 ? Math.round((approvedProposals / totalProposals) * 100) : 0;
+    const clubRate = allClubs.length > 0 ? Math.round((activeClubs.length / allClubs.length) * 100) : 0;
+    const reportRate = totalEndedEvents > 0 ? Math.min(100, Math.round((submittedReports / totalEndedEvents) * 100)) : 0;
+
+    return res.json({
+      success: true,
+      performance: [
+        { name: 'Đề xuất được duyệt', rate: proposalRate },
+        { name: 'CLB hoạt động tích cực', rate: clubRate },
+        { name: 'Báo cáo đã nộp', rate: reportRate },
+      ],
+    });
+  } catch (error) {
+    console.error('ctsv performance:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
@@ -697,6 +735,7 @@ router.post('/reports/:id/submit-admin', async (req, res) => {
       submission: result.submission,
       sentToAdmin: result.sentToAdmin,
       sentToPartner: result.sentToPartner,
+      emailSent: result.emailSent ?? null,
       message: result.message,
     });
   } catch (error) {
@@ -1281,7 +1320,7 @@ router.get('/semester-timelines', requireIcpdpTimeline, async (req, res) => {
     const defaultStatuses =
       req.userRole === 'admin'
         ? ['pending_admin']
-        : ['pending_icpdp', 'pending_ctsv', 'revision'];
+        : ['pending_icpdp', 'revision'];
     const timelines = await clubSemesterTimelineService.listForReview({
       status: req.query.status,
       q: req.query.q,
@@ -1394,7 +1433,7 @@ router.patch('/semester-timelines/:id/change-request/admin-approve', requireAdmi
   }
 });
 
-router.patch('/semester-timelines/:id/change-request/reject', requireProposalModerate, async (req, res) => {
+router.patch('/semester-timelines/:id/change-request/reject', requireIcpdpTimeline, async (req, res) => {
   try {
     const stage = req.body.stage === 'admin' ? 'admin' : 'icpdp';
     const timeline = await clubSemesterTimelineService.rejectChangeRequest(req.params.id, {
