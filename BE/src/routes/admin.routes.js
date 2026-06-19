@@ -328,6 +328,7 @@ router.post('/accounts', adminOnly, asyncHandler(adminController.createAccount))
 router.get('/accounts/:id', adminOnly, asyncHandler(adminController.getAccount));
 router.put('/accounts/:id', adminOnly, asyncHandler(adminController.updateAccount));
 router.patch('/accounts/:id/status', adminOnly, asyncHandler(adminController.updateAccountStatus));
+router.patch('/accounts/:id/lock', adminOnly, asyncHandler(adminController.lockAccount));
 router.delete('/accounts/:id', adminOnly, asyncHandler(adminController.deleteAccount));
 router.get('/data/overview', adminOnly, asyncHandler(adminController.getDataOverview));
 router.get('/dashboard/stats', adminOnly, asyncHandler(adminController.getDashboardStats));

@@ -44,7 +44,7 @@ const StatCard = ({ label, value, tone }) => (
 );
 
 const CtsvPartnerList = () => {
-  const { showToast } = useOutletContext() || {};
+  const { showToast, headerSearch = '' } = useOutletContext() || {};
   const basePath = isAdminRole() ? '/admin/ctsv' : '/ctsv';
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,21 +52,24 @@ const CtsvPartnerList = () => {
   const [statusFilter, setStatusFilter] = useState('pending');
   const [page, setPage] = useState(1);
 
+  // Ưu tiên từ khóa gõ trên header, fallback ô tìm kiếm trong trang
+  const effectiveSearch = headerSearch.trim() || search.trim();
+
   const load = useCallback(() => {
     setLoading(true);
     const params = {};
     if (statusFilter) params.status = statusFilter;
-    if (search.trim()) params.search = search.trim();
+    if (effectiveSearch) params.search = effectiveSearch;
     return fetchCtsvPartners(params)
       .then((d) => setPartners(d.partners || []))
       .catch(() => showToast?.('Không tải danh sách đơn đăng ký.', 'error'))
       .finally(() => setLoading(false));
-  }, [search, statusFilter, showToast]);
+  }, [effectiveSearch, statusFilter, showToast]);
 
   useEffect(() => {
-    const t = setTimeout(() => { setPage(1); load(); }, search ? 280 : 0);
+    const t = setTimeout(() => { setPage(1); load(); }, effectiveSearch ? 280 : 0);
     return () => clearTimeout(t);
-  }, [load, search]);
+  }, [load, effectiveSearch]);
 
   const totalPages = Math.max(1, Math.ceil(partners.length / PAGE_SIZE));
   const pageSafe = Math.min(page, totalPages);

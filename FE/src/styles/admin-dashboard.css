@@ -2360,3 +2360,164 @@
     min-width: 0;
   }
 }
+
+/* ===== Toolbar lọc pill (Duyệt đề xuất sự kiện) ===== */
+.adm-ev-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 20px;
+}
+
+.adm-ev-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.adm-ev-pills--right { margin-left: auto; }
+
+.adm-ev-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.adm-ev-pill:hover {
+  border-color: #ea580c;
+  color: #ea580c;
+}
+.adm-ev-pill--active {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
+}
+.adm-ev-pill--active:hover { color: #fff; border-color: transparent; }
+
+.adm-ev-pill__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.14);
+  color: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+.adm-ev-pill--active .adm-ev-pill__count { background: rgba(255, 255, 255, 0.28); }
+
+.adm-ev-caret { flex-shrink: 0; opacity: 0.8; }
+
+.adm-ev-dropdown { position: relative; display: inline-flex; }
+.adm-ev-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 120;
+  min-width: 156px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.adm-ev-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.adm-ev-menu-item:hover { background: #fff7f0; color: #ea580c; }
+.adm-ev-menu-item--active { background: #fff1e6; color: #ea580c; font-weight: 700; }
+
+/* Badge nguồn / trạng thái */
+.adm-ev-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 11px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.adm-ev-badge--orange { background: #fff1e6; color: #c2410c; }
+.adm-ev-badge--teal   { background: #ccfbf1; color: #0f766e; }
+.adm-ev-badge--indigo { background: #e0e7ff; color: #4338ca; }
+.adm-ev-badge--amber  { background: #fef3c7; color: #b45309; }
+.adm-ev-badge--blue   { background: #dbeafe; color: #1d4ed8; }
+.adm-ev-badge--green  { background: #dcfce7; color: #15803d; }
+.adm-ev-badge--red    { background: #fee2e2; color: #b91c1c; }
+.adm-ev-badge--slate  { background: #f1f5f9; color: #475569; }
+
+.admin-proposal-card__head-main { flex-wrap: wrap; gap: 8px; }
+
+/* Thanh "Xem chi tiết" sau khi duyệt/từ chối */
+.adm-ev-detail-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 14px 20px;
+}
+.adm-ev-acted-note {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.adm-ev-acted-note--approved { color: #15803d; }
+.adm-ev-acted-note--rejected { color: #b91c1c; }
+.adm-ev-detail-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border-radius: 10px;
+  border: 1.5px solid #ea580c;
+  background: #fff;
+  color: #ea580c;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.adm-ev-detail-btn:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
+}
+
+@media (max-width: 640px) {
+  .adm-ev-toolbar { flex-direction: column; align-items: stretch; }
+  .adm-ev-pills--right { margin-left: 0; }
+  .adm-ev-menu { right: auto; left: 0; }
+}
