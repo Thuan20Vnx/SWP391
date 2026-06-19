@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import AdminTopHeader from '../components/admin/AdminTopHeader';
 import AdminSidebar from '../components/admin/AdminSidebar';
@@ -14,6 +14,13 @@ const AdminLayout = ({ showToast }) => {
   const [adminSearch, setAdminSearch] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(readSidebarPref);
   const { userProfile } = useUserProfile();
+  const headerSearchSubmitRef = useRef(null);
+
+  // Reset từ khóa tìm kiếm trên header khi chuyển trang
+  useEffect(() => {
+    setAdminSearch('');
+    headerSearchSubmitRef.current = null;
+  }, [pathname]);
 
   const searchPlaceholder = useMemo(() => {
     if (pathname.startsWith('/admin/accounts')) {
@@ -63,12 +70,23 @@ const AdminLayout = ({ showToast }) => {
           searchPlaceholder={searchPlaceholder}
           searchValue={adminSearch}
           onSearchChange={setAdminSearch}
+          onSearchKeyDown={(e) => {
+            if (e.key === 'Enter') headerSearchSubmitRef.current?.();
+          }}
           sidebarToggle={toggleSidebar}
           sidebarOpen={sidebarOpen}
         />
 
         <div className="admin-layout admin-shell-content">
-          <Outlet context={{ showToast, adminSearch, setAdminSearch }} />
+          <Outlet context={{
+            showToast,
+            adminSearch,
+            setAdminSearch,
+            // Alias để các trang CTSV/IC-PDP dùng chung hợp đồng với CtsvLayout
+            headerSearch: adminSearch,
+            setHeaderSearch: setAdminSearch,
+            registerHeaderSearchSubmit: (fn) => { headerSearchSubmitRef.current = fn; },
+          }} />
           <SiteFooter />
         </div>
         <ChatbotFloating context="admin" />

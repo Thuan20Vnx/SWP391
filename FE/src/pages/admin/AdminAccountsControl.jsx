@@ -18,6 +18,7 @@ import {
   deleteAdminAccount,
   fetchAdminAccount,
   fetchAdminAccounts,
+  lockAdminAccountTemporarily,
   updateAdminAccount,
   updateAdminAccountStatus,
 } from '../../services/adminApi';
@@ -138,6 +139,11 @@ const AdminAccountsControl = () => {
   );
 
   const toggleActive = async (acc) => {
+    // Tài khoản đang bị khóa tạm thời → toggle hiển thị tắt; bật lại nghĩa là mở khóa.
+    if (acc.lockUntil) {
+      await handleUnlockAccount(acc);
+      return;
+    }
     const next = !acc.active;
     try {
       const data = await updateAdminAccountStatus(acc.id, next);
@@ -193,6 +199,26 @@ const AdminAccountsControl = () => {
       await loadAccounts();
     } catch (err) {
       showToast?.(err.message || t('admin.accounts.toast.deleteFail'), 'error');
+    }
+  };
+
+  const handleLockAccount = async (acc, days) => {
+    try {
+      const data = await lockAdminAccountTemporarily(acc.id, days);
+      patchAccountInList(data.account);
+      showToast?.(data.message || t('admin.accounts.toast.lockSuccess'), 'success');
+    } catch (err) {
+      showToast?.(err.message || t('admin.accounts.toast.lockFail'), 'error');
+    }
+  };
+
+  const handleUnlockAccount = async (acc) => {
+    try {
+      const data = await lockAdminAccountTemporarily(acc.id, 0);
+      patchAccountInList(data.account);
+      showToast?.(data.message || t('admin.accounts.toast.unlockSuccess'), 'success');
+    } catch (err) {
+      showToast?.(err.message || t('admin.accounts.toast.lockFail'), 'error');
     }
   };
 
@@ -311,7 +337,7 @@ const AdminAccountsControl = () => {
                         </td>
                         <td data-label={t('admin.accounts.col.status')}>
                           <StatusToggle
-                            active={acc.active}
+                            active={acc.active && !acc.lockUntil}
                             onChange={() => toggleActive(acc)}
                             label={t('admin.accounts.statusToggle', { name: acc.name })}
                           />
@@ -321,6 +347,8 @@ const AdminAccountsControl = () => {
                             account={acc}
                             onView={openView}
                             onEdit={openEdit}
+                            onLock={handleLockAccount}
+                            onUnlock={handleUnlockAccount}
                             onDelete={handleDeleteAccount}
                           />
                         </td>

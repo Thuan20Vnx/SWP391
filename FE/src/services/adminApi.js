@@ -88,6 +88,15 @@ export const updateAdminAccountStatus = async (id, isActive) => {
   return parseJson(res);
 };
 
+export const lockAdminAccountTemporarily = async (id, days) => {
+  const res = await fetch(`${API_BASE}/api/admin/accounts/${id}/lock`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ days })
+  });
+  return parseJson(res);
+};
+
 export const fetchAdminAccount = async (id) => {
   const res = await fetch(`${API_BASE}/api/admin/accounts/${id}`, {
     headers: getAuthHeaders(false)

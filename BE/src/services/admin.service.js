@@ -42,6 +42,10 @@ const mapUserToAccount = (user) => ({
   unitInfo: user.orientation || '',
   course: user.course || '',
   campus: user.campus || 'FPT University Da Nang',
+  lockUntil:
+    user.lockUntil && user.lockUntil.getTime() > Date.now()
+      ? user.lockUntil.toISOString()
+      : null,
 });
 
 const parseIdentifier = (identifier, role) => {
@@ -186,6 +190,45 @@ const updateAccountStatus = async (userId, isActive) => {
   };
 };
 
+const lockAccountTemporarily = async (userId, days) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError('Không tìm thấy tài khoản!', 404);
+
+  if (user.role === 'admin') {
+    throw new AppError('Không thể khóa tài khoản quản trị hệ thống!', 403);
+  }
+
+  const numDays = Number(days);
+  if (!Number.isFinite(numDays) || numDays <= 0) {
+    throw new AppError('Số ngày khóa phải là số nguyên dương!', 400);
+  }
+  if (numDays > 365) {
+    throw new AppError('Chỉ được khóa tạm thời tối đa 365 ngày!', 400);
+  }
+
+  const wholeDays = Math.ceil(numDays);
+  user.lockUntil = new Date(Date.now() + wholeDays * 24 * 60 * 60 * 1000);
+  await user.save();
+
+  return {
+    message: `Đã khóa tài khoản tạm thời ${wholeDays} ngày.`,
+    account: mapUserToAccount(user),
+  };
+};
+
+const unlockAccount = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError('Không tìm thấy tài khoản!', 404);
+
+  user.lockUntil = null;
+  await user.save();
+
+  return {
+    message: 'Đã mở khóa tài khoản.',
+    account: mapUserToAccount(user),
+  };
+};
+
 const getAccount = async (userId) => {
   const user = await User.findById(userId);
   if (!user) throw new AppError('Không tìm thấy tài khoản!', 404);
@@ -325,6 +368,8 @@ module.exports = {
   createAccount,
   updateAccount,
   updateAccountStatus,
+  lockAccountTemporarily,
+  unlockAccount,
   deleteAccount,
   DEFAULT_ADMIN_PASSWORD,
 };

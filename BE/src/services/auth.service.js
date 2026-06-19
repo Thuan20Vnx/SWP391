@@ -104,6 +104,11 @@ const login = async ({ email, password }) => {
     throw new AppError('Tài khoản này sử dụng đăng nhập Google. Vui lòng đăng nhập bằng Google!', 401);
   }
 
+  if (user && user.lockUntil && user.lockUntil.getTime() > Date.now()) {
+    const until = user.lockUntil.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+    throw new AppError(`Tài khoản đang bị khóa tạm thời đến ${until}.`, 403);
+  }
+
   const isMatch = await verifyPasswordWithTiming(password, user?.passwordHash);
 
   if (!isMatch) {

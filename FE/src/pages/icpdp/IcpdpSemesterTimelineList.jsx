@@ -37,7 +37,7 @@ const fmt = (v) => {
 };
 
 const IcpdpSemesterTimelineList = () => {
-  const { showToast } = useOutletContext() || {};
+  const { showToast, headerSearch = '' } = useOutletContext() || {};
 
   const userRole = getUserRole();
   const isAdmin = userRole === 'admin';
@@ -66,14 +66,14 @@ const IcpdpSemesterTimelineList = () => {
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = (headerSearch.trim() || searchQuery.trim()).toLowerCase();
     if (!q) return timelines;
     return timelines.filter(
       (t) =>
         (t.clubName || '').toLowerCase().includes(q) ||
         (t.semesterLabel || '').toLowerCase().includes(q)
     );
-  }, [timelines, searchQuery]);
+  }, [timelines, searchQuery, headerSearch]);
 
   const pendingCount = useMemo(() => {
     const ps = isAdmin ? 'pending_admin' : 'pending_icpdp';
