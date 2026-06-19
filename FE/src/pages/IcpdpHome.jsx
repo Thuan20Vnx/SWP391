@@ -2,8 +2,32 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
 import { fetchIcpdpEvents, fetchIcpdpStats, ICPDP_MOCK_STATS } from '../services/icpdpApi';
-import { getCtsvEventAccess, isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
-import { statusClass } from '../utils/eventStatus';
+import { isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
+import EventDiscoveryCard from '../components/EventDiscoveryCard';
+import { getCategoryDisplayLabel } from '../constants/eventCategories';
+
+const cardStateFromEv = (ev) => {
+  const s = ev.statusKey || ev.status || '';
+  if (s === 'ended') return 'expired';
+  if (s === 'postponed') return 'postponed';
+  return 'active';
+};
+
+const toDiscoveryCard = (ev) => ({
+  id: String(ev._id || ev.id || ''),
+  title: ev.title,
+  thumbnail: ev.image || ev.thumbnail || ev.flyer || '',
+  category: ev.category || 'Sự kiện',
+  categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
+  dateLabel: ev.date || ev.dateLabel || '',
+  location: ev.location || '',
+  filledSlots: ev.registeredCount ?? 0,
+  totalSlots: ev.totalTickets || ev.capacity || 0,
+  cardState: cardStateFromEv(ev),
+  primaryLabel: 'Xem chi tiết',
+  priceLabel: ev.ticketPrice > 0 ? `${Number(ev.ticketPrice).toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
+  organizerLabel: ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : ev.source === 'icpdp' ? 'IC-PDP' : 'CLB',
+});
 
 const HOME_TIME_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -19,48 +43,24 @@ const HOME_CATEGORY_FILTERS = [
   { value: 'Kết nối', label: 'Kết nối' }
 ];
 
-const LIVE_OVERVIEW_LIMIT = 8;
+const PAGE_SIZE = 6;
 
-const IcpdpEventCard = ({ ev, onOpen }) => {
-  const access = getCtsvEventAccess(ev);
+const SectionPager = ({ page, total, onChange }) => {
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (totalPages <= 1) return null;
   return (
-    <article className="event-card-item">
-      <div className="event-card-image-wrapper">
-        <img src={ev.image} alt={ev.title} className="event-card-img" />
-        <span className="event-card-category-badge">{ev.category}</span>
-      </div>
-      <div className="event-card-body">
-        <h3 className="event-card-title">{ev.title}</h3>
-        <div className="event-card-details">
-          <div className="detail-row">
-            <span>
-              {ev.date} • {ev.time}
-            </span>
-          </div>
-          <div className="detail-row">
-            <span className="location-text">{ev.location}</span>
-          </div>
-        </div>
-        <div className="event-card-divider" />
-        <div className="event-card-footer">
-          <div className="ticket-info">
-            <span className="ticket-remain-text">
-              Còn: {ev.remainingTickets}/{ev.totalTickets}
-            </span>
-            <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
-          </div>
-          <button
-            type="button"
-            className="btn-card-register"
-            onClick={() => onOpen(ev)}
-          >
-            Xem chi tiết
-          </button>
-        </div>
-      </div>
-    </article>
+    <div className="ctsv-section-pager">
+      <button type="button" className="ctsv-pager-btn" disabled={page === 1} onClick={() => onChange(page - 1)}>
+        Trước
+      </button>
+      <span className="ctsv-pager-label">Trang {page} / {totalPages}</span>
+      <button type="button" className="ctsv-pager-btn" disabled={page === totalPages} onClick={() => onChange(page + 1)}>
+        Sau
+      </button>
+    </div>
   );
 };
+
 
 const IcpdpHome = ({ showToast }) => {
   const navigate = useNavigate();
@@ -94,6 +94,8 @@ const IcpdpHome = ({ showToast }) => {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [stats, setStats] = useState(ICPDP_MOCK_STATS);
+  const [livePage, setLivePage] = useState(1);
+  const [clubPage, setClubPage] = useState(1);
 
   useEffect(() => {
     fetchIcpdpStats()
@@ -130,6 +132,8 @@ const IcpdpHome = ({ showToast }) => {
         const list = d.events || [];
         setFilteredEvents(list);
         setEvents(list);
+        setLivePage(1);
+        setClubPage(1);
         showToast(`Đã lọc ${list.length} sự kiện.`, 'success');
       })
       .catch(() => {
@@ -156,14 +160,19 @@ const IcpdpHome = ({ showToast }) => {
     return () => outlet.registerHeaderSearchSubmit?.(null);
   }, [outlet, handleFilterSubmit]);
 
+  const allLiveEvents = useMemo(() => events.filter(isEventLiveOrOngoing), [events]);
   const liveOverviewEvents = useMemo(
-    () => events.filter(isEventLiveOrOngoing).slice(0, LIVE_OVERVIEW_LIMIT),
-    [events]
+    () => allLiveEvents.slice((livePage - 1) * PAGE_SIZE, livePage * PAGE_SIZE),
+    [allLiveEvents, livePage]
   );
 
-  const clubEvents = useMemo(
+  const allClubEvents = useMemo(
     () => filteredEvents.filter((ev) => ev.source === 'club'),
     [filteredEvents]
+  );
+  const clubEvents = useMemo(
+    () => allClubEvents.slice((clubPage - 1) * PAGE_SIZE, clubPage * PAGE_SIZE),
+    [allClubEvents, clubPage]
   );
 
   const handleOpenEvent = (ev) => {
@@ -286,11 +295,19 @@ const IcpdpHome = ({ showToast }) => {
             <p>Hiện không có sự kiện nào đang diễn ra hoặc mở đăng ký.</p>
           </div>
         ) : (
-          <div className="event-grid-cards">
-            {liveOverviewEvents.map((ev) => (
-              <IcpdpEventCard key={`live-${ev.id}`} ev={ev} onOpen={handleOpenEvent} />
-            ))}
-          </div>
+          <>
+            <div className="event-grid-cards">
+              {liveOverviewEvents.map((ev) => (
+                <EventDiscoveryCard
+                  key={`live-${ev.id}`}
+                  event={toDiscoveryCard(ev)}
+                  viewOnly
+                  onPrimaryAction={() => handleOpenEvent(ev)}
+                />
+              ))}
+            </div>
+            <SectionPager page={livePage} total={allLiveEvents.length} onChange={setLivePage} />
+          </>
         )}
       </main>
 
@@ -317,11 +334,19 @@ const IcpdpHome = ({ showToast }) => {
             </button>
           </div>
         ) : (
-          <div className="event-grid-cards">
-            {clubEvents.map((ev) => (
-              <IcpdpEventCard key={ev.id} ev={ev} onOpen={handleOpenEvent} />
-            ))}
-          </div>
+          <>
+            <div className="event-grid-cards">
+              {clubEvents.map((ev) => (
+                <EventDiscoveryCard
+                  key={ev.id}
+                  event={toDiscoveryCard(ev)}
+                  viewOnly
+                  onPrimaryAction={() => handleOpenEvent(ev)}
+                />
+              ))}
+            </div>
+            <SectionPager page={clubPage} total={allClubEvents.length} onChange={setClubPage} />
+          </>
         )}
       </main>
     </>

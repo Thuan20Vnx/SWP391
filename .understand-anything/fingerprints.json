@@ -2563,40 +2563,15 @@
       "hasStructuralAnalysis": true
     },
     "BE/src/routes/ctsv.routes.js": {
-      "filePath": "BE/src/routes/ctsv.routes.js",
-      "contentHash": "29bd4e617e06701193a588f972e473a0dab82de92d3a787e4cae72f0e90801fc",
+      "contentHash": "aae2f137dd8a148585f305b2bb52f8c11ddb8d29f1b707783791be30b0b1aeec",
       "functions": [
-        {
-          "name": "pickSchoolEventFields",
-          "params": [
-            "body"
-          ],
-          "exported": false,
-          "lineCount": 73
-        },
-        {
-          "name": "buildEventFilter",
-          "params": [
-            "query"
-          ],
-          "exported": false,
-          "lineCount": 24
-        },
-        {
-          "name": "deleteAnnouncementHandler",
-          "params": [
-            "req",
-            "res"
-          ],
-          "exported": false,
-          "lineCount": 12
-        }
+        "pickSchoolEventFields",
+        "buildEventFilter",
+        "deleteAnnouncementHandler"
       ],
       "classes": [],
       "imports": [],
-      "exports": [],
-      "totalLines": 1413,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "BE/src/routes/event.routes.js": {
       "filePath": "BE/src/routes/event.routes.js",
@@ -2619,25 +2594,13 @@
       "hasStructuralAnalysis": true
     },
     "BE/src/routes/partner.routes.js": {
-      "filePath": "BE/src/routes/partner.routes.js",
-      "contentHash": "26dfaa2f3352dd231cfcd44816fcb7353d3e1ed0d3f69f72fc2899d19653dd5a",
+      "contentHash": "f482765bea87c3f809bce6be1aebca4ecb315aab6f69d60a6c69bd8625fbccca",
       "functions": [
-        {
-          "name": "handleError",
-          "params": [
-            "res",
-            "error",
-            "label"
-          ],
-          "exported": false,
-          "lineCount": 10
-        }
+        "handleError"
       ],
       "classes": [],
       "imports": [],
-      "exports": [],
-      "totalLines": 346,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "BE/src/routes/system.routes.js": {
       "filePath": "BE/src/routes/system.routes.js",
@@ -3376,329 +3339,56 @@
       "hasStructuralAnalysis": true
     },
     "BE/src/services/clubRegistration.service.js": {
-      "filePath": "BE/src/services/clubRegistration.service.js",
-      "contentHash": "d5d55e960d53c431be8b0ddcb28d4df566310cd89893bc25f8a2c2b18a05e8ea",
+      "contentHash": "a1cee044734f9d89843bf815447e0eaec99b881eca13bf02d3eefabeb8832332",
       "functions": [
-        {
-          "name": "slugify",
-          "params": [
-            "name"
-          ],
-          "exported": false,
-          "lineCount": 8
-        },
-        {
-          "name": "ensureUniqueSlug",
-          "params": [
-            "base"
-          ],
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "defaultStatusFilterForRole",
-          "params": [
-            "viewerRole"
-          ],
-          "exported": false,
-          "lineCount": 6
-        },
-        {
-          "name": "listRegistrations",
-          "params": [],
-          "exported": false,
-          "lineCount": 14
-        },
-        {
-          "name": "getRegistrationById",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "createRegistration",
-          "params": [
-            "payload"
-          ],
-          "exported": false,
-          "lineCount": 30
-        },
-        {
-          "name": "createClubFromRegistration",
-          "params": [
-            "registration"
-          ],
-          "exported": false,
-          "lineCount": 42
-        },
-        {
-          "name": "icpdpForwardToAdmin",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 21
-        },
-        {
-          "name": "adminApproveRegistration",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 30
-        },
-        {
-          "name": "rejectRegistration",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 32
-        },
-        {
-          "name": "requestRevision",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 25
-        },
-        {
-          "name": "countPendingForRole",
-          "params": [
-            "viewerRole"
-          ],
-          "exported": false,
-          "lineCount": 6
-        }
+        "slugify",
+        "ensureUniqueSlug",
+        "defaultStatusFilterForRole",
+        "listRegistrations",
+        "getRegistrationById",
+        "createRegistration",
+        "createClubFromRegistration",
+        "icpdpForwardToAdmin",
+        "adminApproveRegistration",
+        "rejectRegistration",
+        "requestRevision",
+        "countPendingForRole"
       ],
       "classes": [],
       "imports": [],
-      "exports": [],
-      "totalLines": 263,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "BE/src/services/clubSemesterTimeline.service.js": {
-      "filePath": "BE/src/services/clubSemesterTimeline.service.js",
-      "contentHash": "53a50685862e03cd57d958116a96afe576fca35705fc445fdfbc5be249d83bba",
+      "contentHash": "505d638c83d6ad1f3c17c09947d0d7ee5b057246a1a6ce058b33d9b6af8f5ef8",
       "functions": [
-        {
-          "name": "normalizeItems",
-          "params": [
-            "items"
-          ],
-          "exported": false,
-          "lineCount": 14
-        },
-        {
-          "name": "assertEditable",
-          "params": [
-            "timeline"
-          ],
-          "exported": false,
-          "lineCount": 7
-        },
-        {
-          "name": "resolveClubForManager",
-          "params": [
-            "userId",
-            "activeClubId"
-          ],
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "ensureUniqueSemester",
-          "params": [
-            "clubId",
-            "semesterTerm",
-            "semesterYear"
-          ],
-          "exported": false,
-          "lineCount": 15
-        },
-        {
-          "name": "listForClub",
-          "params": [
-            "userId",
-            "activeClubId"
-          ],
-          "exported": false,
-          "lineCount": 25
-        },
-        {
-          "name": "getByIdForClub",
-          "params": [
-            "id",
-            "userId",
-            "activeClubId"
-          ],
-          "exported": false,
-          "lineCount": 10
-        },
-        {
-          "name": "createForClub",
-          "params": [
-            "payload",
-            "userId",
-            "activeClubId"
-          ],
-          "exported": false,
-          "lineCount": 33
-        },
-        {
-          "name": "updateForClub",
-          "params": [
-            "id",
-            "payload",
-            "userId",
-            "activeClubId"
-          ],
-          "exported": false,
-          "lineCount": 32
-        },
-        {
-          "name": "submitForClub",
-          "params": [
-            "id",
-            "userId",
-            "activeClubId"
-          ],
-          "exported": false,
-          "lineCount": 23
-        },
-        {
-          "name": "listForReview",
-          "params": [],
-          "exported": false,
-          "lineCount": 14
-        },
-        {
-          "name": "getById",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "icpdpApprove",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 19
-        },
-        {
-          "name": "adminApprove",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 19
-        },
-        {
-          "name": "rejectTimeline",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 31
-        },
-        {
-          "name": "requestRevision",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 25
-        },
-        {
-          "name": "clearChangeRequest",
-          "params": [
-            "timeline"
-          ],
-          "exported": false,
-          "lineCount": 12
-        },
-        {
-          "name": "hasPendingChangeRequest",
-          "params": [
-            "timeline"
-          ],
-          "exported": false,
-          "lineCount": 4
-        },
-        {
-          "name": "deleteForClub",
-          "params": [
-            "id",
-            "userId",
-            "activeClubId"
-          ],
-          "exported": false,
-          "lineCount": 16
-        },
-        {
-          "name": "requestChangeForClub",
-          "params": [
-            "id",
-            "userId",
-            "activeClubId"
-          ],
-          "exported": false,
-          "lineCount": 67
-        },
-        {
-          "name": "withdrawForClub",
-          "params": [
-            "id",
-            "userId",
-            "activeClubId"
-          ],
-          "exported": false,
-          "lineCount": 23
-        },
-        {
-          "name": "applyApprovedChange",
-          "params": [
-            "timeline"
-          ],
-          "exported": false,
-          "lineCount": 21
-        },
-        {
-          "name": "icpdpApproveChangeRequest",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 19
-        },
-        {
-          "name": "adminApproveChangeRequest",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 18
-        },
-        {
-          "name": "rejectChangeRequest",
-          "params": [
-            "id"
-          ],
-          "exported": false,
-          "lineCount": 39
-        }
+        "normalizeItems",
+        "assertEditable",
+        "resolveClubForManager",
+        "ensureUniqueSemester",
+        "listForClub",
+        "getByIdForClub",
+        "createForClub",
+        "updateForClub",
+        "submitForClub",
+        "listForReview",
+        "getById",
+        "icpdpApprove",
+        "adminApprove",
+        "rejectTimeline",
+        "requestRevision",
+        "clearChangeRequest",
+        "hasPendingChangeRequest",
+        "deleteForClub",
+        "requestChangeForClub",
+        "withdrawForClub",
+        "applyApprovedChange",
+        "icpdpApproveChangeRequest",
+        "adminApproveChangeRequest",
+        "rejectChangeRequest"
       ],
       "classes": [],
       "imports": [],
-      "exports": [],
-      "totalLines": 564,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "BE/src/services/ctsvReport.service.js": {
       "filePath": "BE/src/services/ctsvReport.service.js",
@@ -3760,85 +3450,21 @@
       "hasStructuralAnalysis": true
     },
     "BE/src/services/ctsvReportSubmission.service.js": {
-      "filePath": "BE/src/services/ctsvReportSubmission.service.js",
-      "contentHash": "130cb14400c12c725cf4af99dd56685bb200d6c795b5360a297af183d638d5ef",
+      "contentHash": "5b064c251d00b613b409c396dd2459a2c6965a45b671ea513da639bf85a3ff1e",
       "functions": [
-        {
-          "name": "normalizeEmail",
-          "params": [
-            "email"
-          ],
-          "exported": false,
-          "lineCount": 1
-        },
-        {
-          "name": "buildPartnerAnnouncementContent",
-          "params": [
-            "report"
-          ],
-          "exported": false,
-          "lineCount": 24
-        },
-        {
-          "name": "resolvePartnerFromEvent",
-          "params": [
-            "eventId"
-          ],
-          "exported": false,
-          "lineCount": 17
-        },
-        {
-          "name": "getSubmissionMeta",
-          "params": [
-            "reportId"
-          ],
-          "exported": false,
-          "lineCount": 14
-        },
-        {
-          "name": "upsertSubmission",
-          "params": [],
-          "exported": false,
-          "lineCount": 26
-        },
-        {
-          "name": "notifyPartner",
-          "params": [],
-          "exported": false,
-          "lineCount": 29
-        },
-        {
-          "name": "submitCtsvReport",
-          "params": [
-            "eventId",
-            "authEmail"
-          ],
-          "exported": false,
-          "lineCount": 57
-        },
-        {
-          "name": "listPartnerSubmittedReports",
-          "params": [
-            "email"
-          ],
-          "exported": false,
-          "lineCount": 29
-        },
-        {
-          "name": "getPartnerSubmittedReportDetail",
-          "params": [
-            "email",
-            "eventId"
-          ],
-          "exported": false,
-          "lineCount": 25
-        }
+        "normalizeEmail",
+        "buildPartnerAnnouncementContent",
+        "resolvePartnerFromEvent",
+        "getSubmissionMeta",
+        "upsertSubmission",
+        "notifyPartner",
+        "submitCtsvReport",
+        "listPartnerSubmittedReports",
+        "getPartnerSubmittedReportDetail"
       ],
       "classes": [],
       "imports": [],
-      "exports": [],
-      "totalLines": 247,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "BE/src/services/email.service.js": {
       "filePath": "BE/src/services/email.service.js",
@@ -8434,155 +8060,43 @@
       "hasStructuralAnalysis": true
     },
     "FE/src/components/club/ClubDashboardPanel.jsx": {
-      "filePath": "FE/src/components/club/ClubDashboardPanel.jsx",
-      "contentHash": "90fb8fe3378d34c13d4cdd90e2ea15b518f1af43b76d690352d002b7a704ea5e",
+      "contentHash": "64eae7312ce0009da6c36fd214297e0110002df7b69e24141152be84f086b95c",
       "functions": [
-        {
-          "name": "ClubDashboardPanel",
-          "params": [],
-          "exported": false,
-          "lineCount": 132
-        }
+        "ClubDashboardPanel"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "React",
-            "useMemo"
-          ]
-        },
-        {
-          "source": "./mobile/ClubEventListCard",
-          "specifiers": [
-            "ClubEventListCard"
-          ]
-        }
+        "react",
+        "./mobile/ClubEventListCard"
       ],
-      "exports": [],
-      "totalLines": 138,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/components/club/ClubEventReportsPanel.jsx": {
-      "filePath": "FE/src/components/club/ClubEventReportsPanel.jsx",
-      "contentHash": "9755436312cd95f23160d079d668e251b5788ebd5c4db8f9b1c253a071f447ce",
+      "contentHash": "4511a04b438b9d6d1bbacbb4134e4126d7189c70aff285e79ef4f23bed62d131",
       "functions": [
-        {
-          "name": "getReportPhase",
-          "params": [
-            "event"
-          ],
-          "exported": false,
-          "lineCount": 8
-        },
-        {
-          "name": "phaseLabel",
-          "params": [
-            "phase"
-          ],
-          "exported": false,
-          "lineCount": 5
-        },
-        {
-          "name": "ClubEventReportsPanel",
-          "params": [],
-          "exported": false,
-          "lineCount": 193
-        }
+        "getReportPhase",
+        "phaseLabel",
+        "ClubEventReportsPanel"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "React",
-            "useMemo",
-            "useState"
-          ]
-        }
+        "react"
       ],
-      "exports": [],
-      "totalLines": 213,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/components/club/clubNavConfig.js": {
-      "filePath": "FE/src/components/club/clubNavConfig.js",
-      "contentHash": "e848f14cee0eca46bdd0880459c39316cc74feaec444fde3e52e9ddfc18c053c",
+      "contentHash": "c777a7d8345c7e47c9da1499c688a4b79899ef873936a09cf27702a9cb83eda7",
       "functions": [
-        {
-          "name": "readClubSidebarPref",
-          "params": [],
-          "exported": true,
-          "lineCount": 8
-        },
-        {
-          "name": "persistClubSidebarOpen",
-          "params": [
-            "open"
-          ],
-          "exported": true,
-          "lineCount": 3
-        },
-        {
-          "name": "readClubPublicSidebarPref",
-          "params": [],
-          "exported": true,
-          "lineCount": 8
-        },
-        {
-          "name": "persistClubPublicSidebarOpen",
-          "params": [
-            "open"
-          ],
-          "exported": true,
-          "lineCount": 3
-        },
-        {
-          "name": "isClubDesktop",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "isClubNavActive",
-          "params": [
-            "key",
-            "activeNav"
-          ],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "resolveClubActiveNav",
-          "params": [
-            "pathname"
-          ],
-          "exported": true,
-          "lineCount": 15
-        },
-        {
-          "name": "resolveClubPublicActiveNav",
-          "params": [
-            "pathname"
-          ],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
-          "name": "navigateClubNavItem",
-          "params": [],
-          "exported": true,
-          "lineCount": 36
-        },
-        {
-          "name": "navigateClubPortalHome",
-          "params": [
-            "navigate"
-          ],
-          "exported": true,
-          "lineCount": 10
-        }
+        "readClubSidebarPref",
+        "persistClubSidebarOpen",
+        "readClubPublicSidebarPref",
+        "persistClubPublicSidebarOpen",
+        "isClubDesktop",
+        "isClubNavActive",
+        "resolveClubActiveNav",
+        "resolveClubPublicActiveNav",
+        "navigateClubNavItem",
+        "navigateClubPortalHome"
       ],
       "classes": [],
       "imports": [],
@@ -8601,9 +8115,7 @@
         "resolveClubPublicActiveNav",
         "navigateClubNavItem",
         "navigateClubPortalHome"
-      ],
-      "totalLines": 132,
-      "hasStructuralAnalysis": true
+      ]
     },
     "FE/src/components/club/ClubParticipantsPanel.jsx": {
       "filePath": "FE/src/components/club/ClubParticipantsPanel.jsx",
@@ -8713,153 +8225,30 @@
       "hasStructuralAnalysis": true
     },
     "FE/src/components/club/ClubSemesterTimelinePanel.jsx": {
-      "filePath": "FE/src/components/club/ClubSemesterTimelinePanel.jsx",
-      "contentHash": "2a1f03d4b1b7d6307fbfed5320763beabcc07a148320167e07783cf89b7558e8",
+      "contentHash": "57481ca0b9fb09dfda5f0cc40fdc05599f43b5dd7cc1744d3141ae43532603ae",
       "functions": [
-        {
-          "name": "ClbTrashIcon",
-          "params": [],
-          "exported": false,
-          "lineCount": 11
-        },
-        {
-          "name": "ClbEyeIcon",
-          "params": [],
-          "exported": false,
-          "lineCount": 20
-        },
-        {
-          "name": "inferDefaultSemester",
-          "params": [],
-          "exported": false,
-          "lineCount": 8
-        },
-        {
-          "name": "emptyItem",
-          "params": [],
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "toDateInput",
-          "params": [
-            "value"
-          ],
-          "exported": false,
-          "lineCount": 6
-        },
-        {
-          "name": "formatDate",
-          "params": [
-            "value"
-          ],
-          "exported": false,
-          "lineCount": 5
-        },
-        {
-          "name": "canEditTimeline",
-          "params": [
-            "timeline"
-          ],
-          "exported": false,
-          "lineCount": 2
-        },
-        {
-          "name": "canWithdrawTimeline",
-          "params": [
-            "timeline"
-          ],
-          "exported": false,
-          "lineCount": 2
-        },
-        {
-          "name": "hasPendingChange",
-          "params": [
-            "timeline"
-          ],
-          "exported": false,
-          "lineCount": 3
-        },
-        {
-          "name": "getStepState",
-          "params": [
-            "timeline",
-            "step"
-          ],
-          "exported": false,
-          "lineCount": 16
-        },
-        {
-          "name": "getStepStatusText",
-          "params": [
-            "timeline",
-            "step",
-            "state"
-          ],
-          "exported": false,
-          "lineCount": 15
-        },
-        {
-          "name": "timelineStatusBadgeClass",
-          "params": [
-            "statusKey"
-          ],
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "ClubSemesterTimelinePanel",
-          "params": [],
-          "exported": false,
-          "lineCount": 869
-        }
+        "ClbTrashIcon",
+        "ClbEyeIcon",
+        "inferDefaultSemester",
+        "emptyItem",
+        "toDateInput",
+        "formatDate",
+        "canEditTimeline",
+        "canWithdrawTimeline",
+        "hasPendingChange",
+        "getStepState",
+        "getStepStatusText",
+        "timelineStatusBadgeClass",
+        "ClubSemesterTimelinePanel"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "React",
-            "useCallback",
-            "useEffect",
-            "useMemo",
-            "useState"
-          ]
-        },
-        {
-          "source": "../ui/AppSelect",
-          "specifiers": [
-            "AppSelect"
-          ]
-        },
-        {
-          "source": "../ui/AutoGrowTextarea",
-          "specifiers": [
-            "AutoGrowTextarea"
-          ]
-        },
-        {
-          "source": "../ui/ConfirmDialog",
-          "specifiers": [
-            "ConfirmDialog"
-          ]
-        },
-        {
-          "source": "../../services/clubTimelineApi",
-          "specifiers": [
-            "createClubSemesterTimeline",
-            "deleteClubSemesterTimeline",
-            "fetchClubSemesterTimelines",
-            "requestClubSemesterTimelineChange",
-            "submitClubSemesterTimeline",
-            "updateClubSemesterTimeline",
-            "withdrawClubSemesterTimeline"
-          ]
-        }
+        "react",
+        "../ui/AppSelect",
+        "../ui/AutoGrowTextarea",
+        "../ui/ConfirmDialog"
       ],
-      "exports": [],
-      "totalLines": 1039,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/components/club/ClubSidebarAside.jsx": {
       "filePath": "FE/src/components/club/ClubSidebarAside.jsx",
@@ -18422,174 +17811,42 @@
       "hasStructuralAnalysis": false
     },
     "FE/src/pages/ClubManagement.jsx": {
-      "filePath": "FE/src/pages/ClubManagement.jsx",
-      "contentHash": "84ec6a25a8549891ba6008a81ba9eefb4f3716023b289d0d4cc557e96c61b812",
+      "contentHash": "8cd8817b43d1a7c81df99f4329485073bd50710edaa4757c3c731b54dc7a8a3a",
       "functions": [
-        {
-          "name": "ClubManagement",
-          "params": [],
-          "exported": false,
-          "lineCount": 525
-        }
+        "ClubManagement"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "React",
-            "useState",
-            "useEffect",
-            "useMemo"
-          ]
-        },
-        {
-          "source": "react-router-dom",
-          "specifiers": [
-            "useLocation",
-            "useNavigate",
-            "useOutletContext"
-          ]
-        },
-        {
-          "source": "../utils/api",
-          "specifiers": [
-            "API_BASE",
-            "getEventHeaders",
-            "parseApiResponse"
-          ]
-        },
-        {
-          "source": "../components/ClubProfileUpdate",
-          "specifiers": [
-            "ClubProfileUpdate"
-          ]
-        },
-        {
-          "source": "../components/club/ClubChairmanTransfer",
-          "specifiers": [
-            "ClubChairmanTransfer"
-          ]
-        },
-        {
-          "source": "../components/club/ClubDashboardPanel",
-          "specifiers": [
-            "ClubDashboardPanel"
-          ]
-        },
-        {
-          "source": "../components/club/ClubParticipantsPanel",
-          "specifiers": [
-            "ClubParticipantsPanel"
-          ]
-        },
-        {
-          "source": "../components/club/ClubEventReportsPanel",
-          "specifiers": [
-            "ClubEventReportsPanel"
-          ]
-        },
-        {
-          "source": "./ClubManagement.css",
-          "specifiers": []
-        },
-        {
-          "source": "../components/events/EventProposalForm",
-          "specifiers": [
-            "EventProposalForm"
-          ]
-        },
-        {
-          "source": "../components/club/ClubSemesterTimelinePanel",
-          "specifiers": [
-            "ClubSemesterTimelinePanel"
-          ]
-        },
-        {
-          "source": "../components/club/mobile/ClubEventListCard",
-          "specifiers": [
-            "ClubEventListCard"
-          ]
-        },
-        {
-          "source": "../utils/eventFormState",
-          "specifiers": [
-            "EMPTY_EVENT_FORM",
-            "mapApiEventToForm"
-          ]
-        }
+        "react",
+        "react-router-dom",
+        "../utils/api",
+        "../components/ClubProfileUpdate",
+        "../components/club/ClubChairmanTransfer",
+        "../components/club/ClubDashboardPanel",
+        "../components/club/ClubParticipantsPanel",
+        "../components/club/ClubEventReportsPanel",
+        "../components/events/EventProposalForm",
+        "../components/club/ClubSemesterTimelinePanel",
+        "../components/club/mobile/ClubEventListCard",
+        "../utils/eventFormState"
       ],
-      "exports": [],
-      "totalLines": 542,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/pages/Clubs.jsx": {
-      "filePath": "FE/src/pages/Clubs.jsx",
-      "contentHash": "54fc29e941e4ed1e0cb38abf8459bed1927ce09d236065e70333925d7b717308",
+      "contentHash": "9f8415b1d8c92b9d4cfbdd88115887091928219d7b391fa056626eb8b9eefe86",
       "functions": [
-        {
-          "name": "Clubs",
-          "params": [],
-          "exported": false,
-          "lineCount": 235
-        }
+        "Clubs"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "React",
-            "useState",
-            "useMemo",
-            "useEffect"
-          ]
-        },
-        {
-          "source": "react-router-dom",
-          "specifiers": [
-            "useNavigate"
-          ]
-        },
-        {
-          "source": "../components/ClubDiscoveryCard",
-          "specifiers": [
-            "ClubDiscoveryCard"
-          ]
-        },
-        {
-          "source": "../layouts/PublicAdminShell",
-          "specifiers": [
-            "PublicAdminShell"
-          ]
-        },
-        {
-          "source": "../components/SiteFooter",
-          "specifiers": [
-            "SiteFooter"
-          ]
-        },
-        {
-          "source": "../utils/api",
-          "specifiers": [
-            "API_BASE",
-            "getAuthHeaders"
-          ]
-        },
-        {
-          "source": "../data/clubDiscoveryData",
-          "specifiers": [
-            "CLUB_SAMPLE_DATA",
-            "HERO_TAGS",
-            "filterClubsBySearch",
-            "filterClubsByTag",
-            "mapApiClubToListItem"
-          ]
-        }
+        "react",
+        "react-router-dom",
+        "../components/ClubDiscoveryCard",
+        "../layouts/PublicAdminShell",
+        "../components/SiteFooter",
+        "../utils/api"
       ],
-      "exports": [],
-      "totalLines": 256,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/pages/CreateEvent.jsx": {
       "filePath": "FE/src/pages/CreateEvent.jsx",
@@ -20146,128 +19403,26 @@
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/Events.jsx": {
-      "filePath": "FE/src/pages/Events.jsx",
-      "contentHash": "46a6f89e01a2b79e149f31dabbdd75e98179d24f39ef3a276a580e732ba0044f",
+      "contentHash": "cbd56f4e4df707cae3850f5e9d3800ebf48bd30bba05ebb10f128cb44afa6773",
       "functions": [
-        {
-          "name": "Events",
-          "params": [],
-          "exported": false,
-          "lineCount": 410
-        }
+        "Events"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "React",
-            "useState",
-            "useEffect",
-            "useMemo",
-            "useRef"
-          ]
-        },
-        {
-          "source": "react-router-dom",
-          "specifiers": [
-            "Link",
-            "useNavigate",
-            "useSearchParams"
-          ]
-        },
-        {
-          "source": "../components/EventDiscoveryCard",
-          "specifiers": [
-            "EventDiscoveryCard"
-          ]
-        },
-        {
-          "source": "../components/ui/AppSelect",
-          "specifiers": [
-            "AppSelect"
-          ]
-        },
-        {
-          "source": "../layouts/PublicAdminShell",
-          "specifiers": [
-            "PublicAdminShell"
-          ]
-        },
-        {
-          "source": "../components/SiteFooter",
-          "specifiers": [
-            "SiteFooter"
-          ]
-        },
-        {
-          "source": "../hooks/useUserProfile",
-          "specifiers": [
-            "useUserProfile"
-          ]
-        },
-        {
-          "source": "../hooks/useManagedClubs",
-          "specifiers": [
-            "useManagedClubs"
-          ]
-        },
-        {
-          "source": "../utils/api",
-          "specifiers": [
-            "API_BASE",
-            "getAuthHeaders"
-          ]
-        },
-        {
-          "source": "../hooks/useDebouncedValue",
-          "specifiers": [
-            "useDebouncedValue"
-          ]
-        },
-        {
-          "source": "../services/eventsApi",
-          "specifiers": [
-            "fetchPublicEvents",
-            "getCachedPublicEventsList",
-            "prefetchPublicEventById",
-            "syncEventRegistrationInCache"
-          ]
-        },
-        {
-          "source": "../utils/auth",
-          "specifiers": [
-            "getUserRole",
-            "isAdminRole",
-            "isClubManagerRole"
-          ]
-        },
-        {
-          "source": "../utils/publicEventStaffAccess",
-          "specifiers": [
-            "isPureCtsvStaff",
-            "navigateClubEventManage",
-            "resolveDiscoveryCardProps"
-          ]
-        },
-        {
-          "source": "../data/eventDiscoveryData",
-          "specifiers": [
-            "CATEGORY_FILTERS",
-            "STATE_FILTERS",
-            "ORGANIZER_FILTERS",
-            "FIGMA_SAMPLE_EVENTS",
-            "mapApiEventToCard",
-            "markDiscoveryCardRegistered",
-            "filterEventsByState",
-            "filterEventsByOrganizer",
-            "sortEventsByStatePriority"
-          ]
-        }
+        "react",
+        "react-router-dom",
+        "../components/EventDiscoveryCard",
+        "../components/ui/AppSelect",
+        "../layouts/PublicAdminShell",
+        "../components/SiteFooter",
+        "../hooks/useUserProfile",
+        "../hooks/useManagedClubs",
+        "../utils/api",
+        "../hooks/useDebouncedValue",
+        "../services/eventsApi",
+        "../utils/auth"
       ],
-      "exports": [],
-      "totalLines": 456,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/pages/ForgotPassword.jsx": {
       "filePath": "FE/src/pages/ForgotPassword.jsx",
@@ -20740,69 +19895,19 @@
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/icpdp/IcpdpDashboard.jsx": {
-      "filePath": "FE/src/pages/icpdp/IcpdpDashboard.jsx",
-      "contentHash": "3b7ebe50df4cf2bca05f1fe560d83b59ba8ccee3b8b63f6ad7a974486fc8332a",
+      "contentHash": "2c90500cfbf52e019ebfe12943e7eb26f378ffad8b3e18a514fecc6e3feb075c",
       "functions": [
-        {
-          "name": "IcpdpDashboard",
-          "params": [],
-          "exported": false,
-          "lineCount": 311
-        }
+        "IcpdpDashboard"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "useEffect",
-            "useMemo",
-            "useState"
-          ]
-        },
-        {
-          "source": "react-router-dom",
-          "specifiers": [
-            "Link",
-            "useNavigate",
-            "useOutletContext"
-          ]
-        },
-        {
-          "source": "../../components/ctsv/CtsvNavIcon",
-          "specifiers": [
-            "CtsvNavIcon"
-          ]
-        },
-        {
-          "source": "../../components/portal/PortalDashHero",
-          "specifiers": [
-            "PortalDashHero"
-          ]
-        },
-        {
-          "source": "../../services/icpdpApi",
-          "specifiers": [
-            "fetchIcpdpEvents",
-            "fetchIcpdpProposals",
-            "fetchIcpdpStats",
-            "ICPDP_MOCK_EVENTS",
-            "ICPDP_MOCK_STATS",
-            "ICPDP_PERFORMANCE",
-            "ICPDP_RECENT_ACTIVITY"
-          ]
-        },
-        {
-          "source": "../../utils/eventStatus",
-          "specifiers": [
-            "isPendingApproval",
-            "statusClass"
-          ]
-        }
+        "react",
+        "react-router-dom",
+        "../../components/ctsv/CtsvNavIcon",
+        "../../components/portal/PortalDashHero",
+        "../../utils/eventStatus"
       ],
-      "exports": [],
-      "totalLines": 343,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/pages/icpdp/IcpdpEventDetail.jsx": {
       "filePath": "FE/src/pages/icpdp/IcpdpEventDetail.jsx",
@@ -21002,45 +20107,16 @@
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/icpdp/IcpdpProfileSettings.jsx": {
-      "filePath": "FE/src/pages/icpdp/IcpdpProfileSettings.jsx",
-      "contentHash": "e25a105cea8d911d583bc16f00530e974095e6818c565961f1738f6955c3f24c",
+      "contentHash": "d5609439561bfffda55c94823db594aaed34ed9db573ff913b4928391f70f7f2",
       "functions": [
-        {
-          "name": "IcpdpProfileSettings",
-          "params": [],
-          "exported": false,
-          "lineCount": 291
-        }
+        "IcpdpProfileSettings"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "React",
-            "useState",
-            "useEffect"
-          ]
-        },
-        {
-          "source": "../../components/profile/ProfilePasswordSection",
-          "specifiers": [
-            "ProfilePasswordSection"
-          ]
-        },
-        {
-          "source": "../../services/icpdpApi",
-          "specifiers": [
-            "loadIcpdpProfile",
-            "saveIcpdpProfile",
-            "loadIcpdpNotificationPrefs",
-            "saveIcpdpNotificationPrefs"
-          ]
-        }
+        "react",
+        "../Profile"
       ],
-      "exports": [],
-      "totalLines": 303,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/pages/icpdp/IcpdpProposalDetail.jsx": {
       "filePath": "FE/src/pages/icpdp/IcpdpProposalDetail.jsx",
@@ -21737,55 +20813,19 @@
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/partner/PartnerCalendar.jsx": {
-      "filePath": "FE/src/pages/partner/PartnerCalendar.jsx",
-      "contentHash": "96ac2d829c6cae6993cf7caa5bdd53109d8d711a082af1188a17cc1d7c541f8b",
+      "contentHash": "c1914be5b99915af10c0eddbce5d7013f6b0eb921a6d549e333d6edd4b32ec17",
       "functions": [
-        {
-          "name": "resolvePartnerEventLink",
-          "params": [
-            "event"
-          ],
-          "exported": false,
-          "lineCount": 1
-        },
-        {
-          "name": "PartnerCalendar",
-          "params": [],
-          "exported": false,
-          "lineCount": 15
-        }
+        "resolvePartnerEventLink",
+        "PartnerCalendar"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "React",
-            "useCallback"
-          ]
-        },
-        {
-          "source": "react-router-dom",
-          "specifiers": [
-            "useOutletContext"
-          ]
-        },
-        {
-          "source": "../../components/calendar/EventCalendarPage",
-          "specifiers": [
-            "EventCalendarPage"
-          ]
-        },
-        {
-          "source": "../../services/ctsvApi",
-          "specifiers": [
-            "fetchCtsvCalendar"
-          ]
-        }
+        "react",
+        "react-router-dom",
+        "../../components/calendar/EventCalendarPage",
+        "../../services/partnerApi"
       ],
-      "exports": [],
-      "totalLines": 25,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/pages/partner/PartnerContractList.jsx": {
       "filePath": "FE/src/pages/partner/PartnerContractList.jsx",
@@ -22150,151 +21190,21 @@
       "hasStructuralAnalysis": true
     },
     "FE/src/pages/partner/PartnerProfileSettings.jsx": {
-      "filePath": "FE/src/pages/partner/PartnerProfileSettings.jsx",
-      "contentHash": "fdd82718cff682b5b945e24de813a05a948193c96948926dd5c4e5d1d57106cc",
+      "contentHash": "b0a6259475cc7c31d4c668ad67350aafad0858cc52561138ead72a1404ff1cd4",
       "functions": [
-        {
-          "name": "PartnerToggle",
-          "params": [],
-          "exported": false,
-          "lineCount": 23
-        },
-        {
-          "name": "IconChevronDown",
-          "params": [],
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "PartnerProfileCollapseSection",
-          "params": [],
-          "exported": false,
-          "lineCount": 25
-        },
-        {
-          "name": "normalizeCompany",
-          "params": [],
-          "exported": false,
-          "lineCount": 21
-        },
-        {
-          "name": "normalizeUser",
-          "params": [],
-          "exported": false,
-          "lineCount": 15
-        },
-        {
-          "name": "canEditPartnerProfile",
-          "params": [
-            "partner"
-          ],
-          "exported": false,
-          "lineCount": 3
-        },
-        {
-          "name": "PartnerProfileSettings",
-          "params": [],
-          "exported": false,
-          "lineCount": 1090
-        }
+        "ReadField",
+        "PartnerProfileSettings"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "React",
-            "useEffect",
-            "useRef",
-            "useState"
-          ]
-        },
-        {
-          "source": "react-router-dom",
-          "specifiers": [
-            "Link"
-          ]
-        },
-        {
-          "source": "../../components/ctsv/BannerCropModal",
-          "specifiers": [
-            "BannerCropModal"
-          ]
-        },
-        {
-          "source": "../../components/profile/AvatarCropModal",
-          "specifiers": [
-            "AvatarCropModal"
-          ]
-        },
-        {
-          "source": "../../utils/imageFilePicker",
-          "specifiers": [
-            "openImageFilePicker"
-          ]
-        },
-        {
-          "source": "../../components/profile/ProfilePasswordSection",
-          "specifiers": [
-            "ProfilePasswordSection"
-          ]
-        },
-        {
-          "source": "../../constants/defaultAvatar",
-          "specifiers": [
-            "defaultAvatar"
-          ]
-        },
-        {
-          "source": "../../hooks/useUserProfile",
-          "specifiers": [
-            "cacheUserProfile"
-          ]
-        },
-        {
-          "source": "../../services/partnerApi",
-          "specifiers": [
-            "fetchPartnerMe",
-            "fetchPartnerUserProfile",
-            "loadPartnerNotificationPrefs",
-            "mapCompanyFormToPartnerPatch",
-            "mapPartnerToCompanyForm",
-            "savePartnerCompanyProfile",
-            "savePartnerNotificationPrefs",
-            "updatePartnerLogo",
-            "updatePartnerMe",
-            "updatePartnerUserProfile"
-          ]
-        },
-        {
-          "source": "../../utils/authEvents",
-          "specifiers": [
-            "dispatchAuthChanged"
-          ]
-        },
-        {
-          "source": "../../utils/image",
-          "specifiers": [
-            "resolveUserAvatar"
-          ]
-        },
-        {
-          "source": "../../utils/profileApi",
-          "specifiers": [
-            "updateUserAvatar"
-          ]
-        },
-        {
-          "source": "../../utils/partnerDisplay",
-          "specifiers": [
-            "PARTNER_STATUS_LABEL",
-            "PARTNER_STATUS_TONE"
-          ]
-        }
+        "react",
+        "react-router-dom",
+        "../../constants/defaultAvatar",
+        "../../services/partnerApi",
+        "../../utils/image",
+        "../../utils/partnerDisplay"
       ],
-      "exports": [],
-      "totalLines": 1334,
-      "hasStructuralAnalysis": true
+      "exports": []
     },
     "FE/src/pages/partner/PartnerProposalCreate.jsx": {
       "filePath": "FE/src/pages/partner/PartnerProposalCreate.jsx",
@@ -24326,230 +23236,45 @@
       "hasStructuralAnalysis": true
     },
     "FE/src/services/icpdpApi.js": {
-      "filePath": "FE/src/services/icpdpApi.js",
-      "contentHash": "b21b5ce24519d90997e6fe889d218c2ccca9afdebef836dc260fa9c1d88c0c5a",
+      "contentHash": "4a426b8016a77d8d2af097fd31a444ab38ffa29af6898e3430764b4f1b2c7b0e",
       "functions": [
-        {
-          "name": "parseJson",
-          "params": [
-            "res"
-          ],
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "icpdpFetch",
-          "params": [
-            "path"
-          ],
-          "exported": false,
-          "lineCount": 5
-        },
-        {
-          "name": "fetchIcpdpStats",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "fetchIcpdpEvents",
-          "params": [],
-          "exported": true,
-          "lineCount": 8
-        },
-        {
-          "name": "fetchIcpdpEvent",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "createIcpdpSchoolEvent",
-          "params": [
-            "body"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "updateIcpdpSchoolEvent",
-          "params": [
-            "id",
-            "body"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "fetchIcpdpCalendar",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "fetchIcpdpReports",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "fetchIcpdpProposals",
-          "params": [],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
-          "name": "fetchIcpdpProposal",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "icpdpApproveProposal",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "fetchIcpdpSemesterTimelines",
-          "params": [],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
-          "name": "fetchIcpdpSemesterTimeline",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "adminApproveSemesterTimeline",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "icpdpApproveSemesterTimeline",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "rejectIcpdpSemesterTimeline",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "revisionIcpdpSemesterTimeline",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "icpdpApproveTimelineChangeRequest",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "rejectTimelineChangeRequest",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "fetchIcpdpPendingModerations",
-          "params": [],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "icpdpApproveEventModeration",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "icpdpRejectEventModeration",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "loadIcpdpProfile",
-          "params": [],
-          "exported": true,
-          "lineCount": 16
-        },
-        {
-          "name": "saveIcpdpProfile",
-          "params": [
-            "data"
-          ],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
-          "name": "loadIcpdpNotificationPrefs",
-          "params": [],
-          "exported": true,
-          "lineCount": 14
-        },
-        {
-          "name": "saveIcpdpNotificationPrefs",
-          "params": [
-            "data"
-          ],
-          "exported": true,
-          "lineCount": 3
-        },
-        {
-          "name": "changeIcpdpPassword",
-          "params": [
-            "currentPassword",
-            "newPassword"
-          ],
-          "exported": true,
-          "lineCount": 6
-        }
+        "parseJson",
+        "icpdpFetch",
+        "fetchIcpdpStats",
+        "fetchIcpdpPerformance",
+        "fetchIcpdpEvents",
+        "fetchIcpdpEvent",
+        "createIcpdpSchoolEvent",
+        "updateIcpdpSchoolEvent",
+        "fetchIcpdpCalendar",
+        "fetchIcpdpReports",
+        "fetchIcpdpProposals",
+        "fetchIcpdpProposal",
+        "icpdpApproveProposal",
+        "fetchIcpdpSemesterTimelines",
+        "fetchIcpdpSemesterTimeline",
+        "adminApproveSemesterTimeline",
+        "icpdpApproveSemesterTimeline",
+        "rejectIcpdpSemesterTimeline",
+        "revisionIcpdpSemesterTimeline",
+        "icpdpApproveTimelineChangeRequest",
+        "rejectTimelineChangeRequest",
+        "fetchIcpdpPendingModerations",
+        "icpdpApproveEventModeration",
+        "icpdpRejectEventModeration",
+        "loadIcpdpProfile",
+        "saveIcpdpProfile",
+        "loadIcpdpNotificationPrefs",
+        "saveIcpdpNotificationPrefs",
+        "changeIcpdpPassword"
       ],
       "classes": [],
       "imports": [
-        {
-          "source": "../utils/api",
-          "specifiers": [
-            "API_BASE",
-            "getAuthHeaders"
-          ]
-        }
+        "../utils/api"
       ],
       "exports": [
         "fetchIcpdpStats",
+        "fetchIcpdpPerformance",
         "fetchIcpdpEvents",
         "fetchIcpdpEvent",
         "createIcpdpSchoolEvent",
@@ -24580,270 +23305,13 @@
         "loadIcpdpNotificationPrefs",
         "saveIcpdpNotificationPrefs",
         "changeIcpdpPassword"
-      ],
-      "totalLines": 268,
-      "hasStructuralAnalysis": true
+      ]
     },
     "FE/src/services/partnerApi.js": {
-      "filePath": "FE/src/services/partnerApi.js",
-      "contentHash": "2ecc094550d376154ad076653aae41e39609d1f809686c5c8f05e3c128983a73",
+      "contentHash": "62ae617bedb4ea3b981ff5b7750db41e11479af44f9bd3b1ccb694909fb43f03",
       "functions": [
-        {
-          "name": "parseJson",
-          "params": [
-            "res"
-          ],
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "partnerFetch",
-          "params": [
-            "path"
-          ],
-          "exported": false,
-          "lineCount": 5
-        },
-        {
-          "name": "fetchPartnerMe",
-          "params": [],
-          "exported": true,
-          "lineCount": 30
-        },
-        {
-          "name": "updatePartnerMe",
-          "params": [
-            "body"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "updatePartnerLogo",
-          "params": [
-            "logo"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "fetchPartnerUserProfile",
-          "params": [],
-          "exported": true,
-          "lineCount": 12
-        },
-        {
-          "name": "updatePartnerUserProfile",
-          "params": [
-            "body"
-          ],
-          "exported": true,
-          "lineCount": 8
-        },
-        {
-          "name": "fetchPartnerStats",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "fetchPartnerEvents",
-          "params": [],
-          "exported": true,
-          "lineCount": 8
-        },
-        {
-          "name": "fetchPartnerEvent",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "fetchPartnerContracts",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "fetchPartnerReports",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "fetchPartnerReportDetail",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "fetchPartnerProposals",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "createPartnerProposal",
-          "params": [
-            "body"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "supplementPartnerProposal",
-          "params": [
-            "id",
-            "body"
-          ],
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "fetchPartnerActiveEventRequest",
-          "params": [],
-          "exported": true,
-          "lineCount": 1
-        },
-        {
-          "name": "savePartnerEventRequestDraft",
-          "params": [
-            "body"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "submitPartnerEventRequest",
-          "params": [
-            "body"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "cancelPartnerEventRequest",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "updatePartnerEventRequest",
-          "params": [
-            "id",
-            "body"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "hidePartnerEventRequest",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "deletePartnerEventRequest",
-          "params": [
-            "id"
-          ],
-          "exported": true,
-          "lineCount": 2
-        },
-        {
-          "name": "buildPartnerEventRequestPayload",
-          "params": [],
-          "exported": true,
-          "lineCount": 46
-        },
-        {
-          "name": "loadPartnerCompanyProfile",
-          "params": [],
-          "exported": true,
-          "lineCount": 11
-        },
-        {
-          "name": "savePartnerCompanyProfile",
-          "params": [
-            "payload"
-          ],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
-          "name": "mapPartnerToCompanyForm",
-          "params": [
-            "partner"
-          ],
-          "exported": true,
-          "lineCount": 16
-        },
-        {
-          "name": "mapCompanyFormToPartnerPatch",
-          "params": [
-            "form"
-          ],
-          "exported": true,
-          "lineCount": 13
-        },
-        {
-          "name": "loadPartnerNotificationPrefs",
-          "params": [],
-          "exported": true,
-          "lineCount": 9
-        },
-        {
-          "name": "savePartnerNotificationPrefs",
-          "params": [
-            "prefs"
-          ],
-          "exported": true,
-          "lineCount": 4
-        },
-        {
-          "name": "changePartnerPassword",
-          "params": [
-            "currentPassword",
-            "newPassword"
-          ],
-          "exported": true,
-          "lineCount": 6
-        }
-      ],
-      "classes": [],
-      "imports": [
-        {
-          "source": "../utils/api",
-          "specifiers": [
-            "API_BASE",
-            "getAuthHeaders"
-          ]
-        },
-        {
-          "source": "../utils/eventFormState",
-          "specifiers": [
-            "buildCoreEventPayload"
-          ]
-        }
-      ],
-      "exports": [
-        "PARTNER_MOCK_STATS",
-        "PARTNER_MOCK_EVENTS",
-        "PARTNER_MOCK_CONTRACTS",
-        "PARTNER_MOCK_REPORTS",
-        "DEFAULT_PARTNER_COMPANY",
-        "DEFAULT_PARTNER_NOTIFICATIONS",
-        "PARTNER_RECENT_ACTIVITY",
-        "PARTNER_PERFORMANCE",
-        "DEMO_REPORT_EVENT_ID",
+        "parseJson",
+        "partnerFetch",
         "fetchPartnerMe",
         "updatePartnerMe",
         "updatePartnerLogo",
@@ -24852,6 +23320,7 @@
         "fetchPartnerStats",
         "fetchPartnerEvents",
         "fetchPartnerEvent",
+        "fetchPartnerCalendar",
         "fetchPartnerContracts",
         "fetchPartnerReports",
         "fetchPartnerReportDetail",
@@ -24874,8 +23343,52 @@
         "savePartnerNotificationPrefs",
         "changePartnerPassword"
       ],
-      "totalLines": 358,
-      "hasStructuralAnalysis": true
+      "classes": [],
+      "imports": [
+        "../utils/api",
+        "../utils/eventFormState"
+      ],
+      "exports": [
+        "PARTNER_MOCK_STATS",
+        "PARTNER_MOCK_EVENTS",
+        "PARTNER_MOCK_CONTRACTS",
+        "PARTNER_MOCK_REPORTS",
+        "DEFAULT_PARTNER_COMPANY",
+        "DEFAULT_PARTNER_NOTIFICATIONS",
+        "PARTNER_RECENT_ACTIVITY",
+        "PARTNER_PERFORMANCE",
+        "DEMO_REPORT_EVENT_ID",
+        "fetchPartnerMe",
+        "updatePartnerMe",
+        "updatePartnerLogo",
+        "fetchPartnerUserProfile",
+        "updatePartnerUserProfile",
+        "fetchPartnerStats",
+        "fetchPartnerEvents",
+        "fetchPartnerEvent",
+        "fetchPartnerCalendar",
+        "fetchPartnerContracts",
+        "fetchPartnerReports",
+        "fetchPartnerReportDetail",
+        "fetchPartnerProposals",
+        "createPartnerProposal",
+        "supplementPartnerProposal",
+        "fetchPartnerActiveEventRequest",
+        "savePartnerEventRequestDraft",
+        "submitPartnerEventRequest",
+        "cancelPartnerEventRequest",
+        "updatePartnerEventRequest",
+        "hidePartnerEventRequest",
+        "deletePartnerEventRequest",
+        "buildPartnerEventRequestPayload",
+        "loadPartnerCompanyProfile",
+        "savePartnerCompanyProfile",
+        "mapPartnerToCompanyForm",
+        "mapCompanyFormToPartnerPatch",
+        "loadPartnerNotificationPrefs",
+        "savePartnerNotificationPrefs",
+        "changePartnerPassword"
+      ]
     },
     "FE/src/services/scannerApi.js": {
       "filePath": "FE/src/services/scannerApi.js",

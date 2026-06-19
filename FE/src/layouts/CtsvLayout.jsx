@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../constants/defaultAvatar';
 import SiteHeader from '../components/SiteHeader';
@@ -22,6 +22,8 @@ const CtsvLayout = ({ showToast }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(readSidebarPref);
+  const [headerSearch, setHeaderSearch] = useState('');
+  const headerSearchSubmitRef = useRef(null);
   const [userProfile, setUserProfile] = useState({
     fullname: localStorage.getItem('userFullname') || 'Cán bộ CTSV',
     picture: defaultAvatar,
@@ -98,6 +100,11 @@ const CtsvLayout = ({ showToast }) => {
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, onAuthChanged);
   }, [loadCtsvUserProfile]);
 
+  useEffect(() => {
+    setHeaderSearch('');
+    headerSearchSubmitRef.current = null;
+  }, [location.pathname]);
+
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => {
       const next = !prev;
@@ -145,10 +152,22 @@ const CtsvLayout = ({ showToast }) => {
             activeNav="ctsv-manage"
             onTogglePortalSidebar={toggleSidebar}
             portalSidebarOpen={sidebarOpen}
+            searchValue={headerSearch}
+            onSearchChange={setHeaderSearch}
+            onSearchKeyDown={(e) => {
+              if (e.key === 'Enter') headerSearchSubmitRef.current?.();
+            }}
           />
 
           <div className="ctsv-portal-body">
-            <Outlet context={{ showToast, userProfile, toggleSidebar }} />
+            <Outlet context={{
+              showToast,
+              userProfile,
+              toggleSidebar,
+              headerSearch,
+              setHeaderSearch,
+              registerHeaderSearchSubmit: (fn) => { headerSearchSubmitRef.current = fn; },
+            }} />
           </div>
 
           <CtsvPortalFooter />
