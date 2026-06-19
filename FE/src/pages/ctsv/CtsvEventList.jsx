@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { isAdminRole } from '../../utils/auth';
 import AppSelect from '../../components/ui/AppSelect';
 import { fetchCtsvEvents, MOCK_EVENTS } from '../../services/ctsvApi';
-import { getCtsvEventAccess } from '../../utils/ctsvEventAccess';
-import { statusClass } from '../../utils/eventStatus';
+import { getCtsvEventAccess, isCtsvManagedEvent } from '../../utils/ctsvEventAccess';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
+import EventDiscoveryCard from '../../components/EventDiscoveryCard';
 
 const TIME_FILTER_OPTIONS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -17,29 +18,46 @@ const CATEGORY_FILTER_OPTIONS = [
   ...CTSV_CATEGORY_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
 ];
 
-const EVENTS_PER_PAGE = 6;
+const PAGE_SIZE = 6;
 
-const SOURCE_META = {
-  school: { label: 'Cấp trường', tone: 'school' },
-  partner: { label: 'Đối tác', tone: 'partner' },
-  club: { label: 'CLB', tone: 'club' }
+const cardStateFromEv = (ev) => {
+  const s = ev.statusKey || ev.status || '';
+  if (s === 'ended') return 'expired';
+  if (s === 'postponed') return 'postponed';
+  return 'active';
 };
 
-const getSourceMeta = (source) => SOURCE_META[source] || SOURCE_META.club;
+const toDiscoveryCard = (ev) => ({
+  id: String(ev._id || ev.id || ''),
+  title: ev.title,
+  thumbnail: ev.image || ev.thumbnail || ev.flyer || '',
+  category: ev.category || 'Sự kiện',
+  categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
+  dateLabel: ev.date ? `${ev.date}${ev.time ? ' ' + ev.time : ''}` : '',
+  location: ev.location || '',
+  filledSlots: ev.registeredCount ?? 0,
+  totalSlots: ev.totalTickets || ev.capacity || 0,
+  cardState: cardStateFromEv(ev),
+  primaryLabel: isCtsvManagedEvent(ev) ? 'Quản lý' : 'Xem chi tiết',
+  priceLabel: ev.ticketPrice > 0 ? `${Number(ev.ticketPrice).toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
+  organizerLabel: ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : 'CLB',
+});
 
-const IconCalendar = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-    <rect x="3" y="4" width="18" height="18" rx="2" />
-    <path d="M16 2v4M8 2v4M3 10h18" />
-  </svg>
-);
-
-const IconPin = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-    <path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11z" />
-    <circle cx="12" cy="10" r="2.5" />
-  </svg>
-);
+const SectionPager = ({ page, total, onChange }) => {
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (totalPages <= 1) return null;
+  return (
+    <div className="ctsv-section-pager">
+      <button type="button" className="ctsv-pager-btn" disabled={page === 1} onClick={() => onChange(page - 1)}>
+        Trước
+      </button>
+      <span className="ctsv-pager-label">Trang {page} / {totalPages}</span>
+      <button type="button" className="ctsv-pager-btn" disabled={page === totalPages} onClick={() => onChange(page + 1)}>
+        Sau
+      </button>
+    </div>
+  );
+};
 
 const IconSearch = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -48,22 +66,15 @@ const IconSearch = () => (
   </svg>
 );
 
-const EventCardSkeleton = () => (
-  <article className="ctsv-events-card ctsv-events-card--skeleton" aria-hidden>
-    <div className="ctsv-events-card-media sk" />
-    <div className="ctsv-events-card-body">
-      <div className="sk sk-line sk-line--lg" />
-      <div className="sk sk-line" />
-      <div className="sk sk-line sk-line--short" />
-      <div className="sk sk-btn" />
-    </div>
-  </article>
-);
-
 const CtsvEventList = () => {
-  const { showToast } = useOutletContext() || {};
+  const navigate = useNavigate();
+  const outlet = useOutletContext() || {};
+  const basePath = isAdminRole() ? '/admin/ctsv' : '/ctsv';
+  const { showToast, headerSearch = '', registerHeaderSearchSubmit } = outlet;
+
   const [events, setEvents] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
+  const searchQuery = headerSearch.trim() || localSearch.trim();
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [loading, setLoading] = useState(true);
@@ -75,7 +86,6 @@ const CtsvEventList = () => {
       const category = overrides.category ?? categoryFilter;
       const time = overrides.time ?? timeFilter;
       setLoading(true);
-
       return fetchCtsvEvents({ q, category, time })
         .then((d) => {
           const list = d.events || [];
@@ -103,17 +113,31 @@ const CtsvEventList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    registerHeaderSearchSubmit?.(() => {});
+    return () => registerHeaderSearchSubmit?.(null);
+  }, [registerHeaderSearchSubmit]);
+
   const managedCount = useMemo(
     () => events.filter((ev) => getCtsvEventAccess(ev).canManage).length,
     [events]
   );
 
-  const totalPages = Math.max(1, Math.ceil(events.length / EVENTS_PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
-  const pagedEvents = useMemo(() => {
-    const start = (currentPage - 1) * EVENTS_PER_PAGE;
-    return events.slice(start, start + EVENTS_PER_PAGE);
-  }, [currentPage, events]);
+  const filtered = useMemo(() => {
+    setPage(1);
+    const q = searchQuery.toLowerCase();
+    if (!q) return events;
+    return events.filter(
+      (ev) =>
+        (ev.title || '').toLowerCase().includes(q) ||
+        (ev.location || '').toLowerCase().includes(q)
+    );
+  }, [events, searchQuery]);
+
+  const pagedEvents = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page]
+  );
 
   const handleFilter = async (e) => {
     e?.preventDefault();
@@ -127,48 +151,34 @@ const CtsvEventList = () => {
         <div className="ctsv-events-hero-text">
           <span className="ctsv-events-eyebrow">Quản lý sự kiện CTSV</span>
           <h1>Tìm kiếm &amp; Duyệt sự kiện</h1>
-          <p>
-            Phê duyệt sự kiện cấp trường; sự kiện CLB và đối tác chỉ xem thông tin (ICPDP quản lý CLB).
-          </p>
+          <p>Phê duyệt sự kiện cấp trường; sự kiện CLB và đối tác chỉ xem thông tin (ICPDP quản lý CLB).</p>
         </div>
         <div className="ctsv-events-hero-aside">
           <div className="ctsv-events-hero-stat" aria-live="polite">
-            <span className="ctsv-events-hero-stat-num">{loading ? '—' : events.length}</span>
+            <span className="ctsv-events-hero-stat-num">{loading ? '—' : filtered.length}</span>
             <span className="ctsv-events-hero-stat-label">Sự kiện trong danh sách</span>
           </div>
-          <Link to="/ctsv/events/create" className="ctsv-events-hero-cta">
+          <button type="button" className="ctsv-events-hero-cta" onClick={() => navigate(`${basePath}/events/create`)}>
             Tạo sự kiện cấp trường
-          </Link>
+          </button>
         </div>
       </header>
 
       <section className="ctsv-events-filter-card">
         <form className="ctsv-events-filter-form" onSubmit={handleFilter}>
           <label className="ctsv-events-search">
-            <span className="ctsv-events-search-icon">
-              <IconSearch />
-            </span>
+            <span className="ctsv-events-search-icon"><IconSearch /></span>
             <input
               type="search"
               placeholder="Tìm kiếm theo tên, địa điểm, danh mục..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={headerSearch || localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
               className="ctsv-events-search-input"
             />
           </label>
           <div className="ctsv-events-filter-selects">
-            <AppSelect
-              value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value)}
-              options={TIME_FILTER_OPTIONS}
-              fullWidth={false}
-            />
-            <AppSelect
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              options={CATEGORY_FILTER_OPTIONS}
-              fullWidth={false}
-            />
+            <AppSelect value={timeFilter} onChange={(e) => setTimeFilter(e.target.value)} options={TIME_FILTER_OPTIONS} fullWidth={false} />
+            <AppSelect value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={CATEGORY_FILTER_OPTIONS} fullWidth={false} />
           </div>
           <button type="submit" className="ctsv-events-filter-btn" disabled={loading}>
             {loading ? 'Đang lọc...' : 'Lọc kết quả'}
@@ -176,24 +186,28 @@ const CtsvEventList = () => {
         </form>
         {!loading && (
           <p className="ctsv-events-filter-summary">
-            <strong>{events.length}</strong> sự kiện
+            <strong>{filtered.length}</strong> sự kiện
             {managedCount > 0 && (
-              <>
-                {' '}
-                · <span className="ctsv-events-filter-summary-manage">{managedCount} cần quản lý / phê duyệt</span>
-              </>
+              <> · <span className="ctsv-events-filter-summary-manage">{managedCount} cần quản lý / phê duyệt</span></>
             )}
           </p>
         )}
       </section>
 
       {loading ? (
-        <div className="ctsv-events-grid" aria-busy="true" aria-label="Đang tải sự kiện">
-          {Array.from({ length: 8 }, (_, i) => (
-            <EventCardSkeleton key={i} />
+        <div className="event-grid-cards" aria-busy="true">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="event-discovery-card event-discovery-card--active" style={{ minHeight: 320 }}>
+              <div className="event-discovery-card__media" style={{ background: '#f1f5f9' }} />
+              <div className="event-discovery-card__body" style={{ padding: 16 }}>
+                <div className="sk sk-line sk-line--lg" />
+                <div className="sk sk-line" />
+                <div className="sk sk-line sk-line--short" />
+              </div>
+            </div>
           ))}
         </div>
-      ) : events.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="ctsv-events-empty">
           <span className="ctsv-events-empty-icon" aria-hidden>
             <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -209,80 +223,19 @@ const CtsvEventList = () => {
         </div>
       ) : (
         <>
-          <div className="ctsv-events-grid">
-            {pagedEvents.map((ev) => {
-              const access = getCtsvEventAccess(ev);
-              const source = getSourceMeta(ev.source);
-              return (
-                <article key={ev.id} className="ctsv-events-card">
-                  <div className="ctsv-events-card-media">
-                    <img
-                      src={ev.image || ev.thumbnail}
-                      alt=""
-                      className="ctsv-events-card-img"
-                      loading="lazy"
-                    />
-                    <span className="ctsv-events-card-category">
-                      {getCategoryDisplayLabel(ev.category) || ev.category}
-                    </span>
-                    <span className={`ctsv-events-card-source ctsv-events-card-source--${source.tone}`}>
-                      {source.label}
-                    </span>
-                  </div>
-                  <div className="ctsv-events-card-body">
-                    <h3 className="ctsv-events-card-title">{ev.title}</h3>
-                    <ul className="ctsv-events-card-meta">
-                      <li>
-                        <IconCalendar />
-                        <span>
-                          {ev.date} · {ev.time}
-                        </span>
-                      </li>
-                      <li>
-                        <IconPin />
-                        <span>{ev.location || 'Chưa có địa điểm'}</span>
-                      </li>
-                    </ul>
-                    <div className="ctsv-events-card-stats">
-                      <span className="ctsv-events-ticket">
-                        Vé còn <strong>{ev.remainingTickets}</strong>/{ev.totalTickets}
-                      </span>
-                      <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
-                    </div>
-                    <Link
-                      to={`/ctsv/events/${ev.id}`}
-                      className={`ctsv-events-card-action btn-card-register ${access.buttonClass}`}
-                    >
-                      {access.label}
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
+          <div className="event-grid-cards">
+            {pagedEvents.map((ev) => (
+              <EventDiscoveryCard
+                key={ev.id}
+                event={toDiscoveryCard(ev)}
+                viewOnly
+                onManage={isCtsvManagedEvent(ev) ? () => navigate(`${basePath}/events/${ev.id}`) : undefined}
+                manageLabel="Quản lý"
+                onPrimaryAction={() => navigate(`${basePath}/events/${ev.id}`)}
+              />
+            ))}
           </div>
-          {totalPages > 1 && (
-            <nav className="ctsv-events-pagination" aria-label="Phân trang sự kiện">
-              <button
-                type="button"
-                className="ctsv-events-page-btn"
-                onClick={() => setPage((n) => Math.max(1, n - 1))}
-                disabled={currentPage === 1}
-              >
-                Trước
-              </button>
-              <span className="ctsv-events-page-status" aria-live="polite">
-                Trang {currentPage} / {totalPages}
-              </span>
-              <button
-                type="button"
-                className="ctsv-events-page-btn"
-                onClick={() => setPage((n) => Math.min(totalPages, n + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Sau
-              </button>
-            </nav>
-          )}
+          <SectionPager page={page} total={filtered.length} onChange={setPage} />
         </>
       )}
     </div>

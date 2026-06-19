@@ -68,6 +68,24 @@ const toDiscoveryCard = (ev) => ({
   organizerLabel: ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : 'CLB',
 });
 
+const PAGE_SIZE = 6;
+
+const SectionPager = ({ page, total, onChange }) => {
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (totalPages <= 1) return null;
+  return (
+    <div className="ctsv-section-pager">
+      <button type="button" className="ctsv-pager-btn" disabled={page === 1} onClick={() => onChange(page - 1)}>
+        Trước
+      </button>
+      <span className="ctsv-pager-label">Trang {page} / {totalPages}</span>
+      <button type="button" className="ctsv-pager-btn" disabled={page === totalPages} onClick={() => onChange(page + 1)}>
+        Sau
+      </button>
+    </div>
+  );
+};
+
 const IconSearch = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
     <circle cx="11" cy="11" r="7" />
@@ -88,6 +106,7 @@ const IcpdpEventList = () => {
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
   const [sourceFilter, setSourceFilter] = useState('Tất cả');
   const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(1);
 
   const loadEvents = () => {
     setLoading(true);
@@ -118,6 +137,7 @@ const IcpdpEventList = () => {
   };
 
   const filtered = useMemo(() => {
+    setPage(1);
     const q = searchQuery.toLowerCase();
     return events.filter((ev) => {
       if (q && !(ev.title || '').toLowerCase().includes(q) && !(ev.location || '').toLowerCase().includes(q)) return false;
@@ -130,6 +150,11 @@ const IcpdpEventList = () => {
       return true;
     });
   }, [events, searchQuery, categoryFilter, sourceFilter, statusFilter]);
+
+  const pagedEvents = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page]
+  );
 
   return (
     <div className="ctsv-events-page">
@@ -212,16 +237,19 @@ const IcpdpEventList = () => {
           </button>
         </div>
       ) : (
-        <div className="event-grid-cards">
-          {filtered.map((ev) => (
-            <EventDiscoveryCard
-              key={ev.id}
-              event={toDiscoveryCard(ev)}
-              viewOnly
-              onPrimaryAction={() => navigate(`/icpdp/events/${ev.id}`)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="event-grid-cards">
+            {pagedEvents.map((ev) => (
+              <EventDiscoveryCard
+                key={ev.id}
+                event={toDiscoveryCard(ev)}
+                viewOnly
+                onPrimaryAction={() => navigate(`/icpdp/events/${ev.id}`)}
+              />
+            ))}
+          </div>
+          <SectionPager page={page} total={filtered.length} onChange={setPage} />
+        </>
       )}
     </div>
   );

@@ -43,6 +43,31 @@ import {
 import SystemMaintenanceBanner from '../components/SystemMaintenanceBanner';
 import HomeHeroSlider from '../components/home/HomeHeroSlider';
 
+const CTSV_HOME_SOURCE_TABS = [
+  { id: 'all', label: 'Tất cả' },
+  { id: 'school', label: 'Sự kiện cấp trường' },
+  { id: 'partner', label: 'Sự kiện đối tác' },
+  { id: 'icpdp', label: 'Sự kiện ICPDP' },
+  { id: 'club', label: 'Sự kiện CLB' },
+];
+
+const filterCtsvHomeEventsByTab = (events, tabId) => {
+  switch (tabId) {
+    case 'all':
+      return events;
+    case 'school':
+      return events.filter((event) => event.source === 'school' && (event.schoolOrganizerRole || 'ctsv') === 'ctsv');
+    case 'partner':
+      return events.filter((event) => event.source === 'partner');
+    case 'icpdp':
+      return events.filter((event) => event.source === 'school' && event.schoolOrganizerRole === 'icpdp');
+    case 'club':
+      return events.filter((event) => event.source === 'club');
+    default:
+      return events;
+  }
+};
+
 const Home = ({ showToast }) => {
   const navigate = useNavigate();
   const { isLoggedIn, userProfile } = useUserProfile();
@@ -90,6 +115,15 @@ const Home = ({ showToast }) => {
         : null,
     [isClubManager, managedClubs, activeClub?.id]
   );
+
+  const recommendTabs = isCtsvStaff ? CTSV_HOME_SOURCE_TABS : HOME_RECOMMEND_TABS;
+
+  useEffect(() => {
+    const validIds = recommendTabs.map((tab) => tab.id);
+    if (!validIds.includes(recommendTab)) {
+      setRecommendTab(recommendTabs[0]?.id || 'newest');
+    }
+  }, [recommendTab, recommendTabs]);
 
   const sliderData = [
     {
@@ -194,8 +228,11 @@ const Home = ({ showToast }) => {
   };
 
   const sortedEvents = useMemo(
-    () => sortHomeEventsByRecommendTab(events, recommendTab, userProfile, isLoggedIn),
-    [events, recommendTab, userProfile, isLoggedIn]
+    () =>
+      isCtsvStaff
+        ? filterCtsvHomeEventsByTab(events, recommendTab)
+        : sortHomeEventsByRecommendTab(events, recommendTab, userProfile, isLoggedIn),
+    [events, recommendTab, userProfile, isLoggedIn, isCtsvStaff]
   );
 
   const filteredEvents = useMemo(
@@ -364,8 +401,8 @@ const Home = ({ showToast }) => {
           </Link>
         </div>
 
-        <div className="home-recommend-tabs" role="tablist" aria-label="Gợi ý sự kiện">
-          {HOME_RECOMMEND_TABS.map((tab) => (
+        <div className="home-recommend-tabs" role="tablist" aria-label={isCtsvStaff ? 'Nhóm sự kiện CTSV' : 'Gợi ý sự kiện'}>
+          {recommendTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"

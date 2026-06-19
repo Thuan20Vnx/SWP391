@@ -113,28 +113,48 @@ const CtsvPartnerDetail = () => {
         Quay lại danh sách đối tác
       </Link>
 
-      <header className="ctsv-pd-header">
-        <div className="ctsv-pd-header-main">
-          <div className="ctsv-pd-title-row">
-            <h1>{partner.name}</h1>
-            <span className={`ctsv-pd-status ctsv-pd-status--${tone}`}>
-              <svg width="11" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <circle cx="12" cy="12" r="5" />
+      <header className="ctsv-pd-hero-card">
+        <div className="ctsv-pd-hero-left">
+          <PartnerAvatar partner={partner} className="ctsv-pd-hero-avatar" />
+          <div className="ctsv-pd-hero-info">
+            <div className="ctsv-pd-hero-top">
+              <h1 className="ctsv-pd-hero-name">{partner.name}</h1>
+              <span className={`ctsv-pd-status ctsv-pd-status--${tone}`}>
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <circle cx="12" cy="12" r="6" />
+                </svg>
+                {statusLabel}
+              </span>
+            </div>
+            {partner.category && (
+              <p className="ctsv-pd-hero-cat">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+                {partner.category}
+              </p>
+            )}
+            <p className="ctsv-pd-hero-date">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
               </svg>
-              {statusLabel}
-            </span>
+              Gửi ngày {formatPartnerDate(partner.createdAt)}
+            </p>
           </div>
-          {partner.category && <p className="ctsv-pd-category">Lĩnh vực: {partner.category}</p>}
-          <p className="ctsv-pd-meta">Ngày gửi đề xuất: {formatPartnerDate(partner.createdAt)}</p>
         </div>
 
-        <div className="ctsv-pd-contact-card">
-          <PartnerAvatar partner={partner} className="ctsv-pd-avatar" />
-          <div>
-            <strong>{partner.representative || '—'}</strong>
-            <span>{repRole}</span>
-            <span>{contactLine || '—'}</span>
-          </div>
+        <div className="ctsv-pd-hero-contact">
+          <p className="ctsv-pd-hero-contact-label">Người đại diện</p>
+          <p className="ctsv-pd-hero-contact-name">{partner.representative || '—'}</p>
+          <p className="ctsv-pd-hero-contact-role">{repRole}</p>
+          {contactLine && (
+            <p className="ctsv-pd-hero-contact-line">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11.1 19.79 19.79 0 0 1 1.63 2.48a2 2 0 0 1 2-2.18h3a2 2 0 0 1 2 1.72c.127.96.36 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              {contactLine}
+            </p>
+          )}
         </div>
       </header>
 
