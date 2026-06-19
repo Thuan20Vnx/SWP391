@@ -23,6 +23,9 @@ const icpdpFetch = (path, options = {}) =>
 /* ── Stats ── */
 export const fetchIcpdpStats = () => icpdpFetch('/stats');
 
+/* ── Performance ── */
+export const fetchIcpdpPerformance = () => icpdpFetch('/performance');
+
 /* ── Events (view-only) ── */
 export const fetchIcpdpEvents = (params = {}) => {
   const qs = new URLSearchParams();

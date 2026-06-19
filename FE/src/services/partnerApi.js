@@ -202,6 +202,8 @@ export const fetchPartnerEvents = (params = {}) => {
 
 export const fetchPartnerEvent = (id) => partnerFetch(`/events/${id}`);
 
+export const fetchPartnerCalendar = () => partnerFetch('/events/calendar');
+
 export const fetchPartnerContracts = () => partnerFetch('/contracts');
 
 export const fetchPartnerReports = () => partnerFetch('/reports');

@@ -406,7 +406,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     if (!reasonModal) return;
     const reason = reasonModal.reason?.trim();
     if (!reason) {
-      showToast?.('Vui lòng nhập lý do.', 'error');
+      setReasonModal((prev) => prev ? { ...prev, error: 'Vui lòng nhập lý do trước khi gửi.' } : prev);
       return;
     }
 
@@ -486,13 +486,16 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
             {copy.title}
           </h2>
           <p className="clb-modal-subtitle">{copy.subtitle}</p>
+          {reasonModal.error && (
+            <p className="clb-reason-modal-error">{reasonModal.error}</p>
+          )}
           <label className="clb-reason-modal-field">
             Lý do <span className="clb-reason-modal-required">*</span>
             <AutoGrowTextarea
               minRows={4}
               spellCheck={false}
               value={reasonModal.reason}
-              onChange={(e) => setReasonModal((prev) => (prev ? { ...prev, reason: e.target.value } : prev))}
+              onChange={(e) => setReasonModal((prev) => (prev ? { ...prev, reason: e.target.value, error: undefined } : prev))}
               placeholder={copy.placeholder}
             />
           </label>

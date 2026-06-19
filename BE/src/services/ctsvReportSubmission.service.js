@@ -111,17 +111,23 @@ const notifyPartner = async ({ authEmail, report, eventId, partnerMeta, submissi
   submission.partnerAnnouncementId = announcement.id || announcement._id || null;
   await submission.save();
 
+  let emailSent = false;
   if (partnerMeta.partnerEmail) {
-    sendPartnerCtsvReportEmail({
-      to: partnerMeta.partnerEmail,
-      partnerName: partnerMeta.partnerName || 'Đối tác',
-      eventTitle: report.title || 'Sự kiện đối tác',
-      ctsvEmail: authEmail,
-      analyticsPath: `/partner/analytics/${report.id || eventId}`,
-    }).catch((err) => console.error('partner report email:', err.message));
+    try {
+      await sendPartnerCtsvReportEmail({
+        to: partnerMeta.partnerEmail,
+        partnerName: partnerMeta.partnerName || 'Đối tác',
+        eventTitle: report.title || 'Sự kiện đối tác',
+        ctsvEmail: authEmail,
+        analyticsPath: `/partner/analytics/${report.id || eventId}`,
+      });
+      emailSent = true;
+    } catch (err) {
+      console.error('partner report email failed:', err.message);
+    }
   }
 
-  return announcement;
+  return { announcement, emailSent };
 };
 
 const submitCtsvReport = async (eventId, authEmail) => {
@@ -146,7 +152,7 @@ const submitCtsvReport = async (eventId, authEmail) => {
       sendToPartner: true,
     });
 
-    await notifyPartner({ authEmail, report, eventId, partnerMeta, submission });
+    const { emailSent } = await notifyPartner({ authEmail, report, eventId, partnerMeta, submission });
 
     return {
       submission: {
@@ -158,7 +164,10 @@ const submitCtsvReport = async (eventId, authEmail) => {
       },
       sentToAdmin: true,
       sentToPartner: true,
-      message: 'Đã gửi báo cáo cho Partner và Admin.',
+      emailSent,
+      message: emailSent
+        ? 'Đã gửi báo cáo cho Partner và Admin.'
+        : 'Đã lưu báo cáo nhưng gửi email cho Partner thất bại.',
     };
   }
 

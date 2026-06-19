@@ -56,9 +56,18 @@ const Clubs = ({ showToast }) => {
     return result;
   }, [clubs, searchQuery, activeTag]);
 
-  const visibleClubs = filteredClubs.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredClubs.length;
+  const totalPages = Math.max(1, Math.ceil(filteredClubs.length / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, Math.ceil(visibleCount / PAGE_SIZE)), totalPages);
+  const pageStart = filteredClubs.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const pageEnd = Math.min(currentPage * PAGE_SIZE, filteredClubs.length);
+  const visibleClubs = filteredClubs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const hasPagination = totalPages > 1;
   const displayTotal = searchQuery || activeTag ? filteredClubs.length : totalClubs;
+
+  const goToPage = (page) => {
+    const nextPage = Math.min(Math.max(1, page), totalPages);
+    setVisibleCount(nextPage * PAGE_SIZE);
+  };
 
   const handleHeroSearch = (e) => {
     e.preventDefault();
@@ -214,20 +223,31 @@ const Clubs = ({ showToast }) => {
             </div>
           )}
 
-          {hasMore && (
+          {hasPagination && (
             <div className="clubs-page__load-more-wrap">
-              <button
-                type="button"
-                className="clubs-page__load-more"
-                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-              >
-                Xem thêm câu lạc bộ
-                <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden="true">
-                  <path d="M1 1l5 5 5-5" stroke="currentColor" strokeWidth="2" fill="none" />
-                </svg>
-              </button>
+              <nav className="clubs-page__pagination" aria-label="Phân trang câu lạc bộ">
+                <button
+                  type="button"
+                  className="clubs-page__page-btn"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </button>
+                <span className="clubs-page__page-status" aria-live="polite">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  className="clubs-page__page-btn"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </button>
+              </nav>
               <p className="clubs-page__load-more-meta">
-                Hiển thị {Math.min(visibleCount, filteredClubs.length)} trên {displayTotal} câu lạc bộ
+                Hiển thị {pageStart}-{pageEnd} trên {displayTotal} câu lạc bộ
               </p>
             </div>
           )}

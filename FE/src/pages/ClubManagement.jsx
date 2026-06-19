@@ -35,6 +35,8 @@ const ClubManagement = () => {
   const [submittingEvent, setSubmittingEvent] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [bannerFileName, setBannerFileName] = useState('');
+  const [eventFilter, setEventFilter] = useState('all');
+  const [notifFilter, setNotifFilter] = useState('all');
   const totalEvents = events.length;
 
   const eventNotifications = useMemo(() => {
@@ -246,8 +248,8 @@ const ClubManagement = () => {
             <>
               <div className="clb-page-header">
                 <div>
-                  <h1 className="clb-page-title">DANH SÁCH SỰ KIỆN QUẢN LÝ</h1>
-                  <p className="clb-page-subtitle">Chào mừng trở lại, <strong>{userProfile.fullname || 'Manager'}</strong>. Bạn đang quản lý <strong>{events.length}</strong> sự kiện.</p>
+                  <h1 className="clb-page-title">Danh sách sự kiện</h1>
+                  <p className="clb-page-subtitle">Chào mừng, <strong>{userProfile.fullname || 'Manager'}</strong> — bạn đang quản lý <strong>{events.length}</strong> sự kiện.</p>
                 </div>
                 <button
                   className="clb-create-btn"
@@ -261,6 +263,31 @@ const ClubManagement = () => {
                   Tạo sự kiện mới
                 </button>
               </div>
+
+              {(() => {
+                const EVENT_FILTERS = [
+                  { key: 'all', label: 'Tất cả', count: events.length },
+                  { key: 'approved', label: 'Đã duyệt', count: events.filter(e => e.status === 'approved').length },
+                  { key: 'pending', label: 'Đang duyệt', count: events.filter(e => e.status && e.status.startsWith('pending')).length },
+                  { key: 'rejected', label: 'Từ chối', count: events.filter(e => e.status === 'rejected').length },
+                  { key: 'revision', label: 'Cần chỉnh sửa', count: events.filter(e => e.status === 'revision').length },
+                ];
+                return (
+                  <div className="clb-filter-tabs">
+                    {EVENT_FILTERS.map(f => (
+                      <button
+                        key={f.key}
+                        type="button"
+                        className={`clb-filter-tab clb-filter-tab--${f.key}${eventFilter === f.key ? ' is-active' : ''}`}
+                        onClick={() => setEventFilter(f.key)}
+                      >
+                        <span className="clb-filter-tab__label">{f.label}</span>
+                        <span className="clb-filter-tab__count">{f.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
 
               <div className="clb-table-wrapper club-m-hide-mobile">
                 <div className="clb-table-scroll">
@@ -276,11 +303,13 @@ const ClubManagement = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {loadingEvents ? (
-                        <tr><td colSpan={6} className="clb-panel-empty-cell">Đang tải...</td></tr>
-                      ) : events.length === 0 ? (
-                        <tr><td colSpan={6} className="clb-panel-empty-cell">Chưa có sự kiện nào. Tạo sự kiện đầu tiên của bạn!</td></tr>
-                      ) : events.map(ev => {
+                      {(() => {
+                        const filtered = eventFilter === 'all' ? events
+                          : eventFilter === 'pending' ? events.filter(e => e.status && e.status.startsWith('pending'))
+                          : events.filter(e => e.status === eventFilter);
+                        if (loadingEvents) return <tr><td colSpan={6} className="clb-panel-empty-cell">Đang tải...</td></tr>;
+                        if (filtered.length === 0) return <tr><td colSpan={6} className="clb-panel-empty-cell">Không có sự kiện nào{eventFilter !== 'all' ? ' ở trạng thái này' : ''}.</td></tr>;
+                        return filtered.map(ev => {
                         const { label, tone } = getStatusLabel(ev.status);
                         const startDate = ev.startDate ? new Date(ev.startDate).toLocaleDateString('vi-VN') : '--';
                         const startTime = ev.startDate ? new Date(ev.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--';
@@ -342,7 +371,8 @@ const ClubManagement = () => {
                             </td>
                           </tr>
                         );
-                      })}
+                      });
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -441,17 +471,41 @@ const ClubManagement = () => {
           {activeNav === 'notifications' && (
             <div className="club-m-notifications">
               <div className="club-m-notifications__header">
-                <h2 className="clb-modal-title" style={{ margin: 0 }}>THÔNG BÁO XÉT DUYỆT</h2>
+                <h2 className="clb-modal-title" style={{ margin: 0 }}>Thông báo xét duyệt</h2>
                 <p className="clb-modal-subtitle" style={{ margin: '4px 0 0 0' }}>
                   Trạng thái phê duyệt các sự kiện của câu lạc bộ.
                 </p>
               </div>
 
+              {(() => {
+                const NOTIF_FILTERS = [
+                  { key: 'all', label: 'Tất cả', count: eventNotifications.length },
+                  { key: 'success', label: 'Đã duyệt', count: eventNotifications.filter(n => n.tone === 'success').length },
+                  { key: 'warning', label: 'Đang duyệt', count: eventNotifications.filter(n => n.tone === 'warning').length },
+                  { key: 'alert', label: 'Từ chối', count: eventNotifications.filter(n => n.tone === 'alert').length },
+                ];
+                return (
+                  <div className="clb-filter-tabs">
+                    {NOTIF_FILTERS.map(f => (
+                      <button
+                        key={f.key}
+                        type="button"
+                        className={`clb-filter-tab clb-filter-tab--${f.key}${notifFilter === f.key ? ' is-active' : ''}`}
+                        onClick={() => setNotifFilter(f.key)}
+                      >
+                        <span className="clb-filter-tab__label">{f.label}</span>
+                        <span className="clb-filter-tab__count">{f.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
+
               <div className="club-m-notifications__list">
-                {eventNotifications.length === 0 ? (
-                  <p className="clb-panel-empty">Chưa có thông báo nào.</p>
-                ) : (
-                  eventNotifications.map((notif) => (
+                {(() => {
+                  const filtered = notifFilter === 'all' ? eventNotifications : eventNotifications.filter(n => n.tone === notifFilter);
+                  if (filtered.length === 0) return <p className="clb-panel-empty">Không có thông báo nào{notifFilter !== 'all' ? ' ở mục này' : ''}.</p>;
+                  return filtered.map((notif) => (
                     <div
                       key={notif.id}
                       className={`club-m-notif-card${notif.unread ? ' club-m-notif-card--unread' : ''}`}
@@ -496,8 +550,8 @@ const ClubManagement = () => {
                       </div>
                       {notif.unread && <div className="club-m-notif-card__dot" aria-hidden="true" />}
                     </div>
-                  ))
-                )}
+                  ));
+                })()}
               </div>
             </div>
           )}

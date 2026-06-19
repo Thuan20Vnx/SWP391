@@ -6,9 +6,8 @@ export const CLUB_NAV_ITEMS = [
   { key: 'transfer-chairman', label: 'Chuyển nhượng Chủ nhiệm', mobileLabel: 'Chuyển CN', icon: 'transfer' },
   {
     key: 'semester-timeline',
-    label: 'Timeline',
-    labelSub: 'Sự kiện mỗi kỳ',
-    mobileLabel: 'Sự kiện mỗi kỳ',
+    label: 'Timeline mỗi kỳ',
+    mobileLabel: 'Timeline mỗi kỳ',
     section: 'KẾ HOẠCH KỲ',
     icon: 'calendar',
   },

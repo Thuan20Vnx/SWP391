@@ -1328,7 +1328,7 @@ html:has(.ctsv-app-shell) body {
 }
 
 .ctsv-ed-hero-img--placeholder {
-  background: #ffffff;
+  background: #f1f5f9;
 }
 
 .ctsv-ed-hero-category {
@@ -1337,8 +1337,9 @@ html:has(.ctsv-app-shell) body {
   bottom: 10px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.72);
-  color: #fff;
+  background: #fff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -1453,14 +1454,12 @@ html:has(.ctsv-app-shell) body {
 .ctsv-ed-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
   padding: 4px;
-  background: #ffffff;
+  background: #f1f5f9;
   border-radius: 12px;
   width: fit-content;
   max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .ctsv-ed-tab {
@@ -1945,6 +1944,115 @@ html:has(.ctsv-app-shell) body {
 .ctsv-ed-skeleton-panel {
   height: 200px;
   border-radius: 16px;
+}
+
+/* --- Partner event detail: missing classes --- */
+
+.ctsv-ed-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ctsv-ed-panel h2 {
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.ctsv-ed-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.ctsv-ed-dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.ctsv-ed-dl > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.ctsv-ed-dl dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+}
+
+.ctsv-ed-dl dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ctsv-ed-speakers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ctsv-ed-speaker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ctsv-ed-speaker-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #e2e8f0;
+  display: block;
+}
+
+.ctsv-ed-speaker-avatar--placeholder {
+  background: #e2e8f0;
+}
+
+.ctsv-ed-speaker > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ctsv-ed-speaker strong {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.ctsv-ed-speaker span {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.ctsv-ed-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 4px;
 }
 
 @media (max-width: 768px) {

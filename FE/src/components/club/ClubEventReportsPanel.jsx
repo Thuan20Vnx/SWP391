@@ -167,8 +167,8 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
                     </td>
                     <td data-label="Thời gian">
                       <div className="clb-table-date">
-                        <strong>{ev.date}</strong>
                         <span>{ev.time}</span>
+                        <strong>{ev.date}</strong>
                       </div>
                     </td>
                     <td data-label="Đăng ký">
@@ -177,12 +177,7 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
                       </span>
                     </td>
                     <td data-label="Tỉ lệ người tham gia">
-                      <div className="clb-slot-cell">
-                        <span className="clb-slot-nums">{ev.fill}%</span>
-                        <div className="clb-slot-bar-bg">
-                          <div className="clb-slot-bar-fill" style={{ width: `${ev.fill}%` }} />
-                        </div>
-                      </div>
+                      <span className="clb-slot-nums">{ev.fill}%</span>
                     </td>
                     <td data-label="Trạng thái">
                       <span className={`clb-reports-phase clb-reports-phase--${ev.phase}`}>

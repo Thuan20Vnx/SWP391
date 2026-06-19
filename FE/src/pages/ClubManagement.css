@@ -151,24 +151,27 @@
   gap: 16px;
   margin-bottom: 24px;
   flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f1f5f9;
 }
 
 .clb-page-title {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  color: #1e293b;
-  margin: 0 0 8px;
-  letter-spacing: 0.02em;
+  color: #0f172a;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
 }
 
 .clb-page-subtitle {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #64748b;
 }
 
 .clb-page-subtitle strong {
   color: #f26f21;
+  font-weight: 600;
 }
 
 .clb-create-btn {
@@ -189,6 +192,94 @@
 
 .clb-create-btn:hover {
   background: #e05f15;
+}
+
+/* ── Filter tabs — card style ── */
+.clb-filter-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.clb-filter-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.14s, box-shadow 0.14s;
+  text-align: left;
+}
+
+.clb-filter-tab:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.clb-filter-tab__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.clb-filter-tab__count {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Active states — chỉ đổi màu viền + chữ số, không fill nền */
+.clb-filter-tab--all.is-active {
+  border-color: #334155;
+  border-width: 2px;
+}
+.clb-filter-tab--all.is-active .clb-filter-tab__count { color: #0f172a; }
+
+.clb-filter-tab--approved.is-active,
+.clb-filter-tab--success.is-active {
+  border-color: #10b981;
+  border-width: 2px;
+}
+.clb-filter-tab--approved.is-active .clb-filter-tab__count,
+.clb-filter-tab--success.is-active .clb-filter-tab__count { color: #047857; }
+
+.clb-filter-tab--pending.is-active,
+.clb-filter-tab--warning.is-active {
+  border-color: #f59e0b;
+  border-width: 2px;
+}
+.clb-filter-tab--pending.is-active .clb-filter-tab__count,
+.clb-filter-tab--warning.is-active .clb-filter-tab__count { color: #92400e; }
+
+.clb-filter-tab--rejected.is-active,
+.clb-filter-tab--alert.is-active {
+  border-color: #ef4444;
+  border-width: 2px;
+}
+.clb-filter-tab--rejected.is-active .clb-filter-tab__count,
+.clb-filter-tab--alert.is-active .clb-filter-tab__count { color: #b91c1c; }
+
+.clb-filter-tab--revision.is-active {
+  border-color: #f26f21;
+  border-width: 2px;
+}
+.clb-filter-tab--revision.is-active .clb-filter-tab__count { color: #c2410c; }
+
+@media (max-width: 768px) {
+  .clb-filter-tabs {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
 }
 
 .clb-table-wrapper {
@@ -218,18 +309,18 @@
 }
 
 .clb-table thead {
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .clb-table th {
-  padding: 13px 18px;
+  padding: 12px 18px;
   text-align: left;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #64748b;
+  color: #475569;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   white-space: nowrap;
 }
 
@@ -251,11 +342,15 @@
 }
 
 .clb-table tbody tr {
-  transition: background 0.15s ease;
+  transition: background 0.12s ease;
 }
 
 .clb-table tbody tr:hover {
-  background: #fffaf5;
+  background: #fff7ed;
+}
+
+.clb-table tbody tr:hover .clb-event-name {
+  color: #f26f21;
 }
 
 .clb-table tbody tr:last-child td {
@@ -276,8 +371,9 @@
 
 .clb-table-date {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
   line-height: 1.35;
 }
 
@@ -369,6 +465,7 @@
 .clb-event-name {
   font-weight: 600;
   color: #1e293b;
+  transition: color 0.12s;
 }
 
 .clb-category-text,
@@ -398,8 +495,6 @@
 .clb-slot-nums {
   font-size: 0.8rem;
   font-weight: 700;
-  display: block;
-  margin-bottom: 5px;
   color: #ea580c;
 }
 
@@ -677,6 +772,16 @@
 
 .clb-reason-modal-required {
   color: #f26f21;
+}
+
+.clb-reason-modal-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.85rem;
 }
 
 .clb-steps {
@@ -2193,16 +2298,6 @@
   text-align: left;
 }
 
-/* Badge trạng thái thẳng hàng với header TRẠNG THÁI (bỏ chấm + padding trái) */
-.clb-table--timeline td.clb-table-col-status .clb-table-status {
-  padding-left: 0;
-  gap: 0;
-}
-
-.clb-table--timeline td.clb-table-col-status .clb-table-status::before {
-  display: none;
-}
-
 /* ── Timeline detail / trạng thái đơn ── */
 .clb-timeline-detail {
   display: flex;
@@ -2227,8 +2322,8 @@
   gap: 8px;
   align-items: stretch;
   padding: 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: transparent;
+  border: none;
   border-radius: 14px;
 }
 
@@ -2248,14 +2343,15 @@
 }
 
 .clb-timeline-status-step.is-done {
-  border-color: rgba(242, 111, 33, 0.35);
-  background: rgba(242, 111, 33, 0.06);
+  border-color: #f26f21;
+  background: #fff;
 }
 
 .clb-timeline-status-step.is-current {
   border-color: #f26f21;
-  background: rgba(242, 111, 33, 0.12);
-  box-shadow: 0 0 0 1px rgba(242, 111, 33, 0.15);
+  border-width: 2px;
+  background: #fff;
+  box-shadow: none;
 }
 
 .clb-timeline-status-step__label {
@@ -2270,7 +2366,7 @@
 
 .clb-timeline-status-step.is-done .clb-timeline-status-step__label,
 .clb-timeline-status-step.is-current .clb-timeline-status-step__label {
-  color: #f26f21;
+  color: #64748b;
 }
 
 .clb-timeline-status-step__text {

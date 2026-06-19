@@ -22,7 +22,7 @@ const ClubDashboardPanel = ({ events, loadingEvents, userProfile, onViewEvent })
     { label: 'Tổng sự kiện', value: stats.total, hint: 'Tất cả đề xuất & sự kiện' },
     { label: 'Đã duyệt', value: stats.approved, hint: 'Sẵn sàng tổ chức' },
     { label: 'Chờ duyệt', value: stats.pending, hint: 'Đang xét duyệt' },
-    { label: 'Lượt đăng ký', value: stats.totalRegs, hint: `Tỷ lệ lấp đầy ${stats.fillRate}%` },
+    { label: 'Lượt đăng ký', value: stats.totalRegs, hint: `Tỉ lệ đăng ký ${stats.fillRate}%` },
     { label: 'Sắp diễn ra', value: stats.upcoming, hint: 'Sự kiện đã duyệt' },
     { label: 'Bị từ chối', value: stats.rejected, hint: 'Cần chỉnh sửa & gửi lại' },
   ];
