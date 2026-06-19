@@ -17944,6 +17944,7 @@ a.event-discovery-card__btn {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-left: auto;
 }
 
 .ctsv-events-filter-selects .app-select {

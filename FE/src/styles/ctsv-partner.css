@@ -9189,3 +9189,94 @@ html:has(.ctsv-app-shell) body {
   }
 }
 
+
+/* ── Section Pager ── */
+.ctsv-section-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.ctsv-pager-btn {
+  padding: 8px 20px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.ctsv-pager-btn:hover:not(:disabled) {
+  border-color: var(--primary, #f26f21);
+  color: var(--primary, #f26f21);
+}
+
+.ctsv-pager-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ctsv-pager-label {
+  padding: 8px 20px;
+  border-radius: 10px;
+  background: rgba(242, 111, 33, 0.1);
+  color: var(--primary, #f26f21);
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── IcpdpEventCard extra fields ── */
+.event-card-source-tag {
+  display: inline-block;
+  margin: 4px 0 8px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.event-card-seats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 10px;
+}
+
+.event-card-fill-pct {
+  color: var(--primary, #f26f21);
+  font-weight: 600;
+}
+
+.event-card-progress-track {
+  height: 5px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  overflow: hidden;
+  margin: 5px 0 10px;
+}
+
+.event-card-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary, #f26f21);
+  transition: width 0.4s ease;
+}
+
+.event-card-price {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--primary, #f26f21);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}

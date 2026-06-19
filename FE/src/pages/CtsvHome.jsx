@@ -3,9 +3,32 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
 import HomeHeroSlider from '../components/home/HomeHeroSlider';
 import { fetchCtsvEvents, fetchCtsvStats, MOCK_EVENTS, MOCK_STATS } from '../services/ctsvApi';
-import { getCtsvEventAccess, isCtsvManagedEvent, isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
-import { statusClass } from '../utils/eventStatus';
+import { isCtsvManagedEvent, isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../constants/eventCategories';
+import EventDiscoveryCard from '../components/EventDiscoveryCard';
+
+const cardStateFromEv = (ev) => {
+  const s = ev.statusKey || ev.status || '';
+  if (s === 'ended') return 'expired';
+  if (s === 'postponed') return 'postponed';
+  return 'active';
+};
+
+const toDiscoveryCard = (ev) => ({
+  id: String(ev._id || ev.id || ''),
+  title: ev.title,
+  thumbnail: ev.image || ev.thumbnail || ev.flyer || '',
+  category: ev.category || 'Sự kiện',
+  categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
+  dateLabel: ev.date || ev.dateLabel || '',
+  location: ev.location || '',
+  filledSlots: ev.registeredCount ?? 0,
+  totalSlots: ev.totalTickets || ev.capacity || 0,
+  cardState: cardStateFromEv(ev),
+  primaryLabel: 'Xem chi tiết',
+  priceLabel: ev.ticketPrice > 0 ? `${Number(ev.ticketPrice).toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
+  organizerLabel: ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : ev.source === 'icpdp' ? 'IC-PDP' : 'CLB',
+});
 
 const HOME_TIME_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -18,7 +41,33 @@ const HOME_CATEGORY_FILTERS = [
   ...CTSV_CATEGORY_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
 ];
 
-const LIVE_OVERVIEW_LIMIT = 8;
+const PAGE_SIZE = 6;
+
+const SectionPager = ({ page, total, onChange }) => {
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (totalPages <= 1) return null;
+  return (
+    <div className="ctsv-section-pager">
+      <button
+        type="button"
+        className="ctsv-pager-btn"
+        disabled={page === 1}
+        onClick={() => onChange(page - 1)}
+      >
+        Trước
+      </button>
+      <span className="ctsv-pager-label">Trang {page} / {totalPages}</span>
+      <button
+        type="button"
+        className="ctsv-pager-btn"
+        disabled={page === totalPages}
+        onClick={() => onChange(page + 1)}
+      >
+        Sau
+      </button>
+    </div>
+  );
+};
 
 const CTSV_HERO_FALLBACK = [
   {
@@ -47,48 +96,6 @@ const CTSV_HERO_FALLBACK = [
   }
 ];
 
-const CtsvEventCard = ({ ev, onOpen }) => {
-  const access = getCtsvEventAccess(ev);
-  return (
-    <article className="event-card-item">
-      <div className="event-card-image-wrapper">
-        <img src={ev.image} alt={ev.title} className="event-card-img" />
-        <span className="event-card-category-badge">
-          {getCategoryDisplayLabel(ev.category) || ev.category}
-        </span>
-      </div>
-      <div className="event-card-body">
-        <h3 className="event-card-title">{ev.title}</h3>
-        <div className="event-card-details">
-          <div className="detail-row">
-            <span>
-              {ev.date} • {ev.time}
-            </span>
-          </div>
-          <div className="detail-row">
-            <span className="location-text">{ev.location}</span>
-          </div>
-        </div>
-        <div className="event-card-divider" />
-        <div className="event-card-footer">
-          <div className="ticket-info">
-            <span className="ticket-remain-text">
-              Còn: {ev.remainingTickets}/{ev.totalTickets}
-            </span>
-            <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
-          </div>
-          <button
-            type="button"
-            className={`btn-card-register ${access.buttonClass}`}
-            onClick={() => onOpen(ev)}
-          >
-            {access.label}
-          </button>
-        </div>
-      </div>
-    </article>
-  );
-};
 
 const CtsvHome = ({ showToast }) => {
   const navigate = useNavigate();
@@ -100,6 +107,8 @@ const CtsvHome = ({ showToast }) => {
   const [events, setEvents] = useState(MOCK_EVENTS);
   const [filteredEvents, setFilteredEvents] = useState(MOCK_EVENTS);
   const [stats, setStats] = useState(MOCK_STATS);
+  const [livePage, setLivePage] = useState(1);
+  const [managedPage, setManagedPage] = useState(1);
 
   useEffect(() => {
     fetchCtsvStats()
@@ -128,6 +137,8 @@ const CtsvHome = ({ showToast }) => {
         const list = d.events || [];
         setFilteredEvents(list);
         setEvents(list);
+        setLivePage(1);
+        setManagedPage(1);
         showToast(`Đã lọc ${list.length} sự kiện.`, 'success');
       })
       .catch(() => {
@@ -170,14 +181,16 @@ const CtsvHome = ({ showToast }) => {
     }));
   }, [events]);
 
+  const allLiveEvents = useMemo(() => events.filter(isEventLiveOrOngoing), [events]);
   const liveOverviewEvents = useMemo(
-    () => events.filter(isEventLiveOrOngoing).slice(0, LIVE_OVERVIEW_LIMIT),
-    [events]
+    () => allLiveEvents.slice((livePage - 1) * PAGE_SIZE, livePage * PAGE_SIZE),
+    [allLiveEvents, livePage]
   );
 
+  const allManagedEvents = useMemo(() => filteredEvents.filter(isCtsvManagedEvent), [filteredEvents]);
   const managedEvents = useMemo(
-    () => filteredEvents.filter(isCtsvManagedEvent),
-    [filteredEvents]
+    () => allManagedEvents.slice((managedPage - 1) * PAGE_SIZE, managedPage * PAGE_SIZE),
+    [allManagedEvents, managedPage]
   );
 
   const handleOpenEvent = (ev) => {
@@ -287,11 +300,21 @@ const CtsvHome = ({ showToast }) => {
             <p>Hiện không có sự kiện nào đang diễn ra hoặc mở đăng ký.</p>
           </div>
         ) : (
-          <div className="event-grid-cards">
-            {liveOverviewEvents.map((ev) => (
-              <CtsvEventCard key={`live-${ev.id}`} ev={ev} onOpen={handleOpenEvent} />
-            ))}
-          </div>
+          <>
+            <div className="event-grid-cards">
+              {liveOverviewEvents.map((ev) => (
+                <EventDiscoveryCard
+                  key={`live-${ev.id}`}
+                  event={toDiscoveryCard(ev)}
+                  viewOnly
+                  onManage={isCtsvManagedEvent(ev) ? () => handleOpenEvent(ev) : undefined}
+                  manageLabel="Quản lý"
+                  onPrimaryAction={() => handleOpenEvent(ev)}
+                />
+              ))}
+            </div>
+            <SectionPager page={livePage} total={allLiveEvents.length} onChange={setLivePage} />
+          </>
         )}
       </main>
 
@@ -318,11 +341,21 @@ const CtsvHome = ({ showToast }) => {
             </button>
           </div>
         ) : (
-          <div className="event-grid-cards">
-            {managedEvents.map((ev) => (
-              <CtsvEventCard key={ev.id} ev={ev} onOpen={handleOpenEvent} />
-            ))}
-          </div>
+          <>
+            <div className="event-grid-cards">
+              {managedEvents.map((ev) => (
+                <EventDiscoveryCard
+                  key={ev.id}
+                  event={toDiscoveryCard(ev)}
+                  viewOnly
+                  onManage={() => handleOpenEvent(ev)}
+                  manageLabel="Quản lý"
+                  onPrimaryAction={() => handleOpenEvent(ev)}
+                />
+              ))}
+            </div>
+            <SectionPager page={managedPage} total={allManagedEvents.length} onChange={setManagedPage} />
+          </>
         )}
       </main>
     </div>

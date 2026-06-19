@@ -116,11 +116,7 @@ const IcpdpLayout = ({ showToast }) => {
             searchQuery={headerSearch}
             onSearchChange={setHeaderSearch}
             onSearchSubmit={() => {
-              if (headerSearchSubmitRef.current) {
-                headerSearchSubmitRef.current();
-              } else {
-                navigate('/icpdp/proposals');
-              }
+              headerSearchSubmitRef.current?.();
             }}
           />
 

@@ -1,43 +1,61 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+
 import { fetchIcpdpProposals } from '../../services/icpdpApi';
-import { statusClass } from '../../utils/eventStatus';
+import EventDiscoveryCard from '../../components/EventDiscoveryCard';
+import AppSelect from '../../components/ui/AppSelect';
+import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 
 const STATUS_FILTERS = [
-  { id: '', label: 'Tất cả' },
+  { id: '', label: 'Tất cả trạng thái' },
   { id: 'pending_icpdp', label: 'Chờ IC-PDP duyệt' },
-  { id: 'pending_ctsv', label: 'Đã chuyển CTSV' },
   { id: 'approved', label: 'Đã duyệt' },
   { id: 'revision', label: 'Cần chỉnh sửa' },
   { id: 'rejected', label: 'Từ chối' }
 ];
 
-const IconCalendar = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-    <rect x="3" y="4" width="18" height="18" rx="2" />
-    <path d="M16 2v4M8 2v4M3 10h18" />
-  </svg>
-);
+const FALLBACK_THUMBNAILS = [
+  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+];
 
-const IconPin = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-    <path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11z" />
-    <circle cx="12" cy="10" r="2.5" />
-  </svg>
-);
-
-const IconTicket = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-    <path d="M3 9a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v1H3V9zm0 2h18v4a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-4z" />
-  </svg>
-);
+const toProposalCard = (p, idx) => {
+  const isPendingIcpdp = p.statusKey === 'pending_icpdp';
+  const cap = p.totalTickets || 0;
+  const registered = p.registeredCount || 0;
+  const price = Number(p.ticketPrice) || 0;
+  return {
+    id: null,
+    title: p.title,
+    thumbnail: p.image || p.flyer || FALLBACK_THUMBNAILS[idx % FALLBACK_THUMBNAILS.length],
+    category: p.category || 'Sự kiện',
+    categoryLabel: getCategoryDisplayLabel(p.category) || p.category || 'Sự kiện',
+    dateLabel: p.date ? `${p.date}${p.time ? ' ' + p.time : ''}` : '',
+    location: p.location || '',
+    filledSlots: registered,
+    totalSlots: cap,
+    cardState: 'active',
+    primaryLabel: isPendingIcpdp ? 'Duyệt ngay' : 'Xem chi tiết',
+    priceLabel: price > 0 ? `${price.toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
+    organizerLabel: 'CLB',
+  };
+};
 
 const IcpdpProposalList = () => {
-  const { showToast } = useOutletContext() || {};
+  const navigate = useNavigate();
+  const outlet = useOutletContext() || {};
+  const { showToast, headerSearch = '', registerHeaderSearchSubmit } = outlet;
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+
+  // Merge header search + local search (header search takes precedence when non-empty)
+  const searchQuery = headerSearch.trim() || localSearch.trim();
 
   const loadProposals = useCallback(
     (overrideStatus) => {
@@ -58,8 +76,16 @@ const IcpdpProposalList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Register header search submit — just triggers local filter (data is already loaded)
+  useEffect(() => {
+    registerHeaderSearchSubmit?.(() => {
+      // filtering is reactive via searchQuery memo, nothing extra needed
+    });
+    return () => registerHeaderSearchSubmit?.(null);
+  }, [registerHeaderSearchSubmit]);
+
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = searchQuery.toLowerCase();
     if (!q) return proposals;
     return proposals.filter(
       (p) =>
@@ -110,32 +136,33 @@ const IcpdpProposalList = () => {
           <input
             type="search"
             placeholder="Tìm theo tên đề xuất, CLB…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={headerSearch || localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
             aria-label="Tìm đề xuất"
           />
         </div>
-        <div className="icpdp-status-filters" role="group" aria-label="Lọc trạng thái">
-          {STATUS_FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className={`icpdp-status-chip ${statusFilter === f.id ? 'is-active' : ''}`}
-              onClick={() => handleStatusChange(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="icpdp-proposals-select-wrap">
+          <span className="icpdp-proposals-select-label">Trạng thái</span>
+          <AppSelect
+            value={statusFilter}
+            onChange={(e) => handleStatusChange(e.target.value)}
+            options={STATUS_FILTERS.map((f) => ({ value: f.id, label: f.label }))}
+            variant="filter"
+            fullWidth={false}
+          />
         </div>
       </section>
 
       {loading ? (
-        <div className="icpdp-proposals-grid" aria-busy="true">
+        <div className="event-grid-cards" aria-busy="true">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="icpdp-proposal-card" style={{ minHeight: 160 }}>
-              <div className="sk sk-line sk-line--lg" />
-              <div className="sk sk-line" />
-              <div className="sk sk-line sk-line--short" />
+            <div key={i} className="event-discovery-card event-discovery-card--active" style={{ minHeight: 320 }}>
+              <div className="event-discovery-card__media" style={{ background: '#f1f5f9' }} />
+              <div className="event-discovery-card__body" style={{ padding: 16 }}>
+                <div className="sk sk-line sk-line--lg" />
+                <div className="sk sk-line" />
+                <div className="sk sk-line sk-line--short" />
+              </div>
             </div>
           ))}
         </div>
@@ -154,39 +181,15 @@ const IcpdpProposalList = () => {
           </button>
         </div>
       ) : (
-        <div className="icpdp-proposals-grid">
-          {filtered.map((p) => {
-            const isPendingIcpdp = p.statusKey === 'pending_icpdp';
-            return (
-              <article key={p.id} className="icpdp-proposal-card">
-                <div className="icpdp-proposal-card__header">
-                  <div>
-                    <h3 className="icpdp-proposal-card__title">{p.title}</h3>
-                    <p className="icpdp-proposal-card__club">{p.clubName || 'Chưa xác định CLB'}</p>
-                  </div>
-                  <span className={`status-pill ${statusClass(p.status, p.statusKey)}`}>{p.status}</span>
-                </div>
-                <div className="icpdp-proposal-card__meta">
-                  <span><IconCalendar /> {p.date} {p.time}</span>
-                  {p.location && <span><IconPin /> {p.location}</span>}
-                  {p.totalTickets > 0 && <span><IconTicket /> {p.totalTickets} vé</span>}
-                </div>
-                <div className="icpdp-proposal-card__footer">
-                  {p.icpdpNote && (
-                    <span style={{ fontSize: '0.78rem', color: '#64748b', fontStyle: 'italic' }}>
-                      Ghi chú: {p.icpdpNote.slice(0, 50)}{p.icpdpNote.length > 50 ? '…' : ''}
-                    </span>
-                  )}
-                  <Link
-                    to={`/icpdp/proposals/${p.id}`}
-                    className={`icpdp-proposal-card__action ${isPendingIcpdp ? 'icpdp-proposal-card__action--primary' : 'icpdp-proposal-card__action--ghost'}`}
-                  >
-                    {isPendingIcpdp ? 'Duyệt ngay' : 'Xem chi tiết'}
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
+        <div className="event-grid-cards">
+          {filtered.map((p, idx) => (
+            <EventDiscoveryCard
+              key={p.id}
+              event={toProposalCard(p, idx)}
+              viewOnly
+              onPrimaryAction={() => navigate(`/icpdp/proposals/${p.id}`)}
+            />
+          ))}
         </div>
       )}
     </div>

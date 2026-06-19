@@ -53,33 +53,41 @@ const PARTNER_HERO_FALLBACK = [
 
 const PartnerEventCard = ({ ev, onOpen }) => {
   const access = getPartnerOwnedEventCardAccess();
+  const cap = ev.totalTickets || 0;
+  const registered = ev.registeredCount || 0;
+  const fillPct = cap > 0 ? Math.round((registered / cap) * 100) : 0;
+  const sourceLabel = ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : ev.source === 'icpdp' ? 'IC-PDP' : 'CLB';
   return (
-  <article className="event-card-item">
-    <div className="event-card-image-wrapper">
-      <img src={ev.image} alt={ev.title} className="event-card-img" />
-      <span className="event-card-category-badge">
-        {getCategoryDisplayLabel(ev.category) || ev.category}
-      </span>
-    </div>
-    <div className="event-card-body">
-      <h3 className="event-card-title">{ev.title}</h3>
-      <div className="event-card-details">
-        <div className="detail-row">
-          <span>
-            {ev.date} • {ev.time}
-          </span>
-        </div>
-        <div className="detail-row">
-          <span className="location-text">{ev.location}</span>
-        </div>
+    <article className="event-card-item">
+      <div className="event-card-image-wrapper">
+        <img src={ev.image} alt={ev.title} className="event-card-img" />
+        <span className="event-card-category-badge">
+          {getCategoryDisplayLabel(ev.category) || ev.category}
+        </span>
       </div>
-      <div className="event-card-divider" />
-      <div className="event-card-footer">
-        <div className="ticket-info">
-          <span className="ticket-remain-text">
-            Còn: {ev.remainingTickets}/{ev.totalTickets}
-          </span>
-          <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
+      <div className="event-card-body">
+        <h3 className="event-card-title">{ev.title}</h3>
+        <span className="event-card-source-tag">{sourceLabel}</span>
+        <div className="event-card-details">
+          <div className="detail-row">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden><path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+            <span>{ev.date}</span>
+          </div>
+          <div className="detail-row">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span className="location-text">{ev.location}</span>
+          </div>
+        </div>
+        <div className="event-card-divider" />
+        <div className="event-card-seats">
+          <span>{registered}/{cap} chỗ</span>
+          <span className="event-card-fill-pct">{fillPct}% đã đăng ký</span>
+        </div>
+        <div className="event-card-progress-track">
+          <div className="event-card-progress-fill" style={{ width: `${fillPct}%` }} />
+        </div>
+        <div className="event-card-price">
+          {ev.ticketPrice > 0 ? `${ev.ticketPrice.toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ'}
         </div>
         <button
           type="button"
@@ -89,8 +97,7 @@ const PartnerEventCard = ({ ev, onOpen }) => {
           {access.label}
         </button>
       </div>
-    </div>
-  </article>
+    </article>
   );
 };
 
