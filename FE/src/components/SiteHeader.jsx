@@ -58,6 +58,12 @@ const CTSV_NAV_ITEM = {
   linkClass: 'nav-link-ctsv-pill',
 };
 
+const CTSV_BASE_NAV_ITEMS = BASE_NAV_ITEMS.map((item) =>
+  item.key === 'clubs'
+    ? { key: 'partners', label: 'Đối tác', to: '/ctsv/partners' }
+    : item
+);
+
 const SiteHeader = ({
   activeNav = 'home',
   searchPlaceholder,
@@ -109,13 +115,14 @@ const SiteHeader = ({
     : showClubManagerNav
       ? [...BASE_NAV_ITEMS, CLUB_MANAGER_NAV_ITEM]
       : showCtsvNav
-        ? [...BASE_NAV_ITEMS, CTSV_NAV_ITEM]
+        ? [...CTSV_BASE_NAV_ITEMS, CTSV_NAV_ITEM]
         : BASE_NAV_ITEMS;
 
   const isNavItemActive = (item) => {
     if (showAdminMenu) return isAdminPublicNavActive(item.key, pathname);
-    if (item.key === 'ctsv-manage') return pathname.startsWith('/ctsv');
+    if (item.key === 'ctsv-manage') return pathname.startsWith('/ctsv') && !pathname.startsWith('/ctsv/partners');
     if (item.key === 'club-manage') return pathname.startsWith('/quan-ly-clb');
+    if (item.key === 'partners') return pathname.startsWith('/ctsv/partners');
     return activeNav === item.key;
   };
 

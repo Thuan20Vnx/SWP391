@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Event = require('../models/Event');
 const EventProposal = require('../models/EventProposal');
+const Club = require('../models/Club');
 const Partner = require('../models/Partner');
 const EventRegistration = require('../models/EventRegistration');
 const Announcement = require('../models/Announcement');
@@ -32,6 +33,7 @@ const getDashboardStats = async () => {
     eventsTotal,
     proposalsPendingCtsv,
     proposalsPendingIcpdp,
+    clubsTotal,
     registrationsTotal,
     registrationsThisMonth,
     announcementsTotal,
@@ -56,6 +58,7 @@ const getDashboardStats = async () => {
     Event.countDocuments({ isHidden: { $ne: true } }),
     EventProposal.countDocuments({ status: 'pending_ctsv' }),
     EventProposal.countDocuments({ status: 'pending_icpdp' }),
+    Club.countDocuments(),
     EventRegistration.countDocuments(),
     EventRegistration.countDocuments({ createdAt: { $gte: startOfMonth } }),
     Announcement.countDocuments(),
@@ -230,6 +233,9 @@ const getDashboardStats = async () => {
       pendingCtsv: proposalsPendingCtsv,
       pendingIcpdp: proposalsPendingIcpdp,
       pendingTotal: proposalsPendingCtsv + proposalsPendingIcpdp,
+    },
+    clubs: {
+      total: clubsTotal,
     },
     registrations: {
       total: registrationsTotal,

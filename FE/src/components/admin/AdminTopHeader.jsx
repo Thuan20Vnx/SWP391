@@ -177,28 +177,6 @@ const AdminTopHeader = ({
           </nav>
         </div>
 
-        <button
-          type="button"
-          className="site-header__nav-toggle"
-          onClick={() => {
-            setMobileSearchOpen(false);
-            setMobileMenuOpen((open) => !open);
-          }}
-          aria-label={mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}
-          aria-expanded={mobileMenuOpen}
-        >
-          <span className="site-header__nav-toggle-label">
-            {t(activeNavItem?.shortLabelKey || activeNavItem?.labelKey)}
-          </span>
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-            {mobileMenuOpen ? (
-              <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z" fill="currentColor" />
-            ) : (
-              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" fill="currentColor" />
-            )}
-          </svg>
-        </button>
-
         <div className="header-search-box site-header__search">
           <span className="search-icon-inside">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
@@ -220,6 +198,28 @@ const AdminTopHeader = ({
         </div>
 
         <div className="header-actions">
+          <button
+            type="button"
+            className="site-header__nav-toggle"
+            onClick={() => {
+              setMobileSearchOpen(false);
+              setMobileMenuOpen((open) => !open);
+            }}
+            aria-label={mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}
+            aria-expanded={mobileMenuOpen}
+          >
+            <span className="site-header__nav-toggle-label">
+              {t(activeNavItem?.shortLabelKey || activeNavItem?.labelKey)}
+            </span>
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              {mobileMenuOpen ? (
+                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z" fill="currentColor" />
+              ) : (
+                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" fill="currentColor" />
+              )}
+            </svg>
+          </button>
+
           {showMobileSearch && (
             <button
               type="button"
@@ -347,7 +347,7 @@ const AdminTopHeader = ({
       )}
     </header>
 
-    {(mobileMenuOpen || mobileSearchOpen) && (
+    {mobileSearchOpen && (
       <button
         type="button"
         className="site-header__mobile-backdrop"

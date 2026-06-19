@@ -429,6 +429,8 @@ function App() {
               <Route path="calendar" element={<AdminCalendar />} />
               <Route path="icpdp/club-registrations" element={<IcpdpClubRegistrationList />} />
               <Route path="icpdp/club-registrations/:id" element={<IcpdpClubRegistrationDetail />} />
+              <Route path="semester-timelines" element={<IcpdpSemesterTimelineList />} />
+              <Route path="semester-timelines/:id" element={<IcpdpSemesterTimelineDetail />} />
               <Route path="profile" element={<Profile showToast={showToast} embedded />} />
               <Route path="settings" element={<PortalSettingsView showToast={showToast} role="admin" />} />
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
@@ -438,6 +440,12 @@ function App() {
               <Route path="ctsv-reports/:id" element={<AdminSubmittedReportDetail />} />
               <Route path="accounts" element={<AdminAccountsControl />} />
               <Route path="system" element={<AdminSystemControl />} />
+              <Route path="ctsv/events" element={<CtsvEventList />} />
+              <Route path="ctsv/events/create" element={<CtsvEventCreate showToast={showToast} />} />
+              <Route path="ctsv/events/:id/edit" element={<CtsvEventCreate showToast={showToast} />} />
+              <Route path="ctsv/events/:id" element={<CtsvEventDetail showToast={showToast} />} />
+              <Route path="ctsv/partners" element={<CtsvPartnerList />} />
+              <Route path="ctsv/partners/:id" element={<CtsvPartnerDetail showToast={showToast} />} />
               <Route path="partners" element={<AdminPartners />} />
               <Route path="partners/approvals" element={<AdminPartnerApprovals showToast={showToast} />} />
               <Route path="analytics" element={<AdminAnalytics />} />

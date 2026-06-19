@@ -15,7 +15,7 @@ const StatIconTraffic = () => (
   </svg>
 );
 
-const StatIconRevenue = () => (
+const StatIconOverview = () => (
   <svg className="admin-stat-card__icon" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2">
     <rect x="2" y="5" width="20" height="14" rx="2" />
     <line x1="2" y1="10" x2="22" y2="10" />
@@ -60,11 +60,11 @@ const AdminMonitoringDashboard = () => {
       registrationsMonth: stats.registrations?.thisMonth || 0,
     };
 
-    const revenueOverview = {
-      total: stats.revenue?.totalFormatted || '0',
-      currency: stats.revenue?.currency || 'VND',
-      trend: stats.revenue?.trend || '0%',
-      thisMonth: stats.revenue?.thisMonthFormatted || '0 VND',
+    const dataOverview = {
+      events: stats.events?.total || 0,
+      clubs: stats.clubs?.total || 0,
+      partners: stats.partners?.total || 0,
+      announcements: stats.announcements?.total || 0,
       approvedEvents: stats.events?.approved || 0,
       liveEvents: stats.events?.live || 0,
     };
@@ -108,33 +108,33 @@ const AdminMonitoringDashboard = () => {
         ],
       },
       revenue: {
-        title: t('admin.monitor.detail.revenue.title'),
-        subtitle: t('admin.monitor.detail.revenue.subtitle'),
+        title: t('admin.monitor.detail.overview.title'),
+        subtitle: t('admin.monitor.detail.overview.subtitle'),
         summary: [
-          { label: t('admin.monitor.detail.revenue.total'), value: `${stats.revenue?.totalFormatted} VND` },
-          { label: t('admin.monitor.detail.revenue.thisMonth'), value: `${stats.revenue?.thisMonthFormatted} VND` },
+          { label: t('admin.monitor.detail.overview.totalEvents'), value: String(dataOverview.events) },
+          { label: t('admin.monitor.detail.overview.totalClubs'), value: String(dataOverview.clubs) },
         ],
-        columns: [t('admin.monitor.detail.revenue.col.item'), t('admin.monitor.detail.revenue.col.value')],
+        columns: [t('admin.monitor.detail.overview.col.item'), t('admin.monitor.detail.overview.col.value')],
         rows: [
           {
             id: '0',
-            label: t('admin.monitor.detail.revenue.approvedEvents'),
-            value: String(revenueOverview.approvedEvents),
+            label: t('admin.monitor.detail.overview.totalPartners'),
+            value: String(dataOverview.partners),
           },
           {
             id: '1',
-            label: t('admin.monitor.detail.revenue.liveEvents'),
-            value: String(revenueOverview.liveEvents),
+            label: t('admin.monitor.detail.overview.totalAnnouncements'),
+            value: String(dataOverview.announcements),
           },
           {
             id: '2',
-            label: t('admin.monitor.detail.revenue.pendingAdmin'),
-            value: String(stats.events?.pendingAdmin || 0),
+            label: t('admin.monitor.detail.overview.approvedEvents'),
+            value: String(dataOverview.approvedEvents),
           },
           {
             id: '3',
-            label: t('admin.monitor.detail.revenue.clubProposals'),
-            value: String(stats.proposals?.pendingTotal || 0),
+            label: t('admin.monitor.detail.overview.liveEvents'),
+            value: String(dataOverview.liveEvents),
           },
         ],
       },
@@ -163,7 +163,7 @@ const AdminMonitoringDashboard = () => {
     return {
       activityLogs,
       trafficOverview,
-      revenueOverview,
+      dataOverview,
       systemOverall,
       monthlyPerformance,
       chartSummary: stats.chartSummary,
@@ -222,7 +222,7 @@ const AdminMonitoringDashboard = () => {
 
   const {
     trafficOverview,
-    revenueOverview,
+    dataOverview,
     systemOverall,
     monthlyPerformance,
     chartSummary,
@@ -286,35 +286,35 @@ const AdminMonitoringDashboard = () => {
             className="admin-stat-card admin-stat-card--revenue admin-stat-card--compact admin-stat-card--clickable"
             role="button"
             tabIndex={0}
-            aria-label={t('admin.monitor.revenue')}
+            aria-label={t('admin.monitor.overview')}
             onClick={() => openDetail('revenue')}
             onKeyDown={(e) => handleCardKeyDown(e, 'revenue')}
           >
             <div className="admin-stat-card__head">
-              <p className="admin-stat-card__label">{t('admin.monitor.revenue')}</p>
-              <StatIconRevenue />
+              <p className="admin-stat-card__label">{t('admin.monitor.overview')}</p>
+              <StatIconOverview />
             </div>
             <p className="admin-stat-card__value admin-stat-card__value--primary">
-              {revenueOverview.total} {revenueOverview.currency}
+              {dataOverview.events.toLocaleString('vi-VN')}
             </p>
             <p className="admin-stat-card__sub">
-              {t('admin.monitor.revenueMonth', {
-                amount: revenueOverview.thisMonth,
-                trend: revenueOverview.trend,
+              {t('admin.monitor.overviewSub', {
+                clubs: dataOverview.clubs.toLocaleString('vi-VN'),
+                partners: dataOverview.partners.toLocaleString('vi-VN'),
               })}
             </p>
             <ul className="admin-stat-card__quick">
               <li>
                 <span>{t('admin.monitor.approved')}</span>
-                <strong>{revenueOverview.approvedEvents}</strong>
+                <strong>{dataOverview.approvedEvents}</strong>
               </li>
               <li>
                 <span>{t('admin.monitor.live')}</span>
-                <strong>{revenueOverview.liveEvents}</strong>
+                <strong>{dataOverview.liveEvents}</strong>
               </li>
               <li>
                 <span>{t('admin.monitor.announcements')}</span>
-                <strong>{stats?.announcements?.total || 0}</strong>
+                <strong>{dataOverview.announcements}</strong>
               </li>
             </ul>
           </article>

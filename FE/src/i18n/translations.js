@@ -61,6 +61,9 @@ const coreVi = {
   'admin.nav.clubRegistrations': 'Duyệt thành lập CLB',
   'admin.nav.semesterTimelines': 'Duyệt timeline CLB',
   'admin.nav.maintenance': 'Bảo trì hệ thống',
+  'admin.section.ctsv': 'CTSV',
+  'admin.nav.ctsvSchoolEvents': 'Đơn sự kiện cấp trường',
+  'admin.nav.ctsvPartners': 'Đơn đăng ký đối tác',
   'admin.sidebarLabel': 'Menu quản trị',
 
   'settings.categories': 'Danh mục',
@@ -178,6 +181,9 @@ const coreEn = {
   'admin.nav.clubRegistrations': 'Approve club registration',
   'admin.nav.semesterTimelines': 'Approve club timelines',
   'admin.nav.maintenance': 'System maintenance',
+  'admin.section.ctsv': 'CTSV',
+  'admin.nav.ctsvSchoolEvents': 'School event requests',
+  'admin.nav.ctsvPartners': 'Partner registrations',
   'admin.sidebarLabel': 'Admin menu',
 
   'settings.categories': 'Categories',
