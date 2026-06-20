@@ -33,6 +33,13 @@ export const fetchCtsvEvents = (params = {}) => {
 
 export const fetchCtsvEvent = (id) => ctsvFetch(`/events/${id}`);
 
+export const fetchCtsvApprovedEvents = ({ source = '', search = '', page = 1, limit = 20 } = {}) => {
+  const params = new URLSearchParams({ page, limit });
+  if (source && source !== 'all') params.set('source', source);
+  if (search) params.set('search', search);
+  return ctsvFetch(`/events/approved?${params}`);
+};
+
 export const createCtsvEvent = (body) => {
   invalidateCache('ctsv:events');
   invalidateCache('ctsv:stats');

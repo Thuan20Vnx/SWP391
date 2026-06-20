@@ -662,6 +662,36 @@ router.patch('/events/:id/moderation/icpdp-reject', requireIcpdpOrCtsv, async (r
   }
 });
 
+// GET /api/ctsv/events/approved — tất cả sự kiện đã duyệt (dùng cho trang Quản lý sự kiện CTSV)
+router.get('/events/approved', async (req, res) => {
+  try {
+    const APPROVED_STATUSES = ['approved', 'live', 'ended', 'expired'];
+    const { source, search, page = 1, limit = 20 } = req.query;
+
+    const filter = { isDeleted: { $ne: true }, status: { $in: APPROVED_STATUSES }, partnerId: { $in: [null, undefined] } };
+    if (source && source !== 'all') filter.source = source;
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const skip = (Math.max(1, parseInt(page)) - 1) * Math.min(100, parseInt(limit) || 20);
+    const lim = Math.min(100, parseInt(limit) || 20);
+
+    const [events, total] = await Promise.all([
+      Event.find(filter).sort({ startDate: -1 }).skip(skip).limit(lim),
+      Event.countDocuments(filter),
+    ]);
+
+    return res.json({ success: true, events: events.map(formatEvent), total, page: parseInt(page), limit: lim });
+  } catch (err) {
+    console.error('ctsv events/approved:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
 // GET /api/ctsv/reports — báo cáo sau / đang diễn ra (live, ended, đã qua ngày, eventState expired)
 router.get('/reports', async (req, res) => {
   try {

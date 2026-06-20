@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { fetchAdminApprovedEvents } from '../../services/adminApi';
+import { fetchCtsvApprovedEvents } from '../../services/ctsvApi';
 import ProposalTicketsTable from '../../components/admin/ProposalTicketsTable';
 import '../../styles/admin-dashboard.css';
 
@@ -49,7 +49,7 @@ export default function CtsvAllEvents() {
   const load = useCallback(async (p = 1, src = source, q = search) => {
     setLoading(true);
     try {
-      const res = await fetchAdminApprovedEvents({ source: src, search: q, page: p, limit: 20 });
+      const res = await fetchCtsvApprovedEvents({ source: src, search: q, page: p, limit: 20 });
       setData(res);
       setPage(p);
     } catch (err) {
