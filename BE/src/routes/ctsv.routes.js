@@ -672,7 +672,7 @@ router.get('/events/approved', async (req, res) => {
     const APPROVED_STATUSES = ['approved', 'live', 'ended', 'expired'];
     const { source, search, page = 1, limit = 20 } = req.query;
 
-    const filter = { isDeleted: { $ne: true }, status: { $in: APPROVED_STATUSES }, partnerId: { $in: [null, undefined] } };
+    const filter = { isDeleted: { $ne: true }, status: { $in: APPROVED_STATUSES }, partnerId: { $in: [null] } };
     if (source && source !== 'all') filter.source = source;
     if (search) {
       filter.$or = [
