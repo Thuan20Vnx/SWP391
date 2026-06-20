@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import AppSelect from '../ui/AppSelect';
 import {
   TICKET_AUDIENCE_OPTIONS,
@@ -7,34 +7,25 @@ import {
 } from '../../utils/eventTicketTypes';
 
 const TicketPriceInput = ({ value, onChange, disabled }) => {
-  const [focused, setFocused] = useState(false);
   const price = Math.max(0, Number(value) || 0);
-  const showFree = !focused && price === 0;
 
   return (
     <input
-      type={showFree ? 'text' : 'number'}
-      className={`clb-input ctsv-input-table event-ticket-price-input${showFree ? ' event-ticket-price-input--free' : ''}`}
+      type="number"
+      className={`clb-input ctsv-input-table event-ticket-price-input${price === 0 ? ' event-ticket-price-input--free' : ''}`}
       min={0}
       step={1000}
-      value={showFree ? 'Miễn phí' : price > 0 ? price : ''}
-      readOnly={showFree}
-      placeholder={focused ? '0' : undefined}
+      value={price === 0 ? '' : price}
+      placeholder="Miễn phí"
       disabled={disabled}
-      onFocus={() => setFocused(true)}
       onChange={(e) => {
-        if (!focused || showFree) return;
-        onChange(e.target.value);
+        const n = parseInt(String(e.target.value).replace(/\D/g, ''), 10);
+        onChange(Number.isFinite(n) && n > 0 ? n : 0);
       }}
       onBlur={(e) => {
-        setFocused(false);
         const raw = String(e.target.value).replace(/\D/g, '');
         const n = parseInt(raw, 10);
-        if (!raw || !Number.isFinite(n) || n <= 0) {
-          onChange(0);
-        } else {
-          onChange(n);
-        }
+        onChange(!raw || !Number.isFinite(n) || n <= 0 ? 0 : n);
       }}
     />
   );
