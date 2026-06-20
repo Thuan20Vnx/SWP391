@@ -3,11 +3,6 @@ const EventRegistration = require('../models/EventRegistration');
 const EventReview = require('../models/EventReview');
 const AppError = require('../utils/AppError');
 const { formatEvent } = require('../utils/eventFormat');
-const {
-  DEMO_REPORT_EVENT_ID,
-  buildDemoReportDetail,
-  buildDemoReportSummary
-} = require('../constants/ctsvDemoReport');
 const { resolveReportPhase, getReportDisplayStatus } = require('../constants/ctsvReportDisplay');
 const { REPORT_FILL_RATE_LABEL } = require('../constants/ctsvReportLabels');
 const mongoose = require('mongoose');
@@ -151,10 +146,6 @@ const buildReportDetailFromEvent = async (event) => {
 };
 
 const getCtsvReportDetail = async (eventId) => {
-  if (eventId === DEMO_REPORT_EVENT_ID) {
-    return { report: buildDemoReportDetail() };
-  }
-
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
     throw new AppError('Không tìm thấy báo cáo sự kiện!', 404);
   }
@@ -176,14 +167,6 @@ const getCtsvReportDetail = async (eventId) => {
   return { report };
 };
 
-const appendDemoToReportList = (reports) => {
-  const hasDemo = reports.some((r) => r.id === DEMO_REPORT_EVENT_ID);
-  if (hasDemo) return reports;
-  return [buildDemoReportSummary(), ...reports];
-};
-
 module.exports = {
   getCtsvReportDetail,
-  appendDemoToReportList,
-  DEMO_REPORT_EVENT_ID
 };

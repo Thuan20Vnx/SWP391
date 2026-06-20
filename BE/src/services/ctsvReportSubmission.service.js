@@ -3,7 +3,7 @@ const Event = require('../models/Event');
 const Partner = require('../models/Partner');
 const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
 const AppError = require('../utils/AppError');
-const { getCtsvReportDetail, DEMO_REPORT_EVENT_ID } = require('./ctsvReport.service');
+const { getCtsvReportDetail } = require('./ctsvReport.service');
 const { createAnnouncement } = require('./announcementManage.service');
 const { sendPartnerCtsvReportEmail } = require('./email.service');
 
@@ -131,10 +131,6 @@ const notifyPartner = async ({ authEmail, report, eventId, partnerMeta, submissi
 };
 
 const submitCtsvReport = async (eventId, authEmail) => {
-  if (eventId === DEMO_REPORT_EVENT_ID) {
-    throw new AppError('Không thể gửi báo cáo demo.', 400);
-  }
-
   const { report } = await getCtsvReportDetail(eventId);
   const isPartnerReport = report.source === 'partner';
 
@@ -222,11 +218,6 @@ const listPartnerSubmittedReports = async (email) => {
 };
 
 const getPartnerSubmittedReportDetail = async (email, eventId) => {
-  if (eventId === DEMO_REPORT_EVENT_ID) {
-    const { report } = await getCtsvReportDetail(eventId);
-    return { ...report, ctsvDelivered: true };
-  }
-
   const normalized = normalizeEmail(email);
   const submission = await SubmittedCtsvReport.findOne({
     reportId: String(eventId),
