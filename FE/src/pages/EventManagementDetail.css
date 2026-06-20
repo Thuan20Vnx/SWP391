@@ -1527,6 +1527,7 @@
   margin: 0;
   color: #475569;
   line-height: 1.6;
+  white-space: pre-wrap;
 }
 
 .ev-overview-desc--pre {
