@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { fetchPartnerReports, PARTNER_MOCK_REPORTS } from '../../services/partnerApi';
+import { fetchPartnerReports } from '../../services/partnerApi';
 import { getReportDisplayStatus, reportStatusClass } from '../../constants/ctsvReportDisplay';
 import { REPORT_FILL_RATE_AVG_LABEL, REPORT_FILL_RATE_LABEL } from '../../constants/ctsvReportLabels';
 
@@ -44,13 +44,8 @@ const PartnerAnalytics = () => {
         setReports(rows);
       })
       .catch(() => {
-        setReports(
-          PARTNER_MOCK_REPORTS.map((r) => {
-            const display = getReportDisplayStatus(r.reportPhase, r.statusKey);
-            return { ...r, status: display.label, statusKey: display.statusKey };
-          })
-        );
-        showToast?.('Dùng dữ liệu demo — kiểm tra BE đang chạy.', 'info');
+        setReports([]);
+        showToast?.('Không thể tải danh sách báo cáo.', 'error');
       })
       .finally(() => setLoading(false));
   }, [showToast]);

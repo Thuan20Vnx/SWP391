@@ -4,72 +4,6 @@ import { buildCoreEventPayload } from '../utils/eventFormState';
 const COMPANY_STORAGE_KEY = 'fevents_partner_company';
 const NOTIFY_STORAGE_KEY = 'fevents_partner_notifications';
 
-export const PARTNER_MOCK_STATS = [
-  { label: 'Tổng số sự kiện', value: '12', trend: '+2 tháng này' },
-  { label: 'Tổng lượt đăng ký', value: '3,450', trend: '+12.4%' },
-  { label: 'Sự kiện sắp diễn ra', value: '02', trend: 'Sắp khởi động trong 48h' },
-  { label: 'Tổng doanh thu tài trợ', value: '150M VNĐ', trend: 'Kỳ hiện tại' }
-];
-
-export const PARTNER_MOCK_EVENTS = [
-  {
-    id: 'p-ev-1',
-    title: 'Tech Talk 2026 — FPT Software',
-    category: 'Công nghệ',
-    date: '15/06/2026',
-    time: '14:00',
-    location: 'Hội trường Alpha',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
-    remainingTickets: 120,
-    totalTickets: 200,
-    status: 'MỞ ĐĂNG KÝ',
-    statusKey: 'approved',
-    source: 'partner'
-  },
-  {
-    id: 'p-ev-2',
-    title: 'FPT Recruitment Day 2026',
-    category: 'Kết nối',
-    date: '22/06/2026',
-    time: '09:00',
-    location: 'Sân FPT',
-    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=800&q=80',
-    remainingTickets: 80,
-    totalTickets: 150,
-    status: 'CHỜ ADMIN DUYỆT',
-    statusKey: 'pending_admin',
-    source: 'partner'
-  }
-];
-
-export const PARTNER_MOCK_CONTRACTS = [
-  {
-    id: 'c-mock-1',
-    title: 'Tech Talk 2026 — FPT Software',
-    amount: 50000000,
-    status: 'approved',
-    partnerName: 'FPT Software',
-    createdAt: new Date().toISOString()
-  }
-];
-
-export const PARTNER_MOCK_REPORTS = [
-  {
-    id: 'demo-ended-event',
-    title: 'Tech Talk 2026 — Demo báo cáo',
-    category: 'Công nghệ',
-    date: '15/06/2026',
-    location: 'Hội trường Alpha',
-    registeredCount: 85,
-    totalTickets: 100,
-    attendanceRate: 85,
-    status: 'Đã kết thúc',
-    statusKey: 'ended',
-    reportPhase: 'ended',
-    source: 'partner'
-  }
-];
-
 export const DEFAULT_PARTNER_COMPANY = {
   companyName: '',
   taxId: '',
@@ -86,31 +20,6 @@ export const DEFAULT_PARTNER_NOTIFICATIONS = {
   newReviewAlerts: true
 };
 
-export const PARTNER_RECENT_ACTIVITY = [
-  {
-    id: 1,
-    text: 'CTSV đã phê duyệt đề xuất sự kiện: Tech Talk 2026',
-    time: '10 phút trước'
-  },
-  {
-    id: 2,
-    text: 'Thanh toán hợp đồng tài trợ thành công — Mã HD9928',
-    time: '2 giờ trước'
-  },
-  {
-    id: 3,
-    text: "Sự kiện 'Tuyển dụng FPT Software' đã được publish lên trang chủ",
-    time: 'Hôm qua'
-  }
-];
-
-export const PARTNER_PERFORMANCE = [
-  { name: 'Tech Talk 2026', rate: 95 },
-  { name: 'FPT Recruitment', rate: 72 },
-  { name: 'AI Workshop', rate: 60 }
-];
-
-export const DEMO_REPORT_EVENT_ID = 'demo-ended-event';
 
 const parseJson = async (res) => {
   const data = await res.json().catch(() => ({}));

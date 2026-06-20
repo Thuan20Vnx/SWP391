@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { fetchIcpdpReports, ICPDP_MOCK_REPORTS } from '../../services/icpdpApi';
+import { fetchIcpdpReports } from '../../services/icpdpApi';
 import { statusClass } from '../../utils/eventStatus';
 
 const PHASE_FILTERS = [
@@ -43,8 +43,8 @@ const IcpdpReports = () => {
     fetchIcpdpReports()
       .then((d) => setReports(d.reports || []))
       .catch(() => {
-        setReports(ICPDP_MOCK_REPORTS);
-        showToast?.('Đang dùng dữ liệu mẫu cho báo cáo.', 'info');
+        setReports([]);
+        showToast?.('Không thể tải danh sách báo cáo.', 'error');
       })
       .finally(() => setLoading(false));
   }, [showToast]);
