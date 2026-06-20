@@ -7,8 +7,7 @@ import ClubUpcomingEventCard from '../components/ClubUpcomingEventCard';
 import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { getUserRole, isAdminRole } from '../utils/auth';
-import { CLUB_SAMPLE_DATA } from '../data/clubDiscoveryData';
-import { getClubDetailById, mapApiClubToDetail, FU_DEVER_DETAIL } from '../data/clubDetailData';
+import { mapApiClubToDetail } from '../data/clubDetailData';
 import '../styles/admin-public-pages.css';
 
 const RocketIcon = () => (
@@ -45,22 +44,14 @@ const ClubDetail = ({ showToast }) => {
       .then((data) => {
         if (data.success && data.club) {
           const apiClub = data.club;
-          const detail = clubId === 'fu-dever'
-            ? {
-                ...FU_DEVER_DETAIL,
-                _id: apiClub._id,
-                isFollowing: apiClub.isFollowing,
-                membershipStatus: apiClub.membershipStatus || null,
-              }
-            : mapApiClubToDetail(apiClub);
+          const detail = mapApiClubToDetail(apiClub);
           setClub(detail);
         } else {
-          const fallback = getClubDetailById(clubId, CLUB_SAMPLE_DATA);
-          setClub(fallback);
+          setClub(null);
         }
       })
       .catch(() => {
-        setClub(getClubDetailById(clubId, CLUB_SAMPLE_DATA));
+        setClub(null);
       })
       .finally(() => setLoading(false));
   }, [clubId, isLoggedIn]);
