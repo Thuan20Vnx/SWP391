@@ -9280,3 +9280,19 @@ html:has(.ctsv-app-shell) body {
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
+
+/* CTSV portal sidebar layout — limit to 3 columns so cards aren't too narrow */
+.ctsv-app-shell .event-grid-cards {
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 1100px) {
+  .ctsv-app-shell .event-grid-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .ctsv-app-shell .event-grid-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
