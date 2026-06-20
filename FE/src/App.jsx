@@ -19,6 +19,7 @@ import CtsvAnnouncementPublish, {
 } from './pages/ctsv/CtsvAnnouncementPublish';
 import CtsvCalendar from './pages/ctsv/CtsvCalendar';
 import CtsvReports from './pages/ctsv/CtsvReports';
+import CtsvAllEvents from './pages/ctsv/CtsvAllEvents';
 import CtsvReportDetail from './pages/ctsv/CtsvReportDetail';
 import CtsvProfile from './pages/ctsv/CtsvProfile';
 import IcpdpLayout from './layouts/IcpdpLayout';
@@ -258,6 +259,7 @@ function App() {
               <Route index element={<Navigate to="/" replace />} />
               <Route path="dashboard" element={<CtsvDashboard />} />
               <Route path="events" element={<CtsvEventList />} />
+              <Route path="all-events" element={<CtsvAllEvents />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
               <Route path="events/:id/edit" element={<CtsvEventCreate />} />
               <Route path="events/:id" element={<CtsvEventDetail />} />
