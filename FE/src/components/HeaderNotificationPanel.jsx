@@ -219,6 +219,7 @@ const HeaderNotificationPanel = ({
     notifications: sysNotifs,
     markRead: sysMarkRead,
     markAllRead: sysMarkAllRead,
+    refetch: sysRefetch,
   } = useNotifications();
 
 
@@ -288,8 +289,9 @@ const HeaderNotificationPanel = ({
     if (!open || !useLiveAnnouncements) return;
 
     loadPublicAnnouncements();
+    if (hasSysNotif) sysRefetch();
 
-  }, [open, useLiveAnnouncements, loadPublicAnnouncements]);
+  }, [open, useLiveAnnouncements, loadPublicAnnouncements, hasSysNotif, sysRefetch]);
 
   const sysItems = useMemo(
     () => (hasSysNotif ? sysNotifs.map((n) => mapSysNotif(n, role)) : []),
