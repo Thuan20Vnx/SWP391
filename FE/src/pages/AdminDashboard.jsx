@@ -391,7 +391,7 @@ const AdminDashboard = ({ showToast }) => {
             const acted = actedResults[item.id];
             const isPending = PENDING_KEYS.includes(item.statusKey) && !acted;
             const detailHref = item.kind === 'event'
-              ? (item.source === 'school' ? `/ctsv/events/${item.id}` : `/events/${item.id}`)
+              ? (item.source === 'school' ? `/admin/ctsv/events/${item.id}` : `/events/${item.id}`)
               : (item.eventId ? `/events/${item.eventId}` : null);
             const statusBadge = acted === 'approved'
               ? { label: 'Đã phê duyệt', tone: 'green' }
