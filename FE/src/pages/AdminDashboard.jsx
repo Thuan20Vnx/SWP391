@@ -24,10 +24,23 @@ const formatDateTime = (value) => {
 };
 
 // --- Phân loại nguồn (trái) ---
-const SOURCE_FILTERS = [
-  { id: 'all',   label: 'Tất cả' },
-  { id: 'ctsv',  label: 'CTSV' },     // sự kiện cấp trường + đối tác
-  { id: 'icpdp', label: 'IC-PDP' },   // sự kiện / đề xuất CLB
+const SOURCE_FILTERS_CTSV = [
+  { id: 'all',     label: 'Tất cả' },
+  { id: 'school',  label: 'Cấp trường' },
+  { id: 'partner', label: 'Đối tác' },
+];
+
+const SOURCE_FILTERS_ICPDP = [
+  { id: 'all',    label: 'Tất cả' },
+  { id: 'school', label: 'Cấp trường' },
+  { id: 'club',   label: 'CLB' },
+];
+
+const SOURCE_FILTERS_ADMIN = [
+  { id: 'all',     label: 'Tất cả' },
+  { id: 'school',  label: 'Cấp trường' },
+  { id: 'partner', label: 'Đối tác' },
+  { id: 'club',    label: 'CLB' },
 ];
 
 const SOURCE_META = {
@@ -38,9 +51,7 @@ const SOURCE_META = {
 
 const matchSource = (item, sourceFilter) => {
   if (sourceFilter === 'all') return true;
-  if (sourceFilter === 'ctsv') return item.source === 'school' || item.source === 'partner';
-  if (sourceFilter === 'icpdp') return item.source === 'club';
-  return true;
+  return item.source === sourceFilter;
 };
 
 // --- Nhóm trạng thái (phải) ---
@@ -289,7 +300,7 @@ const AdminDashboard = ({ showToast }) => {
       {/* Toolbar 2 nhóm pill */}
       <div className="adm-ev-toolbar">
         <div className="adm-ev-pills" role="group" aria-label="Lọc theo nguồn">
-          {SOURCE_FILTERS.map((f) => (
+          {(isIcpdpRole(userRole) ? SOURCE_FILTERS_ICPDP : isCtsvRole(userRole) ? SOURCE_FILTERS_CTSV : SOURCE_FILTERS_ADMIN).map((f) => (
             <button
               key={f.id}
               type="button"
