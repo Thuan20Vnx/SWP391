@@ -28,7 +28,7 @@ const {
   canRoleManageSchoolEvent,
   SCHOOL_EVENT_SUBMIT_STATUS
 } = require('../constants/eventWorkflow');
-const { getCtsvReportDetail, appendDemoToReportList } = require('../services/ctsvReport.service');
+const { getCtsvReportDetail } = require('../services/ctsvReport.service');
 const {
   submitCtsvReport,
   getSubmissionMeta,
@@ -705,7 +705,7 @@ router.get('/reports', async (req, res) => {
       };
     });
 
-    return res.json({ success: true, reports: appendDemoToReportList(reports) });
+    return res.json({ success: true, reports });
   } catch (error) {
     console.error('ctsv reports:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
