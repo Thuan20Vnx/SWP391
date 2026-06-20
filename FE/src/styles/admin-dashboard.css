@@ -2050,6 +2050,11 @@
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 20px;
   padding: 20px;
+  padding-bottom: 0;
+}
+
+.admin-proposal-card__full {
+  padding: 0 20px 20px;
 }
 
 .admin-proposal-card__thumb-wrap {

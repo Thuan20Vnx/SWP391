@@ -183,7 +183,10 @@ export default function CtsvAllEvents() {
                         <dd>{ev.capacity != null ? ev.capacity : '—'}</dd>
                       </div>
                     </dl>
+                  </div>
+                </div>
 
+                <div className="admin-proposal-card__full">
                     <ProposalTicketsTable
                       ticketTypes={ev.ticketTypes}
                       ticketPrice={ev.ticketPrice}
@@ -195,7 +198,6 @@ export default function CtsvAllEvents() {
                         <p className="admin-proposal-card__desc-text">{ev.description}</p>
                       </div>
                     ) : null}
-                  </div>
                 </div>
 
                 <footer className="admin-proposal-card__footer">
