@@ -32,6 +32,16 @@ app.get('/', (req, res) => {
   res.send('SWP391 API Server is running...');
 });
 
+app.get('/db-info', (req, res) => {
+  const mongoose = require('mongoose');
+  const { connection } = mongoose;
+  res.json({
+    state: connection.readyState,
+    host: connection.host || null,
+    name: connection.name || null,
+  });
+});
+
 app.use('/api', dbReady, apiRoutes);
 
 app.use(notFoundHandler);
