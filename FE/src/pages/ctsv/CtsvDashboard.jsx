@@ -257,7 +257,7 @@ const CtsvDashboard = () => {
                       to={`/ctsv/events/${ev.id}`}
                       className="ctsv-dash-event-cta"
                     >
-                      {isPendingApproval(ev) ? 'Phê duyệt' : 'Chi tiết'}
+                      Xem chi tiết
                     </Link>
                   </div>
                 </article>
