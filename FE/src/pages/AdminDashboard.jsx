@@ -24,24 +24,14 @@ const formatDateTime = (value) => {
 };
 
 // --- Phân loại nguồn (trái) ---
-const SOURCE_FILTERS_CTSV = [
-  { id: 'all',     label: 'Tất cả' },
-  { id: 'school',  label: 'Cấp trường' },
-  { id: 'partner', label: 'Đối tác' },
+const SOURCE_FILTERS = [
+  { id: 'all',   label: 'Tất cả' },
+  { id: 'ctsv',  label: 'CTSV' },
+  { id: 'icpdp', label: 'IC-PDP' },
 ];
 
-const SOURCE_FILTERS_ICPDP = [
-  { id: 'all',    label: 'Tất cả' },
-  { id: 'school', label: 'Cấp trường' },
-  { id: 'club',   label: 'CLB' },
-];
-
-const SOURCE_FILTERS_ADMIN = [
-  { id: 'all',     label: 'Tất cả' },
-  { id: 'school',  label: 'Cấp trường' },
-  { id: 'partner', label: 'Đối tác' },
-  { id: 'club',    label: 'CLB' },
-];
+const CTSV_SUB_OPTS  = [{ id: 'all', label: 'Tất cả' }, { id: 'school', label: 'Cấp trường' }, { id: 'partner', label: 'Đối tác' }];
+const ICPDP_SUB_OPTS = [{ id: 'all', label: 'Tất cả' }, { id: 'school', label: 'Cấp trường' }, { id: 'club',    label: 'CLB' }];
 
 const SOURCE_META = {
   school:  { label: 'Cấp trường', tone: 'orange' },
@@ -49,9 +39,19 @@ const SOURCE_META = {
   club:    { label: 'CLB',        tone: 'indigo' },
 };
 
-const matchSource = (item, sourceFilter) => {
+const matchSource = (item, sourceFilter, ctsvSub, icpdpSub) => {
   if (sourceFilter === 'all') return true;
-  return item.source === sourceFilter;
+  if (sourceFilter === 'ctsv') {
+    const inGroup = item.source === 'school' || item.source === 'partner';
+    if (!inGroup) return false;
+    return ctsvSub === 'all' || item.source === ctsvSub;
+  }
+  if (sourceFilter === 'icpdp') {
+    const inGroup = item.source === 'club' || item.source === 'school';
+    if (!inGroup) return false;
+    return icpdpSub === 'all' || item.source === icpdpSub;
+  }
+  return true;
 };
 
 // --- Nhóm trạng thái (phải) ---
@@ -119,13 +119,21 @@ const AdminDashboard = ({ showToast }) => {
 
   const [actedResults, setActedResults] = useState({}); // { [id]: 'approved' | 'rejected' }
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [ctsvSub, setCtsvSub] = useState('all');
+  const [icpdpSub, setIcpdpSub] = useState('all');
+  const [ctsvOpen, setCtsvOpen] = useState(false);
+  const [icpdpOpen, setIcpdpOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('pending');
   const [approvedSub, setApprovedSub] = useState('all');
   const [otherSub, setOtherSub] = useState('edit');
   const [approvedOpen, setApprovedOpen] = useState(false);
   const [otherOpen, setOtherOpen] = useState(false);
+  const ctsvRef = useRef(null);
+  const icpdpRef = useRef(null);
   const approvedRef = useRef(null);
   const otherRef = useRef(null);
+  useCloseOnClickOutside(ctsvRef, ctsvOpen, () => setCtsvOpen(false));
+  useCloseOnClickOutside(icpdpRef, icpdpOpen, () => setIcpdpOpen(false));
   useCloseOnClickOutside(approvedRef, approvedOpen, () => setApprovedOpen(false));
   useCloseOnClickOutside(otherRef, otherOpen, () => setOtherOpen(false));
 
@@ -211,20 +219,20 @@ const AdminDashboard = ({ showToast }) => {
 
   const filtered = useMemo(
     () => items.filter(
-      (it) => matchSource(it, sourceFilter) && matchStatus(it, statusFilter, approvedSub, otherSub),
+      (it) => matchSource(it, sourceFilter, ctsvSub, icpdpSub) && matchStatus(it, statusFilter, approvedSub, otherSub),
     ),
-    [items, sourceFilter, statusFilter, approvedSub, otherSub],
+    [items, sourceFilter, ctsvSub, icpdpSub, statusFilter, approvedSub, otherSub],
   );
 
   const counts = useMemo(() => {
-    const bySource = items.filter((it) => matchSource(it, sourceFilter));
+    const bySource = items.filter((it) => matchSource(it, sourceFilter, ctsvSub, icpdpSub));
     return {
       pending: bySource.filter((it) => PENDING_KEYS.includes(it.statusKey)).length,
       approved: bySource.filter((it) => ACCEPT_KEYS.includes(it.statusKey) || REJECT_KEYS.includes(it.statusKey)).length,
       other: bySource.filter((it) => EDIT_KEYS.includes(it.statusKey) || CANCEL_KEYS.includes(it.statusKey)).length,
       all: bySource.length,
     };
-  }, [items, sourceFilter]);
+  }, [items, sourceFilter, ctsvSub, icpdpSub]);
 
   const handleApprove = async (item) => {
     setActingId(item.id);
@@ -300,16 +308,53 @@ const AdminDashboard = ({ showToast }) => {
       {/* Toolbar 2 nhóm pill */}
       <div className="adm-ev-toolbar">
         <div className="adm-ev-pills" role="group" aria-label="Lọc theo nguồn">
-          {(isIcpdpRole(userRole) ? SOURCE_FILTERS_ICPDP : isCtsvRole(userRole) ? SOURCE_FILTERS_CTSV : SOURCE_FILTERS_ADMIN).map((f) => (
+          <button
+            type="button"
+            className={`adm-ev-pill${sourceFilter === 'all' ? ' adm-ev-pill--active' : ''}`}
+            onClick={() => { setSourceFilter('all'); setCtsvOpen(false); setIcpdpOpen(false); }}
+          >Tất cả</button>
+
+          {/* CTSV pill + dropdown */}
+          <div ref={ctsvRef} style={{ position: 'relative' }}>
             <button
-              key={f.id}
               type="button"
-              className={`adm-ev-pill${sourceFilter === f.id ? ' adm-ev-pill--active' : ''}`}
-              onClick={() => setSourceFilter(f.id)}
+              className={`adm-ev-pill${sourceFilter === 'ctsv' ? ' adm-ev-pill--active' : ''}`}
+              onClick={() => { setSourceFilter('ctsv'); setCtsvOpen(o => !o); setIcpdpOpen(false); }}
             >
-              {f.label}
+              CTSV {ctsvSub !== 'all' && `· ${CTSV_SUB_OPTS.find(o => o.id === ctsvSub)?.label}`} ▾
             </button>
-          ))}
+            {ctsvOpen && (
+              <div className="adm-ev-menu">
+                {CTSV_SUB_OPTS.map(o => (
+                  <button key={o.id} type="button"
+                    className={`adm-ev-menu__item${ctsvSub === o.id ? ' adm-ev-menu__item--active' : ''}`}
+                    onClick={() => { setCtsvSub(o.id); setCtsvOpen(false); }}
+                  >{o.label}</button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* IC-PDP pill + dropdown */}
+          <div ref={icpdpRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              className={`adm-ev-pill${sourceFilter === 'icpdp' ? ' adm-ev-pill--active' : ''}`}
+              onClick={() => { setSourceFilter('icpdp'); setIcpdpOpen(o => !o); setCtsvOpen(false); }}
+            >
+              IC-PDP {icpdpSub !== 'all' && `· ${ICPDP_SUB_OPTS.find(o => o.id === icpdpSub)?.label}`} ▾
+            </button>
+            {icpdpOpen && (
+              <div className="adm-ev-menu">
+                {ICPDP_SUB_OPTS.map(o => (
+                  <button key={o.id} type="button"
+                    className={`adm-ev-menu__item${icpdpSub === o.id ? ' adm-ev-menu__item--active' : ''}`}
+                    onClick={() => { setIcpdpSub(o.id); setIcpdpOpen(false); }}
+                  >{o.label}</button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="adm-ev-pills adm-ev-pills--right" role="group" aria-label="Lọc theo trạng thái">
