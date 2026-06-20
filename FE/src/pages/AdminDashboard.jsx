@@ -500,7 +500,10 @@ const AdminDashboard = ({ showToast }) => {
                         <dd>{item.totalTickets != null ? item.totalTickets : '—'}</dd>
                       </div>
                     </dl>
+                  </div>
+                </div>
 
+                <div className="admin-proposal-card__full">
                     <ProposalTicketsTable ticketTypes={item.ticketTypes} ticketPrice={item.ticketPrice} />
 
                     {item.description?.trim() ? (
@@ -509,7 +512,6 @@ const AdminDashboard = ({ showToast }) => {
                         <p className="admin-proposal-card__desc-text">{item.description}</p>
                       </div>
                     ) : null}
-                  </div>
                 </div>
 
                 {isPending ? (
