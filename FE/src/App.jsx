@@ -225,12 +225,7 @@ const AdminAreaGuard = () => {
   if (!isLoggedIn) return <Navigate to="/login" replace />;
   if (isAdminRole()) return <Outlet />;
   if (isIcpdpRole() && pathname.startsWith('/admin/system')) return <Outlet />;
-  if (
-    isCtsvRole() &&
-    (pathname.startsWith('/admin/events') || pathname.startsWith('/admin/event-requests'))
-  ) {
-    return <Outlet />;
-  }
+  if (isIcpdpRole() && pathname.startsWith('/admin/events')) return <Outlet />;
   return <Navigate to="/" replace />;
 };
 
