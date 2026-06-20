@@ -5,6 +5,14 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    include: ['xlsx', 'xlsx-js-style'],
+  },
+  build: {
+    rollupOptions: {
+      external: [],
+    },
+  },
   server: {
     proxy: {
       '/api': {
