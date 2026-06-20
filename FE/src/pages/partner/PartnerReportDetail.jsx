@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { DEMO_REPORT_EVENT_ID, fetchPartnerReportDetail } from '../../services/partnerApi';
-import { MOCK_REPORT_DETAIL } from '../../services/ctsvApi';
+import { fetchPartnerReportDetail } from '../../services/partnerApi';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import {
   REPORT_FILL_RATE_LABEL,
@@ -50,11 +49,6 @@ const PartnerReportDetail = () => {
         });
       })
       .catch((err) => {
-        if (id === DEMO_REPORT_EVENT_ID) {
-          setReport(MOCK_REPORT_DETAIL);
-          showToast?.('Dùng bản demo — hãy restart backend để bật API báo cáo.', 'info');
-          return;
-        }
         showToast?.(err.message || 'Không tải được báo cáo.', 'error');
         navigate('/partner/analytics');
       })

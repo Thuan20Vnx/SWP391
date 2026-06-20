@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { fetchCtsvReports, MOCK_REPORTS, DEMO_REPORT_EVENT_ID } from '../../services/ctsvApi';
+import { fetchCtsvReports } from '../../services/ctsvApi';
 import { getReportDisplayStatus, reportStatusClass } from '../../constants/ctsvReportDisplay';
 import { REPORT_FILL_RATE_AVG_LABEL, REPORT_FILL_RATE_LABEL } from '../../constants/ctsvReportLabels';
 
@@ -56,13 +56,8 @@ const CtsvReports = () => {
         setReports(rows);
       })
       .catch(() => {
-        setReports(
-          MOCK_REPORTS.map((r) => {
-            const display = getReportDisplayStatus(r.reportPhase, r.statusKey);
-            return { ...r, status: display.label, statusKey: display.statusKey };
-          })
-        );
-        showToast?.('Dùng dữ liệu demo — kiểm tra BE đang chạy.', 'info');
+        setReports([]);
+        showToast?.('Không thể tải danh sách báo cáo.', 'error');
       })
       .finally(() => setLoading(false));
   }, [showToast]);
@@ -263,7 +258,6 @@ const CtsvReports = () => {
                         <Link
                           to={detailPath}
                           className="ctsv-reports-detail-btn"
-                          state={r.id === DEMO_REPORT_EVENT_ID ? { demo: true } : undefined}
                         >
                           {detailLabel}
                           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
