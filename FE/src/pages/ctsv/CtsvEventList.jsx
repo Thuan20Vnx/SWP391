@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { isAdminRole } from '../../utils/auth';
 import AppSelect from '../../components/ui/AppSelect';
-import { fetchCtsvEvents, MOCK_EVENTS } from '../../services/ctsvApi';
+import { fetchCtsvEvents } from '../../services/ctsvApi';
 import { getCtsvEventAccess, isCtsvManagedEvent } from '../../utils/ctsvEventAccess';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
 import EventDiscoveryCard from '../../components/EventDiscoveryCard';
@@ -94,14 +94,14 @@ const CtsvEventList = () => {
           return list;
         })
         .catch((err) => {
-          setEvents(MOCK_EVENTS);
+          setEvents([]);
           setPage(1);
           const msg =
             err?.status === 401
               ? 'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.'
-              : 'Dùng dữ liệu demo, kiểm tra BE đang chạy.';
-          showToast?.(msg, err?.status === 401 ? 'error' : 'info');
-          return MOCK_EVENTS;
+              : 'Không thể tải danh sách sự kiện.';
+          showToast?.(msg, 'error');
+          return [];
         })
         .finally(() => setLoading(false));
     },

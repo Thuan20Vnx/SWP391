@@ -6,8 +6,6 @@ import {
   fetchCtsvEvents,
   fetchCtsvPartners,
   fetchCtsvStats,
-  MOCK_EVENTS,
-  MOCK_STATS
 } from '../../services/ctsvApi';
 import { isPendingApproval, statusClass } from '../../utils/eventStatus';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
@@ -38,7 +36,7 @@ const CtsvDashboard = () => {
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [loadingPartners, setLoadingPartners] = useState(true);
-  const [stats, setStats] = useState(MOCK_STATS);
+  const [stats, setStats] = useState([]);
   const [events, setEvents] = useState([]);
   const [pendingPartners, setPendingPartners] = useState([]);
 
@@ -47,19 +45,19 @@ const CtsvDashboard = () => {
 
     setLoadingStats(true);
     fetchCtsvStats()
-      .catch(() => ({ stats: MOCK_STATS }))
+      .catch(() => ({ stats: [] }))
       .then((res) => {
         if (cancelled) return;
-        setStats(res.stats?.length ? res.stats : MOCK_STATS);
+        setStats(res.stats || []);
         setLoadingStats(false);
       });
 
     setLoadingEvents(true);
     fetchCtsvEvents({ sort: 'newest', limit: 5 })
-      .catch(() => ({ events: MOCK_EVENTS }))
+      .catch(() => ({ events: [] }))
       .then((res) => {
         if (cancelled) return;
-        setEvents(res.events?.length ? res.events : MOCK_EVENTS);
+        setEvents(res.events || []);
         setLoadingEvents(false);
       });
 
