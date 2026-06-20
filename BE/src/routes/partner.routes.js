@@ -30,6 +30,7 @@ const {
   getActiveEventRequestBundle
 } = require('../services/partnerEventRequest.service');
 const partnerQueryCache = require('../utils/partnerQueryCache');
+const { createAndBroadcast } = require('../services/notification.service');
 
 router.use(authMiddleware);
 router.use(requireRole(['partner']));
@@ -240,6 +241,15 @@ router.post('/proposals', async (req, res) => {
 
     partnerQueryCache.invalidateEmail(email);
 
+    createAndBroadcast({
+      recipientRoles: ['ctsv'],
+      title: 'Đối tác gửi đề xuất hợp tác mới',
+      body: `Đối tác ${partner.name} vừa gửi đề xuất hợp tác mới.`,
+      type: 'info',
+      refId: String(partner._id),
+      refType: 'partner_proposal'
+    }).catch(() => {});
+
     return res.status(201).json({
       success: true,
       partner,
@@ -285,6 +295,15 @@ router.put('/event-requests/draft', async (req, res) => {
 router.post('/event-requests/submit', async (req, res) => {
   try {
     const result = await submitRequest(req.authEmail, req.body);
+    createAndBroadcast({
+      recipientRoles: ['ctsv'],
+      title: 'Đối tác gửi yêu cầu sự kiện mới',
+      body: `Đối tác vừa gửi yêu cầu tổ chức sự kiện. Vui lòng xem xét.`,
+      type: 'info',
+      refId: String(result.request?._id || ''),
+      refType: 'partner_event_request'
+    }).catch(() => {});
+
     return res.status(201).json({
       success: true,
       request: result.request,

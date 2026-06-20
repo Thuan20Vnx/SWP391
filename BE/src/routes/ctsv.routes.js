@@ -53,6 +53,7 @@ const {
 } = require('../utils/ticketTypes');
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 const { buildEventTextSearchOr } = require('../utils/eventSearch');
+const { createAndBroadcast } = require('../services/notification.service');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -394,6 +395,15 @@ router.post('/events', requireSchoolEventSubmit, async (req, res) => {
       createdByEmail: req.authEmail,
       ...buildSchoolEventSubmitMeta(req.authEmail)
     });
+
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: 'Sự kiện cấp trường mới cần duyệt',
+      body: `CTSV/IC-PDP vừa tạo sự kiện: ${event.title}`,
+      type: 'info',
+      refId: String(event._id),
+      refType: 'school_event'
+    }).catch(() => {});
 
     return res.status(201).json({
       success: true,
@@ -1170,6 +1180,15 @@ router.patch('/partners/:id/approve', requireCtsvApprove, async (req, res) => {
       { partnerId: partner._id, status: { $in: ['pending', 'info_requested'] } },
       { $set: { status: 'approved' } }
     );
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: 'Đối tác mới cần phê duyệt',
+      body: `CTSV đã duyệt sơ bộ đối tác: ${partner.name}. Chờ Admin phê duyệt lần cuối.`,
+      type: 'info',
+      refId: String(partner._id),
+      refType: 'partner'
+    }).catch(() => {});
+
     return res.json({
       success: true,
       partner,

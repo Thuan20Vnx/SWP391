@@ -43,6 +43,7 @@ const {
 const { sendTestEmail } = require('../services/email.service');
 const { listAuditLogs } = require('../services/auditLog.service');
 const { getAdminPayments, processRefund } = require('../services/payment.service');
+const { createAndBroadcast } = require('../services/notification.service');
 
 router.use(authMiddleware);
 
@@ -381,6 +382,15 @@ router.patch('/club-registrations/:id/approve', adminOnly, async (req, res) => {
       note: req.body.note || '',
       reviewerEmail: req.authEmail,
     });
+    createAndBroadcast({
+      recipientRoles: ['icpdp'],
+      title: 'Đơn thành lập CLB đã được Admin duyệt',
+      body: 'Admin đã phê duyệt đơn thành lập CLB mới.',
+      type: 'info',
+      refId: String(req.params.id),
+      refType: 'club_registration'
+    }).catch(() => {});
+
     return res.json({ success: true, ...result, message: 'Đã phê duyệt — CLB mới đã được tạo!' });
   } catch (error) {
     if (error.statusCode) {
@@ -778,6 +788,15 @@ router.patch('/partners/:id/approve', async (req, res) => {
       }
     }
 
+    createAndBroadcast({
+      recipientRoles: ['ctsv'],
+      title: 'Đối tác đã được Admin phê duyệt',
+      body: `Admin đã phê duyệt đối tác: ${partner.name}`,
+      type: 'info',
+      refId: String(partner._id),
+      refType: 'partner'
+    }).catch(() => {});
+
     return res.json({
       success: true,
       partner,
@@ -847,6 +866,15 @@ router.patch('/school-events/:id/approve', async (req, res) => {
     }
     Object.assign(event, buildSchoolEventAdminApproveMeta(req.authEmail));
     await event.save();
+    createAndBroadcast({
+      recipientRoles: ['ctsv', 'icpdp'],
+      title: 'Sự kiện cấp trường đã được duyệt',
+      body: `Admin đã phê duyệt sự kiện: ${event.title}`,
+      type: 'info',
+      refId: String(event._id),
+      refType: 'school_event'
+    }).catch(() => {});
+
     return res.json({
       success: true,
       event: formatEvent(event),
@@ -928,6 +956,16 @@ router.patch('/school-events/:id/reject', async (req, res) => {
     event.status = 'rejected';
     event.rejectionReason = reason;
     await event.save();
+
+    createAndBroadcast({
+      recipientRoles: ['ctsv', 'icpdp'],
+      title: 'Sự kiện cấp trường bị từ chối',
+      body: `Admin đã từ chối sự kiện: ${event.title}. Lý do: ${reason}`,
+      type: 'warning',
+      refId: String(event._id),
+      refType: 'school_event'
+    }).catch(() => {});
+
     return res.json({ success: true, event: formatEvent(event) });
   } catch (error) {
     console.error('admin reject school event:', error);
