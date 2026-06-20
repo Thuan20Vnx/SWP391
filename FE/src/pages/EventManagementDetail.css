@@ -180,7 +180,7 @@
   flex-shrink: 0;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: #1e293b;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding-top: 2px;
@@ -194,10 +194,6 @@
   line-height: 1.6;
 }
 
-.ev-rejection-reason--info .ev-rejection-reason__label,
-.ev-rejection-reason--warning .ev-rejection-reason__label {
-  color: #94a3b8;
-}
 
 .ev-subtitle {
   font-size: 0.9rem;
