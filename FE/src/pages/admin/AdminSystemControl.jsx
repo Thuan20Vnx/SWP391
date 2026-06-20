@@ -6,52 +6,40 @@ import {
   ADMIN_INFRA_SERVICES,
   ADMIN_PLATFORM_INFO,
   ADMIN_QUICK_METRICS,
-  ADMIN_SYSTEM_CHANGE_LOG,
   ADMIN_SYSTEM_DEFAULT_CONFIG,
   ADMIN_SYSTEM_STATUS_CARDS,
   ADMIN_SYSTEM_TABS,
-  CURRENCY_OPTIONS,
   ENCRYPTION_OPTIONS,
-  PAYMENT_PROVIDER_OPTIONS,
 } from '../../data/adminSystemControlData';
 import useAdminDashboardLiveData from '../../hooks/useAdminDashboardLiveData';
-import { fetchSystemConfig, fetchSystemHealth, updateSystemMaintenance } from '../../services/adminApi';
+import {
+  fetchAuditLogs,
+  fetchSystemConfig,
+  fetchSystemHealth,
+  sendSystemTestEmail,
+  updateSystemEmailConfig,
+  updateSystemMaintenance,
+  updateSystemPaymentConfig,
+  updateSystemSecurityConfig,
+} from '../../services/adminApi';
+import { API_BASE } from '../../utils/api';
 import {
   canAccessAdminSystemPage,
   getUserRole,
   isAdminRole,
   isIcpdpRole,
 } from '../../utils/auth';
-import { addMinutes, formatAdminDateTime, formatLatency, formatRelativeSeconds, secondsSince } from '../../utils/adminLiveTime';
+import { formatAdminDateTime, formatLatency, formatRelativeSeconds, secondsSince } from '../../utils/adminLiveTime';
 import { useTranslation } from '../../i18n/I18nContext';
 import { mapSelectOptions, resolveLabel } from '../../i18n/helpers';
 import '../../styles/admin-dashboard.css';
 import '../../styles/admin-system-control.css';
 
-const STORAGE_KEY = 'fe_admin_system_config_v1';
-const API_BASE = 'http://localhost:5000';
 const HEALTH_POLL_MS = 8000;
 
 const mapUiStatus = (status) => {
   if (status === 'offline' || status === 'degraded') return 'degraded';
   return 'online';
-};
-
-const loadConfig = () => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return ADMIN_SYSTEM_DEFAULT_CONFIG;
-    const parsed = JSON.parse(raw);
-    return {
-      ...ADMIN_SYSTEM_DEFAULT_CONFIG,
-      ...parsed,
-      email: { ...ADMIN_SYSTEM_DEFAULT_CONFIG.email, ...parsed.email },
-      payment: { ...ADMIN_SYSTEM_DEFAULT_CONFIG.payment, ...parsed.payment },
-      security: { ...ADMIN_SYSTEM_DEFAULT_CONFIG.security, ...parsed.security },
-    };
-  } catch {
-    return ADMIN_SYSTEM_DEFAULT_CONFIG;
-  }
 };
 
 const AdminToggle = ({ label, description, checked, onChange, disabled }) => (
@@ -90,15 +78,28 @@ const AdminSystemControl = () => {
   const isIcpdpOnly = isIcpdpRole(role) && !isFullAdmin;
   const live = useAdminDashboardLiveData();
   const [activeTab, setActiveTab] = useState('overview');
-  const [config, setConfig] = useState(loadConfig);
-  const [dirty, setDirty] = useState(false);
+  const [config, setConfig] = useState(() => ({
+    ...ADMIN_SYSTEM_DEFAULT_CONFIG,
+    email: { ...ADMIN_SYSTEM_DEFAULT_CONFIG.email },
+    security: { ...ADMIN_SYSTEM_DEFAULT_CONFIG.security },
+    payment: { ...ADMIN_SYSTEM_DEFAULT_CONFIG.payment },
+  }));
+  const [emailDirty, setEmailDirty] = useState(false);
+  const [securityDirty, setSecurityDirty] = useState(false);
+  const [paymentDirty, setPaymentDirty] = useState(false);
   const [maintenanceDirty, setMaintenanceDirty] = useState(false);
   const [savingMaintenance, setSavingMaintenance] = useState(false);
+  const [savingConfig, setSavingConfig] = useState(false);
   const [configLoading, setConfigLoading] = useState(true);
   const [systemHealth, setSystemHealth] = useState(null);
   const [healthLoading, setHealthLoading] = useState(true);
   const [openMenu, setOpenMenu] = useState(null);
   const [testResult, setTestResult] = useState(null);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [testEmailTo, setTestEmailTo] = useState('');
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
+
+  const dirty = emailDirty || securityDirty || paymentDirty;
 
   const clockLabel = formatAdminDateTime(live.now, language);
 
@@ -152,12 +153,16 @@ const AdminSystemControl = () => {
 
   const changeLog = useMemo(
     () =>
-      ADMIN_SYSTEM_CHANGE_LOG.map((item) => ({
-        ...item,
-        time: formatAdminDateTime(addMinutes(live.now, -item.minutesAgo), language),
-        action: item.actionKey ? t(item.actionKey) : item.action,
+      auditLogs.map((item) => ({
+        id: item.id,
+        tone: item.tone || 'default',
+        actor: item.actor,
+        action: item.detail ? `${item.action} — ${item.detail}` : item.action,
+        time: item.createdAt
+          ? formatAdminDateTime(new Date(item.createdAt), language)
+          : '—',
       })),
-    [live.now, t, language],
+    [auditLogs, language],
   );
 
   const quickMetrics = useMemo(() => {
@@ -329,7 +334,13 @@ const AdminSystemControl = () => {
           publicAnnouncements: remote.publicAnnouncements !== false,
           maintenanceMessage:
             remote.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage,
+          ...(res.email ? { email: { ...prev.email, ...res.email } } : {}),
+          ...(res.security ? { security: { ...prev.security, ...res.security } } : {}),
+          ...(res.payment ? { payment: { ...prev.payment, ...res.payment, webhookApiKey: '' } } : {}),
         }));
+        setEmailDirty(false);
+        setSecurityDirty(false);
+        setPaymentDirty(false);
       })
       .catch(() => {
         showToast?.(t('admin.system.toast.loadFail'), 'error');
@@ -338,6 +349,9 @@ const AdminSystemControl = () => {
 
     if (isFullAdmin) {
       refreshSystemHealth();
+      fetchAuditLogs(30)
+        .then((res) => setAuditLogs(res.logs || []))
+        .catch(() => setAuditLogs([]));
     }
   }, [role, navigate, showToast, refreshSystemHealth, isFullAdmin, t]);
 
@@ -361,8 +375,12 @@ const AdminSystemControl = () => {
     });
     if (['maintenanceMode', 'publicAnnouncements', 'maintenanceMessage'].includes(path)) {
       setMaintenanceDirty(true);
-    } else {
-      setDirty(true);
+    } else if (path.startsWith('email.')) {
+      setEmailDirty(true);
+    } else if (path.startsWith('security.')) {
+      setSecurityDirty(true);
+    } else if (path.startsWith('payment.')) {
+      setPaymentDirty(true);
     }
   };
 
@@ -391,23 +409,82 @@ const AdminSystemControl = () => {
     }
   };
 
+  const refreshAuditLogs = useCallback(() => {
+    if (!isFullAdmin) return;
+    fetchAuditLogs(30)
+      .then((res) => setAuditLogs(res.logs || []))
+      .catch(() => {});
+  }, [isFullAdmin]);
+
   const handleSave = async () => {
     if (maintenanceDirty) {
       await handleSaveMaintenance();
     }
-    if (!isFullAdmin) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    setDirty(false);
-    if (!maintenanceDirty) {
+    if (!isFullAdmin) {
+      refreshAuditLogs();
+      return;
+    }
+    if (!emailDirty && !securityDirty && !paymentDirty) {
+      if (!maintenanceDirty) showToast?.(t('admin.system.toast.saveConfig'), 'success');
+      refreshAuditLogs();
+      return;
+    }
+    setSavingConfig(true);
+    try {
+      if (emailDirty) {
+        const res = await updateSystemEmailConfig(config.email);
+        setConfig((prev) => ({ ...prev, email: { ...prev.email, ...res.email } }));
+        setEmailDirty(false);
+      }
+      if (securityDirty) {
+        const res = await updateSystemSecurityConfig(config.security);
+        setConfig((prev) => ({ ...prev, security: { ...prev.security, ...res.security } }));
+        setSecurityDirty(false);
+      }
+      if (paymentDirty) {
+        const res = await updateSystemPaymentConfig(config.payment);
+        setConfig((prev) => ({ ...prev, payment: { ...prev.payment, ...res.payment, webhookApiKey: '' } }));
+        setPaymentDirty(false);
+      }
       showToast?.(t('admin.system.toast.saveConfig'), 'success');
+      refreshAuditLogs();
+    } catch (err) {
+      showToast?.(err.message || t('admin.system.toast.saveConfigFail'), 'error');
+    } finally {
+      setSavingConfig(false);
     }
   };
 
   const handleReset = () => {
-    setConfig(ADMIN_SYSTEM_DEFAULT_CONFIG);
-    localStorage.removeItem(STORAGE_KEY);
-    setDirty(false);
-    showToast?.(t('admin.system.toast.reset'), 'success');
+    setConfig((prev) => ({
+      ...prev,
+      email: { ...ADMIN_SYSTEM_DEFAULT_CONFIG.email },
+      security: { ...ADMIN_SYSTEM_DEFAULT_CONFIG.security },
+    }));
+    setEmailDirty(true);
+    setSecurityDirty(true);
+    showToast?.(t('admin.system.toast.reset'), 'info');
+  };
+
+  const handleSendTestEmail = async () => {
+    const target = (testEmailTo || '').trim();
+    if (!target) {
+      showToast?.(t('admin.system.email.testRequired'), 'error');
+      return;
+    }
+    setSendingTestEmail(true);
+    try {
+      const res = await sendSystemTestEmail(target);
+      showToast?.(res.message || t('admin.system.email.testSent'), 'success');
+      if (res.previewUrl) {
+        setTestResult({ ok: true, text: `Preview: ${res.previewUrl}` });
+      }
+      refreshAuditLogs();
+    } catch (err) {
+      showToast?.(err.message || t('admin.system.email.testFail'), 'error');
+    } finally {
+      setSendingTestEmail(false);
+    }
   };
 
   const handleTestConnection = async () => {
@@ -439,8 +516,6 @@ const AdminSystemControl = () => {
   if (!canAccessAdminSystemPage(role)) return null;
 
   const encryptionOptions = mapSelectOptions(ENCRYPTION_OPTIONS, t);
-  const paymentProviderOptions = mapSelectOptions(PAYMENT_PROVIDER_OPTIONS, t);
-  const currencyOptions = mapSelectOptions(CURRENCY_OPTIONS, t);
   const tabOptions = ADMIN_SYSTEM_TABS.map((tab) => ({
     value: tab.id,
     label: resolveLabel(tab, t),
@@ -694,128 +769,32 @@ const AdminSystemControl = () => {
       <p className="admin-sys-field__hint" style={{ marginTop: 8 }}>
         {t('admin.system.email.passwordHint')}
       </p>
-    </div>
-  );
 
-  const renderPayment = () => (
-    <div className="admin-sys-form">
-      <div className="admin-sys-detail-block">
-        <p className="admin-sys-detail-block__title">{t('admin.system.payment.info')}</p>
-        <table className="admin-sys-info-table">
-          <tbody>
-            <tr>
-              <th>{t('admin.system.payment.mode')}</th>
-              <td>
-                {config.payment.sandbox
-                  ? t('admin.system.payment.modeSandbox')
-                  : t('admin.system.payment.modeProduction')}
-              </td>
-            </tr>
-            <tr>
-              <th>{t('admin.system.payment.gateway')}</th>
-              <td>
-                {paymentProviderOptions.find((o) => o.value === config.payment.provider)?.label ||
-                  config.payment.provider}
-              </td>
-            </tr>
-            <tr>
-              <th>{t('admin.system.payment.currency')}</th>
-              <td>{config.payment.currency}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <AdminToggle
-        label={t('admin.system.payment.enable')}
-        description={t('admin.system.payment.enableDesc')}
-        checked={config.payment.enabled}
-        onChange={(v) => patch('payment.enabled', v)}
-      />
-      <AdminToggle
-        label={t('admin.system.payment.sandbox')}
-        description={t('admin.system.payment.sandboxDesc')}
-        checked={config.payment.sandbox}
-        onChange={(v) => patch('payment.sandbox', v)}
-        disabled={!config.payment.enabled}
-      />
-      <div className="admin-sys-form__grid">
-        <AdminField label={t('admin.system.payment.provider')}>
-          <AdminFilterDropdown
-            label=""
-            value={config.payment.provider}
-            options={paymentProviderOptions}
-            onChange={(v) => patch('payment.provider', v)}
-            menuOpen={openMenu === 'provider'}
-            onMenuToggle={setOpenMenu}
-            menuId="provider"
-          />
-        </AdminField>
-        <AdminField label={t('admin.system.payment.currency')}>
-          <AdminFilterDropdown
-            label=""
-            value={config.payment.currency}
-            options={currencyOptions}
-            onChange={(v) => patch('payment.currency', v)}
-            menuOpen={openMenu === 'currency'}
-            onMenuToggle={setOpenMenu}
-            menuId="currency"
-          />
-        </AdminField>
-        <AdminField label="Merchant ID">
-          <input
-            type="text"
-            className="admin-sys-input"
-            value={config.payment.merchantId}
-            onChange={(e) => patch('payment.merchantId', e.target.value)}
-            disabled={!config.payment.enabled}
-          />
-        </AdminField>
-        <AdminField label="MoMo Partner Code">
-          <input
-            type="text"
-            className="admin-sys-input"
-            value={config.payment.momoPartner}
-            onChange={(e) => patch('payment.momoPartner', e.target.value)}
-            disabled={!config.payment.enabled}
-          />
-        </AdminField>
-        <AdminField label={t('admin.system.payment.minAmount')}>
-          <input
-            type="number"
-            className="admin-sys-input"
-            value={config.payment.minAmount}
-            onChange={(e) => patch('payment.minAmount', e.target.value)}
-            disabled={!config.payment.enabled}
-          />
-        </AdminField>
-        <AdminField label={t('admin.system.payment.maxAmount')}>
-          <input
-            type="number"
-            className="admin-sys-input"
-            value={config.payment.maxAmount}
-            onChange={(e) => patch('payment.maxAmount', e.target.value)}
-            disabled={!config.payment.enabled}
-          />
-        </AdminField>
-        <AdminField label={t('admin.system.payment.callbackUrl')} hint={t('admin.system.payment.callbackHint')} wide>
-          <input
-            type="url"
-            className="admin-sys-input"
-            value={config.payment.callbackUrl}
-            onChange={(e) => patch('payment.callbackUrl', e.target.value)}
-            disabled={!config.payment.enabled}
-          />
-        </AdminField>
-        <AdminField label={t('admin.system.payment.returnUrl')} hint={t('admin.system.payment.returnHint')} wide>
-          <input
-            type="url"
-            className="admin-sys-input"
-            value={config.payment.returnUrl}
-            onChange={(e) => patch('payment.returnUrl', e.target.value)}
-            disabled={!config.payment.enabled}
-          />
-        </AdminField>
+      <div className="admin-sys-detail-block" style={{ marginTop: 16 }}>
+        <p className="admin-sys-detail-block__title">{t('admin.system.email.testTitle')}</p>
+        <p className="admin-sys-field__hint" style={{ marginBottom: 10 }}>
+          {t('admin.system.email.testHint')}
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ flex: '1 1 240px' }}>
+            <input
+              type="email"
+              className="admin-sys-input"
+              placeholder={t('admin.system.email.testPlaceholder')}
+              value={testEmailTo}
+              onChange={(e) => setTestEmailTo(e.target.value)}
+              disabled={sendingTestEmail}
+            />
+          </div>
+          <button
+            type="button"
+            className="admin-sys-btn admin-sys-btn--ghost"
+            onClick={handleSendTestEmail}
+            disabled={sendingTestEmail || !config.email.enabled}
+          >
+            {sendingTestEmail ? t('admin.system.email.testSending') : t('admin.system.email.testButton')}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -927,6 +906,99 @@ const AdminSystemControl = () => {
     </div>
   );
 
+  const renderPayment = () => (
+    <div className="admin-sys-form">
+      <div className="admin-sys-detail-block">
+        <p className="admin-sys-detail-block__title">{t('admin.system.payment.sepayTitle')}</p>
+        <p className="admin-sys-field__hint">{t('admin.system.payment.sepayHint')}</p>
+        <ul className="admin-sys-checklist">
+          <li>
+            <span className={`admin-sys-checklist__dot admin-sys-checklist__dot--${config.payment.enabled ? 'ok' : 'off'}`} />
+            {config.payment.enabled ? t('admin.system.payment.statusOn') : t('admin.system.payment.statusOff')}
+          </li>
+          <li>
+            <span className={`admin-sys-checklist__dot admin-sys-checklist__dot--${config.payment.accountNumber ? 'ok' : 'off'}`} />
+            {t('admin.system.payment.accStatus', {
+              acc: config.payment.accountNumber || t('admin.common.empty'),
+              bank: config.payment.bankCode || t('admin.common.empty'),
+            })}
+          </li>
+          <li>
+            <span className={`admin-sys-checklist__dot admin-sys-checklist__dot--${config.payment.webhookApiKeySet ? 'ok' : 'off'}`} />
+            {config.payment.webhookApiKeySet
+              ? t('admin.system.payment.webhookSet')
+              : t('admin.system.payment.webhookUnset')}
+          </li>
+        </ul>
+      </div>
+
+      <AdminToggle
+        label={t('admin.system.payment.enable')}
+        description={t('admin.system.payment.enableDesc')}
+        checked={config.payment.enabled}
+        onChange={(v) => patch('payment.enabled', v)}
+      />
+
+      <div className="admin-sys-form__grid">
+        <AdminField label={t('admin.system.payment.accountNumber')}>
+          <input
+            type="text"
+            className="admin-sys-input"
+            value={config.payment.accountNumber}
+            onChange={(e) => patch('payment.accountNumber', e.target.value)}
+          />
+        </AdminField>
+        <AdminField label={t('admin.system.payment.bankCode')} hint={t('admin.system.payment.bankCodeHint')}>
+          <input
+            type="text"
+            className="admin-sys-input"
+            value={config.payment.bankCode}
+            onChange={(e) => patch('payment.bankCode', e.target.value)}
+            placeholder="VPBank, Vietcombank, MBBank..."
+          />
+        </AdminField>
+        <AdminField label={t('admin.system.payment.accountHolder')}>
+          <input
+            type="text"
+            className="admin-sys-input"
+            value={config.payment.accountHolder}
+            onChange={(e) => patch('payment.accountHolder', e.target.value)}
+          />
+        </AdminField>
+        <AdminField label={t('admin.system.payment.expireMinutes')} hint={t('admin.system.payment.expireHint')}>
+          <input
+            type="number"
+            min="1"
+            max="1440"
+            className="admin-sys-input"
+            value={config.payment.expireMinutes}
+            onChange={(e) => patch('payment.expireMinutes', e.target.value)}
+          />
+        </AdminField>
+        <AdminField label={t('admin.system.payment.webhookApiKey')} hint={t('admin.system.payment.webhookApiKeyHint')} wide>
+          <input
+            type="password"
+            className="admin-sys-input"
+            value={config.payment.webhookApiKey || ''}
+            placeholder={config.payment.webhookApiKeySet ? '••••••••  (đã lưu — để trống nếu giữ nguyên)' : ''}
+            onChange={(e) => patch('payment.webhookApiKey', e.target.value)}
+            autoComplete="new-password"
+          />
+        </AdminField>
+      </div>
+
+      <div className="admin-sys-detail-block" style={{ marginTop: 16 }}>
+        <p className="admin-sys-detail-block__title">{t('admin.system.payment.webhookUrlTitle')}</p>
+        <p className="admin-sys-field__hint" style={{ marginBottom: 8 }}>
+          {t('admin.system.payment.webhookUrlHint')}
+        </p>
+        <code className="admin-sys-env-item__val" style={{ wordBreak: 'break-all' }}>
+          {`${API_BASE}/api/system/payments/sepay-webhook`}
+        </code>
+      </div>
+    </div>
+  );
+
   const renderTabContent = () => {
     if (activeTab === 'overview') return renderOverview();
     if (activeTab === 'email') return renderEmail();
@@ -1005,9 +1077,9 @@ const AdminSystemControl = () => {
               type="button"
               className="admin-sys-btn admin-sys-btn--primary"
               onClick={handleSave}
-              disabled={!hasUnsaved || savingMaintenance}
+              disabled={!hasUnsaved || savingMaintenance || savingConfig}
             >
-              {savingMaintenance ? t('admin.system.saving') : t('admin.system.saveConfig')}
+              {savingMaintenance || savingConfig ? t('admin.system.saving') : t('admin.system.saveConfig')}
             </button>
           </div>
         </header>
@@ -1070,26 +1142,52 @@ const AdminSystemControl = () => {
             <div className="admin-sys-side-block">
               <h2 className="admin-panel__title admin-panel__title--flush">{t('admin.system.changelog.title')}</h2>
               <p className="admin-sys-panel__lead">{t('admin.system.changelog.lead')}</p>
-              <ul className="admin-sys-changelog">
-                {changeLog.map((entry) => (
-                  <li key={entry.id} className={`admin-sys-changelog__item admin-sys-changelog__item--${entry.tone}`}>
-                    <p className="admin-sys-changelog__time">{entry.time}</p>
-                    <p className="admin-sys-changelog__actor">{entry.actor}</p>
-                    <p className="admin-sys-changelog__action">{entry.action}</p>
-                  </li>
-                ))}
-              </ul>
+              {changeLog.length === 0 ? (
+                <p className="admin-sys-panel__lead" style={{ fontStyle: 'italic' }}>
+                  {t('admin.system.changelog.empty')}
+                </p>
+              ) : (
+                <ul className="admin-sys-changelog">
+                  {changeLog.map((entry) => (
+                    <li key={entry.id} className={`admin-sys-changelog__item admin-sys-changelog__item--${entry.tone}`}>
+                      <p className="admin-sys-changelog__time">{entry.time}</p>
+                      <p className="admin-sys-changelog__actor">{entry.actor}</p>
+                      <p className="admin-sys-changelog__action">{entry.action}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div className="admin-sys-danger">
               <p className="admin-sys-danger__title">{t('admin.system.danger.title')}</p>
-              <p className="admin-sys-danger__desc">{t('admin.system.danger.desc')}</p>
+              <p className="admin-sys-danger__desc">{t('admin.system.danger.maintDesc')}</p>
               <button
                 type="button"
                 className="admin-sys-btn admin-sys-btn--danger"
-                onClick={() => showToast?.(t('admin.system.danger.restartMock'), 'error')}
+                disabled={savingMaintenance}
+                onClick={async () => {
+                  const next = !config.maintenanceMode;
+                  setConfig((prev) => ({ ...prev, maintenanceMode: next }));
+                  setSavingMaintenance(true);
+                  try {
+                    const res = await updateSystemMaintenance({ maintenanceMode: next });
+                    const remote = res.config || res;
+                    setConfig((prev) => ({ ...prev, maintenanceMode: Boolean(remote.maintenanceMode) }));
+                    setMaintenanceDirty(false);
+                    showToast?.(res.message || t('admin.system.toast.saveMaintenance'), 'success');
+                    refreshAuditLogs();
+                  } catch (err) {
+                    setConfig((prev) => ({ ...prev, maintenanceMode: !next }));
+                    showToast?.(err.message || t('admin.system.toast.saveMaintenanceFail'), 'error');
+                  } finally {
+                    setSavingMaintenance(false);
+                  }
+                }}
               >
-                {t('admin.system.danger.restart')}
+                {config.maintenanceMode
+                  ? t('admin.system.danger.maintOff')
+                  : t('admin.system.danger.maintOn')}
               </button>
             </div>
           </aside>

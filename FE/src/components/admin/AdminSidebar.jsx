@@ -17,7 +17,8 @@ const AdminSidebar = ({
 
   const isActive = (item) => {
     if (item.end) return pathname === item.path;
-    if (item.path === '/admin/events') return pathname === '/admin/events';
+    if (item.path === '/admin/events') return pathname === '/admin/events' || pathname.startsWith('/admin/events/') && !pathname.startsWith('/admin/events/approved');
+    if (item.path === '/admin/events/approved') return pathname === '/admin/events/approved';
     return pathname === item.path || pathname.startsWith(`${item.path}/`);
   };
 

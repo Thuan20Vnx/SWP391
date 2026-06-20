@@ -276,6 +276,7 @@ const AdminFptUnitEvents = () => {
                         itemTitle={proposal.title}
                         busy={isBusy}
                         disabled={actingId !== null && !isBusy}
+                        hideApprove={proposal.statusKey === 'pending_icpdp'}
                         onApprove={() => handleApproveProposal(proposalId)}
                         onReject={(reason) => handleRejectProposal(proposalId, reason)}
                       />

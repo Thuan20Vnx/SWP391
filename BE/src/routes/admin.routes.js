@@ -33,7 +33,16 @@ const { approveModeration, rejectModeration } = require('../services/eventModera
 const {
   getPublicStatus,
   updateMaintenanceSettings,
+  getEmailPublic,
+  getSecurityPublic,
+  getPaymentPublic,
+  updateEmailSettings,
+  updateSecuritySettings,
+  updatePaymentSettings,
 } = require('../services/systemSettings.service');
+const { sendTestEmail } = require('../services/email.service');
+const { listAuditLogs } = require('../services/auditLog.service');
+const { getAdminPayments, processRefund } = require('../services/payment.service');
 
 router.use(authMiddleware);
 
@@ -143,7 +152,73 @@ router.get('/unit-events', async (req, res) => {
 
 router.get('/system-config', adminOrIcpdp, asyncHandler(async (req, res) => {
   const config = await getPublicStatus();
+  // Email + Security là cấu hình chỉ Admin được xem
+  if (req.userRole === 'admin') {
+    const [email, security, payment] = await Promise.all([
+      getEmailPublic(),
+      getSecurityPublic(),
+      getPaymentPublic(),
+    ]);
+    return res.json({ success: true, config, email, security, payment });
+  }
   res.json({ success: true, config });
+}));
+
+router.patch('/system-config/payment', adminOnly, asyncHandler(async (req, res) => {
+  const payment = await updatePaymentSettings(req.body || {}, req.authEmail);
+  res.json({ success: true, payment, message: 'Đã lưu cấu hình thanh toán.' });
+}));
+
+router.patch('/system-config/email', adminOnly, asyncHandler(async (req, res) => {
+  const email = await updateEmailSettings(req.body || {}, req.authEmail);
+  res.json({ success: true, email, message: 'Đã lưu cấu hình email.' });
+}));
+
+router.post('/system-config/email/test', adminOnly, asyncHandler(async (req, res) => {
+  const to = String(req.body?.to || req.authEmail || '').trim();
+  if (!to) {
+    return res.status(400).json({ success: false, message: 'Vui lòng nhập email nhận thử nghiệm.' });
+  }
+  try {
+    const result = await sendTestEmail(to);
+    res.json({
+      success: true,
+      message: `Đã gửi email thử nghiệm tới ${to}.`,
+      previewUrl: result.previewUrl || null,
+      provider: result.provider,
+    });
+  } catch (err) {
+    res.status(502).json({ success: false, message: err.message || 'Gửi email thử nghiệm thất bại.' });
+  }
+}));
+
+router.patch('/system-config/security', adminOnly, asyncHandler(async (req, res) => {
+  const security = await updateSecuritySettings(req.body || {}, req.authEmail);
+  res.json({ success: true, security, message: 'Đã lưu chính sách bảo mật.' });
+}));
+
+// ── Quản lý thanh toán ──────────────────────────────────────────
+router.get('/payments', adminOnly, asyncHandler(async (req, res) => {
+  const { page, limit, status, eventId, search } = req.query;
+  const result = await getAdminPayments({
+    page: parseInt(page) || 1,
+    limit: Math.min(100, parseInt(limit) || 30),
+    status: status || undefined,
+    eventId: eventId || undefined,
+    search: search || undefined,
+  });
+  res.json({ success: true, ...result });
+}));
+
+router.patch('/payments/:code/refund', adminOnly, asyncHandler(async (req, res) => {
+  const { action, note } = req.body || {};
+  const result = await processRefund(req.params.code, req.user, action, note);
+  res.json({ success: true, ...result, message: action === 'approved' ? 'Đã duyệt hoàn tiền.' : 'Đã từ chối hoàn tiền.' });
+}));
+
+router.get('/audit-logs', adminOnly, asyncHandler(async (req, res) => {
+  const logs = await listAuditLogs(req.query.limit || 30);
+  res.json({ success: true, logs });
 }));
 
 router.get('/ctsv-report-submissions', adminOnly, asyncHandler(async (req, res) => {
@@ -200,6 +275,32 @@ router.patch('/system-config', adminOrIcpdp, asyncHandler(async (req, res) => {
     req.authEmail,
   );
   res.json({ success: true, config, message: 'Đã cập nhật cấu hình bảo trì' });
+}));
+
+// Tất cả sự kiện đã được duyệt (approved/live/ended/expired)
+router.get('/events/approved', adminOnly, asyncHandler(async (req, res) => {
+  const APPROVED_STATUSES = ['approved', 'live', 'ended', 'expired'];
+  const { source, search, page = 1, limit = 30 } = req.query;
+
+  // Loại trừ event placeholder tự tạo khi đối tác được duyệt (có partnerId)
+  const filter = { isDeleted: { $ne: true }, status: { $in: APPROVED_STATUSES }, partnerId: { $in: [null, undefined] } };
+  if (source && source !== 'all') filter.source = source;
+  if (search) {
+    filter.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { location: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const skip = (Math.max(1, parseInt(page)) - 1) * Math.min(100, parseInt(limit) || 30);
+  const lim = Math.min(100, parseInt(limit) || 30);
+
+  const [events, total] = await Promise.all([
+    Event.find(filter).sort({ startDate: -1 }).skip(skip).limit(lim),
+    Event.countDocuments(filter),
+  ]);
+
+  res.json({ success: true, events: events.map(formatEvent), total, page: parseInt(page), limit: lim });
 }));
 
 router.get('/events/calendar', adminOnly, async (req, res) => {
@@ -339,6 +440,85 @@ router.get('/event-requests', adminOrCtsv, asyncHandler(eventChangeRequestContro
 router.get('/event-requests/:id', adminOrCtsv, asyncHandler(eventChangeRequestController.getById));
 router.patch('/event-requests/:id/approve', adminOrCtsv, asyncHandler(eventChangeRequestController.approve));
 router.patch('/event-requests/:id/reject', adminOrCtsv, asyncHandler(eventChangeRequestController.reject));
+
+router.post('/partners', adminOnly, async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      representative,
+      category,
+      representativeTitle,
+    } = req.body;
+
+    if (!name?.trim()) {
+      return res.status(400).json({ success: false, message: 'Tên đối tác là bắt buộc!' });
+    }
+
+    const primaryEmail = String(email || '').trim().toLowerCase();
+
+    // Kiểm tra email có thuộc staff/student không trước khi tạo
+    if (primaryEmail) {
+      const STAFF_ROLES = new Set(['admin', 'ctsv', 'icpdp', 'club_manager', 'staff', 'student']);
+      const User = require('../models/User');
+      const existing = await User.findOne({ email: primaryEmail }).lean();
+      if (existing && STAFF_ROLES.has(existing.role)) {
+        return res.status(400).json({
+          success: false,
+          message: `Email ${primaryEmail} đã thuộc tài khoản ${existing.role} trên hệ thống. Vui lòng dùng email khác.`,
+        });
+      }
+    }
+
+    const partner = await Partner.create({
+      name: name.trim(),
+      email: primaryEmail,
+      phone: String(phone || '').trim(),
+      representative: String(representative || '').trim(),
+      category: String(category || '').trim(),
+      representativeTitle: String(representativeTitle || '').trim(),
+      status: 'approved',
+      approvedByEmail: req.authEmail,
+      adminApprovedAt: new Date(),
+    });
+
+    await ensurePartnerEvent(partner);
+
+    let accountCreated = false;
+    let defaultPassword = null;
+    if (primaryEmail) {
+      try {
+        const result = await addPartnerMember(
+          partner,
+          {
+            email: primaryEmail,
+            fullname: String(representative || name || '').trim(),
+            phone: String(phone || '').trim(),
+            title: String(representativeTitle || '').trim(),
+            activateNow: true,
+          },
+          req.authEmail,
+        );
+        accountCreated = true;
+        defaultPassword = result.defaultPassword;
+      } catch (memberErr) {
+        console.warn('admin create partner — account skipped:', memberErr.message);
+      }
+    }
+
+    return res.status(201).json({
+      success: true,
+      partner,
+      accountCreated,
+      ...(defaultPassword ? { defaultPassword } : {}),
+      message: 'Đã thêm đối tác vào hệ thống.',
+    });
+  } catch (error) {
+    console.error('admin create partner:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
 
 router.get('/partners', async (req, res) => {
   try {
@@ -561,7 +741,50 @@ router.patch('/partners/:id/approve', async (req, res) => {
       { status: 'approved', approvedByEmail: req.authEmail }
     );
     await ensurePartnerEvent(partner);
-    return res.json({ success: true, partner, message: 'Đã phê duyệt đối tác thành công.' });
+
+    // Tự động tạo tài khoản đăng nhập cho email đại diện nếu chưa có
+    const primaryEmail = String(partner.email || '').trim().toLowerCase();
+    let accountCreated = false;
+    let defaultPassword = null;
+    if (primaryEmail) {
+      try {
+        const result = await addPartnerMember(
+          partner,
+          {
+            email: primaryEmail,
+            fullname: String(partner.representative || partner.companyName || '').trim(),
+            phone: String(partner.phone || '').trim(),
+            title: String(partner.representativeTitle || '').trim(),
+            activateNow: true,
+          },
+          req.authEmail,
+        );
+        accountCreated = true;
+        defaultPassword = result.defaultPassword;
+      } catch (memberErr) {
+        // Email trùng vai trò nội bộ (staff/student) → chặn approve, rollback
+        if (memberErr.message && memberErr.message.includes('Email đã thuộc vai trò khác')) {
+          partner.status = 'pending_admin';
+          partner.approvedByEmail = undefined;
+          partner.adminApprovedAt = undefined;
+          await partner.save();
+          return res.status(400).json({
+            success: false,
+            message: `Không thể phê duyệt: ${memberErr.message} Email đại diện phải được cập nhật trước khi duyệt.`,
+          });
+        }
+        // Tài khoản đã tồn tại dạng partner/guest — bỏ qua, không chặn approve
+        console.warn('auto-create partner account skipped:', memberErr.message);
+      }
+    }
+
+    return res.json({
+      success: true,
+      partner,
+      message: 'Đã phê duyệt đối tác thành công.',
+      accountCreated,
+      ...(defaultPassword ? { defaultPassword } : {}),
+    });
   } catch (error) {
     console.error('admin approve partner:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });

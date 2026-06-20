@@ -74,6 +74,13 @@ const registerForEvent = async (user, eventId) => {
   const amountPaid = calculateTicketAmount(user, event);
   const studentPrivilegeApplied = listPrice > 0 && amountPaid === 0 && hasStudentTicketPrivilege(user);
 
+  // Vé có phí phải đi qua luồng thanh toán (checkout) — không cho đăng ký trực tiếp
+  if (amountPaid > 0) {
+    const err = new AppError('Vé này cần thanh toán. Vui lòng dùng chức năng mua vé.', 402);
+    err.extra = { code: 'PAYMENT_REQUIRED' };
+    throw err;
+  }
+
   let registration = await EventRegistration.findOne({ user: user._id, event: eventId });
 
   if (registration?.status === 'registered') {
