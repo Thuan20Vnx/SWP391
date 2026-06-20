@@ -8,6 +8,7 @@ import {
   rejectCtsvEvent,
   rejectCtsvProposal,
 } from '../../services/ctsvApi';
+import { approveAdminSchoolEvent, rejectAdminSchoolEvent } from '../../services/adminApi';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import { FPT_TYPE_META } from '../../data/adminFptSystemData';
 import { useTranslation } from '../../i18n/I18nContext';
@@ -108,10 +109,14 @@ const AdminFptUnitEvents = () => {
 
   const isPendingEvent = (event) => PENDING_KEYS.includes(event.statusKey || event.status);
 
-  const handleApproveEvent = async (eventId) => {
+  const handleApproveEvent = async (eventId, source) => {
     setActingId(eventId);
     try {
-      await approveCtsvEvent(eventId);
+      if (source === 'school') {
+        await approveAdminSchoolEvent(eventId);
+      } else {
+        await approveCtsvEvent(eventId);
+      }
       setEvents((prev) => prev.filter((e) => String(e.id || e._id) !== String(eventId)));
       showToast?.(t('admin.unitEvents.toast.approved'), 'success');
     } catch (err) {
@@ -121,10 +126,14 @@ const AdminFptUnitEvents = () => {
     }
   };
 
-  const handleRejectEvent = async (eventId, reason) => {
+  const handleRejectEvent = async (eventId, reason, source) => {
     setActingId(eventId);
     try {
-      await rejectCtsvEvent(eventId, reason);
+      if (source === 'school') {
+        await rejectAdminSchoolEvent(eventId, reason);
+      } else {
+        await rejectCtsvEvent(eventId, reason);
+      }
       setEvents((prev) => prev.filter((e) => String(e.id || e._id) !== String(eventId)));
       showToast?.(t('admin.unitEvents.toast.rejected'), 'info');
     } catch (err) {
@@ -361,8 +370,8 @@ const AdminFptUnitEvents = () => {
                               itemTitle={ev.title}
                               busy={isBusy}
                               disabled={actingId !== null && !isBusy}
-                              onApprove={() => handleApproveEvent(eventId)}
-                              onReject={(reason) => handleRejectEvent(eventId, reason)}
+                              onApprove={() => handleApproveEvent(eventId, ev.source)}
+                              onReject={(reason) => handleRejectEvent(eventId, reason, ev.source)}
                             />
                           </div>
                         )}
