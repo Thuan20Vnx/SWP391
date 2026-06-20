@@ -6,7 +6,7 @@ import '../../styles/admin-dashboard.css';
 
 const SOURCE_TABS = [
   { value: 'all',     label: 'Tất cả' },
-  { value: 'school',  label: 'CTSV' },
+  { value: 'school',  label: 'Cấp trường' },
   { value: 'partner', label: 'Đối tác' },
 ];
 
