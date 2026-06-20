@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import StudentDashboardLayout from '../components/StudentDashboardLayout';
 import { API_BASE, getAuthHeaders } from '../utils/api';
-import { scheduleEvents as mockScheduleEvents } from '../data/studentMockData';
 
 const WEEKDAYS = ['THỨ 2', 'THỨ 3', 'THỨ 4', 'THỨ 5', 'THỨ 6', 'THỨ 7', 'CN'];
 const VIEW_MODES = ['Tháng', 'Tuần', 'Ngày'];
@@ -34,14 +33,6 @@ const mapApiEventToSchedule = (event, index) => ({
   location: event.location,
 });
 
-const mapMockToSchedule = (event, index) => ({
-  id: event.id,
-  date: new Date(2026, 4, event.day),
-  title: event.title,
-  time: event.time,
-  color: event.color || EVENT_COLORS[index % EVENT_COLORS.length],
-  location: '',
-});
 
 const Schedule = ({ showToast }) => {
   const [viewMode, setViewMode] = useState('Tháng');
@@ -65,21 +56,16 @@ const Schedule = ({ showToast }) => {
         ]);
 
         if (upcomingRes.status === 401) {
-          setEvents(mockScheduleEvents.map(mapMockToSchedule));
+          setEvents([]);
           return;
         }
 
         const upcomingData = upcomingRes.ok ? await upcomingRes.json() : { events: [] };
         const attendedData = attendedRes.ok ? await attendedRes.json() : { events: [] };
         const merged = [...(upcomingData.events || []), ...(attendedData.events || [])];
-
-        if (merged.length > 0) {
-          setEvents(merged.map(mapApiEventToSchedule));
-        } else {
-          setEvents(mockScheduleEvents.map(mapMockToSchedule));
-        }
+        setEvents(merged.map(mapApiEventToSchedule));
       } catch {
-        setEvents(mockScheduleEvents.map(mapMockToSchedule));
+        setEvents([]);
       } finally {
         setLoading(false);
       }
