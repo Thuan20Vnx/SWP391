@@ -205,7 +205,7 @@ export default function CtsvAllEvents() {
                     <button
                       type="button"
                       className="adm-ev-detail-btn"
-                      onClick={() => navigate(`/events/${ev.id}`)}
+                      onClick={() => navigate(`/ctsv/events/${ev.id}`)}
                     >
                       Xem chi tiết
                     </button>
