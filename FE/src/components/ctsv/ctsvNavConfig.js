@@ -12,6 +12,7 @@ export const CTSV_NAV_ITEMS = [
     icon: 'create',
   },
   { path: '/ctsv/events', label: 'Publish sự kiện', icon: 'publish' },
+  { path: '/ctsv/all-events', label: 'Quản lý sự kiện', icon: 'calendar' },
   { path: '/ctsv/announcements/publish', label: 'Thông báo chính thức', icon: 'announce' },
   { path: '/ctsv/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
   { path: '/ctsv/reports', label: 'Báo cáo sau SK', icon: 'reports' }
