@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
 import { EVENT_VENUES } from '../constants/eventVenues';
+import { API_BASE } from '../utils/api';
 
 const CreateEvent = ({ showToast }) => {
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ const CreateEvent = ({ showToast }) => {
     setLoading(true);
     const email = localStorage.getItem('userEmail');
 
-    fetch('http://localhost:5000/api/events', {
+    fetch(`${API_BASE}/api/events`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

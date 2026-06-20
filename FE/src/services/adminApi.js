@@ -39,6 +39,9 @@ export const sendAdminPartnerNotice = (id, body) =>
     body: JSON.stringify(body),
   });
 
+export const createAdminPartner = (body) =>
+  adminFetch('/partners', { method: 'POST', body: JSON.stringify(body) });
+
 export const approveAdminPartner = (id) =>
   adminFetch(`/partners/${id}/approve`, { method: 'PATCH', body: '{}' });
 
@@ -56,6 +59,20 @@ export const removeAdminPartnerMember = (partnerId, memberId) =>
     `/partners/${encodeURIComponent(String(partnerId).replace(/^partner-/, ''))}/members/${encodeURIComponent(memberId)}`,
     { method: 'DELETE' },
   );
+
+export const fetchAdminPayments = ({ page = 1, limit = 30, status = '', eventId = '', search = '' } = {}) => {
+  const params = new URLSearchParams({ page, limit });
+  if (status) params.set('status', status);
+  if (eventId) params.set('eventId', eventId);
+  if (search) params.set('search', search);
+  return adminFetch(`/payments?${params.toString()}`);
+};
+
+export const processAdminRefund = (code, action, note = '') =>
+  adminFetch(`/payments/${encodeURIComponent(code)}/refund`, {
+    method: 'PATCH',
+    body: JSON.stringify({ action, note }),
+  });
 
 export const fetchAdminAccounts = async ({ page = 1, limit = 10, role = 'all', search = '' }) => {
   const params = new URLSearchParams({
@@ -144,6 +161,13 @@ export const deleteAdminAccount = async (id) => {
   return parseJson(res);
 };
 
+export const fetchAdminApprovedEvents = ({ source = '', search = '', page = 1, limit = 30 } = {}) => {
+  const params = new URLSearchParams({ page, limit });
+  if (source && source !== 'all') params.set('source', source);
+  if (search) params.set('search', search);
+  return adminFetch(`/events/approved?${params}`);
+};
+
 export const fetchAdminSchoolEvents = (status = 'pending_admin') =>
   adminFetch(`/school-events?status=${encodeURIComponent(status)}`);
 
@@ -197,6 +221,33 @@ export const updateSystemMaintenance = (payload) =>
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
+
+export const updateSystemEmailConfig = (payload) =>
+  adminFetch('/system-config/email', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+
+export const sendSystemTestEmail = (to) =>
+  adminFetch('/system-config/email/test', {
+    method: 'POST',
+    body: JSON.stringify({ to }),
+  });
+
+export const updateSystemSecurityConfig = (payload) =>
+  adminFetch('/system-config/security', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+
+export const updateSystemPaymentConfig = (payload) =>
+  adminFetch('/system-config/payment', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+
+export const fetchAuditLogs = (limit = 30) =>
+  adminFetch(`/audit-logs?limit=${encodeURIComponent(limit)}`);
 
 export const fetchPublicSystemStatus = async () => {
   const res = await fetch(`${API_BASE}/api/system/status`);

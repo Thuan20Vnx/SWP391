@@ -8,15 +8,8 @@ const ProposalTicketsTable = ({ ticketTypes = [], ticketPrice }) => {
 
   if (rows.length === 0) {
     const price = Math.max(0, Number(ticketPrice) || 0);
-    if (price <= 0) {
-      return <p className="admin-proposal-tickets__empty">{t('admin.proposal.tickets.empty')}</p>;
-    }
-    return (
-      <p className="admin-proposal-tickets__single">
-        {t('admin.proposal.tickets.single')}{' '}
-        <strong>{formatTicketTypePrice({ priceType: 'paid', priceAmount: price })}</strong>
-      </p>
-    );
+    const fallbackRow = { name: 'Vé thường', priceType: price > 0 ? 'paid' : 'free', priceAmount: price, qty: null, audience: '' };
+    rows.push(fallbackRow);
   }
 
   return (

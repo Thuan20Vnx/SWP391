@@ -31,7 +31,10 @@ const {
   MOCK_GOOGLE_NAME,
 } = require('../config/env');
 const { verifyToken } = require('../utils/jwt');
-const { assertLoginAllowed: assertSystemLoginAllowed } = require('./systemSettings.service');
+const {
+  assertLoginAllowed: assertSystemLoginAllowed,
+  getSecuritySettings,
+} = require('./systemSettings.service');
 const {
   assertLoginAllowed: assertPasswordLockoutAllowed,
   recordFailedLogin,
@@ -132,6 +135,15 @@ const signup = async ({ fullname, email, phone, password }) => {
   if (!email) throw new AppError('Email không được để trống!', 400);
   if (!phone) throw new AppError('Số điện thoại không được để trống!', 400);
   if (!password) throw new AppError('Mật khẩu không được để trống!', 400);
+
+  const security = await getSecuritySettings();
+  const passwordCheck = validatePasswordPolicy(password, {
+    minLength: security.passwordMinLength,
+    requireStrong: security.requireStrongPassword,
+  });
+  if (!passwordCheck.valid) {
+    throw new AppError(passwordCheck.message, 400);
+  }
 
   const emailKey = email.trim().toLowerCase();
   const existingUser = await User.findOne({ email: emailKey });
@@ -323,7 +335,11 @@ const resetPassword = async ({ email, otp, newPassword }) => {
     throw new AppError('Vui lòng điền đầy đủ các thông tin bắt buộc.', 400);
   }
 
-  const passwordCheck = validatePasswordPolicy(newPassword);
+  const security = await getSecuritySettings();
+  const passwordCheck = validatePasswordPolicy(newPassword, {
+    minLength: security.passwordMinLength,
+    requireStrong: security.requireStrongPassword,
+  });
   if (!passwordCheck.valid) {
     throw new AppError(passwordCheck.message, 400);
   }

@@ -4,11 +4,25 @@ const LoginLockout = require('../models/LoginLockout');
 const AppError = require('../utils/AppError');
 const { sendLoginLockAlertEmail } = require('./email.service');
 
-const ATTEMPTS_PER_TIER = 5;
+const DEFAULT_ATTEMPTS_PER_TIER = 5;
 const TIER1_LOCK_MS = 30 * 1000;
-const TIER2_LOCK_MS = 3 * 60 * 1000;
+const DEFAULT_TIER2_LOCK_MS = 3 * 60 * 1000;
 const UNLOCK_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const DUMMY_PASSWORD_HASH = '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW';
+
+// Đọc ngưỡng từ cấu hình hệ thống (require trễ tránh phụ thuộc vòng).
+const getLockoutPolicy = async () => {
+  try {
+    const { getSecuritySettings } = require('./systemSettings.service');
+    const s = await getSecuritySettings();
+    return {
+      maxAttempts: Math.max(1, Number(s.maxLoginAttempts) || DEFAULT_ATTEMPTS_PER_TIER),
+      tier2LockMs: Math.max(1, Number(s.lockoutMinutes) || 3) * 60 * 1000,
+    };
+  } catch {
+    return { maxAttempts: DEFAULT_ATTEMPTS_PER_TIER, tier2LockMs: DEFAULT_TIER2_LOCK_MS };
+  }
+};
 
 const normalizeEmail = (email) => email.trim().toLowerCase();
 
@@ -40,10 +54,10 @@ const throwEmailLockedError = () => {
   throw err;
 };
 
-const throwTempLockedError = (record) => {
+const throwTempLockedError = (record, maxAttempts = DEFAULT_ATTEMPTS_PER_TIER) => {
   const retryAfterSeconds = getLockRemainingSeconds(record.lockedUntil);
   const err = new AppError(
-    `Bạn đã nhập sai mật khẩu quá ${ATTEMPTS_PER_TIER} lần. Vui lòng thử lại sau ${retryAfterSeconds} giây.`,
+    `Bạn đã nhập sai mật khẩu quá ${maxAttempts} lần. Vui lòng thử lại sau ${retryAfterSeconds} giây.`,
     423
   );
   err.extra = {
@@ -66,11 +80,12 @@ const assertLoginAllowed = async (email) => {
   if (record.emailLocked) throwEmailLockedError();
 
   if (getLockRemainingSeconds(record.lockedUntil) > 0) {
-    throwTempLockedError(record);
+    const { maxAttempts } = await getLockoutPolicy();
+    throwTempLockedError(record, maxAttempts);
   }
 };
 
-const applyTierLock = async (record, userForEmail) => {
+const applyTierLock = async (record, userForEmail, tier2LockMs = DEFAULT_TIER2_LOCK_MS) => {
   if (record.penaltyStage === 0) {
     record.lockedUntil = new Date(Date.now() + TIER1_LOCK_MS);
     record.failedAttempts = 0;
@@ -80,7 +95,7 @@ const applyTierLock = async (record, userForEmail) => {
   }
 
   if (record.penaltyStage === 1) {
-    record.lockedUntil = new Date(Date.now() + TIER2_LOCK_MS);
+    record.lockedUntil = new Date(Date.now() + tier2LockMs);
     record.failedAttempts = 0;
     record.penaltyStage = 2;
     await record.save();
@@ -126,8 +141,9 @@ const recordFailedLogin = async (email, userForEmail = null) => {
 
   record.failedAttempts += 1;
 
-  if (record.failedAttempts >= ATTEMPTS_PER_TIER) {
-    return applyTierLock(record, userForEmail);
+  const { maxAttempts, tier2LockMs } = await getLockoutPolicy();
+  if (record.failedAttempts >= maxAttempts) {
+    return applyTierLock(record, userForEmail, tier2LockMs);
   }
 
   await record.save();
@@ -146,11 +162,12 @@ const throwAfterFailedLogin = async (record) => {
     throw err;
   }
 
+  const { maxAttempts } = await getLockoutPolicy();
   if (getLockRemainingSeconds(record.lockedUntil) > 0) {
-    throwTempLockedError(record);
+    throwTempLockedError(record, maxAttempts);
   }
 
-  const remainingAttempts = Math.max(0, ATTEMPTS_PER_TIER - record.failedAttempts);
+  const remainingAttempts = Math.max(0, maxAttempts - record.failedAttempts);
   const err = new AppError(
     remainingAttempts > 0
       ? `Tài khoản hoặc mật khẩu không chính xác. Bạn còn ${remainingAttempts} lần thử.`
@@ -197,7 +214,7 @@ const verifyPasswordWithTiming = async (password, passwordHash) => {
 };
 
 module.exports = {
-  ATTEMPTS_PER_TIER,
+  ATTEMPTS_PER_TIER: DEFAULT_ATTEMPTS_PER_TIER,
   assertLoginAllowed,
   recordFailedLogin,
   throwAfterFailedLogin,

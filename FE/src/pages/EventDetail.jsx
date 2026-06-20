@@ -4,6 +4,9 @@ import SiteFooter from '../components/SiteFooter';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import EventTicketModal from '../components/EventTicketModal';
+import PaymentModal from '../components/PaymentModal';
+import { checkoutEventTicket } from '../services/paymentApi';
+import { fetchAdminPayments } from '../services/adminApi';
 import useUserProfile from '../hooks/useUserProfile';
 import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
@@ -80,6 +83,10 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [ticketData, setTicketData] = useState(null);
   const [registrationId, setRegistrationId] = useState(null);
+  const [paymentData, setPaymentData] = useState(null);
+  const [paymentPaid, setPaymentPaid] = useState(false);
+  const [adminPayments, setAdminPayments] = useState(null);
+  const [adminPaymentsLoading, setAdminPaymentsLoading] = useState(false);
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = userProfile.role || getUserRole();
   const isAdminViewer = isLoggedIn && isAdminRole(role);
@@ -197,7 +204,54 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
       return;
     }
 
+    // Vé có phí → mở luồng thanh toán SePay; vé miễn phí → xác nhận đăng ký thường
+    if (event.amountDue > 0) {
+      handleCheckout();
+      return;
+    }
+
     setRegisterConfirmOpen(true);
+  };
+
+  const handleCheckout = async () => {
+    if (!event) return;
+    setRegisterLoading(true);
+    try {
+      const res = await checkoutEventTicket(event.id);
+      setPaymentPaid(false);
+      setPaymentData(res.payment);
+    } catch (err) {
+      showToast?.(err.message || 'Không thể tạo đơn thanh toán.', 'error');
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
+  const handlePaymentPaid = async () => {
+    setPaymentPaid(true);
+    try {
+      const refreshData = await fetchPublicEventById(event.id, { forceRefresh: true });
+      if (refreshData?.success && refreshData.event) {
+        const updatedEvent = mapApiEventToDetail({ ...refreshData.event, isRegistered: true });
+        setEvent(updatedEvent);
+        syncEventRegistrationInCache(event.id, refreshData.event, { registered: true });
+      }
+    } catch {
+      /* vẫn coi như đã thanh toán; lần tải lại sau sẽ đồng bộ */
+    }
+  };
+
+  const handleClosePayment = () => {
+    setPaymentData(null);
+    if (paymentPaid && event) {
+      setTicketData(
+        buildTicketFromDetailEvent(
+          { ...event, isRegistered: true },
+          { holderName, registrationId },
+        ),
+      );
+    }
+    setPaymentPaid(false);
   };
 
   const handleConfirmRegister = async () => {
@@ -510,9 +564,77 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                       : 'Chế độ xem — Admin không đăng ký tham gia từ trang này.'}
                 </p>
                 {isAdminViewer && (
-                  <Link to="/admin/events" className="event-detail-page__admin-portal-link">
-                    Mở trong portal duyệt sự kiện
-                  </Link>
+                  <>
+                    <Link to="/admin/events" className="event-detail-page__admin-portal-link">
+                      Mở trong portal duyệt sự kiện
+                    </Link>
+                    <div style={{ marginTop: 16, borderTop: '1px solid var(--border-light, #e8e0da)', paddingTop: 14 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Lịch sử thanh toán</span>
+                        {adminPayments === null && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setAdminPaymentsLoading(true);
+                              try {
+                                const res = await fetchAdminPayments({ eventId: eventId, limit: 50 });
+                                setAdminPayments(res);
+                              } catch {
+                                setAdminPayments({ payments: [], total: 0 });
+                              } finally {
+                                setAdminPaymentsLoading(false);
+                              }
+                            }}
+                            style={{ fontSize: '0.78rem', color: 'var(--primary, #e85d04)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                          >
+                            {adminPaymentsLoading ? 'Đang tải…' : 'Xem'}
+                          </button>
+                        )}
+                        {adminPayments !== null && (
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{adminPayments.total ?? adminPayments.payments?.length ?? 0} giao dịch</span>
+                        )}
+                      </div>
+                      {adminPayments !== null && (
+                        adminPayments.payments?.length === 0 ? (
+                          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>Chưa có giao dịch nào.</p>
+                        ) : (
+                          <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                              <thead>
+                                <tr style={{ borderBottom: '1px solid var(--border-light, #e8e0da)' }}>
+                                  <th style={{ textAlign: 'left', padding: '4px 6px', color: 'var(--text-muted)', fontWeight: 600 }}>Mã</th>
+                                  <th style={{ textAlign: 'left', padding: '4px 6px', color: 'var(--text-muted)', fontWeight: 600 }}>Email</th>
+                                  <th style={{ textAlign: 'right', padding: '4px 6px', color: 'var(--text-muted)', fontWeight: 600 }}>Số tiền</th>
+                                  <th style={{ textAlign: 'left', padding: '4px 6px', color: 'var(--text-muted)', fontWeight: 600 }}>TT</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {adminPayments.payments.map((p) => (
+                                  <tr key={p._id || p.code} style={{ borderBottom: '1px solid #f5f0ec' }}>
+                                    <td style={{ padding: '4px 6px', fontFamily: 'monospace' }}>{p.code}</td>
+                                    <td style={{ padding: '4px 6px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.userEmail}</td>
+                                    <td style={{ padding: '4px 6px', textAlign: 'right', fontWeight: 600 }}>{(p.amount || 0).toLocaleString('vi-VN')}đ</td>
+                                    <td style={{ padding: '4px 6px' }}>
+                                      <span style={{
+                                        display: 'inline-block', padding: '1px 6px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600,
+                                        background: p.status === 'paid' ? '#d1fae5' : p.status === 'pending' ? '#fef3c7' : '#f1f5f9',
+                                        color: p.status === 'paid' ? '#065f46' : p.status === 'pending' ? '#92400e' : '#64748b',
+                                      }}>
+                                        {p.status === 'paid' ? 'Đã TT' : p.status === 'pending' ? 'Chờ' : p.status === 'expired' ? 'Hết hạn' : p.status}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            <a href="/admin/payments" style={{ display: 'block', marginTop: 8, fontSize: '0.78rem', color: 'var(--primary)', textAlign: 'right' }}>
+                              Xem đầy đủ →
+                            </a>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </>
                 )}
                 {ctsvManageAccess?.canManage && ctsvManageAccess.managePath && (
                   <Link to={ctsvManageAccess.managePath} className="event-detail-page__admin-portal-link">
@@ -652,6 +774,14 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
         ticket={ticketData}
         onClose={() => setTicketData(null)}
       />
+      {paymentData && (
+        <PaymentModal
+          payment={paymentData}
+          onPaid={handlePaymentPaid}
+          onClose={handleClosePayment}
+          showToast={showToast}
+        />
+      )}
     </>
   );
 

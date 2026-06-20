@@ -9,6 +9,7 @@ const partnerRoutes = require('./partner.routes');
 const announcementRoutes = require('./announcement.routes');
 const announcementManageRoutes = require('./announcementManage.routes');
 const systemRoutes = require('./system.routes');
+const paymentRoutes = require('./payment.routes');
 const maintenanceGate = require('../middleware/maintenanceGate');
 
 const router = express.Router();
@@ -25,5 +26,6 @@ router.use('/announcements', announcementRoutes);
 router.use('/ctsv', ctsvRoutes);
 router.use('/admin', adminRoutes);
 router.use('/partner', partnerRoutes);
+router.use('/payments', paymentRoutes);
 
 module.exports = router;

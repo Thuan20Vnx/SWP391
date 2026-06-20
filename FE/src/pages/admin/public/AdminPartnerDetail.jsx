@@ -80,8 +80,12 @@ const AdminPartnerDetail = ({ showToast }) => {
   const handleApprove = async () => {
     setBusy(true);
     try {
-      await approveAdminPartner(partnerId);
-      showToast?.(t('admin.partnerApprovals.toast.approved'), 'success');
+      const res = await approveAdminPartner(partnerId);
+      if (res.accountCreated) {
+        showToast?.(t('admin.partnerApprovals.toast.approvedWithAccount'), 'success');
+      } else {
+        showToast?.(t('admin.partnerApprovals.toast.approved'), 'success');
+      }
       setConfirmApprove(false);
       await load();
     } catch (e) {

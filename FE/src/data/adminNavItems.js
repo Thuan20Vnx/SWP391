@@ -13,6 +13,8 @@ export const ADMIN_NAV_ITEMS = [
   { path: '/admin', labelKey: 'admin.nav.dashboard', icon: 'dashboard', end: true },
   { path: '/admin/profile', labelKey: 'admin.nav.profile', icon: 'profile' },
   { path: '/admin/calendar', labelKey: 'admin.nav.calendar', icon: 'calendar' },
+  { sectionKey: 'admin.section.eventsManage' },
+  { path: '/admin/events/approved', labelKey: 'admin.nav.allEvents', icon: 'events' },
   { sectionKey: 'admin.section.management' },
   { path: '/admin/accounts', labelKey: 'admin.nav.accounts', icon: 'accounts' },
   { path: '/admin/system', labelKey: 'admin.nav.system', icon: 'system' },

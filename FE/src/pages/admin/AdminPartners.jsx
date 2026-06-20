@@ -6,10 +6,8 @@ import {
   PARTNER_UPLOAD_ACCEPT,
   PARTNER_UPLOAD_MAX_BYTES,
   emptyPartnerForm,
-  loadStoredPartners,
-  partnerFormToRecord,
-  saveStoredPartners,
 } from '../../data/adminPartnersData';
+import { createAdminPartner } from '../../services/adminApi';
 import { getUserRole, isAdminRole } from '../../utils/auth';
 import { useTranslation } from '../../i18n/I18nContext';
 import '../../styles/admin-dashboard.css';
@@ -103,13 +101,21 @@ const AdminPartners = () => {
 
     setSubmitting(true);
     try {
-      const record = partnerFormToRecord(form, attachment);
-      const list = loadStoredPartners();
-      saveStoredPartners([record, ...list]);
-      showToast?.(t('admin.partners.toast.added'), 'success');
+      const res = await createAdminPartner({
+        name: form.companyName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        representative: form.representative.trim(),
+        category: form.field,
+      });
+      if (res.accountCreated) {
+        showToast?.(t('admin.partners.toast.addedWithAccount'), 'success');
+      } else {
+        showToast?.(t('admin.partners.toast.added'), 'success');
+      }
       resetForm();
-    } catch {
-      showToast?.(t('admin.partners.toast.saveFail'), 'error');
+    } catch (err) {
+      showToast?.(err.message || t('admin.partners.toast.saveFail'), 'error');
     } finally {
       setSubmitting(false);
     }

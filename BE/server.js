@@ -40,6 +40,12 @@ process.on('unhandledRejection', (reason) => {
 const startServer = async () => {
   await connectDB();
 
+  // Cron: hết hạn đơn pending mỗi 5 phút
+  const { expireStalePayments } = require('./src/services/payment.service');
+  setInterval(() => {
+    expireStalePayments().catch((err) => console.error('[Cron] expireStalePayments:', err.message));
+  }, 5 * 60 * 1000);
+
   server = http.createServer(app);
   server.listen(PORT, () => {
     console.log(`Backend server running at http://localhost:${PORT}/`);

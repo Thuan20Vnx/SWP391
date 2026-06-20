@@ -64,6 +64,9 @@ import AdminSubmittedReports from './pages/admin/AdminSubmittedReports';
 import AdminSubmittedReportDetail from './pages/admin/AdminSubmittedReportDetail';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
+import MyPayments from './pages/MyPayments';
+import AdminPayments from './pages/admin/AdminPayments';
+import AdminAllEvents from './pages/admin/AdminAllEvents';
 import Schedule from './pages/Schedule';
 import EventReviews from './pages/EventReviews';
 import Announcements from './pages/Announcements';
@@ -449,6 +452,8 @@ function App() {
               <Route path="partners" element={<AdminPartners />} />
               <Route path="partners/approvals" element={<AdminPartnerApprovals showToast={showToast} />} />
               <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="payments" element={<AdminPayments showToast={showToast} />} />
+              <Route path="events/approved" element={<AdminAllEvents showToast={showToast} />} />
               <Route path="announcements" element={<AdminAnnouncementManage />} />
               <Route path="unit-events/:unitType/:unitId" element={<AdminFptUnitEvents />} />
               <Route path="unit-notify/:unitType/:unitId" element={<AdminFptUnitNotify />} />
@@ -479,6 +484,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyClubs showToast={showToast} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-payments"
+            element={
+              <ProtectedRoute>
+                <MyPayments showToast={showToast} />
               </ProtectedRoute>
             }
           />
