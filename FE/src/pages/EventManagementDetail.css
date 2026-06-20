@@ -159,9 +159,14 @@
 }
 
 .ev-rejection-reason {
-  margin: 0;
-  padding-top: 14px;
-  border-top: 1px solid #fee2e2;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 0 16px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border-left: 3px solid #fca5a5;
+  background: #fef2f2;
 }
 
 .ev-btn-qr {
@@ -172,23 +177,47 @@
 }
 
 .ev-rejection-reason__label {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: #991b1b;
-  margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
+  padding-top: 1px;
+  min-width: 72px;
 }
 
 .ev-rejection-reason__text {
   margin: 0;
-  padding: 12px 14px;
-  border-radius: 8px;
-  background: #fef2f2;
-  color: #991b1b;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  color: #7f1d1d;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.ev-rejection-reason--info {
+  background: #eff6ff;
+  border-left-color: #93c5fd;
+}
+
+.ev-rejection-reason--info .ev-rejection-reason__label {
+  color: #1d4ed8;
+}
+
+.ev-rejection-reason--info .ev-rejection-reason__text {
+  color: #1e3a8a;
+}
+
+.ev-rejection-reason--warning {
+  background: #fffbeb;
+  border-left-color: #fcd34d;
+}
+
+.ev-rejection-reason--warning .ev-rejection-reason__label {
+  color: #92400e;
+}
+
+.ev-rejection-reason--warning .ev-rejection-reason__text {
+  color: #78350f;
 }
 
 .ev-subtitle {
