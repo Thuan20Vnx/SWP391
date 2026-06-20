@@ -309,10 +309,10 @@ router.get('/events/moderation/pending-icpdp', requireIcpdpOrCtsv, async (req, r
 // PHẢI đặt trước /events/:id để tránh Express match 'approved' vào :id
 router.get('/events/approved', async (req, res) => {
   try {
-    const APPROVED_STATUSES = ['approved', 'live', 'ended', 'expired'];
-    const { source, search, page = 1, limit = 20 } = req.query;
+    const { source, search, status, page = 1, limit = 20 } = req.query;
 
-    const filter = { isDeleted: { $ne: true }, status: { $in: APPROVED_STATUSES }, partnerId: { $in: [null] } };
+    const filter = { isDeleted: { $ne: true }, partnerId: { $in: [null] } };
+    if (status && status !== 'all') filter.status = status;
     if (source && source !== 'all') filter.source = source;
     if (search) {
       filter.$or = [
