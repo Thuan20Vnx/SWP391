@@ -135,7 +135,11 @@ router.use(requireCtsvPortal);
 
 const buildEventFilter = (query) => {
   const filter = {};
-  if (query.status) filter.status = query.status;
+  if (query.status) {
+    filter.status = query.status;
+  } else {
+    filter.status = { $nin: ['rejected', 'cancelled'] };
+  }
   if (query.category && query.category !== 'Tất cả') filter.category = query.category;
 
   const searchOr = buildEventTextSearchOr(query.q || query.search);
