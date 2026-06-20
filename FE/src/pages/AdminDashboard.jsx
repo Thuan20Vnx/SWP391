@@ -124,7 +124,7 @@ const AdminDashboard = ({ showToast }) => {
   const loadAll = useCallback(() => {
     setLoading(true);
     Promise.all([
-      fetchCtsvEvents().catch(() => ({ success: false, events: [] })),
+      fetchCtsvEvents({ status: 'all' }).catch(() => ({ success: false, events: [] })),
       fetchCtsvProposals({ status: 'all' }).catch(() => ({ success: false, proposals: [] })),
     ])
       .then(([eventData, proposalData]) => {
