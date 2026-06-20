@@ -7,8 +7,6 @@ import '../../styles/admin-dashboard.css';
 const SOURCE_TABS = [
   { value: 'all',     label: 'Tất cả' },
   { value: 'school',  label: 'CTSV' },
-  { value: 'club',    label: 'CLB' },
-  { value: 'icpdp',   label: 'IC-PDP' },
   { value: 'partner', label: 'Đối tác' },
 ];
 
