@@ -1522,10 +1522,10 @@
   background: #fef2f2;
 }
 
-.event-ticket-price-input--free {
+.event-ticket-price-input--free::placeholder {
   color: #16a34a;
   font-weight: 600;
-  cursor: text;
+  opacity: 1;
 }
 
 .event-ticket-types-editor .ctsv-ticket-table {
