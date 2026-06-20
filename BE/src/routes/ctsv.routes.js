@@ -692,7 +692,7 @@ router.get('/events/approved', async (req, res) => {
     return res.json({ success: true, events: events.map(formatEvent), total, page: parseInt(page), limit: lim });
   } catch (err) {
     console.error('ctsv events/approved:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!', debug: err.message });
   }
 });
 
