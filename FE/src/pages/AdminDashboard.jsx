@@ -11,6 +11,7 @@ import {
   rejectCtsvEvent,
   rejectCtsvProposal,
 } from '../services/ctsvApi';
+import { approveAdminSchoolEvent, rejectAdminSchoolEvent } from '../services/adminApi';
 import { isAdminRole, isCtsvRole, isIcpdpRole, normalizeRole } from '../utils/auth';
 import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
 import '../styles/admin-dashboard.css';
@@ -223,6 +224,8 @@ const AdminDashboard = ({ showToast }) => {
         } else {
           await approveCtsvProposal(item.id);
         }
+      } else if (item.source === 'school') {
+        await approveAdminSchoolEvent(item.id);
       } else {
         await approveCtsvEvent(item.id);
       }
@@ -241,6 +244,8 @@ const AdminDashboard = ({ showToast }) => {
     try {
       if (item.kind === 'proposal') {
         await rejectCtsvProposal(item.id, reason);
+      } else if (item.source === 'school') {
+        await rejectAdminSchoolEvent(item.id, reason);
       } else {
         await rejectCtsvEvent(item.id, reason);
       }
