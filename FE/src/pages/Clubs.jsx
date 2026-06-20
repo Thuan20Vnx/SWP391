@@ -32,17 +32,12 @@ const Clubs = ({ showToast }) => {
     fetch(`${API_BASE}/api/clubs`, { headers: getAuthHeaders(false) })
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.clubs?.length > 0) {
-          setClubs(data.clubs.map(mapApiClubToListItem));
-          setTotalClubs(data.total ?? data.clubs.length);
-        } else {
-          setClubs(CLUB_SAMPLE_DATA);
-          setTotalClubs(CLUB_SAMPLE_DATA.length);
+        if (data.success) {
+          setClubs((data.clubs || []).map(mapApiClubToListItem));
+          setTotalClubs(data.total ?? data.clubs?.length ?? 0);
         }
       })
       .catch(() => {
-        setClubs(CLUB_SAMPLE_DATA);
-        setTotalClubs(CLUB_SAMPLE_DATA.length);
         showToast?.('Không thể tải danh sách CLB', 'error');
       })
       .finally(() => setLoading(false));
