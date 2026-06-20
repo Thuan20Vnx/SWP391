@@ -327,7 +327,7 @@ const AdminDashboard = ({ showToast }) => {
               <div className="adm-ev-menu">
                 {CTSV_SUB_OPTS.map(o => (
                   <button key={o.id} type="button"
-                    className={`adm-ev-menu__item${ctsvSub === o.id ? ' adm-ev-menu__item--active' : ''}`}
+                    className={`adm-ev-menu-item${ctsvSub === o.id ? ' adm-ev-menu-item--active' : ''}`}
                     onClick={() => { setCtsvSub(o.id); setCtsvOpen(false); }}
                   >{o.label}</button>
                 ))}
@@ -348,7 +348,7 @@ const AdminDashboard = ({ showToast }) => {
               <div className="adm-ev-menu">
                 {ICPDP_SUB_OPTS.map(o => (
                   <button key={o.id} type="button"
-                    className={`adm-ev-menu__item${icpdpSub === o.id ? ' adm-ev-menu__item--active' : ''}`}
+                    className={`adm-ev-menu-item${icpdpSub === o.id ? ' adm-ev-menu-item--active' : ''}`}
                     onClick={() => { setIcpdpSub(o.id); setIcpdpOpen(false); }}
                   >{o.label}</button>
                 ))}
