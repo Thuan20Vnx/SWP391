@@ -31,8 +31,55 @@ import {
 } from '../utils/announcementReadState';
 
 import { NOTIFICATION_TONE_META, NotificationToneIcon } from '../utils/notificationTone.jsx';
+import useNotifications from '../hooks/useNotifications';
 
 import '../styles/notifications.css';
+
+const ROLES_WITH_SYS_NOTIF = ['admin', 'ctsv', 'icpdp', 'club', 'partner'];
+
+const TYPE_TO_TONE = {
+  event_submit: 'info',
+  event_approve: 'success',
+  event_reject: 'alert',
+  partner_submit: 'info',
+  club_submit: 'info',
+};
+
+const formatRelativeTime = (dateStr) => {
+  if (!dateStr) return '';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Vừa xong';
+  if (mins < 60) return `${mins} phút trước`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} giờ trước`;
+  const days = Math.floor(hrs / 24);
+  return `${days} ngày trước`;
+};
+
+const refToLink = (refType, refId, role) => {
+  if (!refId) return null;
+  if (refType === 'Event') {
+    if (role === 'admin') return '/admin/events';
+    if (role === 'ctsv') return `/ctsv/events/${refId}`;
+    if (role === 'icpdp') return `/icpdp/events/${refId}`;
+    return `/events/${refId}`;
+  }
+  return null;
+};
+
+const mapSysNotif = (n, role) => ({
+  id: `sys_${n._id || n.id}`,
+  _sysId: String(n._id || n.id),
+  _isSys: true,
+  title: n.title,
+  body: n.body || '',
+  time: formatRelativeTime(n.createdAt),
+  unread: !n.isRead,
+  tone: TYPE_TO_TONE[n.type] || 'info',
+  toneLabel: 'Hệ thống',
+  link: refToLink(n.refType, n.refId, role),
+});
 
 
 
@@ -166,6 +213,14 @@ const HeaderNotificationPanel = ({
 
   const useLiveAnnouncements = true;
 
+  const hasSysNotif = ROLES_WITH_SYS_NOTIF.includes(role);
+
+  const {
+    notifications: sysNotifs,
+    markRead: sysMarkRead,
+    markAllRead: sysMarkAllRead,
+  } = useNotifications();
+
 
 
   const seed = useMemo(() => {
@@ -186,14 +241,14 @@ const HeaderNotificationPanel = ({
 
 
 
-  const [items, setItems] = useState(seed);
+  const [annItems, setAnnItems] = useState(seed);
 
 
 
   const loadPublicAnnouncements = useCallback(async () => {
     try {
       const list = applyReadState(await fetchPublicAnnouncements(8));
-      setItems(
+      setAnnItems(
         list.map((a) => ({
           id: a.id,
           title: a.title,
@@ -206,7 +261,7 @@ const HeaderNotificationPanel = ({
         })),
       );
     } catch {
-      setItems([]);
+      setAnnItems([]);
     }
   }, [role]);
 
@@ -222,7 +277,7 @@ const HeaderNotificationPanel = ({
 
     }
 
-    setItems(seed);
+    setAnnItems(seed);
 
   }, [seed, useLiveAnnouncements, loadPublicAnnouncements]);
 
@@ -235,6 +290,16 @@ const HeaderNotificationPanel = ({
     loadPublicAnnouncements();
 
   }, [open, useLiveAnnouncements, loadPublicAnnouncements]);
+
+  const sysItems = useMemo(
+    () => (hasSysNotif ? sysNotifs.map((n) => mapSysNotif(n, role)) : []),
+    [sysNotifs, hasSysNotif, role],
+  );
+
+  const items = useMemo(
+    () => [...sysItems, ...annItems],
+    [sysItems, annItems],
+  );
 
 
 
@@ -276,11 +341,13 @@ const HeaderNotificationPanel = ({
 
     if (useLiveAnnouncements) {
 
-      markAllAnnouncementsRead(items.map((n) => n.id));
+      markAllAnnouncementsRead(annItems.map((n) => n.id));
 
     }
 
-    setItems((prev) => prev.map((n) => ({ ...n, unread: false })));
+    setAnnItems((prev) => prev.map((n) => ({ ...n, unread: false })));
+
+    if (hasSysNotif) sysMarkAllRead();
 
   };
 
@@ -288,15 +355,12 @@ const HeaderNotificationPanel = ({
 
   const handleItemClick = (item) => {
 
-    if (useLiveAnnouncements) {
-
+    if (item._isSys) {
+      sysMarkRead(item._sysId);
+    } else if (useLiveAnnouncements) {
       markAnnouncementRead(item.id);
-
+      setAnnItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, unread: false } : n)));
     }
-
-    setItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, unread: false } : n)));
-
-
 
     if (item.link) {
 
