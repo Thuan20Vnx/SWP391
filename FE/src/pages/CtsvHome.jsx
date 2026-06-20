@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
 import HomeHeroSlider from '../components/home/HomeHeroSlider';
-import { fetchCtsvEvents, fetchCtsvStats, MOCK_EVENTS, MOCK_STATS } from '../services/ctsvApi';
+import { fetchCtsvEvents, fetchCtsvStats } from '../services/ctsvApi';
 import { isCtsvManagedEvent, isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../constants/eventCategories';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
@@ -104,26 +104,26 @@ const CtsvHome = ({ showToast }) => {
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
 
-  const [events, setEvents] = useState(MOCK_EVENTS);
-  const [filteredEvents, setFilteredEvents] = useState(MOCK_EVENTS);
-  const [stats, setStats] = useState(MOCK_STATS);
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [stats, setStats] = useState([]);
   const [livePage, setLivePage] = useState(1);
   const [managedPage, setManagedPage] = useState(1);
 
   useEffect(() => {
     fetchCtsvStats()
-      .then((d) => setStats(d.stats || MOCK_STATS))
-      .catch(() => setStats(MOCK_STATS));
+      .then((d) => setStats(d.stats || []))
+      .catch(() => setStats([]));
 
     fetchCtsvEvents()
       .then((d) => {
-        const list = d.events?.length ? d.events : MOCK_EVENTS;
+        const list = d.events || [];
         setEvents(list);
         setFilteredEvents(list);
       })
       .catch(() => {
-        setEvents(MOCK_EVENTS);
-        setFilteredEvents(MOCK_EVENTS);
+        setEvents([]);
+        setFilteredEvents([]);
       });
   }, []);
 

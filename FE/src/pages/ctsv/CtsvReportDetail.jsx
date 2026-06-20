@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import {
-  DEMO_REPORT_EVENT_ID,
   fetchCtsvReportDetail,
-  MOCK_REPORT_DETAIL,
   submitCtsvReport,
 } from '../../services/ctsvApi';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
@@ -70,16 +68,6 @@ const CtsvReportDetail = () => {
         setSubmission(d.submission || null);
       })
       .catch((err) => {
-        const useDemoFallback =
-          id === DEMO_REPORT_EVENT_ID ||
-          (err.status === 404 && String(err.message || '').includes('endpoint'));
-
-        if (useDemoFallback && id === DEMO_REPORT_EVENT_ID) {
-          setReport(MOCK_REPORT_DETAIL);
-          showToast?.('Dùng bản demo, hãy restart backend để bật API báo cáo.', 'info');
-          return;
-        }
-
         showToast?.(err.message || 'Không tải được báo cáo.', 'error');
         navigate('/ctsv/reports');
       })
