@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import PortalDashHero from '../../components/portal/PortalDashHero';
-import { fetchPartnerContracts, PARTNER_MOCK_CONTRACTS } from '../../services/partnerApi';
+import { fetchPartnerContracts } from '../../services/partnerApi';
 import { formatPartnerDate, formatVnd } from '../../utils/partnerDisplay';
 
 const CONTRACT_STATUS_LABEL = {
@@ -28,8 +28,8 @@ const PartnerContractList = () => {
     fetchPartnerContracts()
       .then((d) => setContracts(d.contracts || []))
       .catch(() => {
-        setContracts(PARTNER_MOCK_CONTRACTS);
-        showToast?.('Dùng dữ liệu demo — kiểm tra BE đang chạy.', 'info');
+        setContracts([]);
+        showToast?.('Không thể tải danh sách hợp đồng.', 'error');
       })
       .finally(() => setLoading(false));
   }, [showToast]);

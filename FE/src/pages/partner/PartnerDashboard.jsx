@@ -6,9 +6,6 @@ import {
   fetchPartnerEvents,
   fetchPartnerMe,
   fetchPartnerStats,
-  PARTNER_RECENT_ACTIVITY,
-  PARTNER_MOCK_EVENTS,
-  PARTNER_MOCK_STATS
 } from '../../services/partnerApi';
 import {
   PARTNER_STATUS_LABEL,
@@ -53,10 +50,10 @@ const PartnerDashboard = () => {
       })
       .catch(() => {
         if (cancelled) return;
-        setStats(PARTNER_MOCK_STATS);
-        setEvents(PARTNER_MOCK_EVENTS);
-        setActivity(PARTNER_RECENT_ACTIVITY);
-        showToast?.('Không kết nối được API đối tác — đang dùng dữ liệu mẫu.', 'error');
+        setStats([]);
+        setEvents([]);
+        setActivity([]);
+        showToast?.('Không kết nối được API đối tác.', 'error');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -73,8 +70,8 @@ const PartnerDashboard = () => {
   );
   const pendingCount = pendingEvents.length;
   const recentEvents = useMemo(() => events.slice(0, 4), [events]);
-  const statItems = useMemo(() => (stats.length ? stats : PARTNER_MOCK_STATS).slice(0, 3), [stats]);
-  const feedItems = activity.length ? activity : PARTNER_RECENT_ACTIVITY;
+  const statItems = useMemo(() => stats.slice(0, 3), [stats]);
+  const feedItems = activity;
 
   return (
     <div className="ctsv-dashboard partner-dashboard-mobile-like">

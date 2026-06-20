@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
-import { fetchIcpdpEvents, fetchIcpdpStats, ICPDP_MOCK_STATS } from '../services/icpdpApi';
+import { fetchIcpdpEvents, fetchIcpdpStats } from '../services/icpdpApi';
 import { isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
 import { getCategoryDisplayLabel } from '../constants/eventCategories';
@@ -93,14 +93,14 @@ const IcpdpHome = ({ showToast }) => {
 
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
-  const [stats, setStats] = useState(ICPDP_MOCK_STATS);
+  const [stats, setStats] = useState([]);
   const [livePage, setLivePage] = useState(1);
   const [clubPage, setClubPage] = useState(1);
 
   useEffect(() => {
     fetchIcpdpStats()
-      .then((d) => setStats(d.stats || ICPDP_MOCK_STATS))
-      .catch(() => setStats(ICPDP_MOCK_STATS));
+      .then((d) => setStats(d.stats || []))
+      .catch(() => setStats([]));
 
     fetchIcpdpEvents()
       .then((d) => {

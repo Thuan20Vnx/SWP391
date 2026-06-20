@@ -7,9 +7,6 @@ import {
   fetchIcpdpPerformance,
   fetchIcpdpProposals,
   fetchIcpdpStats,
-  ICPDP_MOCK_EVENTS,
-  ICPDP_MOCK_STATS,
-  ICPDP_RECENT_ACTIVITY
 } from '../../services/icpdpApi';
 import { isPendingApproval, statusClass } from '../../utils/eventStatus';
 
@@ -31,7 +28,7 @@ const IcpdpDashboard = () => {
   const navigate = useNavigate();
   const { userProfile } = useOutletContext() || {};
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(ICPDP_MOCK_STATS);
+  const [stats, setStats] = useState([]);
   const [events, setEvents] = useState([]);
   const [pendingProposals, setPendingProposals] = useState([]);
   const [performance, setPerformance] = useState([]);
@@ -41,14 +38,14 @@ const IcpdpDashboard = () => {
     setLoading(true);
 
     Promise.all([
-      fetchIcpdpStats().catch(() => ({ stats: ICPDP_MOCK_STATS })),
+      fetchIcpdpStats().catch(() => ({ stats: [] })),
       fetchIcpdpEvents().catch(() => ({ events: [] })),
       fetchIcpdpProposals({ status: 'pending_icpdp' }).catch(() => ({ proposals: [] })),
       fetchIcpdpPerformance().catch(() => ({ performance: [] })),
     ])
       .then(([statsRes, eventsRes, proposalsRes, perfRes]) => {
         if (cancelled) return;
-        setStats(statsRes.stats?.length ? statsRes.stats : ICPDP_MOCK_STATS);
+        setStats(statsRes.stats || []);
         const list = eventsRes.events || [];
         setEvents(list);
         setPendingProposals((proposalsRes.proposals || []).slice(0, 5));
@@ -310,25 +307,6 @@ const IcpdpDashboard = () => {
             </Link>
           </section>
 
-          <section className="ctsv-dash-panel">
-            <div className="ctsv-dash-panel__head">
-              <div>
-                <h2>Hoạt động gần đây</h2>
-                <p>Nhật ký hoạt động hệ thống</p>
-              </div>
-            </div>
-            <ul className="partner-activity-list">
-              {ICPDP_RECENT_ACTIVITY.map((item) => (
-                <li key={item.id} className="partner-activity-item">
-                  <span className="partner-activity-dot" aria-hidden style={{ background: 'var(--icpdp-accent)' }} />
-                  <div>
-                    {item.text}
-                    <span className="partner-activity-time">{item.time}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
 
           <section className="ctsv-dash-panel ctsv-dash-panel--compact">
             <h2 className="ctsv-dash-side-title">Gợi ý tuần này</h2>

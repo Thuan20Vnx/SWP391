@@ -6,8 +6,6 @@ import PartnerCampusEventsSection from '../components/partner/PartnerCampusEvent
 import {
   fetchPartnerEvents,
   fetchPartnerStats,
-  PARTNER_MOCK_EVENTS,
-  PARTNER_MOCK_STATS
 } from '../services/partnerApi';
 import { getPartnerOwnedEventCardAccess } from '../utils/partnerPublicEventAccess';
 import { statusClass } from '../utils/eventStatus';
@@ -108,24 +106,24 @@ const PartnerHome = ({ showToast }) => {
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
 
-  const [events, setEvents] = useState(PARTNER_MOCK_EVENTS);
-  const [filteredEvents, setFilteredEvents] = useState(PARTNER_MOCK_EVENTS);
-  const [stats, setStats] = useState(PARTNER_MOCK_STATS);
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [stats, setStats] = useState([]);
 
   useEffect(() => {
     fetchPartnerStats()
-      .then((d) => setStats(d.stats || PARTNER_MOCK_STATS))
-      .catch(() => setStats(PARTNER_MOCK_STATS));
+      .then((d) => setStats(d.stats || []))
+      .catch(() => setStats([]));
 
     fetchPartnerEvents()
       .then((d) => {
-        const list = d.events?.length ? d.events : PARTNER_MOCK_EVENTS;
+        const list = d.events || [];
         setEvents(list);
         setFilteredEvents(list);
       })
       .catch(() => {
-        setEvents(PARTNER_MOCK_EVENTS);
-        setFilteredEvents(PARTNER_MOCK_EVENTS);
+        setEvents([]);
+        setFilteredEvents([]);
       });
   }, []);
 
