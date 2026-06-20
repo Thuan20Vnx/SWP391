@@ -92,7 +92,12 @@ const EventTicketTypesEditor = ({ tickets = [], onChange, maxSlots, disabled = f
                 <td className="event-ticket-audience-cell">
                   <AppSelect
                     value={row.audience}
-                    onChange={(e) => updateRow(row.id, { audience: e.target.value })}
+                    onChange={(e) => {
+                      const audience = e.target.value;
+                      const patch = { audience };
+                      if (audience !== 'Khách ngoài trường') patch.priceAmount = 0;
+                      updateRow(row.id, patch);
+                    }}
                     options={TICKET_AUDIENCE_OPTIONS}
                     disabled={disabled}
                     variant="table"
@@ -112,7 +117,7 @@ const EventTicketTypesEditor = ({ tickets = [], onChange, maxSlots, disabled = f
                   <TicketPriceInput
                     value={row.priceAmount}
                     onChange={(next) => updateRow(row.id, { priceAmount: next })}
-                    disabled={disabled}
+                    disabled={disabled || row.audience !== 'Khách ngoài trường'}
                   />
                 </td>
                 <td>
