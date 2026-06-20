@@ -212,50 +212,70 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated }) =>
       )}
 
       {showSchoolModeration && (
-        <div className="ev-table-card" style={{ marginBottom: 16 }}>
-          <h3 style={{ margin: '0 0 8px', fontSize: '1.05rem' }}>Điều phối sự kiện cấp trường</h3>
-          <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: '0.9rem' }}>
-            Hủy, hoãn, ẩn hoặc yêu cầu chỉnh sửa. Hoãn do thời tiết áp dụng ngay; các thao tác khác cần Admin duyệt.
-          </p>
+        <div className="ctsv-moderation-card">
+          <div className="ctsv-moderation-header">
+            <div className="ctsv-moderation-header__icon">⚙️</div>
+            <div>
+              <h3 className="ctsv-moderation-header__title">Điều phối sự kiện cấp trường</h3>
+              <p className="ctsv-moderation-header__desc">
+                Hoãn do thời tiết áp dụng ngay · Các thao tác khác cần Admin phê duyệt
+              </p>
+            </div>
+          </div>
+
           {showOpenEditFormLink && (
-            <div style={{ marginBottom: 16 }}>
-              <p style={{ margin: '0 0 8px', fontSize: '0.9rem' }}>Admin đã phê duyệt yêu cầu chỉnh sửa.</p>
+            <div className="ctsv-moderation-edit-approved">
+              <span className="ctsv-moderation-edit-approved__badge">✅ Admin đã duyệt chỉnh sửa</span>
               <Link to={`/ctsv/events/${eventId}/edit`} className="ev-btn-primary" style={{ display: 'inline-flex' }}>
                 Mở form chỉnh sửa
               </Link>
             </div>
           )}
-          <textarea
-            className="ctsv-textarea"
-            placeholder="Lý do hủy / hoãn / ẩn / chỉnh sửa..."
-            value={moderationReason}
-            onChange={(e) => setModerationReason(e.target.value)}
-            rows={3}
-            style={{ width: '100%', marginBottom: 12 }}
-          />
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: '0.9rem' }}>
-            <input
-              type="checkbox"
-              checked={weatherPostpone}
-              onChange={(e) => setWeatherPostpone(e.target.checked)}
+
+          <div className="ctsv-moderation-body">
+            <label className="ctsv-moderation-label">Lý do thực hiện</label>
+            <textarea
+              className="ctsv-moderation-textarea"
+              placeholder="Mô tả lý do hủy / hoãn / ẩn / chỉnh sửa..."
+              value={moderationReason}
+              onChange={(e) => setModerationReason(e.target.value)}
+              rows={3}
             />
-            Hoãn do thời tiết (không cần Admin duyệt)
-          </label>
-          <div className="ctsv-action-buttons" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {showRequestEditBtn && (
-              <button type="button" className="ev-btn-primary" onClick={() => openModerationConfirm('edit')}>
-                Yêu cầu chỉnh sửa
+
+            <label className="ctsv-weather-toggle">
+              <div className={`ctsv-weather-toggle__track ${weatherPostpone ? 'ctsv-weather-toggle__track--on' : ''}`}>
+                <div className="ctsv-weather-toggle__thumb" />
+              </div>
+              <input
+                type="checkbox"
+                checked={weatherPostpone}
+                onChange={(e) => setWeatherPostpone(e.target.checked)}
+                style={{ display: 'none' }}
+              />
+              <span className="ctsv-weather-toggle__label">
+                🌧️ Hoãn do thời tiết
+                <span className="ctsv-weather-toggle__sublabel">Áp dụng ngay, không cần Admin duyệt</span>
+              </span>
+            </label>
+
+            <div className="ctsv-moderation-actions">
+              <div className="ctsv-moderation-actions__left">
+                {showRequestEditBtn && (
+                  <button type="button" className="ctsv-action-btn ctsv-action-btn--edit" onClick={() => openModerationConfirm('edit')}>
+                    ✏️ Yêu cầu chỉnh sửa
+                  </button>
+                )}
+                <button type="button" className="ctsv-action-btn ctsv-action-btn--postpone" onClick={() => openModerationConfirm('postpone')}>
+                  {weatherPostpone ? '🌧️ Hoãn (thời tiết)' : '⏸️ Yêu cầu hoãn'}
+                </button>
+                <button type="button" className="ctsv-action-btn ctsv-action-btn--hide" onClick={() => openModerationConfirm('hide')}>
+                  👁️ Yêu cầu ẩn
+                </button>
+              </div>
+              <button type="button" className="ctsv-action-btn ctsv-action-btn--cancel" onClick={() => openModerationConfirm('cancel')}>
+                🚫 Yêu cầu hủy
               </button>
-            )}
-            <button type="button" className="ev-btn-outline" style={{ color: '#dc2626', borderColor: '#fecaca' }} onClick={() => openModerationConfirm('cancel')}>
-              Yêu cầu hủy
-            </button>
-            <button type="button" className="ev-btn-outline" onClick={() => openModerationConfirm('postpone')}>
-              {weatherPostpone ? 'Hoãn (thời tiết)' : 'Yêu cầu hoãn'}
-            </button>
-            <button type="button" className="ev-btn-outline" onClick={() => openModerationConfirm('hide')}>
-              Yêu cầu ẩn
-            </button>
+            </div>
           </div>
         </div>
       )}
