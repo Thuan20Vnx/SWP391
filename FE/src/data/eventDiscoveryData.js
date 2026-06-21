@@ -266,6 +266,8 @@ export const mapApiEventToCard = (event) => {
     id: String(event._id || event.id || ''),
     title: event.title,
     startDate: event.startDate,
+    endDate: event.endDate,
+    eventState,
     createdAt: event.createdAt,
     thumbnail: resolveEventDisplayImage(
       event,
