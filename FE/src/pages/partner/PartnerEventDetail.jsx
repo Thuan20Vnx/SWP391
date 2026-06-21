@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
-import { fetchPartnerEvent } from '../../services/partnerApi';
+import { fetchPartnerEvent, deletePartnerEventRequest } from '../../services/partnerApi';
 import { statusClass } from '../../utils/eventStatus';
 import { resolveEventSpeakers } from '../../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const TABS = [
   { id: 'info', label: 'Thông tin' },
@@ -30,6 +31,8 @@ const PartnerEventDetail = () => {
   const { showToast } = useOutletContext() || {};
   const [event, setEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchPartnerEvent(id)
@@ -65,6 +68,20 @@ const PartnerEventDetail = () => {
       </div>
     );
   }
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await deletePartnerEventRequest(String(event.id).replace(/^req-/, ''));
+      showToast?.('Đã xóa yêu cầu sự kiện.', 'success');
+      navigate('/partner/events');
+    } catch (err) {
+      showToast?.(err.message || 'Xóa yêu cầu thất bại.', 'error');
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
 
   const eventSpeakers = resolveEventSpeakers(event);
   const ticketTypes = event.ticketTypes?.length
@@ -156,8 +173,21 @@ const PartnerEventDetail = () => {
             </>
           ) : (
             <strong>Yêu cầu đang chờ CTSV duyệt.</strong>
-          )}{' '}
-          <Link to="/partner/proposals/create">Chỉnh sửa yêu cầu</Link>
+          )}
+          <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Link to="/partner/proposals/create" className="ctsv-dash-btn ctsv-dash-btn--ghost">
+              Sửa sự kiện
+            </Link>
+            {event.statusKey === 'rejected' && (
+              <button
+                type="button"
+                className="ctsv-dash-btn ctsv-dash-btn--ghost"
+                onClick={() => setConfirmDelete(true)}
+              >
+                Xóa sự kiện
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <div className="ctsv-ed-banner" role="status">
@@ -275,6 +305,18 @@ const PartnerEventDetail = () => {
           Xem báo cáo hiệu suất
         </Link>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Xóa yêu cầu sự kiện?"
+        message="Hành động này không thể hoàn tác. Yêu cầu sẽ bị xóa khỏi hệ thống."
+        confirmLabel="Xóa yêu cầu"
+        cancelLabel="Quay lại"
+        onConfirm={handleDelete}
+        onCancel={() => !deleting && setConfirmDelete(false)}
+        loading={deleting}
+        danger
+      />
     </div>
   );
 };

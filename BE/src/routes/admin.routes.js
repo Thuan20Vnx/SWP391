@@ -982,16 +982,28 @@ router.patch('/partners/:id/reject', adminOnly, async (req, res) => {
     );
 
     const isEventRequestRejection = Boolean(pendingRequest);
+    const title = isEventRequestRejection ? 'Yêu cầu tổ chức sự kiện bị từ chối' : 'Đề xuất đối tác bị từ chối';
+    const ctsvBody = isEventRequestRejection
+      ? `Admin đã từ chối yêu cầu tổ chức sự kiện "${pendingRequest.title || partner.proposedEventTitle || ''}" của ${partner.name}. Lý do: ${reason}`
+      : `Admin đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`;
+    const partnerBody = isEventRequestRejection
+      ? `Admin đã từ chối yêu cầu tổ chức sự kiện "${pendingRequest.title || partner.proposedEventTitle || ''}". Lý do: ${reason}`
+      : `Admin đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`;
     createAndBroadcast({
       recipientRoles: ['ctsv'],
-      recipientEmails: [partner.email],
-      title: isEventRequestRejection ? 'Yêu cầu tổ chức sự kiện bị từ chối' : 'Đề xuất đối tác bị từ chối',
-      body: isEventRequestRejection
-        ? `Admin đã từ chối yêu cầu tổ chức sự kiện "${pendingRequest.title || partner.proposedEventTitle || ''}". Lý do: ${reason}`
-        : `Admin đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`,
+      title,
+      body: ctsvBody,
       type: 'partner_reject',
       refId: String(partner._id),
       refType: 'partner'
+    }).catch(() => {});
+    createAndBroadcast({
+      recipientEmails: [partner.email],
+      title,
+      body: partnerBody,
+      type: 'partner_reject',
+      refId: isEventRequestRejection ? String(pendingRequest._id) : String(partner._id),
+      refType: isEventRequestRejection ? 'partner_event_request' : 'partner'
     }).catch(() => {});
     return res.json({ success: true, partner });
   } catch (error) {
