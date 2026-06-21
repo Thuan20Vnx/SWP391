@@ -284,8 +284,7 @@ router.get('/events/approved', adminOnly, asyncHandler(async (req, res) => {
   const APPROVED_STATUSES = ['approved', 'live', 'ended', 'expired'];
   const { source, search, page = 1, limit = 30 } = req.query;
 
-  // Loại trừ event placeholder tự tạo khi đối tác được duyệt (có partnerId)
-  const filter = { isDeleted: { $ne: true }, status: { $in: APPROVED_STATUSES }, partnerId: { $in: [null, undefined] } };
+  const filter = { isDeleted: { $ne: true }, status: { $in: APPROVED_STATUSES } };
   if (source && source !== 'all') filter.source = source;
   if (search) {
     filter.$or = [
