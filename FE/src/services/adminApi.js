@@ -279,6 +279,9 @@ export const fetchClubRegistrations = (params = {}) => {
 
 export const fetchClubRegistration = (id) => adminFetch(`/club-registrations/${id}`);
 
+export const createClubRegistration = (body) =>
+  adminFetch('/club-registrations', { method: 'POST', body: JSON.stringify(body) });
+
 export const forwardClubRegistrationToAdmin = (id, note = '') =>
   adminFetch(`/club-registrations/${id}/forward-admin`, {
     method: 'PATCH',
