@@ -1311,10 +1311,21 @@ router.patch('/partners/:id/reject', requireCtsvApprove, async (req, res) => {
     partner.rejectionReason = reason;
     partner.supplementReason = '';
     await partner.save();
+
+    const PartnerEventRequest = require('../models/PartnerEventRequest');
+    const pendingRequest = await PartnerEventRequest.findOneAndUpdate(
+      { partnerId: partner._id, status: { $in: ['pending', 'info_requested'] } },
+      { $set: { status: 'rejected', rejectionReason: reason } },
+      { sort: { updatedAt: -1 } }
+    );
+
+    const isEventRequestRejection = Boolean(pendingRequest);
     createAndBroadcast({
       recipientEmails: [partner.email],
-      title: 'Đề xuất hợp tác bị từ chối',
-      body: `CTSV đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`,
+      title: isEventRequestRejection ? 'Yêu cầu tổ chức sự kiện bị từ chối' : 'Đề xuất hợp tác bị từ chối',
+      body: isEventRequestRejection
+        ? `CTSV đã từ chối yêu cầu tổ chức sự kiện "${pendingRequest.title || partner.proposedEventTitle || ''}". Lý do: ${reason}`
+        : `CTSV đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`,
       type: 'partner_reject',
       refId: String(partner._id),
       refType: 'partner'
