@@ -209,10 +209,14 @@ const PartnerEventList = () => {
                   <span className="ctsv-events-ticket">
                     Vé còn <strong>{ev.remainingTickets}</strong>/{ev.totalTickets}
                   </span>
-                  <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
+                  <span
+                    className={`status-pill ${statusClass(ev.status, ev.statusKey)}${ev.isRequest ? ' status-pill--outline' : ''}`}
+                  >
+                    {ev.status}
+                  </span>
                 </div>
                 <Link
-                  to={`/partner/events/${ev.id}`}
+                  to={ev.isRequest ? '/partner/proposals/create' : `/partner/events/${ev.id}`}
                   className="ctsv-events-card-action btn-card-register btn-card-register--primary"
                 >
                   Xem chi tiết

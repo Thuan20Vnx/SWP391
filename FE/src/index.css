@@ -3750,6 +3750,11 @@ a.club-tag {
   color: #64748b;
 }
 
+.status-pill--outline {
+  background-color: transparent !important;
+  border: 1.5px solid currentColor;
+}
+
 .btn-card-register {
   background-color: var(--primary);
   color: #ffffff;

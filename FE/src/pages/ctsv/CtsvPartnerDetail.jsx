@@ -5,8 +5,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
   approveCtsvPartner,
   fetchCtsvPartner,
-  rejectCtsvPartner,
-  requestInfoCtsvPartner
+  rejectCtsvPartner
 } from '../../services/ctsvApi';
 import { getUserRole } from '../../utils/auth';
 import {
@@ -17,16 +16,9 @@ import {
   formatVnd,
 } from '../../utils/partnerDisplay';
 import PartnerAvatar from '../../components/partner/PartnerAvatar';
+import '../../styles/admin-dashboard.css';
 
 const CTSV_CAN_ACT = ['pending', 'info_requested'];
-
-const PanelIcon = ({ children }) => (
-  <span className="ctsv-pd-panel-icon" aria-hidden>
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      {children}
-    </svg>
-  </span>
-);
 
 const FileIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
@@ -176,119 +168,97 @@ const CtsvPartnerDetail = () => {
         </div>
       )}
 
-      <div className="ctsv-pd-bento">
-        <section className="ctsv-pd-panel ctsv-pd-panel--wide">
-          <h2 className="ctsv-pd-panel-title">
-            <PanelIcon>
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <path d="M16 2v4M8 2v4M3 10h18" />
-            </PanelIcon>
-            Thông tin chương trình đề xuất
-          </h2>
-
-          <div className="ctsv-pd-field">
-            <span className="ctsv-pd-field-label">Tên sự kiện</span>
-            <p className="ctsv-pd-field-value">{eventTitle}</p>
+      <ul className="admin-proposal-list">
+        <li className="admin-proposal-card">
+          <div className="admin-proposal-card__head">
+            <div className="admin-proposal-card__head-main">
+              <h2 className="admin-proposal-card__title">{eventTitle}</h2>
+            </div>
+            <span className="admin-proposal-card__badge">{formatVnd(amount)}</span>
           </div>
 
-          <div className="ctsv-pd-field">
-            <span className="ctsv-pd-field-label">Mô tả sự kiện</span>
-            <p className="ctsv-pd-field-value">{eventRequest?.description || partner.description || '—'}</p>
-          </div>
-
-          {eventRequest?.location && (
-            <div className="ctsv-pd-field">
-              <span className="ctsv-pd-field-label">Địa điểm / Hình thức</span>
-              <p className="ctsv-pd-field-value">
-                {eventRequest.location}
-                {eventRequest.format ? ` · ${eventRequest.format}` : ''}
-              </p>
-            </div>
-          )}
-
-          {eventRequest?.startDate && (
-            <div className="ctsv-pd-field">
-              <span className="ctsv-pd-field-label">Thời gian dự kiến</span>
-              <p className="ctsv-pd-field-value">{formatPartnerDate(eventRequest.startDate)}</p>
-            </div>
-          )}
-
-          {eventRequest?.partnerMessage && (
-            <div className="ctsv-pd-field">
-              <span className="ctsv-pd-field-label">Tin nhắn gửi CTSV</span>
-              <p className="ctsv-pd-field-value">{eventRequest.partnerMessage}</p>
-            </div>
-          )}
-
-          <div className="ctsv-pd-duo">
-            <div className="ctsv-pd-stat">
-              <span className="ctsv-pd-stat-label">
-                <svg width="16" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-                  <line x1="12" y1="1" x2="12" y2="23" />
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-                Giá trị tài trợ dự kiến
-              </span>
-              <p className="ctsv-pd-stat-value">{formatVnd(amount)}</p>
+          <div className="admin-proposal-card__body">
+            <div className="admin-proposal-card__thumb-wrap">
+              <PartnerAvatar partner={partner} className="admin-proposal-card__thumb" />
             </div>
 
-            <div className="ctsv-pd-stat">
-              <span className="ctsv-pd-stat-label">
-                <svg width="15" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-                Quyền lợi đối tác yêu cầu
-              </span>
-              {eventBenefits?.length ? (
-                <ul className="ctsv-pd-benefits">
-                  {eventBenefits.map((b, i) => (
-                    <li key={i}>{b}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="ctsv-pd-stat-muted">—</p>
-              )}
+            <div className="admin-proposal-card__details">
+              <dl className="admin-proposal-meta">
+                <div className="admin-proposal-meta__row">
+                  <dt>Địa điểm / Hình thức</dt>
+                  <dd>
+                    {eventRequest?.location || '—'}
+                    {eventRequest?.format ? ` · ${eventRequest.format}` : ''}
+                  </dd>
+                </div>
+                <div className="admin-proposal-meta__row">
+                  <dt>Thời gian dự kiến</dt>
+                  <dd>{eventRequest?.startDate ? formatPartnerDate(eventRequest.startDate) : '—'}</dd>
+                </div>
+                <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
+                  <dt>Tin nhắn gửi CTSV</dt>
+                  <dd>{eventRequest?.partnerMessage || '—'}</dd>
+                </div>
+                <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
+                  <dt>Quyền lợi đối tác yêu cầu</dt>
+                  <dd>
+                    {eventBenefits?.length ? (
+                      <ul className="ctsv-pd-benefits">
+                        {eventBenefits.map((b, i) => (
+                          <li key={i}>{b}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      '—'
+                    )}
+                  </dd>
+                </div>
+              </dl>
             </div>
           </div>
-        </section>
 
-        <section className="ctsv-pd-panel">
-          <h2 className="ctsv-pd-panel-title">
-            <PanelIcon>
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-            </PanelIcon>
-            Tệp đính kèm
-          </h2>
-
-          {attachmentItems.length ? (
-            <ul className="ctsv-pd-files">
-              {attachmentItems.map((f) => (
-                <li key={f.key}>
-                  <a href={f.url || '#'} className="ctsv-pd-file" target="_blank" rel="noreferrer">
-                    <span className="ctsv-pd-file-icon">
-                      <FileIcon />
-                    </span>
-                    <span className="ctsv-pd-file-body">
-                      <span className="ctsv-pd-file-name">{f.name}</span>
-                      <span className="ctsv-pd-file-size">{f.sizeLabel || (f.isContract ? 'Hợp đồng' : '—')}</span>
-                    </span>
-                    <span className="ctsv-pd-file-arrow" aria-hidden>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                        <polyline points="15 3 21 3 21 9" />
-                        <line x1="10" y1="14" x2="21" y2="3" />
-                      </svg>
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="ctsv-muted">Chưa có tệp đính kèm.</p>
+          {(eventRequest?.description || partner.description) && (
+            <div className="admin-proposal-card__full">
+              <div className="admin-proposal-card__desc">
+                <p className="admin-proposal-card__desc-label">Mô tả sự kiện</p>
+                <p className="admin-proposal-card__desc-text">
+                  {eventRequest?.description || partner.description}
+                </p>
+              </div>
+            </div>
           )}
-        </section>
-      </div>
+
+          <div className="admin-proposal-card__full">
+            <p className="admin-proposal-card__desc-label" style={{ marginBottom: 8 }}>Tệp đính kèm</p>
+            {attachmentItems.length ? (
+              <ul className="ctsv-pd-files">
+                {attachmentItems.map((f) => (
+                  <li key={f.key}>
+                    <a href={f.url || '#'} className="ctsv-pd-file" target="_blank" rel="noreferrer">
+                      <span className="ctsv-pd-file-icon">
+                        <FileIcon />
+                      </span>
+                      <span className="ctsv-pd-file-body">
+                        <span className="ctsv-pd-file-name">{f.name}</span>
+                        <span className="ctsv-pd-file-size">{f.sizeLabel || (f.isContract ? 'Hợp đồng' : '—')}</span>
+                      </span>
+                      <span className="ctsv-pd-file-arrow" aria-hidden>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                          <polyline points="15 3 21 3 21 9" />
+                          <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="ctsv-muted">Chưa có tệp đính kèm.</p>
+            )}
+          </div>
+        </li>
+      </ul>
 
       {canAct && (
         <section className="ctsv-pd-action-bar">
@@ -303,18 +273,6 @@ const CtsvPartnerDetail = () => {
 
           <div className="ctsv-pd-action-btns">
             <div className="ctsv-pd-action-row">
-              <button
-                type="button"
-                className="ctsv-pd-btn ctsv-pd-btn--outline"
-                disabled={actionLoading}
-                onClick={() => setDialogMode('supplement')}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-                Bổ sung thông tin
-              </button>
               <button
                 type="button"
                 className="ctsv-pd-btn ctsv-pd-btn--danger-outline"
@@ -354,11 +312,6 @@ const CtsvPartnerDetail = () => {
             runAction(async () => {
               await rejectCtsvPartner(id, reason);
               showToast?.('Đã từ chối đơn đăng ký.', 'info');
-            });
-          } else if (dialogMode === 'supplement') {
-            runAction(async () => {
-              await requestInfoCtsvPartner(id, reason);
-              showToast?.('Đã gửi yêu cầu bổ sung thông tin.', 'success');
             });
           }
         }}
