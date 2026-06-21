@@ -20,6 +20,7 @@ const NotificationBell = ({
   const popupTimerRef = useRef(null);
   const [internalOpen, setInternalOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [showPopup, setShowPopup] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
 
@@ -33,11 +34,13 @@ const NotificationBell = ({
 
   const handleToggle = () => {
     window.clearTimeout(popupTimerRef.current);
+    setShowPopup(false);
     setOpen(!open);
   };
 
   const handleClose = useCallback(() => {
     window.clearTimeout(popupTimerRef.current);
+    setShowPopup(false);
     setOpen(false);
   }, [setOpen]);
 
@@ -72,10 +75,10 @@ const NotificationBell = ({
     }
 
     if (unread > previousUnreadRef.current) {
-      setOpen(true);
+      setShowPopup(true);
       window.clearTimeout(popupTimerRef.current);
       popupTimerRef.current = window.setTimeout(() => {
-        setOpen(false);
+        setShowPopup(false);
       }, AUTO_POPUP_MS);
     }
 
@@ -89,6 +92,20 @@ const NotificationBell = ({
 
   return (
     <div className="header-notif-wrap" ref={wrapRef}>
+      {showPopup && !open && (
+        <button
+          type="button"
+          className="notif-mini-popup"
+          onClick={() => {
+            window.clearTimeout(popupTimerRef.current);
+            setShowPopup(false);
+            setOpen(true);
+          }}
+        >
+          <strong>Thông báo mới</strong>
+          <span>{unread > 1 ? `${unread} mục chưa đọc` : 'Nhấn để mở nhanh'}</span>
+        </button>
+      )}
       <button
         type="button"
         className={`notif-bell-btn${open ? ' notif-bell-btn--open' : ''}${unread > 0 ? ' notif-bell-btn--has-unread' : ''}`}

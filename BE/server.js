@@ -45,6 +45,7 @@ const seedTestAccounts = async () => {
       { email: 'ctsv@gmail.com',    role: 'ctsv',         fullname: 'CTSV Test' },
       { email: 'partner@gmail.com', role: 'partner',      fullname: 'Partner Test' },
       { email: 'club@gmail.com',    role: 'club_manager', fullname: 'Club Manager Test' },
+      { email: 'clb@gmail.com',     role: 'club_manager', fullname: 'Club Manager Test' },
       { email: 'icpdp@gmail.com',   role: 'icpdp',        fullname: 'ICPDP Test' },
       { email: 'admin@gmail.com',   role: 'admin',        fullname: 'Admin Test' },
       { email: 'guest@gmail.com',   role: 'guest',        fullname: 'Guest Test' },
