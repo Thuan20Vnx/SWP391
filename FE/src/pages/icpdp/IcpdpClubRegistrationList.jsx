@@ -1,7 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useOutletContext } from 'react-router-dom';
 import { fetchClubRegistrations } from '../../services/adminApi';
+import { fetchIcpdpClubs, updateIcpdpClub, deleteIcpdpClub } from '../../services/clubTimelineApi';
 import { statusClass } from '../../utils/eventStatus';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+
+const CLUB_CATEGORIES = ['Công nghệ', 'Nghệ thuật', 'Kinh doanh', 'Văn hóa', 'Thể thao', 'Tình nguyện', 'Âm nhạc'];
+
+const EMPTY_CLUB_FORM = {
+  name: '',
+  shortName: '',
+  category: CLUB_CATEGORIES[0],
+  president: '',
+  email: '',
+  hotline: '',
+  description: '',
+};
 
 const STATUS_FILTERS = [
   { id: '', label: 'Chờ xử lý' },
@@ -26,10 +40,78 @@ const IcpdpClubRegistrationList = () => {
   const { showToast } = useOutletContext() || {};
   const { pathname } = useLocation();
   const basePath = resolveBasePath(pathname);
+  const [view, setView] = useState('registrations');
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+
+  const [clubs, setClubs] = useState([]);
+  const [clubsLoading, setClubsLoading] = useState(true);
+  const [editingClub, setEditingClub] = useState(null);
+  const [clubForm, setClubForm] = useState(EMPTY_CLUB_FORM);
+  const [savingClub, setSavingClub] = useState(false);
+  const [deletingClub, setDeletingClub] = useState(null);
+  const [deletingBusy, setDeletingBusy] = useState(false);
+
+  const loadClubs = useCallback(() => {
+    setClubsLoading(true);
+    fetchIcpdpClubs()
+      .then((d) => setClubs(d.clubs || []))
+      .catch(() => showToast?.('Không tải được danh sách CLB.', 'error'))
+      .finally(() => setClubsLoading(false));
+  }, [showToast]);
+
+  useEffect(() => {
+    if (view === 'clubs') loadClubs();
+  }, [view, loadClubs]);
+
+  const openEditClub = (club) => {
+    setEditingClub(club);
+    setClubForm({
+      name: club.name || '',
+      shortName: club.shortName || '',
+      category: club.category || CLUB_CATEGORIES[0],
+      president: club.president || '',
+      email: club.email || '',
+      hotline: club.hotline || '',
+      description: club.description || '',
+    });
+  };
+
+  const handleSaveClub = async () => {
+    if (!editingClub) return;
+    if (!clubForm.name.trim()) {
+      showToast?.('Vui lòng nhập tên CLB.', 'error');
+      return;
+    }
+    setSavingClub(true);
+    try {
+      await updateIcpdpClub(editingClub._id, clubForm);
+      showToast?.('Đã cập nhật CLB.', 'success');
+      setEditingClub(null);
+      loadClubs();
+    } catch (err) {
+      showToast?.(err.message || 'Cập nhật CLB thất bại.', 'error');
+    } finally {
+      setSavingClub(false);
+    }
+  };
+
+  const handleDeleteClub = async () => {
+    if (!deletingClub) return;
+    setDeletingBusy(true);
+    try {
+      await deleteIcpdpClub(deletingClub._id);
+      showToast?.('Đã xóa CLB.', 'success');
+      setDeletingClub(null);
+      loadClubs();
+    } catch (err) {
+      showToast?.(err.message || 'Xóa CLB thất bại.', 'error');
+    } finally {
+      setDeletingBusy(false);
+    }
+  };
 
   const load = useCallback(
     (overrideStatus) => {
@@ -79,11 +161,11 @@ const IcpdpClubRegistrationList = () => {
     <div className={pageClass}>
       <header className="ctsv-events-hero">
         <div className="ctsv-events-hero-text">
-          <span className="ctsv-events-eyebrow">IC-PDP · Thành lập CLB</span>
-          <h1>Duyệt đăng ký CLB mới</h1>
+          <span className="ctsv-events-eyebrow">IC-PDP · Câu lạc bộ</span>
+          <h1>Quản lý câu lạc bộ</h1>
           <p>
-            Tiếp nhận và phê duyệt các đơn thành lập câu lạc bộ mới. Sau khi duyệt, hệ thống tự tạo CLB và
-            gán quyền quản lý cho chủ nhiệm đề xuất.
+            Duyệt đơn thành lập CLB mới và quản lý (sửa/xóa) các CLB đang hoạt động. Sau khi duyệt, hệ thống
+            tự tạo CLB và gán quyền quản lý cho chủ nhiệm đề xuất.
           </p>
         </div>
         <div className="ctsv-events-hero-aside">
@@ -99,6 +181,85 @@ const IcpdpClubRegistrationList = () => {
         </div>
       </header>
 
+      <div className="icpdp-status-filters" role="group" aria-label="Chế độ xem" style={{ marginBottom: 16 }}>
+        <button
+          type="button"
+          className={`icpdp-status-chip ${view === 'registrations' ? 'is-active' : ''}`}
+          onClick={() => setView('registrations')}
+        >
+          Đơn đăng ký
+        </button>
+        <button
+          type="button"
+          className={`icpdp-status-chip ${view === 'clubs' ? 'is-active' : ''}`}
+          onClick={() => setView('clubs')}
+        >
+          CLB hiện có
+        </button>
+      </div>
+
+      {view === 'clubs' ? (
+        <>
+          {clubsLoading ? (
+            <div className="icpdp-proposals-grid" aria-busy="true">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="icpdp-proposal-card" style={{ minHeight: 140 }}>
+                  <div className="sk sk-line sk-line--lg" />
+                  <div className="sk sk-line" />
+                </div>
+              ))}
+            </div>
+          ) : clubs.length === 0 ? (
+            <div className="ctsv-events-empty">
+              <h2>Chưa có CLB nào</h2>
+              <p>Các CLB sau khi đăng ký được duyệt sẽ hiển thị ở đây.</p>
+            </div>
+          ) : (
+            <div className="icpdp-proposals-grid">
+              {clubs.map((c) => (
+                <article key={c._id} className="icpdp-proposal-card icpdp-club-reg-card">
+                  <div className="icpdp-proposal-card__header">
+                    <div>
+                      <h3 className="icpdp-proposal-card__title">{c.name}</h3>
+                      <p className="icpdp-proposal-card__club">
+                        {c.category} · Chủ nhiệm: {c.president || '—'}
+                      </p>
+                    </div>
+                    <span className={`status-pill ${c.status === 'active' ? 'status-success' : 'status-danger'}`}>
+                      {c.status === 'active' ? 'Hoạt động' : 'Đã xóa'}
+                    </span>
+                  </div>
+                  <p className="icpdp-club-reg-card__desc">
+                    {(c.description || '').slice(0, 120)}
+                    {(c.description || '').length > 120 ? '…' : ''}
+                  </p>
+                  <div className="icpdp-proposal-card__meta">
+                    <span>{c.email || '—'}</span>
+                    <span>{c.hotline || ''}</span>
+                  </div>
+                  <div className="icpdp-proposal-card__footer">
+                    <button
+                      type="button"
+                      className="icpdp-proposal-card__action icpdp-proposal-card__action--ghost"
+                      onClick={() => openEditClub(c)}
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      type="button"
+                      className="icpdp-proposal-card__action icpdp-proposal-card__action--ghost"
+                      onClick={() => setDeletingClub(c)}
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+      <>
       <section className="icpdp-proposals-toolbar">
         <div className="icpdp-proposals-search">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -181,6 +342,102 @@ const IcpdpClubRegistrationList = () => {
           })}
         </div>
       )}
+      </>
+      )}
+
+      {editingClub && (
+        <div className="ctsv-partner-dialog-backdrop" role="presentation" onClick={() => !savingClub && setEditingClub(null)}>
+          <div className="ctsv-partner-dialog" onClick={(e) => e.stopPropagation()}>
+            <h2 className="ctsv-partner-dialog-title">Sửa thông tin CLB</h2>
+            <label className="ctsv-partner-dialog-field">
+              <span>Tên CLB <em>*</em></span>
+              <input
+                className="ctsv-input"
+                value={clubForm.name}
+                onChange={(e) => setClubForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </label>
+            <label className="ctsv-partner-dialog-field">
+              <span>Tên viết tắt</span>
+              <input
+                className="ctsv-input"
+                value={clubForm.shortName}
+                onChange={(e) => setClubForm((f) => ({ ...f, shortName: e.target.value }))}
+              />
+            </label>
+            <label className="ctsv-partner-dialog-field">
+              <span>Lĩnh vực</span>
+              <select
+                className="ctsv-input"
+                value={clubForm.category}
+                onChange={(e) => setClubForm((f) => ({ ...f, category: e.target.value }))}
+              >
+                {CLUB_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </label>
+            <label className="ctsv-partner-dialog-field">
+              <span>Chủ nhiệm</span>
+              <input
+                className="ctsv-input"
+                value={clubForm.president}
+                onChange={(e) => setClubForm((f) => ({ ...f, president: e.target.value }))}
+              />
+            </label>
+            <label className="ctsv-partner-dialog-field">
+              <span>Email liên hệ</span>
+              <input
+                className="ctsv-input"
+                value={clubForm.email}
+                onChange={(e) => setClubForm((f) => ({ ...f, email: e.target.value }))}
+              />
+            </label>
+            <label className="ctsv-partner-dialog-field">
+              <span>Hotline</span>
+              <input
+                className="ctsv-input"
+                value={clubForm.hotline}
+                onChange={(e) => setClubForm((f) => ({ ...f, hotline: e.target.value }))}
+              />
+            </label>
+            <label className="ctsv-partner-dialog-field">
+              <span>Mô tả</span>
+              <textarea
+                className="ctsv-textarea ctsv-partner-dialog-textarea"
+                rows={4}
+                value={clubForm.description}
+                onChange={(e) => setClubForm((f) => ({ ...f, description: e.target.value }))}
+              />
+            </label>
+            <div className="ctsv-partner-dialog-actions">
+              <button type="button" className="ctsv-partner-dialog-cancel" disabled={savingClub} onClick={() => setEditingClub(null)}>
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="ctsv-partner-dialog-submit"
+                disabled={savingClub}
+                onClick={handleSaveClub}
+              >
+                {savingClub ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={Boolean(deletingClub)}
+        title="Xóa câu lạc bộ?"
+        message={`CLB "${deletingClub?.name || ''}" sẽ bị ẩn khỏi hệ thống. Hành động này có thể cần IC-PDP khôi phục lại nếu nhầm.`}
+        confirmLabel="Xóa CLB"
+        cancelLabel="Hủy"
+        loading={deletingBusy}
+        onCancel={() => !deletingBusy && setDeletingClub(null)}
+        onConfirm={handleDeleteClub}
+        danger
+      />
     </div>
   );
 };

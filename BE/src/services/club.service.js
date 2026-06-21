@@ -461,6 +461,43 @@ const updateManagedClubProfile = async (userId, payload = {}, activeClubId = nul
   };
 };
 
+const getAllClubsForManagement = async () => {
+  const clubs = await Club.find({}).sort({ name: 1 });
+  return { clubs, total: clubs.length };
+};
+
+const updateClubByIcpdp = async (clubId, payload = {}) => {
+  const club = await Club.findById(clubId);
+  if (!club) {
+    throw new AppError('Không tìm thấy câu lạc bộ!', 404);
+  }
+
+  ALLOWED_PROFILE_FIELDS.forEach((field) => {
+    if (payload[field] !== undefined) {
+      club[field] = payload[field];
+    }
+  });
+
+  if (payload.coverPositionY !== undefined && payload.coverPositionY !== null) {
+    const y = Number(payload.coverPositionY);
+    club.coverPositionY = Number.isFinite(y) ? Math.min(100, Math.max(0, Math.round(y * 10) / 10)) : 50;
+  }
+
+  await club.save();
+
+  return { message: 'Đã cập nhật câu lạc bộ thành công!', club };
+};
+
+const deleteClubByIcpdp = async (clubId) => {
+  const club = await Club.findById(clubId);
+  if (!club) {
+    throw new AppError('Không tìm thấy câu lạc bộ!', 404);
+  }
+  club.status = 'inactive';
+  await club.save();
+  return { message: 'Đã xóa câu lạc bộ thành công!' };
+};
+
 module.exports = {
   getClubs,
   getClubBySlug,
@@ -477,5 +514,8 @@ module.exports = {
   findClubManagedBy,
   findManagedClubs,
   resolveManagedClub,
+  getAllClubsForManagement,
+  updateClubByIcpdp,
+  deleteClubByIcpdp,
   MANAGED_CLUB_SLUG,
 };

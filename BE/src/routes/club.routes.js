@@ -91,6 +91,25 @@ router.post(
   asyncHandler(clubController.requestSemesterTimelineChange)
 );
 
+router.get(
+  '/manage/all',
+  authMiddleware,
+  authorize('icpdp', 'admin'),
+  asyncHandler(clubController.icpdpListClubs)
+);
+router.patch(
+  '/manage/all/:id',
+  authMiddleware,
+  authorize('icpdp', 'admin'),
+  asyncHandler(clubController.icpdpUpdateClub)
+);
+router.delete(
+  '/manage/all/:id',
+  authMiddleware,
+  authorize('icpdp', 'admin'),
+  asyncHandler(clubController.icpdpDeleteClub)
+);
+
 router.get('/:slug', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubBySlug));
 
 router.post(
