@@ -14169,6 +14169,8 @@ a.event-discovery-card__btn {
   .ctsv-crop-modal {
     max-width: 100%;
     padding: 16px;
+    max-height: min(92vh, 760px);
+    overflow-y: auto;
   }
 
   .ctsv-crop-body {
@@ -14182,6 +14184,14 @@ a.event-discovery-card__btn {
   .ctsv-crop-editor {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .ctsv-crop-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    padding-top: 12px;
+    margin-top: 12px;
   }
 
   .ctsv-form-row-2,

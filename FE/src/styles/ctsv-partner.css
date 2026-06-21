@@ -343,6 +343,11 @@
   box-sizing: border-box;
 }
 
+.partner-app-shell .ctsv-portal-body:has(.portal-home-hero-layout) {
+  max-width: none;
+  padding: 0 0 32px;
+}
+
 /* Footer luôn dính đáy portal khi nội dung ngắn (ghi đè .home-footer margin-top: 64px) */
 .ctsv-portal-layout > .home-footer,
 .ctsv-portal-layout .ctsv-portal-footer {
@@ -4111,6 +4116,8 @@ html:has(.ctsv-app-shell) body {
   .ctsv-crop-modal {
     max-width: 100%;
     padding: 16px;
+    max-height: min(92vh, 760px);
+    overflow-y: auto;
   }
 
   .ctsv-crop-body {
@@ -4124,6 +4131,14 @@ html:has(.ctsv-app-shell) body {
   .ctsv-crop-editor {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .ctsv-crop-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    padding-top: 12px;
+    margin-top: 12px;
   }
 
   .ctsv-form-row-2,
