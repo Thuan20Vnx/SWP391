@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import AvatarCropModal from '../../components/profile/AvatarCropModal';
 
 import defaultAvatar from '../../constants/defaultAvatar';
@@ -13,7 +12,6 @@ import {
 } from '../../services/partnerApi';
 import { openImageFilePicker } from '../../utils/imageFilePicker';
 import { resolveUserAvatar } from '../../utils/image';
-import { PARTNER_STATUS_LABEL, PARTNER_STATUS_TONE } from '../../utils/partnerDisplay';
 
 const Field = ({ label, value, onChange, readOnly = false, type = 'text' }) => (
   <div className="partner-field">
@@ -172,31 +170,6 @@ const PartnerProfileSettings = ({ showToast }) => {
       <header className="partner-profile-page__header">
         <h1>Hồ sơ & Cài đặt</h1>
         <p>Thông tin tài khoản và doanh nghiệp của bạn.</p>
-        {!profileLoading && (
-          <>
-            {partnerRecord && (
-              <p className="partner-profile-status">
-                <span className={`ctsv-pd-status ctsv-pd-status--${PARTNER_STATUS_TONE[partnerRecord.status] || 'slate'}`}>
-                  {PARTNER_STATUS_LABEL[partnerRecord.status] || partnerRecord.status}
-                </span>
-                {partnerRecord.rejectionReason && (
-                  <span className="partner-profile-status-reason"> - {partnerRecord.rejectionReason}</span>
-                )}
-                {partnerRecord.supplementReason && (
-                  <span className="partner-profile-status-reason">
-                    {' '} - Yêu cầu bổ sung: {partnerRecord.supplementReason}{' '}
-                    <Link to="/partner/proposals/create">Bổ sung ngay</Link>
-                  </span>
-                )}
-              </p>
-            )}
-            {!partnerRecord && (
-              <p className="partner-profile-status">
-                Chưa có hồ sơ đối tác. <Link to="/partner/proposals/create">Gửi đề xuất đầu tiên</Link>
-              </p>
-            )}
-          </>
-        )}
       </header>
 
       {profileLoading ? (
