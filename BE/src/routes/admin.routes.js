@@ -973,11 +973,22 @@ router.patch('/partners/:id/reject', adminOnly, async (req, res) => {
     partner.status = 'rejected';
     partner.rejectionReason = reason;
     await partner.save();
+
+    const PartnerEventRequest = require('../models/PartnerEventRequest');
+    const pendingRequest = await PartnerEventRequest.findOneAndUpdate(
+      { partnerId: partner._id, status: { $in: ['pending', 'info_requested', 'approved'] } },
+      { $set: { status: 'rejected', rejectionReason: reason } },
+      { sort: { updatedAt: -1 } }
+    );
+
+    const isEventRequestRejection = Boolean(pendingRequest);
     createAndBroadcast({
       recipientRoles: ['ctsv'],
       recipientEmails: [partner.email],
-      title: 'Đề xuất đối tác bị từ chối',
-      body: `Admin đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`,
+      title: isEventRequestRejection ? 'Yêu cầu tổ chức sự kiện bị từ chối' : 'Đề xuất đối tác bị từ chối',
+      body: isEventRequestRejection
+        ? `Admin đã từ chối yêu cầu tổ chức sự kiện "${pendingRequest.title || partner.proposedEventTitle || ''}". Lý do: ${reason}`
+        : `Admin đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`,
       type: 'partner_reject',
       refId: String(partner._id),
       refType: 'partner'

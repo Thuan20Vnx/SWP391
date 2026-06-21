@@ -6,6 +6,7 @@ const REQUEST_STATUSES = [
   'cancelled',
   'info_requested',
   'approved',
+  'rejected',
   'hidden',
   'deleted'
 ];
@@ -83,7 +84,8 @@ const partnerEventRequestSchema = new mongoose.Schema(
     submittedAt: { type: Date, default: null },
     hiddenAt: { type: Date, default: null },
     deletedAt: { type: Date, default: null },
-    supplementReason: { type: String, default: '' }
+    supplementReason: { type: String, default: '' },
+    rejectionReason: { type: String, default: '' }
   },
   { timestamps: true }
 );
