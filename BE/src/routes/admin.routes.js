@@ -566,7 +566,34 @@ router.get('/partners', async (req, res) => {
     const partners = await Partner.find(filter)
       .sort({ ctsvApprovedAt: -1, createdAt: -1 })
       .lean();
-    return res.json({ success: true, partners });
+
+    const requestsByPartnerId = new Map();
+    if (partners.length) {
+      const requests = await PartnerEventRequest.find({
+        partnerId: { $in: partners.map((p) => p._id) },
+        status: { $nin: ['draft', 'cancelled', 'deleted'] }
+      })
+        .sort({ updatedAt: -1 })
+        .select('partnerId image location startDate ticketTypes totalTickets')
+        .lean();
+      requests.forEach((r) => {
+        const key = String(r.partnerId);
+        if (!requestsByPartnerId.has(key)) requestsByPartnerId.set(key, r);
+      });
+    }
+    const enriched = partners.map((p) => {
+      const r = requestsByPartnerId.get(String(p._id));
+      return {
+        ...p,
+        eventImage: r?.image || '',
+        eventLocation: r?.location || '',
+        eventStartDate: r?.startDate || null,
+        eventTicketTypes: r?.ticketTypes || [],
+        eventTotalTickets: r?.totalTickets || null
+      };
+    });
+
+    return res.json({ success: true, partners: enriched });
   } catch (error) {
     console.error('admin partners:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -895,6 +922,46 @@ router.patch('/partners/:id/approve', async (req, res) => {
       { partnerId: partner._id, status: 'pending' },
       { status: 'approved', approvedByEmail: req.authEmail }
     );
+
+    const eventRequest = await PartnerEventRequest.findOne({
+      partnerId: partner._id,
+      status: 'approved',
+      eventId: null
+    }).sort({ updatedAt: -1 });
+    if (eventRequest) {
+      const newEvent = await Event.create({
+        title: eventRequest.title || partner.proposedEventTitle || 'Sự kiện đối tác',
+        description: eventRequest.description || '',
+        category: eventRequest.category,
+        registrationStartDate: eventRequest.registrationStartDate,
+        registrationEndDate: eventRequest.registrationEndDate,
+        startDate: eventRequest.startDate,
+        endDate: eventRequest.endDate,
+        location: eventRequest.location,
+        format: eventRequest.format,
+        campus: eventRequest.campus || undefined,
+        capacity: eventRequest.totalTickets || undefined,
+        totalTickets: eventRequest.totalTickets || undefined,
+        ticketTypes: eventRequest.ticketTypes,
+        speakers: eventRequest.speakers,
+        agenda: eventRequest.agenda,
+        learningOutcomes: eventRequest.learningOutcomes,
+        expectedAttendees: eventRequest.expectedAttendees || undefined,
+        image: eventRequest.image,
+        thumbnail: eventRequest.image,
+        bannerFileName: eventRequest.bannerFileName,
+        eventType: eventRequest.eventType,
+        duration: eventRequest.duration,
+        source: 'partner',
+        partnerId: partner._id,
+        status: 'approved',
+        createdByEmail: partner.email,
+        adminApprovedByEmail: req.authEmail,
+        adminApprovedAt: new Date()
+      });
+      eventRequest.eventId = newEvent._id;
+      await eventRequest.save();
+    }
     // Tự động tạo tài khoản đăng nhập cho email đại diện nếu chưa có
     const primaryEmail = String(partner.email || '').trim().toLowerCase();
     let accountCreated = false;
