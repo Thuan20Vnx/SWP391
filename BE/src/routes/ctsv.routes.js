@@ -478,12 +478,24 @@ router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
       startDate: new Date(data.startDate),
       endDate: data.endDate ? new Date(data.endDate) : event.endDate
     });
-    if (shouldResubmitSchoolEventForAdmin(event)) {
+    const shouldNotifyAdminResubmission = shouldResubmitSchoolEventForAdmin(event);
+    if (shouldNotifyAdminResubmission) {
       Object.assign(event, buildSchoolEventSubmitMeta(req.authEmail));
       event.rejectionReason = '';
     }
     event.ctsvEditUnlocked = false;
     await event.save();
+
+    if (shouldNotifyAdminResubmission) {
+      createAndBroadcast({
+        recipientRoles: ['admin'],
+        title: 'CTSV đã gửi lại sự kiện chờ Admin duyệt',
+        body: `Sự kiện "${event.title}" đã được CTSV cập nhật và gửi lại để Admin phê duyệt.`,
+        type: 'event_submit',
+        refId: String(event._id),
+        refType: 'Event'
+      }).catch(() => {});
+    }
 
     return res.json({
       success: true,
