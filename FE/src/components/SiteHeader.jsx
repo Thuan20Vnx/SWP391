@@ -531,6 +531,7 @@ const SiteHeader = ({
               }}
               isAdmin={isAdminRoute && showAdminMenu}
               isClub={showClubManagerNav && !isAdminRoute}
+              isCtsv={showCtsvNav}
             />
           )}
 
