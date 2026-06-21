@@ -90,6 +90,13 @@ const getPartnerMePayload = async (email) => {
   return { partner, proposals, hasProfile: true };
 };
 
+const formatVndAmount = (amount) =>
+  amount >= 1_000_000
+    ? `${Math.round(amount / 1_000_000)}M VNĐ`
+    : amount > 0
+      ? `${amount.toLocaleString('vi-VN')} đ`
+      : '0 đ';
+
 const buildPartnerStats = async (email, partnerIds = null) => {
   const ids = partnerIds || (await getPartnerIdsByEmail(email));
   if (!ids.length) {
@@ -100,14 +107,14 @@ const buildPartnerStats = async (email, partnerIds = null) => {
         { label: 'Sự kiện sắp diễn ra', value: '00', trend: 'Không có trong 48h' },
         { label: 'Tổng doanh thu tài trợ', value: '—', trend: 'Kỳ hiện tại' }
       ],
-      raw: { totalEvents: 0, totalRegistered: 0, upcomingCount: 0, totalContractAmount: 0 }
+      raw: { totalEvents: 0, totalRegistered: 0, upcomingCount: 0, totalContractAmount: 0, totalTicketRevenue: 0, activeContractsCount: 0 }
     };
   }
 
   const now = new Date();
   const in48h = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
-  const [eventAgg, contractAgg] = await Promise.all([
+  const [eventAgg, contractAgg, activeContractsCount] = await Promise.all([
     Event.aggregate([
       { $match: { partnerId: { $in: ids } } },
       {
@@ -115,6 +122,11 @@ const buildPartnerStats = async (email, partnerIds = null) => {
           _id: null,
           totalEvents: { $sum: 1 },
           totalRegistered: { $sum: { $ifNull: ['$registeredCount', 0] } },
+          totalTicketRevenue: {
+            $sum: {
+              $multiply: [{ $ifNull: ['$ticketPrice', 0] }, { $ifNull: ['$registeredCount', 0] }]
+            }
+          },
           upcomingCount: {
             $sum: {
               $cond: [
@@ -141,13 +153,15 @@ const buildPartnerStats = async (email, partnerIds = null) => {
           totalContractAmount: { $sum: { $ifNull: ['$amount', 0] } }
         }
       }
-    ])
+    ]),
+    Contract.countDocuments({ partnerId: { $in: ids }, status: 'approved' })
   ]);
 
   const totalEvents = eventAgg[0]?.totalEvents || 0;
   const totalRegistered = eventAgg[0]?.totalRegistered || 0;
   const upcomingCount = eventAgg[0]?.upcomingCount || 0;
   const totalContractAmount = contractAgg[0]?.totalContractAmount || 0;
+  const totalTicketRevenue = eventAgg[0]?.totalTicketRevenue || 0;
   const amountLabel =
     totalContractAmount >= 1_000_000
       ? `${Math.round(totalContractAmount / 1_000_000)}M VNĐ`
@@ -178,7 +192,7 @@ const buildPartnerStats = async (email, partnerIds = null) => {
         trend: 'Kỳ hiện tại'
       }
     ],
-    raw: { totalEvents, totalRegistered, upcomingCount, totalContractAmount }
+    raw: { totalEvents, totalRegistered, upcomingCount, totalContractAmount, totalTicketRevenue, activeContractsCount }
   };
 };
 
@@ -197,9 +211,18 @@ const buildPartnerStatsBundle = async (email) => {
       : Promise.resolve([])
   ]);
 
+  const pendingProposalsCount = proposals.filter((p) =>
+    ['pending', 'pending_admin', 'info_requested'].includes(p.status)
+  ).length;
+
   return {
     ...statsPayload,
-    activity: buildActivityFeed(proposals)
+    activity: buildActivityFeed(proposals),
+    partnership: {
+      pendingProposalsCount,
+      activeContractsCount: statsPayload.raw?.activeContractsCount || 0,
+      ticketRevenueLabel: formatVndAmount(statsPayload.raw?.totalTicketRevenue || 0)
+    }
   };
 };
 
