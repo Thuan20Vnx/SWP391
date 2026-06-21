@@ -10,12 +10,23 @@ const useNotifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const esRef = useRef(null);
+  const mergeNotifications = useCallback((incoming) => {
+    setNotifications((prev) => {
+      const map = new Map();
+      [...incoming, ...prev].forEach((item) => {
+        const key = String(item?._id || item?.id || '');
+        if (!key) return;
+        if (!map.has(key)) map.set(key, item);
+      });
+      return [...map.values()].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    });
+  }, []);
 
   const refetch = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchNotifications();
-      setNotifications(data);
+      setNotifications(Array.isArray(data) ? data : []);
     } catch {
       // silently fail — not logged in or no notifications yet
     } finally {
@@ -31,31 +42,40 @@ const useNotifications = () => {
 
     const es = createNotificationSSE(
       (payload) => {
-        setNotifications((prev) => [payload, ...prev]);
+        mergeNotifications([payload]);
+        refetch();
       },
       () => {
-        // SSE error — will auto-reconnect or silently fail
+        refetch();
       }
     );
     esRef.current = es;
 
-    // Fallback for deployments with multiple backend instances where an SSE
-    // connection and the request creating a notification may hit different nodes.
-    const pollId = window.setInterval(refetch, 20000);
+    // Safari/iPad and multi-instance deploys can miss live SSE pushes, so keep
+    // a lightweight visible-tab poll running as a near-real-time fallback.
+    const poll = () => {
+      if (document.visibilityState === 'visible') refetch();
+    };
+    const pollId = window.setInterval(poll, 5000);
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') refetch();
     };
+    const handleFocus = () => refetch();
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('pageshow', handleFocus);
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       window.clearInterval(pollId);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('pageshow', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibility);
       if (esRef.current) {
         esRef.current.close();
         esRef.current = null;
       }
     };
-  }, [refetch]);
+  }, [mergeNotifications, refetch]);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 

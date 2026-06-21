@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 import defaultAvatar from '../../constants/defaultAvatar';
 import AdminProfileMenu from './AdminProfileMenu';
-import HeaderNotificationPanel from '../HeaderNotificationPanel';
+import NotificationBell from '../NotificationBell';
 import useUserProfile, { clearUserProfileCache } from '../../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../../utils/authEvents';
 import { getRoleLabel } from '../../utils/role';
@@ -28,7 +28,6 @@ const AdminTopHeader = ({
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const profileTriggerRef = useRef(null);
@@ -46,7 +45,6 @@ const AdminTopHeader = ({
   };
 
   useEffect(() => {
-    setNotifOpen(false);
     setProfilePopupOpen(false);
     closeMobileOverlays();
   }, [pathname]);
@@ -87,20 +85,13 @@ const AdminTopHeader = ({
     if (!sidebarOpen) return;
     closeMobileOverlays();
     setProfilePopupOpen(false);
-    setNotifOpen(false);
   }, [sidebarOpen]);
-
-  const handleToggleNotifications = () => {
-    setProfilePopupOpen(false);
-    setNotifOpen((prev) => !prev);
-  };
 
   const handleOpenProfilePopup = () => {
     if (!isLoggedIn) {
       navigate('/login');
       return;
     }
-    setNotifOpen(false);
     setProfilePopupOpen((prev) => !prev);
   };
 
@@ -237,24 +228,7 @@ const AdminTopHeader = ({
             </button>
           )}
 
-          <div className="header-notif-wrap">
-            <button
-              type="button"
-              className={`notif-bell-btn${notifOpen ? ' notif-bell-btn--open' : ''}`}
-              aria-label={t('header.notifications')}
-              aria-expanded={notifOpen}
-              onClick={handleToggleNotifications}
-            >
-              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
-                <path
-                  d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"
-                  fill="currentColor"
-                />
-              </svg>
-              <span className="notif-badge" />
-            </button>
-            <HeaderNotificationPanel open={notifOpen} onClose={() => setNotifOpen(false)} isAdmin />
-          </div>
+          <NotificationBell isAdmin />
 
           <div className="auth-profile-wrapper">
             {isLoggedIn ? (

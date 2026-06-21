@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import HeaderNotificationPanel from './HeaderNotificationPanel';
 
+const AUTO_POPUP_MS = 4500;
+
 const NotificationBell = ({
   variant,
   isAdmin = false,
@@ -13,7 +15,11 @@ const NotificationBell = ({
 }) => {
   const wrapRef = useRef(null);
   const panelRef = useRef(null);
+  const initializedUnreadRef = useRef(false);
+  const previousUnreadRef = useRef(0);
+  const popupTimerRef = useRef(null);
   const [internalOpen, setInternalOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
 
@@ -26,10 +32,12 @@ const NotificationBell = ({
   );
 
   const handleToggle = () => {
+    window.clearTimeout(popupTimerRef.current);
     setOpen(!open);
   };
 
   const handleClose = useCallback(() => {
+    window.clearTimeout(popupTimerRef.current);
     setOpen(false);
   }, [setOpen]);
 
@@ -51,13 +59,39 @@ const NotificationBell = ({
     };
   }, [open, handleClose]);
 
-  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    if (!initializedUnreadRef.current) {
+      initializedUnreadRef.current = true;
+      previousUnreadRef.current = unread;
+      return undefined;
+    }
+
+    if (open) {
+      previousUnreadRef.current = unread;
+      return undefined;
+    }
+
+    if (unread > previousUnreadRef.current) {
+      setOpen(true);
+      window.clearTimeout(popupTimerRef.current);
+      popupTimerRef.current = window.setTimeout(() => {
+        setOpen(false);
+      }, AUTO_POPUP_MS);
+    }
+
+    previousUnreadRef.current = unread;
+    return undefined;
+  }, [open, setOpen, unread]);
+
+  useEffect(() => () => {
+    window.clearTimeout(popupTimerRef.current);
+  }, []);
 
   return (
     <div className="header-notif-wrap" ref={wrapRef}>
       <button
         type="button"
-        className={`notif-bell-btn${open ? ' notif-bell-btn--open' : ''}`}
+        className={`notif-bell-btn${open ? ' notif-bell-btn--open' : ''}${unread > 0 ? ' notif-bell-btn--has-unread' : ''}`}
         aria-label="Thông báo"
         aria-expanded={open}
         onClick={handleToggle}
