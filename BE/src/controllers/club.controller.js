@@ -239,6 +239,21 @@ const withdrawSemesterTimeline = async (req, res) => {
   }
 };
 
+const icpdpListClubs = async (req, res) => {
+  const result = await clubService.getAllClubsForManagement();
+  res.status(200).json({ success: true, ...result });
+};
+
+const icpdpUpdateClub = async (req, res) => {
+  const result = await clubService.updateClubByIcpdp(req.params.id, req.body);
+  res.status(200).json({ success: true, ...result });
+};
+
+const icpdpDeleteClub = async (req, res) => {
+  const result = await clubService.deleteClubByIcpdp(req.params.id);
+  res.status(200).json({ success: true, ...result });
+};
+
 module.exports = {
   getClubs,
   getClubBySlug,
@@ -260,4 +275,7 @@ module.exports = {
   deleteSemesterTimeline,
   withdrawSemesterTimeline,
   requestSemesterTimelineChange,
+  icpdpListClubs,
+  icpdpUpdateClub,
+  icpdpDeleteClub,
 };

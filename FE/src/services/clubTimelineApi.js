@@ -44,3 +44,11 @@ export const requestClubSemesterTimelineChange = (id, body) =>
     method: 'POST',
     body: JSON.stringify(body),
   });
+
+export const fetchIcpdpClubs = () => clubFetch('/manage/all');
+
+export const updateIcpdpClub = (id, body) =>
+  clubFetch(`/manage/all/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+
+export const deleteIcpdpClub = (id) =>
+  clubFetch(`/manage/all/${id}`, { method: 'DELETE' });
