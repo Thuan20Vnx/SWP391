@@ -86,10 +86,15 @@ const PartnerHome = ({ showToast }) => {
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [campusHeroEvents, setCampusHeroEvents] = useState([]);
   const [stats, setStats] = useState([]);
+  const [partnership, setPartnership] = useState({
+    pendingProposalsCount: 0,
+    activeContractsCount: 0,
+    ticketRevenueLabel: '0 đ',
+  });
 
   useEffect(() => {
     Promise.all([
-      fetchPartnerStats().catch(() => ({ stats: [] })),
+      fetchPartnerStats().catch(() => ({ stats: [], partnership: null })),
       fetchPartnerEvents().catch(() => ({ events: [] })),
       fetchPublicEvents().catch(() => ({ events: [] })),
     ]).then(([statsRes, partnerEventsRes, publicEventsRes]) => {
@@ -97,6 +102,9 @@ const PartnerHome = ({ showToast }) => {
       const publicCards = filterActiveDiscoveryEvents((publicEventsRes.events || []).map(mapApiEventToCard));
 
       setStats(statsRes.stats || []);
+      if (statsRes.partnership) {
+        setPartnership(statsRes.partnership);
+      }
       setEvents(ownEvents);
       setFilteredEvents(ownEvents);
       setCampusHeroEvents(publicCards);
@@ -133,13 +141,31 @@ const PartnerHome = ({ showToast }) => {
   }, [outlet, handleFilterSubmit]);
 
   const heroSlides = useMemo(() => {
-    const sourceEvents = events.length ? events : campusHeroEvents;
-    return mapEventsToHeroSlides(sourceEvents, {
+    const HERO_LIMIT = 3;
+    const slideOptions = {
       categoryLabel: (event) => getCategoryDisplayLabel(event.category) || event.category,
-      organizerLabel: (event) => event.organizerLabel || (events.length ? 'Partner' : ''),
       dateLabel: (event) => event.date || event.dateLabel,
       location: (event) => event.location,
+    };
+
+    const ownSlides = mapEventsToHeroSlides(events, {
+      ...slideOptions,
+      limit: HERO_LIMIT,
+      organizerLabel: (event) => event.organizerLabel || 'Đối tác của bạn',
     });
+
+    const remainingLimit = HERO_LIMIT - ownSlides.length;
+    if (remainingLimit <= 0) return ownSlides;
+
+    const ownEventIds = new Set(events.map((event) => String(event.id)));
+    const otherCampusEvents = campusHeroEvents.filter((event) => !ownEventIds.has(String(event.id)));
+    const campusSlides = mapEventsToHeroSlides(otherCampusEvents, {
+      ...slideOptions,
+      limit: remainingLimit,
+      organizerLabel: (event) => event.organizerLabel || '',
+    });
+
+    return [...ownSlides, ...campusSlides];
   }, [campusHeroEvents, events]);
 
   const upcomingEvents = useMemo(
@@ -290,7 +316,7 @@ const PartnerHome = ({ showToast }) => {
           <article className="ctsv-stat-card" style={{ padding: '24px' }}>
             <p className="ctsv-stat-label">Đề xuất chờ duyệt</p>
             <div className="ctsv-stat-value-row">
-              <span className="ctsv-stat-value">1</span>
+              <span className="ctsv-stat-value">{partnership.pendingProposalsCount}</span>
             </div>
             <button
               type="button"
@@ -304,7 +330,7 @@ const PartnerHome = ({ showToast }) => {
           <article className="ctsv-stat-card" style={{ padding: '24px' }}>
             <p className="ctsv-stat-label">Hợp đồng đang hiệu lực</p>
             <div className="ctsv-stat-value-row">
-              <span className="ctsv-stat-value">3</span>
+              <span className="ctsv-stat-value">{partnership.activeContractsCount}</span>
             </div>
             <button
               type="button"
@@ -316,10 +342,9 @@ const PartnerHome = ({ showToast }) => {
             </button>
           </article>
           <article className="ctsv-stat-card" style={{ padding: '24px' }}>
-            <p className="ctsv-stat-label">Doanh thu tài trợ</p>
+            <p className="ctsv-stat-label">Doanh thu bán vé</p>
             <div className="ctsv-stat-value-row">
-              <span className="ctsv-stat-value">150M</span>
-              <span className="ctsv-stat-trend">VNĐ</span>
+              <span className="ctsv-stat-value">{partnership.ticketRevenueLabel}</span>
             </div>
             <button
               type="button"

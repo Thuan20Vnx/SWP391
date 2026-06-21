@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const MONGO_URI = 'mongodb+srv://tranxuanthuan20_db_user:mwg01676446616@fevent.j6ind07.mongodb.net/FEventsDB?retryWrites=true&w=majority&appName=Fevent';
+const MONGO_URI = 'mongodb+srv://fevents_team:auin79TZfIO3dF2g@khoahiep.ytlkhpm.mongodb.net/FEventsDB?retryWrites=true&w=majority';
 
 const accounts = [
   { email: 'ctsv@gmail.com',    role: 'ctsv',         fullname: 'CTSV Test' },
