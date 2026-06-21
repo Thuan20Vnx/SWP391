@@ -46,7 +46,7 @@ const StatCard = ({ label, value, tone }) => (
 const CtsvPartnerList = () => {
   const { showToast, headerSearch = '' } = useOutletContext() || {};
   const basePath = isAdminRole() ? '/admin/ctsv' : '/ctsv';
-  const [partners, setPartners] = useState([]);
+  const [allPartners, setAllPartners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('pending');
@@ -58,40 +58,44 @@ const CtsvPartnerList = () => {
   const load = useCallback(() => {
     setLoading(true);
     const params = {};
-    if (statusFilter) params.status = statusFilter;
     if (effectiveSearch) params.search = effectiveSearch;
     return fetchCtsvPartners(params)
-      .then((d) => setPartners(d.partners || []))
+      .then((d) => setAllPartners(d.partners || []))
       .catch(() => showToast?.('Không tải danh sách đơn đăng ký.', 'error'))
       .finally(() => setLoading(false));
-  }, [effectiveSearch, statusFilter, showToast]);
+  }, [effectiveSearch, showToast]);
 
   useEffect(() => {
     const t = setTimeout(() => { setPage(1); load(); }, effectiveSearch ? 280 : 0);
     return () => clearTimeout(t);
   }, [load, effectiveSearch]);
 
-  const totalPages = Math.max(1, Math.ceil(partners.length / PAGE_SIZE));
+  const filteredPartners = useMemo(() => {
+    if (!statusFilter) return allPartners;
+    return allPartners.filter((p) => p.status === statusFilter);
+  }, [allPartners, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredPartners.length / PAGE_SIZE));
   const pageSafe = Math.min(page, totalPages);
 
   const slice = useMemo(() => {
     const start = (pageSafe - 1) * PAGE_SIZE;
-    return partners.slice(start, start + PAGE_SIZE);
-  }, [partners, pageSafe]);
+    return filteredPartners.slice(start, start + PAGE_SIZE);
+  }, [filteredPartners, pageSafe]);
 
   const stats = useMemo(() => ({
-    total: partners.length,
-    pending: partners.filter((p) => p.status === 'pending').length,
-    approved: partners.filter((p) => p.status === 'approved').length,
-    rejected: partners.filter((p) => p.status === 'rejected').length,
-  }), [partners]);
+    total: allPartners.length,
+    pending: allPartners.filter((p) => p.status === 'pending').length,
+    approved: allPartners.filter((p) => p.status === 'approved').length,
+    rejected: allPartners.filter((p) => p.status === 'rejected').length,
+  }), [allPartners]);
 
   const rangeLabel = useMemo(() => {
-    if (!partners.length) return 'Không có đơn nào';
+    if (!filteredPartners.length) return 'Không có đơn nào';
     const from = (pageSafe - 1) * PAGE_SIZE + 1;
-    const to = Math.min(pageSafe * PAGE_SIZE, partners.length);
-    return `${from}–${to} trong ${partners.length} đơn`;
-  }, [partners.length, pageSafe]);
+    const to = Math.min(pageSafe * PAGE_SIZE, filteredPartners.length);
+    return `${from}–${to} trong ${filteredPartners.length} đơn`;
+  }, [filteredPartners.length, pageSafe]);
 
   return (
     <div className="cplist-page">
@@ -184,7 +188,7 @@ const CtsvPartnerList = () => {
                         <path d="M12 12v4M10 14h4" />
                       </svg>
                       <p>Không có đơn đăng ký phù hợp</p>
-                      <button type="button" className="cplist-empty__reset" onClick={() => { setSearch(''); setStatusFilter(''); }}>
+                      <button type="button" className="cplist-empty__reset" onClick={() => { setSearch(''); setStatusFilter(''); setPage(1); }}>
                         Xem tất cả
                       </button>
                     </div>
