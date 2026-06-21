@@ -97,6 +97,7 @@ const refToLink = (refType, refId, role) => {
   if (refType === 'partner' || refType === 'partner_proposal' || refType === 'partner_event_request') {
     if (role === 'admin') return `/admin/ctsv/partners/${refId}`;
     if (role === 'ctsv') return `/ctsv/partners/${refId}`;
+    if (role === 'partner') return '/partner/profile';
     return '/partner';
   }
   if (refType === 'event_change_request') return '/admin/event-requests';
