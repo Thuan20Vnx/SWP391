@@ -21,6 +21,8 @@ const Contract = require('../models/Contract');
 const Event = require('../models/Event');
 const EventProposal = require('../models/EventProposal');
 const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
+const PartnerMember = require('../models/PartnerMember');
+const PartnerEventRequest = require('../models/PartnerEventRequest');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
 const { ensurePartnerEvent } = require('../utils/announcementEvents');
 const {
@@ -562,13 +564,129 @@ router.post('/partners', adminOnly, async (req, res) => {
 
 router.get('/partners', async (req, res) => {
   try {
-    const status = req.query.status || 'pending_admin';
-    const partners = await Partner.find({ status })
+    const status = String(req.query.status || 'pending_admin').trim();
+    const filter = status && status !== 'all' ? { status } : {};
+    const partners = await Partner.find(filter)
       .sort({ ctsvApprovedAt: -1, createdAt: -1 })
       .lean();
     return res.json({ success: true, partners });
   } catch (error) {
     console.error('admin partners:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/partners/:id', adminOnly, async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'ID đối tác không hợp lệ!' });
+    }
+
+    const partner = await Partner.findById(req.params.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
+    }
+
+    const {
+      name,
+      email,
+      phone,
+      representative,
+      category,
+      representativeTitle,
+      address,
+      description,
+      partnerCode,
+    } = req.body || {};
+
+    const nextName = String(name || '').trim();
+    const nextEmail = String(email || '').trim().toLowerCase();
+    if (!nextName) {
+      return res.status(400).json({ success: false, message: 'Tên đối tác là bắt buộc!' });
+    }
+
+    if (nextEmail) {
+      const STAFF_ROLES = new Set(['admin', 'ctsv', 'icpdp', 'club_manager', 'staff', 'student']);
+      const User = require('../models/User');
+      const existingUser = await User.findOne({ email: nextEmail }).lean();
+      if (existingUser && STAFF_ROLES.has(existingUser.role)) {
+        return res.status(400).json({
+          success: false,
+          message: `Email ${nextEmail} đã thuộc tài khoản ${existingUser.role} trên hệ thống. Vui lòng dùng email khác.`,
+        });
+      }
+      const conflict = await Partner.findOne({
+        email: nextEmail,
+        _id: { $ne: partner._id },
+      }).lean();
+      if (conflict) {
+        return res.status(400).json({ success: false, message: 'Email này đã được gắn với đối tác khác.' });
+      }
+    }
+
+    partner.name = nextName;
+    partner.email = nextEmail;
+    partner.phone = String(phone || '').trim();
+    partner.representative = String(representative || '').trim();
+    partner.category = String(category || '').trim();
+    partner.representativeTitle = String(representativeTitle || '').trim();
+    partner.address = String(address || '').trim();
+    partner.description = String(description || '').trim();
+    partner.partnerCode = String(partnerCode || '').trim();
+    await partner.save();
+
+    await PartnerMember.updateMany(
+      { partnerId: partner._id, isPrimary: true },
+      {
+        $set: {
+          fullname: partner.representative || partner.name,
+          phone: partner.phone,
+          title: partner.representativeTitle,
+        },
+      },
+    );
+
+    return res.json({
+      success: true,
+      partner,
+      message: 'Đã cập nhật thông tin đối tác.',
+    });
+  } catch (error) {
+    console.error('admin update partner:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.delete('/partners/:id', adminOnly, async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'ID đối tác không hợp lệ!' });
+    }
+
+    const partner = await Partner.findById(req.params.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đối tác!' });
+    }
+
+    await Promise.all([
+      PartnerMember.deleteMany({ partnerId: partner._id }),
+      PartnerEventRequest.deleteMany({ partnerId: partner._id }),
+      Contract.deleteMany({ partnerId: partner._id }),
+      Event.updateMany({ partnerId: partner._id }, { $set: { partnerId: null } }),
+      SubmittedCtsvReport.updateMany(
+        { partnerId: partner._id },
+        { $set: { partnerId: null, partnerEmail: '' } },
+      ),
+    ]);
+
+    await Partner.findByIdAndDelete(partner._id);
+
+    return res.json({
+      success: true,
+      message: 'Đã xóa đối tác khỏi hệ thống. Tài khoản đăng nhập của đối tác không bị xóa.',
+    });
+  } catch (error) {
+    console.error('admin delete partner:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

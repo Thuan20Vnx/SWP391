@@ -42,6 +42,17 @@ export const sendAdminPartnerNotice = (id, body) =>
 export const createAdminPartner = (body) =>
   adminFetch('/partners', { method: 'POST', body: JSON.stringify(body) });
 
+export const updateAdminPartner = (id, body) =>
+  adminFetch(`/partners/${encodeURIComponent(String(id).replace(/^partner-/, ''))}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+
+export const deleteAdminPartner = (id) =>
+  adminFetch(`/partners/${encodeURIComponent(String(id).replace(/^partner-/, ''))}`, {
+    method: 'DELETE',
+  });
+
 export const approveAdminPartner = (id) =>
   adminFetch(`/partners/${id}/approve`, { method: 'PATCH', body: '{}' });
 
