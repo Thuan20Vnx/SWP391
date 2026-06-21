@@ -16,6 +16,7 @@ import {
   formatVnd,
 } from '../../utils/partnerDisplay';
 import PartnerAvatar from '../../components/partner/PartnerAvatar';
+import ProposalTicketsTable from '../../components/admin/ProposalTicketsTable';
 import '../../styles/admin-dashboard.css';
 
 const CTSV_CAN_ACT = ['pending', 'info_requested'];
@@ -189,6 +190,10 @@ const CtsvPartnerDetail = () => {
                   <dt>Thời gian dự kiến</dt>
                   <dd>{eventRequest?.startDate ? formatPartnerDate(eventRequest.startDate) : '—'}</dd>
                 </div>
+                <div className="admin-proposal-meta__row">
+                  <dt>Tổng vé</dt>
+                  <dd>{eventRequest?.totalTickets != null ? eventRequest.totalTickets : '—'}</dd>
+                </div>
                 <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
                   <dt>Tin nhắn gửi CTSV</dt>
                   <dd>{eventRequest?.partnerMessage || '—'}</dd>
@@ -208,6 +213,8 @@ const CtsvPartnerDetail = () => {
                   </dd>
                 </div>
               </dl>
+
+              <ProposalTicketsTable ticketTypes={eventRequest?.ticketTypes} ticketPrice={0} />
             </div>
           </div>
 

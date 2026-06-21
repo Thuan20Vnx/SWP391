@@ -36,6 +36,15 @@ const formatPendingRequestAsEvent = (doc) => {
     eventType: doc.eventType || '',
     format: doc.format || 'campus',
     campus: doc.campus || '',
+    agenda: doc.agenda || '',
+    learningOutcomes: doc.learningOutcomes || [],
+    speakers: doc.speakers || [],
+    ticketTypes: doc.ticketTypes || [],
+    benefits: doc.benefits || [],
+    partnerMessage: doc.partnerMessage || '',
+    attachments: doc.attachments || [],
+    rejectionReason: doc.rejectionReason || '',
+    supplementReason: doc.supplementReason || '',
     source: 'partner',
     isRequest: true
   };
@@ -300,6 +309,15 @@ const getPartnerEvents = async (email, query = {}) => {
 };
 
 const getPartnerEventById = async (email, eventId) => {
+  if (String(eventId || '').startsWith('req-')) {
+    const requestId = eventId.slice(4);
+    const doc = await PartnerEventRequest.findById(requestId).lean();
+    if (!doc || normalizeEmail(doc.partnerEmail) !== normalizeEmail(email)) {
+      throw new AppError('Không tìm thấy sự kiện!', 404);
+    }
+    return formatPendingRequestAsEvent(doc);
+  }
+
   const partnerIds = await getPartnerIdsByEmail(email);
   if (!partnerIds.length) {
     throw new AppError('Không tìm thấy sự kiện!', 404);

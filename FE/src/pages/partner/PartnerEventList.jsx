@@ -216,7 +216,7 @@ const PartnerEventList = () => {
                   </span>
                 </div>
                 <Link
-                  to={ev.isRequest ? '/partner/proposals/create' : `/partner/events/${ev.id}`}
+                  to={`/partner/events/${ev.id}`}
                   className="ctsv-events-card-action btn-card-register btn-card-register--primary"
                 >
                   Xem chi tiết
