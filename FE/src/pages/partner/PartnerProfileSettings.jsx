@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import AvatarCropModal from '../../components/profile/AvatarCropModal';
 
 import defaultAvatar from '../../constants/defaultAvatar';
 import {
@@ -10,6 +11,7 @@ import {
   updatePartnerMe,
   updatePartnerUserProfile,
 } from '../../services/partnerApi';
+import { openImageFilePicker } from '../../utils/imageFilePicker';
 import { resolveUserAvatar } from '../../utils/image';
 import { PARTNER_STATUS_LABEL, PARTNER_STATUS_TONE } from '../../utils/partnerDisplay';
 
@@ -28,12 +30,16 @@ const TextAreaField = ({ label, value, onChange, readOnly = false, rows = 2 }) =
 );
 
 const PartnerProfileSettings = ({ showToast }) => {
+  const companyLogoInputRef = useRef(null);
   const [user, setUser] = useState({ fullname: '', email: '', phone: '', avatar: '' });
   const [company, setCompany] = useState({});
   const [partnerRecord, setPartnerRecord] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [savingUser, setSavingUser] = useState(false);
   const [savingCompany, setSavingCompany] = useState(false);
+  const [logoCropOpen, setLogoCropOpen] = useState(false);
+  const [logoCropSrc, setLogoCropSrc] = useState('');
+  const [logoCropFileName, setLogoCropFileName] = useState('');
 
   useEffect(() => {
     setProfileLoading(true);
@@ -110,6 +116,57 @@ const PartnerProfileSettings = ({ showToast }) => {
     }
   };
 
+  const openLogoCrop = (src, name = 'partner-logo.jpg') => {
+    if (!src) return;
+    setLogoCropSrc(src);
+    setLogoCropFileName(name);
+    setLogoCropOpen(true);
+  };
+
+  const handleLogoFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const dataUrl = await openImageFilePicker(file, {
+      onError: (msg) => msg && showToast?.(msg, 'error'),
+    });
+    if (dataUrl) openLogoCrop(dataUrl, file?.name);
+  };
+
+  const handleLogoCropCancel = () => {
+    setLogoCropOpen(false);
+    setLogoCropSrc('');
+    setLogoCropFileName('');
+  };
+
+  const handleLogoCropConfirm = async (dataUrl) => {
+    handleLogoCropCancel();
+    if (!dataUrl) {
+      showToast?.('Không xử lý được logo công ty. Vui lòng thử lại.', 'error');
+      return;
+    }
+
+    const nextCompany = { ...company, logo: dataUrl };
+    setCompany(nextCompany);
+
+    if (!canEditCompany) {
+      showToast?.('Đã cập nhật ảnh xem trước. Hãy gửi lại khi hồ sơ có thể chỉnh sửa.', 'info');
+      return;
+    }
+
+    setSavingCompany(true);
+    try {
+      const res = await updatePartnerMe(mapCompanyFormToPartnerPatch(nextCompany));
+      const updatedPartner = res?.partner || null;
+      setPartnerRecord(updatedPartner);
+      setCompany(mapPartnerToCompanyForm(updatedPartner) || {});
+      showToast?.('Đã cập nhật logo công ty.', 'success');
+    } catch (error) {
+      showToast?.(error.message || 'Không thể cập nhật logo công ty.', 'error');
+    } finally {
+      setSavingCompany(false);
+    }
+  };
+
   return (
     <div className="partner-profile-page">
       <header className="partner-profile-page__header">
@@ -181,13 +238,46 @@ const PartnerProfileSettings = ({ showToast }) => {
             <p className="partner-profile-card__desc">
               Hồ sơ hiển thị trên đề xuất hợp tác và các tài liệu làm việc với FPT University.
             </p>
-            {company.logo && (
-              <div className="partner-company-logo-row">
-                <div className="partner-company-logo-preview partner-company-logo-preview--banner">
+            <div className="partner-company-logo-row">
+              <button
+                type="button"
+                className="partner-company-logo-preview partner-company-logo-preview--banner partner-company-logo-preview--clickable"
+                onClick={() => canEditCompany && companyLogoInputRef.current?.click()}
+                disabled={!canEditCompany}
+                aria-label="Đổi logo công ty"
+              >
+                {company.logo ? (
                   <img src={company.logo} alt="Logo công ty" />
-                </div>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                    <path d="M8 13l2.5-2.5L14 14l2-2 3 3" />
+                    <circle cx="8.5" cy="9" r="1.25" fill="currentColor" stroke="none" />
+                  </svg>
+                )}
+                {canEditCompany ? (
+                  <span className="partner-company-logo-preview__overlay">Đổi logo</span>
+                ) : null}
+              </button>
+              <div className="partner-company-logo-actions">
+                <button
+                  type="button"
+                  className="partner-btn-outline"
+                  onClick={() => companyLogoInputRef.current?.click()}
+                  disabled={!canEditCompany || savingCompany}
+                >
+                  {company.logo ? 'Thay logo công ty' : 'Tải logo công ty'}
+                </button>
+                <span>Logo công ty có thể cắt và thu phóng giống ảnh đại diện tài khoản.</span>
               </div>
-            )}
+              <input
+                ref={companyLogoInputRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleLogoFileChange}
+              />
+            </div>
             <div className="partner-form-grid">
               <Field
                 label="Tên công ty"
@@ -234,6 +324,13 @@ const PartnerProfileSettings = ({ showToast }) => {
           </section>
         </div>
       )}
+      <AvatarCropModal
+        open={logoCropOpen}
+        imageSrc={logoCropSrc}
+        fileName={logoCropFileName}
+        onCancel={handleLogoCropCancel}
+        onConfirm={handleLogoCropConfirm}
+      />
     </div>
   );
 };
