@@ -462,7 +462,7 @@ const updateManagedClubProfile = async (userId, payload = {}, activeClubId = nul
 };
 
 const getAllClubsForManagement = async () => {
-  const clubs = await Club.find({}).sort({ name: 1 });
+  const clubs = await Club.find({ status: { $ne: 'inactive' } }).sort({ name: 1 });
   return { clubs, total: clubs.length };
 };
 

@@ -135,7 +135,7 @@ router.use(authMiddleware);
 router.use(requireCtsvPortal);
 
 const buildEventFilter = (query) => {
-  const filter = {};
+  const filter = { isDeleted: { $ne: true } };
   if (query.status && query.status !== 'all') {
     filter.status = query.status;
   } else if (!query.status) {

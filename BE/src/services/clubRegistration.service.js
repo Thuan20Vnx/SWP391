@@ -264,10 +264,49 @@ const countPendingForRole = (viewerRole) => {
   return ClubRegistration.countDocuments({ status: 'pending_icpdp' });
 };
 
+// IC-PDP tự tạo đơn thành lập CLB → gửi thẳng cho Admin phê duyệt.
+const icpdpCreateRegistration = async (payload, creatorEmail) => {
+  const categories = Club.CATEGORIES || [];
+  if (!payload.clubName || !String(payload.clubName).trim()) {
+    const err = new Error('Tên CLB là bắt buộc!');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (!categories.includes(payload.category)) {
+    const err = new Error('Lĩnh vực CLB không hợp lệ!');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (!payload.presidentEmail || !String(payload.presidentEmail).trim()) {
+    const err = new Error('Email chủ nhiệm là bắt buộc!');
+    err.statusCode = 400;
+    throw err;
+  }
+  const registration = await ClubRegistration.create({
+    clubName: payload.clubName,
+    proposedSlug: payload.proposedSlug || '',
+    category: payload.category,
+    description: payload.description || '',
+    president: payload.president || '',
+    presidentEmail: String(payload.presidentEmail).trim().toLowerCase(),
+    contactEmail: payload.contactEmail || payload.presidentEmail,
+    phone: payload.phone || '',
+    activityField: payload.activityField || '',
+    scale: payload.scale || '',
+    submittedByEmail: String(creatorEmail || '').trim().toLowerCase(),
+    icpdpNote: 'Đơn do IC-PDP tạo trực tiếp.',
+    reviewedByEmail: String(creatorEmail || '').trim().toLowerCase(),
+    reviewedAt: new Date(),
+    status: 'pending_admin',
+  });
+  return formatClubRegistration(registration);
+};
+
 module.exports = {
   listRegistrations,
   getRegistrationById,
   createRegistration,
+  icpdpCreateRegistration,
   icpdpForwardToAdmin,
   adminApproveRegistration,
   rejectRegistration,

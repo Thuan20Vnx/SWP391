@@ -50,6 +50,9 @@ const EventDiscoveryCard = ({
   const hasManageAction = viewOnly && typeof onManage === 'function';
   const singleAction = isPostponed || (viewOnly && !hasManageAction);
   const detailPath = event?.id ? `/events/${event.id}` : null;
+  // Khi consumer cung cấp onPrimaryAction (vd: ICPDP/CTSV điều hướng tới trang
+  // chi tiết riêng), dùng callback đó thay vì link công khai /events/:id.
+  const usesCustomDetail = viewOnly && !hasManageAction && typeof onPrimaryAction === 'function';
   const prefetchDetail = () => {
     if (event?.id) prefetchPublicEventById(event.id);
   };
@@ -93,7 +96,15 @@ const EventDiscoveryCard = ({
       <div className="event-discovery-card__body">
         <div className="event-discovery-card__body-main">
           <div className="event-discovery-card__head">
-            {detailPath ? (
+            {usesCustomDetail ? (
+              <button
+                type="button"
+                className="event-discovery-card__title-link"
+                onClick={() => onPrimaryAction?.(event)}
+              >
+                <h3 className="event-discovery-card__title">{title}</h3>
+              </button>
+            ) : detailPath ? (
               <Link
                 to={detailPath}
                 className="event-discovery-card__title-link"
@@ -169,7 +180,7 @@ const EventDiscoveryCard = ({
               Chi tiết
             </Link>
           )}
-          {viewOnly && !hasManageAction && detailPath ? (
+          {viewOnly && !hasManageAction && detailPath && !usesCustomDetail ? (
             <Link
               to={detailPath}
               className={`event-discovery-card__btn event-discovery-card__btn--primary ${singleAction ? 'is-full' : ''}`}

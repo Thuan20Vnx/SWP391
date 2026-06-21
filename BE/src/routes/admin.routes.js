@@ -343,6 +343,27 @@ router.get('/club-registrations', adminOrIcpdp, async (req, res) => {
   }
 });
 
+router.post('/club-registrations', icpdpOnly, async (req, res) => {
+  try {
+    const registration = await clubRegistrationService.icpdpCreateRegistration(req.body, req.authEmail);
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: 'Đơn thành lập CLB mới (IC-PDP)',
+      body: `IC-PDP vừa tạo đơn thành lập CLB "${registration.clubName}". Chờ Admin phê duyệt.`,
+      type: 'club_submit',
+      refId: String(registration.id || ''),
+      refType: 'club_registration'
+    }).catch(() => {});
+    return res.status(201).json({ success: true, registration, message: 'Đã tạo đơn CLB — chờ Admin phê duyệt.' });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('club-registrations create:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
 router.get('/club-registrations/:id', adminOrIcpdp, async (req, res) => {
   try {
     const registration = await clubRegistrationService.getRegistrationById(req.params.id);
