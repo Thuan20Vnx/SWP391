@@ -1109,7 +1109,8 @@ router.patch('/school-events/:id/approve', async (req, res) => {
     Object.assign(event, buildSchoolEventAdminApproveMeta(req.authEmail));
     await event.save();
     createAndBroadcast({
-      recipientRoles: ['ctsv'],
+      recipientRoles: [event.schoolOrganizerRole || 'ctsv'],
+      recipientEmails: event.ctsvSubmittedByEmail ? [event.ctsvSubmittedByEmail] : [],
       title: 'Sự kiện cấp trường đã được duyệt',
       body: `Admin đã phê duyệt sự kiện: ${event.title}`,
       type: 'event_approve',
@@ -1218,7 +1219,8 @@ router.patch('/school-events/:id/reject', async (req, res) => {
     await event.save();
 
     createAndBroadcast({
-      recipientRoles: ['ctsv'],
+      recipientRoles: [event.schoolOrganizerRole || 'ctsv'],
+      recipientEmails: event.ctsvSubmittedByEmail ? [event.ctsvSubmittedByEmail] : [],
       title: 'Sự kiện cấp trường bị từ chối',
       body: `Admin đã từ chối sự kiện "${event.title}". Lý do: ${reason}`,
       type: 'event_reject',

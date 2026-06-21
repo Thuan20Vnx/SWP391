@@ -36,7 +36,9 @@ const STATUS_FILTERS = [
   { value: 'live', label: 'Đang diễn ra' },
   { value: 'ended', label: 'Đã kết thúc' },
   { value: 'pending_icpdp', label: 'Chờ ICPDP' },
-  { value: 'pending_ctsv', label: 'Chờ CTSV' }
+  { value: 'pending_ctsv', label: 'Chờ CTSV' },
+  { value: 'pending_admin', label: 'Chờ Admin' },
+  { value: 'rejected', label: 'Từ chối' }
 ];
 
 const matchesStatusFilter = (statusKey, filter) => {
@@ -110,7 +112,7 @@ const IcpdpEventList = () => {
 
   const loadEvents = () => {
     setLoading(true);
-    fetchIcpdpEvents()
+    fetchIcpdpEvents({ status: 'all' })
       .then((d) => setEvents(d.events || []))
       .catch((err) => {
         setEvents([]);
