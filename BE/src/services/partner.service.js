@@ -2,7 +2,44 @@ const Event = require('../models/Event');
 const Partner = require('../models/Partner');
 const PartnerMember = require('../models/PartnerMember');
 const Contract = require('../models/Contract');
+const PartnerEventRequest = require('../models/PartnerEventRequest');
 const { formatEvent } = require('../utils/eventFormat');
+
+const REQUEST_STATUS_LABELS = {
+  pending: 'CHỜ DUYỆT',
+  info_requested: 'CẦN BỔ SUNG',
+  rejected: 'TỪ CHỐI'
+};
+
+const formatPendingRequestAsEvent = (doc) => {
+  const cap = doc.totalTickets || 0;
+  return {
+    id: `req-${doc._id}`,
+    title: doc.title,
+    description: doc.description || '',
+    category: doc.category,
+    date: doc.startDate ? new Date(doc.startDate).toLocaleDateString('vi-VN') : '',
+    time: doc.startDate ? new Date(doc.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '',
+    startDate: doc.startDate,
+    endDate: doc.endDate,
+    registrationStartDate: doc.registrationStartDate || null,
+    registrationEndDate: doc.registrationEndDate || null,
+    location: doc.location,
+    remainingTickets: cap,
+    totalTickets: cap,
+    capacity: cap,
+    registeredCount: 0,
+    status: REQUEST_STATUS_LABELS[doc.status] || doc.status,
+    statusKey: doc.status,
+    image: doc.image || '',
+    thumbnail: doc.image || '',
+    eventType: doc.eventType || '',
+    format: doc.format || 'campus',
+    campus: doc.campus || '',
+    source: 'partner',
+    isRequest: true
+  };
+};
 const { appendDemoToReportList } = require('./ctsvReport.service');
 const {
   listPartnerSubmittedReports,
@@ -248,7 +285,18 @@ const getPartnerEvents = async (email, query = {}) => {
     .limit(100)
     .lean();
 
-  return events.map(formatEvent);
+  const requestFilter = { ...filter, partnerId: { $in: partnerIds }, status: { $in: ['pending', 'info_requested', 'rejected'] } };
+  const pendingRequests = await PartnerEventRequest.find(requestFilter)
+    .sort({ updatedAt: -1 })
+    .limit(20)
+    .lean();
+
+  const formatted = [
+    ...events.map(formatEvent),
+    ...pendingRequests.map(formatPendingRequestAsEvent)
+  ];
+
+  return formatted.sort((a, b) => new Date(b.startDate || 0) - new Date(a.startDate || 0));
 };
 
 const getPartnerEventById = async (email, eventId) => {

@@ -98,7 +98,7 @@ const PartnerDashboard = () => {
           {attentionEvents.map((ev, i) => (
             <React.Fragment key={ev.id}>
               {i > 0 && ', '}
-              <Link to={`/partner/events/${ev.id}`}>{ev.title}</Link> ({ev.status})
+              <Link to={ev.isRequest ? '/partner/proposals/create' : `/partner/events/${ev.id}`}>{ev.title}</Link> ({ev.status})
             </React.Fragment>
           ))}
         </div>
@@ -195,8 +195,15 @@ const PartnerDashboard = () => {
                     </p>
                   </div>
                   <div className="ctsv-dash-event-aside">
-                    <span className={`status-pill ${statusClass(ev.status, ev.statusKey)}`}>{ev.status}</span>
-                    <Link to={`/partner/events/${ev.id}`} className="ctsv-dash-event-cta">
+                    <span
+                      className={`status-pill ${statusClass(ev.status, ev.statusKey)}${ev.isRequest ? ' status-pill--outline' : ''}`}
+                    >
+                      {ev.status}
+                    </span>
+                    <Link
+                      to={ev.isRequest ? '/partner/proposals/create' : `/partner/events/${ev.id}`}
+                      className="ctsv-dash-event-cta"
+                    >
                       Chi tiết
                     </Link>
                   </div>
