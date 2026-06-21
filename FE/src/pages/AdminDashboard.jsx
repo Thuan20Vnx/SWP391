@@ -11,7 +11,13 @@ import {
   rejectCtsvEvent,
   rejectCtsvProposal,
 } from '../services/ctsvApi';
-import { approveAdminSchoolEvent, rejectAdminSchoolEvent } from '../services/adminApi';
+import {
+  approveAdminSchoolEvent,
+  rejectAdminSchoolEvent,
+  fetchAdminPartners,
+  approveAdminPartner,
+  rejectAdminPartner,
+} from '../services/adminApi';
 import { isAdminRole, isCtsvRole, isIcpdpRole, normalizeRole } from '../utils/auth';
 import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
 import '../styles/admin-dashboard.css';
@@ -113,6 +119,7 @@ const Badge = ({ meta }) => (
 const AdminDashboard = ({ showToast }) => {
   const [events, setEvents] = useState([]);
   const [proposals, setProposals] = useState([]);
+  const [partnerRequests, setPartnerRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState(null);
   const navigate = useNavigate();
@@ -145,14 +152,18 @@ const AdminDashboard = ({ showToast }) => {
     Promise.all([
       fetchCtsvEvents({ status: 'all' }).catch(() => ({ success: false, events: [] })),
       fetchCtsvProposals({ status: 'all' }).catch(() => ({ success: false, proposals: [] })),
+      isAdminRole(userRole)
+        ? fetchAdminPartners('pending_admin').catch(() => ({ success: false, partners: [] }))
+        : Promise.resolve({ success: false, partners: [] }),
     ])
-      .then(([eventData, proposalData]) => {
+      .then(([eventData, proposalData, partnerData]) => {
         setEvents(eventData.events || []);
         setProposals(proposalData.proposals || []);
+        setPartnerRequests(partnerData.partners || []);
       })
       .catch(() => showToast('Lỗi máy chủ, không tải được dữ liệu.', 'error'))
       .finally(() => setLoading(false));
-  }, [showToast]);
+  }, [showToast, userRole]);
 
   useEffect(() => {
     if (!canAccess) {
@@ -207,7 +218,28 @@ const AdminDashboard = ({ showToast }) => {
       description: p.description,
       eventId: p.eventId || null,
     }));
-    const all = [...propItems, ...evItems];
+    const partnerItems = partnerRequests.map((p) => ({
+      key: `pt-${p._id}`,
+      kind: 'partner',
+      id: p._id,
+      title: p.proposedEventTitle || p.name,
+      source: 'partner',
+      statusKey: p.status,
+      organizer: p.email || p.name || '—',
+      category: p.category || '—',
+      location: '—',
+      date: null,
+      time: '',
+      startDate: p.createdAt,
+      createdAt: p.ctsvApprovedAt || p.createdAt,
+      totalTickets: null,
+      ticketTypes: [],
+      ticketPrice: 0,
+      thumbnail: '',
+      description: p.description || '',
+      eventId: null,
+    }));
+    const all = [...propItems, ...evItems, ...partnerItems];
     // Đang duyệt lên đầu, sau đó theo thời gian gửi mới nhất
     return all.sort((a, b) => {
       const ap = PENDING_KEYS.includes(a.statusKey) ? 0 : 1;
@@ -215,7 +247,7 @@ const AdminDashboard = ({ showToast }) => {
       if (ap !== bp) return ap - bp;
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     });
-  }, [events, proposals]);
+  }, [events, proposals, partnerRequests]);
 
   const filtered = useMemo(
     () => items.filter(
@@ -237,7 +269,9 @@ const AdminDashboard = ({ showToast }) => {
   const handleApprove = async (item) => {
     setActingId(item.id);
     try {
-      if (item.kind === 'proposal') {
+      if (item.kind === 'partner') {
+        await approveAdminPartner(item.id);
+      } else if (item.kind === 'proposal') {
         if (isIcpdpRole(userRole) && item.statusKey === 'pending_icpdp') {
           await icpdpApproveProposal(item.id);
         } else {
@@ -261,7 +295,9 @@ const AdminDashboard = ({ showToast }) => {
   const handleReject = async (item, reason) => {
     setActingId(item.id);
     try {
-      if (item.kind === 'proposal') {
+      if (item.kind === 'partner') {
+        await rejectAdminPartner(item.id, reason);
+      } else if (item.kind === 'proposal') {
         await rejectCtsvProposal(item.id, reason);
       } else if (item.source === 'school') {
         await rejectAdminSchoolEvent(item.id, reason);
@@ -451,9 +487,11 @@ const AdminDashboard = ({ showToast }) => {
             const isBusy = actingId === item.id;
             const acted = actedResults[item.id];
             const isPending = PENDING_KEYS.includes(item.statusKey) && !acted;
-            const detailHref = item.kind === 'event'
-              ? (item.source === 'school' ? `/admin/ctsv/events/${item.id}` : `/events/${item.id}`)
-              : (item.eventId ? `/events/${item.eventId}` : null);
+            const detailHref = item.kind === 'partner'
+              ? `/admin/ctsv/partners/${item.id}`
+              : item.kind === 'event'
+                ? (item.source === 'school' ? `/admin/ctsv/events/${item.id}` : `/events/${item.id}`)
+                : (item.eventId ? `/events/${item.eventId}` : null);
             const statusBadge = acted === 'approved'
               ? { label: 'Đã phê duyệt', tone: 'green' }
               : acted === 'rejected'
