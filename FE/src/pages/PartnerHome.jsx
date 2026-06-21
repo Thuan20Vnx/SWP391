@@ -10,6 +10,7 @@ import {
 import { getPartnerOwnedEventCardAccess } from '../utils/partnerPublicEventAccess';
 import { statusClass } from '../utils/eventStatus';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../constants/eventCategories';
+import { mapEventsToHeroSlides } from '../utils/heroSlides';
 
 const HOME_TIME_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -20,33 +21,6 @@ const HOME_TIME_FILTERS = [
 const HOME_CATEGORY_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả chủ đề' },
   ...CTSV_CATEGORY_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
-];
-
-const PARTNER_HERO_FALLBACK = [
-  {
-    title: 'Tech Talk 2026 — FPT Software',
-    dateLabel: '15 Tháng 6, 2026',
-    location: 'Hội trường Alpha',
-    categoryLabel: 'Công nghệ',
-    organizerLabel: 'Partner',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1280&q=80'
-  },
-  {
-    title: 'FPT Recruitment Day 2026',
-    dateLabel: '22 Tháng 6, 2026',
-    location: 'Sân FPT',
-    categoryLabel: 'Kết nối',
-    organizerLabel: 'Partner',
-    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1280&q=80'
-  },
-  {
-    title: 'Phân tích hiệu suất tài trợ & ROI',
-    dateLabel: '30 Tháng 6, 2026',
-    location: 'Campus FPT',
-    categoryLabel: 'Báo cáo',
-    organizerLabel: 'Partner',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1280&q=80'
-  }
 ];
 
 const PartnerEventCard = ({ ev, onOpen }) => {
@@ -152,26 +126,12 @@ const PartnerHome = ({ showToast }) => {
   }, [outlet, handleFilterSubmit]);
 
   const heroSlides = useMemo(() => {
-    const featured = events.slice(0, 3).map((ev) => ({
-      title: ev.title,
-      dateLabel: ev.date,
-      location: ev.location,
-      categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
-      organizerLabel: 'Partner',
-      image: ev.image,
-      eventId: ev.id
-    }));
-    if (featured.length >= 3) {
-      return featured;
-    }
-
-    const usedTitles = new Set(featured.map((slide) => slide.title.trim().toLowerCase()));
-    const fallbackSlides = PARTNER_HERO_FALLBACK
-      .filter((slide) => !usedTitles.has(slide.title.trim().toLowerCase()))
-      .slice(0, 3 - featured.length)
-      .map((slide) => ({ ...slide, eventId: null }));
-
-    return [...featured, ...fallbackSlides];
+    return mapEventsToHeroSlides(events, {
+      categoryLabel: (event) => getCategoryDisplayLabel(event.category) || event.category,
+      organizerLabel: () => 'Partner',
+      dateLabel: (event) => event.date,
+      location: (event) => event.location,
+    });
   }, [events]);
 
   const upcomingEvents = useMemo(

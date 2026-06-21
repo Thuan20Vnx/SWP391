@@ -5,6 +5,8 @@ import { fetchIcpdpEvents, fetchIcpdpStats } from '../services/icpdpApi';
 import { isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
 import { getCategoryDisplayLabel } from '../constants/eventCategories';
+import HomeHeroSlider from '../components/home/HomeHeroSlider';
+import { mapEventsToHeroSlides } from '../utils/heroSlides';
 
 const cardStateFromEv = (ev) => {
   const s = ev.statusKey || ev.status || '';
@@ -68,28 +70,6 @@ const IcpdpHome = ({ showToast }) => {
   const searchQuery = outlet.headerSearch ?? '';
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
-  const [activeSlide, setActiveSlide] = useState(0);
-
-  const sliderData = [
-    {
-      tag: 'QUẢN LÝ CLB',
-      title: 'Duyệt đề xuất sự kiện\ntừ các Câu lạc bộ',
-      desc: 'Thẩm định, phê duyệt nội bộ các đề xuất sự kiện từ CLB trước khi chuyển CTSV xét duyệt cuối.',
-      image: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=1280&q=80'
-    },
-    {
-      tag: 'GIÁM SÁT',
-      title: 'Theo dõi hoạt động\ncác Câu lạc bộ',
-      desc: 'Giám sát sự kiện đang diễn ra, lịch tổ chức và hiệu suất hoạt động của từng CLB.',
-      image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1280&q=80'
-    },
-    {
-      tag: 'BÁO CÁO',
-      title: 'Nghiệm thu báo cáo\nsau sự kiện',
-      desc: 'Tiếp nhận, đánh giá báo cáo kết quả từ các CLB để tính điểm hoạt động.',
-      image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1280&q=80'
-    }
-  ];
 
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
@@ -114,13 +94,6 @@ const IcpdpHome = ({ showToast }) => {
         showToast?.('Không tải được sự kiện — kiểm tra backend và đăng nhập lại.', 'error');
       });
   }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % sliderData.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [sliderData.length]);
 
   const handleFilterSubmit = useCallback(() => {
     fetchIcpdpEvents({
@@ -161,6 +134,14 @@ const IcpdpHome = ({ showToast }) => {
   }, [outlet, handleFilterSubmit]);
 
   const allLiveEvents = useMemo(() => events.filter(isEventLiveOrOngoing), [events]);
+  const heroSlides = useMemo(() => {
+    return mapEventsToHeroSlides(events, {
+      categoryLabel: (event) => getCategoryDisplayLabel(event.category) || event.category,
+      organizerLabel: (event) => event.organizerLabel || '',
+      dateLabel: (event) => event.date,
+      location: (event) => event.location,
+    });
+  }, [events]);
   const liveOverviewEvents = useMemo(
     () => allLiveEvents.slice((livePage - 1) * PAGE_SIZE, livePage * PAGE_SIZE),
     [allLiveEvents, livePage]
@@ -197,36 +178,13 @@ const IcpdpHome = ({ showToast }) => {
 
   return (
     <>
-      <section className="hero-banner-slider">
-        {sliderData.map((slide, index) => (
-          <div
-            key={index}
-            className={`hero-slide ${index === activeSlide ? 'active' : ''}`}
-            style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.72)), url(${slide.image})` }}
-          >
-            <div className="hero-content-container">
-              <span className="hero-tag-badge">{slide.tag}</span>
-              <h1 className="hero-title">{slide.title}</h1>
-              <p className="hero-description">{slide.desc}</p>
-              <button type="button" className="hero-cta-btn" onClick={() => navigate('/icpdp/dashboard')}>
-                <span className="hero-cta-btn__main">Vào bảng điều khiển</span>
-                <span className="hero-cta-btn__sub">Bấm để truy cập ngay</span>
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className="hero-dot-indicators">
-          {sliderData.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              className={`slider-dot ${index === activeSlide ? 'active' : ''}`}
-              onClick={() => setActiveSlide(index)}
-              aria-label={`Slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </section>
+      <HomeHeroSlider
+        slides={heroSlides}
+        resolveDetailPath={(slide) => (slide.eventId ? `/icpdp/events/${slide.eventId}` : null)}
+        fallbackCtaPath="/icpdp/dashboard"
+        fallbackCtaMain="Vào bảng điều khiển"
+        fallbackCtaSub="Giám sát sự kiện toàn hệ thống"
+      />
 
       <section className="ctsv-stats-section">
         <div className="ctsv-stats-grid">

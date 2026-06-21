@@ -64,9 +64,26 @@ const seedTestAccounts = async () => {
   }
 };
 
+const cleanupPartnerPlaceholderEvents = async () => {
+  try {
+    const Event = require('./src/models/Event');
+    const result = await Event.deleteMany({
+      source: 'partner',
+      proposalId: null,
+      title: { $regex: /^Sự kiện đối tác — /i },
+    });
+    if (result.deletedCount) {
+      console.log(`[Cleanup] Removed ${result.deletedCount} partner placeholder event(s)`);
+    }
+  } catch (err) {
+    console.error('[Cleanup] partner placeholder events:', err.message);
+  }
+};
+
 const startServer = async () => {
   await connectDB();
   await seedTestAccounts();
+  await cleanupPartnerPlaceholderEvents();
 
   // Cron: hết hạn đơn pending mỗi 5 phút
   const { expireStalePayments } = require('./src/services/payment.service');
