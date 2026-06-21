@@ -1059,6 +1059,13 @@ router.patch('/proposals/:id/reject', requireProposalModerate, async (req, res) 
     proposal.status = 'rejected';
     proposal.rejectionReason = reason;
     await proposal.save();
+    // Đồng bộ sự kiện liên kết để CLB thấy bị từ chối và gửi lại được.
+    if (proposal.linkedEventId) {
+      await Event.findByIdAndUpdate(proposal.linkedEventId, {
+        status: 'rejected',
+        rejectionReason: reason,
+      });
+    }
     createAndBroadcast({
       recipientRoles: req.userRole === 'admin' ? ['ctsv', 'icpdp'] : [],
       recipientEmails: [proposal.submittedByEmail],
@@ -1084,6 +1091,12 @@ router.patch('/proposals/:id/request-revision', requireCtsvApprove, async (req, 
     proposal.status = 'revision';
     proposal.ctsvNote = req.body.note || '';
     await proposal.save();
+    if (proposal.linkedEventId) {
+      await Event.findByIdAndUpdate(proposal.linkedEventId, {
+        status: 'revision',
+        ctsvNote: req.body.note || '',
+      });
+    }
     createAndBroadcast({
       recipientEmails: [proposal.submittedByEmail],
       title: 'Đề xuất sự kiện cần chỉnh sửa',
