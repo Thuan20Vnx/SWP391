@@ -5982,6 +5982,8 @@ html:has(.ctsv-app-shell) body {
   font-weight: 600;
   color: #0f172a;
   line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .ctsv-pd-duo {
