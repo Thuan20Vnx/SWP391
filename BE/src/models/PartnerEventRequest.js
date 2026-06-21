@@ -46,6 +46,7 @@ const partnerEventRequestSchema = new mongoose.Schema(
   {
     partnerEmail: { type: String, required: true, trim: true, lowercase: true },
     partnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', default: null },
+    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null },
     status: {
       type: String,
       enum: REQUEST_STATUSES,
