@@ -7,9 +7,11 @@ import {
   fetchPartnerEvents,
   fetchPartnerStats,
 } from '../services/partnerApi';
+import { fetchPublicEvents } from '../services/eventsApi';
 import { getPartnerOwnedEventCardAccess } from '../utils/partnerPublicEventAccess';
 import { statusClass } from '../utils/eventStatus';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../constants/eventCategories';
+import { filterActiveDiscoveryEvents, mapApiEventToCard } from '../data/eventDiscoveryData';
 import { mapEventsToHeroSlides } from '../utils/heroSlides';
 
 const HOME_TIME_FILTERS = [
@@ -82,23 +84,28 @@ const PartnerHome = ({ showToast }) => {
 
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
+  const [campusHeroEvents, setCampusHeroEvents] = useState([]);
   const [stats, setStats] = useState([]);
 
   useEffect(() => {
-    fetchPartnerStats()
-      .then((d) => setStats(d.stats || []))
-      .catch(() => setStats([]));
+    Promise.all([
+      fetchPartnerStats().catch(() => ({ stats: [] })),
+      fetchPartnerEvents().catch(() => ({ events: [] })),
+      fetchPublicEvents().catch(() => ({ events: [] })),
+    ]).then(([statsRes, partnerEventsRes, publicEventsRes]) => {
+      const ownEvents = partnerEventsRes.events || [];
+      const publicCards = filterActiveDiscoveryEvents((publicEventsRes.events || []).map(mapApiEventToCard));
 
-    fetchPartnerEvents()
-      .then((d) => {
-        const list = d.events || [];
-        setEvents(list);
-        setFilteredEvents(list);
-      })
-      .catch(() => {
-        setEvents([]);
-        setFilteredEvents([]);
-      });
+      setStats(statsRes.stats || []);
+      setEvents(ownEvents);
+      setFilteredEvents(ownEvents);
+      setCampusHeroEvents(publicCards);
+    }).catch(() => {
+      setStats([]);
+      setEvents([]);
+      setFilteredEvents([]);
+      setCampusHeroEvents([]);
+    });
   }, []);
 
   const handleFilterSubmit = useCallback((queryOverride) => {
@@ -126,13 +133,14 @@ const PartnerHome = ({ showToast }) => {
   }, [outlet, handleFilterSubmit]);
 
   const heroSlides = useMemo(() => {
-    return mapEventsToHeroSlides(events, {
+    const sourceEvents = events.length ? events : campusHeroEvents;
+    return mapEventsToHeroSlides(sourceEvents, {
       categoryLabel: (event) => getCategoryDisplayLabel(event.category) || event.category,
-      organizerLabel: () => 'Partner',
-      dateLabel: (event) => event.date,
+      organizerLabel: (event) => event.organizerLabel || (events.length ? 'Partner' : ''),
+      dateLabel: (event) => event.date || event.dateLabel,
       location: (event) => event.location,
     });
-  }, [events]);
+  }, [campusHeroEvents, events]);
 
   const upcomingEvents = useMemo(
     () => filteredEvents.filter((ev) => ev.statusKey === 'approved' || ev.statusKey === 'pending_admin'),
