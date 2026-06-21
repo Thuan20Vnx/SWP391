@@ -241,7 +241,7 @@ const submitRequest = async (email, body) => {
       status: { $in: ['info_requested', 'approved', 'hidden'] }
     }));
 
-  if (doc && !['draft', 'info_requested', 'approved', 'hidden'].includes(doc.status)) {
+  if (doc && !['draft', 'info_requested', 'approved', 'hidden', 'rejected'].includes(doc.status)) {
     throw new AppError('Yêu cầu không thể gửi ở trạng thái hiện tại.', 400);
   }
 
@@ -254,7 +254,8 @@ const submitRequest = async (email, body) => {
     submittedAt: new Date(),
     hiddenAt: null,
     deletedAt: null,
-    supplementReason: ''
+    supplementReason: '',
+    rejectionReason: ''
   });
 
   const partner = await syncPartnerRecord(normalized, payload, 'pending');
@@ -349,8 +350,8 @@ const deleteRequest = async (email, requestId) => {
   if (!doc || doc.partnerEmail !== normalizeEmail(email)) {
     throw new AppError('Không tìm thấy yêu cầu!', 404);
   }
-  if (!['approved', 'hidden', 'cancelled'].includes(doc.status)) {
-    throw new AppError('Chỉ xóa yêu cầu đã duyệt, đang ẩn hoặc đã hủy.', 400);
+  if (!['approved', 'hidden', 'cancelled', 'rejected'].includes(doc.status)) {
+    throw new AppError('Chỉ xóa yêu cầu đã duyệt, đang ẩn, đã hủy hoặc bị từ chối.', 400);
   }
   const wasCancelled = doc.status === 'cancelled';
   const partnerId = doc.partnerId;

@@ -31,7 +31,7 @@ import {
   mapRequestToState
 } from './partnerEventFormUtils';
 
-const ACTIVE_STATUSES = new Set(['pending', 'info_requested', 'approved', 'hidden']);
+const ACTIVE_STATUSES = new Set(['pending', 'info_requested', 'approved', 'hidden', 'rejected']);
 
 const formatFileSize = (bytes) => {
   if (!Number.isFinite(bytes) || bytes < 0) return '—';
@@ -121,6 +121,7 @@ const PartnerProposalCreate = () => {
   const isInfoRequested = requestStatus === 'info_requested';
   const isApproved = requestStatus === 'approved';
   const isHidden = requestStatus === 'hidden';
+  const isRejected = requestStatus === 'rejected';
   const isApprovedOrHidden = isApproved || isHidden;
   const isReadOnly = false;
   const canApiDraft = !activeRequest || requestStatus === 'draft';
@@ -677,6 +678,21 @@ const PartnerProposalCreate = () => {
         </div>
       )}
 
+      {isRejected && (
+        <div className="ctsv-pd-banner ctsv-pd-banner--danger" style={{ marginBottom: 24 }}>
+          <strong>Yêu cầu bị từ chối:</strong>{' '}
+          {activeRequest?.rejectionReason || 'CTSV đã từ chối yêu cầu sự kiện này.'}
+          {statusLabel && (
+            <span className={`ctsv-pd-status ctsv-pd-status--${statusTone}`} style={{ marginLeft: 12 }}>
+              {statusLabel}
+            </span>
+          )}
+          <p className="ctsv-muted" style={{ marginTop: 8 }}>
+            Bạn có thể sửa lại thông tin và gửi lại, hoặc xóa yêu cầu này.
+          </p>
+        </div>
+      )}
+
       {isHidden && (
         <div className="ctsv-pd-banner ctsv-pd-banner--info" style={{ marginBottom: 24 }}>
           <strong>Sự kiện đang ẩn</strong> — không hiển thị công khai. Bạn có thể cập nhật hoặc xóa yêu cầu.
@@ -812,7 +828,7 @@ const PartnerProposalCreate = () => {
             Hủy bỏ
           </button>
 
-          {isApprovedOrHidden && (
+          {(isApprovedOrHidden || isRejected) && (
             <>
               {isApproved && (
                 <button
