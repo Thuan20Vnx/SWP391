@@ -35,7 +35,7 @@ import useNotifications from '../hooks/useNotifications';
 
 import '../styles/notifications.css';
 
-const ROLES_WITH_SYS_NOTIF = ['admin', 'ctsv', 'icpdp', 'club', 'partner'];
+const ROLES_WITH_SYS_NOTIF = ['admin', 'ctsv', 'icpdp', 'club', 'partner', 'public'];
 
 const TYPE_TO_TONE = {
   event_submit: 'info',
@@ -43,6 +43,19 @@ const TYPE_TO_TONE = {
   event_reject: 'alert',
   partner_submit: 'info',
   club_submit: 'info',
+  club_reject: 'alert',
+  club_revision: 'warning',
+  event_revision: 'warning',
+  event_change_approve: 'success',
+  event_change_reject: 'alert',
+  event_change_submit: 'info',
+  partner_reject: 'alert',
+  partner_revision: 'warning',
+  timeline_submit: 'info',
+  timeline_change: 'warning',
+  timeline_approve: 'success',
+  timeline_reject: 'alert',
+  timeline_revision: 'warning',
 };
 
 const formatRelativeTime = (dateStr) => {
@@ -65,6 +78,28 @@ const refToLink = (refType, refId, role) => {
     if (role === 'icpdp') return `/icpdp/events/${refId}`;
     return `/events/${refId}`;
   }
+  if (refType === 'event_proposal') {
+    if (role === 'admin') return '/admin/events';
+    if (role === 'ctsv') return `/ctsv/proposals/${refId}`;
+    if (role === 'icpdp') return `/icpdp/proposals/${refId}`;
+    return '/quan-ly-clb';
+  }
+  if (refType === 'club_registration') {
+    if (role === 'admin') return `/admin/icpdp/club-registrations/${refId}`;
+    if (role === 'icpdp') return `/icpdp/club-registrations/${refId}`;
+    return '/quan-ly-clb';
+  }
+  if (refType === 'semester_timeline') {
+    if (role === 'admin') return `/admin/semester-timelines/${refId}`;
+    if (role === 'icpdp') return `/icpdp/semester-timelines/${refId}`;
+    return '/quan-ly-clb';
+  }
+  if (refType === 'partner' || refType === 'partner_proposal' || refType === 'partner_event_request') {
+    if (role === 'admin') return `/admin/ctsv/partners/${refId}`;
+    if (role === 'ctsv') return `/ctsv/partners/${refId}`;
+    return '/partner';
+  }
+  if (refType === 'event_change_request') return '/admin/event-requests';
   return null;
 };
 

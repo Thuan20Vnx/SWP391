@@ -263,6 +263,14 @@ router.post('/proposals', async (req, res) => {
 router.patch('/proposals/:id/supplement', async (req, res) => {
   try {
     const result = await supplementRequest(req.authEmail, req.params.id, req.body);
+    createAndBroadcast({
+      recipientRoles: ['ctsv'],
+      title: 'Đối tác đã bổ sung hồ sơ',
+      body: 'Đối tác vừa cập nhật hồ sơ theo yêu cầu. Vui lòng xem xét lại.',
+      type: 'partner_submit',
+      refId: String(result.partner?._id || req.params.id),
+      refType: 'partner'
+    }).catch(() => {});
     return res.json({
       success: true,
       partner: result.partner,

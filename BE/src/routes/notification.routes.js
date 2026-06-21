@@ -6,6 +6,34 @@ const Notification = require('../models/Notification');
 const { normalizeRole } = require('../utils/role');
 const { addClient, removeClient } = require('../services/notification.service');
 
+const getAuthenticatedUser = async (req) => {
+  const headerToken = req.headers.authorization?.startsWith('Bearer ')
+    ? req.headers.authorization.slice(7)
+    : '';
+  const token = String(req.query.token || headerToken || '').trim();
+  if (!token) return null;
+  const payload = verifyToken(token);
+  if (!payload.email) return null;
+  return User.findOne({ email: payload.email.trim().toLowerCase() }).lean();
+};
+
+const recipientFilter = (user) => ({
+  $or: [
+    { recipientRoles: normalizeRole(user.role) },
+    { recipientEmails: String(user.email || '').trim().toLowerCase() }
+  ]
+});
+
+const formatForUser = (notification, email) => {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const readBy = Array.isArray(notification.readByEmails) ? notification.readByEmails : [];
+  return {
+    ...notification,
+    id: notification._id,
+    isRead: readBy.includes(normalizedEmail) || (readBy.length === 0 && notification.isRead === true)
+  };
+};
+
 // GET /api/notifications/stream — SSE endpoint, auth via ?token= query param
 router.get('/stream', async (req, res) => {
   const token = String(req.query.token || '').trim();
@@ -13,22 +41,11 @@ router.get('/stream', async (req, res) => {
     return res.status(401).json({ success: false, message: 'Thiếu token xác thực!' });
   }
 
-  let payload;
-  try {
-    payload = verifyToken(token);
-  } catch {
-    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
-  }
-
-  if (!payload.email) {
-    return res.status(401).json({ success: false, message: 'Token không hợp lệ!' });
-  }
-
   let user;
   try {
-    user = await User.findOne({ email: payload.email.trim().toLowerCase() }).lean();
+    user = await getAuthenticatedUser(req);
   } catch {
-    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
   }
 
   if (!user) {
@@ -47,7 +64,7 @@ router.get('/stream', async (req, res) => {
   // Send a connected ping
   res.write(`event: connected\ndata: ${JSON.stringify({ clientId, role })}\n\n`);
 
-  addClient(clientId, res, role);
+  addClient(clientId, res, role, user.email);
 
   // Heartbeat every 30 seconds to keep connection alive
   const heartbeat = setInterval(() => {
@@ -66,45 +83,25 @@ router.get('/stream', async (req, res) => {
 
 // GET /api/notifications — lấy thông báo cho user hiện tại theo role
 router.get('/', async (req, res) => {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Thiếu token xác thực!' });
-  }
-  const token = header.slice(7);
-  let payload;
-  try {
-    payload = verifyToken(token);
-  } catch {
-    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
-  }
-  if (!payload.email) {
-    return res.status(401).json({ success: false, message: 'Token không hợp lệ!' });
-  }
-
   let user;
   try {
-    user = await User.findOne({ email: payload.email.trim().toLowerCase() }).lean();
+    user = await getAuthenticatedUser(req);
   } catch {
-    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
   }
   if (!user) {
     return res.status(401).json({ success: false, message: 'Người dùng không tồn tại!' });
   }
 
-  const role = normalizeRole(user.role);
-
   try {
-    const notifications = await Notification.find({ recipientRoles: role })
+    const notifications = await Notification.find(recipientFilter(user))
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
 
     return res.json({
       success: true,
-      notifications: notifications.map((n) => ({
-        ...n,
-        id: n._id
-      }))
+      notifications: notifications.map((n) => formatForUser(n, user.email))
     });
   } catch (err) {
     console.error('GET /notifications:', err);
@@ -114,35 +111,20 @@ router.get('/', async (req, res) => {
 
 // PATCH /api/notifications/read-all — đánh dấu tất cả đã đọc
 router.patch('/read-all', async (req, res) => {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Thiếu token xác thực!' });
-  }
-  const token = header.slice(7);
-  let payload;
-  try {
-    payload = verifyToken(token);
-  } catch {
-    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
-  }
-  if (!payload.email) {
-    return res.status(401).json({ success: false, message: 'Token không hợp lệ!' });
-  }
-
   let user;
   try {
-    user = await User.findOne({ email: payload.email.trim().toLowerCase() }).lean();
+    user = await getAuthenticatedUser(req);
   } catch {
-    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
   }
   if (!user) {
     return res.status(401).json({ success: false, message: 'Người dùng không tồn tại!' });
   }
 
-  const role = normalizeRole(user.role);
-
   try {
-    await Notification.updateMany({ recipientRoles: role, isRead: false }, { $set: { isRead: true } });
+    await Notification.updateMany(recipientFilter(user), {
+      $addToSet: { readByEmails: String(user.email).trim().toLowerCase() }
+    });
     return res.json({ success: true, message: 'Đã đánh dấu tất cả đã đọc.' });
   } catch (err) {
     console.error('PATCH /notifications/read-all:', err);
@@ -152,31 +134,24 @@ router.patch('/read-all', async (req, res) => {
 
 // PATCH /api/notifications/:id/read — đánh dấu một thông báo đã đọc
 router.patch('/:id/read', async (req, res) => {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Thiếu token xác thực!' });
-  }
-  const token = header.slice(7);
-  let payload;
+  let user;
   try {
-    payload = verifyToken(token);
+    user = await getAuthenticatedUser(req);
   } catch {
     return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
   }
-  if (!payload.email) {
-    return res.status(401).json({ success: false, message: 'Token không hợp lệ!' });
-  }
+  if (!user) return res.status(401).json({ success: false, message: 'Người dùng không tồn tại!' });
 
   try {
-    const notification = await Notification.findByIdAndUpdate(
-      req.params.id,
-      { $set: { isRead: true } },
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, ...recipientFilter(user) },
+      { $addToSet: { readByEmails: String(user.email).trim().toLowerCase() } },
       { new: true }
     ).lean();
     if (!notification) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy thông báo!' });
     }
-    return res.json({ success: true, notification: { ...notification, id: notification._id } });
+    return res.json({ success: true, notification: formatForUser(notification, user.email) });
   } catch (err) {
     console.error('PATCH /notifications/:id/read:', err);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });

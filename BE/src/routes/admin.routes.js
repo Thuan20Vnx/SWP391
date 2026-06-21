@@ -362,6 +362,14 @@ router.patch('/club-registrations/:id/forward-admin', icpdpOnly, async (req, res
       note: req.body.note || '',
       reviewerEmail: req.authEmail,
     });
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: 'Đơn thành lập CLB cần Admin duyệt',
+      body: `${registration.clubName || 'Một CLB'} đã được IC-PDP duyệt sơ bộ.`,
+      type: 'club_submit',
+      refId: String(req.params.id),
+      refType: 'club_registration'
+    }).catch(() => {});
     return res.json({
       success: true,
       registration,
@@ -384,6 +392,11 @@ router.patch('/club-registrations/:id/approve', adminOnly, async (req, res) => {
     });
     createAndBroadcast({
       recipientRoles: ['icpdp'],
+      recipientEmails: [
+        result.registration?.submittedByEmail,
+        result.registration?.presidentEmail,
+        result.registration?.contactEmail
+      ],
       title: 'Đơn thành lập CLB đã được Admin duyệt',
       body: 'Admin đã phê duyệt đơn thành lập CLB mới.',
       type: 'info',
@@ -408,6 +421,15 @@ router.patch('/club-registrations/:id/reject', adminOrIcpdp, async (req, res) =>
       reviewerEmail: req.authEmail,
       reviewerRole: req.userRole,
     });
+    createAndBroadcast({
+      recipientEmails: [registration.submittedByEmail, registration.presidentEmail, registration.contactEmail],
+      recipientRoles: req.userRole === 'admin' ? ['icpdp'] : [],
+      title: 'Đơn thành lập CLB bị từ chối',
+      body: registration.rejectionReason || 'Đơn thành lập CLB chưa được chấp nhận.',
+      type: 'club_reject',
+      refId: String(req.params.id),
+      refType: 'club_registration'
+    }).catch(() => {});
     return res.json({ success: true, registration });
   } catch (error) {
     if (error.statusCode) {
@@ -424,6 +446,14 @@ router.patch('/club-registrations/:id/revision', icpdpOnly, async (req, res) => 
       note: req.body.note || '',
       reviewerEmail: req.authEmail,
     });
+    createAndBroadcast({
+      recipientEmails: [registration.submittedByEmail, registration.presidentEmail, registration.contactEmail],
+      title: 'Đơn thành lập CLB cần bổ sung',
+      body: registration.icpdpNote || 'IC-PDP yêu cầu bổ sung thông tin cho đơn thành lập CLB.',
+      type: 'club_revision',
+      refId: String(req.params.id),
+      refType: 'club_registration'
+    }).catch(() => {});
     return res.json({ success: true, registration });
   } catch (error) {
     if (error.statusCode) {
@@ -790,6 +820,7 @@ router.patch('/partners/:id/approve', async (req, res) => {
 
     createAndBroadcast({
       recipientRoles: ['ctsv'],
+      recipientEmails: [partner.email],
       title: 'Đối tác đã được Admin phê duyệt',
       body: `Admin đã phê duyệt đối tác: ${partner.name}`,
       type: 'info',
@@ -829,6 +860,15 @@ router.patch('/partners/:id/reject', adminOnly, async (req, res) => {
     partner.status = 'rejected';
     partner.rejectionReason = reason;
     await partner.save();
+    createAndBroadcast({
+      recipientRoles: ['ctsv'],
+      recipientEmails: [partner.email],
+      title: 'Đề xuất đối tác bị từ chối',
+      body: `Admin đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`,
+      type: 'partner_reject',
+      refId: String(partner._id),
+      refType: 'partner'
+    }).catch(() => {});
     return res.json({ success: true, partner });
   } catch (error) {
     console.error('admin reject partner:', error);
@@ -906,6 +946,15 @@ router.get('/school-events/moderation', async (req, res) => {
 router.patch('/school-events/:id/moderation/approve', async (req, res) => {
   try {
     const result = await approveModeration(req.params.id, req.authEmail);
+    createAndBroadcast({
+      recipientRoles: ['ctsv', 'icpdp'],
+      recipientEmails: [result.event?.moderationRequestedByEmail, result.event?.createdByEmail],
+      title: 'Yêu cầu điều chỉnh sự kiện đã được duyệt',
+      body: `Admin đã duyệt yêu cầu cho sự kiện "${result.event?.title || ''}".`,
+      type: 'event_change_approve',
+      refId: String(req.params.id),
+      refType: 'Event'
+    }).catch(() => {});
     return res.json({
       success: true,
       event: formatEvent(result.event),
@@ -923,6 +972,15 @@ router.patch('/school-events/:id/moderation/approve', async (req, res) => {
 router.patch('/school-events/:id/moderation/reject', async (req, res) => {
   try {
     const result = await rejectModeration(req.params.id, req.body?.reason, req.authEmail);
+    createAndBroadcast({
+      recipientRoles: ['ctsv', 'icpdp'],
+      recipientEmails: [result.event?.moderationRequestedByEmail, result.event?.createdByEmail],
+      title: 'Yêu cầu điều chỉnh sự kiện bị từ chối',
+      body: req.body?.reason || 'Admin chưa chấp nhận yêu cầu điều chỉnh sự kiện.',
+      type: 'event_change_reject',
+      refId: String(req.params.id),
+      refType: 'Event'
+    }).catch(() => {});
     return res.json({
       success: true,
       event: formatEvent(result.event),

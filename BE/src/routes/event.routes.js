@@ -13,6 +13,7 @@ const AppError = require('../utils/AppError');
 const registrationController = require('../controllers/registration.controller');
 const reviewController = require('../controllers/review.controller');
 const qrScannerController = require('../controllers/qrScanner.controller');
+const { createAndBroadcast } = require('../services/notification.service');
 
 const router = express.Router();
 
@@ -44,6 +45,14 @@ router.patch(
         req.authEmail,
         req.user?._id
       );
+      createAndBroadcast({
+        recipientRoles: ['icpdp'],
+        title: 'CLB gửi yêu cầu điều chỉnh sự kiện',
+        body: `CLB vừa gửi yêu cầu ${action || 'điều chỉnh'} cho sự kiện.`,
+        type: 'event_change_submit',
+        refId: String(req.params.id),
+        refType: 'Event'
+      }).catch(() => {});
       res.json({
         success: true,
         event: formatEvent(result.event),
