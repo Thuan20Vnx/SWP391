@@ -24,7 +24,6 @@ const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
 const PartnerMember = require('../models/PartnerMember');
 const PartnerEventRequest = require('../models/PartnerEventRequest');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
-const { ensurePartnerEvent } = require('../utils/announcementEvents');
 const {
   buildSchoolEventAdminApproveMeta,
   canAdminApproveSchoolEvent,
@@ -525,8 +524,6 @@ router.post('/partners', adminOnly, async (req, res) => {
       adminApprovedAt: new Date(),
     });
 
-    await ensurePartnerEvent(partner);
-
     let accountCreated = false;
     let defaultPassword = null;
     if (primaryEmail) {
@@ -898,8 +895,6 @@ router.patch('/partners/:id/approve', async (req, res) => {
       { partnerId: partner._id, status: 'pending' },
       { status: 'approved', approvedByEmail: req.authEmail }
     );
-    await ensurePartnerEvent(partner);
-
     // Tự động tạo tài khoản đăng nhập cho email đại diện nếu chưa có
     const primaryEmail = String(partner.email || '').trim().toLowerCase();
     let accountCreated = false;

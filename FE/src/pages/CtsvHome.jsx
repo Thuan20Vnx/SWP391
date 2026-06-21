@@ -6,6 +6,7 @@ import { fetchCtsvEvents, fetchCtsvStats } from '../services/ctsvApi';
 import { isCtsvManagedEvent, isEventLiveOrOngoing } from '../utils/ctsvEventAccess';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../constants/eventCategories';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
+import { mapEventsToHeroSlides } from '../utils/heroSlides';
 
 const cardStateFromEv = (ev) => {
   const s = ev.statusKey || ev.status || '';
@@ -68,34 +69,6 @@ const SectionPager = ({ page, total, onChange }) => {
     </div>
   );
 };
-
-const CTSV_HERO_FALLBACK = [
-  {
-    title: 'FPT Techday 2026: Kiến tạo tương lai số',
-    dateLabel: '25 Tháng 10, 2026',
-    location: 'Sảnh tòa Gamma',
-    categoryLabel: 'Công nghệ',
-    organizerLabel: 'CTSV',
-    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1280&q=80'
-  },
-  {
-    title: 'Đêm Nhạc F-Fest 2026: Bùng cháy sức trẻ',
-    dateLabel: '20 Tháng 5, 2026',
-    location: 'FPT Plaza 2',
-    categoryLabel: 'Âm nhạc',
-    organizerLabel: 'CLB',
-    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1280&q=80'
-  },
-  {
-    title: 'FPT Career Expo 2026: Chạm ngõ thành công',
-    dateLabel: '28 Tháng 5, 2026',
-    location: 'Sân bóng FPTU',
-    categoryLabel: 'Kết nối',
-    organizerLabel: 'CTSV',
-    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1280&q=80'
-  }
-];
-
 
 const CtsvHome = ({ showToast }) => {
   const navigate = useNavigate();
@@ -166,19 +139,12 @@ const CtsvHome = ({ showToast }) => {
   }, [outlet, handleFilterSubmit]);
 
   const heroSlides = useMemo(() => {
-    const featured = events.slice(0, 3);
-    if (!featured.length) {
-      return CTSV_HERO_FALLBACK.map((slide) => ({ ...slide, eventId: null }));
-    }
-    return featured.map((ev) => ({
-      title: ev.title,
-      dateLabel: ev.date,
-      location: ev.location,
-      categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
-      organizerLabel: ev.organizerLabel || 'CTSV',
-      image: ev.image,
-      eventId: ev.id
-    }));
+    return mapEventsToHeroSlides(events, {
+      categoryLabel: (event) => getCategoryDisplayLabel(event.category) || event.category,
+      organizerLabel: (event) => event.organizerLabel || 'CTSV',
+      dateLabel: (event) => event.date,
+      location: (event) => event.location,
+    });
   }, [events]);
 
   const allLiveEvents = useMemo(() => events.filter(isEventLiveOrOngoing), [events]);

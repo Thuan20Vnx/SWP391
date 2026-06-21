@@ -42,6 +42,7 @@ import {
 } from '../data/eventDiscoveryData';
 import SystemMaintenanceBanner from '../components/SystemMaintenanceBanner';
 import HomeHeroSlider from '../components/home/HomeHeroSlider';
+import { mapEventsToHeroSlides } from '../utils/heroSlides';
 
 const CTSV_HOME_SOURCE_TABS = [
   { id: 'all', label: 'Tất cả' },
@@ -124,33 +125,6 @@ const Home = ({ showToast }) => {
       setRecommendTab(recommendTabs[0]?.id || 'newest');
     }
   }, [recommendTab, recommendTabs]);
-
-  const sliderData = [
-    {
-      title: 'FPT Techday 2026: Kiến tạo tương lai số',
-      dateLabel: '25 Tháng 10, 2026',
-      location: 'Sảnh tòa Gamma',
-      categoryLabel: 'Công nghệ',
-      organizerLabel: 'CTSV',
-      image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1280&q=80'
-    },
-    {
-      title: 'Đêm Nhạc F-Fest 2026: Bùng cháy sức trẻ',
-      dateLabel: '20 Tháng 5, 2026',
-      location: 'FPT Plaza 2',
-      categoryLabel: 'Âm nhạc',
-      organizerLabel: 'CLB',
-      image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1280&q=80'
-    },
-    {
-      title: 'FPT Career Expo 2026: Chạm ngõ thành công',
-      dateLabel: '28 Tháng 5, 2026',
-      location: 'Sân bóng FPTU',
-      categoryLabel: 'Kết nối',
-      organizerLabel: 'CTSV',
-      image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1280&q=80'
-    }
-  ];
 
   // Load events — hiển thị cache ngay, fetch nền cập nhật
   useEffect(() => {
@@ -241,17 +215,12 @@ const Home = ({ showToast }) => {
   );
 
   const heroSlides = useMemo(() => {
-    const featured = sortEventsByPopular(events).slice(0, 3);
-    if (featured.length === 0) return sliderData.map((s) => ({ ...s, eventId: null }));
-    return featured.map((ev) => ({
-      title: ev.title,
-      dateLabel: ev.dateLabel,
-      location: ev.location,
-      categoryLabel: ev.categoryLabel || ev.category,
-      organizerLabel: ev.organizerLabel,
-      image: ev.thumbnail,
-      eventId: ev.id,
-    }));
+    return mapEventsToHeroSlides(sortEventsByPopular(events), {
+      categoryLabel: (event) => event.categoryLabel || event.category,
+      organizerLabel: (event) => event.organizerLabel || '',
+      dateLabel: (event) => event.dateLabel || '',
+      location: (event) => event.location || '',
+    });
   }, [events]);
 
   const handleFilterSubmit = () => {
