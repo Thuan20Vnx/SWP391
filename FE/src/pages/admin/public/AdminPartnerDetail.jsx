@@ -5,6 +5,7 @@ import PublicAdminShell from '../../../layouts/PublicAdminShell';
 import SiteFooter from '../../../components/SiteFooter';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import PartnerAvatar from '../../../components/partner/PartnerAvatar';
+import ProposalTicketsTable from '../../../components/admin/ProposalTicketsTable';
 import {
   addAdminPartnerMember,
   approveAdminPartner,
@@ -499,6 +500,10 @@ const AdminPartnerDetail = ({ showToast }) => {
                             : empty}
                         </dd>
                       </div>
+                      <div className="admin-proposal-meta__row">
+                        <dt>Tổng vé</dt>
+                        <dd>{eventRequest?.totalTickets != null ? eventRequest.totalTickets : empty}</dd>
+                      </div>
                       <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
                         <dt>Quyền lợi đối tác yêu cầu</dt>
                         <dd>
@@ -514,6 +519,8 @@ const AdminPartnerDetail = ({ showToast }) => {
                         </dd>
                       </div>
                     </dl>
+
+                    <ProposalTicketsTable ticketTypes={eventRequest?.ticketTypes} ticketPrice={0} />
                   </div>
                 </div>
 

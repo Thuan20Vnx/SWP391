@@ -144,16 +144,33 @@ const PartnerEventDetail = () => {
         ))}
       </div>
 
-      <div className="ctsv-ed-banner" role="status">
-        <span className="ctsv-ed-banner-icon" aria-hidden>
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12" y2="16" />
-          </svg>
-        </span>
-        <p>Chế độ xem — chỉ theo dõi thông tin sự kiện. Liên hệ CTSV nếu cần chỉnh sửa.</p>
-      </div>
+      {event.isRequest ? (
+        <div className="ctsv-pd-banner ctsv-pd-banner--warn" style={{ marginBottom: 16 }}>
+          {event.statusKey === 'rejected' ? (
+            <>
+              <strong>Yêu cầu bị từ chối:</strong> {event.rejectionReason || 'CTSV đã từ chối yêu cầu này.'}
+            </>
+          ) : event.statusKey === 'info_requested' ? (
+            <>
+              <strong>Yêu cầu bổ sung:</strong> {event.supplementReason || 'CTSV cần thêm thông tin.'}
+            </>
+          ) : (
+            <strong>Yêu cầu đang chờ CTSV duyệt.</strong>
+          )}{' '}
+          <Link to="/partner/proposals/create">Chỉnh sửa yêu cầu</Link>
+        </div>
+      ) : (
+        <div className="ctsv-ed-banner" role="status">
+          <span className="ctsv-ed-banner-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12" y2="16" />
+            </svg>
+          </span>
+          <p>Chế độ xem — chỉ theo dõi thông tin sự kiện. Liên hệ CTSV nếu cần chỉnh sửa.</p>
+        </div>
+      )}
 
       {activeTab === 'info' && (
         <div className="ctsv-ed-panels">
