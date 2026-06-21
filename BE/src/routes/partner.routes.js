@@ -308,7 +308,7 @@ router.post('/event-requests/submit', async (req, res) => {
       title: 'Đối tác gửi yêu cầu sự kiện mới',
       body: `Đối tác vừa gửi yêu cầu tổ chức sự kiện. Vui lòng xem xét.`,
       type: 'info',
-      refId: String(result.request?._id || ''),
+      refId: String(result.partner?._id || ''),
       refType: 'partner_event_request'
     }).catch(() => {});
 
