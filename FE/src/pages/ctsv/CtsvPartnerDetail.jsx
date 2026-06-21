@@ -84,17 +84,7 @@ const CtsvPartnerDetail = () => {
     : 'Đại diện liên hệ';
   const contactLine = [partner.email, partner.phone].filter(Boolean).join(' • ');
 
-  const attachmentItems = [
-    ...(eventRequest?.attachments || []).map((f, i) => ({ key: `req-att-${i}`, ...f })),
-    ...(partner.attachments || []).map((f, i) => ({ key: `att-${i}`, ...f })),
-    ...contracts.map((c) => ({
-      key: c._id,
-      name: c.title || 'Hợp đồng tài trợ',
-      sizeLabel: formatVnd(c.amount),
-      url: '#',
-      isContract: true
-    }))
-  ];
+  const attachmentItems = (eventRequest?.attachments || []).map((f, i) => ({ key: `req-att-${i}`, ...f }));
 
   return (
     <div className="ctsv-pd-page">
@@ -179,7 +169,11 @@ const CtsvPartnerDetail = () => {
 
           <div className="admin-proposal-card__body">
             <div className="admin-proposal-card__thumb-wrap">
-              <PartnerAvatar partner={partner} className="admin-proposal-card__thumb" />
+              {eventRequest?.image ? (
+                <img src={eventRequest.image} alt="" className="admin-proposal-card__thumb" />
+              ) : (
+                <PartnerAvatar partner={partner} className="admin-proposal-card__thumb" />
+              )}
             </div>
 
             <div className="admin-proposal-card__details">
@@ -261,45 +255,31 @@ const CtsvPartnerDetail = () => {
       </ul>
 
       {canAct && (
-        <section className="ctsv-pd-action-bar">
-          <div className="ctsv-pd-action-note">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="16" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
-            <p>Hành động của bạn sẽ được ghi nhận vào lịch sử hệ thống.</p>
-          </div>
-
-          <div className="ctsv-pd-action-btns">
-            <div className="ctsv-pd-action-row">
-              <button
-                type="button"
-                className="ctsv-pd-btn ctsv-pd-btn--danger-outline"
-                disabled={actionLoading}
-                onClick={() => setDialogMode('reject')}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="15" y1="9" x2="9" y2="15" />
-                  <line x1="9" y1="9" x2="15" y2="15" />
-                </svg>
-                Từ chối
-              </button>
-            </div>
+        <div className="admin-proposal-card__actions-bar">
+          <p className="admin-proposal-card__actions-note">
+            Hành động của bạn sẽ được ghi nhận vào lịch sử hệ thống.
+          </p>
+          <div className="admin-proposal-card__actions">
             <button
               type="button"
-              className="ctsv-pd-btn ctsv-pd-btn--primary"
+              className="admin-proposal-btn admin-proposal-btn--reject"
+              disabled={actionLoading}
+              onClick={() => setDialogMode('reject')}
+            >
+              <span className="admin-proposal-btn__icon" aria-hidden="true">✕</span>
+              Từ chối
+            </button>
+            <button
+              type="button"
+              className="admin-proposal-btn admin-proposal-btn--approve"
               disabled={actionLoading}
               onClick={() => setConfirmApprove(true)}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Phê duyệt đối tác
+              <span className="admin-proposal-btn__icon" aria-hidden="true">✓</span>
+              {actionLoading ? 'Đang xử lý...' : 'Phê duyệt đối tác'}
             </button>
           </div>
-        </section>
+        </div>
       )}
 
       <PartnerActionDialog

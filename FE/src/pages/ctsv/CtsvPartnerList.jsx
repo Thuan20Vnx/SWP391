@@ -110,7 +110,7 @@ const CtsvPartnerList = () => {
         </div>
         <div className="cplist-hero__aside">
           <div className="cplist-hero__stat" aria-live="polite">
-            <span className="cplist-hero__stat-num">{loading ? '—' : partners.length}</span>
+            <span className="cplist-hero__stat-num">{loading ? '—' : allPartners.length}</span>
             <span className="cplist-hero__stat-label">Đơn trong danh sách</span>
           </div>
         </div>
