@@ -1327,8 +1327,8 @@ router.patch('/partners/:id/reject', requireCtsvApprove, async (req, res) => {
         ? `CTSV đã từ chối yêu cầu tổ chức sự kiện "${pendingRequest.title || partner.proposedEventTitle || ''}". Lý do: ${reason}`
         : `CTSV đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`,
       type: 'partner_reject',
-      refId: String(partner._id),
-      refType: 'partner'
+      refId: isEventRequestRejection ? String(pendingRequest._id) : String(partner._id),
+      refType: isEventRequestRejection ? 'partner_event_request' : 'partner'
     }).catch(() => {});
     return res.json({ success: true, partner });
   } catch (error) {

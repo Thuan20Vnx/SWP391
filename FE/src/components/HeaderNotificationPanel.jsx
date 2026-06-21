@@ -94,6 +94,9 @@ const refToLink = (refType, refId, role) => {
     if (role === 'icpdp') return `/icpdp/semester-timelines/${refId}`;
     return '/quan-ly-clb';
   }
+  if (refType === 'partner_event_request' && role === 'partner') {
+    return `/partner/events/req-${refId}`;
+  }
   if (refType === 'partner' || refType === 'partner_proposal' || refType === 'partner_event_request') {
     if (role === 'admin') return `/admin/ctsv/partners/${refId}`;
     if (role === 'ctsv') return `/ctsv/partners/${refId}`;

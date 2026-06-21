@@ -153,7 +153,7 @@ const AdminDashboard = ({ showToast }) => {
       fetchCtsvEvents({ status: 'all' }).catch(() => ({ success: false, events: [] })),
       fetchCtsvProposals({ status: 'all' }).catch(() => ({ success: false, proposals: [] })),
       isAdminRole(userRole)
-        ? fetchAdminPartners('pending_admin').catch(() => ({ success: false, partners: [] }))
+        ? fetchAdminPartners('all').catch(() => ({ success: false, partners: [] }))
         : Promise.resolve({ success: false, partners: [] }),
     ])
       .then(([eventData, proposalData, partnerData]) => {
@@ -218,7 +218,9 @@ const AdminDashboard = ({ showToast }) => {
       description: p.description,
       eventId: p.eventId || null,
     }));
-    const partnerItems = partnerRequests.map((p) => ({
+    const partnerItems = partnerRequests
+      .filter((p) => ['pending_admin', 'approved', 'rejected'].includes(p.status))
+      .map((p) => ({
       key: `pt-${p._id}`,
       kind: 'partner',
       id: p._id,
