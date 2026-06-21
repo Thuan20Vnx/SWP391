@@ -4,13 +4,8 @@ import CtsvNavIcon from '../../components/ctsv/CtsvNavIcon';
 import PortalDashHero from '../../components/portal/PortalDashHero';
 import {
   fetchPartnerEvents,
-  fetchPartnerMe,
   fetchPartnerStats,
 } from '../../services/partnerApi';
-import {
-  PARTNER_STATUS_LABEL,
-  PARTNER_STATUS_TONE
-} from '../../utils/partnerDisplay';
 import { statusClass } from '../../utils/eventStatus';
 
 const STAT_STYLES = [
@@ -34,19 +29,17 @@ const PartnerDashboard = () => {
   const [stats, setStats] = useState([]);
   const [events, setEvents] = useState([]);
   const [activity, setActivity] = useState([]);
-  const [partnerStatus, setPartnerStatus] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
 
-    Promise.all([fetchPartnerStats(), fetchPartnerEvents(), fetchPartnerMe()])
-      .then(([statsRes, eventsRes, meRes]) => {
+    Promise.all([fetchPartnerStats(), fetchPartnerEvents()])
+      .then(([statsRes, eventsRes]) => {
         if (cancelled) return;
         setStats(statsRes.stats || []);
         setEvents(eventsRes.events || []);
         setActivity(statsRes.activity || []);
-        setPartnerStatus(meRes.partner?.status || null);
       })
       .catch(() => {
         if (cancelled) return;
@@ -69,6 +62,13 @@ const PartnerDashboard = () => {
     [events]
   );
   const pendingCount = pendingEvents.length;
+  const attentionEvents = useMemo(
+    () =>
+      events
+        .filter((ev) => ['pending', 'pending_admin', 'info_requested', 'rejected'].includes(ev.statusKey))
+        .slice(0, 4),
+    [events]
+  );
   const recentEvents = useMemo(() => events.slice(0, 4), [events]);
   const statItems = useMemo(() => stats.slice(0, 3), [stats]);
   const feedItems = activity;
@@ -92,18 +92,15 @@ const PartnerDashboard = () => {
         }
       />
 
-      {partnerStatus && (
-        <div
-          className={`ctsv-pd-banner ctsv-pd-banner--${PARTNER_STATUS_TONE[partnerStatus] || 'info'}`}
-          style={{ marginBottom: 16 }}
-        >
-          Trạng thái hồ sơ: <strong>{PARTNER_STATUS_LABEL[partnerStatus] || partnerStatus}</strong>
-          {partnerStatus === 'info_requested' && (
-            <>
-              {' '}
-              — <Link to="/partner/proposals/create">Bổ sung hồ sơ ngay</Link>
-            </>
-          )}
+      {attentionEvents.length > 0 && (
+        <div className="ctsv-pd-banner ctsv-pd-banner--amber" style={{ marginBottom: 16 }}>
+          <strong>Sự kiện cần chú ý:</strong>{' '}
+          {attentionEvents.map((ev, i) => (
+            <React.Fragment key={ev.id}>
+              {i > 0 && ', '}
+              <Link to={`/partner/events/${ev.id}`}>{ev.title}</Link> ({ev.status})
+            </React.Fragment>
+          ))}
         </div>
       )}
 
@@ -124,46 +121,6 @@ const PartnerDashboard = () => {
             </button>
           ))}
         </div>
-      </section>
-
-      <section className="ctsv-dash-panel ctsv-dash-panel--accent ctsv-dash-panel--inline">
-        <div className="ctsv-dash-panel__head">
-          <div>
-            <h2>Cần xử lý</h2>
-            <p>Đề xuất và sự kiện chờ phản hồi</p>
-          </div>
-          {pendingCount > 0 && <span className="ctsv-dash-pill-count">{pendingCount}</span>}
-        </div>
-        {loading ? (
-          <div className="ctsv-dash-pending-list ctsv-dash-pending-list--row">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="ctsv-dash-pending-item ctsv-dash-pending-item--skeleton" />
-            ))}
-          </div>
-        ) : pendingEvents.length === 0 ? (
-          <p className="ctsv-dash-side-empty">Chưa có đề xuất nào chờ xử lý.</p>
-        ) : (
-          <ul className="ctsv-dash-pending-list ctsv-dash-pending-list--row">
-            {pendingEvents.map((ev) => (
-              <li key={ev.id}>
-                <button
-                  type="button"
-                  className="ctsv-dash-pending-item"
-                  onClick={() => navigate(`/partner/events/${ev.id}`)}
-                >
-                  <span className="ctsv-dash-pending-title">{ev.title}</span>
-                  <span className="ctsv-dash-pending-meta">
-                    {ev.status}
-                    {ev.date ? ` · ${ev.date}` : ''}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        <Link to="/partner/events" className="ctsv-dash-side-link">
-          Xem tất cả đề xuất chờ duyệt →
-        </Link>
       </section>
 
       <section className="ctsv-dash-stats" aria-label="Thống kê nhanh">
