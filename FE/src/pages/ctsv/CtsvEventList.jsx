@@ -4,6 +4,7 @@ import { isAdminRole } from '../../utils/auth';
 import AppSelect from '../../components/ui/AppSelect';
 import { fetchCtsvEvents } from '../../services/ctsvApi';
 import { getCtsvEventAccess, isCtsvManagedEvent } from '../../utils/ctsvEventAccess';
+import { isPendingApproval } from '../../utils/eventStatus';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
 import EventDiscoveryCard from '../../components/EventDiscoveryCard';
 
@@ -19,6 +20,13 @@ const CATEGORY_FILTER_OPTIONS = [
 ];
 
 const PAGE_SIZE = 6;
+
+const STATE_FILTERS = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'needs_approval', label: 'Cần duyệt' },
+];
+
+const needsCtsvApproval = (ev) => getCtsvEventAccess(ev).canManage && isPendingApproval(ev);
 
 const cardStateFromEv = (ev) => {
   const s = ev.statusKey || ev.status || '';
@@ -77,6 +85,7 @@ const CtsvEventList = () => {
   const searchQuery = headerSearch.trim() || localSearch.trim();
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
   const [timeFilter, setTimeFilter] = useState('Tất cả');
+  const [stateFilter, setStateFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
@@ -123,16 +132,27 @@ const CtsvEventList = () => {
     [events]
   );
 
+  const managedPendingCount = useMemo(
+    () => events.filter(needsCtsvApproval).length,
+    [events]
+  );
+
   const filtered = useMemo(() => {
     setPage(1);
     const q = searchQuery.toLowerCase();
-    if (!q) return events;
-    return events.filter(
-      (ev) =>
-        (ev.title || '').toLowerCase().includes(q) ||
-        (ev.location || '').toLowerCase().includes(q)
-    );
-  }, [events, searchQuery]);
+    let result = events;
+    if (q) {
+      result = result.filter(
+        (ev) =>
+          (ev.title || '').toLowerCase().includes(q) ||
+          (ev.location || '').toLowerCase().includes(q)
+      );
+    }
+    if (stateFilter === 'needs_approval') {
+      result = result.filter(needsCtsvApproval);
+    }
+    return result;
+  }, [events, searchQuery, stateFilter]);
 
   const pagedEvents = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -165,6 +185,19 @@ const CtsvEventList = () => {
       </header>
 
       <section className="ctsv-events-filter-card">
+        <div className="events-page__state-filters" role="group" aria-label="Trạng thái">
+          {STATE_FILTERS.map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              className={`events-page__state-pill ${stateFilter === filter.value ? 'is-active' : ''}`}
+              onClick={() => setStateFilter(filter.value)}
+            >
+              {filter.label}
+              {filter.value === 'needs_approval' && managedPendingCount > 0 ? ` (${managedPendingCount})` : ''}
+            </button>
+          ))}
+        </div>
         <form className="ctsv-events-filter-form" onSubmit={handleFilter}>
           <label className="ctsv-events-search">
             <span className="ctsv-events-search-icon"><IconSearch /></span>
