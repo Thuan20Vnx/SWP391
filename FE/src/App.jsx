@@ -151,7 +151,7 @@ const PublicHomeRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (isLoggedIn) {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
-    if (isPartnerRole()) return <Navigate to="/partner/dashboard" replace />;
+    if (isPartnerRole()) return <Navigate to="/partner" replace />;
     if (isAdminRole()) return <AdminFptSystem showToast={showToast} />;
   }
   return <Home showToast={showToast} />;
