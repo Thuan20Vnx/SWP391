@@ -39,7 +39,17 @@ const useNotifications = () => {
     );
     esRef.current = es;
 
+    // Fallback for deployments with multiple backend instances where an SSE
+    // connection and the request creating a notification may hit different nodes.
+    const pollId = window.setInterval(refetch, 20000);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') refetch();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
+      window.clearInterval(pollId);
+      document.removeEventListener('visibilitychange', handleVisibility);
       if (esRef.current) {
         esRef.current.close();
         esRef.current = null;

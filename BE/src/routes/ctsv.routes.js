@@ -676,6 +676,14 @@ router.patch('/events/:id/moderation', requireCtsvApprove, async (req, res) => {
 router.patch('/events/:id/moderation/icpdp-approve', requireIcpdpOrCtsv, async (req, res) => {
   try {
     const result = await approveIcpdpModeration(req.params.id, req.body?.note, req.authEmail);
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: 'Yêu cầu điều chỉnh sự kiện cần Admin duyệt',
+      body: `IC-PDP đã duyệt sơ bộ yêu cầu cho sự kiện "${result.event?.title || ''}".`,
+      type: 'event_change_submit',
+      refId: String(req.params.id),
+      refType: 'Event'
+    }).catch(() => {});
     return res.json({
       success: true,
       event: formatEvent(result.event),
@@ -694,6 +702,14 @@ router.patch('/events/:id/moderation/icpdp-approve', requireIcpdpOrCtsv, async (
 router.patch('/events/:id/moderation/icpdp-reject', requireIcpdpOrCtsv, async (req, res) => {
   try {
     const result = await rejectIcpdpModeration(req.params.id, req.body?.reason, req.authEmail);
+    createAndBroadcast({
+      recipientEmails: [result.event?.moderationRequestedByEmail, result.event?.createdByEmail],
+      title: 'Yêu cầu điều chỉnh sự kiện bị từ chối',
+      body: req.body?.reason || 'IC-PDP chưa chấp nhận yêu cầu điều chỉnh sự kiện.',
+      type: 'event_change_reject',
+      refId: String(req.params.id),
+      refType: 'Event'
+    }).catch(() => {});
     return res.json({
       success: true,
       event: formatEvent(result.event),
@@ -847,11 +863,27 @@ router.patch('/proposals/:id/icpdp-approve', requireIcpdpOrCtsv, async (req, res
           icpdpNote: note,
         });
       }
+      createAndBroadcast({
+        recipientRoles: ['admin'],
+        title: 'Đề xuất sự kiện CLB cần Admin duyệt',
+        body: `IC-PDP đã duyệt đề xuất "${proposal.title}".`,
+        type: 'event_submit',
+        refId: String(proposal._id),
+        refType: 'event_proposal'
+      }).catch(() => {});
       return res.json({ success: true, proposal: formatProposal(proposal) });
     }
     proposal.status = 'pending_ctsv';
     proposal.icpdpNote = note;
     await proposal.save();
+    createAndBroadcast({
+      recipientRoles: ['ctsv'],
+      title: 'Đề xuất sự kiện cần CTSV duyệt',
+      body: `IC-PDP đã chuyển đề xuất "${proposal.title}" tới CTSV.`,
+      type: 'event_submit',
+      refId: String(proposal._id),
+      refType: 'event_proposal'
+    }).catch(() => {});
     return res.json({ success: true, proposal: formatProposal(proposal) });
   } catch (error) {
     console.error('icpdp approve proposal:', error);
@@ -895,6 +927,15 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
       proposal.eventId = event._id;
       proposal.ctsvNote = req.body.note || '';
       await proposal.save();
+      createAndBroadcast({
+        recipientRoles: ['ctsv', 'icpdp'],
+        recipientEmails: [proposal.submittedByEmail],
+        title: 'Đề xuất sự kiện đã được duyệt',
+        body: `Admin đã phê duyệt sự kiện "${proposal.title}".`,
+        type: 'event_approve',
+        refId: String(event._id),
+        refType: 'Event'
+      }).catch(() => {});
       return res.json({
         success: true,
         proposal: formatProposal(proposal),
@@ -953,6 +994,15 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
     proposal.eventId = event._id;
     proposal.ctsvNote = req.body.note || '';
     await proposal.save();
+    createAndBroadcast({
+      recipientRoles: req.userRole === 'admin' ? ['ctsv', 'icpdp'] : ['icpdp'],
+      recipientEmails: [proposal.submittedByEmail],
+      title: 'Đề xuất sự kiện đã được duyệt',
+      body: `${req.userRole === 'admin' ? 'Admin' : 'CTSV'} đã phê duyệt sự kiện "${proposal.title}".`,
+      type: 'event_approve',
+      refId: String(event._id),
+      refType: 'Event'
+    }).catch(() => {});
 
     return res.json({
       success: true,
@@ -993,6 +1043,15 @@ router.patch('/proposals/:id/reject', requireProposalModerate, async (req, res) 
     proposal.status = 'rejected';
     proposal.rejectionReason = reason;
     await proposal.save();
+    createAndBroadcast({
+      recipientRoles: req.userRole === 'admin' ? ['ctsv', 'icpdp'] : [],
+      recipientEmails: [proposal.submittedByEmail],
+      title: 'Đề xuất sự kiện bị từ chối',
+      body: `Đề xuất "${proposal.title}" bị từ chối. Lý do: ${reason}`,
+      type: 'event_reject',
+      refId: String(proposal._id),
+      refType: 'event_proposal'
+    }).catch(() => {});
     return res.json({ success: true, proposal: formatProposal(proposal) });
   } catch (error) {
     console.error('ctsv reject proposal:', error);
@@ -1009,6 +1068,14 @@ router.patch('/proposals/:id/request-revision', requireCtsvApprove, async (req, 
     proposal.status = 'revision';
     proposal.ctsvNote = req.body.note || '';
     await proposal.save();
+    createAndBroadcast({
+      recipientEmails: [proposal.submittedByEmail],
+      title: 'Đề xuất sự kiện cần chỉnh sửa',
+      body: proposal.ctsvNote || `Đề xuất "${proposal.title}" cần được bổ sung.`,
+      type: 'event_revision',
+      refId: String(proposal._id),
+      refType: 'event_proposal'
+    }).catch(() => {});
     return res.json({ success: true, proposal: formatProposal(proposal) });
   } catch (error) {
     console.error('ctsv revision proposal:', error);
@@ -1188,6 +1255,14 @@ router.patch('/partners/:id/approve', requireCtsvApprove, async (req, res) => {
       refId: String(partner._id),
       refType: 'partner'
     }).catch(() => {});
+    createAndBroadcast({
+      recipientEmails: [partner.email],
+      title: 'Hồ sơ đã qua vòng duyệt CTSV',
+      body: `Hồ sơ của ${partner.name} đã được chuyển tới Admin phê duyệt cuối.`,
+      type: 'partner_submit',
+      refId: String(partner._id),
+      refType: 'partner'
+    }).catch(() => {});
 
     return res.json({
       success: true,
@@ -1220,6 +1295,14 @@ router.patch('/partners/:id/reject', requireCtsvApprove, async (req, res) => {
     partner.rejectionReason = reason;
     partner.supplementReason = '';
     await partner.save();
+    createAndBroadcast({
+      recipientEmails: [partner.email],
+      title: 'Đề xuất hợp tác bị từ chối',
+      body: `CTSV đã từ chối đề xuất của ${partner.name}. Lý do: ${reason}`,
+      type: 'partner_reject',
+      refId: String(partner._id),
+      refType: 'partner'
+    }).catch(() => {});
     return res.json({ success: true, partner });
   } catch (error) {
     console.error('ctsv reject partner:', error);
@@ -1253,6 +1336,14 @@ router.patch('/partners/:id/request-info', requireCtsvApprove, async (req, res) 
       { partnerId: partner._id, status: { $in: ['pending', 'approved'] } },
       { $set: { status: 'info_requested', supplementReason: reason } }
     );
+    createAndBroadcast({
+      recipientEmails: [partner.email],
+      title: 'Hồ sơ đối tác cần bổ sung',
+      body: reason,
+      type: 'partner_revision',
+      refId: String(partner._id),
+      refType: 'partner'
+    }).catch(() => {});
     return res.json({ success: true, partner });
   } catch (error) {
     console.error('ctsv partner request-info:', error);
@@ -1405,6 +1496,14 @@ router.patch('/semester-timelines/:id/icpdp-approve', requireIcpdpTimeline, asyn
       note: req.body.note,
       reviewerEmail: req.authEmail,
     });
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: 'Timeline CLB cần Admin duyệt',
+      body: `${timeline.clubName || 'CLB'} đã được IC-PDP duyệt sơ bộ.`,
+      type: 'timeline_submit',
+      refId: String(req.params.id),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     return res.json({
       success: true,
       timeline,
@@ -1422,6 +1521,15 @@ router.patch('/semester-timelines/:id/admin-approve', requireAdmin, async (req, 
       note: req.body.note,
       reviewerEmail: req.authEmail,
     });
+    createAndBroadcast({
+      recipientRoles: ['icpdp'],
+      recipientEmails: [timeline.submittedByEmail],
+      title: 'Timeline CLB đã được duyệt',
+      body: `Admin đã phê duyệt timeline ${timeline.semesterLabel || ''}.`,
+      type: 'timeline_approve',
+      refId: String(req.params.id),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     return res.json({
       success: true,
       timeline,
@@ -1440,6 +1548,15 @@ router.patch('/semester-timelines/:id/reject', requireIcpdpTimeline, async (req,
       reviewerEmail: req.authEmail,
       reviewerRole: req.userRole,
     });
+    createAndBroadcast({
+      recipientRoles: req.userRole === 'admin' ? ['icpdp'] : [],
+      recipientEmails: [timeline.submittedByEmail],
+      title: 'Timeline CLB bị từ chối',
+      body: timeline.rejectionReason || 'Timeline chưa được chấp nhận.',
+      type: 'timeline_reject',
+      refId: String(req.params.id),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     return res.json({ success: true, timeline });
   } catch (error) {
     const status = error.statusCode || 500;
@@ -1453,6 +1570,14 @@ router.patch('/semester-timelines/:id/request-revision', requireIcpdpTimeline, a
       note: req.body.note,
       reviewerEmail: req.authEmail,
     });
+    createAndBroadcast({
+      recipientEmails: [timeline.submittedByEmail],
+      title: 'Timeline CLB cần chỉnh sửa',
+      body: timeline.icpdpNote || 'Timeline cần được bổ sung trước khi xét duyệt.',
+      type: 'timeline_revision',
+      refId: String(req.params.id),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     return res.json({ success: true, timeline });
   } catch (error) {
     const status = error.statusCode || 500;
@@ -1466,6 +1591,14 @@ router.patch('/semester-timelines/:id/change-request/icpdp-approve', requireIcpd
       note: req.body.note,
       reviewerEmail: req.authEmail,
     });
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: 'Yêu cầu đổi timeline cần Admin duyệt',
+      body: `${timeline.clubName || 'CLB'} có yêu cầu thay đổi timeline đã qua IC-PDP.`,
+      type: 'timeline_change',
+      refId: String(req.params.id),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     return res.json({ success: true, timeline, message: 'Đã chuyển yêu cầu lên Admin duyệt.' });
   } catch (error) {
     const status = error.statusCode || 500;
@@ -1479,6 +1612,15 @@ router.patch('/semester-timelines/:id/change-request/admin-approve', requireAdmi
       note: req.body.note,
       reviewerEmail: req.authEmail,
     });
+    createAndBroadcast({
+      recipientRoles: ['icpdp'],
+      recipientEmails: [result?.submittedByEmail],
+      title: 'Yêu cầu thay đổi timeline đã được duyệt',
+      body: 'Admin đã chấp nhận yêu cầu thay đổi timeline.',
+      type: 'timeline_approve',
+      refId: String(req.params.id),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     if (result?.deleted) {
       return res.json({ success: true, ...result, message: 'Admin đã duyệt — timeline đã xóa.' });
     }
@@ -1497,6 +1639,15 @@ router.patch('/semester-timelines/:id/change-request/reject', requireIcpdpTimeli
       reviewerEmail: req.authEmail,
       stage,
     });
+    createAndBroadcast({
+      recipientRoles: stage === 'admin' ? ['icpdp'] : [],
+      recipientEmails: [timeline.submittedByEmail],
+      title: 'Yêu cầu thay đổi timeline bị từ chối',
+      body: req.body.reason || 'Yêu cầu thay đổi timeline chưa được chấp nhận.',
+      type: 'timeline_reject',
+      refId: String(req.params.id),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     return res.json({ success: true, timeline, message: 'Đã từ chối yêu cầu.' });
   } catch (error) {
     const status = error.statusCode || 500;

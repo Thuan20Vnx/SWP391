@@ -1,6 +1,7 @@
 const clubService = require('../services/club.service');
 const clubRegistrationService = require('../services/clubRegistration.service');
 const clubSemesterTimelineService = require('../services/clubSemesterTimeline.service');
+const { createAndBroadcast } = require('../services/notification.service');
 
 const getClubs = async (req, res) => {
   const result = await clubService.getClubs({
@@ -76,6 +77,14 @@ const submitClubRegistration = async (req, res) => {
       email: req.authEmail,
       userId: req.user?._id,
     });
+    createAndBroadcast({
+      recipientRoles: ['icpdp'],
+      title: 'Đơn thành lập CLB mới',
+      body: `${registration.clubName || 'Một CLB'} vừa gửi đơn thành lập và đang chờ xét duyệt.`,
+      type: 'club_submit',
+      refId: String(registration.id || registration._id || ''),
+      refType: 'club_registration'
+    }).catch(() => {});
     res.status(201).json({
       success: true,
       registration,
@@ -156,6 +165,14 @@ const submitSemesterTimeline = async (req, res) => {
       req.user._id,
       readActiveClubId(req)
     );
+    createAndBroadcast({
+      recipientRoles: ['icpdp'],
+      title: 'Timeline CLB mới cần duyệt',
+      body: `${timeline.clubName || 'CLB'} vừa gửi timeline ${timeline.semesterLabel || ''}.`,
+      type: 'timeline_submit',
+      refId: String(timeline.id || timeline._id || ''),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     res.status(200).json({
       success: true,
       timeline,
@@ -187,6 +204,14 @@ const requestSemesterTimelineChange = async (req, res) => {
       req.user._id,
       readActiveClubId(req)
     );
+    createAndBroadcast({
+      recipientRoles: ['icpdp'],
+      title: 'Yêu cầu thay đổi timeline CLB',
+      body: `${timeline.clubName || 'CLB'} vừa gửi yêu cầu thay đổi timeline.`,
+      type: 'timeline_change',
+      refId: String(timeline.id || timeline._id || ''),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     res.status(200).json({
       success: true,
       timeline,
