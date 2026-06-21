@@ -494,16 +494,6 @@
   border-top: 1px solid #e2e8f0;
 }
 
-.partner-profile-status {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #64748b;
-}
-
-.partner-profile-status-reason {
-  color: #94a3b8;
-}
-
 /* ── Partner profile page ── */
 .partner-profile-page {
   max-width: 920px;
