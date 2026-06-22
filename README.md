@@ -263,3 +263,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: icpdp-post-event-report -->
 
 <!-- doc-anchor: ctsv-partner-approval -->
+
+<!-- doc-anchor: ctsv-contract-mgmt -->
