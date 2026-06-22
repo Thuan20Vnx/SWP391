@@ -1,29 +1,59 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { fetchWeather } from '../services/weatherApi';
 
-const MarqueeLine = ({ text, className }) => {
+const MarqueeLine = ({ text, className, variant }) => {
   const containerRef = useRef(null);
   const textRef = useRef(null);
-  const [overflowing, setOverflowing] = useState(false);
+  const animationRef = useRef(null);
 
   useEffect(() => {
     const container = containerRef.current;
     const textEl = textRef.current;
-    if (!container || !textEl) return;
-    setOverflowing(textEl.scrollWidth > container.clientWidth);
-  }, [text]);
+    if (animationRef.current) {
+      animationRef.current.cancel();
+      animationRef.current = null;
+    }
+    textEl.style.transform = 'translateX(0)';
+    if (!container || !textEl) return undefined;
+
+    const distance = textEl.scrollWidth - container.clientWidth;
+    if (distance <= 0) return undefined;
+
+    if (variant === 'bounce') {
+      // Hàng trên: chạy qua rồi chạy về (ping-pong), tốc độ chậm
+      const duration = Math.min(12000, Math.max(4000, distance * 70));
+      animationRef.current = textEl.animate(
+        [
+          { transform: 'translateX(0)' },
+          { transform: `translateX(-${distance}px)` },
+          { transform: 'translateX(0)' },
+        ],
+        { duration, iterations: Infinity, easing: 'ease-in-out' }
+      );
+    } else {
+      // Hàng dưới: chạy 1 chiều, hết 1 vòng thì khựng lại 2s rồi lặp lại
+      const scrollDuration = Math.min(6000, Math.max(2200, distance * 35));
+      const holdDuration = 2000;
+      const total = scrollDuration + holdDuration;
+      animationRef.current = textEl.animate(
+        [
+          { transform: 'translateX(0)', offset: 0 },
+          { transform: `translateX(-${distance}px)`, offset: scrollDuration / total },
+          { transform: `translateX(-${distance}px)`, offset: 1 },
+        ],
+        { duration: total, iterations: Infinity, easing: 'linear' }
+      );
+    }
+
+    return () => {
+      animationRef.current?.cancel();
+    };
+  }, [text, variant]);
 
   return (
     <span ref={containerRef} className={`weather-marquee ${className}`}>
-      <span className={`weather-marquee-track ${overflowing ? 'is-overflowing' : ''}`}>
-        <span ref={textRef} className="weather-marquee-text">
-          {text}
-        </span>
-        {overflowing && (
-          <span className="weather-marquee-text" aria-hidden="true">
-            {text}
-          </span>
-        )}
+      <span ref={textRef} className="weather-marquee-text">
+        {text}
       </span>
     </span>
   );
@@ -114,8 +144,8 @@ const WeatherWidget = () => {
         <WeatherIcon main={weather.main} />
       </div>
       <div className="weather-widget-info">
-        <MarqueeLine text={topLine} className="weather-widget-temp" />
-        <MarqueeLine text={advice} className="weather-widget-advice" />
+        <MarqueeLine text={topLine} className="weather-widget-temp" variant="bounce" />
+        <MarqueeLine text={advice} className="weather-widget-advice" variant="pause" />
       </div>
     </div>
   );
