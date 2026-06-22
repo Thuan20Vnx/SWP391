@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { sendChatbotMessage } from '../services/chatbotApi';
+import { sendChatbotMessage, registerEventFromChat } from '../services/chatbotApi';
 
 const HOME_GREETING =
   'Xin chào! Tôi là trợ lý ảo F-Events. Bạn cần tôi giúp gì hôm nay?';
@@ -92,8 +92,11 @@ const ChatbotFloating = ({ context = 'home' }) => {
     setIsSending(true);
 
     try {
-      const { reply, events } = await sendChatbotMessage(nextHistory, context);
-      setChatMessages((prev) => [...prev, { sender: 'bot', text: reply, events }]);
+      const { reply, events, announcements, action } = await sendChatbotMessage(nextHistory, context);
+      setChatMessages((prev) => [...prev, { sender: 'bot', text: reply, events, announcements }]);
+      if (action?.type === 'register_event') {
+        await handleAutoRegister(action);
+      }
     } catch (err) {
       setChatMessages((prev) => [
         ...prev,
@@ -104,9 +107,49 @@ const ChatbotFloating = ({ context = 'home' }) => {
     }
   };
 
+  const handleAutoRegister = async (action) => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: `Bạn cần đăng nhập để mình đăng ký vé **${action.eventTitle}** giúp nhé.`,
+          events: [{ id: action.eventId, title: action.eventTitle }],
+        },
+      ]);
+      return;
+    }
+    try {
+      await registerEventFromChat(action.eventId);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: `✅ Đã đăng ký vé **${action.eventTitle}** cho bạn thành công! Bạn có thể xem chi tiết hoặc vé của mình bên dưới.`,
+          events: [{ id: action.eventId, title: action.eventTitle }],
+        },
+      ]);
+    } catch (err) {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: `Mình chưa đăng ký được vé **${action.eventTitle}**: ${err.message || 'có lỗi xảy ra.'}`,
+          events: [{ id: action.eventId, title: action.eventTitle }],
+        },
+      ]);
+    }
+  };
+
   const goToEvent = (eventId) => {
     setChatbotOpen(false);
     navigate(`/events/${eventId}`);
+  };
+
+  const goToAnnouncement = (announcementId) => {
+    setChatbotOpen(false);
+    navigate(`/announcements/${announcementId}`);
   };
 
   return (
@@ -152,7 +195,25 @@ const ChatbotFloating = ({ context = 'home' }) => {
                         className="chat-event-suggestion-btn"
                         onClick={() => goToEvent(ev.id)}
                       >
-                        Xem "{ev.title}" →
+                        <span className="chat-suggestion-icon" aria-hidden>🎟️</span>
+                        <span className="chat-suggestion-label">Xem sự kiện "{ev.title}"</span>
+                        <span aria-hidden>→</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {Array.isArray(msg.announcements) && msg.announcements.length > 0 && (
+                  <div className="chat-event-suggestions">
+                    {msg.announcements.map((an) => (
+                      <button
+                        key={an.id}
+                        type="button"
+                        className="chat-event-suggestion-btn chat-event-suggestion-btn--announcement"
+                        onClick={() => goToAnnouncement(an.id)}
+                      >
+                        <span className="chat-suggestion-icon" aria-hidden>📢</span>
+                        <span className="chat-suggestion-label">Xem thông báo "{an.title}"</span>
+                        <span aria-hidden>→</span>
                       </button>
                     ))}
                   </div>
