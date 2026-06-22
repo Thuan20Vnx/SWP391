@@ -271,3 +271,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: ctsv-school-events -->
 
 <!-- doc-anchor: ctsv-campus-notifications -->
+
+<!-- doc-anchor: admin-rbac-control -->
