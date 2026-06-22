@@ -10,5 +10,5 @@ export const sendChatbotMessage = async (messages, context = 'home') => {
   if (!ok || !data.success) {
     throw new Error(data.message || 'Trợ lý ảo đang gặp sự cố, vui lòng thử lại sau.');
   }
-  return data.reply;
+  return { reply: data.reply, events: data.events || [] };
 };

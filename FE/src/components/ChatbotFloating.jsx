@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { sendChatbotMessage } from '../services/chatbotApi';
 
 const HOME_GREETING =
@@ -7,11 +8,55 @@ const HOME_GREETING =
 const ADMIN_GREETING =
   'Xin chào! Tôi là trợ lý ảo F-Events (Quản trị). Bạn cần hỗ trợ duyệt đề xuất, xử lý yêu cầu sửa/ẩn/xóa, hay tra cứu tài khoản?';
 
+const renderMarkdownLite = (text) => {
+  const lines = String(text || '').split('\n');
+  const blocks = [];
+  let listBuffer = [];
+
+  const flushList = () => {
+    if (!listBuffer.length) return;
+    blocks.push(
+      <ul key={`list-${blocks.length}`} className="chat-msg-list">
+        {listBuffer.map((item, idx) => (
+          <li key={idx}>{renderInline(item)}</li>
+        ))}
+      </ul>
+    );
+    listBuffer = [];
+  };
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      listBuffer.push(trimmed.slice(2));
+      return;
+    }
+    flushList();
+    if (trimmed) {
+      blocks.push(<p key={idx}>{renderInline(trimmed)}</p>);
+    }
+  });
+  flushList();
+
+  return blocks;
+};
+
+const renderInline = (text) => {
+  const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+};
+
 const ChatbotFloating = ({ context = 'home' }) => {
   const rootRef = useRef(null);
+  const navigate = useNavigate();
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'bot', text: context === 'admin' ? ADMIN_GREETING : HOME_GREETING },
+    { sender: 'bot', text: context === 'admin' ? ADMIN_GREETING : HOME_GREETING, events: [] },
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -47,16 +92,21 @@ const ChatbotFloating = ({ context = 'home' }) => {
     setIsSending(true);
 
     try {
-      const reply = await sendChatbotMessage(nextHistory, context);
-      setChatMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
+      const { reply, events } = await sendChatbotMessage(nextHistory, context);
+      setChatMessages((prev) => [...prev, { sender: 'bot', text: reply, events }]);
     } catch (err) {
       setChatMessages((prev) => [
         ...prev,
-        { sender: 'bot', text: err.message || 'Trợ lý ảo đang gặp sự cố, vui lòng thử lại sau.' },
+        { sender: 'bot', text: err.message || 'Trợ lý ảo đang gặp sự cố, vui lòng thử lại sau.', events: [] },
       ]);
     } finally {
       setIsSending(false);
     }
+  };
+
+  const goToEvent = (eventId) => {
+    setChatbotOpen(false);
+    navigate(`/events/${eventId}`);
   };
 
   return (
@@ -92,7 +142,21 @@ const ChatbotFloating = ({ context = 'home' }) => {
                 key={i}
                 className={`chat-message-bubble ${msg.sender === 'user' ? 'message-user' : 'message-bot'}`}
               >
-                {msg.text}
+                {msg.sender === 'bot' ? renderMarkdownLite(msg.text) : msg.text}
+                {Array.isArray(msg.events) && msg.events.length > 0 && (
+                  <div className="chat-event-suggestions">
+                    {msg.events.map((ev) => (
+                      <button
+                        key={ev.id}
+                        type="button"
+                        className="chat-event-suggestion-btn"
+                        onClick={() => goToEvent(ev.id)}
+                      >
+                        Xem "{ev.title}" →
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             {isSending && (
