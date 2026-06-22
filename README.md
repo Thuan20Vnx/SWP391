@@ -301,3 +301,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: srs-document-goals -->
 
 <!-- doc-anchor: updates-ctsv-icpdp-mobile -->
+
+<!-- doc-anchor: updates-partner-portal -->
