@@ -82,7 +82,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 * **Quản trị dữ liệu lõi (Master Data CRUD):** Thực hiện các thao tác Thêm, Đọc, Sửa, Xóa đối với các danh mục phân loại sự kiện (Category), danh sách cơ sở vật chất (Phòng học/Hội trường) và danh sách gốc của các Câu lạc bộ.
 * **Giám sát & Phân tích:** Theo dõi lưu lượng truy cập hệ thống thời gian thực, đo lường tổng doanh thu vé và kiểm tra các chỉ số sức khỏe của máy chủ để đảm bảo nền tảng vận hành ổn định, không nghẽn mạng.
 
-### 3.8. Phân hệ Tính năng Trí tuệ nhân tạo (AI Features)
+ 3.8. Phân hệ Tính năng Trí tuệ nhân tạo (AI Features)
 
 | Tính năng AI | Mô tả chi tiết | Đối tượng thụ hưởng |
 | :--- | :--- | :--- |
