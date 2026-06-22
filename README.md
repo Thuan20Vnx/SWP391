@@ -261,3 +261,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: icpdp-club-supervision -->
 
 <!-- doc-anchor: icpdp-post-event-report -->
+
+<!-- doc-anchor: ctsv-partner-approval -->
