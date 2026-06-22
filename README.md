@@ -49,7 +49,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 * **Xác thực tham gia (Scan QR):** Sử dụng thiết bị cá nhân để quét mã QR điểm danh trực tiếp tại địa điểm sự kiện.
 * **Phản hồi & Cập nhật:** Gửi đánh giá sau sự kiện; theo dõi hệ thống thông báo đẩy (Notification) về cập nhật từ sự kiện và các văn bản từ nhà trường.
 
-### 3.3. ClubOrganizer (Ban chủ nhiệm CLB)
+ 3.3. ClubOrganizer (Ban chủ nhiệm CLB)
 * **Quản lý hồ sơ CLB:** Cập nhật bộ nhận diện thương hiệu gồm logo, ảnh đại diện và thông tin giới thiệu chung của câu lạc bộ.
 * **Khởi tạo đề xuất sự kiện:** Lên kế hoạch (proposal), tải lên banner truyền thông, thiết lập cấu hình vé (số lượng, loại vé), lựa chọn địa điểm/phòng ban mong muốn.
 * **Gửi duyệt (Submit to ICPDP):** Chuyển hồ sơ đề xuất sự kiện lên phân hệ quản lý của cán bộ IC-PDP để chờ xét duyệt.
