@@ -76,7 +76,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 * **Tạo sự kiện cấp trường:** Trực tiếp khởi tạo và quản lý các sự kiện quy mô lớn của nhà trường (Lễ tốt nghiệp, Lễ tôn vinh sinh viên, Khai giảng...).
 * **Hệ thống thông báo:** Soạn thảo và gửi các thông báo chính thức, cảnh báo khẩn cấp phạm vi toàn trường trên nền tảng.
 
-### 3.7. Admin (Quản trị viên hệ thống IT)
+ 3.7. Admin (Quản trị viên hệ thống IT)
 * **Kiểm soát tài khoản & Phân quyền:** Khóa, mở khóa và cấp quyền truy cập chính xác cho các nhóm người dùng nội bộ và đối tác ngoại bang (*CTSV, ICPDP, Partner, ClubOrganizer*).
 * **Cấu hình hệ thống:** Tích hợp và kiểm thử cổng thanh toán trực tuyến, vận hành hệ thống Email Server và thiết lập điều phối luồng thông báo tự động (Push Notification) toàn nền tảng.
 * **Quản trị dữ liệu lõi (Master Data CRUD):** Thực hiện các thao tác Thêm, Đọc, Sửa, Xóa đối với các danh mục phân loại sự kiện (Category), danh sách cơ sở vật chất (Phòng học/Hội trường) và danh sách gốc của các Câu lạc bộ.
