@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../constants/defaultAvatar';
 import SiteHeader from '../components/SiteHeader';
 import ClubSidebarAside from '../components/club/ClubSidebarAside';
+import ChatbotFloating from '../components/ChatbotFloating';
 import {
   isClubDesktop,
   navigateClubNavItem,
@@ -199,6 +200,7 @@ const ClubManagerLayout = ({ showToast }) => {
           </main>
         </div>
       </div>
+      <ChatbotFloating context="club_manager" />
     </div>
   );
 };

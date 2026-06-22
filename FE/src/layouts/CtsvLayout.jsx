@@ -4,6 +4,7 @@ import defaultAvatar from '../constants/defaultAvatar';
 import SiteHeader from '../components/SiteHeader';
 import CtsvPortalFooter from '../components/ctsv/CtsvPortalFooter';
 import CtsvSidebarAside from '../components/ctsv/CtsvSidebarAside';
+import ChatbotFloating from '../components/ChatbotFloating';
 import {
   isCtsvDesktop,
   persistSidebarOpen,
@@ -173,6 +174,7 @@ const CtsvLayout = ({ showToast }) => {
           <CtsvPortalFooter />
         </div>
       </div>
+      <ChatbotFloating context="ctsv" />
     </div>
   );
 };
