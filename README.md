@@ -63,7 +63,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 * **Ký kết & Tất toán:** Xác nhận hợp đồng hợp tác số hóa và theo dõi tiến độ thanh toán chi phí tổ chức/tài trợ với phòng CTSV.
 * **Dashboard đối tác:** Giám sát trực tiếp số lượng và thông tin tổng quan của sinh viên đăng ký tham gia chuỗi sự kiện của doanh nghiệp.
 
-### 3.5. ICPDP (Cán bộ ban IC-PDP)
+ 3.5. ICPDP (Cán bộ ban IC-PDP)
 * **Xét duyệt đề xuất CLB:** Tiếp nhận, thẩm định chi tiết nội dung, thời gian và kế hoạch (proposal) gửi lên từ các ClubOrganizer.
 * **Ra quyết định phê duyệt:** Phê duyệt (Approved) hoặc Từ chối đề xuất kèm lý do; sự kiện được duyệt sẽ chuyển sang trạng thái Approved (Lưu trữ nội bộ trước khi hiển thị).
 * **Giám sát hoạt động:** Xem và quản lý danh sách toàn bộ các câu lạc bộ đang hoạt động thuộc quyền quản lý của ban.
