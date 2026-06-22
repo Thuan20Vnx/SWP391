@@ -2,7 +2,7 @@
 
 Dự án phần mềm quản lý và điều phối hoạt động sự kiện tích hợp Trí tuệ nhân tạo, giúp số hóa toàn bộ quy trình từ khâu lập kế hoạch đến vận hành thực tế trong môi trường đại học.
 
-## 1. Thành viên nhóm
+ 1. Thành viên nhóm
 
 | STT | Họ và Tên | Vai trò chính trong dự án | Phân công công việc |
 |---|---|---|---|
