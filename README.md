@@ -273,3 +273,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: ctsv-campus-notifications -->
 
 <!-- doc-anchor: admin-rbac-control -->
+
+<!-- doc-anchor: admin-system-config -->
