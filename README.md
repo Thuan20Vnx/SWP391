@@ -207,3 +207,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: research-schedule-conflict -->
 
 <!-- doc-anchor: guest-auth -->
+
+<!-- doc-anchor: guest-home -->
