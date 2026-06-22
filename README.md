@@ -14,7 +14,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 
 ---
 
-## 2. Tổng quan Dự án
+ 2. Tổng quan Dự án
 
 ### 2.1. Phân hệ Nghiệp vụ cốt lõi (Business Scope)
 * **Quy trình phê duyệt khép kín:** Số hóa luồng xét duyệt sự kiện và đặt địa điểm (Venue Booking) đa tầng giữa Ban chủ nhiệm CLB, Cán bộ IC-PDP, Đối tác doanh nghiệp và Phòng Công tác Sinh viên (CTSV).
