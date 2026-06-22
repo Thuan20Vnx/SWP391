@@ -265,3 +265,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: ctsv-partner-approval -->
 
 <!-- doc-anchor: ctsv-contract-mgmt -->
+
+<!-- doc-anchor: ctsv-event-publish -->
