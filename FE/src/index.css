@@ -3945,22 +3945,9 @@ a.club-tag {
   width: 100%;
 }
 
-.weather-marquee-track {
-  display: inline-flex;
-}
-
-.weather-marquee-track.is-overflowing {
-  animation: weatherMarqueeScroll 7s linear infinite;
-}
-
 .weather-marquee-text {
-  padding-right: 20px;
-  flex-shrink: 0;
-}
-
-@keyframes weatherMarqueeScroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  display: inline-block;
+  will-change: transform;
 }
 
 /* Sun icon */
