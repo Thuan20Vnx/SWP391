@@ -287,3 +287,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: ai-content-generator -->
 
 <!-- doc-anchor: jira-agile-workflow -->
+
+<!-- doc-anchor: frontend-figma-design -->
