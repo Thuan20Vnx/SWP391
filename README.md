@@ -303,3 +303,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: updates-ctsv-icpdp-mobile -->
 
 <!-- doc-anchor: updates-partner-portal -->
+
+<!-- doc-anchor: updates-api-cache-dedup -->
