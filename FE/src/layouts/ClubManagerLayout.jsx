@@ -37,9 +37,16 @@ const ClubManagerLayout = ({ showToast }) => {
     // Khi điều hướng kèm state.editEventId (vd: bấm "Chỉnh sửa thông tin" từ
     // trang chi tiết quản lý), để ClubManagement tự mở form sửa — không để
     // effect này ghi đè activeNav về 'list' theo pathname.
+    //
+    // Chỉ phụ thuộc [pathname]: ClubManagement sẽ tự "dọn" state.editEventId
+    // bằng một navigate(..., {replace:true, state:{}}) ngay sau khi đọc —
+    // nếu editEventId nằm trong dependency array, lần dọn đó sẽ kích hoạt
+    // lại effect này (state đổi dù pathname không đổi) và ghi đè activeNav
+    // về 'list' ngay sau khi ClubManagement vừa set 'create'.
     if (location.state?.editEventId) return;
     setActiveNav(resolveClubActiveNav(pathname));
-  }, [pathname, location.state?.editEventId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   useEffect(() => {
     const closeSidebarOnMobile = () => {
