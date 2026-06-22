@@ -229,3 +229,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: student-participation-mgmt -->
 
 <!-- doc-anchor: student-schedule-conflict -->
+
+<!-- doc-anchor: student-qr-checkin -->
