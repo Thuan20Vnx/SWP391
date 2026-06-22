@@ -41,23 +41,30 @@ const PORTAL_CONFIG = {
   },
 };
 
+const EVENT_STATUS_LABELS = {
+  pending: 'Chờ duyệt',
+  pending_icpdp: 'Chờ IC-PDP',
+  pending_ctsv: 'Chờ CTSV duyệt',
+  pending_admin: 'Chờ Admin duyệt',
+  revision: 'Cần chỉnh sửa',
+  approved: 'Đã duyệt',
+  rejected: 'Từ chối',
+  live: 'Đang diễn ra',
+  ended: 'Đã kết thúc',
+  draft: 'Bản nháp',
+};
+
 const getEventStatusMeta = (event) => {
   const key = event?.statusKey || event?.status || '';
-  const displayLabel =
-    typeof event?.status === 'string' &&
-    !['approved', 'pending', 'rejected', 'live', 'draft'].includes(event.status)
-      ? event.status
-      : null;
+  const label = EVENT_STATUS_LABELS[key];
 
-  if (key === 'rejected') return { label: displayLabel || 'Từ chối', tone: 'rejected' };
-  if (key === 'live') return { label: displayLabel || 'Đang diễn ra', tone: 'live' };
-  if (key === 'approved') return { label: displayLabel || 'Đã duyệt', tone: 'approved' };
-  if (String(key).includes('pending') || key === 'pending' || key === 'revision') {
-    return { label: displayLabel || 'Chờ duyệt', tone: 'pending' };
+  if (key === 'rejected') return { label: label || 'Từ chối', tone: 'rejected' };
+  if (key === 'live') return { label: label || 'Đang diễn ra', tone: 'live' };
+  if (key === 'approved') return { label: label || 'Đã duyệt', tone: 'approved' };
+  if (String(key).includes('pending') || key === 'revision') {
+    return { label: label || 'Chờ duyệt', tone: 'pending' };
   }
-  if (displayLabel) return { label: displayLabel, tone: 'live' };
-  if (key === 'approved') return { label: 'Đã duyệt', tone: 'approved' };
-  if (key === 'pending') return { label: 'Chờ duyệt', tone: 'pending' };
+  if (label) return { label, tone: 'live' };
   return { label: 'Đang chạy', tone: 'live' };
 };
 
