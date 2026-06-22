@@ -14,6 +14,7 @@ import { getUserRole, isIcpdpRole, normalizeRole } from '../utils/auth';
 import { logoutWithConfirm } from '../utils/logout';
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { resolveUserAvatar } from '../utils/image';
+import ChatbotFloating from '../components/ChatbotFloating';
 import '../styles/icpdp-portal.css';
 
 const IcpdpLayout = ({ showToast }) => {
@@ -138,6 +139,7 @@ const IcpdpLayout = ({ showToast }) => {
           <IcpdpPortalFooter />
         </div>
       </div>
+      <ChatbotFloating context="icpdp" />
     </div>
   );
 };

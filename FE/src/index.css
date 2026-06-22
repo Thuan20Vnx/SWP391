@@ -3888,6 +3888,152 @@ a.club-tag {
   white-space: nowrap;
 }
 
+/* Weather widget next to the chatbot fab button */
+.chatbot-fab-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.weather-widget {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border-radius: 18px;
+  padding: 8px 14px 8px 8px;
+  box-shadow: 0 8px 20px -6px rgba(15, 23, 42, 0.25);
+  cursor: default;
+  animation: weatherFadeIn 0.4s ease;
+}
+
+@keyframes weatherFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.weather-widget-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.weather-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.weather-widget-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  max-width: 160px;
+}
+
+.weather-widget-temp {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.weather-widget-advice {
+  font-size: 0.68rem;
+  color: var(--text-muted, #6b7280);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sun icon */
+.weather-sun-core {
+  fill: #f59e0b;
+}
+
+.weather-sun-rays {
+  transform-origin: 32px 32px;
+  animation: sunSpin 12s linear infinite;
+}
+
+.weather-ray {
+  stroke: #f59e0b;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+@keyframes sunSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Cloud-based icons */
+.weather-cloud {
+  fill: #cbd5e1;
+}
+
+.weather-icon-clouds .cloud-back {
+  animation: cloudDrift 6s ease-in-out infinite;
+}
+
+.weather-icon-clouds .cloud-front {
+  fill: #e2e8f0;
+  animation: cloudDrift 6s ease-in-out infinite reverse;
+}
+
+@keyframes cloudDrift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+}
+
+/* Rain icon */
+.weather-drop {
+  stroke: #3b82f6;
+  stroke-width: 3;
+  stroke-linecap: round;
+  animation: rainFall 1s linear infinite;
+}
+
+.drop-1 { animation-delay: 0s; }
+.drop-2 { animation-delay: 0.2s; }
+.drop-3 { animation-delay: 0.4s; }
+
+@keyframes rainFall {
+  0% { opacity: 0; transform: translateY(-4px); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(6px); }
+}
+
+/* Storm icon */
+.weather-bolt {
+  fill: #f59e0b;
+  animation: boltFlash 1.6s ease-in-out infinite;
+}
+
+@keyframes boltFlash {
+  0%, 80%, 100% { opacity: 1; }
+  85% { opacity: 0.2; }
+}
+
+/* Snow icon */
+.weather-flake {
+  fill: #93c5fd;
+  animation: snowDrift 2s ease-in-out infinite;
+}
+
+.flake-1 { animation-delay: 0s; }
+.flake-2 { animation-delay: 0.4s; }
+.flake-3 { animation-delay: 0.8s; }
+
+@keyframes snowDrift {
+  0%, 100% { transform: translateY(0); opacity: 0.8; }
+  50% { transform: translateY(4px); opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .weather-widget-info {
+    max-width: 110px;
+  }
+}
+
 /* Chat Window Box */
 .chatbot-window {
   width: 360px;

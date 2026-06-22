@@ -14,6 +14,7 @@ import { isPartnerRole, normalizeRole } from '../utils/auth';
 import { logoutWithConfirm } from '../utils/logout';
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { resolveUserAvatar } from '../utils/image';
+import ChatbotFloating from '../components/ChatbotFloating';
 import '../styles/partner-portal.css';
 
 const PartnerLayout = ({ showToast }) => {
@@ -140,6 +141,7 @@ const PartnerLayout = ({ showToast }) => {
           <PartnerPortalFooter />
         </div>
       </div>
+      <ChatbotFloating context="partner" />
     </div>
   );
 };

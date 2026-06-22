@@ -12,6 +12,7 @@ const systemRoutes = require('./system.routes');
 const paymentRoutes = require('./payment.routes');
 const notificationRoutes = require('./notification.routes');
 const chatbotRoutes = require('./chatbot.routes');
+const weatherRoutes = require('./weather.routes');
 const maintenanceGate = require('../middleware/maintenanceGate');
 
 const router = express.Router();
@@ -31,5 +32,6 @@ router.use('/partner', partnerRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/chatbot', chatbotRoutes);
+router.use('/weather', weatherRoutes);
 
 module.exports = router;
