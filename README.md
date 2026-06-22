@@ -281,3 +281,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: admin-monitoring-analytics -->
 
 <!-- doc-anchor: ai-smart-recommend -->
+
+<!-- doc-anchor: ai-chatbot-rag -->
