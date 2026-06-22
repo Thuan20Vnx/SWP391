@@ -31,7 +31,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 
  3. Các Tính năng Chính theo Nhóm Người dùng (Key Features)
 
-### 3.1. Guest (Khách ngoài)
+ 3.1. Guest (Khách ngoài)
 * **Đăng ký / Đăng nhập:** Tạo và quản lý tài khoản cá nhân thông qua số điện thoại hoặc email.
 * **Trang chủ hệ thống:** Theo dõi các sự kiện nổi bật, tin tức tiêu điểm và thông báo chính thức từ nhà trường.
 * **Xem & Tìm kiếm sự kiện:** Duyệt danh sách event công khai; tìm kiếm và lọc nâng cao theo tên, câu lạc bộ hoặc loại hình (*Academic, Entertainment, Workshop, Competition*).
