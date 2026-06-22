@@ -293,3 +293,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: frontend-folder-structure -->
 
 <!-- doc-anchor: srs-document-overview -->
+
+<!-- doc-anchor: srs-main-content -->
