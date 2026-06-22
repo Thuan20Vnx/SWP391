@@ -1,5 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { fetchWeather } from '../services/weatherApi';
+
+const MarqueeLine = ({ text, className }) => {
+  const containerRef = useRef(null);
+  const textRef = useRef(null);
+  const [overflowing, setOverflowing] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const textEl = textRef.current;
+    if (!container || !textEl) return;
+    setOverflowing(textEl.scrollWidth > container.clientWidth);
+  }, [text]);
+
+  return (
+    <span ref={containerRef} className={`weather-marquee ${className}`}>
+      <span className={`weather-marquee-track ${overflowing ? 'is-overflowing' : ''}`}>
+        <span ref={textRef} className="weather-marquee-text">
+          {text}
+        </span>
+        {overflowing && (
+          <span className="weather-marquee-text" aria-hidden="true">
+            {text}
+          </span>
+        )}
+      </span>
+    </span>
+  );
+};
 
 const WeatherIcon = ({ main }) => {
   switch (main) {
@@ -78,15 +106,16 @@ const WeatherWidget = () => {
   if (state.loading || state.error || !state.weather) return null;
 
   const { weather, advice } = state;
+  const topLine = `${weather.temp}°C · ${weather.description}`;
 
   return (
-    <div className="weather-widget" title={weather.description}>
+    <div className="weather-widget" title={`${topLine} — ${advice}`}>
       <div className="weather-widget-icon">
         <WeatherIcon main={weather.main} />
       </div>
       <div className="weather-widget-info">
-        <span className="weather-widget-temp">{weather.temp}°C</span>
-        <span className="weather-widget-advice">{advice}</span>
+        <MarqueeLine text={topLine} className="weather-widget-temp" />
+        <MarqueeLine text={advice} className="weather-widget-advice" />
       </div>
     </div>
   );
