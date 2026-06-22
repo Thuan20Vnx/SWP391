@@ -241,3 +241,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: club-submit-icpdp -->
 
 <!-- doc-anchor: club-participant-mgmt -->
+
+<!-- doc-anchor: club-qr-attendance -->
