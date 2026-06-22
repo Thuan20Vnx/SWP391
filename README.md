@@ -92,7 +92,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 
 ---
 
-## 4. Quản lý Tiến độ Công việc (Jira)
+ 4. Quản lý Tiến độ Công việc (Jira)
 
 Toàn bộ các đầu việc và tiến độ của dự án được quản lý nghiêm ngặt theo mô hình Agile/Scrum, phân chia cụ thể theo từng tuần làm việc (Sprint).
 * **Workflow chuẩn hóa:** `To Do` $\rightarrow$ `In Progress` $\rightarrow$ `Review` $\rightarrow$ `Done`. Mỗi task đều được gán định danh (assignee), mô tả chi tiết yêu cầu kỹ thuật và thời hạn hoàn thành cụ thể cho từng thành viên.
