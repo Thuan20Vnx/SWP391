@@ -57,7 +57,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 * **Điểm danh tự động:** Khởi tạo mã QR điểm danh (Create QR to attendance) tại sự kiện cho người tham gia quét.
 * **Báo cáo & Thống kê:** Gửi báo cáo tổng kết kết quả (Post-event Report) cho IC-PDP sau khi sự kiện kết thúc; theo dõi Dashboard số liệu trực quan về tỷ lệ đăng ký và tỷ lệ check-in thực tế.
 
-### 3.4. Partner (Đối tác doanh nghiệp)
+ 3.4. Partner (Đối tác doanh nghiệp)
 * **Quản lý tài khoản:** Đăng nhập và sử dụng hệ thống bằng tài khoản định danh do Phòng CTSV cấp riêng.
 * **Đề xuất chương trình hợp tác:** Gửi yêu cầu, kế hoạch tổ chức các chương trình Workshop, Talkshow hoặc Cuộc thi học thuật phối hợp tại trường.
 * **Ký kết & Tất toán:** Xác nhận hợp đồng hợp tác số hóa và theo dõi tiến độ thanh toán chi phí tổ chức/tài trợ với phòng CTSV.
