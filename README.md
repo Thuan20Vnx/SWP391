@@ -269,3 +269,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: ctsv-event-publish -->
 
 <!-- doc-anchor: ctsv-school-events -->
+
+<!-- doc-anchor: ctsv-campus-notifications -->
