@@ -69,7 +69,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 * **Giám sát hoạt động:** Xem và quản lý danh sách toàn bộ các câu lạc bộ đang hoạt động thuộc quyền quản lý của ban.
 * **Nghiệm thu báo cáo:** Tiếp nhận, đánh giá và lưu trữ các báo cáo sau sự kiện (Post-event Report) từ các CLB để tính điểm hiệu suất hoạt động.
 
-### 3.6. CTSV (Cán bộ Phòng Công tác Sinh viên)
+ 3.6. CTSV (Cán bộ Phòng Công tác Sinh viên)
 * **Xét duyệt đề xuất đối tác:** Thẩm định và đánh giá các yêu cầu tổ chức Workshop/Cuộc thi từ các Đối tác doanh nghiệp (Partner).
 * **Quản lý hợp đồng:** Theo dõi, kiểm soát tiến trình ký kết văn bản ghi nhớ (MOU), hợp đồng tài trợ và luồng tài chính với Partner.
 * **Công bố sự kiện (Publish):** Đưa ra quyết định cuối cùng để hiển thị (Publish) các sự kiện đã qua kiểm duyệt lên trang chủ hệ thống cho toàn bộ sinh viên thấy.
