@@ -187,3 +187,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 * **Tối ưu hóa `useUserProfile` Hook:** Áp dụng bộ đệm API Cache & Deduping để tối ưu hóa việc tải dữ liệu hồ sơ cá nhân. Tránh tình trạng lặp lại yêu cầu API lấy thông tin người dùng khi chuyển hướng trang hoặc render nhiều thành phần giao diện song song, giảm tải rõ rệt cho Server Backend.
 * **Bảo mật Đăng xuất (Secure Logout):** Tự động dọn sạch toàn bộ cache dữ liệu API (`clearAllCache`) ngay khi người dùng đăng xuất, ngăn ngừa nguy cơ rò rỉ dữ liệu hoặc dùng lại thông tin của phiên làm việc cũ.
 
+
+<!-- doc-anchor: project-title -->
