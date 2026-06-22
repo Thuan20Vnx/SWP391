@@ -277,3 +277,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: admin-system-config -->
 
 <!-- doc-anchor: admin-master-data-crud -->
+
+<!-- doc-anchor: admin-monitoring-analytics -->
