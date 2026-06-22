@@ -239,3 +239,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: club-event-proposal -->
 
 <!-- doc-anchor: club-submit-icpdp -->
+
+<!-- doc-anchor: club-participant-mgmt -->
