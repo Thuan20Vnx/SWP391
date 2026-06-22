@@ -305,3 +305,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: updates-partner-portal -->
 
 <!-- doc-anchor: updates-api-cache-dedup -->
+
+<!-- doc-anchor: updates-user-profile-secure-logout -->
