@@ -205,3 +205,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: research-multi-role-rbac -->
 
 <!-- doc-anchor: research-schedule-conflict -->
+
+<!-- doc-anchor: guest-auth -->
