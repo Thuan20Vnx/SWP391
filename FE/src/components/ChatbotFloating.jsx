@@ -1,51 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { sendChatbotMessage } from '../services/chatbotApi';
 
 const HOME_GREETING =
   'Xin chào! Tôi là trợ lý ảo F-Events. Bạn cần tôi giúp gì hôm nay?';
 
 const ADMIN_GREETING =
   'Xin chào! Tôi là trợ lý ảo F-Events (Quản trị). Bạn cần hỗ trợ duyệt đề xuất, xử lý yêu cầu sửa/ẩn/xóa, hay tra cứu tài khoản?';
-
-const buildBotReply = (userMsg, context) => {
-  const lowercase = userMsg.toLowerCase();
-
-  if (context === 'admin') {
-    if (lowercase.includes('duyệt') || lowercase.includes('đề xuất')) {
-      return 'Vào menu "Duyệt đề xuất sự kiện" để phê duyệt hoặc từ chối đề xuất mới từ CLB trước khi công khai.';
-    }
-    if (lowercase.includes('sửa') || lowercase.includes('ẩn') || lowercase.includes('xóa')) {
-      return 'Vào "Yêu cầu sửa / ẩn / xóa" để xem các yêu cầu thay đổi sự kiện đã công bố và chấp nhận hoặc từ chối.';
-    }
-    if (lowercase.includes('tài khoản') || lowercase.includes('account')) {
-      return 'Mục "Kiểm soát tài khoản" trong menu admin giúp bạn bật/tắt hoặc chỉnh sửa tài khoản người dùng.';
-    }
-    if (lowercase.includes('dashboard') || lowercase.includes('giám sát')) {
-      return 'Dashboard hiển thị lưu lượng, doanh thu và nhật ký hoạt động hệ thống.';
-    }
-  }
-
-  if (lowercase.includes('f-fest') || lowercase.includes('nhạc') || lowercase.includes('fest')) {
-    return 'Sự kiện F-Fest: Giai điệu mùa hè sẽ diễn ra vào ngày 20/05 lúc 19:00 tại Hội trường A, FPT Tower. Hiện tại chỉ còn 15 vé trống thôi đó!';
-  }
-  if (lowercase.includes('prompt') || lowercase.includes('ai') || lowercase.includes('workshop')) {
-    return 'Workshop "Làm chủ Prompt Engineering với AI" được tổ chức vào ngày 22/05 lúc 14:00 tại Phòng Lab 402 Gamma. Nhanh tay đăng ký nhé!';
-  }
-  if (lowercase.includes('profile') || lowercase.includes('hồ sơ') || lowercase.includes('trang cá nhân')) {
-    return 'Bạn có thể mở menu tài khoản bằng cách nhấp vào hình đại diện ở góc trên bên phải — menu sẽ hiện ra ngay tại trang chủ.';
-  }
-  if (lowercase.includes('đăng ký') || lowercase.includes('vé')) {
-    return 'Để đăng ký sự kiện, bạn chỉ cần bấm nút "Đăng ký ngay" trên thẻ sự kiện. Hệ thống sẽ tự động gửi QR vé về tài khoản của bạn!';
-  }
-  if (lowercase.includes('hello') || lowercase.includes('chào') || lowercase.includes('hi')) {
-    return context === 'admin'
-      ? 'Xin chào! Tôi có thể hướng dẫn bạn các mục quản trị trên F-Events.'
-      : 'Xin chào! Tôi có thể giúp gì cho bạn về các sự kiện của sinh viên FPT?';
-  }
-
-  return context === 'admin'
-    ? 'Tôi có thể gợi ý về duyệt đề xuất, yêu cầu sửa/ẩn/xóa, tài khoản hoặc dashboard. Bạn muốn hỏi phần nào?'
-    : 'Tôi rất muốn hỗ trợ bạn, tuy nhiên tính năng AI đang được tích hợp thêm. Bạn có muốn tìm các sự kiện Công nghệ hay Âm nhạc sắp tới không?';
-};
 
 const ChatbotFloating = ({ context = 'home' }) => {
   const rootRef = useRef(null);
@@ -54,6 +14,7 @@ const ChatbotFloating = ({ context = 'home' }) => {
     { sender: 'bot', text: context === 'admin' ? ADMIN_GREETING : HOME_GREETING },
   ]);
   const [chatInput, setChatInput] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (!chatbotOpen) return undefined;
@@ -75,18 +36,27 @@ const ChatbotFloating = ({ context = 'home' }) => {
     };
   }, [chatbotOpen]);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim() || isSending) return;
 
     const userMsg = chatInput.trim();
-    setChatMessages((prev) => [...prev, { sender: 'user', text: userMsg }]);
+    const nextHistory = [...chatMessages, { sender: 'user', text: userMsg }];
+    setChatMessages(nextHistory);
     setChatInput('');
+    setIsSending(true);
 
-    setTimeout(() => {
-      const botResponse = buildBotReply(userMsg, context);
-      setChatMessages((prev) => [...prev, { sender: 'bot', text: botResponse }]);
-    }, 1000);
+    try {
+      const reply = await sendChatbotMessage(nextHistory, context);
+      setChatMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
+    } catch (err) {
+      setChatMessages((prev) => [
+        ...prev,
+        { sender: 'bot', text: err.message || 'Trợ lý ảo đang gặp sự cố, vui lòng thử lại sau.' },
+      ]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -125,6 +95,9 @@ const ChatbotFloating = ({ context = 'home' }) => {
                 {msg.text}
               </div>
             ))}
+            {isSending && (
+              <div className="chat-message-bubble message-bot">Đang soạn câu trả lời...</div>
+            )}
           </div>
 
           <form className="chat-input-form" onSubmit={handleSendMessage}>
@@ -134,8 +107,9 @@ const ChatbotFloating = ({ context = 'home' }) => {
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               className="chat-input-field"
+              disabled={isSending}
             />
-            <button type="submit" className="chat-send-btn" aria-label="Gửi">
+            <button type="submit" className="chat-send-btn" aria-label="Gửi" disabled={isSending}>
               <svg viewBox="0 0 24 24" width="20" height="20">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor" />
               </svg>
