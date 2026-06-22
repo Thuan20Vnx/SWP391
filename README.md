@@ -195,3 +195,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: business-approval-workflow -->
 
 <!-- doc-anchor: business-operations-checkin -->
+
+<!-- doc-anchor: business-dashboard-evaluation -->
