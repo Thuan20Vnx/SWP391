@@ -223,3 +223,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: student-sso -->
 
 <!-- doc-anchor: student-profile -->
+
+<!-- doc-anchor: student-advanced-filter -->
