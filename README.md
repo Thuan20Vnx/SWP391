@@ -259,3 +259,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: icpdp-approval-decision -->
 
 <!-- doc-anchor: icpdp-club-supervision -->
+
+<!-- doc-anchor: icpdp-post-event-report -->
