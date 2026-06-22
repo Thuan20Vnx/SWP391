@@ -211,3 +211,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: guest-home -->
 
 <!-- doc-anchor: guest-search-events -->
+
+<!-- doc-anchor: guest-clubs -->
