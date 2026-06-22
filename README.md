@@ -21,7 +21,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 * **Vận hành & Điểm danh thời gian thực:** Đăng ký tham gia, bán vé trực tuyến tích hợp cổng thanh toán, cấp phát vé định danh qua mã QR và kiểm soát Check-in tại địa điểm nhằm chống gian lận.
 * **Quản trị & Đánh giá đa chiều:** Thu thập phản hồi từ người tham gia, lưu trữ Master Data (dữ liệu lõi về cơ sở vật chất, danh mục), thống kê hiệu suất hoạt động của các câu lạc bộ thông qua Dashboard trực quan.
 
-### 2.2. Hàm lượng Nghiên cứu Khoa học & Công nghệ (Research Depth)
+ 2.2. Hàm lượng Nghiên cứu Khoa học & Công nghệ (Research Depth)
 * **Hệ thống Gợi ý thông minh (Smart Recommendation):** Ứng dụng thuật toán Lọc cộng tác (Collaborative Filtering) dựa trên Độ tương đồng Cosine ($Cosine\ Similarity$) để gợi ý sự kiện cá nhân hóa theo sở thích và lịch sử tham gia của từng sinh viên.
 * **Kiến trúc Trợ lý ảo (RAG Framework):** Tích hợp AI Assistant sử dụng mô hình Retrieval-Augmented Generation kết nối API LLM để truy xuất dữ liệu từ cẩm nang, quy chế nội bộ, giảm thiểu tình trạng AI sinh thông tin ảo (Hallucination).
 * **Kiểm soát Truy cập Đa vai trò (Multi-role RBAC):** Thiết kế giải pháp phân quyền cho phép một tài khoản gán đồng thời nhiều vai trò (ví dụ: vừa là Sinh viên, vừa là ClubOrganizer) và chuyển đổi không gian làm việc (Context Switch) linh hoạt mà không cần đăng nhập lại.
