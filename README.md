@@ -201,3 +201,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: research-collaborative-filtering -->
 
 <!-- doc-anchor: research-rag-framework -->
+
+<!-- doc-anchor: research-multi-role-rbac -->
