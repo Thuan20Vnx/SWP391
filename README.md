@@ -247,3 +247,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: club-report-dashboard -->
 
 <!-- doc-anchor: partner-account -->
+
+<!-- doc-anchor: partner-cooperation-proposal -->
