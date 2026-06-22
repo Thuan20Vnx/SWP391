@@ -3,7 +3,7 @@ import { clearSession } from './auth';
 
 const GOOGLE_CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-  '462966212822-ohmu33pmrp4dcpuq3hm00tnvuac4jqa9.apps.googleusercontent.com';
+  '961679973354-7lbmf87ehfimgritjda29mdfb0e8d3rs.apps.googleusercontent.com';
 
 export const GOOGLE_REDIRECT_URI = `${API_BASE}/api/auth/google/callback`;
 
