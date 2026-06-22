@@ -233,3 +233,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: student-qr-checkin -->
 
 <!-- doc-anchor: student-feedback-notifications -->
+
+<!-- doc-anchor: club-profile-mgmt -->
