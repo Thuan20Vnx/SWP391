@@ -227,3 +227,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: student-advanced-filter -->
 
 <!-- doc-anchor: student-participation-mgmt -->
+
+<!-- doc-anchor: student-schedule-conflict -->
