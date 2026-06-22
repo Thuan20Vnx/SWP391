@@ -297,3 +297,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: srs-main-content -->
 
 <!-- doc-anchor: srs-tech-standards -->
+
+<!-- doc-anchor: srs-document-goals -->
