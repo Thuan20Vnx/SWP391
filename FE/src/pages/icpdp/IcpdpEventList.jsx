@@ -141,16 +141,32 @@ const IcpdpEventList = () => {
   const filtered = useMemo(() => {
     setPage(1);
     const q = searchQuery.toLowerCase();
-    return events.filter((ev) => {
-      if (q && !(ev.title || '').toLowerCase().includes(q) && !(ev.location || '').toLowerCase().includes(q)) return false;
-      if (categoryFilter !== 'Tất cả' && ev.category !== categoryFilter) return false;
-      if (sourceFilter !== 'Tất cả') {
-        const sourceMap = { 'Cấp trường': 'school', 'Đối tác': 'partner', 'Câu lạc bộ': 'club' };
-        if (ev.source !== sourceMap[sourceFilter]) return false;
-      }
-      if (!matchesStatusFilter(ev.statusKey, statusFilter)) return false;
-      return true;
-    });
+    // Ưu tiên đưa sự kiện đang chờ duyệt (chưa tới/đang ở bước Admin) lên đầu
+    // để IC-PDP thấy ngay, tránh bị đẩy xuống trang sau do sắp theo ngày bắt đầu.
+    const pendingRank = (sk) => {
+      if (sk === 'pending_icpdp') return 0;
+      if (sk === 'pending_ctsv') return 1;
+      if (sk === 'pending_admin') return 2;
+      if (sk === 'revision') return 3;
+      return 9;
+    };
+    return events
+      .filter((ev) => {
+        if (q && !(ev.title || '').toLowerCase().includes(q) && !(ev.location || '').toLowerCase().includes(q)) return false;
+        if (categoryFilter !== 'Tất cả' && ev.category !== categoryFilter) return false;
+        if (sourceFilter !== 'Tất cả') {
+          const sourceMap = { 'Cấp trường': 'school', 'Đối tác': 'partner', 'Câu lạc bộ': 'club' };
+          if (ev.source !== sourceMap[sourceFilter]) return false;
+        }
+        if (!matchesStatusFilter(ev.statusKey, statusFilter)) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const ra = pendingRank(a.statusKey);
+        const rb = pendingRank(b.statusKey);
+        if (ra !== rb) return ra - rb;
+        return new Date(b.startDate || 0) - new Date(a.startDate || 0);
+      });
   }, [events, searchQuery, categoryFilter, sourceFilter, statusFilter]);
 
   const pagedEvents = useMemo(
