@@ -29,7 +29,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 
 ---
 
-## 3. Các Tính năng Chính theo Nhóm Người dùng (Key Features)
+ 3. Các Tính năng Chính theo Nhóm Người dùng (Key Features)
 
 ### 3.1. Guest (Khách ngoài)
 * **Đăng ký / Đăng nhập:** Tạo và quản lý tài khoản cá nhân thông qua số điện thoại hoặc email.
