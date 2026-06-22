@@ -40,7 +40,7 @@ Dự án phần mềm quản lý và điều phối hoạt động sự kiện t
 * **Check-in Event:** Xuất trình mã QR cá nhân cho Ban tổ chức hoặc chủ động tự quét mã tại địa điểm để xác nhận tham gia.
 * **Đánh giá sự kiện (Review):** Gửi phản hồi, chấm điểm và viết nhận xét sau khi sự kiện kết thúc.
 
-### 3.2. Student (Sinh viên trường)
+ 3.2. Student (Sinh viên trường)
 * **Đăng nhập SSO:** Truy cập hệ thống nhanh chóng bằng tài khoản email trường định danh (Single Sign-On).
 * **Hồ sơ cá nhân:** Thiết lập và cập nhật thông tin liên hệ, ảnh đại diện (avatar) và các danh mục sở thích để tối ưu hóa bộ lọc gợi ý.
 * **Tìm kiếm & Lọc sự kiện nâng cao:** Duyệt danh sách event linh hoạt; lọc theo tên, ngày diễn ra, câu lạc bộ, loại hình và trạng thái vé (*còn slot / hết slot*).
