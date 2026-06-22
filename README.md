@@ -289,3 +289,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: jira-agile-workflow -->
 
 <!-- doc-anchor: frontend-figma-design -->
+
+<!-- doc-anchor: frontend-folder-structure -->
