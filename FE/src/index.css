@@ -4026,6 +4026,9 @@ a.club-tag {
 }
 
 .chat-event-suggestion-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   text-align: left;
   background-color: #ffffff;
   border: 1.5px solid var(--primary);
@@ -4035,11 +4038,33 @@ a.club-tag {
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.chat-event-suggestion-btn .chat-suggestion-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-event-suggestion-btn .chat-suggestion-icon {
+  flex-shrink: 0;
 }
 
 .chat-event-suggestion-btn:hover {
   background-color: var(--primary);
+  color: #ffffff;
+}
+
+.chat-event-suggestion-btn--announcement {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+.chat-event-suggestion-btn--announcement:hover {
+  background-color: #7c3aed;
   color: #ffffff;
 }
 
