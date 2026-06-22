@@ -18,7 +18,8 @@ import '../styles/club-mobile.css';
 
 const ClubManagerLayout = ({ showToast }) => {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const [userProfile, setUserProfile] = useState({
     fullname: '',
     course: 'K18',
@@ -33,8 +34,12 @@ const ClubManagerLayout = ({ showToast }) => {
   );
 
   useEffect(() => {
+    // Khi điều hướng kèm state.editEventId (vd: bấm "Chỉnh sửa thông tin" từ
+    // trang chi tiết quản lý), để ClubManagement tự mở form sửa — không để
+    // effect này ghi đè activeNav về 'list' theo pathname.
+    if (location.state?.editEventId) return;
     setActiveNav(resolveClubActiveNav(pathname));
-  }, [pathname]);
+  }, [pathname, location.state?.editEventId]);
 
   useEffect(() => {
     const closeSidebarOnMobile = () => {
