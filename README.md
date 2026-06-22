@@ -251,3 +251,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: partner-cooperation-proposal -->
 
 <!-- doc-anchor: partner-contract-payment -->
+
+<!-- doc-anchor: partner-dashboard -->
