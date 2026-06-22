@@ -199,3 +199,5 @@ Hệ thống đã được bổ sung, hoàn thiện và tối ưu hóa sâu các
 <!-- doc-anchor: business-dashboard-evaluation -->
 
 <!-- doc-anchor: research-collaborative-filtering -->
+
+<!-- doc-anchor: research-rag-framework -->
