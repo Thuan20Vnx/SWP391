@@ -11,6 +11,7 @@ export const ADMIN_SYSTEM_DEFAULT_CONFIG = {
   maintenanceMode: false,
   publicAnnouncements: true,
   maintenanceMessage: 'Hệ thống đang bảo trì định kỳ. Vui lòng quay lại sau.',
+  maintenanceGraceSeconds: '15',
   email: {
     enabled: true,
     host: 'smtp.gmail.com',

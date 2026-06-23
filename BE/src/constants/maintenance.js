@@ -1,4 +1,10 @@
-const MAINTENANCE_GRACE_MS = 15_000;
+const DEFAULT_GRACE_SEC = 15;
+
+const resolveGraceMs = (settings) => {
+  const sec = Number(settings?.maintenanceGraceSeconds);
+  if (Number.isInteger(sec) && sec >= 5 && sec <= 600) return sec * 1000;
+  return DEFAULT_GRACE_SEC * 1000;
+};
 
 const resolveMaintenanceActivatedAt = (settings) => {
   if (!settings?.maintenanceMode) return null;
@@ -16,15 +22,15 @@ const resolveMaintenanceActivatedAt = (settings) => {
 const isInMaintenanceGrace = (settings, now = Date.now()) => {
   const started = resolveMaintenanceActivatedAt(settings);
   if (started == null) return false;
-  return now < started + MAINTENANCE_GRACE_MS;
+  return now < started + resolveGraceMs(settings);
 };
 
 const shouldEnforceMaintenance = (settings, now = Date.now()) =>
   Boolean(settings?.maintenanceMode) && !isInMaintenanceGrace(settings, now);
 
 module.exports = {
-  MAINTENANCE_GRACE_MS,
-  MAINTENANCE_GRACE_SEC: MAINTENANCE_GRACE_MS / 1000,
+  DEFAULT_GRACE_SEC,
+  resolveGraceMs,
   isInMaintenanceGrace,
   shouldEnforceMaintenance,
 };

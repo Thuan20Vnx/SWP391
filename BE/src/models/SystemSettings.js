@@ -57,6 +57,7 @@ const systemSettingsSchema = new mongoose.Schema(
       trim: true,
     },
     maintenanceActivatedAt: { type: Date, default: null },
+    maintenanceGraceSeconds: { type: Number, default: 15, min: 5, max: 600 },
     email: { type: emailSettingsSchema, default: () => ({}) },
     payment: { type: paymentSettingsSchema, default: () => ({}) },
     security: { type: securitySettingsSchema, default: () => ({}) },

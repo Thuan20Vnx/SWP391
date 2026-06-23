@@ -666,14 +666,33 @@
 
 .admin-sys-maint-server-status {
   margin: 0;
-  padding: 0 16px 8px;
+  padding: 16px 16px 10px;
   font-size: 0.75rem;
   font-weight: 600;
   color: #64748b;
+  line-height: 1.45;
 }
 
 .admin-sys-maint-server-status--on {
   color: #c2410c;
+  padding-top: 18px;
+}
+
+.admin-sys-maint-hint {
+  margin: 0;
+  padding: 6px 16px 18px;
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.admin-sys-group .admin-sys-field--in-group {
+  padding: 20px 16px 16px;
+}
+
+.admin-sys-group .admin-sys-field--in-group .admin-sys-field__label {
+  padding-top: 6px;
+  margin-top: 0;
 }
 
 .admin-sys-toggle__text {

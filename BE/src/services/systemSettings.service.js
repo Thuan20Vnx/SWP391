@@ -2,7 +2,7 @@ const SystemSettings = require('../models/SystemSettings');
 const AppError = require('../utils/AppError');
 const { normalizeRole } = require('../utils/role');
 const { writeAuditLog } = require('./auditLog.service');
-const { MAINTENANCE_GRACE_SEC } = require('../constants/maintenance');
+const { DEFAULT_GRACE_SEC } = require('../constants/maintenance');
 
 const GLOBAL_ID = SystemSettings.GLOBAL_ID;
 
@@ -23,6 +23,7 @@ const DEFAULTS = {
   maintenanceMode: false,
   publicAnnouncements: true,
   maintenanceMessage: 'Hệ thống đang bảo trì định kỳ. Vui lòng quay lại sau.',
+  maintenanceGraceSeconds: DEFAULT_GRACE_SEC,
 };
 
 const EMAIL_DEFAULTS = {
@@ -71,7 +72,7 @@ const toPublic = (doc) => ({
   publicAnnouncements: doc?.publicAnnouncements !== false,
   maintenanceMessage: String(doc?.maintenanceMessage || DEFAULTS.maintenanceMessage).trim(),
   maintenanceActivatedAt: doc?.maintenanceActivatedAt || null,
-  maintenanceGraceSeconds: MAINTENANCE_GRACE_SEC,
+  maintenanceGraceSeconds: Number(doc?.maintenanceGraceSeconds) || DEFAULT_GRACE_SEC,
   updatedAt: doc?.updatedAt || null,
 });
 
@@ -209,6 +210,14 @@ const updateMaintenanceSettings = async (payload, actorEmail = '') => {
   if (payload.maintenanceMessage !== undefined) {
     patch.maintenanceMessage = String(payload.maintenanceMessage || '').trim()
       || DEFAULTS.maintenanceMessage;
+  }
+  if (payload.maintenanceGraceSeconds !== undefined) {
+    const sec = Number(payload.maintenanceGraceSeconds);
+    if (!Number.isInteger(sec) || sec < 5 || sec > 600) {
+      throw new AppError('Thời gian cảnh báo bảo trì không hợp lệ (5–600 giây).', 400);
+    }
+    patch.maintenanceGraceSeconds = sec;
+    changes.push(`thời gian cảnh báo ${sec}s`);
   }
   if (Object.keys(patch).length === 0) {
     return toPublic(await getSettings(false));

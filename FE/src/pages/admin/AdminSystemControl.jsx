@@ -46,8 +46,16 @@ const parseMaintenanceConfig = (res) => {
     publicAnnouncements: remote.publicAnnouncements !== false,
     maintenanceMessage:
       remote.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage,
+    maintenanceGraceSeconds: String(remote.maintenanceGraceSeconds ?? 15),
   };
 };
+
+const buildMaintenancePayload = (cfg, overrides = {}) => ({
+  maintenanceMode: overrides.maintenanceMode ?? cfg.maintenanceMode,
+  publicAnnouncements: overrides.publicAnnouncements ?? cfg.publicAnnouncements,
+  maintenanceMessage: overrides.maintenanceMessage ?? cfg.maintenanceMessage,
+  maintenanceGraceSeconds: Number(overrides.maintenanceGraceSeconds ?? cfg.maintenanceGraceSeconds) || 15,
+});
 
 const mapUiStatus = (status) => {
   if (status === 'offline' || status === 'degraded') return 'degraded';
@@ -413,7 +421,7 @@ const AdminSystemControl = () => {
       cursor[keys[keys.length - 1]] = value;
       return next;
     });
-    if (['maintenanceMode', 'publicAnnouncements', 'maintenanceMessage'].includes(path)) {
+    if (['maintenanceMode', 'publicAnnouncements', 'maintenanceMessage', 'maintenanceGraceSeconds'].includes(path)) {
       setMaintenanceDirty(true);
     } else if (path.startsWith('email.')) {
       setEmailDirty(true);
@@ -427,11 +435,7 @@ const AdminSystemControl = () => {
   const handleSaveMaintenance = async () => {
     setSavingMaintenance(true);
     try {
-      const res = await updateSystemMaintenance({
-        maintenanceMode: config.maintenanceMode,
-        publicAnnouncements: config.publicAnnouncements,
-        maintenanceMessage: config.maintenanceMessage,
-      });
+      const res = await updateSystemMaintenance(buildMaintenancePayload(config));
       const maintenance = parseMaintenanceConfig(res);
       setConfig((prev) => ({ ...prev, ...maintenance }));
       setServerMaintenanceOn(maintenance.maintenanceMode);
@@ -450,11 +454,7 @@ const AdminSystemControl = () => {
     setConfig((prev) => ({ ...prev, maintenanceMode: nextMode }));
     setSavingMaintenance(true);
     try {
-      const res = await updateSystemMaintenance({
-        maintenanceMode: nextMode,
-        publicAnnouncements: config.publicAnnouncements,
-        maintenanceMessage: config.maintenanceMessage,
-      });
+      const res = await updateSystemMaintenance(buildMaintenancePayload(config, { maintenanceMode: nextMode }));
       const maintenance = parseMaintenanceConfig(res);
       setConfig((prev) => ({ ...prev, ...maintenance }));
       setServerMaintenanceOn(maintenance.maintenanceMode);
@@ -609,9 +609,23 @@ const AdminSystemControl = () => {
               ? t('admin.system.ops.maintenanceServerOn')
               : t('admin.system.ops.maintenanceServerOff')}
         </p>
-        <p className="admin-sys-field__hint" style={{ padding: '0 16px 12px', margin: 0 }}>
+        <p className="admin-sys-maint-hint">
           {t('admin.system.ops.maintenanceTestHint')}
         </p>
+        <div className="admin-sys-field admin-sys-field--in-group">
+          <span className="admin-sys-field__label">{t('admin.system.ops.graceSeconds')}</span>
+          <input
+            type="number"
+            className="admin-sys-input"
+            min={5}
+            max={600}
+            step={1}
+            value={config.maintenanceGraceSeconds}
+            onChange={(e) => patch('maintenanceGraceSeconds', e.target.value)}
+            disabled={configLoading || savingMaintenance}
+          />
+          <span className="admin-sys-field__hint">{t('admin.system.ops.graceSecondsHint')}</span>
+        </div>
         <AdminToggle
           label={t('admin.system.ops.banner')}
           description={t('admin.system.ops.bannerDesc')}
@@ -620,7 +634,7 @@ const AdminSystemControl = () => {
           disabled={configLoading || savingMaintenance}
         />
         {config.maintenanceMode && (
-          <div className="admin-sys-field" style={{ padding: '0 16px 14px' }}>
+          <div className="admin-sys-field admin-sys-field--in-group">
             <span className="admin-sys-field__label">{t('admin.system.ops.bannerContent')}</span>
             <textarea
               className="admin-sys-input"

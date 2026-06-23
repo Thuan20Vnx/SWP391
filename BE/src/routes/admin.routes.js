@@ -279,9 +279,9 @@ router.get('/ctsv-report-submissions/:reportId', adminOnly, asyncHandler(async (
 }));
 
 router.patch('/system-config', adminOrIcpdp, asyncHandler(async (req, res) => {
-  const { maintenanceMode, publicAnnouncements, maintenanceMessage } = req.body || {};
+  const { maintenanceMode, publicAnnouncements, maintenanceMessage, maintenanceGraceSeconds } = req.body || {};
   const config = await updateMaintenanceSettings(
-    { maintenanceMode, publicAnnouncements, maintenanceMessage },
+    { maintenanceMode, publicAnnouncements, maintenanceMessage, maintenanceGraceSeconds },
     req.authEmail,
   );
   res.json({ success: true, config, message: 'Đã cập nhật cấu hình bảo trì' });

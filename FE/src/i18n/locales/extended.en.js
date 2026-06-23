@@ -1206,7 +1206,10 @@ export default {
     'Server status: maintenance ON (Admin/CTSV/ICPDP accounts still work — use a private window to test as a student)',
   'admin.system.ops.maintenanceServerOff': 'Server status: maintenance OFF',
   'admin.system.ops.maintenanceTestHint':
-    'Students already online see a 15-second warning banner before access is blocked. Admin/CTSV/ICPDP are unaffected.',
+    'Students already online see a countdown banner before access is blocked. Admin/CTSV/ICPDP are unaffected.',
+  'admin.system.ops.graceSeconds': 'Warning time before maintenance (seconds)',
+  'admin.system.ops.graceSecondsHint':
+    'Active students see a warning banner for this many seconds before the site locks (5–600). Save with maintenance settings.',
   'admin.system.ops.banner': 'Show announcement banner',
   'admin.system.ops.bannerDesc': 'Warning banner on the home page during incidents or maintenance',
   'admin.system.ops.bannerContent': 'Maintenance banner content',
