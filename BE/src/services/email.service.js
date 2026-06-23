@@ -38,13 +38,20 @@ const getEmailRuntimeConfig = async () => {
   }
 };
 
-const getTransporter = async () => {
+const resolveSmtpRuntime = async () => {
   const cfg = await getEmailRuntimeConfig();
-  const host = cfg?.host || 'smtp.gmail.com';
-  const port = Number(cfg?.port) || 587;
-  const encryption = String(cfg?.encryption || 'TLS').toUpperCase();
+  const host = String(process.env.SMTP_HOST || cfg?.host || 'smtp.gmail.com').trim();
+  const port = Number(process.env.SMTP_PORT || cfg?.port || 587);
+  const encryption = String(process.env.SMTP_ENCRYPTION || cfg?.encryption || 'TLS').toUpperCase();
   const secure = encryption === 'SSL' || port === 465;
-  const timeoutMs = cfg?.timeoutSeconds ? Number(cfg.timeoutSeconds) * 1000 : DEFAULT_SMTP_TIMEOUT_MS;
+  const timeoutMs = cfg?.timeoutSeconds
+    ? Number(cfg.timeoutSeconds) * 1000
+    : DEFAULT_SMTP_TIMEOUT_MS;
+  return { host, port, secure, timeoutMs, cfg };
+};
+
+const getTransporter = async () => {
+  const { host, port, secure, timeoutMs } = await resolveSmtpRuntime();
 
   if (hasSmtpCredentials()) {
     const user = String(process.env.EMAIL_USER).trim();
@@ -142,12 +149,16 @@ const writeDevOtp = (otp) => writeDevFile('last_otp.txt', otp);
 
 const sendMail = async ({ to, subject, html }) => {
   await assertEmailDeliveryReady();
+  const { host, cfg } = await resolveSmtpRuntime();
   const transporter = await getTransporter();
   const smtp = hasSmtpCredentials();
-  const cfg = await getEmailRuntimeConfig();
-  const fromName = cfg?.fromName || 'F-Events';
+  const fromName = cfg?.fromName || process.env.EMAIL_FROM_NAME || 'F-Events';
   const senderEmail = smtp
-    ? (String(cfg?.fromEmail || '').trim() || String(process.env.EMAIL_USER).trim())
+    ? (
+      String(process.env.EMAIL_FROM || '').trim()
+      || String(cfg?.fromEmail || '').trim()
+      || String(process.env.EMAIL_USER).trim()
+    )
     : 'no-reply@fevents.com';
 
   let info;
@@ -155,13 +166,16 @@ const sendMail = async ({ to, subject, html }) => {
     info = await transporter.sendMail({
       from: `"${fromName}" <${senderEmail}>`,
       to,
-      ...(cfg?.replyTo ? { replyTo: cfg.replyTo } : {}),
+      ...(cfg?.replyTo || process.env.EMAIL_REPLY_TO
+        ? { replyTo: String(cfg?.replyTo || process.env.EMAIL_REPLY_TO).trim() }
+        : {}),
       subject,
       html,
     });
   } catch (err) {
+    console.error(`[Email] Gửi thất bại qua ${host} (from: ${senderEmail}):`, err.message);
     const hint = smtp
-      ? ' Kiểm tra EMAIL_USER/EMAIL_PASS (Gmail App Password hoặc Brevo SMTP key).'
+      ? ' Kiểm tra EMAIL_USER/EMAIL_PASS (Brevo SMTP key), SMTP_HOST=smtp-relay.brevo.com và EMAIL_FROM đã verify trên Brevo.'
       : '';
     throw new Error(`Không gửi được email: ${err.message}.${hint}`);
   }
