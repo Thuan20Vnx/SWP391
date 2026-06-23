@@ -144,9 +144,11 @@ const sendMail = async ({ to, subject, html }) => {
   await assertEmailDeliveryReady();
   const transporter = await getTransporter();
   const smtp = hasSmtpCredentials();
-  const senderEmail = smtp ? String(process.env.EMAIL_USER).trim() : 'no-reply@fevents.com';
   const cfg = await getEmailRuntimeConfig();
   const fromName = cfg?.fromName || 'F-Events';
+  const senderEmail = smtp
+    ? (String(cfg?.fromEmail || '').trim() || String(process.env.EMAIL_USER).trim())
+    : 'no-reply@fevents.com';
 
   let info;
   try {
@@ -159,7 +161,7 @@ const sendMail = async ({ to, subject, html }) => {
     });
   } catch (err) {
     const hint = smtp
-      ? ' Kiểm tra EMAIL_USER/EMAIL_PASS (App Password Gmail, bật 2FA).'
+      ? ' Kiểm tra EMAIL_USER/EMAIL_PASS (Gmail App Password hoặc Brevo SMTP key).'
       : '';
     throw new Error(`Không gửi được email: ${err.message}.${hint}`);
   }
