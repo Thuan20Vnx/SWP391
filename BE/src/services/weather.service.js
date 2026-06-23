@@ -49,7 +49,7 @@ const getUpcomingRegisteredEvents = async (authEmail) => {
   if (!user) return [];
 
   const now = new Date();
-  const horizon = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  const horizon = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
   const registrations = await EventRegistration.find({ user: user._id, status: 'registered' })
     .populate({
@@ -62,7 +62,8 @@ const getUpcomingRegisteredEvents = async (authEmail) => {
     .map((r) => r.event)
     .filter((e) => e && !e.isHidden && !e.isDeleted)
     .filter((e) => e.startDate && new Date(e.startDate) <= horizon && new Date(e.endDate || e.startDate) >= now)
-    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    .slice(0, 5);
 };
 
 const buildGenericAdvicePrompt = (weather) => `Bạn là trợ lý thời tiết ngắn gọn cho sinh viên FPT University (Đà Nẵng).
@@ -99,7 +100,11 @@ const buildEventAdvicePrompt = (weather, events) => {
 Thời tiết hiện tại: ${weather.description}, ${weather.temp}°C (cảm giác như ${weather.feelsLike}°C), độ ẩm ${weather.humidity}%, gió ${weather.windSpeed} m/s.
 Người dùng có các sự kiện sắp tham gia sau:
 ${eventsBlock}
-Với MỖI sự kiện, hãy phân tích thời tiết và đưa ra lời khuyên ngắn riêng (tối đa 2 câu, dưới 30 từ) về việc nên chuẩn bị gì hoặc lưu ý gì khi tham gia, tiếng Việt, tự nhiên, không emoji, không liệt kê gạch đầu dòng. Trả về lời khuyên cho từng sự kiện theo đúng số thứ tự.`;
+Với MỖI sự kiện, hãy:
+1. Dựa vào tên địa điểm để suy đoán sự kiện diễn ra trong nhà (hội trường, sảnh, phòng...) hay ngoài trời (sân, quảng trường...).
+2. Nếu trong nhà: lời khuyên nên tập trung vào việc di chuyển đến/về (vd: nếu sắp mưa thì nhắc mang áo mưa/ô khi di chuyển), vì bên trong sự kiện đã có che chắn.
+3. Nếu ngoài trời: lời khuyên nên tập trung vào việc chuẩn bị/tham gia sự kiện ngoài trời (vd: nắng thì mang nón/kem chống nắng/nước uống, mưa thì cân nhắc trang bị che mưa hoặc lưu ý khả năng dời địa điểm).
+Lời khuyên ngắn riêng cho từng sự kiện (tối đa 2 câu, dưới 30 từ), tiếng Việt, tự nhiên, không emoji, không liệt kê gạch đầu dòng. Trả về lời khuyên cho từng sự kiện theo đúng số thứ tự.`;
 };
 
 const askGeminiAdvice = async (prompt) => {
