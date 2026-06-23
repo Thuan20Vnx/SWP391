@@ -1,195 +1,133 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import ChatbotFloating from '../components/ChatbotFloating';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import AppSelect from '../components/ui/AppSelect';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
-import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
-import {
-  isPureCtsvStaff,
-  navigateClubEventManage,
-  resolveDiscoveryCardProps,
-} from '../utils/publicEventStaffAccess';
-
-const HOME_TIME_FILTERS = [
-  { value: 'Tất cả', label: 'Tất cả thời gian' },
-  { value: 'Hôm nay', label: 'Hôm nay' },
-  { value: 'Tuần này', label: 'Tuần này' }
-];
-
-const HOME_CATEGORY_FILTERS = [
-  { value: 'Tất cả', label: 'Tất cả chủ đề' },
-  { value: 'Âm nhạc', label: 'Âm nhạc' },
-  { value: 'Workshop', label: 'Workshop' },
-  { value: 'Công nghệ', label: 'Công nghệ' },
-  { value: 'Kết nối', label: 'Kết nối' }
-];
-
-import { API_BASE, getAuthHeaders } from '../utils/api';
-import useDebouncedValue from '../hooks/useDebouncedValue';
-import { fetchPublicEvents, getCachedPublicEventsList, prefetchPublicEventById, syncEventRegistrationInCache } from '../services/eventsApi';
+import { getUserRole, isAdminRole } from '../utils/auth';
+import { isPureCtsvStaff, resolveDiscoveryCardProps } from '../utils/publicEventStaffAccess';
+import SystemMaintenanceBanner from '../components/SystemMaintenanceBanner';
+import { useTranslation } from '../i18n/I18nContext';
+import { mapSelectOptions } from '../i18n/helpers';
 import useUserProfile from '../hooks/useUserProfile';
-import useManagedClubs from '../hooks/useManagedClubs';
 import {
   mapApiEventToCard,
-  markDiscoveryCardRegistered,
   filterActiveDiscoveryEvents,
   HOME_RECOMMEND_TABS,
   sortHomeEventsByRecommendTab,
   sortEventsByPopular,
   HOME_DISPLAY_LIMIT,
 } from '../data/eventDiscoveryData';
-import SystemMaintenanceBanner from '../components/SystemMaintenanceBanner';
-import HomeHeroSlider from '../components/home/HomeHeroSlider';
-import { mapEventsToHeroSlides } from '../utils/heroSlides';
+import { API_BASE, getAuthHeaders } from '../utils/api';
 
-const CTSV_HOME_SOURCE_TABS = [
-  { id: 'all', label: 'Tất cả' },
-  { id: 'school', label: 'Sự kiện cấp trường' },
-  { id: 'partner', label: 'Sự kiện đối tác' },
-  { id: 'icpdp', label: 'Sự kiện ICPDP' },
-  { id: 'club', label: 'Sự kiện CLB' },
+const HERO_AUTOPLAY_MS = 6000;
+
+const HOME_TIME_FILTER_DEFS = [
+  { value: 'all', labelKey: 'home.filter.timeAll' },
+  { value: 'today', labelKey: 'home.filter.today' },
+  { value: 'week', labelKey: 'home.filter.thisWeek' },
 ];
 
-const filterCtsvHomeEventsByTab = (events, tabId) => {
-  switch (tabId) {
-    case 'all':
-      return events;
-    case 'school':
-      return events.filter((event) => event.source === 'school' && (event.schoolOrganizerRole || 'ctsv') === 'ctsv');
-    case 'partner':
-      return events.filter((event) => event.source === 'partner');
-    case 'icpdp':
-      return events.filter((event) => event.source === 'school' && event.schoolOrganizerRole === 'icpdp');
-    case 'club':
-      return events.filter((event) => event.source === 'club');
-    default:
-      return events;
-  }
-};
+const HOME_CATEGORY_FILTER_DEFS = [
+  { value: 'Tất cả', labelKey: 'home.filter.catAll' },
+  { value: 'Âm nhạc', labelKey: 'home.filter.music' },
+  { value: 'Workshop', labelKey: 'home.filter.workshop' },
+  { value: 'Công nghệ', labelKey: 'home.filter.tech' },
+  { value: 'Kết nối', labelKey: 'home.filter.networking' },
+];
 
 const Home = ({ showToast }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { isLoggedIn, userProfile } = useUserProfile();
-
-  const buildEventQuery = (search, category) => ({
-    q: search || undefined,
-    category: category !== 'Tất cả' ? category : undefined,
-  });
-
-  const mapListToCards = (data) => {
-    if (!data?.success || !data.events?.length) return [];
-    return filterActiveDiscoveryEvents(data.events).map(mapApiEventToCard);
-  };
+  const homeTimeFilters = useMemo(() => mapSelectOptions(HOME_TIME_FILTER_DEFS, t), [t]);
+  const homeCategoryFilters = useMemo(() => mapSelectOptions(HOME_CATEGORY_FILTER_DEFS, t), [t]);
 
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebouncedValue(searchQuery.trim(), 400);
-  const [timeFilter, setTimeFilter] = useState('Tất cả');
+  const [timeFilter, setTimeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
 
-  const initialEventCards = mapListToCards(
-    getCachedPublicEventsList(buildEventQuery('', 'Tất cả'))
-  );
+  // Active Hero Slider Index
+  const [activeSlide, setActiveSlide] = useState(0);
 
-  const [events, setEvents] = useState(initialEventCards);
-  const [eventsLoading, setEventsLoading] = useState(initialEventCards.length === 0);
-  const [eventsError, setEventsError] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
   const [recommendTab, setRecommendTab] = useState('newest');
-  const filterParamsRef = useRef({ debouncedSearch, categoryFilter });
-  filterParamsRef.current = { debouncedSearch, categoryFilter };
+  const [heroAutoplayKey, setHeroAutoplayKey] = useState(0);
 
   const role = userProfile.role || getUserRole();
   const isAdminViewer = isLoggedIn && isAdminRole(role);
   const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
-  const isClubManager = isLoggedIn && isClubManagerRole(role);
-  const { clubs: managedClubs, activeClub } = useManagedClubs(isClubManager, role);
-  const clubManagerContext = useMemo(
-    () =>
-      isClubManager
-        ? {
-            managedClubs,
-            activeClubId: activeClub?.id || '',
-            userEmail: localStorage.getItem('userEmail') || '',
-          }
-        : null,
-    [isClubManager, managedClubs, activeClub?.id]
-  );
 
-  const recommendTabs = isCtsvStaff ? CTSV_HOME_SOURCE_TABS : HOME_RECOMMEND_TABS;
+  const resetHeroAutoplay = useCallback(() => {
+    setHeroAutoplayKey((k) => k + 1);
+  }, []);
 
-  useEffect(() => {
-    const validIds = recommendTabs.map((tab) => tab.id);
-    if (!validIds.includes(recommendTab)) {
-      setRecommendTab(recommendTabs[0]?.id || 'newest');
+  const sliderData = [
+    {
+      title: 'FPT Techday 2026: Kiến tạo tương lai số',
+      dateLabel: '25 Tháng 10, 2026',
+      location: 'Sảnh tòa Gamma',
+      categoryLabel: 'Công nghệ',
+      organizerLabel: 'CTSV',
+      image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1280&q=80'
+    },
+    {
+      title: 'Đêm Nhạc F-Fest 2026: Bùng cháy sức trẻ',
+      dateLabel: '20 Tháng 5, 2026',
+      location: 'FPT Plaza 2',
+      categoryLabel: 'Âm nhạc',
+      organizerLabel: 'CLB',
+      image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1280&q=80'
+    },
+    {
+      title: 'FPT Career Expo 2026: Chạm ngõ thành công',
+      dateLabel: '28 Tháng 5, 2026',
+      location: 'Sân bóng FPTU',
+      categoryLabel: 'Kết nối',
+      organizerLabel: 'CTSV',
+      image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1280&q=80'
     }
-  }, [recommendTab, recommendTabs]);
+  ];
 
-  // Load events — hiển thị cache ngay, fetch nền cập nhật
+  // Load events from API
   useEffect(() => {
-    let cancelled = false;
-    const params = buildEventQuery(debouncedSearch, categoryFilter);
-    const cached = getCachedPublicEventsList(params);
-    const hasCached = Boolean(cached?.events?.length);
-
-    if (hasCached) {
-      setEvents(mapListToCards(cached));
-      setEventsLoading(false);
-      setEventsError(false);
-    } else {
-      setEventsLoading(true);
-    }
-
-    fetchPublicEvents(params)
+    fetch(`${API_BASE}/api/events`, { headers: getAuthHeaders(false) })
+      .then((res) => res.json())
       .then((data) => {
-        if (cancelled) return;
-        setEvents(mapListToCards(data));
-        setEventsError(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        if (cancelled) return;
-        if (!hasCached) {
+        if (data.success && data.events?.length > 0) {
+          const mapped = filterActiveDiscoveryEvents(data.events).map(mapApiEventToCard);
+          setEvents(mapped);
+        } else {
           setEvents([]);
-          setEventsError(true);
         }
       })
-      .finally(() => {
-        if (!cancelled) setEventsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedSearch, categoryFilter]);
-
-  // Khi đăng nhập / đổi role — refresh isRegistered, không chặn UI
-  useEffect(() => {
-    if (!isLoggedIn) return undefined;
-    let cancelled = false;
-    const { debouncedSearch: search, categoryFilter: category } = filterParamsRef.current;
-
-    fetchPublicEvents(buildEventQuery(search, category), { forceRefresh: true })
-      .then((data) => {
-        if (!cancelled) setEvents(mapListToCards(data));
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-    };
+      .catch((err) => console.error(err))
+      .finally(() => setEventsLoading(false));
   }, [isLoggedIn, userProfile.role]);
 
   const applyLocalFilters = (list) => {
     let result = list;
-    if (timeFilter === 'Hôm nay') {
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(
+        (ev) =>
+          ev.title.toLowerCase().includes(q) ||
+          ev.category.toLowerCase().includes(q) ||
+          ev.location.toLowerCase().includes(q)
+      );
+    }
+    if (categoryFilter !== 'Tất cả') {
+      result = result.filter((ev) => ev.category === categoryFilter);
+    }
+    if (timeFilter === 'today') {
       const today = new Date().toDateString();
       result = result.filter((ev) => {
         const d = new Date(ev.startDate);
         return !Number.isNaN(d.getTime()) && d.toDateString() === today;
       });
-    } else if (timeFilter === 'Tuần này') {
+    } else if (timeFilter === 'week') {
       const now = new Date();
       const weekEnd = new Date(now);
       weekEnd.setDate(now.getDate() + 7);
@@ -202,26 +140,60 @@ const Home = ({ showToast }) => {
   };
 
   const sortedEvents = useMemo(
-    () =>
-      isCtsvStaff
-        ? filterCtsvHomeEventsByTab(events, recommendTab)
-        : sortHomeEventsByRecommendTab(events, recommendTab, userProfile, isLoggedIn),
-    [events, recommendTab, userProfile, isLoggedIn, isCtsvStaff]
+    () => sortHomeEventsByRecommendTab(events, recommendTab, userProfile, isLoggedIn),
+    [events, recommendTab, userProfile, isLoggedIn]
   );
 
   const filteredEvents = useMemo(
     () => applyLocalFilters(sortedEvents).slice(0, HOME_DISPLAY_LIMIT),
-    [sortedEvents, timeFilter]
+    [sortedEvents, searchQuery, categoryFilter, timeFilter]
   );
 
   const heroSlides = useMemo(() => {
-    return mapEventsToHeroSlides(sortEventsByPopular(events), {
-      categoryLabel: (event) => event.categoryLabel || event.category,
-      organizerLabel: (event) => event.organizerLabel || '',
-      dateLabel: (event) => event.dateLabel || '',
-      location: (event) => event.location || '',
-    });
+    const featured = sortEventsByPopular(events).slice(0, 3);
+    if (featured.length === 0) return sliderData.map((s) => ({ ...s, eventId: null }));
+    return featured.map((ev) => ({
+      title: ev.title,
+      dateLabel: ev.dateLabel,
+      location: ev.location,
+      categoryLabel: ev.categoryLabel || ev.category,
+      organizerLabel: ev.organizerLabel,
+      image: ev.thumbnail,
+      eventId: ev.id,
+    }));
   }, [events]);
+
+  useEffect(() => {
+    const len = heroSlides.length || 1;
+    if (len <= 1) return undefined;
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % len);
+    }, HERO_AUTOPLAY_MS);
+    return () => clearInterval(timer);
+  }, [heroSlides.length, heroAutoplayKey]);
+
+  useEffect(() => {
+    setActiveSlide(0);
+  }, [recommendTab]);
+
+  const slideCount = heroSlides.length;
+
+  const goToPrevSlide = () => {
+    if (slideCount <= 1) return;
+    setActiveSlide((prev) => (prev - 1 + slideCount) % slideCount);
+    resetHeroAutoplay();
+  };
+
+  const goToNextSlide = () => {
+    if (slideCount <= 1) return;
+    setActiveSlide((prev) => (prev + 1) % slideCount);
+    resetHeroAutoplay();
+  };
+
+  const goToSlide = (index) => {
+    setActiveSlide(index);
+    resetHeroAutoplay();
+  };
 
   const handleFilterSubmit = () => {
     /* filtered via useMemo */
@@ -235,7 +207,6 @@ const Home = ({ showToast }) => {
 
   const handleViewDetail = (event) => {
     if (!event?.id) return;
-    prefetchPublicEventById(event.id);
     navigate(`/events/${event.id}`);
   };
 
@@ -246,24 +217,20 @@ const Home = ({ showToast }) => {
     }
 
     if (!isLoggedIn) {
-      showToast('Vui lòng đăng nhập để đăng ký tham gia sự kiện!', 'error');
+      showToast(t('home.toast.loginRequired'), 'error');
       setTimeout(() => navigate('/login'), 1500);
       return;
     }
 
     if (event.cardState === 'expired') {
-      showToast('Sự kiện này đã kết thúc, không thể đăng ký.', 'error');
+      showToast(t('home.toast.eventEnded'), 'error');
       return;
     }
 
     if (event.cardState === 'registered' || event.registered) {
-      handleViewDetail(event);
+      showToast(t('home.toast.alreadyRegistered'), 'success');
       return;
     }
-
-    setEvents((prev) =>
-      prev.map((ev) => (ev.id === event.id ? markDiscoveryCardRegistered(ev) : ev))
-    );
 
     try {
       const res = await fetch(`${API_BASE}/api/events/${event.id}/register`, {
@@ -273,36 +240,130 @@ const Home = ({ showToast }) => {
       const data = await res.json();
 
       if (!res.ok) {
-        setEvents((prev) => prev.map((ev) => (ev.id === event.id ? event : ev)));
-        showToast(data.message || 'Không thể đăng ký sự kiện.', 'error');
+        showToast(data.message || t('home.toast.registerFail'), 'error');
         return;
       }
 
       const updated = mapApiEventToCard({ ...data.event, isRegistered: true });
       setEvents((prev) => prev.map((ev) => (ev.id === event.id ? updated : ev)));
-      syncEventRegistrationInCache(event.id, data.event, { registered: true });
-      showToast(data.message || 'Đăng ký sự kiện thành công!', 'success');
+      showToast(data.message || t('home.toast.registerSuccess'), 'success');
     } catch (err) {
       console.error(err);
-      setEvents((prev) => prev.map((ev) => (ev.id === event.id ? event : ev)));
-      showToast('Không thể kết nối máy chủ.', 'error');
+      showToast(t('common.serverError'), 'error');
     }
   };
 
   return (
     <PublicAdminShell
       activeNav="home"
-      searchPlaceholder="Tìm kiếm sự kiện..."
       searchValue={searchQuery}
       onSearchChange={setSearchQuery}
       onSearchKeyDown={handleNavSearch}
     >
     <div className="home-layout">
       <SystemMaintenanceBanner />
-      <HomeHeroSlider
-        slides={heroSlides}
-        resolveDetailPath={(slide) => (slide.eventId ? `/events/${slide.eventId}` : null)}
-      />
+      {/* 2. Hero Banner Slider (Figma 38:1158) */}
+      <section className={`hero-banner-slider${slideCount > 1 ? ' hero-banner-slider--nav' : ''}`}>
+        {heroSlides.map((slide, index) => (
+          <div
+            key={slide.eventId || index}
+            className={`hero-slide ${index === activeSlide ? 'active' : ''}`}
+            style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.7)), url(${slide.image})` }}
+          >
+            <div className="hero-content-container">
+              <div className="hero-top-row">
+                <span className="hero-tag-badge">{t('home.heroFeatured')}</span>
+                {slide.categoryLabel && (
+                  <span className="hero-category-pill">{slide.categoryLabel}</span>
+                )}
+                {slide.organizerLabel && (
+                  <span className="hero-organizer-pill">{slide.organizerLabel}</span>
+                )}
+              </div>
+              <h1 className="hero-title">{slide.title}</h1>
+              <ul className="hero-meta-list">
+                {slide.dateLabel && (
+                  <li className="hero-meta-item">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"
+                      />
+                    </svg>
+                    <span>{slide.dateLabel}</span>
+                  </li>
+                )}
+                {slide.location && (
+                  <li className="hero-meta-item">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+                      />
+                    </svg>
+                    <span>{slide.location}</span>
+                  </li>
+                )}
+              </ul>
+              <button
+                type="button"
+                className="hero-cta-btn"
+                onClick={() => {
+                  if (slide.eventId) {
+                    handleViewDetail({ id: slide.eventId });
+                  } else {
+                    navigate('/events');
+                  }
+                }}
+              >
+                <span className="hero-cta-btn__main">
+                  {slide.eventId ? t('home.viewDetail') : t('home.exploreEvents')}
+                </span>
+                <span className="hero-cta-btn__sub">
+                  {slide.eventId ? t('home.openRegister') : t('home.viewEventList')}
+                </span>
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {slideCount > 1 && (
+          <>
+            <button
+              type="button"
+              className="hero-slider-arrow hero-slider-arrow--prev"
+              onClick={goToPrevSlide}
+              aria-label={t('home.heroPrev')}
+            >
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="hero-slider-arrow hero-slider-arrow--next"
+              onClick={goToNextSlide}
+              aria-label={t('home.heroNext')}
+            >
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                <polyline points="9 6 15 12 9 18" />
+              </svg>
+            </button>
+          </>
+        )}
+
+        <div className="hero-dot-indicators">
+          {heroSlides.map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`slider-dot ${index === activeSlide ? 'active' : ''}`}
+              onClick={() => goToSlide(index)}
+              aria-label={`Slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </section>
 
       {/* 3. Filter Bar (Figma 38:1315) */}
       <section className="filter-bar-section">
@@ -314,13 +375,13 @@ const Home = ({ showToast }) => {
               </svg>
             </span>
             <div className="filter-control">
-              <label htmlFor="time-select" className="filter-label">Thời gian</label>
+              <label htmlFor="time-select" className="filter-label">{t('home.filterTime')}</label>
               <AppSelect
                 id="time-select"
                 value={timeFilter}
                 onChange={(e) => setTimeFilter(e.target.value)}
                 variant="filter"
-                options={HOME_TIME_FILTERS}
+                options={homeTimeFilters}
               />
             </div>
           </div>
@@ -334,19 +395,19 @@ const Home = ({ showToast }) => {
               </svg>
             </span>
             <div className="filter-control">
-              <label htmlFor="category-select" className="filter-label">Chủ đề</label>
+              <label htmlFor="category-select" className="filter-label">{t('home.filterCategory')}</label>
               <AppSelect
                 id="category-select"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 variant="filter"
-                options={HOME_CATEGORY_FILTERS}
+                options={homeCategoryFilters}
               />
             </div>
           </div>
 
           <button className="filter-submit-btn" onClick={handleFilterSubmit}>
-            Lọc kết quả
+            {t('home.filterSubmit')}
           </button>
         </div>
       </section>
@@ -360,18 +421,18 @@ const Home = ({ showToast }) => {
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor" />
               </svg>
             </span>
-            <h2>Sự kiện nổi bật</h2>
+            <h2>{t('home.recommended')}</h2>
           </div>
           <Link to="/events" className="see-all-link">
-            <span>Xem tất cả</span>
+            <span>{t('home.seeAll')}</span>
             <svg viewBox="0 0 24 24" width="16" height="16">
               <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor" />
             </svg>
           </Link>
         </div>
 
-        <div className="home-recommend-tabs" role="tablist" aria-label={isCtsvStaff ? 'Nhóm sự kiện CTSV' : 'Gợi ý sự kiện'}>
-          {recommendTabs.map((tab) => (
+        <div className="home-recommend-tabs" role="tablist" aria-label={t('home.recommendTabs')}>
+          {HOME_RECOMMEND_TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -380,32 +441,14 @@ const Home = ({ showToast }) => {
               className={`home-recommend-tab ${recommendTab === tab.id ? 'is-active' : ''}`}
               onClick={() => setRecommendTab(tab.id)}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           ))}
         </div>
 
         {eventsLoading ? (
           <div className="no-events-card">
-            <p>Đang tải sự kiện...</p>
-          </div>
-        ) : eventsError ? (
-          <div className="no-events-card">
-            <p>Không thể tải danh sách sự kiện. Vui lòng thử lại sau.</p>
-            <button
-              type="button"
-              className="reset-filter-btn"
-              onClick={() => {
-                setEventsError(false);
-                setEventsLoading(true);
-                fetchPublicEvents(buildEventQuery(debouncedSearch, categoryFilter), { forceRefresh: true })
-                  .then((data) => setEvents(mapListToCards(data)))
-                  .catch(() => setEventsError(true))
-                  .finally(() => setEventsLoading(false));
-              }}
-            >
-              Thử lại
-            </button>
+            <p>{t('home.loadingEvents')}</p>
           </div>
         ) : filteredEvents.length > 0 ? (
           <section className="event-discovery-grid">
@@ -414,14 +457,9 @@ const Home = ({ showToast }) => {
                 event,
                 isCtsvStaff,
                 isAdminViewer,
-                isClubManager,
-                clubManagerContext,
                 onDetail: handleViewDetail,
                 onRegister: handleRegister,
                 onManageNavigate: (path) => navigate(path),
-                onClubManageNavigate: (access) =>
-                  navigateClubEventManage({ access, navigate, showToast }),
-                showToast,
               });
               return (
                 <EventDiscoveryCard
@@ -431,7 +469,6 @@ const Home = ({ showToast }) => {
                   onPrimaryAction={cardProps.onPrimaryAction}
                   onManage={cardProps.onManage}
                   manageLabel={cardProps.manageLabel}
-                  manageHint={cardProps.manageHint}
                   viewOnly={cardProps.viewOnly}
                 />
               );
@@ -442,7 +479,7 @@ const Home = ({ showToast }) => {
             <svg viewBox="0 0 24 24" width="64" height="64" className="no-events-icon">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor" />
             </svg>
-            <p>Không tìm thấy sự kiện nào khớp với bộ lọc hoặc tiêu chí gợi ý.</p>
+            <p>{t('home.noEvents')}</p>
             <button
               type="button"
               className="reset-filter-btn"
@@ -453,13 +490,11 @@ const Home = ({ showToast }) => {
                 setRecommendTab('newest');
               }}
             >
-              Xóa bộ lọc
+              {t('home.resetFilter')}
             </button>
           </div>
         )}
       </main>
-
-      <ChatbotFloating context="home" />
 
       <SiteFooter />
     </div>

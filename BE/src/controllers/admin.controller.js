@@ -34,15 +34,6 @@ const updateAccountStatus = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
-const lockAccount = async (req, res) => {
-  const { days } = req.body;
-  const result =
-    days === null || days === 0 || days === '0'
-      ? await adminService.unlockAccount(req.params.id)
-      : await adminService.lockAccountTemporarily(req.params.id, days);
-  res.status(200).json({ success: true, ...result });
-};
-
 const deleteAccount = async (req, res) => {
   const result = await adminService.deleteAccount(req.params.id);
   res.status(200).json({ success: true, ...result });
@@ -75,7 +66,6 @@ module.exports = {
   createAccount,
   updateAccount,
   updateAccountStatus,
-  lockAccount,
   deleteAccount,
   getDataOverview,
   getDashboardStats,

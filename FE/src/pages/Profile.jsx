@@ -8,50 +8,44 @@ import AvatarCropModal from '../components/profile/AvatarCropModal';
 import { getRoleLabel } from '../utils/role';
 import { logoutWithConfirm } from '../utils/logout';
 import { dispatchAuthChanged } from '../utils/authEvents';
-import { cacheUserProfile, readUserProfileSummaryCache } from '../hooks/useUserProfile';
+import { cacheUserProfile } from '../hooks/useUserProfile';
 import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileApi';
-import { isAdminRole, isCtsvRole, isClubManagerRole, normalizeRole, getUserRole } from '../utils/auth';
-import {
-  INTEREST_LABELS,
-  mapUserToProfileDetail,
-  readProfileDetailCache,
-  writeProfileDetailCache,
-} from '../utils/profileDetailCache';
+import { isAdminRole, isCtsvRole, normalizeRole } from '../utils/auth';
 import DashboardSidebarNav from '../components/DashboardSidebarNav';
-import SiteFooter from '../components/SiteFooter';
 import ProfilePasswordSection from '../components/profile/ProfilePasswordSection';
 import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
+import { useTranslation } from '../i18n/I18nContext';
+
+/** Stored in DB — keep Vietnamese values for API compatibility */
+const INTEREST_STORAGE = {
+  hardware: 'Phần cứng & Vi điều khiển',
+  ai: 'AI',
+  japan: 'Văn hóa Nhật Bản',
+  charity: 'Thiện nguyện',
+  sports: 'Thể thao',
+  music: 'Âm nhạc & Nghệ thuật',
+};
 
 const Profile = ({ showToast, embedded = false }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const bootstrapDetail = readProfileDetailCache();
-  const bootstrapSummary = readUserProfileSummaryCache();
-
-  const buildInitialProfileData = () => {
-    if (bootstrapDetail?.profileData) return bootstrapDetail.profileData;
-    return {
-      fullname: bootstrapSummary?.fullname || localStorage.getItem('userFullname') || '',
-      course: bootstrapSummary?.course || '',
-      campus: '',
-      email: localStorage.getItem('userEmail') || '',
-      phone: '',
-    };
-  };
 
   // Profile data from backend
-  const [profileLoading, setProfileLoading] = useState(() => !bootstrapDetail && !bootstrapSummary);
-  const [profileData, setProfileData] = useState(buildInitialProfileData);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileData, setProfileData] = useState({
+    fullname: '',
+    course: '',
+    campus: '',
+    email: localStorage.getItem('userEmail') || '',
+    phone: ''
+  });
 
   // Role & Student ID for FPT recognition
-  const [userRole, setUserRole] = useState(
-    () => bootstrapDetail?.userRole || bootstrapSummary?.role || getUserRole()
-  );
-  const [studentId, setStudentId] = useState(() =>
-    bootstrapDetail?.studentId ? formatMssv(bootstrapDetail.studentId) : ''
-  );
+  const [userRole, setUserRole] = useState('guest');
+  const [studentId, setStudentId] = useState('');
 
   // Track if course cohort has been changed once
-  const [courseChanged, setCourseChanged] = useState(() => bootstrapDetail?.courseChanged || false);
+  const [courseChanged, setCourseChanged] = useState(false);
 
   const [sidebarActive, setSidebarActive] = useState(false);
 
@@ -62,95 +56,76 @@ const Profile = ({ showToast, embedded = false }) => {
   const [backupData, setBackupData] = useState(null);
 
   // Avatar Upload State
-  const [avatar, setAvatar] = useState(
-    () => bootstrapDetail?.avatar || bootstrapSummary?.picture || ''
-  );
+  const [avatar, setAvatar] = useState('');
   const [avatarSaving, setAvatarSaving] = useState(false);
   const [avatarCropOpen, setAvatarCropOpen] = useState(false);
   const [avatarCropSrc, setAvatarCropSrc] = useState('');
   const [avatarCropFileName, setAvatarCropFileName] = useState('');
 
   // Form Orientation State
-  const [orientation, setOrientation] = useState(() => bootstrapDetail?.orientation || '');
+  const [orientation, setOrientation] = useState('');
   const [saveLoading, setSaveLoading] = useState(false);
   const [favoriteClubs, setFavoriteClubs] = useState([]);
 
-  const [interests, setInterests] = useState(
-    () => bootstrapDetail?.interests || {
-      hardware: false,
-      ai: false,
-      japan: false,
-      charity: false,
-      sports: false,
-      music: false,
-    }
-  );
-
-  const applyProfileUser = (user) => {
-    const detail = mapUserToProfileDetail(user);
-    if (!detail) return;
-
-    setProfileData(detail.profileData);
-    setCourseChanged(detail.courseChanged);
-    setAvatar(detail.avatar);
-    setOrientation(detail.orientation);
-    setUserRole(detail.userRole);
-    setStudentId(detail.studentId ? formatMssv(detail.studentId) : '');
-    setInterests(detail.interests);
-    writeProfileDetailCache(detail);
-    cacheUserProfile({
-      fullname: detail.profileData.fullname,
-      course: detail.profileData.course,
-      role: detail.userRole,
-      picture: detail.avatar,
-    });
-  };
-
-  // Load profile from Backend on mount (stale-while-revalidate)
+  // Load profile from Backend on mount
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       setProfileLoading(false);
       navigate('/login');
-      return undefined;
+      return;
     }
 
-    const controller = new AbortController();
-    const hasCachedBootstrap = Boolean(bootstrapDetail || bootstrapSummary);
-    if (!hasCachedBootstrap) setProfileLoading(true);
-
-    fetch(`${API_BASE}/api/user/profile`, {
-      headers: getAuthHeaders(false),
-      signal: controller.signal,
-    })
-      .then((res) => {
-        if (res.status === 200) return res.json();
-        throw new Error('Failed to load profile');
-      })
-      .then((data) => {
-        if (data?.user) applyProfileUser(data.user);
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        console.error(err);
-        if (!hasCachedBootstrap) {
-          showToast('Không thể tải dữ liệu hồ sơ cá nhân từ Backend!', 'error');
+    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
+      .then(res => {
+        if (res.status === 200) {
+          return res.json();
+        } else {
+          throw new Error('Failed to load profile');
         }
       })
-      .finally(() => setProfileLoading(false));
+      .then(data => {
+        const u = data.user;
+        setProfileData({
+          fullname: u.fullname || '',
+          course: u.course || '',
+          campus: u.campus || '',
+          email: u.email || '',
+          phone: u.phone || ''
+        });
+        setCourseChanged(u.courseChanged || false);
+        setAvatar(resolveUserAvatar(u, ''));
+        if (u.orientation !== undefined) {
+          setOrientation(u.orientation);
+        }
+        // Load role & studentId
+        if (u.role) setUserRole(u.role);
+        if (u.studentId) setStudentId(formatMssv(u.studentId));
 
-    return () => controller.abort();
-  }, [navigate, showToast]);
+        // Populate interests checklist state
+        if (u.interests) {
+          setInterests({
+            hardware: u.interests.includes(INTEREST_STORAGE.hardware),
+            ai: u.interests.includes(INTEREST_STORAGE.ai),
+            japan: u.interests.includes(INTEREST_STORAGE.japan),
+            charity: u.interests.includes(INTEREST_STORAGE.charity),
+            sports: u.interests.includes(INTEREST_STORAGE.sports),
+            music: u.interests.includes(INTEREST_STORAGE.music),
+          });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        showToast(t('profile.toast.loadFail'), 'error');
+      })
+      .finally(() => setProfileLoading(false));
+  }, [navigate, showToast, t]);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    if (!token || isClubManagerRole(userRole)) return undefined;
+    if (!token) return;
 
-    const controller = new AbortController();
-    fetch(`${API_BASE}/api/user/my-clubs?tab=following`, {
-      headers: getAuthHeaders(false),
-      signal: controller.signal,
-    })
+    fetch(`${API_BASE}/api/user/my-clubs?tab=following`, { headers: getAuthHeaders(false) })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.success && Array.isArray(data.clubs)) {
@@ -158,25 +133,22 @@ const Profile = ({ showToast, embedded = false }) => {
         }
       })
       .catch(() => {});
+  }, []);
 
-    return () => controller.abort();
-  }, [userRole]);
-
-  useEffect(() => {
-    if (!sidebarActive) {
-      document.body.style.overflow = '';
-      return undefined;
-    }
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [sidebarActive]);
+  // Interests Checklist State
+  const [interests, setInterests] = useState({
+    hardware: false,
+    ai: false,
+    japan: false,
+    charity: false,
+    sports: false,
+    music: false
+  });
 
   // Handle Sidebar Menu item click
   const handleFeatureNotImplemented = (e) => {
     e.preventDefault();
-    showToast('Tính năng đang được phát triển.', 'info');
+    showToast(t('profile.toast.featureDev'), 'info');
   };
 
   const handleSidebarNavigate = (path) => (e) => {
@@ -190,22 +162,28 @@ const Profile = ({ showToast, embedded = false }) => {
   };
 
   const displayAvatar = avatar || defaultAvatar;
-  const profilePageTitle = 'Thông tin cá nhân';
+  const profilePageTitle = t('profile.page.title');
   const isCtsvEmbedded = embedded && isCtsvRole(userRole) && !isAdminRole(userRole);
   const isAdminEmbedded = embedded && isAdminRole(userRole);
 
   const profileFormTitle = isCtsvEmbedded
-    ? 'Thông tin liên hệ & chuyên môn'
+    ? t('profile.page.formCtsv')
     : isAdminEmbedded
-      ? 'Thông tin cá nhân'
-      : 'Thông tin cá nhân & Sở thích';
+      ? t('profile.page.title')
+      : t('profile.page.titleWithInterests');
 
   const passwordDescription = (() => {
     const role = normalizeRole(userRole);
-    if (role === 'admin') return 'Cập nhật mật khẩu đăng nhập tài khoản quản trị viên.';
-    if (role === 'ctsv') return 'Cập nhật mật khẩu đăng nhập tài khoản cán bộ CTSV.';
-    return 'Cập nhật mật khẩu đăng nhập tài khoản của bạn.';
+    if (role === 'admin') return t('admin.profile.passwordDesc');
+    if (role === 'ctsv') return t('profile.passwordDesc.ctsv');
+    return t('profile.passwordDesc.default');
   })();
+
+  const avatarButtonLabel = avatarSaving
+    ? t('profile.avatar.saving')
+    : avatarCropOpen
+      ? t('profile.avatar.editing')
+      : t('profile.avatar.change');
 
   const handleNavigateProfile = (e) => {
     e.preventDefault();
@@ -217,7 +195,7 @@ const Profile = ({ showToast, embedded = false }) => {
   const saveAvatarToBackend = async (imageData) => {
     const token = localStorage.getItem('authToken');
     if (!token) {
-      showToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!', 'error');
+      showToast(t('profile.toast.sessionExpired'), 'error');
       return;
     }
 
@@ -235,12 +213,9 @@ const Profile = ({ showToast, embedded = false }) => {
         });
         dispatchAuthChanged();
       }
-      showToast('Đã cập nhật ảnh đại diện.', 'success');
+      showToast(t('profile.toast.avatarUpdated'), 'success');
     } catch (err) {
-      showToast(
-        err.message || 'Không thể lưu ảnh đại diện. Kiểm tra kết nối máy chủ (port 5000).',
-        'error'
-      );
+      showToast(err.message || t('profile.toast.avatarSaveFail'), 'error');
     } finally {
       setAvatarSaving(false);
     }
@@ -252,11 +227,11 @@ const Profile = ({ showToast, embedded = false }) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      showToast('Vui lòng chỉ tải lên tệp ảnh!', 'error');
+      showToast(t('profile.toast.imageOnly'), 'error');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      showToast('Kích thước ảnh tối đa là 5MB!', 'error');
+      showToast(t('profile.toast.imageSize'), 'error');
       return;
     }
 
@@ -266,7 +241,7 @@ const Profile = ({ showToast, embedded = false }) => {
       setAvatarCropFileName(file.name);
       setAvatarCropOpen(true);
     };
-    reader.onerror = () => showToast('Không thể đọc tệp ảnh.', 'error');
+    reader.onerror = () => showToast(t('profile.toast.imageReadFail'), 'error');
     reader.readAsDataURL(file);
   };
 
@@ -282,11 +257,11 @@ const Profile = ({ showToast, embedded = false }) => {
     setAvatarCropFileName('');
 
     if (!dataUrl) {
-      showToast('Không thể xử lý ảnh. Vui lòng thử ảnh khác!', 'error');
+      showToast(t('profile.toast.imageProcessFail'), 'error');
       return;
     }
     if (dataUrl.length > 750000) {
-      showToast('Ảnh vẫn quá lớn sau khi cắt. Hãy zoom xa hơn hoặc chọn ảnh khác.', 'error');
+      showToast(t('profile.toast.imageTooLarge'), 'error');
       return;
     }
 
@@ -303,20 +278,20 @@ const Profile = ({ showToast, embedded = false }) => {
     e.preventDefault();
 
     if (userRole !== 'student' && !profileData.fullname.trim()) {
-      showToast('Vui lòng nhập họ và tên!', 'error');
+      showToast(t('profile.toast.fullNameRequired'), 'error');
       return;
     }
 
     if (userRole === 'student' && !orientation.trim()) {
-      showToast('Vui lòng nhập định hướng chuyên môn!', 'error');
+      showToast(t('profile.toast.orientationRequired'), 'error');
       return;
     }
 
     setSaveLoading(true);
 
     const activeInterests = Object.keys(interests)
-      .filter(k => interests[k])
-      .map(k => INTEREST_LABELS[k]);
+      .filter((k) => interests[k])
+      .map((k) => INTEREST_STORAGE[k]);
 
     fetch(`${API_BASE}/api/user/profile`, {
       method: 'PUT',
@@ -337,17 +312,33 @@ const Profile = ({ showToast, embedded = false }) => {
         if (ok && status === 200 && data.success !== false) {
           setIsEditing(false);
           if (data.user) {
-            applyProfileUser(data.user);
+            setProfileData({
+              fullname: data.user.fullname || '',
+              course: data.user.course || '',
+              campus: data.user.campus || '',
+              email: data.user.email || '',
+              phone: data.user.phone || ''
+            });
+            setCourseChanged(data.user.courseChanged || false);
+            if (data.user.picture || data.user.avatar) {
+              setAvatar(resolveUserAvatar(data.user, ''));
+            }
+            cacheUserProfile({
+              fullname: data.user.fullname || '',
+              course: data.user.course || '',
+              role: normalizeRole(data.user.role || userRole),
+              picture: resolveUserAvatar(data.user, displayAvatar)
+            });
             dispatchAuthChanged();
           }
-          showToast('Cập nhật hồ sơ thành công.', 'success');
+          showToast(t('profile.toast.updateSuccess'), 'success');
         } else {
-          showToast(data.message || 'Cập nhật thất bại!', 'error');
+          showToast(data.message || t('profile.toast.updateFail'), 'error');
         }
       })
       .catch(() => {
         setSaveLoading(false);
-        showToast('Không thể kết nối máy chủ. Kiểm tra BE đang chạy tại cổng 5000.', 'error');
+        showToast(t('profile.toast.serverError'), 'error');
       });
   };
   const startEditing = () => {
@@ -372,17 +363,17 @@ const Profile = ({ showToast, embedded = false }) => {
     e?.preventDefault?.();
     logoutWithConfirm(navigate, {
       showToast,
-      toastMessage: embedded ? 'Đã đăng xuất tài khoản CTSV.' : 'Đã đăng xuất.'
+      toastMessage: embedded ? t('profile.toast.logoutCtsv') : t('profile.toast.logout')
     });
   };
 
   const renderAvatarCard = () => (
     <div className={`profile-card avatar-card${embedded ? ' ctsv-profile-avatar-card' : ''}`}>
-      {embedded && <h2 className="profile-card-title">Ảnh đại diện</h2>}
+      {embedded && <h2 className="profile-card-title">{t('profile.avatar.title')}</h2>}
       <div className={`avatar-card-content${embedded ? ' ctsv-profile-avatar-body' : ''}`}>
         <div className="profile-avatar-container">
-          <img className="large-profile-avatar" id="profile-avatar-img" src={displayAvatar} alt="Avatar lớn" />
-          <label htmlFor="avatar-upload-input" className="btn-avatar-edit-pencil" title="Thay đổi ảnh đại diện">
+          <img className="large-profile-avatar" id="profile-avatar-img" src={displayAvatar} alt={t('profile.avatar.alt')} />
+          <label htmlFor="avatar-upload-input" className="btn-avatar-edit-pencil" title={t('profile.avatar.change')}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -407,7 +398,7 @@ const Profile = ({ showToast, embedded = false }) => {
               disabled={avatarSaving || avatarCropOpen}
               onClick={() => document.getElementById('avatar-upload-input').click()}
             >
-              {avatarSaving ? 'Đang lưu...' : avatarCropOpen ? 'Đang chỉnh sửa...' : 'Thay đổi ảnh đại diện'}
+              {avatarButtonLabel}
             </button>
           </div>
         ) : (
@@ -417,7 +408,7 @@ const Profile = ({ showToast, embedded = false }) => {
             disabled={avatarSaving || avatarCropOpen}
             onClick={() => document.getElementById('avatar-upload-input').click()}
           >
-            {avatarSaving ? 'Đang lưu...' : avatarCropOpen ? 'Đang chỉnh sửa...' : 'Thay đổi ảnh đại diện'}
+            {avatarButtonLabel}
           </button>
         )}
       </div>
@@ -428,7 +419,7 @@ const Profile = ({ showToast, embedded = false }) => {
     <div className={`dashboard-content-wrapper${embedded ? ' ctsv-profile-content' : ''}`}>
       <div className={embedded ? 'ctsv-profile-grid' : 'profile-grid'}>
         {profileLoading ? (
-          <div className="profile-page-loading" aria-busy="true" aria-label="Đang tải hồ sơ">
+          <div className="profile-page-loading" aria-busy="true" aria-label={t('profile.page.loading')}>
             <div className="profile-skeleton profile-skeleton--avatar-lg" />
             <div className="profile-skeleton profile-skeleton--block" />
             <div className="profile-skeleton profile-skeleton--block profile-skeleton--block-short" />
@@ -446,15 +437,15 @@ const Profile = ({ showToast, embedded = false }) => {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                   </svg>
-                  <span>Câu lạc bộ yêu thích</span>
+                  <span>{t('profile.clubs.favorites')}</span>
                 </div>
                 <Link to="/my-clubs" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                  Xem tất cả
+                  {t('profile.clubs.viewAll')}
                 </Link>
               </div>
               <div className="tag-list">
                 {favoriteClubs.length === 0 ? (
-                  <span className="club-tag club-tag--empty">Chưa có CLB yêu thích</span>
+                  <span className="club-tag club-tag--empty">{t('profile.clubs.empty')}</span>
                 ) : (
                   favoriteClubs.map((club) => (
                     <Link key={club.id} to={`/clubs/${club.slug}`} className="club-tag">
@@ -483,7 +474,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
                   <div className="profile-form-grid">
                     <div className="profile-input-group">
-                      <label htmlFor="profile-name">Họ và tên</label>
+                      <label htmlFor="profile-name">{t('profile.field.fullName')}</label>
                       <input
                         type="text"
                         id="profile-name"
@@ -496,20 +487,20 @@ const Profile = ({ showToast, embedded = false }) => {
                     </div>
                     {userRole === 'student' && (
                       <div className="profile-input-group">
-                        <label htmlFor="profile-student-id">MSSV</label>
+                        <label htmlFor="profile-student-id">{t('profile.field.studentId')}</label>
                         <input
                           type="text"
                           id="profile-student-id"
                           value={studentId || '—'}
                           readOnly
-                          placeholder="Chưa có MSSV"
-                          title="MSSV định dạng DSxxxxxx hoặc DExxxxxx"
+                          placeholder={t('profile.field.studentIdPlaceholder')}
+                          title={t('profile.field.studentIdTitle')}
                         />
                       </div>
                     )}
                     {userRole === 'student' && (
                       <div className="profile-input-group">
-                        <label htmlFor="profile-course">Khóa học</label>
+                        <label htmlFor="profile-course">{t('profile.field.course')}</label>
                         <input
                           type="text"
                           id="profile-course"
@@ -519,15 +510,15 @@ const Profile = ({ showToast, embedded = false }) => {
                       </div>
                     )}
                     <div className="profile-input-group">
-                      <label htmlFor="profile-email">Email</label>
+                      <label htmlFor="profile-email">{t('profile.field.email')}</label>
                       <input type="email" id="profile-email" value={profileData.email} readOnly />
                     </div>
                     <div className="profile-input-group">
-                      <label htmlFor="user-phone">Số điện thoại</label>
+                      <label htmlFor="user-phone">{t('profile.field.phone')}</label>
                       <input
                         type="tel"
                         id="user-phone"
-                        placeholder="Nhập số điện thoại..."
+                        placeholder={t('profile.field.phonePlaceholder')}
                         value={profileData.phone}
                         onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
                         disabled={!isEditing}
@@ -535,7 +526,7 @@ const Profile = ({ showToast, embedded = false }) => {
                     </div>
                     {userRole === 'student' && (
                       <div className="profile-input-group profile-form-grid-full">
-                        <label htmlFor="profile-campus">Cơ sở đào tạo</label>
+                        <label htmlFor="profile-campus">{t('profile.field.campus')}</label>
                         <input type="text" id="profile-campus" value={profileData.campus} readOnly />
                       </div>
                     )}
@@ -543,10 +534,10 @@ const Profile = ({ showToast, embedded = false }) => {
 
                   <div className={`profile-extra-section${embedded ? ' ctsv-profile-extra' : ''}`}>
                     <div className="profile-input-group profile-form-grid-full">
-                      <label htmlFor="user-orientation">Định hướng chuyên môn</label>
+                      <label htmlFor="user-orientation">{t('profile.field.orientation')}</label>
                       <textarea
                         id="user-orientation"
-                        placeholder="Nhập định hướng chuyên môn của bạn..."
+                        placeholder={t('profile.field.orientationPlaceholder')}
                         value={orientation}
                         onChange={(e) => setOrientation(e.target.value)}
                         disabled={!isEditing}
@@ -560,8 +551,8 @@ const Profile = ({ showToast, embedded = false }) => {
                         </svg>
                         <span>
                           {isCtsvEmbedded
-                            ? 'Lĩnh vực sự kiện quan tâm'
-                            : 'AI Recommend: Sở thích sự kiện'}
+                            ? t('profile.interests.titleCtsv')
+                            : t('profile.interests.titleStudent')}
                         </span>
                       </div>
 
@@ -572,14 +563,14 @@ const Profile = ({ showToast, embedded = false }) => {
                             name="interests"
                             value="hardware"
                             checked={interests.hardware}
-                            onChange={(e) => handleInterestChange(e, 'hardware', 'Phần cứng & Vi điều khiển')}
+                            onChange={(e) => handleInterestChange(e, 'hardware', INTEREST_STORAGE.hardware)}
                             disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
-                            <span>Phần cứng & Vi điều khiển</span>
+                            <span>{t('profile.interest.hardware')}</span>
                           </div>
                         </label>
 
@@ -589,14 +580,14 @@ const Profile = ({ showToast, embedded = false }) => {
                             name="interests"
                             value="ai"
                             checked={interests.ai}
-                            onChange={(e) => handleInterestChange(e, 'ai', 'AI')}
+                            onChange={(e) => handleInterestChange(e, 'ai', INTEREST_STORAGE.ai)}
                             disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
-                            <span>AI</span>
+                            <span>{t('profile.interest.ai')}</span>
                           </div>
                         </label>
 
@@ -606,14 +597,14 @@ const Profile = ({ showToast, embedded = false }) => {
                             name="interests"
                             value="japan"
                             checked={interests.japan}
-                            onChange={(e) => handleInterestChange(e, 'japan', 'Văn hóa Nhật Bản')}
+                            onChange={(e) => handleInterestChange(e, 'japan', INTEREST_STORAGE.japan)}
                             disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
-                            <span>Văn hóa Nhật Bản</span>
+                            <span>{t('profile.interest.japan')}</span>
                           </div>
                         </label>
 
@@ -623,14 +614,14 @@ const Profile = ({ showToast, embedded = false }) => {
                             name="interests"
                             value="charity"
                             checked={interests.charity}
-                            onChange={(e) => handleInterestChange(e, 'charity', 'Thiện nguyện')}
+                            onChange={(e) => handleInterestChange(e, 'charity', INTEREST_STORAGE.charity)}
                             disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
-                            <span>Thiện nguyện</span>
+                            <span>{t('profile.interest.charity')}</span>
                           </div>
                         </label>
 
@@ -640,14 +631,14 @@ const Profile = ({ showToast, embedded = false }) => {
                             name="interests"
                             value="sports"
                             checked={interests.sports}
-                            onChange={(e) => handleInterestChange(e, 'sports', 'Thể thao')}
+                            onChange={(e) => handleInterestChange(e, 'sports', INTEREST_STORAGE.sports)}
                             disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
-                            <span>Thể thao</span>
+                            <span>{t('profile.interest.sports')}</span>
                           </div>
                         </label>
 
@@ -657,14 +648,14 @@ const Profile = ({ showToast, embedded = false }) => {
                             name="interests"
                             value="music"
                             checked={interests.music}
-                            onChange={(e) => handleInterestChange(e, 'music', 'Âm nhạc & Nghệ thuật')}
+                            onChange={(e) => handleInterestChange(e, 'music', INTEREST_STORAGE.music)}
                             disabled={!isEditing}
                           />
                           <div className="interest-tag-content">
                             <svg className="interest-tag-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
-                            <span>Âm nhạc & Nghệ thuật</span>
+                            <span>{t('profile.interest.music')}</span>
                           </div>
                         </label>
                       </div>
@@ -682,7 +673,7 @@ const Profile = ({ showToast, embedded = false }) => {
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                           <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
-                        Chỉnh sửa thông tin cá nhân
+                        {t('profile.edit')}
                       </button>
                     ) : (
                       <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '12px' }}>
@@ -702,7 +693,7 @@ const Profile = ({ showToast, embedded = false }) => {
                                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                                 <polyline points="7 3 7 8 15 8"></polyline>
                               </svg>
-                              <span className="btn-text">Lưu thay đổi</span>
+                              <span className="btn-text">{t('profile.save')}</span>
                             </>
                           )}
                         </button>
@@ -739,7 +730,7 @@ const Profile = ({ showToast, embedded = false }) => {
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                           </svg>
-                          Hủy
+                          {t('profile.cancel')}
                         </button>
                       </div>
                     )}
@@ -782,13 +773,13 @@ const Profile = ({ showToast, embedded = false }) => {
           <header className="ctsv-profile-hero">
             <div className="ctsv-profile-hero-text">
               <span className="ctsv-profile-eyebrow">
-                {isAdminEmbedded ? 'Hồ sơ quản trị' : 'Hồ sơ cán bộ'}
+                {isAdminEmbedded ? t('admin.profile.eyebrow') : t('admin.profile.staffEyebrow')}
               </span>
               <h1>{profilePageTitle}</h1>
               <p>
                 {isAdminEmbedded
-                  ? 'Quản lý thông tin tài khoản Admin trong cổng quản trị.'
-                  : 'Quản lý thông tin cá nhân và liên hệ của cán bộ CTSV.'}
+                  ? t('admin.profile.subtitle')
+                  : t('admin.profile.staffSubtitle')}
               </p>
             </div>
           </header>
@@ -801,7 +792,7 @@ const Profile = ({ showToast, embedded = false }) => {
 
   return (
     <>
-    <div className="dashboard-body student-portal">
+    <div className="dashboard-body">
       <div
         className={`sidebar-overlay ${sidebarActive ? 'active' : ''}`}
         id="sidebar-overlay"
@@ -860,7 +851,7 @@ const Profile = ({ showToast, embedded = false }) => {
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
               </svg>
-              <span>Đăng xuất</span>
+              <span>{t('profile.nav.logout')}</span>
             </a>
           </div>
         </aside>
@@ -871,7 +862,7 @@ const Profile = ({ showToast, embedded = false }) => {
               <button
                 className="btn-mobile-menu-toggle"
                 id="menu-toggle"
-                aria-label="Mở menu"
+                aria-label={t('profile.nav.openMenu')}
                 onClick={() => setSidebarActive(true)}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -881,11 +872,10 @@ const Profile = ({ showToast, embedded = false }) => {
                 </svg>
               </button>
               <div className="breadcrumbs">
-                <Link to="/">Trang chủ</Link>
+                <Link to="/">{t('profile.breadcrumb.home')}</Link>
                 <span style={{ color: '#cbd5e1' }}>/</span>
                 <span className="current">{profilePageTitle}</span>
               </div>
-              <h2 className="student-mobile-nav-title">{profilePageTitle}</h2>
             </div>
 
             <div className="navbar-right">
@@ -914,7 +904,68 @@ const Profile = ({ showToast, embedded = false }) => {
 
           {profileContent}
 
-          <SiteFooter embedded />
+          {/* Dashboard Footer */}
+          <footer className="dashboard-footer">
+            <div className="dashboard-footer-content">
+              <div className="footer-top">
+                <div className="footer-info">
+                  <a href="#" className="footer-logo" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
+                    <img
+                      src={FE_LOGO}
+                      alt={FE_LOGO_ALT}
+                      style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
+                    />
+                  </a>
+                  <p>Nền tảng quản lý sự kiện chuyên nghiệp và sáng tạo dành riêng cho hệ sinh thái FPT.</p>
+                </div>
+
+                <div className="footer-column">
+                  <h3>Khám phá</h3>
+                  <ul className="footer-links">
+                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Sự kiện sắp tới</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/events')}>Câu lạc bộ nổi bật</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/my-events')}>Thư viện hình ảnh</a></li>
+                  </ul>
+                </div>
+
+                <div className="footer-column">
+                  <h3>Hỗ trợ</h3>
+                  <ul className="footer-links">
+                    <li><a href="#" onClick={handleSidebarNavigate('/support')}>Trung tâm hỗ trợ</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/contact')}>Liên hệ chúng tôi</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/terms')}>Điều khoản dịch vụ</a></li>
+                    <li><a href="#" onClick={handleSidebarNavigate('/privacy')}>Chính sách bảo mật</a></li>
+                  </ul>
+                </div>
+
+                <div className="footer-column">
+                  <h3>Kết nối</h3>
+                  <div className="social-links">
+                    <a href="#" className="social-link" aria-label="Facebook" onClick={(e) => handleFeatureNotImplemented(e, 'Facebook')}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                      </svg>
+                    </a>
+                    <a href="#" className="social-link" aria-label="Instagram" onClick={(e) => handleFeatureNotImplemented(e, 'Instagram')}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="footer-bottom">
+                <span className="copyright-text">© 2024 FPT Event Platform. All rights reserved.</span>
+                <div className="footer-bottom-links">
+                  <a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Báo cáo')}>Báo cáo</a>
+                  <a href="#" onClick={(e) => handleFeatureNotImplemented(e, 'Cookie Policy')}>Cookie Policy</a>
+                </div>
+              </div>
+            </div>
+          </footer>
         </main>
       </div>
     </div>

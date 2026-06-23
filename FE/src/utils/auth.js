@@ -1,3 +1,5 @@
+import { tStatic } from '../i18n/translate';
+
 export const USER_ROLES = {
   STUDENT: 'student',
   CTSV: 'ctsv',
@@ -24,8 +26,6 @@ export const persistSession = (user, token, loginMethod = 'local') => {
   if (token) localStorage.setItem('authToken', token);
 };
 
-import { clearAllCache } from './apiCache';
-
 export const clearSession = () => {
   localStorage.removeItem('isLoggedIn');
   localStorage.removeItem('userEmail');
@@ -34,7 +34,6 @@ export const clearSession = () => {
   localStorage.removeItem('userRole');
   localStorage.removeItem('userFullname');
   localStorage.removeItem('activeManagedClubId');
-  clearAllCache();
 };
 
 export const getUserRole = () => normalizeRole(localStorage.getItem('userRole'));
@@ -80,7 +79,7 @@ export const canCtsvFinalApprove = (role = getUserRole()) => {
 export const getHomePathForRole = (role = getUserRole()) => {
   const r = normalizeRole(role);
   if (r === USER_ROLES.ICPDP) return '/icpdp';
-  if (isPartnerRole(r)) return '/partner';
+  if (isPartnerRole(r)) return '/partner/dashboard';
   if (isClubManagerRole(r)) return '/quan-ly-clb';
   if (r === USER_ROLES.CTSV) return '/ctsv/dashboard';
   if (isAdminRole(r)) return '/admin';
@@ -88,22 +87,24 @@ export const getHomePathForRole = (role = getUserRole()) => {
 };
 
 /** Nhãn hiển thị trên header / profile */
-export const getRoleDisplayLabel = (role, course = 'K18') => {
+export const getRoleDisplayLabel = (role, course) => {
   const r = normalizeRole(role);
   switch (r) {
     case USER_ROLES.CTSV:
-      return 'CTSV';
+      return tStatic('role.ctsv');
     case USER_ROLES.ICPDP:
-      return 'ICPDP';
+      return tStatic('role.icpdp');
     case USER_ROLES.CLUB_MANAGER:
-      return 'Quản lý CLB';
+      return tStatic('role.clubManager');
     case USER_ROLES.PARTNER:
-      return 'Đối tác';
+      return tStatic('role.partner');
     case USER_ROLES.ADMIN:
-      return course ? `IT Admin - ${course}` : 'IT Admin';
+      return tStatic('role.admin');
     case USER_ROLES.GUEST:
-      return 'Khách';
+      return tStatic('role.guest');
     default:
-      return `Sinh viên ${course}`;
+      return course
+        ? tStatic('role.studentWithCourse', { course })
+        : tStatic('role.student');
   }
 };

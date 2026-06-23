@@ -1,46 +1,39 @@
 import { formatVnd } from '../utils/ticketPricing';
-import { resolveEventDisplayImage } from '../utils/eventDisplay';
+import { resolveEventDisplayImage, formatEventDateLabel } from '../utils/eventDisplay';
 import { getCategoryDisplayLabel } from '../constants/eventCategories';
+import { tStatic } from '../i18n/translate';
 
-const formatEventDate = (dateInput) => {
-  const date = new Date(dateInput);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('vi-VN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-};
+const formatEventDate = (dateInput) => formatEventDateLabel(dateInput);
 
 export const CATEGORY_FILTERS = [
-  { id: 'all', label: 'Tất cả' },
-  { id: 'music', label: 'Âm nhạc', categories: ['Âm nhạc'] },
-  { id: 'tech', label: 'Công nghệ', categories: ['Công nghệ', 'CÔNG NGHỆ'] },
-  { id: 'workshop', label: 'Workshop', categories: ['Workshop', 'HỌC THUẬT'] },
-  { id: 'sport', label: 'Thể thao', categories: ['Thể thao'] },
-  { id: 'art', label: 'Nghệ thuật', categories: ['Nghệ thuật', 'NGHỆ THUẬT', 'VĂN HÓA'] },
+  { id: 'all', labelKey: 'events.filter.cat.all' },
+  { id: 'music', labelKey: 'events.filter.cat.music', categories: ['Âm nhạc'] },
+  { id: 'tech', labelKey: 'events.filter.cat.tech', categories: ['Công nghệ', 'CÔNG NGHỆ'] },
+  { id: 'workshop', labelKey: 'events.filter.cat.workshop', categories: ['Workshop', 'HỌC THUẬT'] },
+  { id: 'sport', labelKey: 'events.filter.cat.sport', categories: ['Thể thao'] },
+  { id: 'art', labelKey: 'events.filter.cat.art', categories: ['Nghệ thuật', 'NGHỆ THUẬT', 'VĂN HÓA'] },
 ];
 
 export const STATE_FILTERS = [
-  { id: 'open', label: 'Đang mở' },
-  { id: 'expired', label: 'Đã kết thúc' },
-  { id: 'postponed', label: 'Bị hoãn' },
+  { id: 'open', labelKey: 'events.filter.state.open' },
+  { id: 'expired', labelKey: 'events.filter.state.expired' },
+  { id: 'postponed', labelKey: 'events.filter.state.postponed' },
 ];
 
 /** Đơn vị tổ chức sự kiện (lọc trang Khám phá) */
 export const ORGANIZER_FILTERS = [
-  { id: 'all', label: 'Tất cả' },
-  { id: 'ctsv', label: 'CTSV' },
-  { id: 'club', label: 'CLB' },
-  { id: 'icpdp', label: 'IC-PDP' },
-  { id: 'partner', label: 'Đối tác' },
+  { id: 'all', labelKey: 'events.filter.org.all' },
+  { id: 'ctsv', labelKey: 'events.filter.org.ctsv' },
+  { id: 'club', labelKey: 'events.filter.org.club' },
+  { id: 'icpdp', labelKey: 'events.filter.org.icpdp' },
+  { id: 'partner', labelKey: 'events.filter.org.partner' },
 ];
 
-const ORGANIZER_LABELS = {
-  ctsv: 'CTSV',
-  club: 'CLB',
-  icpdp: 'IC-PDP',
-  partner: 'Đối tác',
+const ORGANIZER_LABEL_KEYS = {
+  ctsv: 'events.filter.org.ctsv',
+  club: 'events.filter.org.club',
+  icpdp: 'events.filter.org.icpdp',
+  partner: 'events.filter.org.partner',
 };
 
 /** Suy ra đơn vị tổ chức từ API (source + schoolOrganizerRole) */
@@ -54,26 +47,19 @@ export const resolveEventOrganizerType = (event) => {
   return 'club';
 };
 
-export const getOrganizerLabel = (organizerType) =>
-  ORGANIZER_LABELS[organizerType] || 'CLB';
+export const getOrganizerLabel = (organizerType, t) => {
+  const key = ORGANIZER_LABEL_KEYS[organizerType];
+  if (t && key) return t(key);
+  if (organizerType === 'partner') return 'Đối tác';
+  if (organizerType === 'icpdp') return 'IC-PDP';
+  return organizerType === 'ctsv' ? 'CTSV' : 'CLB';
+};
 
 export const filterEventsByOrganizer = (events, filterId) => {
   if (!filterId || filterId === 'all') return events;
   return events.filter((ev) => {
     const type = ev.organizerType || resolveEventOrganizerType(ev);
     return type === filterId;
-  });
-};
-
-export const filterEventsByClub = (events, clubKey = '') => {
-  const key = String(clubKey || '').trim().toLowerCase();
-  if (!key) return events;
-  return events.filter((ev) => {
-    const type = ev.organizerType || resolveEventOrganizerType(ev);
-    if (type !== 'club') return false;
-    const slug = String(ev.clubSlug || '').trim().toLowerCase();
-    const id = String(ev.clubId || '').trim().toLowerCase();
-    return slug === key || id === key;
   });
 };
 
@@ -241,33 +227,23 @@ export const sortEventsByStatePriority = (events) =>
       (STATE_SORT_ORDER[getEventCardStateGroup(b)] ?? 0)
   );
 
-export const markDiscoveryCardRegistered = (card) => ({
-  ...card,
-  cardState: 'registered',
-  registered: true,
-  primaryLabel: 'Đã đăng ký',
-  filledSlots: Math.min((card.filledSlots ?? 0) + 1, card.totalSlots ?? Number.MAX_SAFE_INTEGER),
-});
-
 export const mapApiEventToCard = (event) => {
   const eventState = event.eventState || 'active';
   const totalSlots = event.capacity || 100;
   const filledSlots = event.registeredCount ?? 0;
   const category = event.category || 'Sự kiện';
-  const categoryLabel = getCategoryDisplayLabel(category);
+  const categoryLabel = getCategoryDisplayLabel(category, tStatic);
   const isRegistered = event.isRegistered === true;
   const listPrice = event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0);
   const amountDue = event.amountDue ?? listPrice;
-  const priceLabel = event.priceLabel || (amountDue === 0 ? 'MIỄN PHÍ' : formatVnd(amountDue));
+  const priceLabel = event.priceLabel || (amountDue === 0 ? tStatic('eventCard.free') : formatVnd(amountDue));
   const organizerType = resolveEventOrganizerType(event);
   const organizerLabel = getOrganizerLabel(organizerType);
 
   return {
-    id: String(event._id || event.id || ''),
+    id: event._id,
     title: event.title,
     startDate: event.startDate,
-    endDate: event.endDate,
-    eventState,
     createdAt: event.createdAt,
     thumbnail: resolveEventDisplayImage(
       event,
@@ -285,7 +261,7 @@ export const mapApiEventToCard = (event) => {
     cardState: isRegistered ? 'registered' : eventState,
     postponeReason: event.postponeReason || '',
     primaryLabel: isRegistered
-      ? 'Đã đăng ký'
+      ? 'Xem vé'
       : (event.primaryActionLabel || getPrimaryLabel(eventState)),
     registered: isRegistered,
     filterTags: [CATEGORY_TO_FILTER[category] || 'all'],
@@ -299,12 +275,6 @@ export const mapApiEventToCard = (event) => {
     statusKey: event.statusKey || '',
     organizerType,
     organizerLabel,
-    clubId: event.clubId ? String(event.clubId) : '',
-    clubSlug: event.clubSlug || '',
-    clubName: event.clubName || '',
-    createdByEmail: event.createdBy?.email || event.createdByEmail || '',
-    createdById: event.createdBy?._id || event.createdBy || '',
-    partnerId: event.partnerId ? String(event.partnerId) : '',
     fromApi: true,
   };
 };
@@ -324,10 +294,10 @@ export const mapApiEventToHomeCard = (event) => {
   else if (fillPercent >= 85) status = 'SẮP HẾT CHỖ';
 
   return {
-    id: String(event._id || event.id || ''),
+    id: event._id,
     title: event.title,
     category: event.category || 'Sự kiện',
-    categoryLabel: getCategoryDisplayLabel(event.category || 'Sự kiện'),
+    categoryLabel: getCategoryDisplayLabel(event.category || 'Sự kiện', tStatic),
     eventType: event.eventType || '',
     date: Number.isNaN(start.getTime())
       ? ''
@@ -344,7 +314,7 @@ export const mapApiEventToHomeCard = (event) => {
     eventState: event.eventState || 'active',
     listPrice: event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0),
     amountDue: event.amountDue ?? Math.max(0, Number(event.ticketPrice) || 0),
-    priceLabel: event.priceLabel || 'MIỄN PHÍ',
+    priceLabel: event.priceLabel || tStatic('eventCard.free'),
     studentPrivilegeApplied: event.studentPrivilegeApplied === true,
   };
 };
@@ -379,10 +349,10 @@ export const filterEventsBySearch = (events, query) => {
 };
 
 export const HOME_RECOMMEND_TABS = [
-  { id: 'newest', label: 'Mới nhất' },
-  { id: 'popular', label: 'Nhiều đăng ký nhất' },
-  { id: 'potential', label: 'Tiềm năng nhất' },
-  { id: 'forYou', label: 'Phù hợp với bạn' },
+  { id: 'newest', labelKey: 'home.tab.newest' },
+  { id: 'popular', labelKey: 'home.tab.popular' },
+  { id: 'potential', labelKey: 'home.tab.potential' },
+  { id: 'forYou', labelKey: 'home.tab.forYou' },
 ];
 
 const eventTime = (value) => {

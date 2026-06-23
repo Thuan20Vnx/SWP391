@@ -38,12 +38,8 @@ const AdminPartnerApprovals = ({ showToast }) => {
   const handleApprove = async (id) => {
     setBusy(true);
     try {
-      const res = await approveAdminPartner(id);
-      if (res.accountCreated) {
-        showToast?.(t('admin.partnerApprovals.toast.approvedWithAccount'), 'success');
-      } else {
-        showToast?.(t('admin.partnerApprovals.toast.approved'), 'success');
-      }
+      await approveAdminPartner(id);
+      showToast?.(t('admin.partnerApprovals.toast.approved'), 'success');
       setPartners((prev) => prev.filter((p) => p._id !== id));
     } catch (e) {
       showToast?.(e.message, 'error');

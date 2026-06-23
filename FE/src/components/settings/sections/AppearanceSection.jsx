@@ -2,39 +2,47 @@ import AppSelect from '../../ui/AppSelect';
 import SettingsToggle from '../SettingsToggle';
 import { SettingsCard, SettingsSectionHeader } from '../SettingsLayout';
 import { SECTION_META } from '../settingsConfig';
+import { useTranslation } from '../../../i18n/I18nContext';
 
-const LANGUAGES = [
-  { value: 'vi', label: 'Tiếng Việt' },
-  { value: 'en', label: 'English' },
-];
+const AppearanceSection = ({ settings, updateSetting }) => {
+  const { t } = useTranslation();
+  const languageOptions = [
+    { value: 'vi', label: t('settings.languageVi') },
+    { value: 'en', label: t('settings.languageEn') },
+  ];
 
-const AppearanceSection = ({ settings, updateSetting }) => (
-  <div className="settings-section">
-    <SettingsSectionHeader {...SECTION_META.appearance} />
+  return (
+    <div className="settings-section">
+      <SettingsSectionHeader
+        title={t(SECTION_META.appearance.titleKey)}
+        description={t(SECTION_META.appearance.descKey)}
+      />
 
-    <div className="settings-section__stack">
-      <SettingsCard>
-        <SettingsToggle
-          label="Chế độ tối"
-          description="Giảm ánh sáng màn hình khi sử dụng ban đêm"
-          checked={settings.darkMode}
-          onChange={(value) => updateSetting('darkMode', value)}
-        />
-      </SettingsCard>
-
-      <SettingsCard title="Ngôn ngữ hiển thị">
-        <div className="profile-input-group settings-select-field">
-          <label htmlFor="settings-language">Ngôn ngữ</label>
-          <AppSelect
-            id="settings-language"
-            value={settings.language}
-            onChange={(e) => updateSetting('language', e.target.value)}
-            options={LANGUAGES}
+      <div className="settings-section__stack">
+        <SettingsCard>
+          <SettingsToggle
+            label={t('settings.darkMode')}
+            description={t('settings.darkModeDesc')}
+            checked={settings.darkMode}
+            onChange={(value) => updateSetting('darkMode', value)}
           />
-        </div>
-      </SettingsCard>
+        </SettingsCard>
+
+        <SettingsCard title={t('settings.languageTitle')}>
+          <div className="profile-input-group settings-select-field">
+            <label htmlFor="settings-language">{t('settings.language')}</label>
+            <AppSelect
+              id="settings-language"
+              value={settings.language}
+              onChange={(e) => updateSetting('language', e.target.value)}
+              options={languageOptions}
+              usePortal
+            />
+          </div>
+        </SettingsCard>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default AppearanceSection;

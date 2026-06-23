@@ -113,3 +113,53 @@ h1, h2, h3, h4, h5, h6 {
   padding-top: 32px !important;
   padding-bottom: 60px !important;
 }
+
+/* Dark mode — override !important white surfaces above */
+html.dark {
+  --glass-bg: rgba(15, 23, 42, 0.92);
+  --glass-border: rgba(51, 65, 85, 0.6);
+  --premium-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --premium-shadow-md: 0 10px 30px -5px rgba(0, 0, 0, 0.35);
+  --premium-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.45);
+}
+
+html.dark body {
+  background-color: var(--bg-light) !important;
+}
+
+html.dark .ctsv-portal-header,
+html.dark .partner-portal-header,
+html.dark .icpdp-header,
+html.dark .portal-header {
+  background: var(--glass-bg) !important;
+  border-bottom-color: var(--surface-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark .ctsv-dash-stat-card,
+html.dark .ctsv-dash-quick-card,
+html.dark .ctsv-dash-create-card,
+html.dark .icpdp-proposal-card,
+html.dark .ctsv-events-card,
+html.dark .ctsv-reports-summary-card,
+html.dark .ctsv-panel {
+  background: var(--bg-card) !important;
+  border-color: var(--surface-border) !important;
+  box-shadow: var(--premium-shadow-sm) !important;
+}
+
+html.dark .ctsv-dash-stat-card:hover,
+html.dark .ctsv-dash-quick-card:hover,
+html.dark .ctsv-dash-create-card:hover,
+html.dark .icpdp-proposal-card:hover,
+html.dark .ctsv-events-card:hover {
+  border-color: rgba(242, 111, 33, 0.35) !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: var(--surface-border) !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted) !important;
+}

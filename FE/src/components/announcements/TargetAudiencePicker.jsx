@@ -1,13 +1,25 @@
 import React, { useEffect } from 'react';
 import {
   ANNOUNCEMENT_TARGET_ALL,
-  ANNOUNCEMENT_TARGET_LABELS,
   getAllowedTargetsForPublisher,
   normalizeTargetsForPublisher,
-  toggleTargetSelection
+  toggleTargetSelection,
 } from '../../constants/announcementTargets';
+import { useTranslation } from '../../i18n/I18nContext';
+
+const TARGET_KEYS = {
+  all: 'announce.target.all',
+  guest: 'announce.target.guest',
+  student: 'announce.target.student',
+  club_manager: 'announce.target.club_manager',
+  partner: 'announce.target.partner',
+  icpdp: 'announce.target.icpdp',
+  ctsv: 'announce.target.ctsv',
+  admin: 'announce.target.admin',
+};
 
 const TargetAudiencePicker = ({ portalRole, value = [ANNOUNCEMENT_TARGET_ALL], onChange, disabled }) => {
+  const { t } = useTranslation();
   const allowed = getAllowedTargetsForPublisher(portalRole);
   const isPartnerOnlyCtsv = portalRole === 'partner';
   const displayValue = normalizeTargetsForPublisher(portalRole, value);
@@ -25,8 +37,8 @@ const TargetAudiencePicker = ({ portalRole, value = [ANNOUNCEMENT_TARGET_ALL], o
 
   return (
     <div className="announce-target-picker">
-      <span className="announce-target-picker__label">Đối tượng nhận</span>
-      <div className="announce-target-picker__chips" role="group" aria-label="Chọn đối tượng nhận thông báo">
+      <span className="announce-target-picker__label">{t('announce.target.label')}</span>
+      <div className="announce-target-picker__chips" role="group" aria-label={t('announce.target.label')}>
         {allowed.map((target) => {
           const active = displayValue.includes(target);
           return (
@@ -38,15 +50,13 @@ const TargetAudiencePicker = ({ portalRole, value = [ANNOUNCEMENT_TARGET_ALL], o
               disabled={disabled || isPartnerOnlyCtsv}
               onClick={() => handleToggle(target)}
             >
-              {ANNOUNCEMENT_TARGET_LABELS[target] || target}
+              {t(TARGET_KEYS[target] || target)}
             </button>
           );
         })}
       </div>
       <p className="announce-target-picker__hint">
-        {isPartnerOnlyCtsv
-          ? 'Đối tác chỉ gửi thông báo tới Phòng CTSV.'
-          : 'Chọn một hoặc nhiều nhóm. Chọn "Tất cả" để gửi toàn hệ thống.'}
+        {isPartnerOnlyCtsv ? t('announce.target.hintPartner') : t('announce.target.hintDefault')}
       </p>
     </div>
   );

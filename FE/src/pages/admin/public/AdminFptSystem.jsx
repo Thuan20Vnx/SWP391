@@ -9,7 +9,10 @@ import PublicAdminShell from '../../../layouts/PublicAdminShell';
 import SiteFooter from '../../../components/SiteFooter';
 import { API_BASE, getAuthHeaders } from '../../../utils/api';
 import { fetchAdminAccounts, fetchAdminPartners } from '../../../services/adminApi';
-import { mapApiClubToListItem } from '../../../data/clubDiscoveryData';
+import {
+  CLUB_SAMPLE_DATA,
+  mapApiClubToListItem,
+} from '../../../data/clubDiscoveryData';
 import {
   FPT_UNIT_TYPES,
   FPT_SORT_OPTIONS,
@@ -88,7 +91,7 @@ const AdminFptSystem = ({ showToast }) => {
       const clubList =
         clubsRes.success && clubsRes.clubs?.length
           ? clubsRes.clubs.map(mapApiClubToListItem)
-          : [];
+          : CLUB_SAMPLE_DATA;
 
       const clubUnits = clubList.map((club) => mapClubToFptUnit(club, t));
       const partnerUnits = (partnersRes.partners || []).map((partner) =>
@@ -119,10 +122,11 @@ const AdminFptSystem = ({ showToast }) => {
         }),
       );
     } catch {
-      setClubs([]);
+      const clubUnits = CLUB_SAMPLE_DATA.map((club) => mapClubToFptUnit(club, t));
+      setClubs(clubUnits);
       setPartners([]);
       setDepartments(buildDepartmentUnits({ ctsvStaff: 0, icpdpStaff: 0 }));
-      setSummary(buildFptSummary({ clubs: [], partners: [] }));
+      setSummary(buildFptSummary({ clubs: clubUnits, partners: [] }));
       showToast?.(t('admin.fpt.loadFail'), 'error');
     } finally {
       setLoading(false);

@@ -1,5 +1,6 @@
-import React from 'react';
-import { formatMemberCount, getCategoryColor } from '../data/clubDiscoveryData';
+import React, { useMemo } from 'react';
+import { formatMemberCount, getCategoryColor, localizeClubItem } from '../data/clubDiscoveryData';
+import { useTranslation } from '../i18n/I18nContext';
 
 const MembersIcon = () => (
   <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
@@ -7,44 +8,47 @@ const MembersIcon = () => (
   </svg>
 );
 
-const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'Khám phá ngay' }) => {
+const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel }) => {
+  const { t } = useTranslation();
+  const displayClub = useMemo(() => localizeClubItem(club, t), [club, t]);
   const categoryColor = getCategoryColor(club.category);
-  const { featuredEvent } = club;
+  const { featuredEvent } = displayClub;
+  const ctaLabel = exploreLabel || t('clubs.explore');
 
   return (
     <article className={`club-discovery-card club-discovery-card--${layout}`}>
       <div className="club-discovery-card__cover-wrap">
-        <img src={club.coverImage} alt={club.name} className="club-discovery-card__cover" />
+        <img src={displayClub.coverImage} alt={displayClub.name} className="club-discovery-card__cover" />
         <span
           className="club-discovery-card__category"
           style={{ backgroundColor: categoryColor }}
         >
-          {club.category}
+          {displayClub.category}
         </span>
       </div>
 
       <div className="club-discovery-card__body">
         <div
           className="club-discovery-card__logo"
-          style={{ backgroundColor: club.logoColor }}
+          style={{ backgroundColor: displayClub.logoColor }}
           aria-hidden="true"
         >
-          <span>{club.logoText}</span>
+          <span>{displayClub.logoText}</span>
         </div>
 
         <div className="club-discovery-card__header">
-          <h3 className="club-discovery-card__name">{club.name}</h3>
+          <h3 className="club-discovery-card__name">{displayClub.name}</h3>
           <div className="club-discovery-card__members">
             <MembersIcon />
-            <span>{formatMemberCount(club.memberCount)}</span>
+            <span>{formatMemberCount(displayClub.memberCount)}</span>
           </div>
         </div>
 
-        <p className="club-discovery-card__desc">{club.description}</p>
+        <p className="club-discovery-card__desc">{displayClub.description}</p>
 
         {featuredEvent && (
           <div className="club-discovery-card__featured">
-            <span className="club-discovery-card__featured-label">Sự kiện nổi bật</span>
+            <span className="club-discovery-card__featured-label">{t('clubs.featuredEvent')}</span>
             <div className="club-discovery-card__featured-row">
               <div className="club-discovery-card__date-box">
                 <span className="club-discovery-card__date-month">{featuredEvent.monthShort}</span>
@@ -60,7 +64,7 @@ const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'K
           className="club-discovery-card__cta"
           onClick={() => onExplore?.(club)}
         >
-          {exploreLabel}
+          {ctaLabel}
         </button>
       </div>
     </article>

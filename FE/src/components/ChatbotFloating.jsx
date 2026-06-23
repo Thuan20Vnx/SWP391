@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { sendChatbotMessage, registerEventFromChat } from '../services/chatbotApi';
-import WeatherWidget from './WeatherWidget';
+import { useTranslation } from '../i18n/I18nContext';
 
 const HOME_GREETING =
   'Xin chào! Tôi là trợ lý ảo F-Events. Bạn cần tôi giúp gì hôm nay?';
@@ -9,58 +7,55 @@ const HOME_GREETING =
 const ADMIN_GREETING =
   'Xin chào! Tôi là trợ lý ảo F-Events (Quản trị). Bạn cần hỗ trợ duyệt đề xuất, xử lý yêu cầu sửa/ẩn/xóa, hay tra cứu tài khoản?';
 
-const renderMarkdownLite = (text) => {
-  const lines = String(text || '').split('\n');
-  const blocks = [];
-  let listBuffer = [];
+const buildBotReply = (userMsg, context) => {
+  const lowercase = userMsg.toLowerCase();
 
-  const flushList = () => {
-    if (!listBuffer.length) return;
-    blocks.push(
-      <ul key={`list-${blocks.length}`} className="chat-msg-list">
-        {listBuffer.map((item, idx) => (
-          <li key={idx}>{renderInline(item)}</li>
-        ))}
-      </ul>
-    );
-    listBuffer = [];
-  };
-
-  lines.forEach((line, idx) => {
-    const trimmed = line.trim();
-    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-      listBuffer.push(trimmed.slice(2));
-      return;
+  if (context === 'admin') {
+    if (lowercase.includes('duyệt') || lowercase.includes('đề xuất')) {
+      return 'Vào menu "Duyệt đề xuất sự kiện" để phê duyệt hoặc từ chối đề xuất mới từ CLB trước khi công khai.';
     }
-    flushList();
-    if (trimmed) {
-      blocks.push(<p key={idx}>{renderInline(trimmed)}</p>);
+    if (lowercase.includes('sửa') || lowercase.includes('ẩn') || lowercase.includes('xóa')) {
+      return 'Vào "Yêu cầu sửa / ẩn / xóa" để xem các yêu cầu thay đổi sự kiện đã công bố và chấp nhận hoặc từ chối.';
     }
-  });
-  flushList();
-
-  return blocks;
-};
-
-const renderInline = (text) => {
-  const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    if (lowercase.includes('tài khoản') || lowercase.includes('account')) {
+      return 'Mục "Kiểm soát tài khoản" trong menu admin giúp bạn bật/tắt hoặc chỉnh sửa tài khoản người dùng.';
     }
-    return part;
-  });
+    if (lowercase.includes('dashboard') || lowercase.includes('giám sát')) {
+      return 'Dashboard hiển thị lưu lượng, doanh thu và nhật ký hoạt động hệ thống.';
+    }
+  }
+
+  if (lowercase.includes('f-fest') || lowercase.includes('nhạc') || lowercase.includes('fest')) {
+    return 'Sự kiện F-Fest: Giai điệu mùa hè sẽ diễn ra vào ngày 20/05 lúc 19:00 tại Hội trường A, FPT Tower. Hiện tại chỉ còn 15 vé trống thôi đó!';
+  }
+  if (lowercase.includes('prompt') || lowercase.includes('ai') || lowercase.includes('workshop')) {
+    return 'Workshop "Làm chủ Prompt Engineering với AI" được tổ chức vào ngày 22/05 lúc 14:00 tại Phòng Lab 402 Gamma. Nhanh tay đăng ký nhé!';
+  }
+  if (lowercase.includes('profile') || lowercase.includes('hồ sơ') || lowercase.includes('trang cá nhân')) {
+    return 'Bạn có thể mở menu tài khoản bằng cách nhấp vào hình đại diện ở góc trên bên phải — menu sẽ hiện ra ngay tại trang chủ.';
+  }
+  if (lowercase.includes('đăng ký') || lowercase.includes('vé')) {
+    return 'Để đăng ký sự kiện, bạn chỉ cần bấm nút "Đăng ký ngay" trên thẻ sự kiện. Hệ thống sẽ tự động gửi QR vé về tài khoản của bạn!';
+  }
+  if (lowercase.includes('hello') || lowercase.includes('chào') || lowercase.includes('hi')) {
+    return context === 'admin'
+      ? 'Xin chào! Tôi có thể hướng dẫn bạn các mục quản trị trên F-Events.'
+      : 'Xin chào! Tôi có thể giúp gì cho bạn về các sự kiện của sinh viên FPT?';
+  }
+
+  return context === 'admin'
+    ? 'Tôi có thể gợi ý về duyệt đề xuất, yêu cầu sửa/ẩn/xóa, tài khoản hoặc dashboard. Bạn muốn hỏi phần nào?'
+    : 'Tôi rất muốn hỗ trợ bạn, tuy nhiên tính năng AI đang được tích hợp thêm. Bạn có muốn tìm các sự kiện Công nghệ hay Âm nhạc sắp tới không?';
 };
 
 const ChatbotFloating = ({ context = 'home' }) => {
+  const { t } = useTranslation();
   const rootRef = useRef(null);
-  const navigate = useNavigate();
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'bot', text: context === 'admin' ? ADMIN_GREETING : HOME_GREETING, events: [] },
+    { sender: 'bot', text: context === 'admin' ? ADMIN_GREETING : HOME_GREETING },
   ]);
   const [chatInput, setChatInput] = useState('');
-  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (!chatbotOpen) return undefined;
@@ -82,75 +77,18 @@ const ChatbotFloating = ({ context = 'home' }) => {
     };
   }, [chatbotOpen]);
 
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!chatInput.trim() || isSending) return;
+    if (!chatInput.trim()) return;
 
     const userMsg = chatInput.trim();
-    const nextHistory = [...chatMessages, { sender: 'user', text: userMsg }];
-    setChatMessages(nextHistory);
+    setChatMessages((prev) => [...prev, { sender: 'user', text: userMsg }]);
     setChatInput('');
-    setIsSending(true);
 
-    try {
-      const { reply, events, announcements, action } = await sendChatbotMessage(nextHistory, context);
-      setChatMessages((prev) => [...prev, { sender: 'bot', text: reply, events, announcements }]);
-      if (action?.type === 'register_event') {
-        await handleAutoRegister(action);
-      }
-    } catch (err) {
-      setChatMessages((prev) => [
-        ...prev,
-        { sender: 'bot', text: err.message || 'Trợ lý ảo đang gặp sự cố, vui lòng thử lại sau.', events: [] },
-      ]);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const handleAutoRegister = async (action) => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: 'bot',
-          text: `Bạn cần đăng nhập để mình đăng ký vé **${action.eventTitle}** giúp nhé.`,
-          events: [{ id: action.eventId, title: action.eventTitle }],
-        },
-      ]);
-      return;
-    }
-    try {
-      await registerEventFromChat(action.eventId);
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: 'bot',
-          text: `✅ Đã đăng ký vé **${action.eventTitle}** cho bạn thành công! Bạn có thể xem chi tiết hoặc vé của mình bên dưới.`,
-          events: [{ id: action.eventId, title: action.eventTitle }],
-        },
-      ]);
-    } catch (err) {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: 'bot',
-          text: `Mình chưa đăng ký được vé **${action.eventTitle}**: ${err.message || 'có lỗi xảy ra.'}`,
-          events: [{ id: action.eventId, title: action.eventTitle }],
-        },
-      ]);
-    }
-  };
-
-  const goToEvent = (eventId) => {
-    setChatbotOpen(false);
-    navigate(`/events/${eventId}`);
-  };
-
-  const goToAnnouncement = (announcementId) => {
-    setChatbotOpen(false);
-    navigate(`/announcements/${announcementId}`);
+    setTimeout(() => {
+      const botResponse = buildBotReply(userMsg, context);
+      setChatMessages((prev) => [...prev, { sender: 'bot', text: botResponse }]);
+    }, 1000);
   };
 
   return (
@@ -186,44 +124,9 @@ const ChatbotFloating = ({ context = 'home' }) => {
                 key={i}
                 className={`chat-message-bubble ${msg.sender === 'user' ? 'message-user' : 'message-bot'}`}
               >
-                {msg.sender === 'bot' ? renderMarkdownLite(msg.text) : msg.text}
-                {Array.isArray(msg.events) && msg.events.length > 0 && (
-                  <div className="chat-event-suggestions">
-                    {msg.events.map((ev) => (
-                      <button
-                        key={ev.id}
-                        type="button"
-                        className="chat-event-suggestion-btn"
-                        onClick={() => goToEvent(ev.id)}
-                      >
-                        <span className="chat-suggestion-icon" aria-hidden>🎟️</span>
-                        <span className="chat-suggestion-label">Xem sự kiện "{ev.title}"</span>
-                        <span aria-hidden>→</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {Array.isArray(msg.announcements) && msg.announcements.length > 0 && (
-                  <div className="chat-event-suggestions">
-                    {msg.announcements.map((an) => (
-                      <button
-                        key={an.id}
-                        type="button"
-                        className="chat-event-suggestion-btn chat-event-suggestion-btn--announcement"
-                        onClick={() => goToAnnouncement(an.id)}
-                      >
-                        <span className="chat-suggestion-icon" aria-hidden>📢</span>
-                        <span className="chat-suggestion-label">Xem thông báo "{an.title}"</span>
-                        <span aria-hidden>→</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                {msg.text}
               </div>
             ))}
-            {isSending && (
-              <div className="chat-message-bubble message-bot">Đang soạn câu trả lời...</div>
-            )}
           </div>
 
           <form className="chat-input-form" onSubmit={handleSendMessage}>
@@ -233,9 +136,8 @@ const ChatbotFloating = ({ context = 'home' }) => {
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               className="chat-input-field"
-              disabled={isSending}
             />
-            <button type="submit" className="chat-send-btn" aria-label="Gửi" disabled={isSending}>
+            <button type="submit" className="chat-send-btn" aria-label="Gửi">
               <svg viewBox="0 0 24 24" width="20" height="20">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor" />
               </svg>
@@ -259,10 +161,8 @@ const ChatbotFloating = ({ context = 'home' }) => {
             />
           </svg>
         </span>
-        <span className="fab-text">Bạn cần giúp gì?</span>
+        <span className="fab-text">{t('clubs.fabLabel')}</span>
       </button>
-
-      <WeatherWidget />
     </div>
   );
 };

@@ -9,7 +9,6 @@ const AdminProposalActions = ({
   disabled = false,
   onApprove,
   onReject,
-  hideApprove = false,
 }) => {
   const { t } = useTranslation();
   const [approveOpen, setApproveOpen] = useState(false);
@@ -36,9 +35,7 @@ const AdminProposalActions = ({
   return (
     <>
       <div className="admin-proposal-card__actions-bar">
-        <p className="admin-proposal-card__actions-note">
-          {hideApprove ? t('admin.proposal.actionsNoteIcpdp') : t('admin.proposal.actionsNote')}
-        </p>
+        <p className="admin-proposal-card__actions-note">{t('admin.proposal.actionsNote')}</p>
         <div className="admin-proposal-card__actions">
           <button
             type="button"
@@ -51,19 +48,17 @@ const AdminProposalActions = ({
             </span>
             {t('admin.common.reject')}
           </button>
-          {!hideApprove && (
-            <button
-              type="button"
-              className="admin-proposal-btn admin-proposal-btn--approve"
-              disabled={disabled || busy}
-              onClick={() => setApproveOpen(true)}
-            >
-              <span className="admin-proposal-btn__icon" aria-hidden="true">
-                ✓
-              </span>
-              {busy ? t('admin.common.processing') : t('admin.proposal.approve')}
-            </button>
-          )}
+          <button
+            type="button"
+            className="admin-proposal-btn admin-proposal-btn--approve"
+            disabled={disabled || busy}
+            onClick={() => setApproveOpen(true)}
+          >
+            <span className="admin-proposal-btn__icon" aria-hidden="true">
+              ✓
+            </span>
+            {busy ? t('admin.common.processing') : t('admin.proposal.approve')}
+          </button>
         </div>
       </div>
 

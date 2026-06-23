@@ -3,14 +3,17 @@ import {
   NOTICE_CATEGORY_OPTIONS,
   normalizeNoticeCategory,
 } from '../../constants/announcementNoticeCategories';
+import { useTranslation } from '../../i18n/I18nContext';
+import { resolveLabel } from '../../i18n/helpers';
 
 const NoticeCategoryPicker = ({ value = 'info', onChange, disabled }) => {
+  const { t } = useTranslation();
   const selected = normalizeNoticeCategory(value);
 
   return (
     <div className="announce-target-picker announce-notice-category-picker">
-      <span className="announce-target-picker__label">Doanh mục</span>
-      <div className="announce-target-picker__chips" role="radiogroup" aria-label="Chọn doanh mục thông báo">
+      <span className="announce-target-picker__label">{t('announce.categoryLabel')}</span>
+      <div className="announce-target-picker__chips" role="radiogroup" aria-label={t('announce.categoryLabel')}>
         {NOTICE_CATEGORY_OPTIONS.map((opt) => {
           const active = selected === opt.value;
           return (
@@ -23,14 +26,11 @@ const NoticeCategoryPicker = ({ value = 'info', onChange, disabled }) => {
               disabled={disabled}
               onClick={() => !disabled && onChange?.(opt.value)}
             >
-              {opt.label}
+              {resolveLabel(opt, t)}
             </button>
           );
         })}
       </div>
-      <p className="announce-target-picker__hint">
-        Phân loại mức độ: Thông tin thường, Cần xử lý, hoặc Khẩn.
-      </p>
     </div>
   );
 };

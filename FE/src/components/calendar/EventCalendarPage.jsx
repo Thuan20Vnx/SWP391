@@ -1,32 +1,35 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  WEEKDAYS_VI,
   buildMonthCells,
   formatMonthLabel,
+  getCalendarWeekdays,
   mapCtsvCalendarEvent,
   startOfDay,
 } from '../../utils/ctsvCalendar';
+import { useTranslation } from '../../i18n/I18nContext';
+import { resolveLabel } from '../../i18n/helpers';
 import { statusClass } from '../../utils/eventStatus';
 
 const DEFAULT_SOURCE_FILTERS = [
-  { id: 'all', label: 'Tất cả' },
-  { id: 'school', label: 'Cấp trường' },
-  { id: 'partner', label: 'Đối tác' },
-  { id: 'club', label: 'CLB' },
+  { id: 'all', labelKey: 'admin.calendar.filter.all' },
+  { id: 'school', labelKey: 'admin.calendar.filter.school' },
+  { id: 'partner', labelKey: 'admin.calendar.filter.partner' },
+  { id: 'club', labelKey: 'admin.calendar.filter.club' },
 ];
 
 const EventCalendarPage = ({
   showToast,
   fetchEvents,
   resolveEventLink,
-  eyebrow = 'Lịch sự kiện',
-  title = 'Lịch sự kiện toàn trường',
-  description = 'Tổng quan sự kiện theo tháng.',
-  sourceFilters = DEFAULT_SOURCE_FILTERS,
+  eyebrow,
+  title,
+  description,
+  sourceFilters,
   statusFilters = [],
   computeStats,
 }) => {
+  const { t, language } = useTranslation();
   const [rawEvents, setRawEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewDate, setViewDate] = useState(() => {
@@ -37,16 +40,29 @@ const EventCalendarPage = ({
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDay, setSelectedDay] = useState(null);
 
+  const resolvedSourceFilters = useMemo(() => {
+    const filters = sourceFilters || DEFAULT_SOURCE_FILTERS;
+    return filters.map((f) => ({ ...f, label: resolveLabel(f, t) }));
+  }, [sourceFilters, t]);
+
+  const resolvedStatusFilters = useMemo(
+    () => statusFilters.map((f) => ({ ...f, label: resolveLabel(f, t) })),
+    [statusFilters, t],
+  );
+
+  const weekdays = useMemo(() => getCalendarWeekdays(t, language), [t, language]);
+  const dateLocale = language === 'en' ? 'en-US' : 'vi-VN';
+
   useEffect(() => {
     setLoading(true);
     fetchEvents()
-      .then((d) => setRawEvents((d.events || []).map(mapCtsvCalendarEvent).filter((e) => e.date)))
+      .then((d) => setRawEvents((d.events || []).map((ev) => mapCtsvCalendarEvent(ev, t)).filter((e) => e.date)))
       .catch(() => {
         setRawEvents([]);
-        showToast?.('Không tải được lịch sự kiện.', 'error');
+        showToast?.(t('admin.calendar.loadFail'), 'error');
       })
       .finally(() => setLoading(false));
-  }, [fetchEvents, showToast]);
+  }, [fetchEvents, showToast, t, language]);
 
   const events = useMemo(() => {
     let list = rawEvents;
@@ -62,7 +78,7 @@ const EventCalendarPage = ({
   }, [rawEvents, sourceFilter, statusFilter]);
 
   const todayStart = useMemo(() => startOfDay(new Date()), []);
-  const monthLabel = formatMonthLabel(viewDate);
+  const monthLabel = formatMonthLabel(viewDate, language);
   const { cells, eventsInMonth } = useMemo(
     () => buildMonthCells(viewDate, events, todayStart),
     [viewDate, events, todayStart],
@@ -102,7 +118,13 @@ const EventCalendarPage = ({
     viewDate.getFullYear() === new Date().getFullYear() &&
     viewDate.getMonth() === new Date().getMonth();
 
-  const allFilters = [...sourceFilters, ...statusFilters];
+  const allFilters = [...resolvedSourceFilters, ...resolvedStatusFilters];
+
+  const selectedDayLabel = selectedDay
+    ? t('admin.calendar.sidebar.dayTitle', {
+        date: `${String(selectedDay).padStart(2, '0')}/${String(viewDate.getMonth() + 1).padStart(2, '0')}/${viewDate.getFullYear()}`,
+      })
+    : t('admin.calendar.sidebar.monthEvents');
 
   return (
     <div className="ctsv-calendar-page">
@@ -115,13 +137,17 @@ const EventCalendarPage = ({
         <div className="ctsv-events-hero-aside">
           <div className="ctsv-events-hero-stat" aria-live="polite">
             <span className="ctsv-events-hero-stat-num">{loading ? '—' : stats.total}</span>
-            <span className="ctsv-events-hero-stat-label">Sự kiện trong tháng</span>
+            <span className="ctsv-events-hero-stat-label">{t('admin.calendar.eventsInMonth')}</span>
           </div>
           {!loading && stats.pendingAdmin > 0 && (
-            <p className="ctsv-cal-hero-pending">{stats.pendingAdmin} chờ Admin duyệt</p>
+            <p className="ctsv-cal-hero-pending">
+              {t('admin.calendar.pendingAdminCount', { count: stats.pendingAdmin })}
+            </p>
           )}
           {!loading && stats.pending > 0 && stats.pendingAdmin === 0 && (
-            <p className="ctsv-cal-hero-pending">{stats.pending} chờ duyệt</p>
+            <p className="ctsv-cal-hero-pending">
+              {t('admin.calendar.pendingCount', { count: stats.pending })}
+            </p>
           )}
         </div>
       </header>
@@ -129,25 +155,35 @@ const EventCalendarPage = ({
       <section className="ctsv-cal-toolbar-card">
         <div className="ctsv-cal-toolbar-top">
           <div className="student-calendar-nav ctsv-cal-nav">
-            <button type="button" className="student-calendar-nav__btn" onClick={goPrevMonth} aria-label="Tháng trước">
+            <button
+              type="button"
+              className="student-calendar-nav__btn"
+              onClick={goPrevMonth}
+              aria-label={t('admin.calendar.prevMonth')}
+            >
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
                 <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
               </svg>
             </button>
             <span className="student-calendar-nav__label">{monthLabel}</span>
-            <button type="button" className="student-calendar-nav__btn" onClick={goNextMonth} aria-label="Tháng sau">
+            <button
+              type="button"
+              className="student-calendar-nav__btn"
+              onClick={goNextMonth}
+              aria-label={t('admin.calendar.nextMonth')}
+            >
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
                 <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
               </svg>
             </button>
             {!isViewingCurrentMonth && (
               <button type="button" className="student-calendar-nav__today" onClick={goToday}>
-                Hôm nay
+                {t('admin.calendar.today')}
               </button>
             )}
           </div>
 
-          <div className="ctsv-cal-source-filters" role="group" aria-label="Lọc lịch">
+          <div className="ctsv-cal-source-filters" role="group" aria-label={t('admin.calendar.filterAria')}>
             {allFilters.map((f) => {
               const isStatus = f.id === 'pending_admin' || f.id === 'pending_any';
               const active = isStatus ? statusFilter === f.id : sourceFilter === f.id;
@@ -175,16 +211,16 @@ const EventCalendarPage = ({
 
         <div className="ctsv-cal-legend">
           <span className="ctsv-cal-legend-item">
-            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--school" /> Cấp trường
+            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--school" /> {t('admin.calendar.legend.school')}
           </span>
           <span className="ctsv-cal-legend-item">
-            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--partner" /> Đối tác
+            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--partner" /> {t('admin.calendar.legend.partner')}
           </span>
           <span className="ctsv-cal-legend-item">
-            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--club" /> CLB
+            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--club" /> {t('admin.calendar.legend.club')}
           </span>
           <span className="ctsv-cal-legend-item">
-            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--pending" /> Chờ duyệt
+            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--pending" /> {t('admin.calendar.legend.pending')}
           </span>
         </div>
       </section>
@@ -192,7 +228,7 @@ const EventCalendarPage = ({
       <div className="ctsv-cal-layout">
         <div className="student-calendar ctsv-cal-grid" aria-busy={loading}>
           <div className="student-calendar__weekdays">
-            {WEEKDAYS_VI.map((day) => (
+            {weekdays.map((day) => (
               <span key={day}>{day}</span>
             ))}
           </div>
@@ -256,7 +292,7 @@ const EventCalendarPage = ({
                             setSelectedDay(cell.day);
                           }}
                         >
-                          +{cell.events.length - 3} sự kiện
+                          {t('admin.calendar.moreEvents', { count: cell.events.length - 3 })}
                         </button>
                       )}
                     </div>
@@ -269,22 +305,18 @@ const EventCalendarPage = ({
 
         <aside className="ctsv-cal-sidebar">
           <div className="ctsv-cal-sidebar-head">
-            <h2>
-              {selectedDay
-                ? `Ngày ${String(selectedDay).padStart(2, '0')}/${String(viewDate.getMonth() + 1).padStart(2, '0')}/${viewDate.getFullYear()}`
-                : 'Sự kiện trong tháng'}
-            </h2>
+            <h2>{selectedDayLabel}</h2>
             {selectedDay && (
               <button type="button" className="ctsv-cal-sidebar-clear" onClick={() => setSelectedDay(null)}>
-                Xem cả tháng
+                {t('admin.calendar.sidebar.viewMonth')}
               </button>
             )}
           </div>
 
           {loading ? (
-            <p className="ctsv-cal-sidebar-hint">Đang tải lịch…</p>
+            <p className="ctsv-cal-sidebar-hint">{t('admin.calendar.loading')}</p>
           ) : sidebarEvents.length === 0 ? (
-            <p className="ctsv-cal-sidebar-hint">Không có sự kiện trong khoảng đã chọn.</p>
+            <p className="ctsv-cal-sidebar-hint">{t('admin.calendar.empty')}</p>
           ) : (
             <ul className="ctsv-cal-sidebar-list">
               {sidebarEvents.map((event) => (
@@ -297,7 +329,7 @@ const EventCalendarPage = ({
                     <div className="ctsv-cal-sidebar-body">
                       <strong>{event.title}</strong>
                       <p>
-                        {event.date.toLocaleDateString('vi-VN')} · {event.time}
+                        {event.date.toLocaleDateString(dateLocale)} · {event.time}
                         {event.location ? ` · ${event.location}` : ''}
                       </p>
                       <div className="ctsv-cal-sidebar-tags">

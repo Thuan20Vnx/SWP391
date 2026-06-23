@@ -8,11 +8,9 @@ import {
   createManagedAnnouncement,
   deleteManagedAnnouncement,
   fetchManagedAnnouncements,
-  fetchManagedAnnouncement,
   hideManagedAnnouncement,
   updateManagedAnnouncement
 } from '../../services/announcementManageApi';
-import { API_BASE } from '../../utils/api';
 import { fetchCtsvAnnouncementLinkableEvents } from '../../services/ctsvApi';
 import TargetAudiencePicker from '../../components/announcements/TargetAudiencePicker';
 import NoticeCategoryPicker from '../../components/announcements/NoticeCategoryPicker';
@@ -36,10 +34,14 @@ import {
 import {
   ANNOUNCEMENT_CATEGORY_LABELS,
   formatAnnouncementEventLabel,
+  getAnnouncementCategoryLabel,
   isAnnouncementLinkableEvent,
   resolveAnnouncementCategory
 } from '../../utils/announcementEvents';
 import { resolveAnnouncementId } from '../../utils/announcementId';
+import { useTranslation } from '../../i18n/I18nContext';
+import { mapSelectOptions } from '../../i18n/helpers';
+import { localizeManagedAnnouncement } from '../../utils/localizeAnnouncement';
 
 const AUTOSAVE_MS = 800;
 const BANNER_MAX_BYTES = 5 * 1024 * 1024;
@@ -57,20 +59,18 @@ const EMPTY_FORM = {
 };
 
 const CATEGORY_FILTERS = [
-  { value: 'all', label: 'Tất cả danh mục' },
-  { value: 'general', label: 'Thông báo chung' },
-  { value: 'school', label: 'Sự kiện cấp trường' },
-  { value: 'partner', label: 'Sự kiện đối tác' },
-  { value: 'icpdp', label: 'Sự kiện ICPDP' },
-  { value: 'club', label: 'Sự kiện CLB' },
-  { value: 'hidden', label: 'Đã ẩn' }
+  { value: 'all', labelKey: 'announce.filter.allCategories' },
+  { value: 'general', labelKey: 'announce.filter.general' },
+  { value: 'school', labelKey: 'announce.filter.school' },
+  { value: 'partner', labelKey: 'announce.filter.partner' },
+  { value: 'hidden', labelKey: 'announce.filter.hidden' },
 ];
 
 const SORT_OPTIONS = [
-  { value: 'newest', label: 'Mới nhất' },
-  { value: 'oldest', label: 'Cũ nhất' },
-  { value: 'title_asc', label: 'Tiêu đề A → Z' },
-  { value: 'title_desc', label: 'Tiêu đề Z → A' }
+  { value: 'newest', labelKey: 'announce.sort.newest' },
+  { value: 'oldest', labelKey: 'announce.sort.oldest' },
+  { value: 'title_asc', labelKey: 'announce.sort.titleAsc' },
+  { value: 'title_desc', labelKey: 'announce.sort.titleDesc' },
 ];
 
 const IconSearch = () => (
@@ -86,44 +86,25 @@ const IconChevronDown = () => (
   </svg>
 );
 
-const formatHistoryMetaTime = (value) => {
+const formatDateTime = (value, locale = 'vi-VN') => {
   if (!value) return '—';
   try {
-    const d = new Date(value);
-    const clock = new Intl.DateTimeFormat('vi-VN', {
+    return new Intl.DateTimeFormat(locale, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(d);
-    const date = new Intl.DateTimeFormat('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(d);
-    return `${clock} · ${date}`;
-  } catch {
-    return formatPartnerDate(value);
-  }
-};
-
-const formatDateTime = (value) => {
-  if (!value) return '—';
-  try {
-    return new Intl.DateTimeFormat('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     }).format(new Date(value));
   } catch {
     return formatPartnerDate(value);
   }
 };
 
-const excerpt = (text, max = 120) => {
-  const t = String(text || '').trim();
-  if (!t) return 'Không có nội dung chi tiết.';
-  return t.length <= max ? t : `${t.slice(0, max)}…`;
+const excerpt = (text, max = 120, emptyLabel = '') => {
+  const trimmed = String(text || '').trim();
+  if (!trimmed) return emptyLabel;
+  return trimmed.length <= max ? trimmed : `${trimmed.slice(0, max)}…`;
 };
 
 const getStartOfWeek = () => {
@@ -140,11 +121,6 @@ const isPublishedThisWeek = (publishedAt) => {
   if (!publishedAt) return false;
   return new Date(publishedAt) >= getStartOfWeek();
 };
-
-const getAnnouncementPublishedAt = (announcement) =>
-  announcement?.publishedAt || announcement?.published_at || announcement?.createdAt || null;
-
-const isAnnouncementVisible = (announcement) => announcement?.isHidden !== true;
 
 const hasDraftContent = (draft) =>
   !!(draft && (draft.title || draft.content || draft.eventId || draft.image));
@@ -176,7 +152,20 @@ const PortalAnnouncementManage = ({
   detailPathPrefix,
   eventDetailPathPrefix,
 }) => {
+  const { t, language } = useTranslation();
   const portalConfig = PORTAL_ANNOUNCEMENT_CONFIG[portalRole] || PORTAL_ANNOUNCEMENT_CONFIG.ctsv;
+  const portalTexts = useMemo(
+    () => ({
+      eyebrow: t(portalConfig.eyebrowKey),
+      title: t(portalConfig.titleKey),
+      subtitle: t(portalConfig.subtitleKey),
+      publishLabel: t(portalConfig.publishLabelKey),
+    }),
+    [portalConfig, t],
+  );
+  const categoryFilterOptions = useMemo(() => mapSelectOptions(CATEGORY_FILTERS, t), [t]);
+  const sortOptions = useMemo(() => mapSelectOptions(SORT_OPTIONS, t), [t]);
+  const dateLocale = language === 'en' ? 'en-US' : 'vi-VN';
   const canLinkEvents = portalRole === 'ctsv';
   const resolveAnnouncementDetailPath = (id) => {
     const annId = String(id || '').trim();
@@ -223,16 +212,10 @@ const PortalAnnouncementManage = ({
   const showToastRef = useRef(showToast);
   const autosaveTimerRef = useRef(null);
   const bannerInputRef = useRef(null);
-  const historyCardRef = useRef(null);
 
   showToastRef.current = showToast;
 
   useCloseOnClickOutside(actionMenuWrapRef, Boolean(openActionMenuId), () => setOpenActionMenuId(null));
-
-  const handleStatsClick = (filterVal = 'all') => {
-    setCategoryFilter(filterVal);
-    historyCardRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   const linkableEvents = useMemo(
     () => events.filter(isAnnouncementLinkableEvent),
@@ -243,52 +226,38 @@ const PortalAnnouncementManage = ({
     const map = {};
     linkableEvents.forEach((ev) => {
       const key = ev.id || ev._id;
-      if (key) map[key] = formatAnnouncementEventLabel(ev);
+      if (key) map[key] = formatAnnouncementEventLabel(ev, t, language);
     });
     return map;
-  }, [linkableEvents]);
+  }, [linkableEvents, t, language]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
-
-    const promises = [
-      fetchManagedAnnouncements().catch((err) => {
-        const msg =
-          err?.message?.includes('token') || err?.message?.includes('đăng nhập')
-            ? err.message
-            : 'Không tải dữ liệu thông báo. Hãy restart backend và đăng nhập lại.';
-        showToastRef.current?.(msg, 'error');
-        return [];
-      })
-    ];
-
-    if (canLinkEvents) {
-      promises.push(
-        fetchCtsvAnnouncementLinkableEvents().catch((err) => {
-          console.error('Failed to load linkable events:', err);
-          showToastRef.current?.('Không thể tải danh sách sự kiện liên kết do lỗi kết nối.', 'warning');
-          return { events: [] };
-        })
-      );
+    try {
+      const annRes = await fetchManagedAnnouncements();
+      if (canLinkEvents) {
+        const eventsRes = await fetchCtsvAnnouncementLinkableEvents();
+        const list = eventsRes.events || [];
+        setEvents(list);
+        setForm((f) => {
+          if (!f.eventId) return f;
+          const stillValid = list.some(
+            (ev) => String(ev.id || ev._id) === String(f.eventId)
+          );
+          return stillValid ? f : { ...f, eventId: '' };
+        });
+      }
+      setHistory(annRes || []);
+    } catch (err) {
+      const msg =
+        err?.message?.includes('token') || err?.message?.includes('đăng nhập')
+          ? err.message
+          : t('announce.toast.loadFail');
+      showToastRef.current?.(msg, 'error');
+    } finally {
+      setLoading(false);
     }
-
-    const results = await Promise.all(promises);
-    setHistory(results[0] || []);
-
-    if (canLinkEvents && results[1]) {
-      const list = results[1].events || [];
-      setEvents(list);
-      setForm((f) => {
-        if (!f.eventId) return f;
-        const stillValid = list.some(
-          (ev) => String(ev.id || ev._id) === String(f.eventId)
-        );
-        return stillValid ? f : { ...f, eventId: '' };
-      });
-    }
-
-    setLoading(false);
-  }, [canLinkEvents]);
+  }, [canLinkEvents, t]);
 
   useEffect(() => {
     loadData();
@@ -298,7 +267,7 @@ const PortalAnnouncementManage = ({
     draftReadyRef.current = true;
     if (!initialDraft.hadDraft || draftRestoreToastShownRef.current) return;
     draftRestoreToastShownRef.current = true;
-    showToastRef.current?.('Đã khôi phục bản nháp đã lưu.', 'info');
+    showToastRef.current?.(t('announce.toast.draftRestored'), 'info');
   }, [initialDraft.hadDraft]);
 
   const updateDraftSavedLabel = (at) => {
@@ -345,15 +314,12 @@ const PortalAnnouncementManage = ({
   }, [events]);
 
   const visibleHistoryCount = useMemo(
-    () => history.filter(isAnnouncementVisible).length,
+    () => history.filter((a) => !a.isHidden).length,
     [history]
   );
 
   const historyThisWeek = useMemo(
-    () =>
-      history.filter(
-        (a) => isAnnouncementVisible(a) && isPublishedThisWeek(getAnnouncementPublishedAt(a))
-      ),
+    () => history.filter((a) => !a.isHidden && isPublishedThisWeek(a.publishedAt)),
     [history]
   );
 
@@ -380,16 +346,16 @@ const PortalAnnouncementManage = ({
         return new Date(a.publishedAt) - new Date(b.publishedAt);
       }
       if (sortBy === 'title_asc') {
-        return (a.title || '').localeCompare(b.title || '', 'vi');
+        return (a.title || '').localeCompare(b.title || '', language === 'en' ? 'en' : 'vi');
       }
       if (sortBy === 'title_desc') {
-        return (b.title || '').localeCompare(a.title || '', 'vi');
+        return (b.title || '').localeCompare(a.title || '', language === 'en' ? 'en' : 'vi');
       }
       return new Date(b.publishedAt) - new Date(a.publishedAt);
     });
 
     return list;
-  }, [history, searchQuery, categoryFilter, sortBy, eventSourceById]);
+  }, [history, searchQuery, categoryFilter, sortBy, eventSourceById, language]);
 
   const selectedEventTitle = form.eventId ? eventTitleById[form.eventId] : null;
   const contentLength = form.content.length;
@@ -397,11 +363,11 @@ const PortalAnnouncementManage = ({
 
   const validateForm = () => {
     if (!form.title.trim()) {
-      showToast?.('Nhập tiêu đề thông báo.', 'error');
+      showToast?.(t('announce.toast.titleRequired'), 'error');
       return false;
     }
     if (!form.content.trim()) {
-      showToast?.('Nhập nội dung thông báo.', 'error');
+      showToast?.(t('announce.toast.contentRequired'), 'error');
       return false;
     }
     return true;
@@ -425,11 +391,11 @@ const PortalAnnouncementManage = ({
       };
       if (editingId) {
         await updateManagedAnnouncement(editingId, payload);
-        showToast?.('Đã cập nhật thông báo!', 'success');
+        showToast?.(t('announce.toast.updated'), 'success');
         setEditingId(null);
       } else {
         await createManagedAnnouncement(payload);
-        showToast?.('Đã phát hành thông báo!', 'success');
+        showToast?.(t('announce.toast.published'), 'success');
       }
       setForm({ ...EMPTY_FORM, targetRoles: getDefaultTargetRolesForPublisher(portalRole) });
       clearAnnouncementDraft(portalRole);
@@ -446,14 +412,14 @@ const PortalAnnouncementManage = ({
   const doHideAnnouncement = async () => {
     const annId = resolveAnnouncementId(targetAnnouncement);
     if (!annId) {
-      showToast?.('Không xác định được thông báo.', 'error');
+      showToast?.(t('announce.toast.noId'), 'error');
       setConfirmAction(null);
       return;
     }
     setActionLoading(true);
     try {
       await hideManagedAnnouncement(annId);
-      showToast?.('Đã ẩn thông báo khỏi danh sách.', 'success');
+      showToast?.(t('announce.toast.hidden'), 'success');
       await refreshAnnouncements();
     } catch (err) {
       showToast?.(err.message, 'error');
@@ -467,14 +433,14 @@ const PortalAnnouncementManage = ({
   const doDeleteAnnouncement = async () => {
     const annId = resolveAnnouncementId(targetAnnouncement);
     if (!annId) {
-      showToast?.('Không xác định được thông báo cần xóa.', 'error');
+      showToast?.(t('announce.toast.noId'), 'error');
       setConfirmAction(null);
       return;
     }
     setActionLoading(true);
     try {
       await deleteManagedAnnouncement(annId);
-      showToast?.('Đã xóa thông báo.', 'success');
+      showToast?.(t('announce.toast.deleted'), 'success');
       await refreshAnnouncements();
     } catch (err) {
       showToast?.(err.message, 'error');
@@ -485,32 +451,24 @@ const PortalAnnouncementManage = ({
     }
   };
 
-  const startEditAnnouncement = async (announcement) => {
+  const startEditAnnouncement = (announcement) => {
     const id = resolveAnnouncementId(announcement);
     if (!id) {
-      showToast?.('Không xác định được thông báo.', 'error');
+      showToast?.(t('announce.toast.noId'), 'error');
       return;
     }
-    setActionLoading(true);
-    try {
-      const fullDetails = await fetchManagedAnnouncement(id);
-      setEditingId(id);
-      setForm({
-        title: fullDetails.title || '',
-        content: fullDetails.content || '',
-        eventId: fullDetails.eventId?._id || fullDetails.eventId || '',
-        image: fullDetails.image || '',
-        imageFileName: fullDetails.imageFileName || '',
-        targetRoles: normalizeTargetsForPublisher(portalRole, fullDetails.targetRoles),
-        noticeCategory: fullDetails.noticeCategory || NOTICE_CATEGORY_INFO
-      });
-      setComposeOpen(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (err) {
-      showToast?.('Không thể tải chi tiết thông báo: ' + err.message, 'error');
-    } finally {
-      setActionLoading(false);
-    }
+    setEditingId(id);
+    setForm({
+      title: announcement.title || '',
+      content: announcement.content || '',
+      eventId: announcement.eventId?._id || announcement.eventId || '',
+      image: announcement.image || '',
+      imageFileName: announcement.imageFileName || '',
+      targetRoles: normalizeTargetsForPublisher(portalRole, announcement.targetRoles),
+      noticeCategory: announcement.noticeCategory || NOTICE_CATEGORY_INFO
+    });
+    setComposeOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
@@ -523,10 +481,13 @@ const PortalAnnouncementManage = ({
   const openListConfirm = (type, announcement) => {
     const id = resolveAnnouncementId(announcement);
     if (!id) {
-      showToast?.('Không xác định được thông báo.', 'error');
+      showToast?.(t('announce.toast.noId'), 'error');
       return;
     }
-    setTargetAnnouncement({ id, title: announcement.title });
+    setTargetAnnouncement({
+      id,
+      title: localizeManagedAnnouncement(announcement, t, language, eventTitleById).title,
+    });
     setConfirmAction(type);
   };
 
@@ -538,18 +499,18 @@ const PortalAnnouncementManage = ({
     if (bannerInputRef.current) bannerInputRef.current.value = '';
     clearAnnouncementDraft(portalRole);
     setDraftSavedAt(null);
-    showToast?.('Đã xóa bản nháp.', 'info');
+    showToast?.(t('announce.toast.draftCleared'), 'info');
     setConfirmAction(null);
   };
 
   const handleBannerFile = (file) => {
     if (!file || submitting) return;
     if (!file.type.startsWith('image/')) {
-      showToast?.('Chỉ chấp nhận file ảnh JPG, PNG hoặc WebP.', 'error');
+      showToast?.(t('announce.toast.imageType'), 'error');
       return;
     }
     if (file.size > BANNER_MAX_BYTES) {
-      showToast?.('Ảnh tối đa 5MB. Vui lòng chọn file nhỏ hơn.', 'error');
+      showToast?.(t('announce.toast.imageSize'), 'error');
       return;
     }
     const reader = new FileReader();
@@ -558,7 +519,7 @@ const PortalAnnouncementManage = ({
       setCropFileName(file.name);
       setCropOpen(true);
     };
-    reader.onerror = () => showToast?.('Không đọc được file ảnh.', 'error');
+    reader.onerror = () => showToast?.(t('announce.toast.imageReadFail'), 'error');
     reader.readAsDataURL(file);
   };
 
@@ -573,7 +534,7 @@ const PortalAnnouncementManage = ({
     setCropOpen(false);
     setCropSource('');
     if (!dataUrl) {
-      showToast?.('Không xử lý được ảnh. Vui lòng thử lại.', 'error');
+      showToast?.(t('announce.toast.imageProcessFail'), 'error');
       return;
     }
     setForm((f) => ({
@@ -581,7 +542,7 @@ const PortalAnnouncementManage = ({
       image: dataUrl,
       imageFileName: fileName || f.imageFileName
     }));
-    showToast?.('Đã áp dụng ảnh minh họa (16:9).', 'success');
+    showToast?.(t('announce.toast.imageApplied'), 'success');
   };
 
   const onCropCancel = () => {
@@ -608,56 +569,60 @@ const PortalAnnouncementManage = ({
 
   const handleClearDraftClick = () => {
     if (!form.title && !form.content && !form.eventId && !form.image) {
-      showToast?.('Không có nội dung nháp để xóa.', 'info');
+      showToast?.(t('announce.toast.noDraft'), 'info');
       return;
     }
     setConfirmAction('clear');
   };
 
-  const draftLabel = formatDraftSavedLabel(draftSavedAt);
+  const draftLabel = formatDraftSavedLabel(draftSavedAt, dateLocale);
 
   return (
     <div className="ctsv-announce-page">
       <ConfirmDialog
         open={confirmAction === 'publish'}
-        title="Phát hành thông báo?"
-        message={`Thông báo sẽ được gửi tới: ${formatTargetRolesLabel(form.targetRoles)}. Bạn có chắc muốn phát hành?`}
-        confirmLabel="Phát hành"
-        cancelLabel="Quay lại"
+        title={t('announce.dialog.publishTitle')}
+        message={t('announce.dialog.publishMessage', {
+          targets: formatTargetRolesLabel(form.targetRoles, t),
+        })}
+        confirmLabel={t('announce.dialog.publishConfirm')}
+        cancelLabel={t('announce.dialog.back')}
         onConfirm={doPublish}
         onCancel={() => !submitting && setConfirmAction(null)}
         loading={submitting}
       />
       <ConfirmDialog
         open={confirmAction === 'update'}
-        title="Lưu thay đổi thông báo?"
-        message={`Cập nhật sẽ áp dụng cho đối tượng: ${formatTargetRolesLabel(form.targetRoles)}. Bạn có chắc muốn lưu?`}
-        confirmLabel="Lưu thay đổi"
-        cancelLabel="Quay lại"
+        title={t('announce.dialog.saveTitle')}
+        message={t('announce.dialog.saveMessage', {
+          targets: formatTargetRolesLabel(form.targetRoles, t),
+        })}
+        confirmLabel={t('announce.form.saveChanges')}
+        cancelLabel={t('announce.dialog.back')}
         onConfirm={doPublish}
         onCancel={() => !submitting && setConfirmAction(null)}
         loading={submitting}
       />
       <ConfirmDialog
         open={confirmAction === 'clear'}
-        title="Xóa bản nháp?"
-        message="Toàn bộ tiêu đề, ảnh minh họa, nội dung và liên kết sự kiện trong form sẽ bị xóa. Hành động này không thể hoàn tác."
-        confirmLabel="Xóa nháp"
-        cancelLabel="Giữ lại"
+        title={t('announce.dialog.clearDraftTitle')}
+        message={t('announce.dialog.clearDraftMessage')}
+        confirmLabel={t('announce.dialog.clearDraftConfirm')}
+        cancelLabel={t('announce.dialog.keepDraft')}
         onConfirm={doClearDraft}
         onCancel={() => setConfirmAction(null)}
         danger
       />
       <ConfirmDialog
         open={confirmAction === 'hide'}
-        title="Ẩn thông báo?"
+        title={t('announce.dialog.hideTitle')}
         message={
           targetAnnouncement?.title
-            ? `"${targetAnnouncement.title}" sẽ không hiển thị trong danh sách thông báo.`
-            : 'Thông báo sẽ không hiển thị trong danh sách.'
+            ? t('announce.dialog.hideMessageNamed', { title: targetAnnouncement.title })
+            : t('announce.dialog.hideMessage')
         }
-        confirmLabel="Ẩn"
-        cancelLabel="Hủy"
+        confirmLabel={t('announce.hide')}
+        cancelLabel={t('announce.dialog.cancel')}
         onConfirm={doHideAnnouncement}
         onCancel={() => {
           if (!actionLoading) {
@@ -669,14 +634,14 @@ const PortalAnnouncementManage = ({
       />
       <ConfirmDialog
         open={confirmAction === 'delete'}
-        title="Xóa thông báo vĩnh viễn?"
+        title={t('announce.dialog.deleteTitle')}
         message={
           targetAnnouncement?.title
-            ? `Bạn có chắc muốn xóa "${targetAnnouncement.title}"? Dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục.`
-            : 'Thông báo sẽ bị xóa khỏi hệ thống và không thể khôi phục.'
+            ? t('announce.dialog.deleteMessageNamed', { title: targetAnnouncement.title })
+            : t('announce.dialog.deleteMessage')
         }
-        confirmLabel="Xóa"
-        cancelLabel="Hủy"
+        confirmLabel={t('announce.delete')}
+        cancelLabel={t('announce.dialog.cancel')}
         onConfirm={doDeleteAnnouncement}
         onCancel={() => {
           if (!actionLoading) {
@@ -690,34 +655,17 @@ const PortalAnnouncementManage = ({
 
       <header className="ctsv-announce-hero">
         <div className="ctsv-announce-hero-text">
-          <span className="ctsv-announce-eyebrow">{portalConfig.eyebrow}</span>
-          <h1>{portalConfig.title}</h1>
-          <p>{portalConfig.subtitle}</p>
+          <span className="ctsv-announce-eyebrow">{portalTexts.eyebrow}</span>
+          <h1>{portalTexts.title}</h1>
+          <p>{portalTexts.subtitle}</p>
         </div>
-        <aside className="ctsv-announce-hero-aside" aria-hidden={loading}>
-          <div className="ctsv-announce-hero-stats">
-            <div
-              className="ctsv-announce-hero-stat clickable"
-              onClick={() => handleStatsClick('all')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && handleStatsClick('all')}
-            >
-              <span className="ctsv-announce-hero-stat-num">{visibleHistoryCount}</span>
-              <span className="ctsv-announce-hero-stat-label">Tất cả thông báo</span>
-            </div>
-            <div
-              className="ctsv-announce-hero-stat clickable"
-              onClick={() => handleStatsClick('partner')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && handleStatsClick('partner')}
-            >
-              <span className="ctsv-announce-hero-stat-num">{historyThisWeek.length}</span>
-              <span className="ctsv-announce-hero-stat-label">Đã phát hành trong tuần này</span>
-            </div>
-          </div>
-        </aside>
+        <div className="ctsv-announce-hero-stat" aria-hidden={loading}>
+          <span className="ctsv-announce-hero-stat-num">{visibleHistoryCount}</span>
+          <span className="ctsv-announce-hero-stat-label">{t('announce.visibleCount')}</span>
+          <span className="ctsv-announce-hero-stat-sub">
+            {t('announce.thisWeek', { count: historyThisWeek.length })}
+          </span>
+        </div>
       </header>
 
       <section className="ctsv-announce-compose-card">
@@ -729,11 +677,11 @@ const PortalAnnouncementManage = ({
           onClick={() => setComposeOpen((open) => !open)}
         >
           <div className="ctsv-announce-compose-toggle-main">
-            <h2>{editingId ? 'Chỉnh sửa thông báo' : 'Soạn thông báo mới'}</h2>
-            <p>{editingId ? 'Cập nhật nội dung và đối tượng nhận, sau đó xác nhận lưu.' : 'Điền đầy đủ tiêu đề, đối tượng nhận và nội dung trước khi gửi.'}</p>
+            <h2>{editingId ? t('announce.composeEdit') : t('announce.composeNew')}</h2>
+            <p>{editingId ? t('announce.composeEditDesc') : t('announce.composeNewDesc')}</p>
             {draftLabel && (
               <p className="ctsv-announce-draft-status" aria-live="polite">
-                Bản nháp tự động lưu lúc {draftLabel}
+                {t('announce.draftSaved', { time: draftLabel })}
               </p>
             )}
           </div>
@@ -755,13 +703,13 @@ const PortalAnnouncementManage = ({
           <form className="ctsv-announce-form" onSubmit={handlePublishClick}>
             <label className="ctsv-announce-field">
               <span className="ctsv-announce-label">
-                Tiêu đề <em>*</em>
+                {t('announce.form.title')} <em>*</em>
               </span>
               <input
                 className="ctsv-announce-input"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                placeholder="VD: Mở đăng ký FPT Music Night 2026"
+                placeholder={t('announce.form.titlePlaceholder')}
                 maxLength={200}
                 disabled={submitting}
                 required
@@ -783,43 +731,35 @@ const PortalAnnouncementManage = ({
 
             {canLinkEvents && (
             <label className="ctsv-announce-field">
-              <span className="ctsv-announce-label">Liên kết sự kiện</span>
-              <p className="ctsv-announce-cover-hint">
-                Chỉ hiển thị sự kiện cấp trường (CTSV tạo) và sự kiện đối tác đã được CTSV cùng Admin phê
-                duyệt. Sự kiện CLB do ICPDP quản lý — không hiển thị tại đây.
-              </p>
+              <span className="ctsv-announce-label">{t('announce.form.linkEvent')}</span>
+              <p className="ctsv-announce-cover-hint">{t('announce.form.linkEventHint')}</p>
               <AppSelect
                 value={form.eventId}
                 onChange={(e) => setForm((f) => ({ ...f, eventId: e.target.value }))}
-                placeholder="— Không chọn sự kiện —"
+                placeholder={t('announce.event.none')}
                 disabled={submitting || loading}
                 options={[
-                  { value: '', label: '— Không chọn sự kiện —' },
+                  { value: '', label: t('announce.event.none') },
                   ...linkableEvents.map((ev) => ({
                     value: ev.id || ev._id,
-                    label: formatAnnouncementEventLabel(ev)
+                    label: formatAnnouncementEventLabel(ev, t, language)
                   }))
                 ]}
               />
               {!loading && linkableEvents.length === 0 && (
-                <span className="ctsv-announce-hint">
-                  Chưa có sự kiện đủ điều kiện. Tạo sự kiện cấp trường hoặc duyệt đơn đối tác (CTSV + Admin)
-                  trước.
-                </span>
+                <span className="ctsv-announce-hint">{t('announce.form.noEventsHint')}</span>
               )}
               {selectedEventTitle && (
                 <span className="ctsv-announce-hint">
-                  Gắn với: <strong>{selectedEventTitle}</strong>
+                  {t('announce.form.linkedTo', { title: selectedEventTitle })}
                 </span>
               )}
             </label>
             )}
 
             <div className="ctsv-announce-field">
-              <span className="ctsv-announce-label">Ảnh minh họa</span>
-              <p className="ctsv-announce-cover-hint">
-                Tùy chọn. Sau khi chọn ảnh, kéo và zoom trong khung 16:9 rồi áp dụng. JPG, PNG, WebP — tối đa 5MB.
-              </p>
+              <span className="ctsv-announce-label">{t('announce.form.coverImage')}</span>
+              <p className="ctsv-announce-cover-hint">{t('announce.form.coverHint')}</p>
               <input
                 ref={bannerInputRef}
                 type="file"
@@ -848,9 +788,9 @@ const PortalAnnouncementManage = ({
                 >
                   {form.image ? (
                     <>
-                      <img src={form.image} alt="Xem trước ảnh thông báo" className="ctsv-banner-preview" />
+                      <img src={form.image} alt={t('announce.form.previewAlt')} className="ctsv-banner-preview" />
                       <div className="ctsv-banner-overlay">
-                        <span>Đổi ảnh</span>
+                        <span>{t('announce.form.changeImage')}</span>
                       </div>
                     </>
                   ) : (
@@ -863,8 +803,8 @@ const PortalAnnouncementManage = ({
                         />
                         <path d="M12 17l-4-4h2.5V9h3v4H16l-4 4z" fill="currentColor" />
                       </svg>
-                      <span className="ctsv-banner-upload-title">Tải ảnh lên</span>
-                      <span className="ctsv-banner-upload-hint">Kéo thả hoặc bấm để chọn file</span>
+                      <span className="ctsv-banner-upload-title">{t('announce.form.uploadImage')}</span>
+                      <span className="ctsv-banner-upload-hint">{t('announce.form.uploadHint')}</span>
                     </div>
                   )}
                 </div>
@@ -881,7 +821,7 @@ const PortalAnnouncementManage = ({
                       onClick={() => bannerInputRef.current?.click()}
                       disabled={submitting}
                     >
-                      Chọn file
+                      {t('announce.form.chooseFile')}
                     </button>
                     {form.image && (
                       <>
@@ -891,7 +831,7 @@ const PortalAnnouncementManage = ({
                           onClick={openBannerCropEditor}
                           disabled={submitting}
                         >
-                          Cắt / chỉnh sửa
+                          {t('announce.form.cropEdit')}
                         </button>
                         <button
                           type="button"
@@ -899,7 +839,7 @@ const PortalAnnouncementManage = ({
                           onClick={removeBanner}
                           disabled={submitting}
                         >
-                          Xóa ảnh
+                          {t('announce.form.removeImage')}
                         </button>
                       </>
                     )}
@@ -910,18 +850,18 @@ const PortalAnnouncementManage = ({
 
             <label className="ctsv-announce-field">
               <span className="ctsv-announce-label">
-                Nội dung <em>*</em>
+                {t('announce.form.content')} <em>*</em>
               </span>
               <textarea
                 className="ctsv-announce-textarea"
                 rows={8}
                 value={form.content}
                 onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                placeholder="Mô tả thời gian, địa điểm, cách đăng ký và lưu ý quan trọng..."
+                placeholder={t('announce.form.contentPlaceholder')}
                 disabled={submitting}
                 required
               />
-              <span className="ctsv-announce-char">{contentLength} ký tự</span>
+              <span className="ctsv-announce-char">{t('announce.form.charCount', { count: contentLength })}</span>
             </label>
 
             <div className="ctsv-announce-form-actions">
@@ -931,8 +871,8 @@ const PortalAnnouncementManage = ({
                 disabled={submitting || !canPublish}
               >
                 {submitting
-                  ? editingId ? 'Đang lưu…' : 'Đang phát hành…'
-                  : editingId ? 'Lưu thay đổi' : portalConfig.publishLabel}
+                  ? editingId ? t('announce.form.saving') : t('announce.form.publishing')
+                  : editingId ? t('announce.form.saveChanges') : portalTexts.publishLabel}
               </button>
               {editingId && (
                 <button
@@ -941,7 +881,7 @@ const PortalAnnouncementManage = ({
                   disabled={submitting}
                   onClick={cancelEdit}
                 >
-                  Hủy sửa
+                  {t('announce.form.cancelEdit')}
                 </button>
               )}
               <button
@@ -950,7 +890,7 @@ const PortalAnnouncementManage = ({
                 disabled={submitting}
                 onClick={handleClearDraftClick}
               >
-                Xóa nháp
+                {t('announce.form.clearDraft')}
               </button>
             </div>
           </form>
@@ -958,18 +898,18 @@ const PortalAnnouncementManage = ({
 
         <aside className="ctsv-announce-aside">
           <div className="ctsv-announce-tip-card">
-            <h3>Gợi ý nội dung</h3>
+            <h3>{t('announce.form.tipsTitle')}</h3>
             <ul>
-              <li>Chỉ gắn sự kiện cấp trường hoặc đối tác đã duyệt đủ (không gắn sự kiện CLB)</li>
-              <li>Nêu rõ thời gian và địa điểm tổ chức</li>
-              <li>Hướng dẫn đăng ký / check-in cho sinh viên</li>
-              <li>Thêm ảnh minh họa để thu hút sinh viên (tùy chọn)</li>
-              <li>Liên hệ phụ trách khi cần hỗ trợ</li>
+              <li>{t('announce.form.tip1')}</li>
+              <li>{t('announce.form.tip2')}</li>
+              <li>{t('announce.form.tip3')}</li>
+              <li>{t('announce.form.tip4')}</li>
+              <li>{t('announce.form.tip5')}</li>
             </ul>
           </div>
           {(form.title || form.content || form.image) && (
             <div className="ctsv-announce-preview-card">
-              <h3>Xem trước</h3>
+              <h3>{t('announce.form.previewTitle')}</h3>
               {form.image && (
                 <img
                   src={form.image}
@@ -978,12 +918,12 @@ const PortalAnnouncementManage = ({
                 />
               )}
               <p className="ctsv-announce-preview-title">
-                {form.title.trim() || 'Tiêu đề thông báo'}
+                {form.title.trim() || t('announce.form.previewTitleFallback')}
               </p>
               {selectedEventTitle && (
                 <span className="ctsv-announce-preview-event">{selectedEventTitle}</span>
               )}
-              <p className="ctsv-announce-preview-body">{excerpt(form.content, 200)}</p>
+              <p className="ctsv-announce-preview-body">{excerpt(form.content, 200, t('announce.noContent'))}</p>
             </div>
           )}
         </aside>
@@ -992,10 +932,10 @@ const PortalAnnouncementManage = ({
         </div>
       </section>
 
-      <section ref={historyCardRef} className="ctsv-announce-history-card">
+      <section className="ctsv-announce-history-card">
         <div className="ctsv-announce-card-head">
-          <h2>Danh sách thông báo</h2>
-          <p>Xem, tìm kiếm và quản lý thông báo đã phát hành trên toàn trường.</p>
+          <h2>{t('announce.listTitle')}</h2>
+          <p>{t('announce.listDesc')}</p>
         </div>
 
         <div className="ctsv-announce-browse-toolbar">
@@ -1006,7 +946,7 @@ const PortalAnnouncementManage = ({
             <input
               type="search"
               className="ctsv-events-search-input"
-              placeholder="Tìm theo tiêu đề, nội dung, sự kiện…"
+              placeholder={t('announce.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -1015,35 +955,35 @@ const PortalAnnouncementManage = ({
             <AppSelect
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              options={CATEGORY_FILTERS}
+              options={categoryFilterOptions}
               fullWidth={false}
-              aria-label="Lọc danh mục"
+              aria-label={t('announce.filterCategoryAria')}
             />
             <AppSelect
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              options={SORT_OPTIONS}
+              options={sortOptions}
               fullWidth={false}
-              aria-label="Sắp xếp"
+              aria-label={t('announce.sortAria')}
             />
           </div>
         </div>
 
         <p className="ctsv-events-filter-summary" aria-live="polite">
-          Hiển thị <strong>{filteredHistory.length}</strong> / {history.length} thông báo
+          {t('announce.showingCount', { shown: filteredHistory.length, total: history.length })}
           {categoryFilter !== 'all' && (
             <>
               {' '}
-              · Danh mục:{' '}
+              · {t('announce.categoryLabel')}:{' '}
               <strong>
-                {CATEGORY_FILTERS.find((c) => c.value === categoryFilter)?.label}
+                {categoryFilterOptions.find((c) => c.value === categoryFilter)?.label}
               </strong>
             </>
           )}
         </p>
 
         {loading ? (
-          <p className="ctsv-announce-empty">Đang tải danh sách…</p>
+          <p className="ctsv-announce-empty">{t('announce.loadingList')}</p>
         ) : filteredHistory.length === 0 ? (
           <div className="ctsv-announce-empty-state">
             <span className="ctsv-announce-empty-icon" aria-hidden>
@@ -1053,9 +993,7 @@ const PortalAnnouncementManage = ({
               </svg>
             </span>
             <p>
-              {history.length === 0
-                ? 'Chưa có thông báo nào được phát hành.'
-                : 'Không tìm thấy thông báo phù hợp — thử đổi từ khóa hoặc danh mục.'}
+              {history.length === 0 ? t('announce.emptyNone') : t('announce.emptyFilter')}
             </p>
             {(searchQuery || categoryFilter !== 'all') && (
               <button
@@ -1067,7 +1005,7 @@ const PortalAnnouncementManage = ({
                   setSortBy('newest');
                 }}
               >
-                Xóa bộ lọc
+                {t('announce.clearFilters')}
               </button>
             )}
           </div>
@@ -1075,74 +1013,79 @@ const PortalAnnouncementManage = ({
           <ul className="ctsv-announce-history-list">
             {filteredHistory.map((a) => {
               const annId = resolveAnnouncementId(a);
+              const display = localizeManagedAnnouncement(a, t, language, eventTitleById);
               const cat = resolveAnnouncementCategory(a, eventSourceById);
               const isExpanded = expandedId === annId;
               const evId = a.eventId?._id || a.eventId;
+              const linkedTitle =
+                display._localizedEventTitle ||
+                a.eventId?.title ||
+                (evId && eventTitleById[evId]) ||
+                null;
               return (
                 <li key={a._id || annId} className="ctsv-announce-history-item">
-                  <div className="ctsv-announce-history-thumb-wrapper">
+                  {a.image ? (
                     <img
-                      src={`${API_BASE}/api/announcements/${annId}/image`}
+                      src={a.image}
                       alt=""
                       className="ctsv-announce-history-thumb"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
                     />
-                    <div className="ctsv-announce-history-icon" aria-hidden style={{ display: 'none' }}>
-                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                      </svg>
-                    </div>
+                  ) : (
+                  <div className="ctsv-announce-history-icon" aria-hidden>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
                   </div>
+                  )}
                   <div className="ctsv-announce-history-body">
                     <div className="ctsv-announce-history-title-row">
-                      <h3>{a.title}</h3>
+                      <h3>{display.title}</h3>
                       <span className={`ctsv-announce-cat-pill ctsv-announce-cat-pill--${cat}`}>
-                        {ANNOUNCEMENT_CATEGORY_LABELS[cat] || cat}
+                        {getAnnouncementCategoryLabel(cat, t)}
                       </span>
                       <span className={`ctsv-announce-notice-pill ctsv-announce-notice-pill--${a.noticeCategory || 'info'}`}>
-                        {getNoticeCategoryLabel(a.noticeCategory)}
+                        {getNoticeCategoryLabel(a.noticeCategory, t)}
                       </span>
                     </div>
-                  </div>
-                  <div className="ctsv-announce-history-meta">
-                    <time dateTime={a.publishedAt}>{formatHistoryMetaTime(a.publishedAt)}</time>
-                    <span className="ctsv-announce-history-targets">
-                      Gửi tới: {formatTargetRolesLabel(a.targetRoles)}
-                    </span>
-                  </div>
-                  <div className="ctsv-announce-history-content">
-                    <p className={isExpanded ? 'is-expanded' : undefined}>
-                      {isExpanded ? a.content : excerpt(a.content)}
-                    </p>
-                    {isExpanded && a.content && a.content.length > 120 && (
+                    <p>{isExpanded ? display.content : excerpt(display.content, 120, t('announce.noContent'))}</p>
+                    {isExpanded && display.content && display.content.length > 120 && (
                       <button
                         type="button"
                         className="ctsv-announce-read-toggle"
                         onClick={() => setExpandedId(null)}
                       >
-                        Thu gọn
+                        {t('announce.collapse')}
                       </button>
                     )}
-                    {!isExpanded && (a.content || '').length > 120 && (
+                    {!isExpanded && (display.content || '').length > 120 && (
                       <button
                         type="button"
                         className="ctsv-announce-read-toggle"
                         onClick={() => setExpandedId(annId)}
                       >
-                        Xem đầy đủ
+                        {t('announce.expand')}
                       </button>
                     )}
+                    <div className="ctsv-announce-history-meta">
+                      <time dateTime={a.publishedAt}>{formatDateTime(a.publishedAt, dateLocale)}</time>
+                      {linkedTitle && (
+                        <span className="ctsv-announce-history-event">{linkedTitle}</span>
+                      )}
+                      {a.publishedByEmail && (
+                        <span className="ctsv-announce-history-author">{a.publishedByEmail}</span>
+                      )}
+                      <span className="ctsv-announce-history-targets">
+                        {t('announce.sentTo', { targets: formatTargetRolesLabel(a.targetRoles, t) })}
+                      </span>
+                    </div>
                   </div>
                   <div className="ctsv-announce-history-actions">
                     {evId && canLinkEvents && (
                       <Link
                         to={resolveEventDetailPath(evId)}
                         className="ctsv-announce-history-btn ctsv-announce-history-btn--event"
-                        title="Xem sự kiện"
-                        aria-label="Xem sự kiện"
+                        title={t('announce.viewEvent')}
+                        aria-label={t('announce.viewEvent')}
                       >
                         <CtsvActionIcon type="event" />
                       </Link>
@@ -1150,8 +1093,8 @@ const PortalAnnouncementManage = ({
                     <Link
                       to={resolveAnnouncementDetailPath(annId)}
                       className="ctsv-announce-history-btn ctsv-announce-history-btn--detail"
-                      title="Chi tiết thông báo"
-                      aria-label="Chi tiết thông báo"
+                      title={t('announce.viewDetail')}
+                      aria-label={t('announce.viewDetail')}
                     >
                       <CtsvActionIcon type="detail" />
                     </Link>
@@ -1167,8 +1110,8 @@ const PortalAnnouncementManage = ({
                           setOpenActionMenuId(openActionMenuId === annId ? null : annId);
                         }}
                         disabled={actionLoading || submitting}
-                        title="Thêm thao tác"
-                        aria-label="Thêm thao tác"
+                        title={t('announce.moreActions')}
+                        aria-label={t('announce.moreActions')}
                         aria-expanded={openActionMenuId === annId}
                         aria-haspopup="menu"
                       >
@@ -1188,7 +1131,7 @@ const PortalAnnouncementManage = ({
                               disabled={actionLoading || submitting}
                             >
                               <CtsvActionIcon type="edit" size={16} />
-                              Sửa thông báo
+                              {t('announce.edit')}
                             </button>
                           )}
                           {!a.isHidden && (
@@ -1203,7 +1146,7 @@ const PortalAnnouncementManage = ({
                               disabled={actionLoading || submitting}
                             >
                               <CtsvActionIcon type="hide" size={16} />
-                              Ẩn thông báo
+                              {t('announce.hide')}
                             </button>
                           )}
                           <button
@@ -1217,7 +1160,7 @@ const PortalAnnouncementManage = ({
                             disabled={actionLoading || submitting}
                           >
                             <CtsvActionIcon type="delete" size={16} />
-                            Xóa thông báo
+                            {t('announce.delete')}
                           </button>
                         </div>
                       )}

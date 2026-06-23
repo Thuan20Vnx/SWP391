@@ -1,7 +1,9 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { getCategoryColor, getFillPercent } from '../data/eventDiscoveryData';
-import { prefetchPublicEventById } from '../services/eventsApi';
+import React, { useMemo } from 'react';
+import { getCategoryColor, getFillPercent, getOrganizerLabel } from '../data/eventDiscoveryData';
+import { getCategoryDisplayLabel } from '../constants/eventCategories';
+import { formatEventDateLabel, formatEventLocationLabel, isFreePriceLabel } from '../utils/eventDisplay';
+import { useTranslation } from '../i18n/I18nContext';
+
 const CalendarIcon = () => (
   <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
     <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
@@ -19,15 +21,16 @@ const EventDiscoveryCard = ({
   onDetail,
   onPrimaryAction,
   onManage,
-  manageLabel = 'Quản lý',
-  manageHint = '',
+  manageLabel,
   viewOnly = false,
 }) => {
+  const { t, language } = useTranslation();
+  const resolvedManageLabel = manageLabel || t('eventCard.manage');
   const {
     title,
     thumbnail,
     category,
-    categoryLabel,
+    startDate,
     dateLabel,
     location,
     filledSlots,
@@ -39,7 +42,30 @@ const EventDiscoveryCard = ({
     priceLabel,
     studentPrivilegeApplied,
     organizerLabel,
+    organizerType,
   } = event;
+
+  const resolvedOrganizerLabel =
+    organizerType != null
+      ? getOrganizerLabel(organizerType, t)
+      : organizerLabel;
+
+  const displayCategoryLabel = useMemo(
+    () => getCategoryDisplayLabel(category, t),
+    [category, t],
+  );
+  const displayDateLabel = useMemo(
+    () => (startDate ? formatEventDateLabel(startDate, language) : dateLabel),
+    [startDate, dateLabel, language],
+  );
+  const displayLocation = useMemo(
+    () => formatEventLocationLabel(location, language),
+    [location, language],
+  );
+  const displayPriceLabel = useMemo(
+    () => (isFreePriceLabel(priceLabel) ? t('eventCard.free') : priceLabel),
+    [priceLabel, t],
+  );
 
   const fillPercent = getFillPercent(filledSlots, totalSlots);
   const categoryColor = getCategoryColor(category);
@@ -49,18 +75,21 @@ const EventDiscoveryCard = ({
   const showProgress = !isPostponed;
   const hasManageAction = viewOnly && typeof onManage === 'function';
   const singleAction = isPostponed || (viewOnly && !hasManageAction);
-  const detailPath = event?.id ? `/events/${event.id}` : null;
-  // Khi consumer cung cấp onPrimaryAction (vd: ICPDP/CTSV điều hướng tới trang
-  // chi tiết riêng), dùng callback đó thay vì link công khai /events/:id.
-  const usesCustomDetail = viewOnly && !hasManageAction && typeof onPrimaryAction === 'function';
-  const prefetchDetail = () => {
-    if (event?.id) prefetchPublicEventById(event.id);
-  };
 
-  return (    <article
+  const primaryButtonLabel = (() => {
+    if (hasManageAction) return resolvedManageLabel;
+    if (viewOnly) return t('eventCard.viewDetail');
+    if (isRegistered) return t('eventCard.viewTicket');
+    if (isExpired) return t('eventCard.expired');
+    if (isPostponed) return t('eventCard.viewDetail');
+    if (primaryLabel === 'Mua vé') return t('eventCard.buyTicket');
+    return t('eventCard.registerNow');
+  })();
+
+  return (
+    <article
       className={`event-discovery-card event-discovery-card--${cardState}`}
       data-state={cardState}
-      onMouseEnter={prefetchDetail}
     >
       <div className="event-discovery-card__media">
         <img src={thumbnail} alt={title} className="event-discovery-card__img" />
@@ -70,22 +99,22 @@ const EventDiscoveryCard = ({
           className="event-discovery-card__category"
           style={{ backgroundColor: isExpired ? '#4b5563' : categoryColor }}
         >
-          {categoryLabel || category}
+          {displayCategoryLabel}
         </span>
 
         {isRegistered && !isExpired && !isPostponed && (
-          <span className="event-discovery-card__registered-badge">Đã đăng ký</span>
+          <span className="event-discovery-card__registered-badge">{t('eventCard.registered')}</span>
         )}
 
         {isExpired && (
           <div className="event-discovery-card__overlay event-discovery-card__overlay--expired">
-            <span className="event-discovery-card__status-pill">Đã kết thúc</span>
+            <span className="event-discovery-card__status-pill">{t('eventCard.expired')}</span>
           </div>
         )}
 
         {isPostponed && (
           <div className="event-discovery-card__overlay event-discovery-card__overlay--postponed">
-            <span className="event-discovery-card__postponed-badge">Bị hoãn</span>
+            <span className="event-discovery-card__postponed-badge">{t('eventCard.postponed')}</span>
             {postponeReason && (
               <p className="event-discovery-card__postpone-reason">{postponeReason}</p>
             )}
@@ -96,26 +125,9 @@ const EventDiscoveryCard = ({
       <div className="event-discovery-card__body">
         <div className="event-discovery-card__body-main">
           <div className="event-discovery-card__head">
-            {usesCustomDetail ? (
-              <button
-                type="button"
-                className="event-discovery-card__title-link"
-                onClick={() => onPrimaryAction?.(event)}
-              >
-                <h3 className="event-discovery-card__title">{title}</h3>
-              </button>
-            ) : detailPath ? (
-              <Link
-                to={detailPath}
-                className="event-discovery-card__title-link"
-                onFocus={prefetchDetail}
-              >
-                <h3 className="event-discovery-card__title">{title}</h3>
-              </Link>
-            ) : (
-              <h3 className="event-discovery-card__title">{title}</h3>
-            )}            {organizerLabel && (
-              <span className="event-discovery-card__organizer">{organizerLabel}</span>
+            <h3 className="event-discovery-card__title">{title}</h3>
+            {resolvedOrganizerLabel && (
+              <span className="event-discovery-card__organizer">{resolvedOrganizerLabel}</span>
             )}
           </div>
 
@@ -124,14 +136,14 @@ const EventDiscoveryCard = ({
               <span className="event-discovery-card__meta-icon" aria-hidden="true">
                 <CalendarIcon />
               </span>
-              <span className="event-discovery-card__meta-text">{dateLabel}</span>
+              <span className="event-discovery-card__meta-text">{displayDateLabel}</span>
             </div>
             <div className="event-discovery-card__meta-chip">
               <span className="event-discovery-card__meta-icon" aria-hidden="true">
                 <LocationIcon />
               </span>
               <span className="event-discovery-card__meta-text event-discovery-card__location">
-                {location}
+                {displayLocation}
               </span>
             </div>
           </div>
@@ -142,9 +154,11 @@ const EventDiscoveryCard = ({
                 <div className="event-discovery-card__progress">
                   <div className="event-discovery-card__progress-labels">
                     <span className="event-discovery-card__progress-slot">
-                      <strong>{filledSlots}</strong>/{totalSlots} chỗ
+                      {t('eventCard.slots', { filled: filledSlots, total: totalSlots })}
                     </span>
-                    <span className={isExpired ? 'is-muted' : 'is-accent'}>{fillPercent}% đã đăng ký</span>
+                    <span className={isExpired ? 'is-muted' : 'is-accent'}>
+                      {t('eventCard.fillPercent', { percent: fillPercent })}
+                    </span>
                   </div>
                   <div className="event-discovery-card__progress-track">
                     <div
@@ -157,9 +171,9 @@ const EventDiscoveryCard = ({
 
               {priceLabel && !isPostponed && (
                 <div className="event-discovery-card__price">
-                  <span className="event-discovery-card__price-label">{priceLabel}</span>
+                  <span className="event-discovery-card__price-label">{displayPriceLabel}</span>
                   {studentPrivilegeApplied && (
-                    <span className="event-discovery-card__price-badge">Ưu đãi SV</span>
+                    <span className="event-discovery-card__price-badge">{t('eventCard.studentDiscount')}</span>
                   )}
                 </div>
               )}
@@ -168,27 +182,15 @@ const EventDiscoveryCard = ({
         </div>
 
         <div className={`event-discovery-card__actions ${singleAction ? 'is-single' : ''}`}>
-          {hasManageAction && manageHint ? (
-            <p className="event-discovery-card__manage-hint">{manageHint}</p>
-          ) : null}
-          {!isPostponed && (!viewOnly || hasManageAction) && detailPath && (
-            <Link
-              to={detailPath}
+          {!isPostponed && (!viewOnly || hasManageAction) && (
+            <button
+              type="button"
               className="event-discovery-card__btn event-discovery-card__btn--outline"
-              onFocus={prefetchDetail}
+              onClick={() => onDetail?.(event)}
             >
-              Chi tiết
-            </Link>
+              {t('eventCard.detail')}
+            </button>
           )}
-          {viewOnly && !hasManageAction && detailPath && !usesCustomDetail ? (
-            <Link
-              to={detailPath}
-              className={`event-discovery-card__btn event-discovery-card__btn--primary ${singleAction ? 'is-full' : ''}`}
-              onFocus={prefetchDetail}
-            >
-              Xem chi tiết
-            </Link>
-          ) : (
           <button
             type="button"
             className={`event-discovery-card__btn event-discovery-card__btn--primary ${
@@ -197,12 +199,12 @@ const EventDiscoveryCard = ({
             disabled={isExpired && !viewOnly}
             onClick={() => {
               if (hasManageAction) onManage?.(event);
+              else if (viewOnly) onDetail?.(event);
               else onPrimaryAction?.(event);
             }}
           >
-            {hasManageAction ? manageLabel : primaryLabel}
+            {primaryButtonLabel}
           </button>
-          )}
         </div>
       </div>
     </article>

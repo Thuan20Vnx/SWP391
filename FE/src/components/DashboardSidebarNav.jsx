@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { getSidebarMenuSections, isStudentSidebarItemActive } from '../data/studentSidebarMenu';
+import { Link } from 'react-router-dom';
+import { getSidebarMenuSections } from '../data/studentSidebarMenu';
 import { getUserRole } from '../utils/auth';
+import { useTranslation } from '../i18n/I18nContext';
 
 const MenuIcon = ({ type }) => {
   const props = {
@@ -67,28 +68,6 @@ const MenuIcon = ({ type }) => {
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       );
-    case 'home':
-      return (
-        <svg {...props}>
-          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
-        </svg>
-      );
-    case 'ticket':
-      return (
-        <svg {...props}>
-          <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
-          <line x1="9" y1="9" x2="9" y2="15" />
-        </svg>
-      );
-    case 'news':
-      return (
-        <svg {...props}>
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          <line x1="8" y1="7" x2="16" y2="7" />
-          <line x1="8" y1="11" x2="16" y2="11" />
-        </svg>
-      );
     case 'user':
     default:
       return (
@@ -107,11 +86,8 @@ const DashboardSidebarNav = ({
   onProfileMenuItem,
   onNavigate,
 }) => {
-  const { pathname } = useLocation();
+  const { t } = useTranslation();
   const sections = getSidebarMenuSections(getUserRole());
-
-  const isItemActive = (item) =>
-    activeMenu === item.key || isStudentSidebarItemActive(item.key, pathname);
 
   const handleItemClick = (item) => (event) => {
     event.preventDefault();
@@ -132,10 +108,13 @@ const DashboardSidebarNav = ({
   return (
     <nav className="sidebar-menu">
       {sections.map((section) => (
-        <div className="menu-section" key={section.header || 'main'}>
-          {section.header && <span className="menu-header">{section.header}</span>}
+        <div className="menu-section" key={section.headerKey || section.header || 'main'}>
+          {(section.headerKey || section.header) && (
+            <span className="menu-header">{section.headerKey ? t(section.headerKey) : section.header}</span>
+          )}
           {section.items.map((item) => {
-            const className = `menu-item ${isItemActive(item) ? 'active' : ''}`;
+            const className = `menu-item ${activeMenu === item.key ? 'active' : ''}`;
+            const label = item.labelKey ? t(item.labelKey) : item.label;
 
             if (onNavigate) {
               return (
@@ -147,7 +126,7 @@ const DashboardSidebarNav = ({
                 >
                   <div className="menu-item-content">
                     <MenuIcon type={item.icon} />
-                    <span>{item.label}</span>
+                    <span>{label}</span>
                   </div>
                 </a>
               );
@@ -162,7 +141,7 @@ const DashboardSidebarNav = ({
               >
                 <div className="menu-item-content">
                   <MenuIcon type={item.icon} />
-                  <span>{item.label}</span>
+                  <span>{label}</span>
                 </div>
               </Link>
             );
@@ -177,7 +156,7 @@ const DashboardSidebarNav = ({
           <rect x="3" y="14" width="7" height="7" rx="1" />
           <path d="M14 14h.01M18 14h.01M14 18h.01M18 18h.01M21 14v4h-4" />
         </svg>
-        <span>Check-in tại sự kiện</span>
+        <span>{t('student.checkin')}</span>
       </button>
     </nav>
   );

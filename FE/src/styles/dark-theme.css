@@ -98,104 +98,18 @@ html.dark .home-header {
   border-bottom-color: var(--header-border);
 }
 
-html.dark .site-header:not(.site-header--with-shell) .mobile-hamburger-btn {
-  background: var(--surface-muted);
-  border-color: var(--surface-border);
-  color: var(--text-muted);
+html.dark .mobile-hamburger-btn {
+  color: var(--text-main);
 }
 
-html.dark .site-header:not(.site-header--with-shell) .mobile-hamburger-btn:hover {
-  background: rgba(242, 111, 33, 0.14);
-  border-color: rgba(242, 111, 33, 0.35);
-  color: var(--primary);
-}
-
-html.dark .site-header:not(.site-header--with-shell) .mobile-hamburger-btn[aria-expanded='true'] {
-  background: rgba(242, 111, 33, 0.16);
-  border-color: rgba(242, 111, 33, 0.5);
-  color: var(--primary);
-}
-
-html.dark .site-header--with-shell .mobile-hamburger-btn.ctsv-portal-hamburger {
-  background: var(--surface-muted);
-  border-color: var(--surface-border);
-  color: var(--text-muted);
-}
-
-html.dark .site-header--with-shell .mobile-hamburger-btn.ctsv-portal-hamburger:hover {
-  background: rgba(242, 111, 33, 0.14);
-  border-color: rgba(242, 111, 33, 0.35);
-  color: var(--primary);
-}
-
-html.dark .site-header--with-shell .mobile-hamburger-btn.ctsv-portal-hamburger[aria-expanded='true'] {
-  background: rgba(242, 111, 33, 0.16);
-  border-color: rgba(242, 111, 33, 0.5);
-  color: var(--primary);
+html.dark .mobile-hamburger-btn:hover {
+  background-color: var(--surface-hover);
 }
 
 html.dark .site-header__search-input {
   background: var(--surface-muted);
   color: var(--text-main);
   border: 1px solid var(--surface-border);
-}
-
-html.dark .site-header__mobile-search-sheet {
-  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-main) 100%);
-}
-
-html.dark .site-header__mobile-search-sheet-head {
-  background: rgba(20, 20, 22, 0.94);
-  border-bottom-color: var(--surface-border);
-}
-
-html.dark .site-header__mobile-search-submit {
-  box-shadow:
-    0 2px 10px rgba(242, 111, 33, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-html.dark .site-header__mobile-search-submit:disabled {
-  opacity: 0.35;
-}
-
-html.dark .site-header__mobile-search-field {
-  background: var(--surface-muted);
-  border-color: var(--surface-border);
-  box-shadow: none;
-}
-
-html.dark .site-header__mobile-search-field:focus-within {
-  border-color: rgba(242, 111, 33, 0.55);
-  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.14);
-}
-
-html.dark .site-header__mobile-search-input {
-  color: var(--text-main);
-}
-
-html.dark .site-header__mobile-search-input::placeholder {
-  color: var(--text-muted);
-}
-
-html.dark .site-header__mobile-search-chip {
-  background: var(--surface-muted);
-  border-color: var(--surface-border);
-  color: var(--text-main);
-}
-
-html.dark .site-header__mobile-search-chip:hover {
-  background: rgba(242, 111, 33, 0.12);
-  border-color: rgba(242, 111, 33, 0.35);
-}
-
-html.dark .site-header__mobile-search-hint,
-html.dark .site-header__mobile-search-label {
-  color: var(--text-muted);
-}
-
-html.dark .site-header__mobile-search-hint strong {
-  color: var(--text-main);
 }
 
 html.dark .profile-display-card-link {
@@ -651,6 +565,25 @@ html.dark .settings-note {
   color: var(--text-muted);
 }
 
+html.dark .settings-group__label {
+  color: var(--text-tertiary);
+}
+
+html.dark .ctsv-profile-security-body .profile-input-group input {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .ctsv-profile-security-body .profile-input-group input:focus {
+  background: var(--surface-muted);
+  border-color: var(--primary);
+}
+
+html.dark .ctsv-profile-security-body .profile-input-group label {
+  color: var(--text-secondary);
+}
+
 html.dark .settings-version-badge {
   background: var(--surface-hover);
   color: var(--text-secondary);
@@ -708,9 +641,8 @@ html.dark .toast-item {
 }
 
 /* ── Misc ── */
-html.dark .student-portal .home-footer--embedded {
-  background-color: var(--bg-card);
-  border-top-color: var(--surface-border);
+html.dark .dashboard-footer p {
+  color: var(--text-muted);
 }
 
 html.dark .profile-skeleton {
@@ -723,4 +655,85 @@ html.dark .sidebar-overlay.active {
 
 html.dark .profile-menu-backdrop {
   background: rgba(0, 0, 0, 0.45);
+}
+
+/* ── Admin shell / sidebar ── */
+html.dark .ctsv-app-shell .ctsv-sidebar,
+html.dark .admin-app-shell .ctsv-sidebar {
+  background: var(--bg-card);
+  border-right-color: var(--surface-border);
+}
+
+html.dark .ctsv-nav-link {
+  color: var(--text-main);
+}
+
+html.dark .ctsv-nav-section {
+  color: var(--text-muted);
+}
+
+html.dark .ctsv-sidebar-user {
+  color: var(--text-heading);
+}
+
+html.dark .admin-hamburger-btn,
+html.dark .ctsv-sidebar-close {
+  background: var(--surface-muted);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+html.dark .admin-hamburger-btn:hover,
+html.dark .ctsv-sidebar-close:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+html.dark .site-header__nav .nav-link {
+  color: var(--text-nav);
+}
+
+html.dark .site-header__nav .nav-link.active {
+  color: var(--primary);
+}
+
+html.dark .header-search-box,
+html.dark .search-icon-inside {
+  color: var(--text-muted);
+}
+
+html.dark .profile-name {
+  color: var(--text-heading);
+}
+
+html.dark .profile-role,
+html.dark .profile-role-admin {
+  color: var(--primary);
+}
+
+html.dark .btn-auth-login {
+  color: var(--text-main);
+  border-color: var(--surface-border);
+}
+
+html.dark .btn-auth-signup {
+  color: #fff;
+}
+
+html.dark .admin-app-shell,
+html.dark .ctsv-shell-main,
+html.dark .public-shell-main,
+html.dark .admin-main,
+html.dark .admin-dashboard-grid,
+html.dark .admin-page {
+  background: var(--bg-light);
+  color: var(--text-main);
+}
+
+html.dark .admin-dashboard-grid .admin-stat-card,
+html.dark .admin-panel-card,
+html.dark .settings-shell {
+  background: var(--bg-card);
+  border-color: var(--surface-border);
+  color: var(--text-main);
 }

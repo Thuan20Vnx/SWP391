@@ -5,11 +5,10 @@ import fptLogo from '../assets/fpt_logo.png';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { resolveUserAvatar } from '../utils/image';
 import { getRoleLabel, isAdminRoleLabel } from '../utils/role';
-import { cacheUserProfile, clearUserProfileCache, readUserProfileSummaryCache } from '../hooks/useUserProfile';
-import { mapUserToProfileDetail, writeProfileDetailCache } from '../utils/profileDetailCache';
+import { clearUserProfileCache } from '../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import DashboardSidebarNav from './DashboardSidebarNav';
-import SiteFooter from './SiteFooter';
+import { useTranslation } from '../i18n/I18nContext';
 
 const StudentDashboardLayout = ({
   activeMenu,
@@ -19,61 +18,33 @@ const StudentDashboardLayout = ({
   children,
   showToast,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const bootstrapSummary = readUserProfileSummaryCache();
   const [sidebarActive, setSidebarActive] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(() => !bootstrapSummary);
-  const [profileData, setProfileData] = useState(() => ({
-    fullname: bootstrapSummary?.fullname || localStorage.getItem('userFullname') || '',
-    picture: bootstrapSummary?.picture || '',
-    role: bootstrapSummary?.role || localStorage.getItem('userRole') || 'guest',
-    course: bootstrapSummary?.course || '',
-  }));
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileData, setProfileData] = useState({ fullname: '', picture: '' });
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       setProfileLoading(false);
-      return undefined;
+      return;
     }
 
-    const controller = new AbortController();
-    if (!bootstrapSummary) setProfileLoading(true);
-
-    fetch(`${API_BASE}/api/user/profile`, {
-      headers: getAuthHeaders(false),
-      signal: controller.signal,
-    })
+    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders(false) })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
         const user = data.user || {};
-        const nextProfile = {
+        setProfileData({
           fullname: user.fullname || '',
           picture: resolveUserAvatar(user, ''),
           role: user.role || localStorage.getItem('userRole') || 'guest',
           course: user.course || '',
-        };
-        setProfileData(nextProfile);
-        cacheUserProfile(nextProfile);
-        const detail = mapUserToProfileDetail(user);
-        if (detail) writeProfileDetailCache(detail);
+        });
       })
       .catch(() => {})
       .finally(() => setProfileLoading(false));
-
-    return () => controller.abort();
   }, []);
-
-  useEffect(() => {
-    if (!sidebarActive) {
-      document.body.style.overflow = '';
-      return undefined;
-    }
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [sidebarActive]);
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
@@ -93,7 +64,7 @@ const StudentDashboardLayout = ({
   const currentCrumb = breadcrumbLabel || pageTitle;
 
   return (
-    <div className="profile-page student-portal">
+    <div className="profile-page">
       {sidebarActive && (
         <div
           className="sidebar-overlay active"
@@ -119,7 +90,7 @@ const StudentDashboardLayout = ({
                 <span className="profile-skeleton profile-skeleton--name" />
               ) : (
                 <>
-                  <span className="sidebar-user-name">{profileData.fullname || 'Người dùng'}</span>
+                  <span className="sidebar-user-name">{profileData.fullname || t('header.defaultUser')}</span>
                   {profileData.role?.toLowerCase() !== 'student' && (
                     <span
                       className={`sidebar-user-role${
@@ -150,7 +121,7 @@ const StudentDashboardLayout = ({
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
-              <span>Đăng xuất</span>
+              <span>{t('common.logout')}</span>
             </button>
           </div>
         </aside>
@@ -161,7 +132,7 @@ const StudentDashboardLayout = ({
               <button
                 type="button"
                 className="btn-mobile-menu-toggle"
-                aria-label="Mở menu"
+                aria-label={t('common.openMenu')}
                 onClick={() => setSidebarActive(true)}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -171,13 +142,10 @@ const StudentDashboardLayout = ({
                 </svg>
               </button>
               <div className="breadcrumbs">
-                <Link to="/">Trang chủ</Link>
+                <Link to="/">{t('common.backHome')}</Link>
                 <span style={{ color: '#cbd5e1' }}>/</span>
                 <span className="current">{currentCrumb}</span>
               </div>
-              {pageTitle && (
-                <h2 className="student-mobile-nav-title">{pageTitle}</h2>
-              )}
             </div>
 
             <div className="navbar-right">
@@ -222,7 +190,9 @@ const StudentDashboardLayout = ({
             {children}
           </div>
 
-          <SiteFooter embedded />
+          <footer className="dashboard-footer">
+            <p>{t('student.dashboardFooter', { year: new Date().getFullYear() })}</p>
+          </footer>
         </main>
       </div>
     </div>

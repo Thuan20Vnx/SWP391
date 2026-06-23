@@ -1,5 +1,6 @@
 import React from 'react';
 import { isAdminRole, isClubManagerRole } from '../utils/auth';
+import { useTranslation } from '../i18n/I18nContext';
 import {
   NavHubCtaButton,
   NavHubFooter,
@@ -19,6 +20,7 @@ const ProfileSidebarMenu = ({
   activeClub = null,
   showSwitchClub = false,
 }) => {
+  const { t } = useTranslation();
   const go = (action, label) => () => onMenuAction?.(action, label);
   const clubAction = isClubManagerRole() ? 'club-manage' : 'my-clubs';
   const showClubItem = !isAdminRole();
@@ -27,10 +29,10 @@ const ProfileSidebarMenu = ({
     <NavHubItem
       key="profile"
       active={activeItem === 'profile'}
-      label="Hồ sơ"
-      hint="Thông tin cá nhân"
+      label={t('profile.menu.profile')}
+      hint={t('profile.menu.profileHint')}
       icon={<NavHubIcon>{navIcons.profile}</NavHubIcon>}
-      onClick={go('profile', 'Hồ sơ')}
+      onClick={go('profile', t('profile.menu.profile'))}
     />,
   ];
 
@@ -39,8 +41,8 @@ const ProfileSidebarMenu = ({
       <NavHubItem
         key="clubs"
         active={activeItem === clubAction || activeItem === 'my-clubs'}
-        label={isClubManagerRole() ? 'Quản lý CLB' : 'CLB yêu thích'}
-        hint={isClubManagerRole() ? 'Ban quản trị' : 'Danh sách đã lưu'}
+        label={isClubManagerRole() ? t('profile.menu.clubManage') : t('profile.menu.clubs')}
+        hint={isClubManagerRole() ? t('profile.menu.clubManageHint') : t('profile.menu.clubsHint')}
         icon={<NavHubIcon>{navIcons.clubs}</NavHubIcon>}
         onClick={go(clubAction, 'CLB')}
       />,
@@ -52,10 +54,10 @@ const ProfileSidebarMenu = ({
       <NavHubItem
         key="switch-club"
         active={activeItem === 'switch-club'}
-        label="Đổi câu lạc bộ"
+        label={t('profile.menu.switchClub')}
         hint={activeClub?.name ? `Đang quản lý: ${activeClub.name}` : 'Chọn CLB khác'}
         icon={<NavHubIcon>{navIcons.switchClub}</NavHubIcon>}
-        onClick={go('switch-club', 'Đổi câu lạc bộ')}
+        onClick={go('switch-club', t('profile.menu.switchClub'))}
       />,
     );
   }
@@ -64,24 +66,24 @@ const ProfileSidebarMenu = ({
     <NavHubItem
       key="schedule"
       active={activeItem === 'schedule'}
-      label="Lịch của tôi"
-      hint="Sự kiện đã đăng ký"
+      label={t('profile.menu.schedule')}
+      hint={t('profile.menu.scheduleHint')}
       icon={<NavHubIcon>{navIcons.calendar}</NavHubIcon>}
-      onClick={go('schedule', 'Lịch của tôi')}
+      onClick={go('schedule', t('profile.menu.schedule'))}
     />,
   );
 
   return (
     <div className="nav-hub nav-hub--compact">
-      <NavHubHeader userProfile={userProfile} fallbackName="Người dùng" />
+      <NavHubHeader userProfile={userProfile} fallbackName={t('header.defaultUser')} />
 
       <NavHubMenuSection
         items={menuItems}
         cta={
           <NavHubCtaButton
             icon={<NavHubIcon size={16}>{navIcons.qr}</NavHubIcon>}
-            label="Check-in tại sự kiện"
-            onClick={go('scan', 'Check-in tại sự kiện')}
+            label={t('profile.menu.checkin')}
+            onClick={go('scan', t('profile.menu.checkin'))}
           />
         }
       />
@@ -91,10 +93,10 @@ const ProfileSidebarMenu = ({
           <NavHubItem
             key="settings"
             active={activeItem === 'settings'}
-            label="Cài đặt"
-            hint="Bảo mật & thông báo"
+            label={t('profile.menu.settings')}
+            hint={t('profile.menu.settingsHint')}
             icon={<NavHubIcon>{navIcons.settings}</NavHubIcon>}
-            onClick={go('settings', 'Cài đặt')}
+            onClick={go('settings', t('profile.menu.settings'))}
           />,
         ]}
       />

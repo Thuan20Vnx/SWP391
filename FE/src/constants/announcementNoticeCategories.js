@@ -8,10 +8,16 @@ export const NOTICE_CATEGORY_LABELS = {
   [NOTICE_CATEGORY_URGENT]: 'Khẩn',
 };
 
+const NOTICE_CATEGORY_KEYS = {
+  [NOTICE_CATEGORY_INFO]: 'announce.notice.info',
+  [NOTICE_CATEGORY_ACTION]: 'announce.notice.action',
+  [NOTICE_CATEGORY_URGENT]: 'announce.notice.urgent',
+};
+
 export const NOTICE_CATEGORY_OPTIONS = [
-  { value: NOTICE_CATEGORY_INFO, label: NOTICE_CATEGORY_LABELS.info },
-  { value: NOTICE_CATEGORY_ACTION, label: NOTICE_CATEGORY_LABELS.action },
-  { value: NOTICE_CATEGORY_URGENT, label: NOTICE_CATEGORY_LABELS.urgent },
+  { value: NOTICE_CATEGORY_INFO, labelKey: 'announce.notice.info' },
+  { value: NOTICE_CATEGORY_ACTION, labelKey: 'announce.notice.action' },
+  { value: NOTICE_CATEGORY_URGENT, labelKey: 'announce.notice.urgent' },
 ];
 
 export const NOTICE_CATEGORY_TONES = {
@@ -27,8 +33,12 @@ export const normalizeNoticeCategory = (value) => {
     : NOTICE_CATEGORY_INFO;
 };
 
-export const getNoticeCategoryLabel = (value) =>
-  NOTICE_CATEGORY_LABELS[normalizeNoticeCategory(value)];
+export const getNoticeCategoryLabel = (value, t) => {
+  const normalized = normalizeNoticeCategory(value);
+  const labelKey = NOTICE_CATEGORY_KEYS[normalized];
+  if (t && labelKey) return t(labelKey);
+  return NOTICE_CATEGORY_LABELS[normalized];
+};
 
 export const getNoticeCategoryTone = (value) =>
   NOTICE_CATEGORY_TONES[normalizeNoticeCategory(value)] || 'info';

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '../../i18n/I18nContext';
 
 /**
  * Dropdown chọn thay thế <select> native — dùng toàn hệ thống.
@@ -11,13 +12,16 @@ const AppSelect = ({
   value = '',
   onChange,
   options = [],
-  placeholder = '— Chọn —',
+  placeholder,
   disabled = false,
   className = '',
   variant = 'default',
+  usePortal = false,
   'aria-label': ariaLabel,
   fullWidth = true
 }) => {
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder ?? t('common.selectPlaceholder');
   const autoId = useId();
   const id = idProp || autoId;
   const listboxId = `${id}-listbox`;
@@ -25,7 +29,7 @@ const AppSelect = ({
   const triggerRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [menuRect, setMenuRect] = useState(null);
-  const useMenuPortal = variant === 'table';
+  const useMenuPortal = variant === 'table' || usePortal;
 
   const normalized = useMemo(
     () =>
@@ -40,7 +44,7 @@ const AppSelect = ({
     [normalized, value]
   );
 
-  const displayLabel = selected?.label ?? placeholder;
+  const displayLabel = selected?.label ?? resolvedPlaceholder;
 
   const emitChange = useCallback(
     (nextValue) => {

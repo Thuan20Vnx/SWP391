@@ -1,3 +1,5 @@
+import { loadSettings } from '../hooks/useSettingsPreferences';
+
 const SOURCE_COLORS = {
   school: { bg: 'rgba(234, 88, 12, 0.14)', border: '#ea580c', text: '#c2410c' },
   partner: { bg: 'rgba(124, 58, 237, 0.12)', border: '#7c3aed', text: '#6d28d9' },
@@ -14,15 +16,48 @@ const STATUS_COLORS = {
 
 export const WEEKDAYS_VI = ['THỨ 2', 'THỨ 3', 'THỨ 4', 'THỨ 5', 'THỨ 6', 'THỨ 7', 'CN'];
 
+const WEEKDAY_KEYS = [
+  'admin.calendar.weekday.mon',
+  'admin.calendar.weekday.tue',
+  'admin.calendar.weekday.wed',
+  'admin.calendar.weekday.thu',
+  'admin.calendar.weekday.fri',
+  'admin.calendar.weekday.sat',
+  'admin.calendar.weekday.sun',
+];
+
+const SOURCE_LABEL_KEYS = {
+  school: 'admin.calendar.filter.school',
+  partner: 'admin.calendar.filter.partner',
+  club: 'admin.calendar.filter.club',
+};
+
+const resolveLang = (language) => language || loadSettings().language || 'vi';
+
+export const getCalendarWeekdays = (t, language) => {
+  const lang = resolveLang(language);
+  if (!t || lang === 'vi') return WEEKDAYS_VI;
+  return WEEKDAY_KEYS.map((key) => t(key));
+};
+
+export const getCalendarSourceLabel = (source, t) => {
+  if (!t) {
+    return source === 'school' ? 'Cấp trường' : source === 'partner' ? 'Đối tác' : 'CLB';
+  }
+  return t(SOURCE_LABEL_KEYS[source] || SOURCE_LABEL_KEYS.club);
+};
+
+export const formatMonthLabel = (date, language) => {
+  const lang = resolveLang(language);
+  const locale = lang === 'en' ? 'en-US' : 'vi-VN';
+  const label = date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
 export const startOfDay = (date) => {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   return d.getTime();
-};
-
-export const formatMonthLabel = (date) => {
-  const label = date.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
-  return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
 export const parseEventDate = (ev) => {
@@ -40,7 +75,7 @@ export const parseEventDate = (ev) => {
   return null;
 };
 
-export const mapCtsvCalendarEvent = (ev) => {
+export const mapCtsvCalendarEvent = (ev, t) => {
   const date = parseEventDate(ev);
   const source = ev.source || 'club';
   const colors = SOURCE_COLORS[source] || SOURCE_COLORS.club;
@@ -60,7 +95,7 @@ export const mapCtsvCalendarEvent = (ev) => {
     location: ev.location || '',
     date,
     source,
-    sourceLabel: source === 'school' ? 'Cấp trường' : source === 'partner' ? 'Đối tác' : 'CLB',
+    sourceLabel: getCalendarSourceLabel(source, t),
     status: ev.status,
     statusKey,
     isPending,

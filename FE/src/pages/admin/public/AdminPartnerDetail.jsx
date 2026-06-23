@@ -5,7 +5,6 @@ import PublicAdminShell from '../../../layouts/PublicAdminShell';
 import SiteFooter from '../../../components/SiteFooter';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import PartnerAvatar from '../../../components/partner/PartnerAvatar';
-import ProposalTicketsTable from '../../../components/admin/ProposalTicketsTable';
 import {
   addAdminPartnerMember,
   approveAdminPartner,
@@ -21,14 +20,6 @@ import {
   getPartnerStatusDetailLabel,
 } from '../../../utils/partnerDisplay';
 import { useTranslation } from '../../../i18n/I18nContext';
-import '../../../styles/admin-dashboard.css';
-
-const FileIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-    <polyline points="14 2 14 8 20 8" />
-  </svg>
-);
 
 const resolvePartnerId = (raw) => String(raw || '').replace(/^partner-/, '').trim();
 
@@ -89,12 +80,8 @@ const AdminPartnerDetail = ({ showToast }) => {
   const handleApprove = async () => {
     setBusy(true);
     try {
-      const res = await approveAdminPartner(partnerId);
-      if (res.accountCreated) {
-        showToast?.(t('admin.partnerApprovals.toast.approvedWithAccount'), 'success');
-      } else {
-        showToast?.(t('admin.partnerApprovals.toast.approved'), 'success');
-      }
+      await approveAdminPartner(partnerId);
+      showToast?.(t('admin.partnerApprovals.toast.approved'), 'success');
       setConfirmApprove(false);
       await load();
     } catch (e) {
@@ -237,8 +224,6 @@ const AdminPartnerDetail = ({ showToast }) => {
       primaryMember?.title || partner.representativeTitle || empty;
     const registrantEmail = primaryMember?.email || partner.email || empty;
     const registrantPhone = primaryMember?.phone || partner.phone || empty;
-    const eventBenefits = eventRequest?.benefits?.length ? eventRequest.benefits : partner.benefits;
-    const attachmentItems = (eventRequest?.attachments || []).map((f, i) => ({ key: `req-att-${i}`, ...f }));
 
     return (
       <div className="admin-partner-detail">
@@ -463,104 +448,41 @@ const AdminPartnerDetail = ({ showToast }) => {
 
           <section className="admin-partner-detail__panel">
             <h2>{t('admin.partnerDetail.section.proposalContract')}</h2>
-            <ul className="admin-proposal-list">
-              <li className="admin-proposal-card">
-                <div className="admin-proposal-card__head">
-                  <div className="admin-proposal-card__head-main">
-                    <h2 className="admin-proposal-card__title">{eventTitle}</h2>
-                  </div>
-                  <span className="admin-proposal-card__badge">{formatVnd(amount)}</span>
+            <dl className="admin-partner-detail__dl">
+              <div>
+                <dt>{t('admin.partnerDetail.label.proposedProgram')}</dt>
+                <dd>{eventTitle}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.partnerDetail.label.eventDesc')}</dt>
+                <dd>{eventRequest?.description || partner.description || empty}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.partnerDetail.label.expectedSponsor')}</dt>
+                <dd>{formatVnd(amount)}</dd>
+              </div>
+              {eventRequest?.location && (
+                <div>
+                  <dt>{t('admin.partnerDetail.label.locationFormat')}</dt>
+                  <dd>
+                    {eventRequest.location}
+                    {eventRequest.format ? ` · ${eventRequest.format}` : ''}
+                  </dd>
                 </div>
-
-                <div className="admin-proposal-card__body">
-                  <div className="admin-proposal-card__thumb-wrap">
-                    {eventRequest?.image ? (
-                      <img src={eventRequest.image} alt="" className="admin-proposal-card__thumb" />
-                    ) : (
-                      <PartnerAvatar partner={partner} className="admin-proposal-card__thumb" />
-                    )}
-                  </div>
-
-                  <div className="admin-proposal-card__details">
-                    <dl className="admin-proposal-meta">
-                      <div className="admin-proposal-meta__row">
-                        <dt>{t('admin.partnerDetail.label.locationFormat')}</dt>
-                        <dd>
-                          {eventRequest?.location || empty}
-                          {eventRequest?.format ? ` · ${eventRequest.format}` : ''}
-                        </dd>
-                      </div>
-                      <div className="admin-proposal-meta__row">
-                        <dt>{t('admin.partnerDetail.label.contract')}</dt>
-                        <dd>
-                          {contracts.length
-                            ? contracts
-                                .map((c) => c.title || t('admin.partnerDetail.contract.sponsorDefault'))
-                                .join(', ')
-                            : empty}
-                        </dd>
-                      </div>
-                      <div className="admin-proposal-meta__row">
-                        <dt>Tổng vé</dt>
-                        <dd>{eventRequest?.totalTickets != null ? eventRequest.totalTickets : empty}</dd>
-                      </div>
-                      <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
-                        <dt>Quyền lợi đối tác yêu cầu</dt>
-                        <dd>
-                          {eventBenefits?.length ? (
-                            <ul className="ctsv-pd-benefits">
-                              {eventBenefits.map((b, i) => (
-                                <li key={i}>{b}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            empty
-                          )}
-                        </dd>
-                      </div>
-                    </dl>
-
-                    <ProposalTicketsTable ticketTypes={eventRequest?.ticketTypes} ticketPrice={0} />
-                  </div>
-                </div>
-
-                {(eventRequest?.description || partner.description) && (
-                  <div className="admin-proposal-card__full">
-                    <div className="admin-proposal-card__desc">
-                      <p className="admin-proposal-card__desc-label">{t('admin.partnerDetail.label.eventDesc')}</p>
-                      <p className="admin-proposal-card__desc-text">
-                        {eventRequest?.description || partner.description}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="admin-proposal-card__full">
-                  <p className="admin-proposal-card__desc-label" style={{ marginBottom: 8 }}>
-                    Tệp đính kèm
-                  </p>
-                  {attachmentItems.length ? (
-                    <ul className="ctsv-pd-files">
-                      {attachmentItems.map((f) => (
-                        <li key={f.key}>
-                          <a href={f.url || '#'} className="ctsv-pd-file" target="_blank" rel="noreferrer">
-                            <span className="ctsv-pd-file-icon">
-                              <FileIcon />
-                            </span>
-                            <span className="ctsv-pd-file-body">
-                              <span className="ctsv-pd-file-name">{f.name}</span>
-                              <span className="ctsv-pd-file-size">{f.sizeLabel || '—'}</span>
-                            </span>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="admin-partner-detail__muted-inline">{empty}</p>
-                  )}
-                </div>
-
-                <div className="admin-proposal-card__full">
+              )}
+              <div>
+                <dt>{t('admin.partnerDetail.label.contract')}</dt>
+                <dd>
+                  {contracts.length
+                    ? contracts
+                        .map((c) => c.title || t('admin.partnerDetail.contract.sponsorDefault'))
+                        .join(', ')
+                    : empty}
+                </dd>
+              </div>
+              <div>
+                <dt>{t('admin.partnerDetail.label.notifications')}</dt>
+                <dd>
                   <button
                     type="button"
                     className="admin-partner-detail__inline-link"
@@ -572,9 +494,9 @@ const AdminPartnerDetail = ({ showToast }) => {
                   >
                     {t('admin.partnerDetail.notifyLink')}
                   </button>
-                </div>
-              </li>
-            </ul>
+                </dd>
+              </div>
+            </dl>
           </section>
         </div>
 

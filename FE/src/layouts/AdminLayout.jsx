@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import AdminTopHeader from '../components/admin/AdminTopHeader';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import SiteFooter from '../components/SiteFooter';
-import ChatbotFloating from '../components/ChatbotFloating';
 import useUserProfile from '../hooks/useUserProfile';
 import { readSidebarPref, writeSidebarPref } from '../utils/adminSidebarStorage';
 import '../styles/admin-menu.css';
@@ -14,13 +13,6 @@ const AdminLayout = ({ showToast }) => {
   const [adminSearch, setAdminSearch] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(readSidebarPref);
   const { userProfile } = useUserProfile();
-  const headerSearchSubmitRef = useRef(null);
-
-  // Reset từ khóa tìm kiếm trên header khi chuyển trang
-  useEffect(() => {
-    setAdminSearch('');
-    headerSearchSubmitRef.current = null;
-  }, [pathname]);
 
   const searchPlaceholder = useMemo(() => {
     if (pathname.startsWith('/admin/accounts')) {
@@ -70,26 +62,14 @@ const AdminLayout = ({ showToast }) => {
           searchPlaceholder={searchPlaceholder}
           searchValue={adminSearch}
           onSearchChange={setAdminSearch}
-          onSearchKeyDown={(e) => {
-            if (e.key === 'Enter') headerSearchSubmitRef.current?.();
-          }}
           sidebarToggle={toggleSidebar}
           sidebarOpen={sidebarOpen}
         />
 
         <div className="admin-layout admin-shell-content">
-          <Outlet context={{
-            showToast,
-            adminSearch,
-            setAdminSearch,
-            // Alias để các trang CTSV/IC-PDP dùng chung hợp đồng với CtsvLayout
-            headerSearch: adminSearch,
-            setHeaderSearch: setAdminSearch,
-            registerHeaderSearchSubmit: (fn) => { headerSearchSubmitRef.current = fn; },
-          }} />
+          <Outlet context={{ showToast, adminSearch, setAdminSearch }} />
           <SiteFooter />
         </div>
-        <ChatbotFloating context="admin" />
       </div>
     </div>
   );
