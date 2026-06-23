@@ -183,7 +183,16 @@ const signup = async ({ fullname, email, phone, password }) => {
     expiresAt: Date.now() + OTP_TTL_MS,
   }));
 
-  await sendOtpEmail(email.trim(), fullname.trim(), otpCode);
+  try {
+    await sendOtpEmail(email.trim(), fullname.trim(), otpCode);
+  } catch (err) {
+    pendingUsers.delete(emailKey);
+    console.error('Lỗi gửi email OTP đăng ký:', err.message);
+    throw new AppError(
+      'Không thể gửi email xác minh. Vui lòng thử lại sau hoặc liên hệ quản trị viên.',
+      503
+    );
+  }
 
   return {
     status: 'OTP_SENT',
@@ -279,7 +288,15 @@ const resendOtp = async ({ email }) => {
   pendingUser.expiresAt = Date.now() + OTP_TTL_MS;
   pendingUsers.set(emailKey, pendingUser);
 
-  await sendOtpEmail(pendingUser.email, pendingUser.fullname, newOtpCode);
+  try {
+    await sendOtpEmail(pendingUser.email, pendingUser.fullname, newOtpCode);
+  } catch (err) {
+    console.error('Lỗi gửi lại email OTP đăng ký:', err.message);
+    throw new AppError(
+      'Không thể gửi lại email xác minh. Vui lòng thử lại sau hoặc liên hệ quản trị viên.',
+      503
+    );
+  }
 
   return { message: 'Mã OTP mới đã được gửi lại vào email của bạn!' };
 };
