@@ -17,6 +17,17 @@ const hasSmtpCredentials = () => {
 
 const hasBrevoApiKey = () => Boolean(String(process.env.BREVO_API_KEY || '').trim());
 
+const getBrevoApiKey = () => {
+  const key = String(process.env.BREVO_API_KEY || '').trim();
+  if (!key) return '';
+  if (key.startsWith('xsmtpsib-')) {
+    throw new Error(
+      'BREVO_API_KEY đang là SMTP key (xsmtpsib-...). Hãy tạo API key (xkeysib-...) tại Brevo → Settings → SMTP & API → API Keys.'
+    );
+  }
+  return key;
+};
+
 const hasEmailDeliveryConfigured = () => hasBrevoApiKey() || hasSmtpCredentials();
 
 const assertEmailDeliveryReady = async () => {
@@ -70,7 +81,7 @@ const resolveMailSender = async () => {
 };
 
 const sendViaBrevoApi = async ({ to, subject, html, fromName, senderEmail, replyTo }) => {
-  const apiKey = String(process.env.BREVO_API_KEY).trim();
+  const apiKey = getBrevoApiKey();
   const payload = {
     sender: { name: fromName, email: senderEmail },
     to: [{ email: to }],
@@ -505,7 +516,7 @@ const verifySmtpConnection = async () => {
     const started = Date.now();
     try {
       const response = await fetch(BREVO_ACCOUNT_URL, {
-        headers: { accept: 'application/json', 'api-key': String(process.env.BREVO_API_KEY).trim() },
+        headers: { accept: 'application/json', 'api-key': getBrevoApiKey() },
       });
       const latencyMs = Date.now() - started;
       if (!response.ok) {
