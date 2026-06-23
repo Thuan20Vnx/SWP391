@@ -31,14 +31,16 @@ const MarqueeLine = ({ text, className, variant }) => {
         { duration, iterations: Infinity, easing: 'ease-in-out' }
       );
     } else {
-      // Hàng dưới: chạy 1 chiều, hết 1 vòng thì khựng lại 2s rồi lặp lại
+      // Hàng dưới: khựng 2s khi bắt đầu, chạy 1 chiều, hết 1 vòng khựng lại 2s rồi lặp lại
       const scrollDuration = Math.min(6000, Math.max(2200, distance * 35));
-      const holdDuration = 2000;
-      const total = scrollDuration + holdDuration;
+      const holdStart = 2000;
+      const holdEnd = 2000;
+      const total = holdStart + scrollDuration + holdEnd;
       animationRef.current = textEl.animate(
         [
           { transform: 'translateX(0)', offset: 0 },
-          { transform: `translateX(-${distance}px)`, offset: scrollDuration / total },
+          { transform: 'translateX(0)', offset: holdStart / total },
+          { transform: `translateX(-${distance}px)`, offset: (holdStart + scrollDuration) / total },
           { transform: `translateX(-${distance}px)`, offset: 1 },
         ],
         { duration: total, iterations: Infinity, easing: 'linear' }
