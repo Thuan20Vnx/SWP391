@@ -12,8 +12,10 @@ import {
   ENCRYPTION_OPTIONS,
 } from '../../data/adminSystemControlData';
 import useAdminDashboardLiveData from '../../hooks/useAdminDashboardLiveData';
+import { notifySystemMaintenanceChanged } from '../../hooks/useSystemMaintenanceStatus';
 import {
   fetchAuditLogs,
+  fetchPublicSystemStatus,
   fetchSystemConfig,
   fetchSystemHealth,
   sendSystemTestEmail,
@@ -37,6 +39,16 @@ import '../../styles/admin-system-control.css';
 
 const HEALTH_POLL_MS = 8000;
 
+const parseMaintenanceConfig = (res) => {
+  const remote = res?.config ?? res ?? {};
+  return {
+    maintenanceMode: Boolean(remote.maintenanceMode),
+    publicAnnouncements: remote.publicAnnouncements !== false,
+    maintenanceMessage:
+      remote.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage,
+  };
+};
+
 const mapUiStatus = (status) => {
   if (status === 'offline' || status === 'degraded') return 'degraded';
   return 'online';
@@ -44,7 +56,20 @@ const mapUiStatus = (status) => {
 
 const AdminToggle = ({ label, description, checked, onChange, disabled }) => (
   <div className="admin-sys-toggle">
-    <div className="admin-sys-toggle__text">
+    <div
+      className="admin-sys-toggle__text"
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-label={label}
+      onClick={() => !disabled && onChange(!checked)}
+      onKeyDown={(e) => {
+        if (disabled) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onChange(!checked);
+        }
+      }}
+    >
       <p className="admin-sys-toggle__label">{label}</p>
       {description && <p className="admin-sys-toggle__desc">{description}</p>}
     </div>
@@ -52,6 +77,7 @@ const AdminToggle = ({ label, description, checked, onChange, disabled }) => (
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={label}
       className={`admin-sys-switch${checked ? ' admin-sys-switch--on' : ''}`}
       onClick={() => onChange(!checked)}
       disabled={disabled}
@@ -98,6 +124,8 @@ const AdminSystemControl = () => {
   const [auditLogs, setAuditLogs] = useState([]);
   const [testEmailTo, setTestEmailTo] = useState('');
   const [sendingTestEmail, setSendingTestEmail] = useState(false);
+  const [paymentWebhookUrl, setPaymentWebhookUrl] = useState('');
+  const [serverMaintenanceOn, setServerMaintenanceOn] = useState(false);
 
   const dirty = emailDirty || securityDirty || paymentDirty;
 
@@ -109,6 +137,7 @@ const AdminSystemControl = () => {
       if (status === 'degraded') return t('admin.system.status.degraded');
       if (kind === 'db') return t('admin.system.status.connected');
       if (kind === 'payment') {
+        if (paymentMode === 'production') return t('admin.system.status.online');
         if (paymentMode === 'sandbox') return t('admin.system.status.sandbox');
         if (paymentMode === 'disabled') return t('admin.system.status.notConfigured');
       }
@@ -322,38 +351,49 @@ const AdminSystemControl = () => {
     if (!canAccessAdminSystemPage(role)) {
       showToast?.(t('admin.common.noAccess'), 'error');
       navigate(isIcpdpRole(role) ? '/icpdp' : '/profile');
-      return;
+      return undefined;
     }
+    let cancelled = false;
     setConfigLoading(true);
     fetchSystemConfig()
       .then((res) => {
-        const remote = res.config || res;
+        if (cancelled) return;
+        const maintenance = parseMaintenanceConfig(res);
         setConfig((prev) => ({
           ...prev,
-          maintenanceMode: Boolean(remote.maintenanceMode),
-          publicAnnouncements: remote.publicAnnouncements !== false,
-          maintenanceMessage:
-            remote.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage,
+          ...maintenance,
           ...(res.email ? { email: { ...prev.email, ...res.email } } : {}),
           ...(res.security ? { security: { ...prev.security, ...res.security } } : {}),
           ...(res.payment ? { payment: { ...prev.payment, ...res.payment, webhookApiKey: '' } } : {}),
         }));
+        setServerMaintenanceOn(maintenance.maintenanceMode);
+        setPaymentWebhookUrl(res.paymentWebhookUrl || '');
         setEmailDirty(false);
         setSecurityDirty(false);
         setPaymentDirty(false);
+        setMaintenanceDirty(false);
       })
       .catch(() => {
-        showToast?.(t('admin.system.toast.loadFail'), 'error');
+        if (!cancelled) showToast?.(t('admin.system.toast.loadFail'), 'error');
       })
-      .finally(() => setConfigLoading(false));
+      .finally(() => {
+        if (!cancelled) setConfigLoading(false);
+      });
 
     if (isFullAdmin) {
       refreshSystemHealth();
       fetchAuditLogs(30)
-        .then((res) => setAuditLogs(res.logs || []))
-        .catch(() => setAuditLogs([]));
+        .then((res) => {
+          if (!cancelled) setAuditLogs(res.logs || []);
+        })
+        .catch(() => {});
     }
-  }, [role, navigate, showToast, refreshSystemHealth, isFullAdmin, t]);
+
+    return () => {
+      cancelled = true;
+    };
+    // Chỉ tải lại khi đổi quyền — tránh ghi đè toggle đang lưu
+  }, [role, isFullAdmin, navigate, refreshSystemHealth, showToast, t]);
 
   useEffect(() => {
     if (!isFullAdmin) return undefined;
@@ -392,17 +432,44 @@ const AdminSystemControl = () => {
         publicAnnouncements: config.publicAnnouncements,
         maintenanceMessage: config.maintenanceMessage,
       });
-      const remote = res.config || res;
-      setConfig((prev) => ({
-        ...prev,
-        maintenanceMode: Boolean(remote.maintenanceMode),
-        publicAnnouncements: remote.publicAnnouncements !== false,
-        maintenanceMessage:
-          remote.maintenanceMessage || ADMIN_SYSTEM_DEFAULT_CONFIG.maintenanceMessage,
-      }));
+      const maintenance = parseMaintenanceConfig(res);
+      setConfig((prev) => ({ ...prev, ...maintenance }));
+      setServerMaintenanceOn(maintenance.maintenanceMode);
       setMaintenanceDirty(false);
+      notifySystemMaintenanceChanged();
       showToast?.(res.message || t('admin.system.toast.saveMaintenance'), 'success');
     } catch (err) {
+      showToast?.(err.message || t('admin.system.toast.saveMaintenanceFail'), 'error');
+    } finally {
+      setSavingMaintenance(false);
+    }
+  };
+
+  const persistMaintenanceMode = async (nextMode) => {
+    const prevMode = config.maintenanceMode;
+    setConfig((prev) => ({ ...prev, maintenanceMode: nextMode }));
+    setSavingMaintenance(true);
+    try {
+      const res = await updateSystemMaintenance({
+        maintenanceMode: nextMode,
+        publicAnnouncements: config.publicAnnouncements,
+        maintenanceMessage: config.maintenanceMessage,
+      });
+      const maintenance = parseMaintenanceConfig(res);
+      setConfig((prev) => ({ ...prev, ...maintenance }));
+      setServerMaintenanceOn(maintenance.maintenanceMode);
+      setMaintenanceDirty(false);
+      notifySystemMaintenanceChanged();
+      showToast?.(res.message || t('admin.system.toast.saveMaintenance'), 'success');
+      refreshAuditLogs();
+    } catch (err) {
+      setConfig((prev) => ({ ...prev, maintenanceMode: prevMode }));
+      try {
+        const live = await fetchPublicSystemStatus();
+        setServerMaintenanceOn(Boolean(live.maintenanceMode));
+      } catch {
+        setServerMaintenanceOn(prevMode);
+      }
       showToast?.(err.message || t('admin.system.toast.saveMaintenanceFail'), 'error');
     } finally {
       setSavingMaintenance(false);
@@ -529,9 +596,22 @@ const AdminSystemControl = () => {
           label={t('admin.system.ops.maintenance')}
           description={t('admin.system.ops.maintenanceDesc')}
           checked={config.maintenanceMode}
-          onChange={(v) => patch('maintenanceMode', v)}
+          onChange={persistMaintenanceMode}
           disabled={configLoading || savingMaintenance}
         />
+        <p
+          className={`admin-sys-maint-server-status${serverMaintenanceOn ? ' admin-sys-maint-server-status--on' : ''}`}
+          role="status"
+        >
+          {savingMaintenance
+            ? t('admin.system.ops.maintenanceSaving')
+            : serverMaintenanceOn
+              ? t('admin.system.ops.maintenanceServerOn')
+              : t('admin.system.ops.maintenanceServerOff')}
+        </p>
+        <p className="admin-sys-field__hint" style={{ padding: '0 16px 12px', margin: 0 }}>
+          {t('admin.system.ops.maintenanceTestHint')}
+        </p>
         <AdminToggle
           label={t('admin.system.ops.banner')}
           description={t('admin.system.ops.bannerDesc')}
@@ -993,7 +1073,7 @@ const AdminSystemControl = () => {
           {t('admin.system.payment.webhookUrlHint')}
         </p>
         <code className="admin-sys-env-item__val" style={{ wordBreak: 'break-all' }}>
-          {`${API_BASE}/api/system/payments/sepay-webhook`}
+          {paymentWebhookUrl || `${API_BASE}/api/system/payments/sepay-webhook`}
         </code>
       </div>
     </div>
@@ -1166,24 +1246,7 @@ const AdminSystemControl = () => {
                 type="button"
                 className="admin-sys-btn admin-sys-btn--danger"
                 disabled={savingMaintenance}
-                onClick={async () => {
-                  const next = !config.maintenanceMode;
-                  setConfig((prev) => ({ ...prev, maintenanceMode: next }));
-                  setSavingMaintenance(true);
-                  try {
-                    const res = await updateSystemMaintenance({ maintenanceMode: next });
-                    const remote = res.config || res;
-                    setConfig((prev) => ({ ...prev, maintenanceMode: Boolean(remote.maintenanceMode) }));
-                    setMaintenanceDirty(false);
-                    showToast?.(res.message || t('admin.system.toast.saveMaintenance'), 'success');
-                    refreshAuditLogs();
-                  } catch (err) {
-                    setConfig((prev) => ({ ...prev, maintenanceMode: !next }));
-                    showToast?.(err.message || t('admin.system.toast.saveMaintenanceFail'), 'error');
-                  } finally {
-                    setSavingMaintenance(false);
-                  }
-                }}
+                onClick={() => persistMaintenanceMode(!config.maintenanceMode)}
               >
                 {config.maintenanceMode
                   ? t('admin.system.danger.maintOff')

@@ -96,13 +96,13 @@ const getPaymentStatus = async () => {
   }
 
   return {
-    status: hasWebhook ? 'online' : 'degraded',
+    status: 'online',
     mode: 'production',
     configured: true,
     errors24h: null,
     detail: hasWebhook
       ? `SePay · ${payment.bankCode} · ${payment.accountNumber}`
-      : `SePay · ${payment.bankCode} · ${payment.accountNumber} · chưa cấu hình webhook API key`,
+      : `SePay · ${payment.bankCode} · ${payment.accountNumber} · nên thêm webhook API key (bảo mật)`,
   };
 };
 

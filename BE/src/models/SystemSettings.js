@@ -56,6 +56,7 @@ const systemSettingsSchema = new mongoose.Schema(
       default: 'Hệ thống đang bảo trì định kỳ. Vui lòng quay lại sau.',
       trim: true,
     },
+    maintenanceActivatedAt: { type: Date, default: null },
     email: { type: emailSettingsSchema, default: () => ({}) },
     payment: { type: paymentSettingsSchema, default: () => ({}) },
     security: { type: securitySettingsSchema, default: () => ({}) },

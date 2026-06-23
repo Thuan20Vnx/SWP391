@@ -2,6 +2,7 @@ const SystemSettings = require('../models/SystemSettings');
 const AppError = require('../utils/AppError');
 const { normalizeRole } = require('../utils/role');
 const { writeAuditLog } = require('./auditLog.service');
+const { MAINTENANCE_GRACE_SEC } = require('../constants/maintenance');
 
 const GLOBAL_ID = SystemSettings.GLOBAL_ID;
 
@@ -69,6 +70,8 @@ const toPublic = (doc) => ({
   maintenanceMode: Boolean(doc?.maintenanceMode),
   publicAnnouncements: doc?.publicAnnouncements !== false,
   maintenanceMessage: String(doc?.maintenanceMessage || DEFAULTS.maintenanceMessage).trim(),
+  maintenanceActivatedAt: doc?.maintenanceActivatedAt || null,
+  maintenanceGraceSeconds: MAINTENANCE_GRACE_SEC,
   updatedAt: doc?.updatedAt || null,
 });
 
@@ -170,6 +173,8 @@ const isStaffRole = (role) => STAFF_ROLES_DURING_MAINTENANCE.has(normalizeRole(r
 const assertLoginAllowed = async (user) => {
   const settings = await getSettings();
   if (!settings.maintenanceMode) return;
+  const { shouldEnforceMaintenance } = require('../constants/maintenance');
+  if (!shouldEnforceMaintenance(settings)) return;
   if (!user || !isStaffRole(user.role)) {
     const err = new AppError(
       settings.maintenanceMessage || DEFAULTS.maintenanceMessage,
@@ -190,6 +195,11 @@ const updateMaintenanceSettings = async (payload, actorEmail = '') => {
   const changes = [];
   if (typeof payload.maintenanceMode === 'boolean') {
     patch.maintenanceMode = payload.maintenanceMode;
+    if (payload.maintenanceMode) {
+      patch.maintenanceActivatedAt = new Date();
+    } else {
+      patch.maintenanceActivatedAt = null;
+    }
     changes.push(payload.maintenanceMode ? 'bật chế độ bảo trì' : 'tắt chế độ bảo trì');
   }
   if (typeof payload.publicAnnouncements === 'boolean') {

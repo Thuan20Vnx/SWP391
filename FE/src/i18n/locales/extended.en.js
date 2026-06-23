@@ -1200,7 +1200,13 @@ export default {
   'admin.system.ops.title': 'General operations',
   'admin.system.ops.maintenance': 'Maintenance mode',
   'admin.system.ops.maintenanceDesc':
-    'Temporarily block student access; Admin, CTSV, and ICPDP can still sign in',
+    'Temporarily block students; Admin, CTSV, and ICPDP can still sign in. The switch saves to the server immediately.',
+  'admin.system.ops.maintenanceSaving': 'Saving to server…',
+  'admin.system.ops.maintenanceServerOn':
+    'Server status: maintenance ON (Admin/CTSV/ICPDP accounts still work — use a private window to test as a student)',
+  'admin.system.ops.maintenanceServerOff': 'Server status: maintenance OFF',
+  'admin.system.ops.maintenanceTestHint':
+    'Students already online see a 15-second warning banner before access is blocked. Admin/CTSV/ICPDP are unaffected.',
   'admin.system.ops.banner': 'Show announcement banner',
   'admin.system.ops.bannerDesc': 'Warning banner on the home page during incidents or maintenance',
   'admin.system.ops.bannerContent': 'Maintenance banner content',
@@ -1237,7 +1243,7 @@ export default {
   'admin.system.status.apiDetail': 'Express · port 5000',
   'admin.system.status.dbDetail': 'Atlas cluster · replica set',
   'admin.system.status.emailDetail': 'Gmail SMTP · App Password',
-  'admin.system.status.paymentDetail': 'VNPay / MoMo · sandbox',
+  'admin.system.status.paymentDetail': 'SePay · VietQR bank transfer',
   'admin.system.infra.fe': 'Frontend (Vite)',
   'admin.system.infra.be': 'Backend API',
   'admin.system.infra.db': 'MongoDB Atlas',
