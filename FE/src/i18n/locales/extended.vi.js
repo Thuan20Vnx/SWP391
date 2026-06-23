@@ -1207,7 +1207,10 @@ export default {
     'Trạng thái server: BẬT bảo trì (tài khoản Admin/CTSV/ICPDP vẫn vào được — dùng tab ẩn danh để kiểm tra sinh viên)',
   'admin.system.ops.maintenanceServerOff': 'Trạng thái server: TẮT bảo trì',
   'admin.system.ops.maintenanceTestHint':
-    'Sinh viên đang online sẽ thấy banner cảnh báo 15 giây trước khi bị chặn. Admin/CTSV/ICPDP không bị ảnh hưởng.',
+    'Sinh viên đang online thấy banner đếm ngược trước khi bị chặn. Admin/CTSV/ICPDP không bị ảnh hưởng.',
+  'admin.system.ops.graceSeconds': 'Thời gian cảnh báo trước bảo trì (giây)',
+  'admin.system.ops.graceSecondsHint':
+    'Sinh viên đang dùng hệ thống sẽ thấy banner cảnh báo trong số giây này trước khi bị chặn (5–600). Lưu cùng cấu hình bảo trì.',
   'admin.system.ops.banner': 'Hiển thị banner thông báo',
   'admin.system.ops.bannerDesc': 'Banner cảnh báo trên trang chủ khi có sự cố hoặc bảo trì',
   'admin.system.ops.bannerContent': 'Nội dung banner bảo trì',

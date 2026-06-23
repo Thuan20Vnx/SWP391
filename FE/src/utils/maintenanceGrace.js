@@ -1,5 +1,10 @@
-export const MAINTENANCE_GRACE_MS = 15_000;
-export const MAINTENANCE_GRACE_SEC = MAINTENANCE_GRACE_MS / 1000;
+const DEFAULT_GRACE_SEC = 15;
+
+export const resolveGraceMs = (status) => {
+  const sec = Number(status?.maintenanceGraceSeconds);
+  if (Number.isInteger(sec) && sec >= 5 && sec <= 600) return sec * 1000;
+  return DEFAULT_GRACE_SEC * 1000;
+};
 
 export const resolveMaintenanceActivatedAt = (status) => {
   if (!status?.maintenanceMode) return null;
@@ -17,7 +22,7 @@ export const resolveMaintenanceActivatedAt = (status) => {
 export const getMaintenanceGraceEndsAt = (status) => {
   const started = resolveMaintenanceActivatedAt(status);
   if (started == null) return null;
-  return started + MAINTENANCE_GRACE_MS;
+  return started + resolveGraceMs(status);
 };
 
 export const isMaintenanceGraceActive = (status, now = Date.now()) => {
