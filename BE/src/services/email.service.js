@@ -6,6 +6,8 @@ const { APP_URL, OTP_EXPIRY_MINUTES } = require('../config/env');
 let etherealAccount = null;
 
 const DEFAULT_SMTP_TIMEOUT_MS = Number(process.env.SMTP_TIMEOUT_MS) || 12_000;
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+const BREVO_ACCOUNT_URL = 'https://api.brevo.com/v3/account';
 
 const hasSmtpCredentials = () => {
   const user = String(process.env.EMAIL_USER || '').trim();
@@ -13,16 +15,20 @@ const hasSmtpCredentials = () => {
   return Boolean(user && pass);
 };
 
+const hasBrevoApiKey = () => Boolean(String(process.env.BREVO_API_KEY || '').trim());
+
+const hasEmailDeliveryConfigured = () => hasBrevoApiKey() || hasSmtpCredentials();
+
 const assertEmailDeliveryReady = async () => {
   const cfg = await getEmailRuntimeConfig();
   if (cfg && cfg.enabled === false) {
     throw new Error('SMTP đang tắt trong cấu hình hệ thống.');
   }
-  if (!hasSmtpCredentials()) {
-    const isProd = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
-    if (isProd) {
-      throw new Error('EMAIL_USER/EMAIL_PASS chưa được cấu hình trên server production.');
-    }
+  if (hasEmailDeliveryConfigured()) return;
+
+  const isProd = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
+  if (isProd) {
+    throw new Error('BREVO_API_KEY hoặc EMAIL_USER/EMAIL_PASS chưa được cấu hình trên server production.');
   }
 };
 
@@ -48,6 +54,54 @@ const resolveSmtpRuntime = async () => {
     ? Number(cfg.timeoutSeconds) * 1000
     : DEFAULT_SMTP_TIMEOUT_MS;
   return { host, port, secure, timeoutMs, cfg };
+};
+
+const resolveMailSender = async () => {
+  const cfg = await getEmailRuntimeConfig();
+  const fromName = cfg?.fromName || process.env.EMAIL_FROM_NAME || 'F-Events';
+  const senderEmail = (
+    String(process.env.EMAIL_FROM || '').trim()
+    || String(cfg?.fromEmail || '').trim()
+    || String(process.env.EMAIL_USER || '').trim()
+    || 'no-reply@fevents.com'
+  );
+  const replyTo = String(cfg?.replyTo || process.env.EMAIL_REPLY_TO || '').trim();
+  return { fromName, senderEmail, replyTo, cfg };
+};
+
+const sendViaBrevoApi = async ({ to, subject, html, fromName, senderEmail, replyTo }) => {
+  const apiKey = String(process.env.BREVO_API_KEY).trim();
+  const payload = {
+    sender: { name: fromName, email: senderEmail },
+    to: [{ email: to }],
+    subject,
+    htmlContent: html,
+  };
+  if (replyTo) payload.replyTo = { email: replyTo };
+
+  const response = await fetch(BREVO_API_URL, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'api-key': apiKey,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    let detail = '';
+    try {
+      const errData = await response.json();
+      detail = errData?.message || JSON.stringify(errData);
+    } catch {
+      detail = await response.text();
+    }
+    throw new Error(`Brevo API (${response.status}): ${detail}`);
+  }
+
+  const data = await response.json().catch(() => ({}));
+  return { messageId: data?.messageId || null, previewUrl: null, provider: 'brevo-api' };
 };
 
 const getTransporter = async () => {
@@ -149,48 +203,56 @@ const writeDevOtp = (otp) => writeDevFile('last_otp.txt', otp);
 
 const sendMail = async ({ to, subject, html }) => {
   await assertEmailDeliveryReady();
-  const { host, cfg } = await resolveSmtpRuntime();
+  const { fromName, senderEmail, replyTo, cfg } = await resolveMailSender();
+
+  if (hasBrevoApiKey()) {
+    try {
+      const result = await sendViaBrevoApi({ to, subject, html, fromName, senderEmail, replyTo });
+      console.log(`[EMAIL] Đã gửi tới ${to} qua Brevo API (from: ${senderEmail})`);
+      return result;
+    } catch (err) {
+      console.error(`[Email] Brevo API thất bại (from: ${senderEmail}):`, err.message);
+      throw new Error(
+        `Không gửi được email: ${err.message}. Kiểm tra BREVO_API_KEY và địa chỉ gửi đã verify trên Brevo.`
+      );
+    }
+  }
+
+  const { host } = await resolveSmtpRuntime();
   const transporter = await getTransporter();
   const smtp = hasSmtpCredentials();
-  const fromName = cfg?.fromName || process.env.EMAIL_FROM_NAME || 'F-Events';
-  const senderEmail = smtp
-    ? (
-      String(process.env.EMAIL_FROM || '').trim()
-      || String(cfg?.fromEmail || '').trim()
-      || String(process.env.EMAIL_USER).trim()
-    )
-    : 'no-reply@fevents.com';
 
   let info;
   try {
     info = await transporter.sendMail({
       from: `"${fromName}" <${senderEmail}>`,
       to,
-      ...(cfg?.replyTo || process.env.EMAIL_REPLY_TO
-        ? { replyTo: String(cfg?.replyTo || process.env.EMAIL_REPLY_TO).trim() }
-        : {}),
+      ...(replyTo ? { replyTo } : {}),
       subject,
       html,
     });
   } catch (err) {
     console.error(`[Email] Gửi thất bại qua ${host} (from: ${senderEmail}):`, err.message);
+    const renderHint = /timeout|ETIMEDOUT|ECONNREFUSED/i.test(err.message)
+      ? ' Render free tier chặn SMTP (cổng 587) — hãy dùng BREVO_API_KEY (HTTP API).'
+      : '';
     const hint = smtp
-      ? ' Kiểm tra EMAIL_USER/EMAIL_PASS (Brevo SMTP key), SMTP_HOST=smtp-relay.brevo.com và EMAIL_FROM đã verify trên Brevo.'
+      ? ` Kiểm tra EMAIL_USER/EMAIL_PASS và SMTP host.${renderHint}`
       : '';
     throw new Error(`Không gửi được email: ${err.message}.${hint}`);
   }
 
   const previewUrl = nodemailer.getTestMessageUrl(info) || null;
-  const provider = smtp ? 'gmail' : 'ethereal';
+  const provider = smtp ? 'smtp' : 'ethereal';
 
   if (!smtp) {
     console.log('\n====================================');
     console.log(`[EMAIL TEST - không tới hộp thư thật] Gửi đến: ${to}`);
     if (previewUrl) console.log(`👀 XEM EMAIL TEST: ${previewUrl}`);
-    console.log('💡 Cấu hình EMAIL_USER + EMAIL_PASS trong BE/.env để gửi Gmail thật.');
+    console.log('💡 Cấu hình BREVO_API_KEY hoặc EMAIL_USER + EMAIL_PASS trong BE/.env.');
     console.log('====================================\n');
   } else {
-    console.log(`[EMAIL] Đã gửi tới ${to} qua Gmail SMTP`);
+    console.log(`[EMAIL] Đã gửi tới ${to} qua SMTP ${host}`);
   }
 
   return { messageId: info.messageId, previewUrl, provider };
@@ -432,11 +494,46 @@ const sendTestEmail = async (to) => {
  */
 const verifySmtpConnection = async () => {
   const cfg = await getEmailRuntimeConfig();
-  const host = `${cfg?.host || 'smtp.gmail.com'}:${cfg?.port || 587}`;
+  const host = `${process.env.SMTP_HOST || cfg?.host || 'smtp.gmail.com'}:${process.env.SMTP_PORT || cfg?.port || 587}`;
   const smtp = hasSmtpCredentials();
 
   if (cfg && cfg.enabled === false) {
     return { status: 'degraded', latencyMs: null, host, mode: 'disabled', detail: 'SMTP đang tắt trong cấu hình' };
+  }
+
+  if (hasBrevoApiKey()) {
+    const started = Date.now();
+    try {
+      const response = await fetch(BREVO_ACCOUNT_URL, {
+        headers: { accept: 'application/json', 'api-key': String(process.env.BREVO_API_KEY).trim() },
+      });
+      const latencyMs = Date.now() - started;
+      if (!response.ok) {
+        const detail = await response.text();
+        return {
+          status: 'degraded',
+          latencyMs,
+          host: 'api.brevo.com',
+          mode: 'brevo-api',
+          detail: `Brevo API lỗi (${response.status}): ${detail}`,
+        };
+      }
+      return {
+        status: 'online',
+        latencyMs,
+        host: 'api.brevo.com',
+        mode: 'brevo-api',
+        detail: 'Brevo HTTP API sẵn sàng (không dùng SMTP — phù hợp Render free tier)',
+      };
+    } catch (err) {
+      return {
+        status: 'degraded',
+        latencyMs: Date.now() - started,
+        host: 'api.brevo.com',
+        mode: 'brevo-api',
+        detail: `Không kết nối được Brevo API: ${err.message}`,
+      };
+    }
   }
 
   const started = Date.now();
@@ -448,16 +545,19 @@ const verifySmtpConnection = async () => {
       status: 'online',
       latencyMs,
       host,
-      mode: smtp ? 'gmail' : 'ethereal',
-      detail: smtp ? 'Gmail SMTP sẵn sàng' : 'Ethereal (giả lập) sẵn sàng',
+      mode: smtp ? 'smtp' : 'ethereal',
+      detail: smtp ? 'SMTP sẵn sàng' : 'Ethereal (giả lập) sẵn sàng',
     };
   } catch (err) {
+    const renderHint = /timeout|ETIMEDOUT|ECONNREFUSED/i.test(err.message)
+      ? ' (Render free tier chặn cổng SMTP — dùng BREVO_API_KEY)'
+      : '';
     return {
       status: 'degraded',
       latencyMs: Date.now() - started,
       host,
-      mode: smtp ? 'gmail' : 'ethereal',
-      detail: `Không kết nối được SMTP: ${err.message}`,
+      mode: smtp ? 'smtp' : 'ethereal',
+      detail: `Không kết nối được SMTP: ${err.message}${renderHint}`,
     };
   }
 };
