@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import useSystemMaintenanceStatus from '../hooks/useSystemMaintenanceStatus';
-import { getUserRole, isStaffDuringMaintenance } from '../utils/auth';
+import { getUserRole, isAdminRole, isMaintenanceViewOnlyStaff } from '../utils/auth';
 import {
   isMaintenanceBlocking,
   isMaintenanceGraceActive,
@@ -16,16 +16,17 @@ const SystemMaintenanceGate = ({ children }) => {
   const { status, loading } = useSystemMaintenanceStatus(5000);
   const [now, setNow] = useState(() => Date.now());
 
-  const staff = isStaffDuringMaintenance(role);
-  const inGrace = !staff && status.maintenanceMode && isMaintenanceGraceActive(status, now);
-  const blocking = !staff && isMaintenanceBlocking(status, now);
+  const staffBypass = isAdminRole(role);
+  const viewOnlyStaff = isMaintenanceViewOnlyStaff(role);
+  const inGrace = !staffBypass && !viewOnlyStaff && status.maintenanceMode && isMaintenanceGraceActive(status, now);
+  const blocking = !staffBypass && !viewOnlyStaff && isMaintenanceBlocking(status, now);
 
   useEffect(() => {
-    if (!status.maintenanceMode || staff) return undefined;
+    if (!status.maintenanceMode || staffBypass || viewOnlyStaff) return undefined;
     if (!isMaintenanceGraceActive(status, Date.now())) return undefined;
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
-  }, [status.maintenanceMode, status.maintenanceActivatedAt, staff]);
+  }, [status.maintenanceMode, status.maintenanceActivatedAt, staffBypass, viewOnlyStaff]);
 
   if (loading) return children;
 

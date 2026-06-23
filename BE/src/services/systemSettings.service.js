@@ -62,6 +62,7 @@ const SECURITY_DEFAULTS = {
 };
 
 const STAFF_ROLES_DURING_MAINTENANCE = new Set(['admin', 'ctsv', 'icpdp']);
+const { isLoginAllowedStaff } = require('../constants/maintenanceRoles');
 
 let cache = null;
 let cacheAt = 0;
@@ -176,7 +177,7 @@ const assertLoginAllowed = async (user) => {
   if (!settings.maintenanceMode) return;
   const { shouldEnforceMaintenance } = require('../constants/maintenance');
   if (!shouldEnforceMaintenance(settings)) return;
-  if (!user || !isStaffRole(user.role)) {
+  if (!user || !isLoginAllowedStaff(user.role)) {
     const err = new AppError(
       settings.maintenanceMessage || DEFAULTS.maintenanceMessage,
       503,

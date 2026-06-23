@@ -1200,13 +1200,13 @@ export default {
   'admin.system.ops.title': 'General operations',
   'admin.system.ops.maintenance': 'Maintenance mode',
   'admin.system.ops.maintenanceDesc':
-    'Temporarily block students; Admin, CTSV, and ICPDP can still sign in. The switch saves to the server immediately.',
+    'Block students; CTSV/ICPDP can browse read-only; Admin keeps full control. Saves immediately.',
   'admin.system.ops.maintenanceSaving': 'Saving to server…',
   'admin.system.ops.maintenanceServerOn':
-    'Server status: maintenance ON (Admin/CTSV/ICPDP accounts still work — use a private window to test as a student)',
+    'Server status: maintenance ON — CTSV/ICPDP read-only; Admin unaffected',
   'admin.system.ops.maintenanceServerOff': 'Server status: maintenance OFF',
   'admin.system.ops.maintenanceTestHint':
-    'Students already online see a countdown banner before access is blocked. Admin/CTSV/ICPDP are unaffected.',
+    'Students: warning banner then blocked. CTSV/ICPDP: portal access but write actions disabled.',
   'admin.system.ops.graceSeconds': 'Warning time before maintenance (seconds)',
   'admin.system.ops.graceSecondsHint':
     'Active students see a warning banner for this many seconds before the site locks (5–600). Save with maintenance settings.',

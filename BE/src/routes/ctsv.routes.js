@@ -134,6 +134,31 @@ const pickSchoolEventFields = (body) => {
 router.use(authMiddleware);
 router.use(requireCtsvPortal);
 
+const applyEventTimeFilter = (filter, time) => {
+  if (!time || time === 'all' || time === 'Tất cả') return;
+  if (time === 'Hôm nay') {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    filter.startDate = { $gte: start, $lte: end };
+  } else if (time === 'Tuần này') {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    filter.startDate = { $gte: start, $lte: end };
+  } else if (time === 'Tháng này') {
+    const start = new Date();
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + 1);
+    end.setMilliseconds(-1);
+    filter.startDate = { $gte: start, $lte: end };
+  }
+};
+
 const buildEventFilter = (query) => {
   const filter = { isDeleted: { $ne: true } };
   if (query.status && query.status !== 'all') {
@@ -148,19 +173,7 @@ const buildEventFilter = (query) => {
   if (searchOr) {
     filter.$or = searchOr;
   }
-  if (query.time === 'Hôm nay') {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-    filter.startDate = { $gte: start, $lte: end };
-  } else if (query.time === 'Tuần này') {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 7);
-    filter.startDate = { $gte: start, $lte: end };
-  }
+  applyEventTimeFilter(filter, query.time);
   return filter;
 };
 
@@ -311,7 +324,7 @@ router.get('/events/moderation/pending-icpdp', requireIcpdpOrCtsv, async (req, r
 // PHẢI đặt trước /events/:id để tránh Express match 'approved' vào :id
 router.get('/events/approved', async (req, res) => {
   try {
-    const { source, search, status, page = 1, limit = 20 } = req.query;
+    const { source, search, status, time, page = 1, limit = 20 } = req.query;
 
     const filter = {
       isDeleted: { $ne: true },
@@ -326,6 +339,7 @@ router.get('/events/approved', async (req, res) => {
         { location: { $regex: search, $options: 'i' } },
       ];
     }
+    applyEventTimeFilter(filter, time);
 
     const skip = (Math.max(1, parseInt(page)) - 1) * Math.min(100, parseInt(limit) || 20);
     const lim = Math.min(100, parseInt(limit) || 20);

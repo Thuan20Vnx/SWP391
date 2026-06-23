@@ -60,10 +60,13 @@ export const canManageSystemMaintenance = (role = getUserRole()) => {
 export const canAccessAdminSystemPage = (role = getUserRole()) =>
   isAdminRole(role) || isIcpdpRole(role);
 
-/** Admin, CTSV, ICPDP vẫn dùng portal khi bảo trì */
-export const isStaffDuringMaintenance = (role = getUserRole()) => {
+/** Admin vẫn dùng đầy đủ khi bảo trì */
+export const isStaffDuringMaintenance = (role = getUserRole()) => isAdminRole(role);
+
+/** CTSV / ICPDP: vào portal nhưng chỉ xem khi bảo trì */
+export const isMaintenanceViewOnlyStaff = (role = getUserRole()) => {
   const r = normalizeRole(role);
-  return r === USER_ROLES.ADMIN || r === USER_ROLES.CTSV || r === USER_ROLES.ICPDP;
+  return r === USER_ROLES.CTSV || r === USER_ROLES.ICPDP;
 };
 
 export const isPartnerRole = (role = getUserRole()) => normalizeRole(role) === USER_ROLES.PARTNER;

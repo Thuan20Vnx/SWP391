@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { fetchCtsvApprovedEvents } from '../../services/ctsvApi';
 import ProposalTicketsTable from '../../components/admin/ProposalTicketsTable';
@@ -8,6 +8,13 @@ const SOURCE_TABS = [
   { value: 'all',     label: 'Tất cả' },
   { value: 'school',  label: 'Cấp trường' },
   { value: 'partner', label: 'Đối tác' },
+];
+
+const TIME_FILTER_OPTS = [
+  { id: 'all', label: 'Tất cả thời gian' },
+  { id: 'Hôm nay', label: 'Hôm nay' },
+  { id: 'Tuần này', label: 'Tuần này' },
+  { id: 'Tháng này', label: 'Tháng này' },
 ];
 
 const SOURCE_META = {
@@ -39,15 +46,26 @@ export default function CtsvAllEvents() {
   const { showToast } = useOutletContext() || {};
   const [data, setData]         = useState(null);
   const [source, setSource]     = useState('all');
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [timeOpen, setTimeOpen] = useState(false);
   const [search, setSearch]     = useState('');
   const [inputVal, setInputVal] = useState('');
   const [page, setPage]         = useState(1);
   const [loading, setLoading]   = useState(true);
+  const timeRef = useRef(null);
 
-  const load = useCallback(async (p = 1, src = source, q = search) => {
+  const timeLabel = TIME_FILTER_OPTS.find((o) => o.id === timeFilter)?.label || 'Thời gian';
+
+  const load = useCallback(async (p = 1, src = source, q = search, time = timeFilter) => {
     setLoading(true);
     try {
-      const res = await fetchCtsvApprovedEvents({ source: src, search: q, page: p, limit: 20 });
+      const res = await fetchCtsvApprovedEvents({
+        source: src,
+        search: q,
+        time: time === 'all' ? '' : time,
+        page: p,
+        limit: 20,
+      });
       setData(res);
       setPage(p);
     } catch (err) {
@@ -55,13 +73,23 @@ export default function CtsvAllEvents() {
     } finally {
       setLoading(false);
     }
-  }, [source, search, showToast]);
+  }, [source, search, timeFilter, showToast]);
 
-  useEffect(() => { load(1, source, search); }, [source]);
+  useEffect(() => {
+    load(1, source, search, timeFilter);
+  }, [source, timeFilter]);
+
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (timeRef.current && !timeRef.current.contains(e.target)) setTimeOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   const handleSearch = () => {
     setSearch(inputVal);
-    load(1, source, inputVal);
+    load(1, source, inputVal, timeFilter);
   };
 
   const totalPages = data ? Math.ceil(data.total / data.limit) : 0;
@@ -96,23 +124,52 @@ export default function CtsvAllEvents() {
               {tab.label}
             </button>
           ))}
+
+          <div className="adm-ev-dropdown" ref={timeRef}>
+            <button
+              type="button"
+              className={`adm-ev-pill adm-ev-pill--caret${timeFilter !== 'all' ? ' adm-ev-pill--active' : ''}`}
+              onClick={() => setTimeOpen((o) => !o)}
+              aria-expanded={timeOpen}
+            >
+              {timeFilter === 'all' ? 'Thời gian' : timeLabel}
+              <svg className="adm-ev-caret" viewBox="0 0 10 6" width="10" height="6" fill="currentColor" aria-hidden>
+                <path d="M0 0l5 6 5-6z" />
+              </svg>
+            </button>
+            {timeOpen && (
+              <div className="adm-ev-menu">
+                {TIME_FILTER_OPTS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={`adm-ev-menu-item${timeFilter === opt.id ? ' adm-ev-menu-item--active' : ''}`}
+                    onClick={() => {
+                      setTimeFilter(opt.id);
+                      setTimeOpen(false);
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, flex: 1, maxWidth: 380 }}>
+        <div className="adm-ev-toolbar__search">
           <input
             type="text"
             placeholder="Tìm tên sự kiện, địa điểm..."
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="admin-search-input"
-            style={{ flex: 1, border: '1px solid #e0d4cc', borderRadius: 8, padding: '6px 12px', fontSize: '0.85rem', outline: 'none', background: '#fff' }}
+            className="admin-search-input adm-ev-toolbar__input"
           />
           <button
             type="button"
             className="ctsv-btn-primary"
             onClick={handleSearch}
-            style={{ whiteSpace: 'nowrap' }}
           >
             Tìm
           </button>
@@ -127,7 +184,7 @@ export default function CtsvAllEvents() {
       ) : !data?.events?.length ? (
         <div className="admin-events-empty">
           <p className="admin-events-empty__title">Không có sự kiện nào</p>
-          <p className="admin-events-empty__hint">Thử đổi bộ lọc nguồn hoặc từ khoá tìm kiếm.</p>
+          <p className="admin-events-empty__hint">Thử đổi bộ lọc nguồn, thời gian hoặc từ khoá tìm kiếm.</p>
         </div>
       ) : (
         <ul className="admin-proposal-list">
@@ -187,24 +244,24 @@ export default function CtsvAllEvents() {
                 </div>
 
                 <div className="admin-proposal-card__full">
-                    <ProposalTicketsTable
-                      ticketTypes={ev.ticketTypes}
-                      ticketPrice={ev.ticketPrice}
-                    />
+                  <ProposalTicketsTable
+                    ticketTypes={ev.ticketTypes}
+                    ticketPrice={ev.ticketPrice}
+                  />
 
-                    {ev.description?.trim() ? (
-                      <div className="admin-proposal-card__desc">
-                        <p className="admin-proposal-card__desc-label">Mô tả</p>
-                        <p className="admin-proposal-card__desc-text">{ev.description}</p>
-                      </div>
-                    ) : null}
+                  {ev.description?.trim() ? (
+                    <div className="admin-proposal-card__desc">
+                      <p className="admin-proposal-card__desc-label">Mô tả</p>
+                      <p className="admin-proposal-card__desc-text">{ev.description}</p>
+                    </div>
+                  ) : null}
                 </div>
 
                 <footer className="admin-proposal-card__footer">
                   <div className="adm-ev-detail-bar">
                     <button
                       type="button"
-                      className="adm-ev-detail-btn"
+                      className="adm-ev-detail-btn maintenance-readonly-allow"
                       onClick={() => navigate(`/ctsv/events/${ev.id}`)}
                     >
                       Xem chi tiết
@@ -218,17 +275,17 @@ export default function CtsvAllEvents() {
       )}
 
       {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, margin: '24px 0' }}>
+        <div className="adm-ev-pagination">
           <button
             type="button"
-            className="ctsv-btn-secondary"
+            className="ctsv-btn-secondary maintenance-readonly-allow"
             disabled={page <= 1}
             onClick={() => load(page - 1)}
           >← Trước</button>
-          <span style={{ padding: '8px 16px', color: '#64748b', fontSize: '0.9rem' }}>{page} / {totalPages}</span>
+          <span className="adm-ev-pagination__label">{page} / {totalPages}</span>
           <button
             type="button"
-            className="ctsv-btn-secondary"
+            className="ctsv-btn-secondary maintenance-readonly-allow"
             disabled={page >= totalPages}
             onClick={() => load(page + 1)}
           >Sau →</button>

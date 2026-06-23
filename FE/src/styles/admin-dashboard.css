@@ -2054,6 +2054,9 @@
 }
 
 .admin-proposal-card__full {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   padding: 0 20px 20px;
 }
 
@@ -2118,6 +2121,7 @@
   background: #ffffff;
   border: 1px solid #f0e8e2;
   border-radius: 10px;
+  margin-top: 0;
 }
 
 .admin-proposal-card__desc-label {
@@ -2138,7 +2142,8 @@
 }
 
 .admin-proposal-tickets {
-  margin-top: 12px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .admin-proposal-tickets__empty,
@@ -2384,6 +2389,67 @@
   align-items: center;
 }
 .adm-ev-pills--right { margin-left: auto; }
+
+.adm-ev-toolbar__search {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  max-width: 380px;
+}
+
+.adm-ev-toolbar__input {
+  flex: 1;
+  border: 1px solid #e0d4cc;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  outline: none;
+  background: #fff;
+}
+
+.adm-ev-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0;
+}
+
+.adm-ev-pagination__label {
+  padding: 8px 16px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.staff-maint-readonly-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 10px;
+  color: #9a3412;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.staff-maint-readonly-banner strong {
+  font-size: 0.875rem;
+}
+
+.maintenance-readonly-portal .ctsv-btn-primary,
+.maintenance-readonly-portal .ctsv-btn-danger,
+.maintenance-readonly-portal .icpdp-btn-primary,
+.maintenance-readonly-portal .icpdp-btn-danger,
+.maintenance-readonly-portal .admin-sys-btn--primary,
+.maintenance-readonly-portal .admin-sys-btn--danger,
+.maintenance-readonly-portal button[type="submit"]:not(.maintenance-readonly-allow) {
+  pointer-events: none;
+  opacity: 0.48;
+  cursor: not-allowed;
+}
 
 .adm-ev-pill {
   display: inline-flex;

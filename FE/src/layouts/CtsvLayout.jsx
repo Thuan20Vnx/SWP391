@@ -16,6 +16,8 @@ import { logoutWithConfirm } from '../utils/logout';
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { resolveUserAvatar } from '../utils/image';
 import { cachedFetchDedup } from '../utils/apiCache';
+import StaffMaintenanceReadOnlyBanner from '../components/StaffMaintenanceReadOnlyBanner';
+import useMaintenanceReadOnly from '../hooks/useMaintenanceReadOnly';
 import { fetchCtsvEvents, fetchCtsvAnnouncementLinkableEvents } from '../services/ctsvApi';
 import { fetchManagedAnnouncements } from '../services/announcementManageApi';
 
@@ -126,6 +128,8 @@ const CtsvLayout = ({ showToast }) => {
     });
   }, [navigate, showToast]);
 
+  const { readOnly: maintenanceReadOnly } = useMaintenanceReadOnly();
+
   const shellClass = `ctsv-app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
 
   return (
@@ -160,13 +164,15 @@ const CtsvLayout = ({ showToast }) => {
             }}
           />
 
-          <div className="ctsv-portal-body">
+          <StaffMaintenanceReadOnlyBanner />
+          <div className={`ctsv-portal-body${maintenanceReadOnly ? ' maintenance-readonly-portal' : ''}`}>
             <Outlet context={{
               showToast,
               userProfile,
               toggleSidebar,
               headerSearch,
               setHeaderSearch,
+              maintenanceReadOnly,
               registerHeaderSearchSubmit: (fn) => { headerSearchSubmitRef.current = fn; },
             }} />
           </div>
