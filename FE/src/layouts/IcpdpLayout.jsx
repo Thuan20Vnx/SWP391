@@ -15,6 +15,8 @@ import { logoutWithConfirm } from '../utils/logout';
 import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { resolveUserAvatar } from '../utils/image';
 import ChatbotFloating from '../components/ChatbotFloating';
+import StaffMaintenanceReadOnlyBanner from '../components/StaffMaintenanceReadOnlyBanner';
+import useMaintenanceReadOnly from '../hooks/useMaintenanceReadOnly';
 import '../styles/icpdp-portal.css';
 
 const IcpdpLayout = ({ showToast }) => {
@@ -85,6 +87,8 @@ const IcpdpLayout = ({ showToast }) => {
     });
   };
 
+  const { readOnly: maintenanceReadOnly } = useMaintenanceReadOnly();
+
   const shellClass = `ctsv-app-shell icpdp-app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`;
 
   return (
@@ -121,7 +125,8 @@ const IcpdpLayout = ({ showToast }) => {
             }}
           />
 
-          <div className="ctsv-portal-body">
+          <StaffMaintenanceReadOnlyBanner />
+          <div className={`ctsv-portal-body${maintenanceReadOnly ? ' maintenance-readonly-portal' : ''}`}>
             <Outlet
               context={{
                 showToast,
@@ -129,6 +134,7 @@ const IcpdpLayout = ({ showToast }) => {
                 toggleSidebar,
                 headerSearch,
                 setHeaderSearch,
+                maintenanceReadOnly,
                 registerHeaderSearchSubmit: (fn) => {
                   headerSearchSubmitRef.current = fn;
                 }

@@ -1201,13 +1201,13 @@ export default {
   'admin.system.ops.title': 'Vận hành chung',
   'admin.system.ops.maintenance': 'Chế độ bảo trì',
   'admin.system.ops.maintenanceDesc':
-    'Tạm khóa truy cập sinh viên; Admin, CTSV và ICPDP vẫn đăng nhập được. Gạt sẽ lưu ngay lên server.',
+    'Tạm khóa sinh viên; CTSV/ICPDP chỉ xem (không thao tác); Admin vẫn điều hành bình thường. Gạt lưu ngay.',
   'admin.system.ops.maintenanceSaving': 'Đang lưu lên server…',
   'admin.system.ops.maintenanceServerOn':
-    'Trạng thái server: BẬT bảo trì (tài khoản Admin/CTSV/ICPDP vẫn vào được — dùng tab ẩn danh để kiểm tra sinh viên)',
+    'Trạng thái server: BẬT bảo trì — CTSV/ICPDP chỉ xem; Admin không bị ảnh hưởng',
   'admin.system.ops.maintenanceServerOff': 'Trạng thái server: TẮT bảo trì',
   'admin.system.ops.maintenanceTestHint':
-    'Sinh viên đang online thấy banner đếm ngược trước khi bị chặn. Admin/CTSV/ICPDP không bị ảnh hưởng.',
+    'Sinh viên: banner cảnh báo rồi bị chặn. CTSV/ICPDP: vào portal nhưng không thao tác ghi dữ liệu.',
   'admin.system.ops.graceSeconds': 'Thời gian cảnh báo trước bảo trì (giây)',
   'admin.system.ops.graceSecondsHint':
     'Sinh viên đang dùng hệ thống sẽ thấy banner cảnh báo trong số giây này trước khi bị chặn (5–600). Lưu cùng cấu hình bảo trì.',
