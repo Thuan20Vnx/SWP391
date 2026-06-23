@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { fetchWeather } from '../services/weatherApi';
 
-const MarqueeLine = ({ text, className, variant }) => {
+const MARQUEE_HOLD_MS = 2500;
+const marqueeScrollDuration = (distance) => Math.min(10000, Math.max(3500, distance * 55));
+
+const MarqueeLine = ({ text, className }) => {
   const containerRef = useRef(null);
   const textRef = useRef(null);
   const animationRef = useRef(null);
@@ -19,38 +22,24 @@ const MarqueeLine = ({ text, className, variant }) => {
     const distance = textEl.scrollWidth - container.clientWidth;
     if (distance <= 0) return undefined;
 
-    if (variant === 'bounce') {
-      // Hàng trên: chạy qua rồi chạy về (ping-pong), tốc độ chậm
-      const duration = Math.min(12000, Math.max(4000, distance * 70));
-      animationRef.current = textEl.animate(
-        [
-          { transform: 'translateX(0)' },
-          { transform: `translateX(-${distance}px)` },
-          { transform: 'translateX(0)' },
-        ],
-        { duration, iterations: Infinity, easing: 'ease-in-out' }
-      );
-    } else {
-      // Hàng dưới: khựng 2s khi bắt đầu, chạy 1 chiều, hết 1 vòng khựng lại 2s rồi lặp lại
-      const scrollDuration = Math.min(6000, Math.max(2200, distance * 35));
-      const holdStart = 2000;
-      const holdEnd = 2000;
-      const total = holdStart + scrollDuration + holdEnd;
-      animationRef.current = textEl.animate(
-        [
-          { transform: 'translateX(0)', offset: 0 },
-          { transform: 'translateX(0)', offset: holdStart / total },
-          { transform: `translateX(-${distance}px)`, offset: (holdStart + scrollDuration) / total },
-          { transform: `translateX(-${distance}px)`, offset: 1 },
-        ],
-        { duration: total, iterations: Infinity, easing: 'linear' }
-      );
-    }
+    const scrollDuration = marqueeScrollDuration(distance);
+    const holdStart = MARQUEE_HOLD_MS;
+    const holdEnd = MARQUEE_HOLD_MS;
+    const total = holdStart + scrollDuration + holdEnd;
+    animationRef.current = textEl.animate(
+      [
+        { transform: 'translateX(0)', offset: 0 },
+        { transform: 'translateX(0)', offset: holdStart / total },
+        { transform: `translateX(-${distance}px)`, offset: (holdStart + scrollDuration) / total },
+        { transform: `translateX(-${distance}px)`, offset: 1 },
+      ],
+      { duration: total, iterations: Infinity, easing: 'linear' }
+    );
 
     return () => {
       animationRef.current?.cancel();
     };
-  }, [text, variant]);
+  }, [text]);
 
   return (
     <span ref={containerRef} className={`weather-marquee ${className}`}>
@@ -285,8 +274,8 @@ const WeatherWidget = () => {
           <WeatherIcon main={weather.main} />
         </div>
         <div className="weather-widget-info">
-          <MarqueeLine key={`top-${activeIndex}`} text={topLine} className="weather-widget-temp" variant="bounce" />
-          <MarqueeLine key={`bottom-${activeIndex}`} text={bottomLine} className="weather-widget-advice" variant="pause" />
+          <MarqueeLine key={`top-${activeIndex}`} text={topLine} className="weather-widget-temp" />
+          <MarqueeLine key={`bottom-${activeIndex}`} text={bottomLine} className="weather-widget-advice" />
         </div>
       </button>
     </div>
