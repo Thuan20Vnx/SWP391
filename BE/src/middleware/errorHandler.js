@@ -14,6 +14,10 @@ const normalizeError = (err) => {
     return new AppError(details || 'Dữ liệu hồ sơ không hợp lệ.', 400);
   }
 
+  if (err.name === 'CastError') {
+    return new AppError('Dữ liệu cấu hình hệ thống không hợp lệ trên máy chủ.', 400);
+  }
+
   if (err.code === 11000) {
     const field = Object.keys(err.keyPattern || {})[0] || 'dữ liệu';
     return new AppError(
