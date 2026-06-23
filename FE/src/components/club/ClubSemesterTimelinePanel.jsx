@@ -78,11 +78,12 @@ const emptyItem = () => ({
   notes: '',
 });
 
-const toDateInput = (value) => {
+const toDateTimeInput = (value) => {
   if (!value) return '';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toISOString().slice(0, 10);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
 const formatDate = (value) => {
@@ -91,8 +92,16 @@ const formatDate = (value) => {
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('vi-VN');
 };
 
+const formatDateTime = (value) => {
+  if (!value) return '—';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? '—'
+    : `${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+};
+
 const canEditTimeline = (timeline) =>
-  timeline && ['draft', 'revision', 'pending_icpdp'].includes(timeline.statusKey);
+  timeline && ['draft', 'revision', 'pending_icpdp', 'approved'].includes(timeline.statusKey);
 
 const canWithdrawTimeline = (timeline) =>
   timeline && timeline.statusKey === 'pending_icpdp';
@@ -113,12 +122,6 @@ const REASON_MODAL_COPY = {
     subtitle: 'Nhập lý do xóa timeline. Yêu cầu sẽ được gửi IC-PDP → Admin phê duyệt.',
     placeholder: 'VD: Timeline không còn phù hợp với định hướng CLB...',
     confirmLabel: 'Gửi yêu cầu xóa',
-  },
-  edit: {
-    title: 'Yêu cầu sửa timeline',
-    subtitle: 'Nhập lý do chỉnh sửa timeline. Nội dung form sẽ được gửi kèm yêu cầu duyệt.',
-    placeholder: 'VD: Bổ sung thêm hoạt động workshop, cập nhật mục tiêu kỳ...',
-    confirmLabel: 'Gửi yêu cầu sửa',
   },
 };
 
@@ -172,7 +175,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   const [view, setView] = useState('list');
   const [detailTimeline, setDetailTimeline] = useState(null);
   const [editingId, setEditingId] = useState(null);
-  const [editRequestMode, setEditRequestMode] = useState(false);
   const [editingStatusKey, setEditingStatusKey] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [reasonModal, setReasonModal] = useState(null);
@@ -219,7 +221,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
       items: [emptyItem()],
     });
     setEditingId(null);
-    setEditRequestMode(false);
     setEditingStatusKey(null);
   };
 
@@ -233,17 +234,12 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     setView('detail');
   };
 
-  const openEdit = (timeline, asChangeRequest = false) => {
-    if (!asChangeRequest && !canEditTimeline(timeline)) {
+  const openEdit = (timeline) => {
+    if (!canEditTimeline(timeline)) {
       showToast?.('Timeline này không thể chỉnh sửa trực tiếp.', 'warning');
       return;
     }
-    if (asChangeRequest && timeline.statusKey !== 'approved') {
-      showToast?.('Chỉ timeline đã duyệt mới gửi yêu cầu sửa.', 'warning');
-      return;
-    }
     setEditingId(timeline.id);
-    setEditRequestMode(asChangeRequest);
     setEditingStatusKey(timeline.statusKey);
     setForm({
       semesterTerm: timeline.semesterTerm,
@@ -254,7 +250,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         ? timeline.items.map((item) => ({
             title: item.title || '',
             description: item.description || '',
-            plannedDate: toDateInput(item.plannedDate),
+            plannedDate: toDateTimeInput(item.plannedDate),
             category: item.category || 'Workshop',
             location: item.location || '',
             expectedAttendees: item.expectedAttendees || '',
@@ -308,17 +304,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     setSubmitting(true);
     try {
       const payload = buildPayload();
-
-      if (editRequestMode && editingId) {
-        setSubmitting(false);
-        setReasonModal({
-          mode: 'edit',
-          timelineId: editingId,
-          payload,
-          reason: '',
-        });
-        return;
-      }
+      const wasApproved = editingStatusKey === 'approved';
 
       let timelineId = editingId;
       if (editingId) {
@@ -330,6 +316,8 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
       if (andSubmit && timelineId) {
         await submitClubSemesterTimeline(timelineId);
         showToast?.('Đã gửi timeline kỳ học — chờ IC-PDP xét duyệt!', 'success');
+      } else if (wasApproved) {
+        showToast?.('Đã lưu thay đổi — timeline chuyển về chờ IC-PDP duyệt lại!', 'success');
       } else {
         showToast?.(editingId ? 'Đã lưu timeline.' : 'Đã tạo timeline kỳ học.', 'success');
       }
@@ -412,20 +400,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
 
     setSubmitting(true);
     try {
-      if (reasonModal.mode === 'edit') {
-        await requestClubSemesterTimelineChange(reasonModal.timelineId, {
-          type: 'edit',
-          reason,
-          payload: reasonModal.payload,
-        });
-        showToast?.('Đã gửi yêu cầu sửa — chờ IC-PDP và Admin duyệt!', 'success');
-        setReasonModal(null);
-        resetForm();
-        setView('list');
-        load();
-        return;
-      }
-
       const { timeline, type } = reasonModal;
       await requestClubSemesterTimelineChange(timeline.id, { type, reason });
       showToast?.('Đã gửi yêu cầu — chờ IC-PDP và Admin duyệt!', 'success');
@@ -454,8 +428,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
 
   const renderReasonModal = () => {
     if (!reasonModal) return null;
-    const copyKey = reasonModal.mode === 'edit' ? 'edit' : reasonModal.type;
-    const copy = REASON_MODAL_COPY[copyKey];
+    const copy = REASON_MODAL_COPY[reasonModal.type];
     if (!copy) return null;
 
     return (
@@ -528,8 +501,8 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         <div>
           <h1 className="clb-page-title">TIMELINE KỲ HỌC</h1>
           <p className="clb-page-subtitle">
-            {editRequestMode
-              ? 'Chỉnh sửa nội dung — sau khi lưu sẽ gửi yêu cầu sửa lên IC-PDP và Admin duyệt.'
+            {editingStatusKey === 'approved'
+              ? 'Chỉnh sửa timeline đã duyệt — sau khi lưu, timeline sẽ chuyển về trạng thái chờ IC-PDP duyệt lại.'
               : editingStatusKey === 'pending_icpdp'
                 ? 'Chỉnh sửa trực tiếp — đơn đang chờ duyệt, thay đổi được lưu ngay không cần phê duyệt lại.'
                 : 'Lập kế hoạch hoạt động theo kỳ Spring / Summer / Fall và gửi IC-PDP phê duyệt.'}
@@ -540,7 +513,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
           className="clb-create-btn"
           onClick={() => {
             resetForm();
-            setView(editingId && !editRequestMode ? 'detail' : 'list');
+            setView(editingId ? 'detail' : 'list');
             if (editingId && detailTimeline) setDetailTimeline(timelines.find((t) => t.id === editingId) || detailTimeline);
           }}
         >
@@ -549,8 +522,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
       </div>
 
       <div className="clb-timeline-form">
-        {!editRequestMode && (
-          <div className="clb-timeline-form-row">
+        <div className="clb-timeline-form-row">
             <label>
               Kỳ học (FPT)
               <AppSelect
@@ -569,8 +541,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
                 onChange={(e) => setForm((p) => ({ ...p, semesterYear: e.target.value }))}
               />
             </label>
-          </div>
-        )}
+        </div>
 
         <label>
           Tóm tắt kế hoạch kỳ
@@ -628,9 +599,9 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
                 />
               </label>
               <label>
-                Ngày dự kiến
+                Ngày &amp; giờ dự kiến
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={item.plannedDate}
                   onChange={(e) => updateItem(index, 'plannedDate', e.target.value)}
                 />
@@ -677,24 +648,19 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         ))}
 
         <div className="clb-timeline-form-actions">
-          {!editRequestMode && editingStatusKey !== 'pending_icpdp' && (
-            <button type="button" className="clb-create-btn clb-create-btn--ghost" disabled={submitting} onClick={() => handleSave(false)}>
-              Lưu nháp
-            </button>
-          )}
-          {!editRequestMode && editingStatusKey === 'pending_icpdp' && (
+          {['pending_icpdp', 'approved'].includes(editingStatusKey) ? (
             <button type="button" className="clb-create-btn" disabled={submitting} onClick={() => handleSave(false)}>
               {submitting ? 'Đang lưu...' : 'Lưu thay đổi'}
             </button>
-          )}
-          {(editingStatusKey !== 'pending_icpdp' || editRequestMode) && (
-            <button type="button" className="clb-create-btn" disabled={submitting} onClick={() => handleSave(!editRequestMode)}>
-              {submitting
-                ? 'Đang gửi...'
-                : editRequestMode
-                  ? 'Gửi yêu cầu sửa'
-                  : 'Gửi duyệt'}
-            </button>
+          ) : (
+            <>
+              <button type="button" className="clb-create-btn clb-create-btn--ghost" disabled={submitting} onClick={() => handleSave(false)}>
+                Lưu nháp
+              </button>
+              <button type="button" className="clb-create-btn" disabled={submitting} onClick={() => handleSave(true)}>
+                {submitting ? 'Đang gửi...' : 'Gửi duyệt'}
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -718,7 +684,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     const canWithdraw = canWithdrawTimeline(tl) && !pendingChange;
     const canRequestCancel = tl.statusKey === 'approved' && !pendingChange;
     const canDirectEdit = canEditTimeline(tl) && !pendingChange;
-    const canRequestEdit = tl.statusKey === 'approved' && !pendingChange;
     const canDirectDelete = tl.statusKey === 'draft' && !pendingChange;
     const canRequestDelete = tl.statusKey === 'approved' && !pendingChange;
 
@@ -796,7 +761,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
               {(tl.items || []).map((item, i) => (
                 <li key={`${item.title}-${i}`}>
                   <strong>{item.title}</strong>
-                  {item.plannedDate && <span>{formatDate(item.plannedDate)} · </span>}
+                  {item.plannedDate && <span>{formatDateTime(item.plannedDate)} · </span>}
                   {item.category}
                   {item.location && <> · {item.location}</>}
                   {item.description && <p style={{ marginTop: 6, color: '#64748b' }}>{item.description}</p>}
@@ -835,11 +800,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
             {canDirectEdit && (
               <button type="button" className="clb-view-detail-btn" onClick={() => openEdit(tl)}>
                 Sửa
-              </button>
-            )}
-            {canRequestEdit && (
-              <button type="button" className="clb-view-detail-btn" onClick={() => openEdit(tl, true)}>
-                Yêu cầu sửa
               </button>
             )}
             {canDirectDelete && (

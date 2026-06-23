@@ -26,7 +26,7 @@ const normalizeItems = (items) => {
     .filter((item) => item.title);
 };
 
-const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'pending_icpdp', 'pending_admin'];
+const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'pending_icpdp', 'pending_admin', 'approved'];
 
 const assertEditable = (timeline) => {
   if (!DIRECT_EDIT_STATUSES.includes(timeline.status)) {
@@ -142,6 +142,7 @@ const updateForClub = async (id, payload, userId, activeClubId) => {
     throw err;
   }
   assertEditable(timeline);
+  const wasApproved = timeline.status === 'approved';
 
   const nextTerm = payload.semesterTerm ? String(payload.semesterTerm).trim() : timeline.semesterTerm;
   const nextYear = payload.semesterYear ? Number(payload.semesterYear) : timeline.semesterYear;
@@ -162,6 +163,16 @@ const updateForClub = async (id, payload, userId, activeClubId) => {
   if (payload.items !== undefined) timeline.items = normalizeItems(payload.items);
   timeline.clubName = club.name;
   timeline.clubSlug = club.slug;
+
+  if (wasApproved) {
+    // Sửa timeline đã duyệt nghĩa là nội dung thay đổi — phải duyệt lại từ đầu.
+    timeline.status = 'pending_icpdp';
+    timeline.submittedAt = new Date();
+    timeline.rejectionReason = '';
+    timeline.icpdpNote = '';
+    timeline.ctsvNote = '';
+  }
+
   await timeline.save();
   return formatClubSemesterTimeline(timeline);
 };
@@ -363,7 +374,7 @@ const requestChangeForClub = async (id, { type, reason, payload }, userId, activ
   }
 
   const action = String(type || '').trim();
-  if (!['cancel', 'edit', 'delete'].includes(action)) {
+  if (!['cancel', 'delete'].includes(action)) {
     const err = new Error('Loại yêu cầu không hợp lệ!');
     err.statusCode = 400;
     throw err;
@@ -388,25 +399,11 @@ const requestChangeForClub = async (id, { type, reason, payload }, userId, activ
     throw err;
   }
 
-  if (action === 'edit') {
-    if (timeline.status !== 'approved') {
-      const err = new Error('Chỉ có thể gửi yêu cầu sửa timeline đã được phê duyệt!');
-      err.statusCode = 400;
-      throw err;
-    }
-    const items = normalizeItems(payload?.items || []);
-    if (!items.length) {
-      const err = new Error('Yêu cầu sửa cần ít nhất một hoạt động!');
-      err.statusCode = 400;
-      throw err;
-    }
-  }
-
   timeline.changeRequest = {
     type: action,
     status: 'pending_icpdp',
     reason: trimmedReason,
-    payload: action === 'edit' ? payload : null,
+    payload: null,
     requestedAt: new Date(),
     icpdpNote: '',
     adminNote: '',
@@ -441,21 +438,12 @@ const withdrawForClub = async (id, userId, activeClubId) => {
 };
 
 const applyApprovedChange = async (timeline) => {
-  const { type, payload } = timeline.changeRequest || {};
+  const { type } = timeline.changeRequest || {};
   if (type === 'cancel') {
     timeline.status = 'cancelled';
   } else if (type === 'delete') {
     await timeline.deleteOne();
     return { id: String(timeline._id), deleted: true };
-  } else if (type === 'edit' && payload) {
-    if (payload.summary !== undefined) timeline.summary = String(payload.summary || '').trim();
-    if (payload.objectives !== undefined) timeline.objectives = String(payload.objectives || '').trim();
-    if (payload.items !== undefined) timeline.items = normalizeItems(payload.items);
-    timeline.status = 'pending_icpdp';
-    timeline.submittedAt = new Date();
-    timeline.rejectionReason = '';
-    timeline.icpdpNote = '';
-    timeline.ctsvNote = '';
   }
   clearChangeRequest(timeline);
   await timeline.save();
