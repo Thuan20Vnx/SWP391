@@ -69,9 +69,26 @@ const buildGenericAdvicePrompt = (weather) => `Bạn là trợ lý thời tiết
 Thời tiết hiện tại: ${weather.description}, ${weather.temp}°C (cảm giác như ${weather.feelsLike}°C), độ ẩm ${weather.humidity}%, gió ${weather.windSpeed} m/s.
 Người dùng không có sự kiện nào sắp tham gia. Hãy đưa ra MỘT lời khuyên ngắn (tối đa 1 câu, dưới 18 từ), tiếng Việt, tự nhiên, không emoji, không liệt kê.`;
 
+const EVENT_ADVICE_SCHEMA = {
+  type: 'object',
+  properties: {
+    eventAdvices: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          index: { type: 'integer', description: 'Số thứ tự sự kiện (1-based) theo danh sách đã cho' },
+          advice: { type: 'string', description: 'Lời khuyên ngắn (tối đa 2 câu, dưới 30 từ), tiếng Việt' },
+        },
+        required: ['index', 'advice'],
+      },
+    },
+  },
+  required: ['eventAdvices'],
+};
+
 const buildEventAdvicePrompt = (weather, events) => {
   const eventsBlock = events
-    .slice(0, 3)
     .map((e, i) => {
       const start = new Date(e.startDate).toLocaleString('vi-VN');
       return `${i + 1}. "${e.title}" lúc ${start} tại ${e.location || e.campus || 'chưa rõ địa điểm'}`;
@@ -82,7 +99,7 @@ const buildEventAdvicePrompt = (weather, events) => {
 Thời tiết hiện tại: ${weather.description}, ${weather.temp}°C (cảm giác như ${weather.feelsLike}°C), độ ẩm ${weather.humidity}%, gió ${weather.windSpeed} m/s.
 Người dùng có các sự kiện sắp tham gia sau:
 ${eventsBlock}
-Hãy phân tích thời tiết và đưa ra lời khuyên ngắn (tối đa 2 câu, dưới 30 từ) về việc nên chuẩn bị gì hoặc lưu ý gì khi tham gia sự kiện này, tiếng Việt, tự nhiên, không emoji, không liệt kê gạch đầu dòng.`;
+Với MỖI sự kiện, hãy phân tích thời tiết và đưa ra lời khuyên ngắn riêng (tối đa 2 câu, dưới 30 từ) về việc nên chuẩn bị gì hoặc lưu ý gì khi tham gia, tiếng Việt, tự nhiên, không emoji, không liệt kê gạch đầu dòng. Trả về lời khuyên cho từng sự kiện theo đúng số thứ tự.`;
 };
 
 const askGeminiAdvice = async (prompt) => {
@@ -104,6 +121,33 @@ const askGeminiAdvice = async (prompt) => {
   }
 };
 
+const askGeminiEventAdvices = async (prompt) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: EVENT_ADVICE_SCHEMA,
+        },
+      }),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('').trim();
+    if (!text) return null;
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed.eventAdvices) ? parsed.eventAdvices : null;
+  } catch {
+    return null;
+  }
+};
+
 const FALLBACK_ADVICE = {
   Rain: 'Trời có mưa, bạn nhớ mang theo áo mưa hoặc ô khi ra ngoài nhé.',
   Thunderstorm: 'Có giông sét, hạn chế di chuyển ngoài trời nếu không cần thiết.',
@@ -115,15 +159,36 @@ const FALLBACK_ADVICE = {
 const getWeatherWithAdvice = async ({ authEmail } = {}) => {
   const weather = await fetchCurrentWeather();
   const upcomingEvents = await getUpcomingRegisteredEvents(authEmail);
+  const fallbackAdvice = FALLBACK_ADVICE[weather.main] || FALLBACK_ADVICE.default;
 
-  const prompt = upcomingEvents.length
-    ? buildEventAdvicePrompt(weather, upcomingEvents)
-    : buildGenericAdvicePrompt(weather);
+  let generalAdvice = fallbackAdvice;
+  let events = [];
 
-  const aiAdvice = await askGeminiAdvice(prompt);
-  const advice = aiAdvice || FALLBACK_ADVICE[weather.main] || FALLBACK_ADVICE.default;
+  if (upcomingEvents.length) {
+    const prompt = buildEventAdvicePrompt(weather, upcomingEvents);
+    const eventAdvices = await askGeminiEventAdvices(prompt);
+    events = upcomingEvents.map((e, i) => {
+      const found = eventAdvices?.find((a) => Number(a.index) === i + 1);
+      return {
+        id: String(e._id),
+        title: e.title,
+        startDate: e.startDate,
+        location: e.location || e.campus,
+        advice: found?.advice || fallbackAdvice,
+      };
+    });
+    generalAdvice = events[0]?.advice || fallbackAdvice;
+  } else {
+    const aiAdvice = await askGeminiAdvice(buildGenericAdvicePrompt(weather));
+    generalAdvice = aiAdvice || fallbackAdvice;
+  }
 
-  return { weather, advice, hasUpcomingEvent: upcomingEvents.length > 0 };
+  return {
+    weather,
+    advice: generalAdvice,
+    hasUpcomingEvent: upcomingEvents.length > 0,
+    events,
+  };
 };
 
-module.exports = { getWeatherWithAdvice };
+module.exports = { getWeatherWithAdvice, fetchCurrentWeather };

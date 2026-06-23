@@ -118,36 +118,56 @@ const WeatherIcon = ({ main }) => {
   }
 };
 
+const SLIDE_INTERVAL_MS = 15000;
+
 const WeatherWidget = () => {
-  const [state, setState] = useState({ loading: true, error: null, weather: null, advice: '' });
+  const [state, setState] = useState({ loading: true, error: null, weather: null, advice: '', events: [] });
+  const [slideIndex, setSlideIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     fetchWeather()
-      .then(({ weather, advice }) => {
-        if (!cancelled) setState({ loading: false, error: null, weather, advice });
+      .then(({ weather, advice, events }) => {
+        if (!cancelled) setState({ loading: false, error: null, weather, advice, events: events || [] });
       })
       .catch((err) => {
-        if (!cancelled) setState({ loading: false, error: err.message, weather: null, advice: '' });
+        if (!cancelled) setState({ loading: false, error: err.message, weather: null, advice: '', events: [] });
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  const slideCount = 1 + state.events.length;
+
+  useEffect(() => {
+    if (slideCount <= 1) return undefined;
+    const timer = setInterval(() => {
+      setSlideIndex((prev) => (prev + 1) % slideCount);
+    }, SLIDE_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [slideCount]);
+
   if (state.loading || state.error || !state.weather) return null;
 
-  const { weather, advice } = state;
-  const topLine = `${weather.temp}°C · ${weather.description}`;
+  const { weather, advice, events } = state;
+  const activeIndex = slideIndex % slideCount;
+  const isWeatherSlide = activeIndex === 0;
+  const activeEvent = isWeatherSlide ? null : events[activeIndex - 1];
+
+  const topLine = isWeatherSlide
+    ? `${weather.temp}°C · ${weather.description}`
+    : `Sự kiện: ${activeEvent.title}`;
+  const bottomLine = isWeatherSlide ? advice : activeEvent.advice;
 
   return (
-    <div className="weather-widget" title={`${topLine} — ${advice}`}>
+    <div className="weather-widget" title={`${topLine} — ${bottomLine}`}>
       <div className="weather-widget-icon">
         <WeatherIcon main={weather.main} />
       </div>
       <div className="weather-widget-info">
-        <MarqueeLine text={topLine} className="weather-widget-temp" variant="bounce" />
-        <MarqueeLine text={advice} className="weather-widget-advice" variant="pause" />
+        <MarqueeLine key={`top-${activeIndex}`} text={topLine} className="weather-widget-temp" variant="bounce" />
+        <MarqueeLine key={`bottom-${activeIndex}`} text={bottomLine} className="weather-widget-advice" variant="pause" />
       </div>
     </div>
   );
