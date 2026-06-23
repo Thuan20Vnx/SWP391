@@ -1,6 +1,7 @@
 const eventService = require('./event.service');
 const Announcement = require('../models/Announcement');
 const { PUBLIC_ANNOUNCEMENT_FILTER } = require('../utils/announcementFormat');
+const { fetchCurrentWeather } = require('./weather.service');
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -94,7 +95,7 @@ const getReply = async ({ messages, context }) => {
     throw new Error('GEMINI_API_KEY chưa được cấu hình trên server.');
   }
 
-  const [{ events } = {}, annList] = await Promise.all([
+  const [{ events } = {}, annList, weather] = await Promise.all([
     eventService.getApprovedEvents({}),
     Announcement.find(PUBLIC_ANNOUNCEMENT_FILTER)
       .select('title content publishedAt')
@@ -102,11 +103,15 @@ const getReply = async ({ messages, context }) => {
       .limit(20)
       .lean()
       .catch(() => []),
+    fetchCurrentWeather().catch(() => null),
   ]);
 
   const eventList = (events || []).slice(0, 30);
   const annItems = annList || [];
-  const dataBlock = `DỮ LIỆU SỰ KIỆN HIỆN CÓ:\n${formatEventsForPrompt(eventList)}\n\nDỮ LIỆU THÔNG BÁO HIỆN CÓ:\n${formatAnnouncementsForPrompt(annItems)}`;
+  const weatherBlock = weather
+    ? `DỮ LIỆU THỜI TIẾT HIỆN TẠI (Đà Nẵng, thời điểm thực tế, KHÔNG phải dự báo cho ngày khác): ${weather.description}, ${weather.temp}°C (cảm giác như ${weather.feelsLike}°C), độ ẩm ${weather.humidity}%, gió ${weather.windSpeed} m/s. Nếu người dùng hỏi thời tiết cho một sự kiện sắp diễn ra, dùng dữ liệu này để trả lời và nói rõ đây là thời tiết hiện tại (không phải dự báo chính xác cho thời điểm sự kiện nếu sự kiện ở ngày khác).`
+    : 'DỮ LIỆU THỜI TIẾT HIỆN TẠI: chưa lấy được dữ liệu thời tiết.';
+  const dataBlock = `DỮ LIỆU SỰ KIỆN HIỆN CÓ:\n${formatEventsForPrompt(eventList)}\n\nDỮ LIỆU THÔNG BÁO HIỆN CÓ:\n${formatAnnouncementsForPrompt(annItems)}\n\n${weatherBlock}`;
 
   const body = buildContents(messages || [], context, dataBlock);
 

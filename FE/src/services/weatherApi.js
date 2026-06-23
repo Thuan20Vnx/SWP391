@@ -8,5 +8,10 @@ export const fetchWeather = async () => {
   if (!ok || !data.success) {
     throw new Error(data.message || 'Không tải được dữ liệu thời tiết.');
   }
-  return { weather: data.weather, advice: data.advice, hasUpcomingEvent: data.hasUpcomingEvent };
+  return {
+    weather: data.weather,
+    advice: data.advice,
+    hasUpcomingEvent: data.hasUpcomingEvent,
+    events: Array.isArray(data.events) ? data.events : [],
+  };
 };
