@@ -115,22 +115,33 @@ const getReply = async ({ messages, context }) => {
 
   const body = buildContents(messages || [], context, dataBlock);
 
-  const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  let rawText;
+  try {
+    const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Gemini API lỗi (${response.status}): ${errText}`);
-  }
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Gemini API lỗi (${response.status}): ${errText}`);
+    }
 
-  const data = await response.json();
-  const rawText = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('').trim();
+    const data = await response.json();
+    rawText = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('').trim();
 
-  if (!rawText) {
-    throw new Error('Gemini không trả về nội dung hợp lệ.');
+    if (!rawText) {
+      throw new Error('Gemini không trả về nội dung hợp lệ.');
+    }
+  } catch (err) {
+    console.error('Chatbot Gemini lỗi, dùng fallback:', err.message);
+    return {
+      reply: 'Trợ lý ảo đang quá tải hoặc tạm thời không kết nối được với AI, bạn vui lòng thử lại sau ít phút nhé. Trong lúc đó bạn có thể xem trực tiếp danh sách sự kiện và thông báo trên trang.',
+      events: [],
+      announcements: [],
+      action: null,
+    };
   }
 
   let parsed;

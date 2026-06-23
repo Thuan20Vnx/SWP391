@@ -101,7 +101,41 @@ const PaymentModal = ({ payment, onClose, onPaid, showToast }) => {
 
         {status === 'paid' ? (
           <div style={{ textAlign: 'center', padding: '24px 0' }}>
-            <div style={{ fontSize: 48 }}>✅</div>
+            <div
+              style={{
+                width: 72, height: 72, margin: '0 auto',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 8px 20px -4px rgba(22,163,74,.45)',
+                animation: 'paymentSuccessPop .45s cubic-bezier(.34,1.56,.64,1)',
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="34" height="34" fill="none">
+                <path
+                  d="M5 13l4 4L19 7"
+                  stroke="#fff"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    strokeDasharray: 24,
+                    strokeDashoffset: 24,
+                    animation: 'paymentSuccessDraw .4s ease-out .25s forwards',
+                  }}
+                />
+              </svg>
+            </div>
+            <style>{`
+              @keyframes paymentSuccessPop {
+                0% { transform: scale(0); opacity: 0; }
+                60% { transform: scale(1.08); opacity: 1; }
+                100% { transform: scale(1); }
+              }
+              @keyframes paymentSuccessDraw {
+                to { stroke-dashoffset: 0; }
+              }
+            `}</style>
             <p style={{ fontSize: '1.05rem', fontWeight: 700, color: '#16a34a', margin: '8px 0' }}>
               Thanh toán thành công!
             </p>
