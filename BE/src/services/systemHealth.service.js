@@ -4,6 +4,7 @@ const Event = require('../models/Event');
 const Club = require('../models/Club');
 const { PORT, APP_URL, CLIENT_ORIGIN, GOOGLE_CLIENT_ID } = require('../config/env');
 const { verifySmtpConnection } = require('./email.service');
+const { getPaymentSettings } = require('./systemSettings.service');
 
 const SERVER_BOOT = Date.now();
 
@@ -68,20 +69,40 @@ const pingDatabase = async () => {
   }
 };
 
-const getPaymentStatus = () => {
-  const hasVnpay = Boolean(process.env.VNPAY_TMN_CODE || process.env.VNPAY_HASH_SECRET);
-  const hasMomo = Boolean(process.env.MOMO_PARTNER_CODE || process.env.MOMO_ACCESS_KEY);
-  const sandbox = process.env.PAYMENT_SANDBOX !== 'false';
-  const configured = hasVnpay || hasMomo;
+const getPaymentStatus = async () => {
+  const payment = await getPaymentSettings();
+  const hasAccount = Boolean(payment.accountNumber && payment.bankCode);
+  const hasWebhook = Boolean(payment.webhookApiKey);
+  const enabled = Boolean(payment.enabled);
+
+  if (!enabled) {
+    return {
+      status: 'degraded',
+      mode: 'disabled',
+      configured: false,
+      errors24h: null,
+      detail: 'SePay chưa bật — vào tab Thanh toán nếu cần vé trả phí',
+    };
+  }
+
+  if (!hasAccount) {
+    return {
+      status: 'degraded',
+      mode: 'disabled',
+      configured: false,
+      errors24h: null,
+      detail: 'SePay đã bật nhưng thiếu số tài khoản hoặc mã ngân hàng',
+    };
+  }
 
   return {
-    status: configured ? (sandbox ? 'online' : 'online') : 'degraded',
-    mode: configured ? (sandbox ? 'sandbox' : 'production') : 'disabled',
-    configured,
+    status: hasWebhook ? 'online' : 'degraded',
+    mode: 'production',
+    configured: true,
     errors24h: null,
-    detail: configured
-      ? `${hasVnpay ? 'VNPay' : ''}${hasVnpay && hasMomo ? ' / ' : ''}${hasMomo ? 'MoMo' : ''}${sandbox ? ' · sandbox' : ''}`
-      : 'Chưa cấu hình biến môi trường',
+    detail: hasWebhook
+      ? `SePay · ${payment.bankCode} · ${payment.accountNumber}`
+      : `SePay · ${payment.bankCode} · ${payment.accountNumber} · chưa cấu hình webhook API key`,
   };
 };
 
@@ -121,7 +142,7 @@ const getSystemHealth = async () => {
     Club.countDocuments(),
   ]);
 
-  const payment = getPaymentStatus();
+  const payment = await getPaymentStatus();
   const apiLatencyMs = 0;
 
   const serviceStatuses = [dbHealth.status, smtpHealth.status];

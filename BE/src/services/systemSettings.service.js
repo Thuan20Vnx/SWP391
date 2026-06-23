@@ -5,6 +5,19 @@ const { writeAuditLog } = require('./auditLog.service');
 
 const GLOBAL_ID = SystemSettings.GLOBAL_ID;
 
+const SETTINGS_UPDATE_OPTIONS = {
+  new: true,
+  upsert: true,
+  runValidators: true,
+  validateModifiedOnly: true,
+  setDefaultsOnInsert: true,
+};
+
+const settingsUpsertUpdate = (patch) => ({
+  $set: patch,
+  $setOnInsert: { _id: GLOBAL_ID },
+});
+
 const DEFAULTS = {
   maintenanceMode: false,
   publicAnnouncements: true,
@@ -194,8 +207,8 @@ const updateMaintenanceSettings = async (payload, actorEmail = '') => {
 
   const doc = await SystemSettings.findByIdAndUpdate(
     GLOBAL_ID,
-    { $set: patch, $setOnInsert: { _id: GLOBAL_ID, ...DEFAULTS } },
-    { new: true, upsert: true, runValidators: true },
+    settingsUpsertUpdate(patch),
+    SETTINGS_UPDATE_OPTIONS,
   ).lean();
 
   invalidateCache();
@@ -241,8 +254,8 @@ const updateEmailSettings = async (payload = {}, actorEmail = '') => {
 
   const doc = await SystemSettings.findByIdAndUpdate(
     GLOBAL_ID,
-    { $set: patch, $setOnInsert: { _id: GLOBAL_ID, ...DEFAULTS } },
-    { new: true, upsert: true, runValidators: true },
+    settingsUpsertUpdate(patch),
+    SETTINGS_UPDATE_OPTIONS,
   ).lean();
 
   invalidateCache();
@@ -289,8 +302,8 @@ const updateSecuritySettings = async (payload = {}, actorEmail = '') => {
 
   const doc = await SystemSettings.findByIdAndUpdate(
     GLOBAL_ID,
-    { $set: patch, $setOnInsert: { _id: GLOBAL_ID, ...DEFAULTS } },
-    { new: true, upsert: true, runValidators: true },
+    settingsUpsertUpdate(patch),
+    SETTINGS_UPDATE_OPTIONS,
   ).lean();
 
   invalidateCache();
@@ -340,8 +353,8 @@ const updatePaymentSettings = async (payload = {}, actorEmail = '') => {
 
   const doc = await SystemSettings.findByIdAndUpdate(
     GLOBAL_ID,
-    { $set: patch, $setOnInsert: { _id: GLOBAL_ID, ...DEFAULTS } },
-    { new: true, upsert: true, runValidators: true },
+    settingsUpsertUpdate(patch),
+    SETTINGS_UPDATE_OPTIONS,
   ).lean();
 
   invalidateCache();
