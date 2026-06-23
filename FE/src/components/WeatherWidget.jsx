@@ -119,10 +119,93 @@ const WeatherIcon = ({ main }) => {
 };
 
 const SLIDE_INTERVAL_MS = 15000;
+const WEATHER_LOCATION = 'Đà Nẵng';
+
+const formatEventTime = (dateStr) => {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleString('vi-VN', {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const WeatherDetailPanel = ({ weather, advice, events, onClose }) => (
+  <div className="weather-detail-panel" role="dialog" aria-label="Chi tiết thời tiết">
+    <div className="weather-detail-header">
+      <div className="weather-detail-header-main">
+        <div className="weather-detail-icon">
+          <WeatherIcon main={weather.main} />
+        </div>
+        <div>
+          <p className="weather-detail-location">{WEATHER_LOCATION}</p>
+          <p className="weather-detail-temp">{weather.temp}°C</p>
+          <p className="weather-detail-desc">{weather.description}</p>
+        </div>
+      </div>
+      <button type="button" className="weather-detail-close" onClick={onClose} aria-label="Đóng">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+          <path
+            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <dl className="weather-detail-stats">
+      <div className="weather-detail-stat">
+        <dt>Cảm giác</dt>
+        <dd>{weather.feelsLike}°C</dd>
+      </div>
+      <div className="weather-detail-stat">
+        <dt>Độ ẩm</dt>
+        <dd>{weather.humidity}%</dd>
+      </div>
+      <div className="weather-detail-stat">
+        <dt>Gió</dt>
+        <dd>{weather.windSpeed} m/s</dd>
+      </div>
+      {weather.rainVolume > 0 && (
+        <div className="weather-detail-stat">
+          <dt>Mưa (1h)</dt>
+          <dd>{weather.rainVolume} mm</dd>
+        </div>
+      )}
+    </dl>
+
+    <div className="weather-detail-advice">
+      <p className="weather-detail-advice-label">Lời khuyên</p>
+      <p className="weather-detail-advice-text">{advice}</p>
+    </div>
+
+    {events.length > 0 && (
+      <div className="weather-detail-events">
+        <p className="weather-detail-events-label">Sự kiện sắp tham gia</p>
+        <ul className="weather-detail-events-list">
+          {events.map((ev) => (
+            <li key={ev.id} className="weather-detail-event">
+              <p className="weather-detail-event-title">{ev.title}</p>
+              <p className="weather-detail-event-meta">
+                {formatEventTime(ev.startDate)}
+                {ev.location ? ` · ${ev.location}` : ''}
+              </p>
+              <p className="weather-detail-event-advice">{ev.advice}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+);
 
 const WeatherWidget = () => {
+  const wrapRef = useRef(null);
   const [state, setState] = useState({ loading: true, error: null, weather: null, advice: '', events: [] });
   const [slideIndex, setSlideIndex] = useState(0);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -148,6 +231,26 @@ const WeatherWidget = () => {
     return () => clearInterval(timer);
   }, [slideCount]);
 
+  useEffect(() => {
+    if (!detailOpen) return undefined;
+
+    const closeOnOutside = (e) => {
+      if (wrapRef.current?.contains(e.target)) return;
+      setDetailOpen(false);
+    };
+
+    const closeOnEscape = (e) => {
+      if (e.key === 'Escape') setDetailOpen(false);
+    };
+
+    document.addEventListener('mousedown', closeOnOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [detailOpen]);
+
   if (state.loading || state.error || !state.weather) return null;
 
   const { weather, advice, events } = state;
@@ -161,14 +264,31 @@ const WeatherWidget = () => {
   const bottomLine = isWeatherSlide ? advice : activeEvent.advice;
 
   return (
-    <div className="weather-widget" title={`${topLine} — ${bottomLine}`}>
-      <div className="weather-widget-icon">
-        <WeatherIcon main={weather.main} />
-      </div>
-      <div className="weather-widget-info">
-        <MarqueeLine key={`top-${activeIndex}`} text={topLine} className="weather-widget-temp" variant="bounce" />
-        <MarqueeLine key={`bottom-${activeIndex}`} text={bottomLine} className="weather-widget-advice" variant="pause" />
-      </div>
+    <div className="weather-widget-wrap" ref={wrapRef}>
+      {detailOpen && (
+        <WeatherDetailPanel
+          weather={weather}
+          advice={advice}
+          events={events}
+          onClose={() => setDetailOpen(false)}
+        />
+      )}
+      <button
+        type="button"
+        className={`weather-widget ${detailOpen ? 'weather-widget--open' : ''}`}
+        onClick={() => setDetailOpen((open) => !open)}
+        aria-expanded={detailOpen}
+        aria-label="Xem chi tiết thời tiết"
+        title={`${topLine} — ${bottomLine}`}
+      >
+        <div className="weather-widget-icon">
+          <WeatherIcon main={weather.main} />
+        </div>
+        <div className="weather-widget-info">
+          <MarqueeLine key={`top-${activeIndex}`} text={topLine} className="weather-widget-temp" variant="bounce" />
+          <MarqueeLine key={`bottom-${activeIndex}`} text={bottomLine} className="weather-widget-advice" variant="pause" />
+        </div>
+      </button>
     </div>
   );
 };

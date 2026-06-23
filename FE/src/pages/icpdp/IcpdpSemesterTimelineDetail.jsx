@@ -17,6 +17,14 @@ const fmt = (v) => {
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('vi-VN');
 };
 
+const fmtDateTime = (v) => {
+  if (!v) return '—';
+  const d = new Date(v);
+  return Number.isNaN(d.getTime())
+    ? '—'
+    : `${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+};
+
 const STATUS_META = {
   pending_icpdp: { label: 'Chờ IC-PDP duyệt',   tone: 'amber'  },
   pending_admin: { label: 'Chờ Admin phê duyệt', tone: 'blue'   },
@@ -189,7 +197,7 @@ const IcpdpSemesterTimelineDetail = () => {
             <thead>
               <tr>
                 <th>Tên hoạt động</th>
-                <th className="col-center">Ngày dự kiến</th>
+                <th className="col-center">Ngày &amp; giờ dự kiến</th>
                 <th>Thể loại</th>
                 <th>Địa điểm</th>
                 <th className="col-center">Dự kiến SV</th>
@@ -205,7 +213,7 @@ const IcpdpSemesterTimelineDetail = () => {
                       <strong className="stl-club-name">{item.title}</strong>
                       {item.description && <div className="stl-activity-desc">{item.description}</div>}
                     </td>
-                    <td className="col-center stl-date">{fmt(item.plannedDate)}</td>
+                    <td className="col-center stl-date">{fmtDateTime(item.plannedDate)}</td>
                     <td className="stl-semester">{item.category || '—'}</td>
                     <td className="stl-semester">{item.location || '—'}</td>
                     <td className="col-center stl-count">{item.expectedAttendees || '—'}</td>
