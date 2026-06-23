@@ -13,6 +13,19 @@ const hasSmtpCredentials = () => {
   return Boolean(user && pass);
 };
 
+const assertEmailDeliveryReady = async () => {
+  const cfg = await getEmailRuntimeConfig();
+  if (cfg && cfg.enabled === false) {
+    throw new Error('SMTP đang tắt trong cấu hình hệ thống.');
+  }
+  if (!hasSmtpCredentials()) {
+    const isProd = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
+    if (isProd) {
+      throw new Error('EMAIL_USER/EMAIL_PASS chưa được cấu hình trên server production.');
+    }
+  }
+};
+
 // Đọc cấu hình SMTP từ DB (host/port/encryption/timeout) — credentials vẫn lấy từ .env.
 const getEmailRuntimeConfig = async () => {
   try {
@@ -128,6 +141,7 @@ const writeDevFile = (filename, content) => {
 const writeDevOtp = (otp) => writeDevFile('last_otp.txt', otp);
 
 const sendMail = async ({ to, subject, html }) => {
+  await assertEmailDeliveryReady();
   const transporter = await getTransporter();
   const smtp = hasSmtpCredentials();
   const senderEmail = smtp ? String(process.env.EMAIL_USER).trim() : 'no-reply@fevents.com';
