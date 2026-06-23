@@ -45,6 +45,7 @@ const { sendTestEmail } = require('../services/email.service');
 const { listAuditLogs } = require('../services/auditLog.service');
 const { getAdminPayments, processRefund } = require('../services/payment.service');
 const { createAndBroadcast } = require('../services/notification.service');
+const { BACKEND_PUBLIC_URL } = require('../config/env');
 
 router.use(authMiddleware);
 
@@ -161,7 +162,14 @@ router.get('/system-config', adminOrIcpdp, asyncHandler(async (req, res) => {
       getSecurityPublic(),
       getPaymentPublic(),
     ]);
-    return res.json({ success: true, config, email, security, payment });
+    return res.json({
+      success: true,
+      config,
+      email,
+      security,
+      payment,
+      paymentWebhookUrl: `${BACKEND_PUBLIC_URL}/api/system/payments/sepay-webhook`,
+    });
   }
   res.json({ success: true, config });
 }));

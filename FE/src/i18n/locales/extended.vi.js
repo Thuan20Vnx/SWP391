@@ -1201,7 +1201,13 @@ export default {
   'admin.system.ops.title': 'Vận hành chung',
   'admin.system.ops.maintenance': 'Chế độ bảo trì',
   'admin.system.ops.maintenanceDesc':
-    'Tạm khóa truy cập sinh viên; Admin, CTSV và ICPDP vẫn đăng nhập được',
+    'Tạm khóa truy cập sinh viên; Admin, CTSV và ICPDP vẫn đăng nhập được. Gạt sẽ lưu ngay lên server.',
+  'admin.system.ops.maintenanceSaving': 'Đang lưu lên server…',
+  'admin.system.ops.maintenanceServerOn':
+    'Trạng thái server: BẬT bảo trì (tài khoản Admin/CTSV/ICPDP vẫn vào được — dùng tab ẩn danh để kiểm tra sinh viên)',
+  'admin.system.ops.maintenanceServerOff': 'Trạng thái server: TẮT bảo trì',
+  'admin.system.ops.maintenanceTestHint':
+    'Sinh viên đang online sẽ thấy banner cảnh báo 15 giây trước khi bị chặn. Admin/CTSV/ICPDP không bị ảnh hưởng.',
   'admin.system.ops.banner': 'Hiển thị banner thông báo',
   'admin.system.ops.bannerDesc': 'Banner cảnh báo trên trang chủ khi có sự cố hoặc bảo trì',
   'admin.system.ops.bannerContent': 'Nội dung banner bảo trì',
@@ -1238,7 +1244,7 @@ export default {
   'admin.system.status.apiDetail': 'Express · port 5000',
   'admin.system.status.dbDetail': 'Atlas cluster · replica set',
   'admin.system.status.emailDetail': 'Gmail SMTP · App Password',
-  'admin.system.status.paymentDetail': 'VNPay / MoMo · thử nghiệm',
+  'admin.system.status.paymentDetail': 'SePay · chuyển khoản VietQR',
   'admin.system.infra.fe': 'Frontend (Vite)',
   'admin.system.infra.be': 'Backend API',
   'admin.system.infra.db': 'MongoDB Atlas',

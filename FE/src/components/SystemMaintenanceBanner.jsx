@@ -1,5 +1,6 @@
 import React from 'react';
 import useSystemMaintenanceStatus from '../hooks/useSystemMaintenanceStatus';
+import { isMaintenanceGraceActive } from '../utils/maintenanceGrace';
 
 const IconWarn = () => (
   <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -14,13 +15,14 @@ const IconWarn = () => (
 );
 
 const SystemMaintenanceBanner = () => {
-  const { status } = useSystemMaintenanceStatus(45000);
+  const { status } = useSystemMaintenanceStatus(5000);
 
   const showBanner =
     status.publicAnnouncements &&
     (status.maintenanceMode || status.maintenanceMessage);
 
   if (!showBanner || !status.maintenanceMode) return null;
+  if (isMaintenanceGraceActive(status)) return null;
 
   return (
     <div className="alert-banner system-maint-banner" role="alert">

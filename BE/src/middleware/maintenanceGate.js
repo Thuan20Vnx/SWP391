@@ -3,6 +3,7 @@ const {
   getSettings,
   isStaffRole,
 } = require('../services/systemSettings.service');
+const { shouldEnforceMaintenance } = require('../constants/maintenance');
 const { normalizeRole } = require('../utils/role');
 
 const EXEMPT_PREFIXES = [
@@ -36,7 +37,7 @@ const maintenanceGate = async (req, res, next) => {
     }
 
     const settings = await getSettings();
-    if (!settings.maintenanceMode) {
+    if (!shouldEnforceMaintenance(settings)) {
       return next();
     }
 
