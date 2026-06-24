@@ -1576,8 +1576,8 @@ router.patch('/semester-timelines/:id/admin-approve', requireAdmin, async (req, 
       reviewerEmail: req.authEmail,
     });
     createAndBroadcast({
-      recipientRoles: ['icpdp'],
-      recipientEmails: [timeline.submittedByEmail],
+      recipientRoles: ['icpdp', 'club_manager'],
+      recipientEmails: [timeline.submittedByEmail].filter(Boolean),
       title: 'Timeline CLB đã được duyệt',
       body: `Admin đã phê duyệt timeline ${timeline.semesterLabel || ''}.`,
       type: 'timeline_approve',
@@ -1603,8 +1603,8 @@ router.patch('/semester-timelines/:id/reject', requireIcpdpTimeline, async (req,
       reviewerRole: req.userRole,
     });
     createAndBroadcast({
-      recipientRoles: req.userRole === 'admin' ? ['icpdp'] : [],
-      recipientEmails: [timeline.submittedByEmail],
+      recipientRoles: ['club_manager', ...(req.userRole === 'admin' ? ['icpdp'] : [])],
+      recipientEmails: [timeline.submittedByEmail].filter(Boolean),
       title: 'Timeline CLB bị từ chối',
       body: timeline.rejectionReason || 'Timeline chưa được chấp nhận.',
       type: 'timeline_reject',
@@ -1625,7 +1625,8 @@ router.patch('/semester-timelines/:id/request-revision', requireIcpdpTimeline, a
       reviewerEmail: req.authEmail,
     });
     createAndBroadcast({
-      recipientEmails: [timeline.submittedByEmail],
+      recipientRoles: ['club_manager'],
+      recipientEmails: [timeline.submittedByEmail].filter(Boolean),
       title: 'Timeline CLB cần chỉnh sửa',
       body: timeline.icpdpNote || 'Timeline cần được bổ sung trước khi xét duyệt.',
       type: 'timeline_revision',

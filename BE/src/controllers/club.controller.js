@@ -173,7 +173,8 @@ const submitSemesterTimeline = async (req, res) => {
     const timeline = await clubSemesterTimelineService.submitForClub(
       req.params.id,
       req.user._id,
-      readActiveClubId(req)
+      readActiveClubId(req),
+      req.authEmail
     );
     createAndBroadcast({
       recipientRoles: ['icpdp'],

@@ -3,6 +3,7 @@ import AppSelect from '../ui/AppSelect';
 import AutoGrowTextarea from '../ui/AutoGrowTextarea';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import TimelineLiveBanner from '../timeline/TimelineLiveBanner';
+import useTimelineLiveStream from '../../hooks/useTimelineLiveStream';
 import {
   createClubSemesterTimeline,
   deleteClubSemesterTimeline,
@@ -102,10 +103,10 @@ const formatDateTime = (value) => {
 };
 
 const canEditTimeline = (timeline) =>
-  timeline && ['draft', 'revision', 'pending_icpdp', 'approved'].includes(timeline.statusKey);
+  timeline && ['draft', 'revision', 'rejected', 'pending_icpdp', 'approved'].includes(timeline.statusKey);
 
 const canDirectDeleteTimeline = (timeline) =>
-  timeline && ['draft', 'revision', 'pending_icpdp'].includes(timeline.statusKey);
+  timeline && ['draft', 'revision', 'rejected', 'pending_icpdp'].includes(timeline.statusKey);
 
 const validateTimelineItems = (items) => {
   const titledItems = items
@@ -196,6 +197,7 @@ const timelineStatusBadgeClass = (statusKey) => {
 };
 
 const ClubSemesterTimelinePanel = ({ showToast }) => {
+  useTimelineLiveStream(true);
   const defaults = useMemo(() => inferDefaultSemester(), []);
   const [timelines, setTimelines] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -534,7 +536,9 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
               ? 'Chỉnh sửa timeline đã duyệt — sau khi lưu, timeline sẽ chuyển về trạng thái chờ IC-PDP duyệt lại.'
               : editingStatusKey === 'pending_icpdp'
                 ? 'Chỉnh sửa trực tiếp — đơn đang chờ duyệt, thay đổi được lưu ngay không cần phê duyệt lại.'
-                : 'Lập kế hoạch hoạt động theo kỳ Spring / Summer / Fall và gửi IC-PDP phê duyệt.'}
+                : editingStatusKey === 'rejected' || editingStatusKey === 'revision'
+                  ? 'Chỉnh sửa theo góp ý người duyệt, sau đó gửi lại IC-PDP.'
+                  : 'Lập kế hoạch hoạt động theo kỳ Spring / Summer / Fall và gửi IC-PDP phê duyệt.'}
           </p>
         </div>
         <button
@@ -812,7 +816,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
             {canRequestCancel && (
               <button
                 type="button"
-                className="clb-view-detail-btn"
+                className="clb-view-detail-btn clb-view-detail-btn--muted"
                 disabled={submitting}
                 onClick={() => openReasonModal(tl, 'cancel')}
               >
@@ -820,7 +824,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
               </button>
             )}
             {canDirectEdit && (
-              <button type="button" className="clb-view-detail-btn" onClick={() => openEdit(tl)}>
+              <button type="button" className="clb-view-detail-btn clb-view-detail-btn--edit" onClick={() => openEdit(tl)}>
                 Sửa
               </button>
             )}
@@ -837,7 +841,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
             {canRequestDelete && (
               <button
                 type="button"
-                className="clb-view-detail-btn"
+                className="clb-view-detail-btn clb-view-detail-btn--danger"
                 disabled={submitting}
                 onClick={() => openReasonModal(tl, 'delete')}
               >
@@ -850,6 +854,11 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
               </button>
             )}
             {tl.statusKey === 'revision' && (
+              <button type="button" className="clb-create-btn" onClick={() => openEdit(tl)}>
+                Chỉnh sửa & gửi lại
+              </button>
+            )}
+            {tl.statusKey === 'rejected' && (
               <button type="button" className="clb-create-btn" onClick={() => openEdit(tl)}>
                 Chỉnh sửa & gửi lại
               </button>
@@ -869,7 +878,9 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         message={
           ['pending_icpdp', 'revision'].includes(deleteTarget?.statusKey)
             ? 'Đơn timeline sẽ chuyển sang trạng thái «Đã hủy» và biến mất khỏi hàng chờ IC-PDP. Bạn có chắc không?'
-            : 'Timeline bản nháp sẽ bị xóa vĩnh viễn và không thể khôi phục. Bạn có chắc không?'
+            : ['draft', 'rejected'].includes(deleteTarget?.statusKey)
+              ? 'Timeline sẽ bị xóa vĩnh viễn và không thể khôi phục. Bạn có chắc không?'
+              : 'Timeline sẽ bị xóa. Bạn có chắc không?'
         }
         confirmLabel="Xóa"
         onConfirm={handleDeleteTimeline}

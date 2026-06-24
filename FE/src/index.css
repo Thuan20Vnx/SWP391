@@ -3839,16 +3839,47 @@ a.club-tag {
   gap: 16px;
 }
 
+.chatbot-floating-wrapper .chatbot-fab-btn:not(.fab-active) {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  justify-content: center;
+  gap: 0;
+  transition: width 0.22s ease, padding 0.22s ease, border-radius 0.22s ease, gap 0.22s ease;
+}
+
+.chatbot-floating-wrapper .chatbot-fab-btn:not(.fab-active) .fab-text {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0;
+  transition: max-width 0.22s ease, opacity 0.18s ease;
+}
+
+.chatbot-floating-wrapper:hover .chatbot-fab-btn:not(.fab-active) {
+  width: auto;
+  height: 48px;
+  border-radius: 24px;
+  padding: 0 18px 0 14px;
+  gap: 10px;
+}
+
+.chatbot-floating-wrapper:hover .chatbot-fab-btn:not(.fab-active) .fab-text {
+  max-width: 160px;
+  opacity: 1;
+}
+
 .chatbot-fab-btn {
   background-color: var(--primary);
   color: #ffffff;
   border: none;
-  height: 58px;
-  border-radius: 29px;
-  padding: 0 24px 0 16px;
+  height: 48px;
+  border-radius: 24px;
+  padding: 0 18px 0 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
   box-shadow: 0 10px 25px -5px rgba(242, 111, 33, 0.4), 0 8px 10px -6px rgba(242, 111, 33, 0.4);
   transition: var(--transition-smooth);
@@ -3862,7 +3893,8 @@ a.club-tag {
 
 .chatbot-fab-btn.fab-active {
   padding: 0;
-  width: 58px;
+  width: 48px;
+  height: 48px;
   justify-content: center;
   background-color: #334155;
   box-shadow: 0 10px 25px -5px rgba(51, 65, 85, 0.4);
