@@ -9,7 +9,6 @@ import {
   requestClubSemesterTimelineChange,
   submitClubSemesterTimeline,
   updateClubSemesterTimeline,
-  withdrawClubSemesterTimeline,
 } from '../../services/clubTimelineApi';
 
 const TERM_OPTIONS = [
@@ -102,9 +101,6 @@ const formatDateTime = (value) => {
 
 const canEditTimeline = (timeline) =>
   timeline && ['draft', 'revision', 'pending_icpdp', 'approved'].includes(timeline.statusKey);
-
-const canWithdrawTimeline = (timeline) =>
-  timeline && timeline.statusKey === 'pending_icpdp';
 
 const canDirectDeleteTimeline = (timeline) =>
   timeline && ['draft', 'revision', 'pending_icpdp'].includes(timeline.statusKey);
@@ -207,7 +203,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   const [editingStatusKey, setEditingStatusKey] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [reasonModal, setReasonModal] = useState(null);
-  const [withdrawTarget, setWithdrawTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [form, setForm] = useState({
     semesterTerm: defaults.semesterTerm,
@@ -389,24 +384,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
       load();
     } catch (e) {
       showToast?.(e.message || 'Xóa thất bại.', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleWithdraw = async () => {
-    if (!withdrawTarget) return;
-    setSubmitting(true);
-    try {
-      await withdrawClubSemesterTimeline(withdrawTarget.id);
-      showToast?.('Đã thu hồi đơn về bản nháp — bạn có thể chỉnh sửa và gửi lại.', 'success');
-      setWithdrawTarget(null);
-      if (detailTimeline?.id === withdrawTarget.id) {
-        setDetailTimeline((prev) => (prev ? { ...prev, statusKey: 'draft', status: 'Bản nháp' } : prev));
-      }
-      load();
-    } catch (e) {
-      showToast?.(e.message || 'Thu hồi đơn thất bại.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -715,7 +692,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     }
 
     const pendingChange = hasPendingChange(tl);
-    const canWithdraw = canWithdrawTimeline(tl) && !pendingChange;
     const canRequestCancel = tl.statusKey === 'approved' && !pendingChange;
     const canDirectEdit = canEditTimeline(tl) && !pendingChange;
     const canDirectDelete = canDirectDeleteTimeline(tl) && !pendingChange;
@@ -811,16 +787,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
           </div>
 
           <div className="clb-timeline-detail-actions">
-            {canWithdraw && (
-              <button
-                type="button"
-                className="clb-view-detail-btn"
-                disabled={submitting}
-                onClick={() => setWithdrawTarget(tl)}
-              >
-                Thu hồi về nháp
-              </button>
-            )}
             {canRequestCancel && (
               <button
                 type="button"
@@ -839,7 +805,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
             {canDirectDelete && (
               <button
                 type="button"
-                className="clb-view-detail-btn"
+                className="clb-view-detail-btn clb-view-detail-btn--danger"
                 disabled={submitting}
                 onClick={() => setDeleteTarget(tl)}
               >
@@ -875,17 +841,6 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   const renderDialogs = () => (
     <>
       {renderReasonModal()}
-      <ConfirmDialog
-        open={Boolean(withdrawTarget)}
-        title="Thu hồi đơn timeline"
-        message="Đơn sẽ được chuyển về bản nháp để bạn chỉnh sửa trực tiếp, không cần IC-PDP hay Admin duyệt."
-        confirmLabel="Thu hồi về nháp"
-        onConfirm={handleWithdraw}
-        onCancel={() => {
-          if (!submitting) setWithdrawTarget(null);
-        }}
-        loading={submitting}
-      />
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         title="Xóa timeline"
