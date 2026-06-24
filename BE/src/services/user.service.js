@@ -22,6 +22,19 @@ const assertValidImageDataUrl = (value, label) => {
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
+const VN_PHONE_REGEX = /^0\d{9}$/;
+
+const assertValidPhone = (phone) => {
+  const trimmed = String(phone || '').trim();
+  if (!trimmed) {
+    throw new AppError('Số điện thoại không được để trống!', 400);
+  }
+  if (!VN_PHONE_REGEX.test(trimmed)) {
+    throw new AppError('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0!', 400);
+  }
+  return trimmed;
+};
+
 const PROTECTED_PROFILE_ROLES = new Set([
   'admin',
   'ctsv',
@@ -125,20 +138,15 @@ const updateProfile = async (email, body) => {
   }
 
   if (phone !== undefined) {
-    const trimmedPhone = phone.trim();
-    if (trimmedPhone) {
-      const phoneExists = await User.findOne({
-        phone: trimmedPhone,
-        _id: { $ne: user._id },
-      });
-      if (phoneExists) {
-        throw new AppError('Số điện thoại đã được sử dụng bởi tài khoản khác!', 400);
-      }
-      user.phone = trimmedPhone;
-    } else {
-      user.phone = undefined;
-      user.set('phone', undefined);
+    const trimmedPhone = assertValidPhone(phone);
+    const phoneExists = await User.findOne({
+      phone: trimmedPhone,
+      _id: { $ne: user._id },
+    });
+    if (phoneExists) {
+      throw new AppError('Số điện thoại đã được sử dụng bởi tài khoản khác!', 400);
     }
+    user.phone = trimmedPhone;
   }
 
   if (orientation !== undefined) {

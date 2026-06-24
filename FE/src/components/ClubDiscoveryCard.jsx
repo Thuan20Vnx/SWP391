@@ -26,10 +26,14 @@ const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'K
       <div className="club-discovery-card__body">
         <div
           className="club-discovery-card__logo"
-          style={{ backgroundColor: club.logoColor }}
+          style={club.logoImage ? undefined : { backgroundColor: club.logoColor }}
           aria-hidden="true"
         >
-          <span>{club.logoText}</span>
+          {club.logoImage ? (
+            <img src={club.logoImage} alt="" className="club-discovery-card__logo-img" />
+          ) : (
+            <span>{club.logoText}</span>
+          )}
         </div>
 
         <div className="club-discovery-card__header">

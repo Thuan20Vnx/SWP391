@@ -1,5 +1,5 @@
 import { getCategoryColor, getFillPercent } from './eventDiscoveryData';
-import { formatVnd } from '../utils/ticketPricing';
+import { formatVnd, resolveEventPricing } from '../utils/ticketPricing';
 import { resolveEventSpeakers } from '../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../constants/eventCategories';
 import { resolveEventDisplayImage } from '../utils/eventDisplay';
@@ -187,7 +187,7 @@ const getPrimaryActionLabel = (event, isRegistered, amountDue, listPrice) => {
   return 'Đăng ký ngay';
 };
 
-export const mapApiEventToDetail = (event) => {
+export const mapApiEventToDetail = (event, { viewerRole = 'guest' } = {}) => {
   const eventState = event.eventState || 'active';
   const capacity = event.capacity || 100;
   const registeredCount = event.registeredCount ?? 0;
@@ -196,10 +196,8 @@ export const mapApiEventToDetail = (event) => {
   const registrationStatus = isRegistered
     ? { label: 'Đã đăng ký', tone: 'open' }
     : getRegistrationStatus(event);
-  const listPrice = event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0);
-  const amountDue = event.amountDue ?? listPrice;
-  const priceLabel = event.priceLabel || (amountDue === 0 ? 'MIỄN PHÍ' : formatVnd(amountDue));
-  const studentPrivilegeApplied = event.studentPrivilegeApplied === true;
+  const pricing = resolveEventPricing(event, viewerRole);
+  const { listPrice, amountDue, priceLabel, studentPrivilegeApplied } = pricing;
 
   return {
     id: event._id,
@@ -239,7 +237,7 @@ export const mapApiEventToDetail = (event) => {
     studentPrivilegeApplied,
     registrationDeadline: buildRegistrationDeadline(event.startDate),
     registrationStatus,
-    primaryActionLabel: getPrimaryActionLabel(event, isRegistered, amountDue, listPrice),
+    primaryActionLabel: pricing.primaryActionLabel || getPrimaryActionLabel(event, isRegistered, amountDue, listPrice),
     primaryDisabled:
       eventState === 'expired' ||
       (eventState !== 'postponed' &&
