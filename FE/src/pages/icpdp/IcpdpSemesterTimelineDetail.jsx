@@ -92,11 +92,13 @@ const IcpdpSemesterTimelineDetail = () => {
   })();
   const canIcpdpForward = !isAdmin && ['pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
   const canAdminApprove = isAdmin && timeline.statusKey === 'pending_admin';
-  const pendingChange = timeline.changeRequest?.statusKey === 'pending_icpdp';
+  const pendingIcpdpChange = timeline.changeRequest?.statusKey === 'pending_icpdp';
+  const canIcpdpChangeAction = !isAdmin && pendingIcpdpChange;
+  const pendingIcpdpChangeAdminView = isAdmin && pendingIcpdpChange;
   const pendingAdminChange = isAdmin && timeline.changeRequest?.statusKey === 'pending_admin';
   const rejectedChange = timeline.changeRequest?.statusKey === 'rejected';
   const changeType = timeline.changeRequest?.type;
-  const hasAction = canIcpdpForward || canAdminApprove || pendingChange || pendingAdminChange;
+  const hasAction = canIcpdpForward || canAdminApprove || canIcpdpChangeAction || pendingAdminChange;
 
   const runAction = async (action) => {
     setSubmitting(true);
@@ -166,12 +168,20 @@ const IcpdpSemesterTimelineDetail = () => {
         </div>
       </header>
 
-      {pendingChange && (
+      {pendingIcpdpChange && (
         <div className="stl-banner stl-banner--amber">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
           </svg>
-          CLB gửi yêu cầu <strong>{timeline.changeRequest.typeLabel}</strong> — cần IC-PDP xét duyệt trước khi chuyển Admin.
+          {isAdmin ? (
+            <>
+              CLB gửi yêu cầu <strong>{timeline.changeRequest.typeLabel}</strong> — đang chờ <strong>IC-PDP xét duyệt</strong>. Admin chỉ xử lý sau khi IC-PDP chuyển lên.
+            </>
+          ) : (
+            <>
+              CLB gửi yêu cầu <strong>{timeline.changeRequest.typeLabel}</strong> — cần IC-PDP xét duyệt trước khi chuyển Admin.
+            </>
+          )}
         </div>
       )}
       {pendingAdminChange && (
@@ -281,8 +291,8 @@ const IcpdpSemesterTimelineDetail = () => {
         </div>
       </section>
 
-      {/* Change request (ICPDP) */}
-      {pendingChange && (
+      {/* Change request (ICPDP only) */}
+      {canIcpdpChangeAction && (
         <section className="stl-action-card">
           <h2 className="stl-action-card__title">Yêu cầu thay đổi từ CLB</h2>
           <div className="stl-action-card__info">
@@ -302,6 +312,18 @@ const IcpdpSemesterTimelineDetail = () => {
               Từ chối yêu cầu
             </button>
           </div>
+        </section>
+      )}
+
+      {/* Change request — Admin read-only until ICPDP forwards */}
+      {pendingIcpdpChangeAdminView && (
+        <section className="stl-info-card stl-info-card--warn">
+          <h2 className="stl-info-card__title">Yêu cầu thay đổi — chờ IC-PDP</h2>
+          <p><strong>{timeline.changeRequest.typeLabel}</strong></p>
+          <p className="stl-action-card__reason">Lý do CLB: {timeline.changeRequest.reason || '—'}</p>
+          <p className="stl-action-card__reason" style={{ marginTop: 8, color: '#64748b' }}>
+            IC-PDP cần duyệt và chuyển lên trước — Admin sẽ thấy nút quyết định khi yêu cầu vào hàng chờ Admin.
+          </p>
         </section>
       )}
 
@@ -356,8 +378,8 @@ const IcpdpSemesterTimelineDetail = () => {
         </section>
       )}
 
-      {/* Action section */}
-      {hasAction && !pendingAdminChange && (
+      {/* Action section — timeline mới (không phải yêu cầu hủy/xóa) */}
+      {hasAction && !pendingAdminChange && !pendingIcpdpChangeAdminView && (
         <section className="stl-action-card">
           <h2 className="stl-action-card__title">
             {isAdmin ? 'Quyết định Admin' : 'Quyết định IC-PDP'}
