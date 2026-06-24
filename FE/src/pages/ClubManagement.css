@@ -2277,6 +2277,17 @@
   cursor: not-allowed;
 }
 
+.clb-view-detail-btn--danger {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.clb-view-detail-btn--danger:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+
 .clb-action-btn--success {
   color: #059669 !important;
   border-color: #a7f3d0 !important;
