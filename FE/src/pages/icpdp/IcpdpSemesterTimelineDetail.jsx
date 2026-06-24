@@ -84,7 +84,11 @@ const IcpdpSemesterTimelineDetail = () => {
     );
   }
 
-  const statusMeta = STATUS_META[timeline.statusKey] || { label: timeline.status || '—', tone: 'slate' };
+  const statusMeta = (() => {
+    const badgeKey = timeline.statusBadgeKey || timeline.statusKey;
+    const tone = STATUS_META[badgeKey]?.tone || STATUS_META[timeline.statusKey]?.tone || 'slate';
+    return { label: timeline.status, tone };
+  })();
   const canIcpdpForward = !isAdmin && ['pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
   const canAdminApprove = isAdmin && timeline.statusKey === 'pending_admin';
   const pendingChange = timeline.changeRequest?.statusKey === 'pending_icpdp';
@@ -150,6 +154,23 @@ const IcpdpSemesterTimelineDetail = () => {
           </div>
         </div>
       </header>
+
+      {pendingChange && (
+        <div className="stl-banner stl-banner--amber">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          CLB gửi yêu cầu <strong>{timeline.changeRequest.typeLabel}</strong> — cần IC-PDP xét duyệt trước khi chuyển Admin.
+        </div>
+      )}
+      {pendingAdminChange && (
+        <div className="stl-banner stl-banner--amber">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          Yêu cầu <strong>{timeline.changeRequest.typeLabel}</strong> đã qua IC-PDP — chờ <strong>Admin phê duyệt cuối</strong>.
+        </div>
+      )}
 
       {/* Info banner */}
       {canIcpdpForward && (
