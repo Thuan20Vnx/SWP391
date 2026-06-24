@@ -50,10 +50,15 @@ const formatTimelineItem = (item) => ({
 const formatChangeRequest = (cr) => {
   if (!cr || !cr.type || cr.type === 'none') return null;
   const statusKey = cr.status || 'none';
+  let status = CHANGE_STATUS_LABELS[statusKey] || statusKey;
+  if (statusKey === 'rejected') {
+    if (cr.type === 'cancel') status = 'Từ chối yêu cầu hủy đơn';
+    else if (cr.type === 'delete') status = 'Từ chối yêu cầu xóa';
+  }
   return {
     type: cr.type,
     typeLabel: CHANGE_TYPE_LABELS[cr.type] || cr.type,
-    status: CHANGE_STATUS_LABELS[statusKey] || statusKey,
+    status,
     statusKey,
     reason: cr.reason || '',
     payload: cr.payload || null,
@@ -66,6 +71,14 @@ const formatChangeRequest = (cr) => {
 
 const resolveDisplayStatus = (statusKey, changeRequest) => {
   const cr = changeRequest;
+  if (cr?.type && cr.type !== 'none' && cr.status === 'rejected') {
+    const actionLabel = cr.type === 'cancel' ? 'hủy đơn' : cr.type === 'delete' ? 'xóa' : 'thay đổi';
+    return {
+      status: `Từ chối yêu cầu ${actionLabel}`,
+      statusBadgeKey: 'rejected',
+    };
+  }
+
   const hasPendingChange =
     cr?.type &&
     cr.type !== 'none' &&
