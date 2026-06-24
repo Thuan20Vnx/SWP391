@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import {
   adminApproveSemesterTimeline,
+  adminApproveTimelineChangeRequest,
   fetchIcpdpSemesterTimeline,
   icpdpApproveSemesterTimeline,
   icpdpApproveTimelineChangeRequest,
@@ -93,7 +94,8 @@ const IcpdpSemesterTimelineDetail = () => {
   const canAdminApprove = isAdmin && timeline.statusKey === 'pending_admin';
   const pendingChange = timeline.changeRequest?.statusKey === 'pending_icpdp';
   const pendingAdminChange = isAdmin && timeline.changeRequest?.statusKey === 'pending_admin';
-  const hasAction = canIcpdpForward || canAdminApprove || pendingChange;
+  const changeType = timeline.changeRequest?.type;
+  const hasAction = canIcpdpForward || canAdminApprove || pendingChange || pendingAdminChange;
 
   const runAction = async (action) => {
     setSubmitting(true);
@@ -104,6 +106,14 @@ const IcpdpSemesterTimelineDetail = () => {
       else if (action === 'revision') { await revisionIcpdpSemesterTimeline(id, note); showToast?.('Đã yêu cầu chỉnh sửa.', 'info'); }
       else if (action === 'change-approve') { await icpdpApproveTimelineChangeRequest(id, note); showToast?.('Đã chuyển lên Admin!', 'success'); }
       else if (action === 'change-reject')  { await rejectTimelineChangeRequest(id, rejectReason || note, 'icpdp'); showToast?.('Đã từ chối.', 'info'); }
+      else if (action === 'change-admin-approve') {
+        await adminApproveTimelineChangeRequest(id, note);
+        showToast?.(changeType === 'delete' ? 'Đã duyệt xóa timeline.' : 'Đã duyệt hủy timeline.', 'success');
+      }
+      else if (action === 'change-admin-reject') {
+        await rejectTimelineChangeRequest(id, rejectReason || note, 'admin');
+        showToast?.('Đã từ chối yêu cầu.', 'info');
+      }
       await refresh();
     } catch (e) {
       showToast?.(e.message, 'error');
@@ -280,18 +290,59 @@ const IcpdpSemesterTimelineDetail = () => {
         </section>
       )}
 
-      {/* Change request info (Admin view) */}
+      {/* Change request (Admin) */}
       {pendingAdminChange && (
-        <section className="stl-info-card stl-info-card--warn">
-          <h2 className="stl-info-card__title">Yêu cầu thay đổi — chờ Admin</h2>
-          <p><strong>{timeline.changeRequest.typeLabel}</strong></p>
-          <p className="stl-action-card__reason">Lý do CLB: {timeline.changeRequest.reason}</p>
-          <p className="stl-action-card__reason">Ghi chú IC-PDP: {timeline.changeRequest.icpdpNote || '—'}</p>
+        <section className="stl-action-card">
+          <h2 className="stl-action-card__title">Quyết định Admin — {timeline.changeRequest.typeLabel}</h2>
+          <div className="stl-action-card__info">
+            <span className="stl-badge stl-badge--blue">{timeline.changeRequest.typeLabel}</span>
+            <p className="stl-action-card__reason">Lý do CLB: {timeline.changeRequest.reason}</p>
+            <p className="stl-action-card__reason">Ghi chú IC-PDP: {timeline.changeRequest.icpdpNote || '—'}</p>
+          </div>
+          <div className="stl-textarea-group">
+            <label className="stl-textarea-label">Ghi chú Admin</label>
+            <textarea
+              className="stl-textarea"
+              rows={2}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Ghi chú khi duyệt yêu cầu..."
+            />
+          </div>
+          <div className="stl-textarea-group" style={{ marginTop: 12 }}>
+            <label className="stl-textarea-label">Lý do từ chối (nếu có)</label>
+            <textarea
+              className="stl-textarea"
+              rows={2}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Điền lý do nếu từ chối yêu cầu..."
+            />
+          </div>
+          <div className="stl-action-btns">
+            <button
+              type="button"
+              className="ctsv-pd-btn ctsv-pd-btn--primary"
+              disabled={submitting}
+              onClick={() => runAction('change-admin-approve')}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><polyline points="20 6 9 17 4 12"/></svg>
+              {changeType === 'delete' ? 'Duyệt xóa timeline' : 'Duyệt hủy timeline'}
+            </button>
+            <button
+              type="button"
+              className="ctsv-pd-btn ctsv-pd-btn--danger-outline"
+              disabled={submitting}
+              onClick={() => runAction('change-admin-reject')}
+            >
+              Từ chối yêu cầu
+            </button>
+          </div>
         </section>
       )}
 
       {/* Action section */}
-      {hasAction && (
+      {hasAction && !pendingAdminChange && (
         <section className="stl-action-card">
           <h2 className="stl-action-card__title">
             {isAdmin ? 'Quyết định Admin' : 'Quyết định IC-PDP'}
