@@ -2288,6 +2288,28 @@
   color: #b91c1c;
 }
 
+.clb-view-detail-btn--muted {
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.clb-view-detail-btn--muted:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #334155;
+}
+
+.clb-view-detail-btn--edit {
+  border-color: #3b82f6;
+  color: #2563eb;
+}
+
+.clb-view-detail-btn--edit:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
 .clb-action-btn--success {
   color: #059669 !important;
   border-color: #a7f3d0 !important;

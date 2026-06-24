@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useTimelineLiveStream from '../../hooks/useTimelineLiveStream';
 import { TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
 
 const TimelineLiveBanner = ({ active = true }) => {
   const navigate = useNavigate();
   const [notice, setNotice] = useState(null);
+
+  useTimelineLiveStream(active);
 
   useEffect(() => {
     if (!active) {

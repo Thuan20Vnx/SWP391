@@ -26,7 +26,7 @@ const normalizeItems = (items) => {
     .filter((item) => item.title);
 };
 
-const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'pending_icpdp', 'pending_admin', 'approved'];
+const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'rejected', 'pending_icpdp', 'pending_admin', 'approved'];
 
 const assertEditable = (timeline) => {
   if (!DIRECT_EDIT_STATUSES.includes(timeline.status)) {
@@ -177,7 +177,7 @@ const updateForClub = async (id, payload, userId, activeClubId) => {
   return formatClubSemesterTimeline(timeline);
 };
 
-const submitForClub = async (id, userId, activeClubId) => {
+const submitForClub = async (id, userId, activeClubId, submitterEmail = '') => {
   const club = await resolveClubForManager(userId, activeClubId);
   const timeline = await ClubSemesterTimeline.findById(id);
   if (!timeline || String(timeline.clubId) !== String(club._id)) {
@@ -190,6 +190,10 @@ const submitForClub = async (id, userId, activeClubId) => {
     const err = new Error('Timeline cần ít nhất một hoạt động/sự kiện dự kiến!');
     err.statusCode = 400;
     throw err;
+  }
+
+  if (submitterEmail) {
+    timeline.submittedByEmail = String(submitterEmail).trim().toLowerCase();
   }
 
   timeline.status = 'pending_icpdp';
@@ -350,12 +354,12 @@ const deleteForClub = async (id, userId, activeClubId) => {
     err.statusCode = 404;
     throw err;
   }
-  if (!['draft', 'revision', 'pending_icpdp'].includes(timeline.status)) {
-    const err = new Error('Chỉ có thể xóa timeline ở trạng thái bản nháp, chờ duyệt hoặc yêu cầu chỉnh sửa!');
+  if (!['draft', 'revision', 'rejected', 'pending_icpdp'].includes(timeline.status)) {
+    const err = new Error('Chỉ có thể xóa timeline ở trạng thái bản nháp, từ chối, chờ duyệt hoặc yêu cầu chỉnh sửa!');
     err.statusCode = 400;
     throw err;
   }
-  if (timeline.status === 'draft') {
+  if (['draft', 'rejected'].includes(timeline.status)) {
     await timeline.deleteOne();
     return { id: String(id), deleted: true, mode: 'hard' };
   }
