@@ -50,6 +50,35 @@
 
 /* ── Header pill — same underline style as nav-link (see index.css) ── */
 
+@media (max-width: 900px) {
+  .icpdp-app-shell .icpdp-portal-header.site-header--with-shell .site-header__nav:not(.mobile-active) {
+    display: none !important;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header.site-header--with-shell .site-header__nav-toggle {
+    display: inline-flex;
+    margin-left: auto;
+    margin-right: 2px;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header.site-header--with-shell .header-actions {
+    margin-left: 0;
+    flex-shrink: 0;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header.site-header--with-shell.site-header--sidebar-open .site-header__nav-toggle {
+    display: none !important;
+  }
+
+  .icpdp-app-shell .icpdp-portal-header.site-header--with-shell.site-header--sidebar-open .header-search-box.site-header__search {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    margin: 0 8px 0 4px;
+    display: flex !important;
+  }
+}
+
 /* ── Hero / Dashboard accent ── */
 /* Removed solid gradient override so the hero uses the clean default background, making orange buttons visible */.icpdp-app-shell .ctsv-dash-btn--primary,
 .icpdp-app-shell .ctsv-btn-primary {
