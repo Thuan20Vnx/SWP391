@@ -381,7 +381,7 @@ router.get('/events/:id', async (req, res) => {
         student: registration.user,
       }));
     }
-    return res.json({ success: true, event: formatEvent(event), students });
+    return res.json({ success: true, event: formatEvent(event, { includePlanFile: true }), students });
   } catch (error) {
     console.error('ctsv event detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -865,7 +865,7 @@ router.get('/proposals/:id', async (req, res) => {
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đề xuất!' });
     }
-    return res.json({ success: true, proposal: formatProposal(proposal) });
+    return res.json({ success: true, proposal: formatProposal(proposal, { includePlanFile: true }) });
   } catch (error) {
     console.error('ctsv proposal detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });

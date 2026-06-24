@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpProposal, icpdpApproveProposal } from '../../services/icpdpApi';
 import { statusClass } from '../../utils/eventStatus';
+import EventPlanFilePanel from '../../components/events/EventPlanFilePanel';
 
 const IconCalendar = () => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -195,6 +196,12 @@ const IcpdpProposalDetail = () => {
           <p className="ctsv-ed-description">
             {proposal.description?.trim() || 'Không có mô tả chi tiết cho đề xuất này.'}
           </p>
+
+          <EventPlanFilePanel
+            fileUrl={proposal.eventPlanFile}
+            fileName={proposal.eventPlanFileName}
+            mimeType={proposal.eventPlanFileMime}
+          />
 
           <div className="ctsv-ed-info-grid">
             <div className="ctsv-ed-info-card">

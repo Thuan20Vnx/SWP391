@@ -7,6 +7,7 @@ import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import { isIcpdpModerationPending } from '../../constants/clubEventModeration';
 import { MODERATION_ACTION_LABELS } from '../../constants/eventModeration';
 import EventQrGeneratePanel from '../../components/events/EventQrGeneratePanel';
+import EventPlanFilePanel from '../../components/events/EventPlanFilePanel';
 
 const SOURCE_META = {
   school: { label: 'Cấp trường', tone: 'school' },
@@ -279,6 +280,11 @@ const IcpdpEventDetail = () => {
             <p className="ctsv-ed-description">
               {event.description?.trim() || 'Chưa có mô tả chi tiết cho sự kiện này.'}
             </p>
+            <EventPlanFilePanel
+              fileUrl={event.eventPlanFile}
+              fileName={event.eventPlanFileName}
+              mimeType={event.eventPlanFileMime}
+            />
             <div className="ctsv-ed-info-grid">
               <div className="ctsv-ed-info-card">
                 <span className="ctsv-ed-info-label">Nguồn tổ chức</span>

@@ -44,6 +44,9 @@ const eventSchema = new mongoose.Schema(
     },
     image: { type: String, default: '' },
     bannerFileName: { type: String, default: '' },
+    eventPlanFile: { type: String, default: '' },
+    eventPlanFileName: { type: String, default: '' },
+    eventPlanFileMime: { type: String, default: '' },
     category: {
       type: String,
       enum: EVENT_CATEGORIES,

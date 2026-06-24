@@ -1551,6 +1551,171 @@
   margin-bottom: 20px;
 }
 
+.clb-form-group--plan {
+  margin-bottom: 20px;
+}
+
+.clb-plan-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 560px;
+}
+
+.clb-plan-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 120px;
+  padding: 20px 16px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.clb-plan-dropzone:hover,
+.clb-plan-dropzone.is-dragover {
+  border-color: #f26f21;
+  background: #fff7ed;
+}
+
+.clb-plan-dropzone.has-file {
+  border-color: #22c55e;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.clb-plan-dropzone__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  text-align: center;
+  word-break: break-word;
+}
+
+.clb-plan-dropzone.has-file .clb-plan-dropzone__title {
+  color: #166534;
+}
+
+.clb-plan-dropzone__hint {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.clb-plan-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.ev-plan-file-panel {
+  margin-top: 20px;
+}
+
+.ev-plan-file-panel__label {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.ev-plan-file-panel__card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.ev-plan-file-panel__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.ev-plan-file-panel__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ev-plan-file-panel__name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.ev-plan-file-panel__size {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.ev-plan-file-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ev-plan-file-panel__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.ev-plan-file-panel__btn--view {
+  color: #2563eb;
+  border-color: #93c5fd;
+  background: #fff;
+}
+
+.ev-plan-file-panel__btn--view:hover {
+  background: #eff6ff;
+}
+
+.ev-plan-file-panel__btn--download {
+  color: #fff;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.ev-plan-file-panel__btn--download:hover {
+  background: #1d4ed8;
+}
+
+.ev-plan-file-panel__missing {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
 .clb-banner-hint {
   margin: -2px 0 10px;
   font-size: 0.8rem;
