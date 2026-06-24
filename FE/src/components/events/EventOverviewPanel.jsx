@@ -1,5 +1,6 @@
 import React from 'react';
 import { audienceLabel, formatTicketPriceLabel } from '../../utils/eventTicketTypes';
+import EventPlanFilePanel from './EventPlanFilePanel';
 
 const DEFAULT_BANNER =
   'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80';
@@ -179,6 +180,11 @@ const EventOverviewPanel = ({ event }) => {
           <p className="ev-overview-desc">
             {event.description?.trim() || 'Chưa có mô tả chi tiết.'}
           </p>
+          <EventPlanFilePanel
+            fileUrl={event.eventPlanFile}
+            fileName={event.eventPlanFileName}
+            mimeType={event.eventPlanFileMime}
+          />
         </section>
 
         {event.agenda?.trim() && (

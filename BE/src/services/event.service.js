@@ -36,6 +36,9 @@ const buildProposalPayloadFromEvent = (event, managedClub, userEmail) => ({
   ticketTypes: event.ticketTypes || [],
   expectedAttendees: event.expectedAttendees ?? 0,
   image: event.thumbnail || event.image || '',
+  eventPlanFile: event.eventPlanFile || '',
+  eventPlanFileName: event.eventPlanFileName || '',
+  eventPlanFileMime: event.eventPlanFileMime || '',
   clubId: managedClub ? String(managedClub._id) : (event.clubId ? String(event.clubId) : ''),
   clubName: managedClub?.name || event.clubName || '',
   submittedByEmail: userEmail || event.createdByEmail || '',
@@ -133,6 +136,10 @@ const createEvent = async (user, body, activeClubId = null) => {
     title,
     description,
     thumbnail,
+    bannerFileName,
+    eventPlanFile,
+    eventPlanFileName,
+    eventPlanFileMime,
     category,
     registrationStartDate,
     registrationEndDate,
@@ -172,6 +179,9 @@ const createEvent = async (user, body, activeClubId = null) => {
       throw new AppError('Không tìm thấy CLB bạn đang quản lý.', 400);
     }
     await assertApprovedTimelineForClub(managedClub._id);
+    if (!eventPlanFile?.trim()) {
+      throw new AppError('Vui lòng tải lên bảng kế hoạch sự kiện!', 400);
+    }
   }
 
   const initialStatus = isClubManager ? 'pending_icpdp' : 'pending';
@@ -180,6 +190,10 @@ const createEvent = async (user, body, activeClubId = null) => {
     title,
     description: description || 'Chưa có mô tả',
     thumbnail: thumbnail || undefined,
+    bannerFileName: bannerFileName?.trim() || '',
+    eventPlanFile: eventPlanFile || '',
+    eventPlanFileName: eventPlanFileName?.trim() || '',
+    eventPlanFileMime: eventPlanFileMime?.trim() || '',
     category: normalizeEventCategory(category || 'Khác'),
     registrationStartDate: registrationStartDate || null,
     registrationEndDate: registrationEndDate || null,
@@ -287,6 +301,10 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     title,
     description,
     thumbnail,
+    bannerFileName,
+    eventPlanFile,
+    eventPlanFileName,
+    eventPlanFileMime,
     category,
     registrationStartDate,
     registrationEndDate,
@@ -311,9 +329,19 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
   }
 
+  if (user.role === 'club_manager' && !eventPlanFile?.trim() && !event.eventPlanFile?.trim()) {
+    throw new AppError('Vui lòng tải lên bảng kế hoạch sự kiện!', 400);
+  }
+
   event.title = title;
   event.description = description || 'Chưa có mô tả';
   if (thumbnail) event.thumbnail = thumbnail;
+  if (bannerFileName !== undefined) event.bannerFileName = bannerFileName?.trim() || '';
+  if (eventPlanFile) {
+    event.eventPlanFile = eventPlanFile;
+    event.eventPlanFileName = eventPlanFileName?.trim() || event.eventPlanFileName || '';
+    event.eventPlanFileMime = eventPlanFileMime?.trim() || event.eventPlanFileMime || '';
+  }
   event.category = normalizeEventCategory(category || event.category);
   event.registrationStartDate = registrationStartDate || null;
   event.registrationEndDate = registrationEndDate || null;

@@ -19,13 +19,14 @@ const formatTime = (d) => {
   return `${h}:${m}`;
 };
 
-const formatEvent = (doc) => {
+const formatEvent = (doc, opts = {}) => {
   if (!doc) return null;
   const o = doc.toObject ? doc.toObject({ virtuals: true }) : { ...doc };
   const cap = o.capacity || o.totalTickets || 0;
   const remaining = Math.max(0, cap - (o.registeredCount || 0));
   const speakers = resolveEventSpeakers(o);
   const primarySpeaker = speakers[0];
+  const includePlanFile = opts.includePlanFile === true;
   return {
     id: o._id?.toString() || o.id,
     title: o.title,
@@ -48,6 +49,10 @@ const formatEvent = (doc) => {
     image: o.image || o.thumbnail || '',
     thumbnail: o.image || o.thumbnail || '',
     bannerFileName: o.bannerFileName || '',
+    eventPlanFileName: o.eventPlanFileName || '',
+    eventPlanFileMime: o.eventPlanFileMime || '',
+    hasEventPlanFile: Boolean(o.eventPlanFile),
+    ...(includePlanFile ? { eventPlanFile: o.eventPlanFile || '' } : {}),
     eventType: o.eventType || '',
     duration: o.duration || '',
     format: o.format || 'campus',
@@ -89,9 +94,10 @@ const formatEvent = (doc) => {
   };
 };
 
-const formatProposal = (doc) => {
+const formatProposal = (doc, opts = {}) => {
   if (!doc) return null;
   const o = doc.toObject ? doc.toObject() : { ...doc };
+  const includePlanFile = opts.includePlanFile === true;
   return {
     id: o._id?.toString() || o.id,
     title: o.title,
@@ -108,6 +114,10 @@ const formatProposal = (doc) => {
     ticketTypes: o.ticketTypes || [],
     expectedAttendees: o.expectedAttendees ?? 0,
     image: o.image || '',
+    eventPlanFileName: o.eventPlanFileName || '',
+    eventPlanFileMime: o.eventPlanFileMime || '',
+    hasEventPlanFile: Boolean(o.eventPlanFile),
+    ...(includePlanFile ? { eventPlanFile: o.eventPlanFile || '' } : {}),
     clubId: o.clubId,
     clubName: o.clubName,
     submittedByEmail: o.submittedByEmail,
