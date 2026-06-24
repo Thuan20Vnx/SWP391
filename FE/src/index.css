@@ -16238,13 +16238,13 @@ a.event-discovery-card__btn {
 }
 
 .stl-filter-menu-item:hover {
-  background: #f8fafc;
-  color: #0f172a;
+  background: #fff7ed;
+  color: #ea580c;
 }
 
 .stl-filter-menu-item--active {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: #fff1e6;
+  color: #ea580c;
   font-weight: 700;
 }
 
@@ -16363,6 +16363,25 @@ a.event-discovery-card__btn {
 }
 .stl-empty p { margin: 0; font-size: 0.9375rem; color: #64748b; }
 .stl-empty-hint { max-width: 420px; font-size: 0.875rem !important; color: #94a3b8 !important; line-height: 1.5; }
+
+.stl-empty-action-btn {
+  margin-top: 4px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid #f26f21;
+  background: transparent;
+  color: #ea580c;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.stl-empty-action-btn:hover {
+  background: #fff7ed;
+  border-color: #e05f15;
+  color: #c2410c;
+}
 
 /* ── Detail page ── */
 .stl-detail-page {

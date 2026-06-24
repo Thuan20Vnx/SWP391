@@ -3,6 +3,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpSemesterTimelines } from '../../services/icpdpApi';
 import { getUserRole } from '../../utils/auth';
 import { useCloseOnClickOutside } from '../../hooks/useCloseOnClickOutside';
+import { ICPDP_TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
 
 const ADMIN_STATUS_FILTERS = [
   { id: 'pending_admin',  label: 'Chờ Admin duyệt' },
@@ -78,6 +79,12 @@ const IcpdpSemesterTimelineList = () => {
   );
 
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const onLive = () => load(statusFilter);
+    window.addEventListener(ICPDP_TIMELINE_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(ICPDP_TIMELINE_LIVE_EVENT, onLive);
+  }, [load, statusFilter]);
 
   useCloseOnClickOutside(filterRef, filterOpen, () => setFilterOpen(false));
 
@@ -218,6 +225,15 @@ const IcpdpSemesterTimelineList = () => {
                       </svg>
                       <p>Không có timeline nào.</p>
                       <p className="stl-empty-hint">{emptyTimelineHint(statusFilter, isAdmin)}</p>
+                      {statusFilter !== 'all' && (
+                        <button
+                          type="button"
+                          className="stl-empty-action-btn"
+                          onClick={() => handleStatusSelect('all')}
+                        >
+                          Hiển thị tất cả
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -53,6 +53,8 @@ const TYPE_TO_TONE = {
   partner_revision: 'warning',
   timeline_submit: 'info',
   timeline_change: 'warning',
+  timeline_cancel: 'warning',
+  timeline_update: 'warning',
   timeline_approve: 'success',
   timeline_reject: 'alert',
   timeline_revision: 'warning',

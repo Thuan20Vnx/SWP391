@@ -152,6 +152,16 @@ const updateSemesterTimeline = async (req, res) => {
       req.user._id,
       readActiveClubId(req)
     );
+    if (['pending_icpdp', 'revision'].includes(timeline.statusKey)) {
+      createAndBroadcast({
+        recipientRoles: ['icpdp'],
+        title: 'CLB cập nhật timeline kỳ học',
+        body: `${timeline.clubName || 'CLB'} đã chỉnh sửa timeline ${timeline.semesterLabel || ''}.`,
+        type: 'timeline_update',
+        refId: String(timeline.id || ''),
+        refType: 'semester_timeline',
+      }).catch(() => {});
+    }
     res.status(200).json({ success: true, timeline, message: 'Đã cập nhật timeline.' });
   } catch (error) {
     handleTimelineError(res, error);
