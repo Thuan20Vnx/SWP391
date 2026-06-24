@@ -270,12 +270,21 @@ const WeatherWidget = () => {
         aria-label="Xem chi tiết thời tiết"
         title={`${topLine} — ${bottomLine}`}
       >
-        <div className="weather-widget-icon">
-          <WeatherIcon main={weather.main} />
+        <div className="weather-widget-compact" aria-hidden="true">
+          <div className="weather-widget-compact-icon">
+            <WeatherIcon main={weather.main} />
+          </div>
+          <span className="weather-widget-compact-divider" />
+          <span className="weather-widget-compact-temp">{weather.temp}°</span>
         </div>
-        <div className="weather-widget-info">
-          <MarqueeLine key={`top-${activeIndex}`} text={topLine} className="weather-widget-temp" />
-          <MarqueeLine key={`bottom-${activeIndex}`} text={bottomLine} className="weather-widget-advice" />
+        <div className="weather-widget-expanded">
+          <div className="weather-widget-icon">
+            <WeatherIcon main={weather.main} />
+          </div>
+          <div className="weather-widget-info">
+            <MarqueeLine key={`top-${activeIndex}`} text={topLine} className="weather-widget-temp" />
+            <MarqueeLine key={`bottom-${activeIndex}`} text={bottomLine} className="weather-widget-advice" />
+          </div>
         </div>
       </button>
     </div>

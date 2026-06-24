@@ -3933,27 +3933,49 @@ a.club-tag {
   white-space: nowrap;
 }
 
-/* Weather widget — pill-shaped like the chatbot fab button, stacked below it */
+/* Weather widget — circle collapsed (icon + dash + temp), pill expands on hover like chatbot */
 .weather-widget-wrap {
   position: relative;
 }
 
 .weather-widget {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   background-color: #ffffff;
   border: none;
-  border-radius: 29px;
-  height: 58px;
-  padding: 0 16px 0 10px;
+  border-radius: 999px;
+  width: 48px;
+  min-width: 48px;
+  max-width: 48px;
+  height: 48px;
+  padding: 0;
   box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2), 0 8px 10px -6px rgba(15, 23, 42, 0.15);
   cursor: pointer;
   animation: weatherFadeIn 0.4s ease;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-sizing: border-box;
   font: inherit;
   color: inherit;
   text-align: left;
+  transition:
+    max-width 0.4s ease-out,
+    width 0.4s ease-out,
+    height 0.4s ease-out,
+    padding 0.4s ease-out,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.weather-widget:hover,
+.weather-widget--open {
+  width: auto;
+  max-width: 240px;
+  height: 58px;
+  padding: 0 16px 0 10px;
+  justify-content: flex-start;
 }
 
 .weather-widget:hover {
@@ -3963,6 +3985,68 @@ a.club-tag {
 
 .weather-widget--open {
   box-shadow: 0 0 0 2px rgba(242, 111, 33, 0.35), 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+}
+
+.weather-widget-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  gap: 0;
+  transition: opacity 0.25s ease-out, max-width 0.35s ease-out;
+}
+
+.weather-widget-compact-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.weather-widget-compact-divider {
+  display: block;
+  width: 14px;
+  height: 1px;
+  margin: 3px 0 2px;
+  background: rgba(15, 23, 42, 0.22);
+  border-radius: 1px;
+}
+
+.weather-widget-compact-temp {
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+}
+
+.weather-widget-expanded {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.4s ease-out, opacity 0.35s ease-out 0.04s;
+}
+
+.weather-widget:hover .weather-widget-compact,
+.weather-widget--open .weather-widget-compact {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  max-width: 0;
+  overflow: hidden;
+}
+
+.weather-widget:hover .weather-widget-expanded,
+.weather-widget--open .weather-widget-expanded {
+  max-width: 220px;
+  opacity: 1;
 }
 
 .weather-detail-panel {
@@ -4147,6 +4231,7 @@ a.club-tag {
   width: 36px;
   height: 36px;
   flex-shrink: 0;
+  line-height: 0;
 }
 
 .weather-icon {
@@ -4271,6 +4356,11 @@ a.club-tag {
 }
 
 @media (max-width: 640px) {
+  .weather-widget:hover,
+  .weather-widget--open {
+    max-width: min(220px, calc(100vw - 48px));
+  }
+
   .weather-widget-info {
     width: 110px;
   }
