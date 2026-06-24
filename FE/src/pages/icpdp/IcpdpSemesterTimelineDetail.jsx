@@ -10,7 +10,7 @@ import {
   revisionIcpdpSemesterTimeline,
 } from '../../services/icpdpApi';
 import { getUserRole, isAdminRole } from '../../utils/auth';
-import { ICPDP_TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
+import { TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
 
 const fmt = (v) => {
   if (!v) return '—';
@@ -69,8 +69,8 @@ const IcpdpSemesterTimelineDetail = () => {
     const onLive = () => {
       refresh().catch(() => {});
     };
-    window.addEventListener(ICPDP_TIMELINE_LIVE_EVENT, onLive);
-    return () => window.removeEventListener(ICPDP_TIMELINE_LIVE_EVENT, onLive);
+    window.addEventListener(TIMELINE_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(TIMELINE_LIVE_EVENT, onLive);
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!timeline) {

@@ -4,6 +4,8 @@ import AdminTopHeader from '../components/admin/AdminTopHeader';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import SiteFooter from '../components/SiteFooter';
 import ChatbotFloating from '../components/ChatbotFloating';
+import TimelineLiveBanner from '../components/timeline/TimelineLiveBanner';
+import { isTimelineLiveRoute } from '../utils/timelineLiveEvents';
 import useUserProfile from '../hooks/useUserProfile';
 import { readSidebarPref, writeSidebarPref } from '../utils/adminSidebarStorage';
 import '../styles/admin-menu.css';
@@ -78,6 +80,7 @@ const AdminLayout = ({ showToast }) => {
         />
 
         <div className="admin-layout admin-shell-content">
+          <TimelineLiveBanner active={isTimelineLiveRoute(pathname)} />
           <Outlet context={{
             showToast,
             adminSearch,

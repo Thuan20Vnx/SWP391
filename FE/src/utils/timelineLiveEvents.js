@@ -1,4 +1,7 @@
-export const ICPDP_TIMELINE_LIVE_EVENT = 'icpdp:timeline-live-update';
+export const TIMELINE_LIVE_EVENT = 'portal:timeline-live-update';
+
+/** @deprecated use TIMELINE_LIVE_EVENT */
+export const ICPDP_TIMELINE_LIVE_EVENT = TIMELINE_LIVE_EVENT;
 
 export const TIMELINE_LIVE_TYPES = new Set([
   'timeline_submit',
@@ -10,9 +13,17 @@ export const TIMELINE_LIVE_TYPES = new Set([
   'timeline_reject',
 ]);
 
+export const TIMELINE_LIVE_ROLES = new Set(['icpdp', 'admin', 'club_manager']);
+
 export const isTimelineLiveType = (type) => TIMELINE_LIVE_TYPES.has(String(type || ''));
+
+export const shouldDispatchTimelineLive = (role) =>
+  TIMELINE_LIVE_ROLES.has(String(role || '').trim().toLowerCase());
 
 export const dispatchTimelineLiveUpdate = (notification) => {
   if (!isTimelineLiveType(notification?.type)) return;
-  window.dispatchEvent(new CustomEvent(ICPDP_TIMELINE_LIVE_EVENT, { detail: notification }));
+  window.dispatchEvent(new CustomEvent(TIMELINE_LIVE_EVENT, { detail: notification }));
 };
+
+export const isTimelineLiveRoute = (pathname = '') =>
+  pathname.includes('/semester-timelines');

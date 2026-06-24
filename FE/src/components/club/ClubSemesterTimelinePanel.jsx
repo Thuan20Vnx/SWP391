@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import AppSelect from '../ui/AppSelect';
 import AutoGrowTextarea from '../ui/AutoGrowTextarea';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import TimelineLiveBanner from '../timeline/TimelineLiveBanner';
 import {
   createClubSemesterTimeline,
   deleteClubSemesterTimeline,
@@ -10,6 +11,7 @@ import {
   submitClubSemesterTimeline,
   updateClubSemesterTimeline,
 } from '../../services/clubTimelineApi';
+import { TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
 
 const TERM_OPTIONS = [
   { value: 'spring', label: 'Spring' },
@@ -223,6 +225,19 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const onLive = () => {
+      load();
+      if (detailTimeline?.id) {
+        fetchClubSemesterTimeline(detailTimeline.id)
+          .then((d) => setDetailTimeline(d.timeline))
+          .catch(() => {});
+      }
+    };
+    window.addEventListener(TIMELINE_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(TIMELINE_LIVE_EVENT, onLive);
+  }, [load, detailTimeline?.id]);
 
   useEffect(() => {
     if (!reasonModal) return undefined;
@@ -510,6 +525,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
 
   const renderForm = () => (
     <div className="clb-timeline-page">
+      <TimelineLiveBanner active />
       <div className="clb-page-header">
         <div>
           <h1 className="clb-page-title">TIMELINE KỲ HỌC</h1>
@@ -704,6 +720,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
 
     return (
       <div className="clb-timeline-page">
+        <TimelineLiveBanner active />
         <div className="clb-page-header">
           <div>
             <h1 className="clb-page-title">{tl.semesterLabel}</h1>
@@ -885,6 +902,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     <>
       {renderDialogs()}
       <div className="clb-timeline-page">
+      <TimelineLiveBanner active />
       <div className="clb-page-header">
         <div>
           <h1 className="clb-page-title">TIMELINE KỲ HỌC</h1>
