@@ -206,18 +206,57 @@ const submitForClub = async (id, userId, activeClubId, submitterEmail = '') => {
 };
 
 const listForReview = async ({ status, q, limit = 100, defaultStatuses } = {}) => {
-  const filter = {};
-  if (status && status !== 'all') {
-    filter.status = status;
-  } else if (defaultStatuses?.length) {
-    filter.status = { $in: defaultStatuses };
-  }
+  const filter = buildReviewListFilter(status, defaultStatuses);
   if (q && String(q).trim()) {
     const re = new RegExp(String(q).trim(), 'i');
-    filter.$or = [{ clubName: re }, { semesterLabel: re }, { summary: re }];
+    filter.$and = (filter.$and || []).concat([
+      { $or: [{ clubName: re }, { semesterLabel: re }, { summary: re }] },
+    ]);
   }
   const rows = await ClubSemesterTimeline.find(filter).sort({ createdAt: -1 }).limit(limit);
   return rows.map(formatClubSemesterTimeline);
+};
+
+const PENDING_ICPDP_CHANGE_FILTER = {
+  status: 'approved',
+  'changeRequest.status': 'pending_icpdp',
+  'changeRequest.type': { $in: ['cancel', 'delete', 'edit'] },
+};
+
+const PENDING_ADMIN_CHANGE_FILTER = {
+  status: 'approved',
+  'changeRequest.status': 'pending_admin',
+  'changeRequest.type': { $in: ['cancel', 'delete', 'edit'] },
+};
+
+const buildReviewListFilter = (status, defaultStatuses) => {
+  if (status && status !== 'all') {
+    if (status === 'pending_icpdp') {
+      return { $or: [{ status: 'pending_icpdp' }, PENDING_ICPDP_CHANGE_FILTER] };
+    }
+    if (status === 'pending_admin') {
+      return { $or: [{ status: 'pending_admin' }, PENDING_ADMIN_CHANGE_FILTER] };
+    }
+    if (status === 'approved') {
+      return {
+        status: 'approved',
+        $nor: [
+          { 'changeRequest.status': 'pending_icpdp' },
+          { 'changeRequest.status': 'pending_admin' },
+        ],
+      };
+    }
+    return { status };
+  }
+
+  if (defaultStatuses?.length) {
+    const or = [{ status: { $in: defaultStatuses } }];
+    if (defaultStatuses.includes('pending_icpdp')) or.push(PENDING_ICPDP_CHANGE_FILTER);
+    if (defaultStatuses.includes('pending_admin')) or.push(PENDING_ADMIN_CHANGE_FILTER);
+    return { $or: or };
+  }
+
+  return {};
 };
 
 const getById = async (id) => {

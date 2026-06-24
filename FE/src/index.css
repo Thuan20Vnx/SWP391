@@ -16612,6 +16612,8 @@ a.event-discovery-card__btn {
 .stl-banner svg { flex-shrink: 0; margin-top: 2px; }
 .stl-banner--purple { background: #faf5ff; border-color: #e9d5ff; color: #6b21a8; }
 .stl-banner--purple svg { color: #7c3aed; }
+.stl-banner--amber  { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+.stl-banner--amber svg { color: #d97706; }
 .stl-banner--green  { background: #f0fdf4; border-color: #bbf7d0; color: #14532d; }
 .stl-banner--green svg { color: #16a34a; }
 

@@ -64,10 +64,39 @@ const formatChangeRequest = (cr) => {
   };
 };
 
+const resolveDisplayStatus = (statusKey, changeRequest) => {
+  const cr = changeRequest;
+  const hasPendingChange =
+    cr?.type &&
+    cr.type !== 'none' &&
+    ['pending_icpdp', 'pending_admin'].includes(cr.status);
+
+  if (hasPendingChange) {
+    const actionLabel = cr.type === 'cancel' ? 'hủy' : cr.type === 'delete' ? 'xóa' : 'thay đổi';
+    if (cr.status === 'pending_icpdp') {
+      return {
+        status: `Chờ IC-PDP duyệt ${actionLabel}`,
+        statusBadgeKey: 'pending_icpdp',
+      };
+    }
+    return {
+      status: `Chờ Admin duyệt ${actionLabel}`,
+      statusBadgeKey: 'pending_admin',
+    };
+  }
+
+  return {
+    status: STATUS_LABELS[statusKey] || statusKey,
+    statusBadgeKey: statusKey,
+  };
+};
+
 const formatClubSemesterTimeline = (doc) => {
   if (!doc) return null;
   const r = doc.toObject ? doc.toObject() : doc;
   const statusKey = r.status || 'draft';
+  const changeRequest = formatChangeRequest(r.changeRequest);
+  const display = resolveDisplayStatus(statusKey, r.changeRequest);
   return {
     id: String(r._id),
     clubId: r.clubId ? String(r.clubId) : '',
@@ -79,8 +108,9 @@ const formatClubSemesterTimeline = (doc) => {
     summary: r.summary || '',
     objectives: r.objectives || '',
     items: Array.isArray(r.items) ? r.items.map(formatTimelineItem) : [],
-    status: STATUS_LABELS[statusKey] || statusKey,
+    status: display.status,
     statusKey,
+    statusBadgeKey: display.statusBadgeKey,
     submittedByEmail: r.submittedByEmail || '',
     icpdpNote: r.icpdpNote || '',
     ctsvNote: r.ctsvNote || '',
@@ -90,7 +120,7 @@ const formatClubSemesterTimeline = (doc) => {
     submittedAt: r.submittedAt || null,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
-    changeRequest: formatChangeRequest(r.changeRequest),
+    changeRequest,
   };
 };
 

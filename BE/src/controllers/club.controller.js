@@ -230,7 +230,7 @@ const requestSemesterTimelineChange = async (req, res) => {
       readActiveClubId(req)
     );
     createAndBroadcast({
-      recipientRoles: ['icpdp'],
+      recipientRoles: ['icpdp', 'club_manager'],
       title: 'Yêu cầu thay đổi timeline CLB',
       body: `${timeline.clubName || 'CLB'} vừa gửi yêu cầu thay đổi timeline.`,
       type: 'timeline_change',

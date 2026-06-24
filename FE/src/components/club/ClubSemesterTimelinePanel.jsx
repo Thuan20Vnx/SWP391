@@ -175,6 +175,11 @@ const getStepStatusText = (timeline, step, state) => {
   if (state !== 'current') return 'Chờ';
   if (step.key === 'pending_icpdp') return 'Chờ duyệt';
   if (step.key === 'approved') {
+    if (hasPendingChange(timeline)) {
+      if (timeline.changeRequest?.type === 'cancel') return 'Chờ duyệt hủy';
+      if (timeline.changeRequest?.type === 'delete') return 'Chờ duyệt xóa';
+      return 'Chờ duyệt';
+    }
     if (timeline.statusKey === 'approved') return 'Đã duyệt';
     if (timeline.statusKey === 'rejected') return 'Từ chối';
     if (timeline.statusKey === 'cancelled') return 'Đã hủy';
@@ -439,6 +444,8 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         prev?.id === timeline.id
           ? {
               ...prev,
+              status: type === 'cancel' ? 'Chờ IC-PDP duyệt hủy' : 'Chờ IC-PDP duyệt xóa',
+              statusBadgeKey: 'pending_icpdp',
               changeRequest: {
                 type,
                 typeLabel: type === 'cancel' ? 'Hủy đơn timeline' : 'Xóa timeline',
@@ -754,7 +761,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
               })}
             </div>
             <p className="clb-timeline-status-badge">
-              <span className={`clb-table-status clb-table-status--${timelineStatusBadgeClass(tl.statusKey)}`}>
+              <span className={`clb-table-status clb-table-status--${timelineStatusBadgeClass(tl.statusBadgeKey || tl.statusKey)}`}>
                 {tl.status}
               </span>
             </p>
@@ -958,11 +965,14 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
                       {tl.changeRequest?.statusKey === 'pending_icpdp' && (
                         <span className="clb-table-sub">Yêu cầu: {tl.changeRequest.typeLabel}</span>
                       )}
+                      {tl.changeRequest?.statusKey === 'pending_admin' && (
+                        <span className="clb-table-sub">Đã chuyển Admin: {tl.changeRequest.typeLabel}</span>
+                      )}
                     </td>
                     <td className="clb-table-col-compact">{tl.items?.length || 0}</td>
                     <td className="clb-table-col-compact">{formatDate(tl.submittedAt || tl.createdAt)}</td>
                     <td className="clb-table-col-status">
-                      <span className={`clb-table-status clb-table-status--${timelineStatusBadgeClass(tl.statusKey)}`}>
+                      <span className={`clb-table-status clb-table-status--${timelineStatusBadgeClass(tl.statusBadgeKey || tl.statusKey)}`}>
                         {tl.status}
                       </span>
                     </td>

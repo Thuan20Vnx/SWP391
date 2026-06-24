@@ -1647,7 +1647,7 @@ router.patch('/semester-timelines/:id/change-request/icpdp-approve', requireIcpd
       reviewerEmail: req.authEmail,
     });
     createAndBroadcast({
-      recipientRoles: ['admin'],
+      recipientRoles: ['admin', 'club_manager'],
       title: 'Yêu cầu đổi timeline cần Admin duyệt',
       body: `${timeline.clubName || 'CLB'} có yêu cầu thay đổi timeline đã qua IC-PDP.`,
       type: 'timeline_change',
@@ -1668,8 +1668,8 @@ router.patch('/semester-timelines/:id/change-request/admin-approve', requireAdmi
       reviewerEmail: req.authEmail,
     });
     createAndBroadcast({
-      recipientRoles: ['icpdp'],
-      recipientEmails: [result?.submittedByEmail],
+      recipientRoles: ['icpdp', 'club_manager'],
+      recipientEmails: [result?.submittedByEmail].filter(Boolean),
       title: 'Yêu cầu thay đổi timeline đã được duyệt',
       body: 'Admin đã chấp nhận yêu cầu thay đổi timeline.',
       type: 'timeline_approve',
@@ -1695,8 +1695,8 @@ router.patch('/semester-timelines/:id/change-request/reject', requireIcpdpTimeli
       stage,
     });
     createAndBroadcast({
-      recipientRoles: stage === 'admin' ? ['icpdp'] : [],
-      recipientEmails: [timeline.submittedByEmail],
+      recipientRoles: ['club_manager', ...(stage === 'admin' ? ['icpdp'] : [])],
+      recipientEmails: [timeline.submittedByEmail].filter(Boolean),
       title: 'Yêu cầu thay đổi timeline bị từ chối',
       body: req.body.reason || 'Yêu cầu thay đổi timeline chưa được chấp nhận.',
       type: 'timeline_reject',

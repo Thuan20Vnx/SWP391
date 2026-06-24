@@ -49,6 +49,21 @@ const fmt = (v) => {
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('vi-VN');
 };
 
+const resolveTimelineMeta = (tl) => {
+  const badgeKey = tl.statusBadgeKey || tl.statusKey;
+  if (STATUS_META[badgeKey]) {
+    return { label: tl.status || STATUS_META[badgeKey].label, tone: STATUS_META[badgeKey].tone };
+  }
+  return { label: tl.status || '—', tone: 'slate' };
+};
+
+const isTimelinePendingReview = (tl, isAdmin) => {
+  if (isAdmin) {
+    return tl.statusKey === 'pending_admin' || tl.changeRequest?.statusKey === 'pending_admin';
+  }
+  return tl.statusKey === 'pending_icpdp' || tl.changeRequest?.statusKey === 'pending_icpdp';
+};
+
 const IcpdpSemesterTimelineList = () => {
   const { showToast, headerSearch = '' } = useOutletContext() || {};
 
@@ -107,8 +122,7 @@ const IcpdpSemesterTimelineList = () => {
   }, [timelines, searchQuery, headerSearch]);
 
   const pendingCount = useMemo(() => {
-    const ps = isAdmin ? 'pending_admin' : 'pending_icpdp';
-    return timelines.filter((t) => t.statusKey === ps).length;
+    return timelines.filter((t) => isTimelinePendingReview(t, isAdmin)).length;
   }, [timelines, isAdmin]);
 
   return (
@@ -239,8 +253,8 @@ const IcpdpSemesterTimelineList = () => {
                 </tr>
               )}
               {!loading && filtered.map((tl) => {
-                const meta = STATUS_META[tl.statusKey] || { label: tl.status || '—', tone: 'slate' };
-                const isPending = tl.statusKey === 'pending_icpdp' || tl.statusKey === 'pending_admin';
+                const meta = resolveTimelineMeta(tl);
+                const isPending = isTimelinePendingReview(tl, isAdmin);
                 return (
                   <tr key={tl.id} className="stl-row">
                     <td><strong className="stl-club-name">{tl.clubName || '—'}</strong></td>
