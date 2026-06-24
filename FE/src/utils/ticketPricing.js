@@ -35,18 +35,9 @@ export const getPrimaryActionLabel = ({
   return 'Đăng ký ngay';
 };
 
+/** Luôn tính lại theo role hiện tại — tránh cache danh sách (guest) hiển thị sai giá cho SV. */
 export const resolveEventPricing = (event, role = 'guest') => {
-  if (event.priceLabel && event.amountDue !== undefined) {
-    return {
-      listPrice: event.listPrice ?? 0,
-      amountDue: event.amountDue ?? 0,
-      priceLabel: event.priceLabel,
-      studentPrivilegeApplied: event.studentPrivilegeApplied === true,
-      primaryActionLabel: event.primaryActionLabel,
-    };
-  }
-
-  const listPrice = Math.max(0, Number(event.ticketPrice) || 0);
+  const listPrice = Math.max(0, Number(event.listPrice ?? event.ticketPrice) || 0);
   const amountDue = calculateTicketAmount(role, listPrice);
   const studentPrivilegeApplied = listPrice > 0 && amountDue === 0 && hasStudentTicketPrivilege(role);
 

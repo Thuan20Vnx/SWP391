@@ -117,6 +117,9 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     [userProfile.fullname]
   );
 
+  const viewerRole = isLoggedIn ? role : 'guest';
+  const mapEvent = (apiEvent) => mapApiEventToDetail(apiEvent, { viewerRole });
+
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [eventId]);
@@ -130,11 +133,11 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     let hasInstant = false;
 
     if (detailCached?.success && detailCached.event) {
-      setEvent(mapApiEventToDetail(detailCached.event));
+      setEvent(mapEvent(detailCached.event));
       setLoading(false);
       hasInstant = true;
     } else if (summary) {
-      setEvent(mapApiEventToDetail(summary));
+      setEvent(mapEvent(summary));
       setLoading(false);
       hasInstant = true;
     } else {
@@ -150,7 +153,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
           return;
         }
         if (data?.success && data.event) {
-          setEvent(mapApiEventToDetail(data.event));
+          setEvent(mapEvent(data.event));
         } else if (!hasInstant) {
           setEvent(null);
         }
@@ -166,7 +169,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     return () => {
       cancelled = true;
     };
-  }, [eventId, isLoggedIn, userProfile.role]);
+  }, [eventId, isLoggedIn, userProfile.role, viewerRole]);
 
   const openTicket = () => {
     if (!event) return;
@@ -232,7 +235,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     try {
       const refreshData = await fetchPublicEventById(event.id, { forceRefresh: true });
       if (refreshData?.success && refreshData.event) {
-        const updatedEvent = mapApiEventToDetail({ ...refreshData.event, isRegistered: true });
+        const updatedEvent = mapEvent({ ...refreshData.event, isRegistered: true });
         setEvent(updatedEvent);
         syncEventRegistrationInCache(event.id, refreshData.event, { registered: true });
       }
@@ -275,7 +278,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
         setRegistrationId(nextRegistrationId);
       }
 
-      const updatedEvent = mapApiEventToDetail({ ...data.event, isRegistered: true });
+      const updatedEvent = mapEvent({ ...data.event, isRegistered: true });
       setEvent(updatedEvent);
       syncEventRegistrationInCache(event.id, data.event, { registered: true });
       setRegisterConfirmOpen(false);
@@ -317,7 +320,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
       syncEventRegistrationInCache(event.id, null, { registered: false });
       const refreshData = await fetchPublicEventById(event.id, { forceRefresh: true });
       if (refreshData?.success && refreshData.event) {
-        setEvent(mapApiEventToDetail(refreshData.event));
+        setEvent(mapEvent(refreshData.event));
       }
     } catch {
       showToast?.('Không thể kết nối máy chủ. Vui lòng thử lại.', 'error');

@@ -22,6 +22,8 @@ import SiteFooter from '../components/SiteFooter';
 import ProfilePasswordSection from '../components/profile/ProfilePasswordSection';
 import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 
+const VN_PHONE_REGEX = /^0\d{9}$/;
+
 const Profile = ({ showToast, embedded = false }) => {
   const navigate = useNavigate();
   const bootstrapDetail = readProfileDetailCache();
@@ -312,6 +314,12 @@ const Profile = ({ showToast, embedded = false }) => {
       return;
     }
 
+    const trimmedPhone = profileData.phone.trim();
+    if (!VN_PHONE_REGEX.test(trimmedPhone)) {
+      showToast('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0!', 'error');
+      return;
+    }
+
     setSaveLoading(true);
 
     const activeInterests = Object.keys(interests)
@@ -323,7 +331,7 @@ const Profile = ({ showToast, embedded = false }) => {
       headers: getAuthHeaders(),
       body: JSON.stringify({
         ...(userRole !== 'student' ? { fullname: profileData.fullname.trim() } : {}),
-        phone: profileData.phone.trim(),
+        phone: trimmedPhone,
         ...(userRole === 'student' || orientation.trim()
           ? { orientation: orientation.trim() }
           : {}),
@@ -527,9 +535,14 @@ const Profile = ({ showToast, embedded = false }) => {
                       <input
                         type="tel"
                         id="user-phone"
-                        placeholder="Nhập số điện thoại..."
+                        placeholder="0912345678"
+                        inputMode="numeric"
+                        maxLength={10}
                         value={profileData.phone}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setProfileData((prev) => ({ ...prev, phone: digits }));
+                        }}
                         disabled={!isEditing}
                       />
                     </div>

@@ -133,6 +133,7 @@ export const mapApiClubToListItem = (club) => ({
   category: club.category,
   logoText: club.logoText,
   logoColor: club.logoColor,
+  logoImage: club.logoImage || null,
   coverImage: club.coverImage,
   memberCount: club.memberCount ?? 0,
   followerCount: club.followerCount ?? 0,
