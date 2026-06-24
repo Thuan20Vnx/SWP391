@@ -357,7 +357,9 @@ const IcpdpClubRegistrationList = () => {
               <p>
                 {statusFilter === 'approved' || statusFilter === 'rejected'
                   ? 'Chưa có đơn ở trạng thái này — thử «Chờ xử lý» hoặc «Tất cả».'
-                  : 'Thử đổi bộ lọc hoặc từ khóa tìm kiếm.'}
+                  : statusFilter === '' || statusFilter === 'pending_icpdp'
+                    ? 'Không có đơn đăng ký CLB mới chờ xử lý. CLB đang hoạt động xem ở tab «CLB hiện có» hoặc chọn «Tất cả».'
+                    : 'Thử đổi bộ lọc hoặc từ khóa tìm kiếm.'}
               </p>
             </div>
           ) : (

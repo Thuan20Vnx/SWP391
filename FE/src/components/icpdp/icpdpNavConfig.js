@@ -10,7 +10,7 @@ export const ICPDP_NAV_ITEMS = [
     label: 'Duyệt timeline Spring/Summer/Fall',
     icon: 'calendar',
   },
-  { path: '/icpdp/events', label: 'Xem sự kiện', icon: 'calendar' },
+  { path: '/icpdp/events', label: 'Xem sự kiện', icon: 'events' },
   { path: '/icpdp/events/create', label: 'Tạo sự kiện cấp trường', section: 'SỰ KIỆN', icon: 'create' },
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
   { path: '/icpdp/reports', label: 'Báo cáo sau SK', icon: 'reports' },

@@ -190,7 +190,21 @@ const deleteSemesterTimeline = async (req, res) => {
       req.user._id,
       readActiveClubId(req)
     );
-    res.status(200).json({ success: true, ...result, message: 'Đã xóa timeline.' });
+    if (result.mode === 'cancelled' && result.timeline) {
+      createAndBroadcast({
+        recipientRoles: ['icpdp'],
+        title: 'CLB đã hủy đơn timeline',
+        body: `${result.timeline.clubName || 'CLB'} đã hủy timeline ${result.timeline.semesterLabel || ''}.`,
+        type: 'timeline_cancel',
+        refId: String(result.id || ''),
+        refType: 'semester_timeline',
+      }).catch(() => {});
+    }
+    res.status(200).json({
+      success: true,
+      ...result,
+      message: result.mode === 'cancelled' ? 'Đã hủy đơn timeline.' : 'Đã xóa timeline.',
+    });
   } catch (error) {
     handleTimelineError(res, error);
   }

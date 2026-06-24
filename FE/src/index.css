@@ -16310,6 +16310,7 @@ a.event-discovery-card__btn {
   text-align: center;
 }
 .stl-empty p { margin: 0; font-size: 0.9375rem; color: #64748b; }
+.stl-empty-hint { max-width: 420px; font-size: 0.875rem !important; color: #94a3b8 !important; line-height: 1.5; }
 
 /* ── Detail page ── */
 .stl-detail-page {
