@@ -1,8 +1,0 @@
-12|import CtsvSemesterTimelineList from './pages/ctsv/CtsvSemesterTimelineList';
-13|import CtsvSemesterTimelineDetail from './pages/ctsv/CtsvSemesterTimelineDetail';
-34|import IcpdpSemesterTimelineList from './pages/icpdp/IcpdpSemesterTimelineList';
-35|import IcpdpSemesterTimelineDetail from './pages/icpdp/IcpdpSemesterTimelineDetail';
-255|              <Route path="semester-timelines" element={<CtsvSemesterTimelineList />} />
-256|              <Route path="semester-timelines/:id" element={<CtsvSemesterTimelineDetail />} />
-287|              <Route path="semester-timelines" element={<IcpdpSemesterTimelineList />} />
-288|              <Route path="semester-timelines/:id" element={<IcpdpSemesterTimelineDetail />} />
