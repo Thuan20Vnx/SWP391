@@ -3,7 +3,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpSemesterTimelines } from '../../services/icpdpApi';
 import { getUserRole } from '../../utils/auth';
 import { useCloseOnClickOutside } from '../../hooks/useCloseOnClickOutside';
-import { ICPDP_TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
+import { TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
 
 const ADMIN_STATUS_FILTERS = [
   { id: 'pending_admin',  label: 'Chờ Admin duyệt' },
@@ -82,8 +82,8 @@ const IcpdpSemesterTimelineList = () => {
 
   useEffect(() => {
     const onLive = () => load(statusFilter);
-    window.addEventListener(ICPDP_TIMELINE_LIVE_EVENT, onLive);
-    return () => window.removeEventListener(ICPDP_TIMELINE_LIVE_EVENT, onLive);
+    window.addEventListener(TIMELINE_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(TIMELINE_LIVE_EVENT, onLive);
   }, [load, statusFilter]);
 
   useCloseOnClickOutside(filterRef, filterOpen, () => setFilterOpen(false));

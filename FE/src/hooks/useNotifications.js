@@ -6,7 +6,7 @@ import {
   createNotificationSSE
 } from '../services/notificationApi';
 import { normalizeRole } from '../utils/auth';
-import { dispatchTimelineLiveUpdate } from '../utils/timelineLiveEvents';
+import { dispatchTimelineLiveUpdate, shouldDispatchTimelineLive } from '../utils/timelineLiveEvents';
 
 const useNotifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -46,7 +46,7 @@ const useNotifications = () => {
       (payload) => {
         mergeNotifications([payload]);
         const role = normalizeRole(localStorage.getItem('userRole'));
-        if (role === 'icpdp' || role === 'admin') {
+        if (shouldDispatchTimelineLive(role)) {
           dispatchTimelineLiveUpdate(payload);
         }
         refetch();
