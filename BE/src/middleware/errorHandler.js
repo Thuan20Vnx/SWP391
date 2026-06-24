@@ -20,10 +20,13 @@ const normalizeError = (err) => {
 
   if (err.code === 11000) {
     const field = Object.keys(err.keyPattern || {})[0] || 'dữ liệu';
+    const duplicateMessages = {
+      phone: 'Số điện thoại đã được sử dụng bởi tài khoản khác!',
+      code: 'Mã thanh toán bị trùng, vui lòng thử lại.',
+      sepayTxId: 'Giao dịch thanh toán đã được xử lý.',
+    };
     return new AppError(
-      field === 'phone'
-        ? 'Số điện thoại đã được sử dụng bởi tài khoản khác!'
-        : 'Thông tin đã tồn tại trong hệ thống.',
+      duplicateMessages[field] || 'Thông tin đã tồn tại trong hệ thống.',
       400
     );
   }

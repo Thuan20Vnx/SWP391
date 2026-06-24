@@ -92,6 +92,16 @@ const createEventTicketPayment = async (user, eventId) => {
 
   // Tái dùng đơn pending còn hạn nếu có
   const now = Date.now();
+  await Payment.updateMany(
+    {
+      user: user._id,
+      event: eventId,
+      status: 'pending',
+      expiresAt: { $lte: new Date(now) },
+    },
+    { $set: { status: 'expired' } },
+  );
+
   const pending = await Payment.findOne({
     user: user._id,
     event: eventId,
@@ -253,7 +263,7 @@ const handleSepayWebhook = async (payload = {}) => {
 
   // Đánh dấu đã trả + hoàn tất đăng ký
   payment.status = 'paid';
-  payment.sepayTxId = sepayTxId;
+  if (sepayTxId) payment.sepayTxId = sepayTxId;
   payment.gateway = String(payload.gateway || '');
   payment.referenceCode = String(payload.referenceCode || '');
   payment.paidAmount = amountIn;
@@ -380,6 +390,33 @@ const processRefund = async (code, adminUser, action, note = '') => {
 };
 
 /**
+ * Sửa index sepayTxId cũ (sparse unique + default null chỉ cho phép 1 đơn pending).
+ * Gọi một lần khi khởi động server.
+ */
+const repairPaymentIndexes = async () => {
+  const collection = Payment.collection;
+
+  const unsetResult = await Payment.updateMany(
+    { sepayTxId: null },
+    { $unset: { sepayTxId: '' } },
+  );
+  if (unsetResult.modifiedCount > 0) {
+    console.log(`[Payment] Đã gỡ sepayTxId=null trên ${unsetResult.modifiedCount} đơn cũ.`);
+  }
+
+  try {
+    await collection.dropIndex('sepayTxId_1');
+    console.log('[Payment] Đã xóa index sepayTxId cũ.');
+  } catch (err) {
+    if (err?.codeName !== 'IndexNotFound' && err?.code !== 27) {
+      console.warn('[Payment] dropIndex sepayTxId:', err.message);
+    }
+  }
+
+  await Payment.syncIndexes();
+};
+
+/**
  * Cron: hết hạn hàng loạt các đơn pending quá hạn.
  */
 const expireStalePayments = async () => {
@@ -405,4 +442,5 @@ module.exports = {
   requestRefund,
   processRefund,
   expireStalePayments,
+  repairPaymentIndexes,
 };
