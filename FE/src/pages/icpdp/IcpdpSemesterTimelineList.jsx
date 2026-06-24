@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpSemesterTimelines } from '../../services/icpdpApi';
 import { getUserRole } from '../../utils/auth';
+import { useCloseOnClickOutside } from '../../hooks/useCloseOnClickOutside';
 
 const ADMIN_STATUS_FILTERS = [
   { id: 'pending_admin',  label: 'Chờ Admin duyệt' },
@@ -56,6 +57,8 @@ const IcpdpSemesterTimelineList = () => {
   const STATUS_FILTERS = isAdmin ? ADMIN_STATUS_FILTERS : ICPDP_STATUS_FILTERS;
 
   const [statusFilter, setStatusFilter] = useState(isAdmin ? 'pending_admin' : '');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef(null);
   const [timelines, setTimelines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,6 +78,16 @@ const IcpdpSemesterTimelineList = () => {
   );
 
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useCloseOnClickOutside(filterRef, filterOpen, () => setFilterOpen(false));
+
+  const activeFilterLabel = STATUS_FILTERS.find((f) => f.id === statusFilter)?.label || 'Chờ xử lý';
+
+  const handleStatusSelect = (id) => {
+    setStatusFilter(id);
+    setFilterOpen(false);
+    load(id);
+  };
 
   const filtered = useMemo(() => {
     const q = (headerSearch.trim() || searchQuery.trim()).toLowerCase();
@@ -132,17 +145,36 @@ const IcpdpSemesterTimelineList = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </label>
-          <div className="stl-chip-row">
-            {STATUS_FILTERS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={`stl-chip${statusFilter === f.id ? ' stl-chip--active' : ''}`}
-                onClick={() => { setStatusFilter(f.id); load(f.id); }}
-              >
-                {f.label}
-              </button>
-            ))}
+          <div className="stl-filter-dropdown" ref={filterRef}>
+            <button
+              type="button"
+              className={`stl-filter-pill${filterOpen ? ' stl-filter-pill--open' : ''}`}
+              onClick={() => setFilterOpen((open) => !open)}
+              aria-expanded={filterOpen}
+              aria-haspopup="listbox"
+              aria-label="Lọc theo trạng thái timeline"
+            >
+              <span>{activeFilterLabel}</span>
+              <svg className="stl-filter-caret" viewBox="0 0 10 6" width="10" height="6" fill="currentColor" aria-hidden>
+                <path d="M0 0l5 6 5-6z" />
+              </svg>
+            </button>
+            {filterOpen && (
+              <div className="stl-filter-menu" role="listbox" aria-label="Trạng thái timeline">
+                {STATUS_FILTERS.map((f) => (
+                  <button
+                    key={f.id || 'pending'}
+                    type="button"
+                    role="option"
+                    aria-selected={statusFilter === f.id}
+                    className={`stl-filter-menu-item${statusFilter === f.id ? ' stl-filter-menu-item--active' : ''}`}
+                    onClick={() => handleStatusSelect(f.id)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         {!loading && (
