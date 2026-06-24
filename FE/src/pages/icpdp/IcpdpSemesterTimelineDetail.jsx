@@ -10,6 +10,7 @@ import {
   revisionIcpdpSemesterTimeline,
 } from '../../services/icpdpApi';
 import { getUserRole, isAdminRole } from '../../utils/auth';
+import { ICPDP_TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
 
 const fmt = (v) => {
   if (!v) return '—';
@@ -31,6 +32,7 @@ const STATUS_META = {
   approved:      { label: 'Đã phê duyệt',        tone: 'green'  },
   revision:      { label: 'Cần chỉnh sửa',       tone: 'orange' },
   rejected:      { label: 'Đã từ chối',          tone: 'red'    },
+  cancelled:     { label: 'CLB đã hủy',          tone: 'slate'  },
 };
 
 const PanelIcon = ({ children }) => (
@@ -61,6 +63,14 @@ const IcpdpSemesterTimelineDetail = () => {
       showToast?.('Không tải được timeline.', 'error');
       navigate(backPath);
     });
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const onLive = () => {
+      refresh().catch(() => {});
+    };
+    window.addEventListener(ICPDP_TIMELINE_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(ICPDP_TIMELINE_LIVE_EVENT, onLive);
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!timeline) {

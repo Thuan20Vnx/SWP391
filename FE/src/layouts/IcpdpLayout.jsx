@@ -16,6 +16,7 @@ import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { resolveUserAvatar } from '../utils/image';
 import ChatbotFloating from '../components/ChatbotFloating';
 import StaffMaintenanceReadOnlyBanner from '../components/StaffMaintenanceReadOnlyBanner';
+import IcpdpTimelineLiveBanner from '../components/icpdp/IcpdpTimelineLiveBanner';
 import useMaintenanceReadOnly from '../hooks/useMaintenanceReadOnly';
 import '../styles/icpdp-portal.css';
 
@@ -126,6 +127,7 @@ const IcpdpLayout = ({ showToast }) => {
           />
 
           <StaffMaintenanceReadOnlyBanner />
+          <IcpdpTimelineLiveBanner />
           <div className={`ctsv-portal-body${maintenanceReadOnly ? ' maintenance-readonly-portal' : ''}`}>
             <Outlet
               context={{
