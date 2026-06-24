@@ -4,6 +4,7 @@ import EventDiscoveryCard from '../EventDiscoveryCard';
 import EventTicketModal from '../EventTicketModal';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { fetchPartnerEvents, fetchPartnerMe } from '../../services/partnerApi';
+import { eventRequiresPayment } from '../../utils/eventRegisterAction';
 import { API_BASE, getAuthHeaders } from '../../utils/api';
 import { filterEventsByState, mapApiEventToCard } from '../../data/eventDiscoveryData';
 import { buildTicketFromCardEvent } from '../../utils/eventTicket';
@@ -123,9 +124,15 @@ const PartnerCampusEventsSection = ({ showToast, title = 'Tất cả sự kiện
         return;
       }
 
+      const viewerRole = localStorage.getItem('userRole') || 'partner';
+      if (eventRequiresPayment(event, viewerRole)) {
+        navigate(`/events/${event.id}`, { state: { openCheckout: true } });
+        return;
+      }
+
       setConfirmEvent(event);
     },
-    [handleDetail, openTicket, showToast]
+    [handleDetail, navigate, openTicket, showToast]
   );
 
   const handleConfirmRegister = useCallback(async () => {

@@ -40,6 +40,7 @@ import {
   sortEventsByPopular,
   HOME_DISPLAY_LIMIT,
 } from '../data/eventDiscoveryData';
+import { eventRequiresPayment } from '../utils/eventRegisterAction';
 import SystemMaintenanceBanner from '../components/SystemMaintenanceBanner';
 import HomeHeroSlider from '../components/home/HomeHeroSlider';
 import { mapEventsToHeroSlides } from '../utils/heroSlides';
@@ -78,9 +79,11 @@ const Home = ({ showToast }) => {
     category: category !== 'Tất cả' ? category : undefined,
   });
 
-  const mapListToCards = (data) => {
+  const mapListToCards = (data, roleForPricing = 'guest') => {
     if (!data?.success || !data.events?.length) return [];
-    return filterActiveDiscoveryEvents(data.events).map(mapApiEventToCard);
+    return filterActiveDiscoveryEvents(data.events).map((ev) =>
+      mapApiEventToCard(ev, { viewerRole: roleForPricing })
+    );
   };
 
   // Search & Filters State
@@ -90,7 +93,8 @@ const Home = ({ showToast }) => {
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
 
   const initialEventCards = mapListToCards(
-    getCachedPublicEventsList(buildEventQuery('', 'Tất cả'))
+    getCachedPublicEventsList(buildEventQuery('', 'Tất cả')),
+    localStorage.getItem('authToken') ? getUserRole() || 'guest' : 'guest'
   );
 
   const [events, setEvents] = useState(initialEventCards);
@@ -101,6 +105,7 @@ const Home = ({ showToast }) => {
   filterParamsRef.current = { debouncedSearch, categoryFilter };
 
   const role = userProfile.role || getUserRole();
+  const viewerRole = isLoggedIn ? role : 'guest';
   const isAdminViewer = isLoggedIn && isAdminRole(role);
   const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
   const isClubManager = isLoggedIn && isClubManagerRole(role);
@@ -134,7 +139,7 @@ const Home = ({ showToast }) => {
     const hasCached = Boolean(cached?.events?.length);
 
     if (hasCached) {
-      setEvents(mapListToCards(cached));
+      setEvents(mapListToCards(cached, viewerRole));
       setEventsLoading(false);
       setEventsError(false);
     } else {
@@ -144,7 +149,7 @@ const Home = ({ showToast }) => {
     fetchPublicEvents(params)
       .then((data) => {
         if (cancelled) return;
-        setEvents(mapListToCards(data));
+        setEvents(mapListToCards(data, viewerRole));
         setEventsError(false);
       })
       .catch((err) => {
@@ -162,7 +167,7 @@ const Home = ({ showToast }) => {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, categoryFilter]);
+  }, [debouncedSearch, categoryFilter, viewerRole]);
 
   // Khi đăng nhập / đổi role — refresh isRegistered, không chặn UI
   useEffect(() => {
@@ -261,6 +266,11 @@ const Home = ({ showToast }) => {
       return;
     }
 
+    if (eventRequiresPayment(event, viewerRole)) {
+      navigate(`/events/${event.id}`, { state: { openCheckout: true } });
+      return;
+    }
+
     setEvents((prev) =>
       prev.map((ev) => (ev.id === event.id ? markDiscoveryCardRegistered(ev) : ev))
     );
@@ -278,7 +288,7 @@ const Home = ({ showToast }) => {
         return;
       }
 
-      const updated = mapApiEventToCard({ ...data.event, isRegistered: true });
+      const updated = mapApiEventToCard({ ...data.event, isRegistered: true }, { viewerRole });
       setEvents((prev) => prev.map((ev) => (ev.id === event.id ? updated : ev)));
       syncEventRegistrationInCache(event.id, data.event, { registered: true });
       showToast(data.message || 'Đăng ký sự kiện thành công!', 'success');

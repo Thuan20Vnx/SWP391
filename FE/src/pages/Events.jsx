@@ -15,6 +15,7 @@ import {
   navigateClubEventManage,
   resolveDiscoveryCardProps,
 } from '../utils/publicEventStaffAccess';
+import { eventRequiresPayment } from '../utils/eventRegisterAction';
 import {
   CATEGORY_FILTERS,
   STATE_FILTERS,
@@ -59,9 +60,9 @@ const Events = ({ showToast }) => {
     club: clubFilter || undefined,
   });
 
-  const mapListToCards = (data) => {
+  const mapListToCards = (data, roleForPricing = 'guest') => {
     if (data?.success && data.events?.length > 0) {
-      return data.events.map(mapApiEventToCard);
+      return data.events.map((ev) => mapApiEventToCard(ev, { viewerRole: roleForPricing }));
     }
     if (USE_FIGMA_FALLBACK && !debouncedSearch && !clubFilter) {
       return FIGMA_SAMPLE_EVENTS.filter((ev) => ev.cardState === 'active' && ev.filledSlots < ev.totalSlots);
@@ -69,7 +70,10 @@ const Events = ({ showToast }) => {
     return [];
   };
 
-  const initialCards = mapListToCards(getCachedPublicEventsList(buildEventQuery()));
+  const initialCards = mapListToCards(
+    getCachedPublicEventsList(buildEventQuery()),
+    localStorage.getItem('authToken') ? getUserRole() || 'guest' : 'guest'
+  );
   const [events, setEvents] = useState(
     initialCards.length > 0 ? initialCards : USE_FIGMA_FALLBACK ? FIGMA_SAMPLE_EVENTS : []
   );
@@ -79,6 +83,7 @@ const Events = ({ showToast }) => {
 
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = userProfile.role || getUserRole();
+  const viewerRole = isLoggedIn ? role : 'guest';
   const isAdminViewer = isLoggedIn && isAdminRole(role);
   const isCtsvStaff = isLoggedIn && isPureCtsvStaff(role);
   const isClubManager = isLoggedIn && isClubManagerRole(role);
@@ -102,7 +107,7 @@ const Events = ({ showToast }) => {
     const hasCached = Boolean(cached?.events?.length);
 
     if (hasCached) {
-      setEvents(mapListToCards(cached));
+      setEvents(mapListToCards(cached, viewerRole));
       setLoading(false);
     } else {
       setLoading(true);
@@ -111,7 +116,7 @@ const Events = ({ showToast }) => {
     fetchPublicEvents(params)
       .then((data) => {
         if (cancelled) return;
-        setEvents(mapListToCards(data));
+        setEvents(mapListToCards(data, viewerRole));
       })
       .catch((err) => {
         console.error(err);
@@ -128,7 +133,7 @@ const Events = ({ showToast }) => {
     return () => {
       cancelled = true;
     };
-  }, [showToast, debouncedSearch, activeFilter, clubFilter]);
+  }, [showToast, debouncedSearch, activeFilter, clubFilter, viewerRole]);
 
   useEffect(() => {
     if (!isLoggedIn) return undefined;
@@ -242,6 +247,11 @@ const Events = ({ showToast }) => {
       return;
     }
 
+    if (eventRequiresPayment(event, viewerRole)) {
+      navigate(`/events/${event.id}`, { state: { openCheckout: true } });
+      return;
+    }
+
     setEvents((prev) =>
       prev.map((ev) => (ev.id === event.id ? markDiscoveryCardRegistered(ev) : ev))
     );
@@ -259,7 +269,7 @@ const Events = ({ showToast }) => {
         return;
       }
 
-      const updated = mapApiEventToCard({ ...data.event, isRegistered: true });
+      const updated = mapApiEventToCard({ ...data.event, isRegistered: true }, { viewerRole });
       setEvents((prev) => prev.map((ev) => (ev.id === event.id ? updated : ev)));
       syncEventRegistrationInCache(event.id, data.event, { registered: true });
       showToast(data.message || 'Đăng ký sự kiện thành công!', 'success');

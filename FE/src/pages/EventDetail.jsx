@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import SiteFooter from '../components/SiteFooter';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
@@ -26,6 +26,7 @@ import {
 } from '../services/eventsApi';
 import { getCached } from '../utils/apiCache';
 import { formatVnd } from '../utils/ticketPricing';
+import { eventRequiresPayment } from '../utils/eventRegisterAction';
 import { buildTicketFromDetailEvent } from '../utils/eventTicket';
 import '../styles/admin-public-pages.css';
 
@@ -75,6 +76,7 @@ const MailIcon = () => (
 const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOnly: readOnlyProp = false }) => {
   const { eventId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [registerLoading, setRegisterLoading] = useState(false);
@@ -87,6 +89,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
   const [paymentPaid, setPaymentPaid] = useState(false);
   const [adminPayments, setAdminPayments] = useState(null);
   const [adminPaymentsLoading, setAdminPaymentsLoading] = useState(false);
+  const checkoutTriggeredRef = useRef(false);
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = userProfile.role || getUserRole();
   const isAdminViewer = isLoggedIn && isAdminRole(role);
@@ -121,6 +124,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
   const mapEvent = (apiEvent) => mapApiEventToDetail(apiEvent, { viewerRole });
 
   useEffect(() => {
+    checkoutTriggeredRef.current = false;
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [eventId]);
 
@@ -208,7 +212,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     }
 
     // Vé có phí → mở luồng thanh toán SePay; vé miễn phí → xác nhận đăng ký thường
-    if (event.amountDue > 0) {
+    if (eventRequiresPayment(event, viewerRole)) {
       handleCheckout();
       return;
     }
@@ -216,7 +220,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     setRegisterConfirmOpen(true);
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = useCallback(async () => {
     if (!event) return;
     setRegisterLoading(true);
     try {
@@ -228,7 +232,19 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     } finally {
       setRegisterLoading(false);
     }
-  };
+  }, [event, showToast]);
+
+  useEffect(() => {
+    if (!event || checkoutTriggeredRef.current || readOnly) return;
+    if (!location.state?.openCheckout) return;
+    if (event.isRegistered || !eventRequiresPayment(event, viewerRole)) {
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+    checkoutTriggeredRef.current = true;
+    navigate(location.pathname, { replace: true, state: null });
+    handleCheckout();
+  }, [event, location.pathname, location.state, viewerRole, readOnly, navigate, handleCheckout]);
 
   const handlePaymentPaid = async () => {
     setPaymentPaid(true);
