@@ -102,6 +102,12 @@ export const icpdpApproveTimelineChangeRequest = (id, note = '') =>
     body: JSON.stringify({ note }),
   });
 
+export const adminApproveTimelineChangeRequest = (id, note = '') =>
+  icpdpFetch(`/semester-timelines/${id}/change-request/admin-approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note }),
+  });
+
 export const rejectTimelineChangeRequest = (id, reason = '', stage = 'icpdp') =>
   icpdpFetch(`/semester-timelines/${id}/change-request/reject`, {
     method: 'PATCH',
