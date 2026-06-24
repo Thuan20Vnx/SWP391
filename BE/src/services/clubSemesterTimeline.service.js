@@ -350,8 +350,8 @@ const deleteForClub = async (id, userId, activeClubId) => {
     err.statusCode = 404;
     throw err;
   }
-  if (timeline.status !== 'draft') {
-    const err = new Error('Chỉ có thể xóa trực tiếp timeline ở trạng thái bản nháp!');
+  if (!['draft', 'revision', 'pending_icpdp'].includes(timeline.status)) {
+    const err = new Error('Chỉ có thể xóa timeline ở trạng thái bản nháp, chờ duyệt hoặc yêu cầu chỉnh sửa!');
     err.statusCode = 400;
     throw err;
   }
