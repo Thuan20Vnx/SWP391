@@ -98,7 +98,7 @@ const IcpdpSemesterTimelineDetail = () => {
   const pendingAdminChange = isAdmin && timeline.changeRequest?.statusKey === 'pending_admin';
   const rejectedChange = timeline.changeRequest?.statusKey === 'rejected';
   const changeType = timeline.changeRequest?.type;
-  const hasAction = canIcpdpForward || canAdminApprove || canIcpdpChangeAction || pendingAdminChange;
+  const hasTimelineDecision = canIcpdpForward || canAdminApprove;
 
   const runAction = async (action) => {
     setSubmitting(true);
@@ -303,6 +303,16 @@ const IcpdpSemesterTimelineDetail = () => {
             <label className="stl-textarea-label">Ghi chú IC-PDP</label>
             <textarea className="stl-textarea" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nhập ghi chú..." />
           </div>
+          <div className="stl-textarea-group" style={{ marginTop: 12 }}>
+            <label className="stl-textarea-label">Lý do từ chối (nếu có)</label>
+            <textarea
+              className="stl-textarea"
+              rows={2}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Điền lý do nếu từ chối yêu cầu..."
+            />
+          </div>
           <div className="stl-action-btns">
             <button type="button" className="ctsv-pd-btn ctsv-pd-btn--primary" disabled={submitting} onClick={() => runAction('change-approve')}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><polyline points="20 6 9 17 4 12"/></svg>
@@ -378,8 +388,8 @@ const IcpdpSemesterTimelineDetail = () => {
         </section>
       )}
 
-      {/* Action section — timeline mới (không phải yêu cầu hủy/xóa) */}
-      {hasAction && !pendingAdminChange && !pendingIcpdpChangeAdminView && (
+      {/* Duyệt timeline mới — không dùng chung với yêu cầu hủy/xóa */}
+      {hasTimelineDecision && (
         <section className="stl-action-card">
           <h2 className="stl-action-card__title">
             {isAdmin ? 'Quyết định Admin' : 'Quyết định IC-PDP'}
