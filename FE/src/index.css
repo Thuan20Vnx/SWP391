@@ -3840,38 +3840,43 @@ a.club-tag {
 }
 
 .chatbot-floating-wrapper .chatbot-fab-btn:not(.fab-active) {
-  width: 48px;
+  width: auto;
+  min-width: 48px;
+  max-width: 48px;
   height: 48px;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 999px;
   justify-content: center;
   gap: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-sizing: border-box;
   transition:
-    width 0.45s ease-out,
-    padding 0.45s ease-out,
-    border-radius 0.45s ease-out,
-    gap 0.45s ease-out,
+    max-width 0.4s ease-out,
+    padding 0.4s ease-out,
+    gap 0.4s ease-out,
     background-color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
 .chatbot-floating-wrapper .chatbot-fab-btn:not(.fab-active) .fab-text {
+  display: inline-block;
   max-width: 0;
   opacity: 0;
   overflow: hidden;
   padding: 0;
-  transition: max-width 0.45s ease-out, opacity 0.4s ease-out;
+  margin: 0;
+  white-space: nowrap;
+  transition: max-width 0.4s ease-out, opacity 0.35s ease-out 0.04s;
 }
 
-.chatbot-fab-btn:not(.fab-active):hover {
-  width: auto;
-  height: 48px;
-  border-radius: 24px;
+.chatbot-floating-wrapper .chatbot-fab-btn:not(.fab-active):hover {
+  max-width: 240px;
   padding: 0 18px 0 14px;
   gap: 10px;
 }
 
-.chatbot-fab-btn:not(.fab-active):hover .fab-text {
+.chatbot-floating-wrapper .chatbot-fab-btn:not(.fab-active):hover .fab-text {
   max-width: 160px;
   opacity: 1;
 }
@@ -3881,9 +3886,9 @@ a.club-tag {
   color: #ffffff;
   border: none;
   height: 48px;
-  border-radius: 24px;
+  border-radius: 999px;
   padding: 0 18px 0 14px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
@@ -3900,6 +3905,8 @@ a.club-tag {
 .chatbot-fab-btn.fab-active {
   padding: 0;
   width: 48px;
+  min-width: 48px;
+  max-width: 48px;
   height: 48px;
   justify-content: center;
   background-color: #334155;
