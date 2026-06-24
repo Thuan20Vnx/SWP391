@@ -106,6 +106,35 @@ const canEditTimeline = (timeline) =>
 const canWithdrawTimeline = (timeline) =>
   timeline && timeline.statusKey === 'pending_icpdp';
 
+const canDirectDeleteTimeline = (timeline) =>
+  timeline && ['draft', 'revision', 'pending_icpdp'].includes(timeline.statusKey);
+
+const validateTimelineItems = (items) => {
+  const titledItems = items
+    .map((item, index) => ({ ...item, index }))
+    .filter((item) => item.title.trim());
+  if (!titledItems.length) {
+    return 'Thêm ít nhất một hoạt động/sự kiện dự kiến.';
+  }
+  for (const item of titledItems) {
+    const label = `Mốc #${item.index + 1}`;
+    if (!item.plannedDate) {
+      return `${label}: Vui lòng chọn ngày & giờ dự kiến.`;
+    }
+    if (!String(item.category || '').trim()) {
+      return `${label}: Vui lòng chọn thể loại.`;
+    }
+    if (!String(item.location || '').trim()) {
+      return `${label}: Vui lòng nhập địa điểm.`;
+    }
+    const attendees = Number(item.expectedAttendees);
+    if (!attendees || attendees <= 0) {
+      return `${label}: Vui lòng nhập số người dự kiến (lớn hơn 0).`;
+    }
+  }
+  return null;
+};
+
 const hasPendingChange = (timeline) =>
   timeline?.changeRequest &&
   ['pending_icpdp', 'pending_admin'].includes(timeline.changeRequest.statusKey);
@@ -179,6 +208,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   const [submitting, setSubmitting] = useState(false);
   const [reasonModal, setReasonModal] = useState(null);
   const [withdrawTarget, setWithdrawTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [form, setForm] = useState({
     semesterTerm: defaults.semesterTerm,
     semesterYear: defaults.semesterYear,
@@ -296,9 +326,9 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   });
 
   const handleSave = async (andSubmit = false) => {
-    const validItems = form.items.filter((item) => item.title.trim());
-    if (!validItems.length) {
-      showToast?.('Thêm ít nhất một hoạt động/sự kiện dự kiến.', 'error');
+    const validationError = validateTimelineItems(form.items);
+    if (validationError) {
+      showToast?.(validationError, 'error');
       return;
     }
     setSubmitting(true);
@@ -345,13 +375,14 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     }
   };
 
-  const handleDeleteDraft = async (id) => {
-    if (!window.confirm('Xóa timeline bản nháp này?')) return;
+  const handleDeleteTimeline = async () => {
+    if (!deleteTarget) return;
     setSubmitting(true);
     try {
-      await deleteClubSemesterTimeline(id);
+      await deleteClubSemesterTimeline(deleteTarget.id);
       showToast?.('Đã xóa timeline.', 'success');
-      if (detailTimeline?.id === id) {
+      setDeleteTarget(null);
+      if (detailTimeline?.id === deleteTarget.id) {
         setDetailTimeline(null);
         setView('list');
       }
@@ -599,17 +630,18 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
                 />
               </label>
               <label>
-                Ngày &amp; giờ dự kiến
+                Ngày &amp; giờ dự kiến *
                 <input
                   type="datetime-local"
                   value={item.plannedDate}
                   onChange={(e) => updateItem(index, 'plannedDate', e.target.value)}
+                  required
                 />
               </label>
             </div>
             <div className="clb-timeline-form-row">
                 <label>
-                  Thể loại
+                  Thể loại *
                   <AppSelect
                     value={item.category}
                     onChange={(e) => updateItem(index, 'category', e.target.value)}
@@ -617,21 +649,23 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
                   />
                 </label>
               <label>
-                Địa điểm
+                Địa điểm *
                 <input
                   spellCheck={false}
                   value={item.location}
                   onChange={(e) => updateItem(index, 'location', e.target.value)}
                   placeholder="Hall A / Online..."
+                  required
                 />
               </label>
               <label>
-                Số người dự kiến
+                Số người dự kiến *
                 <input
                   type="number"
-                  min={0}
+                  min={1}
                   value={item.expectedAttendees}
                   onChange={(e) => updateItem(index, 'expectedAttendees', e.target.value)}
+                  required
                 />
               </label>
             </div>
@@ -684,7 +718,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     const canWithdraw = canWithdrawTimeline(tl) && !pendingChange;
     const canRequestCancel = tl.statusKey === 'approved' && !pendingChange;
     const canDirectEdit = canEditTimeline(tl) && !pendingChange;
-    const canDirectDelete = tl.statusKey === 'draft' && !pendingChange;
+    const canDirectDelete = canDirectDeleteTimeline(tl) && !pendingChange;
     const canRequestDelete = tl.statusKey === 'approved' && !pendingChange;
 
     return (
@@ -805,13 +839,11 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
             {canDirectDelete && (
               <button
                 type="button"
-                className="clb-action-btn clb-action-btn--danger clb-action-btn--icon"
-                title="Xóa timeline"
-                aria-label="Xóa timeline bản nháp"
+                className="clb-view-detail-btn"
                 disabled={submitting}
-                onClick={() => handleDeleteDraft(tl.id)}
+                onClick={() => setDeleteTarget(tl)}
               >
-                <ClbTrashIcon />
+                Xóa
               </button>
             )}
             {canRequestDelete && (
@@ -851,6 +883,17 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         onConfirm={handleWithdraw}
         onCancel={() => {
           if (!submitting) setWithdrawTarget(null);
+        }}
+        loading={submitting}
+      />
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Xóa timeline"
+        message="Timeline sẽ bị xóa vĩnh viễn và không thể khôi phục. Bạn có chắc không?"
+        confirmLabel="Xóa"
+        onConfirm={handleDeleteTimeline}
+        onCancel={() => {
+          if (!submitting) setDeleteTarget(null);
         }}
         loading={submitting}
       />
