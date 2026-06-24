@@ -2423,6 +2423,21 @@
   color: #78350f;
 }
 
+.clb-timeline-change-banner--rejected {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.clb-timeline-change-banner--rejected strong {
+  color: #7f1d1d;
+}
+
+.clb-table-sub--danger {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
 .clb-timeline-detail-panel {
   border: 1px solid #e2e8f0;
   border-radius: 14px;

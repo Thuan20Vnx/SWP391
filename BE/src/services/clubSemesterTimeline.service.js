@@ -570,8 +570,9 @@ const rejectChangeRequest = async (id, { reason, reviewerEmail, stage } = {}) =>
   }
   if (stage === 'icpdp') timeline.changeRequest.icpdpNote = trimmed;
   if (stage === 'admin') timeline.changeRequest.adminNote = trimmed;
+  timeline.changeRequest.status = 'rejected';
+  timeline.changeRequest.reviewedAt = new Date();
   timeline.reviewedByEmail = reviewerEmail || '';
-  clearChangeRequest(timeline);
   await timeline.save();
   return formatClubSemesterTimeline(timeline);
 };

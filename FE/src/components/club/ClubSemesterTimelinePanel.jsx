@@ -180,6 +180,11 @@ const getStepStatusText = (timeline, step, state) => {
       if (timeline.changeRequest?.type === 'delete') return 'Chờ duyệt xóa';
       return 'Chờ duyệt';
     }
+    if (timeline.changeRequest?.statusKey === 'rejected') {
+      if (timeline.changeRequest?.type === 'cancel') return 'Từ chối hủy';
+      if (timeline.changeRequest?.type === 'delete') return 'Từ chối xóa';
+      return 'Từ chối yêu cầu';
+    }
     if (timeline.statusKey === 'approved') return 'Đã duyệt';
     if (timeline.statusKey === 'rejected') return 'Từ chối';
     if (timeline.statusKey === 'cancelled') return 'Đã hủy';
@@ -768,10 +773,15 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
           </div>
 
           {tl.changeRequest && tl.changeRequest.statusKey !== 'none' && (
-            <div className="clb-timeline-change-banner">
+            <div className={`clb-timeline-change-banner${tl.changeRequest.statusKey === 'rejected' ? ' clb-timeline-change-banner--rejected' : ''}`}>
               <strong>{tl.changeRequest.typeLabel}</strong>
               <span>{tl.changeRequest.status}</span>
-              {tl.changeRequest.reason && <p style={{ marginTop: 8 }}>Lý do: {tl.changeRequest.reason}</p>}
+              {tl.changeRequest.reason && <p style={{ marginTop: 8 }}>Lý do CLB: {tl.changeRequest.reason}</p>}
+              {(tl.changeRequest.adminNote || tl.changeRequest.icpdpNote) && (
+                <p style={{ marginTop: 8 }}>
+                  Lý do từ chối: {tl.changeRequest.adminNote || tl.changeRequest.icpdpNote}
+                </p>
+              )}
             </div>
           )}
 
@@ -967,6 +977,9 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
                       )}
                       {tl.changeRequest?.statusKey === 'pending_admin' && (
                         <span className="clb-table-sub">Đã chuyển Admin: {tl.changeRequest.typeLabel}</span>
+                      )}
+                      {tl.changeRequest?.statusKey === 'rejected' && (
+                        <span className="clb-table-sub clb-table-sub--danger">{tl.status}</span>
                       )}
                     </td>
                     <td className="clb-table-col-compact">{tl.items?.length || 0}</td>
