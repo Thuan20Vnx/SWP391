@@ -355,8 +355,15 @@ const deleteForClub = async (id, userId, activeClubId) => {
     err.statusCode = 400;
     throw err;
   }
-  await timeline.deleteOne();
-  return { id: String(id), deleted: true };
+  if (timeline.status === 'draft') {
+    await timeline.deleteOne();
+    return { id: String(id), deleted: true, mode: 'hard' };
+  }
+  timeline.status = 'cancelled';
+  timeline.rejectionReason = 'CLB đã hủy đơn timeline.';
+  timeline.reviewedAt = new Date();
+  await timeline.save();
+  return { id: String(id), deleted: true, mode: 'cancelled', timeline: formatClubSemesterTimeline(timeline) };
 };
 
 const requestChangeForClub = async (id, { type, reason, payload }, userId, activeClubId) => {

@@ -148,6 +148,23 @@ const CtsvNavIcon = ({ type }) => {
           <path d="M12 6v12" />
         </svg>
       );
+    case 'accounts':
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8" r="3" />
+          <circle cx="17" cy="9" r="2.5" />
+          <path d="M3 19c0-2.8 2.7-5 6-5s6 2.2 6 5" />
+          <path d="M14 19c0-2 1.8-3.5 4-3.5" />
+        </svg>
+      );
+    case 'events':
+      return (
+        <svg {...common}>
+          <path d="M4 8h16M4 12h10M4 16h6" />
+          <rect x="14" y="11" width="6" height="8" rx="1.5" />
+          <path d="M16 14h2M16 17h2" />
+        </svg>
+      );
     case 'folder':
       return (
         <svg {...common}>

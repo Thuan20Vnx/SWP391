@@ -375,7 +375,12 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     setSubmitting(true);
     try {
       await deleteClubSemesterTimeline(deleteTarget.id);
-      showToast?.('Đã xóa timeline.', 'success');
+      showToast?.(
+        ['pending_icpdp', 'revision'].includes(deleteTarget.statusKey)
+          ? 'Đã hủy đơn timeline — IC-PDP sẽ thấy trạng thái «Đã hủy» trong mục Tất cả.'
+          : 'Đã xóa timeline.',
+        'success'
+      );
       setDeleteTarget(null);
       if (detailTimeline?.id === deleteTarget.id) {
         setDetailTimeline(null);
@@ -844,7 +849,11 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         title="Xóa timeline"
-        message="Timeline sẽ bị xóa vĩnh viễn và không thể khôi phục. Bạn có chắc không?"
+        message={
+          ['pending_icpdp', 'revision'].includes(deleteTarget?.statusKey)
+            ? 'Đơn timeline sẽ chuyển sang trạng thái «Đã hủy» và biến mất khỏi hàng chờ IC-PDP. Bạn có chắc không?'
+            : 'Timeline bản nháp sẽ bị xóa vĩnh viễn và không thể khôi phục. Bạn có chắc không?'
+        }
         confirmLabel="Xóa"
         onConfirm={handleDeleteTimeline}
         onCancel={() => {

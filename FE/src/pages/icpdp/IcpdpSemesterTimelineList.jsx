@@ -28,6 +28,17 @@ const STATUS_META = {
   approved:      { label: 'Đã duyệt',        tone: 'green'  },
   revision:      { label: 'Cần chỉnh sửa',   tone: 'orange' },
   rejected:      { label: 'Từ chối',         tone: 'red'    },
+  cancelled:     { label: 'CLB đã hủy',      tone: 'slate'  },
+};
+
+const emptyTimelineHint = (statusFilter, isAdmin) => {
+  if (statusFilter === 'all') return 'Chưa có timeline nào trong hệ thống.';
+  if (statusFilter === '' || statusFilter === 'pending_icpdp' || statusFilter === 'pending_admin') {
+    return isAdmin
+      ? 'Không có timeline chờ Admin duyệt. Thử bộ lọc «Tất cả» để xem lịch sử.'
+      : 'Không có timeline chờ IC-PDP xử lý. CLB hủy đơn hoặc timeline đã duyệt nằm ở bộ lọc «Tất cả».';
+  }
+  return 'Thử đổi bộ lọc hoặc từ khóa tìm kiếm.';
 };
 
 const fmt = (v) => {
@@ -92,7 +103,9 @@ const IcpdpSemesterTimelineList = () => {
         <div className="ctsv-events-hero-aside">
           <div className="ctsv-events-hero-stat" aria-live="polite">
             <span className="ctsv-events-hero-stat-num">{loading ? '—' : filtered.length}</span>
-            <span className="ctsv-events-hero-stat-label">Timeline</span>
+            <span className="ctsv-events-hero-stat-label">
+              {statusFilter === 'all' ? 'Timeline' : 'Timeline (bộ lọc hiện tại)'}
+            </span>
           </div>
           {!loading && pendingCount > 0 && (
             <p className="stl-pending-hint">
@@ -172,6 +185,7 @@ const IcpdpSemesterTimelineList = () => {
                         <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
                       </svg>
                       <p>Không có timeline nào.</p>
+                      <p className="stl-empty-hint">{emptyTimelineHint(statusFilter, isAdmin)}</p>
                     </div>
                   </td>
                 </tr>
