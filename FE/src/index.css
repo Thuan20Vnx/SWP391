@@ -16180,9 +16180,9 @@ a.event-discovery-card__btn {
   height: 40px;
   padding: 0 14px 0 16px;
   border-radius: 999px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #f26f21;
   background: transparent;
-  color: #334155;
+  color: #ea580c;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -16192,8 +16192,8 @@ a.event-discovery-card__btn {
 
 .stl-filter-pill:hover,
 .stl-filter-pill--open {
-  border-color: #64748b;
-  color: #0f172a;
+  border-color: #e05f15;
+  color: #c2410c;
 }
 
 .stl-filter-caret {
