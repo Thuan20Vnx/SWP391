@@ -1,3 +1,0 @@
-7|  { path: '/icpdp/semester-timelines', label: 'Duyệt timeline Spring/Summer/Fall', icon: 'calendar' },
-60|  if (path === '/icpdp/semester-timelines') {
-61|    return pathname === '/icpdp/semester-timelines' || pathname.startsWith('/icpdp/semester-timelines/');
