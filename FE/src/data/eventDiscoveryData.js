@@ -1,4 +1,4 @@
-import { formatVnd } from '../utils/ticketPricing';
+import { formatVnd, resolveEventPricing } from '../utils/ticketPricing';
 import { resolveEventDisplayImage } from '../utils/eventDisplay';
 import { getCategoryDisplayLabel } from '../constants/eventCategories';
 
@@ -249,16 +249,15 @@ export const markDiscoveryCardRegistered = (card) => ({
   filledSlots: Math.min((card.filledSlots ?? 0) + 1, card.totalSlots ?? Number.MAX_SAFE_INTEGER),
 });
 
-export const mapApiEventToCard = (event) => {
+export const mapApiEventToCard = (event, { viewerRole = 'guest' } = {}) => {
   const eventState = event.eventState || 'active';
   const totalSlots = event.capacity || 100;
   const filledSlots = event.registeredCount ?? 0;
   const category = event.category || 'Sự kiện';
   const categoryLabel = getCategoryDisplayLabel(category);
   const isRegistered = event.isRegistered === true;
-  const listPrice = event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0);
-  const amountDue = event.amountDue ?? listPrice;
-  const priceLabel = event.priceLabel || (amountDue === 0 ? 'MIỄN PHÍ' : formatVnd(amountDue));
+  const pricing = resolveEventPricing(event, viewerRole);
+  const { listPrice, amountDue, priceLabel, studentPrivilegeApplied, primaryActionLabel } = pricing;
   const organizerType = resolveEventOrganizerType(event);
   const organizerLabel = getOrganizerLabel(organizerType);
 
@@ -284,15 +283,13 @@ export const mapApiEventToCard = (event) => {
     totalSlots,
     cardState: isRegistered ? 'registered' : eventState,
     postponeReason: event.postponeReason || '',
-    primaryLabel: isRegistered
-      ? 'Đã đăng ký'
-      : (event.primaryActionLabel || getPrimaryLabel(eventState)),
+    primaryLabel: isRegistered ? 'Đã đăng ký' : primaryActionLabel,
     registered: isRegistered,
     filterTags: [CATEGORY_TO_FILTER[category] || 'all'],
     listPrice,
     amountDue,
     priceLabel,
-    studentPrivilegeApplied: event.studentPrivilegeApplied === true,
+    studentPrivilegeApplied,
     source: event.source || 'club',
     schoolOrganizerRole: event.schoolOrganizerRole || 'ctsv',
     status: event.status || '',
