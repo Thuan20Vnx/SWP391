@@ -86,7 +86,8 @@ const startServer = async () => {
   await cleanupPartnerPlaceholderEvents();
 
   // Cron: hết hạn đơn pending mỗi 5 phút
-  const { expireStalePayments } = require('./src/services/payment.service');
+  const { expireStalePayments, repairPaymentIndexes } = require('./src/services/payment.service');
+  await repairPaymentIndexes();
   setInterval(() => {
     expireStalePayments().catch((err) => console.error('[Cron] expireStalePayments:', err.message));
   }, 5 * 60 * 1000);

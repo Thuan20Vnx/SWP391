@@ -18,8 +18,8 @@ const paymentSchema = new mongoose.Schema(
       default: 'pending',
     },
 
-    // Thông tin nhận về từ webhook SePay khi đã thanh toán
-    sepayTxId: { type: Number, default: null }, // id giao dịch SePay (dedup retry)
+    // Thông tin nhận về từ webhook SePay khi đã thanh toán (chỉ set khi có id thật — tránh xung đột unique index)
+    sepayTxId: { type: Number },
     gateway: { type: String, default: '' }, // tên ngân hàng
     referenceCode: { type: String, default: '' },
     paidAmount: { type: Number, default: 0 },
@@ -46,6 +46,12 @@ const paymentSchema = new mongoose.Schema(
 
 paymentSchema.index({ status: 1, expiresAt: 1 });
 paymentSchema.index({ user: 1, event: 1, status: 1 });
-paymentSchema.index({ sepayTxId: 1 }, { unique: true, sparse: true });
+paymentSchema.index(
+  { sepayTxId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { sepayTxId: { $type: 'number' } },
+  }
+);
 
 module.exports = mongoose.model('Payment', paymentSchema);
