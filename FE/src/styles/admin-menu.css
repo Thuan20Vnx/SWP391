@@ -640,6 +640,7 @@
   }
 
   .ctsv-app-shell .home-header.site-header,
+  .icpdp-app-shell .home-header.site-header,
   .ctsv-public-shell .home-header.site-header,
   .student-public-shell .home-header.site-header {
     position: sticky;

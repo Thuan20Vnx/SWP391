@@ -457,13 +457,15 @@ html:has(.ctsv-app-shell) body {
   flex-shrink: 0;
 }
 
-.ctsv-portal-header .ctsv-header-nav {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 22px;
-  margin-left: 8px;
-  min-width: 0;
+@media (min-width: 901px) {
+  .ctsv-portal-header .ctsv-header-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 22px;
+    margin-left: 8px;
+    min-width: 0;
+  }
 }
 
 .ctsv-portal-header .nav-link {

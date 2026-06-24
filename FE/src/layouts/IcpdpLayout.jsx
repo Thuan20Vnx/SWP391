@@ -69,6 +69,18 @@ const IcpdpLayout = ({ showToast }) => {
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, onAuthChanged);
   }, [loadUserProfile]);
 
+  useEffect(() => {
+    const closeSidebarOnMobile = () => {
+      if (window.innerWidth > 900) return;
+      setSidebarOpen(false);
+      persistIcpdpSidebarOpen(false);
+    };
+
+    closeSidebarOnMobile();
+    window.addEventListener('resize', closeSidebarOnMobile);
+    return () => window.removeEventListener('resize', closeSidebarOnMobile);
+  }, []);
+
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => {
       const next = !prev;
