@@ -15,10 +15,13 @@ const EVENT_STATUSES = [
   'ended',
   'pending_icpdp_cancel',
   'pending_icpdp_postpone',
+  'pending_icpdp_delete',
+  'pending_icpdp_edit',
   'pending_cancel',
   'pending_hide',
   'pending_postpone',
   'pending_edit',
+  'pending_delete',
   'cancelled',
   'hidden'
 ];
@@ -36,10 +39,13 @@ const NON_PUBLIC_STATUSES = [
   'hidden',
   'pending_icpdp_cancel',
   'pending_icpdp_postpone',
+  'pending_icpdp_delete',
+  'pending_icpdp_edit',
   'pending_cancel',
   'pending_hide',
   'pending_postpone',
-  'pending_edit'
+  'pending_edit',
+  'pending_delete',
 ];
 
 /** Sự kiện hiển thị / đăng ký trên cổng sinh viên */
@@ -72,10 +78,13 @@ const STATUS_LABELS = {
   ended: 'ĐÃ KẾT THÚC',
   pending_icpdp_cancel: 'CHỜ ICPDP — HỦY',
   pending_icpdp_postpone: 'CHỜ ICPDP — HOÃN',
+  pending_icpdp_delete: 'CHỜ ICPDP — XÓA',
+  pending_icpdp_edit: 'CHỜ ICPDP — CHỈNH SỬA',
   pending_cancel: 'CHỜ ADMIN — HỦY',
   pending_hide: 'CHỜ ADMIN — ẨN',
   pending_postpone: 'CHỜ ADMIN — HOÃN',
   pending_edit: 'CHỜ ADMIN — CHỈNH SỬA',
+  pending_delete: 'CHỜ ADMIN — XÓA',
   cancelled: 'ĐÃ HỦY',
   hidden: 'ĐÃ ẨN'
 };

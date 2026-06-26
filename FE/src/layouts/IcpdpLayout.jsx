@@ -17,7 +17,9 @@ import { resolveUserAvatar } from '../utils/image';
 import ChatbotFloating from '../components/ChatbotFloating';
 import StaffMaintenanceReadOnlyBanner from '../components/StaffMaintenanceReadOnlyBanner';
 import TimelineLiveBanner from '../components/timeline/TimelineLiveBanner';
+import PortalEventsLiveBanner from '../components/approval/PortalEventsLiveBanner';
 import { isTimelineLiveRoute } from '../utils/timelineLiveEvents';
+import { isPortalEventsApprovalRoute } from '../utils/adminEventsLiveEvents';
 import useMaintenanceReadOnly from '../hooks/useMaintenanceReadOnly';
 import '../styles/icpdp-portal.css';
 
@@ -141,6 +143,7 @@ const IcpdpLayout = ({ showToast }) => {
 
           <StaffMaintenanceReadOnlyBanner />
           <TimelineLiveBanner active={isTimelineLiveRoute(location.pathname)} />
+          <PortalEventsLiveBanner active={isPortalEventsApprovalRoute(location.pathname)} />
           <div className={`ctsv-portal-body${maintenanceReadOnly ? ' maintenance-readonly-portal' : ''}`}>
             <Outlet
               context={{

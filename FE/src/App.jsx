@@ -444,6 +444,7 @@ function App() {
               <Route path="ctsv/events/create" element={<CtsvEventCreate showToast={showToast} />} />
               <Route path="ctsv/events/:id/edit" element={<CtsvEventCreate showToast={showToast} />} />
               <Route path="ctsv/events/:id" element={<CtsvEventDetail showToast={showToast} />} />
+              <Route path="ctsv/proposals/:id" element={<IcpdpProposalDetail />} />
               <Route path="ctsv/partners" element={<CtsvPartnerList />} />
               <Route path="ctsv/partners/:id" element={<CtsvPartnerDetail showToast={showToast} />} />
               <Route path="partners" element={<AdminPartners />} />

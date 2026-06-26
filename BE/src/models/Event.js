@@ -47,6 +47,7 @@ const eventSchema = new mongoose.Schema(
     eventPlanFile: { type: String, default: '' },
     eventPlanFileName: { type: String, default: '' },
     eventPlanFileMime: { type: String, default: '' },
+    eventPlanLink: { type: String, default: '' },
     category: {
       type: String,
       enum: EVENT_CATEGORIES,
@@ -129,6 +130,11 @@ const eventSchema = new mongoose.Schema(
     moderationRequestedAt: { type: Date, default: null },
     /** Admin đã duyệt yêu cầu chỉnh sửa — CTSV mới được mở form (một lần / đến khi lưu) */
     ctsvEditUnlocked: {
+      type: Boolean,
+      default: false
+    },
+    /** Admin đã duyệt yêu cầu chỉnh sửa — CLB mới được mở form (một lần / đến khi lưu) */
+    clubEditUnlocked: {
       type: Boolean,
       default: false
     },

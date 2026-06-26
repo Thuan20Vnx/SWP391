@@ -2,6 +2,15 @@
   margin-top: 20px;
 }
 
+.ctsv-ed-panel .ev-plan-file-panel {
+  margin-top: 12px;
+  margin-bottom: 20px;
+}
+
+.ctsv-ed-panel .ev-plan-file-panel__card {
+  padding: 14px 16px;
+}
+
 .ev-plan-file-panel__label {
   margin: 0 0 8px;
   font-size: 0.75rem;
@@ -92,6 +101,25 @@
 
 .ev-plan-file-panel__btn--download:hover {
   background: #1d4ed8;
+}
+
+.ev-plan-file-panel__card--stacked {
+  margin-top: 10px;
+}
+
+.ev-plan-file-panel__card--link {
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+
+.ev-plan-file-panel__icon--link {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.ev-plan-file-panel__link-text {
+  word-break: break-all;
+  color: #2563eb;
 }
 
 .ev-plan-file-panel__missing {

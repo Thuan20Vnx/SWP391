@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-const EventReportPanel = ({ event, students = [] }) => {
+const EventReportPanel = ({ event, students = [], pendingApproval = false }) => {
   const stats = useMemo(() => {
     const registered = students.filter((s) => s.status !== 'cancelled').length;
     const checkedIn = students.filter((s) => s.status === 'checked-in' || s.status === 'attended').length;
@@ -12,6 +12,45 @@ const EventReportPanel = ({ event, students = [] }) => {
 
   if (!event) {
     return <p className="ev-panel-empty">Đang tải báo cáo…</p>;
+  }
+
+  if (pendingApproval) {
+    return (
+      <div className="ev-report-panel ev-report-panel--pending">
+        <section className="ev-report-section">
+          <h3 className="ev-overview-title">Báo cáo chưa khả dụng</h3>
+          <p className="ev-overview-desc">
+            Đề xuất đang chờ IC-PDP duyệt nên chưa có dữ liệu đăng ký, check-in hay đánh giá.
+            Các chỉ số tham dự sẽ hiển thị sau khi sự kiện được phê duyệt và mở đăng ký.
+          </p>
+        </section>
+        <section className="ev-report-section">
+          <h3 className="ev-overview-title">Tổng hợp tham dự</h3>
+          <div className="ev-report-stats ev-report-stats--pending">
+            <article className="ev-report-stat ev-report-stat--pending">
+              <span className="ev-report-stat__label">Đăng ký</span>
+              <strong className="ev-report-stat__value">—</strong>
+              <p className="ev-report-stat__hint">Chưa mở</p>
+            </article>
+            <article className="ev-report-stat ev-report-stat--pending">
+              <span className="ev-report-stat__label">Check-in</span>
+              <strong className="ev-report-stat__value">—</strong>
+              <p className="ev-report-stat__hint">Chưa diễn ra</p>
+            </article>
+            <article className="ev-report-stat ev-report-stat--pending">
+              <span className="ev-report-stat__label">Check-out</span>
+              <strong className="ev-report-stat__value">—</strong>
+              <p className="ev-report-stat__hint">Chưa diễn ra</p>
+            </article>
+            <article className="ev-report-stat ev-report-stat--pending">
+              <span className="ev-report-stat__label">Tỷ lệ check-in</span>
+              <strong className="ev-report-stat__value">—</strong>
+              <p className="ev-report-stat__hint">Chưa có dữ liệu</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    );
   }
 
   const isEnded = event.endDate ? new Date(event.endDate) < new Date() : false;

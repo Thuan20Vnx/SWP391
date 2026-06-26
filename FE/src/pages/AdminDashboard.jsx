@@ -2,11 +2,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import AdminProposalActions from '../components/admin/AdminProposalActions';
 import ProposalTicketsTable from '../components/admin/ProposalTicketsTable';
+import EventPlanFilePanel from '../components/events/EventPlanFilePanel';
+import useAdminEventsLiveStream from '../hooks/useAdminEventsLiveStream';
+import { ADMIN_EVENTS_LIVE_EVENT } from '../utils/adminEventsLiveEvents';
 import {
   approveCtsvEvent,
   approveCtsvProposal,
-  fetchCtsvEvents,
-  fetchCtsvProposals,
+  fetchCtsvEventsForApproval,
+  fetchCtsvProposalsForApproval,
   icpdpApproveProposal,
   rejectCtsvEvent,
   rejectCtsvProposal,
@@ -64,8 +67,16 @@ const matchSource = (item, sourceFilter, ctsvSub, icpdpSub) => {
 const PENDING_KEYS = ['pending', 'pending_icpdp', 'pending_ctsv', 'pending_admin'];
 const ACCEPT_KEYS = ['approved', 'live', 'ended'];
 const REJECT_KEYS = ['rejected'];
-const EDIT_KEYS = ['revision', 'pending_edit'];
-const CANCEL_KEYS = ['pending_cancel', 'pending_icpdp_cancel', 'pending_postpone', 'pending_icpdp_postpone', 'pending_hide'];
+const EDIT_KEYS = ['revision', 'pending_edit', 'pending_icpdp_edit'];
+const CANCEL_KEYS = [
+  'pending_cancel',
+  'pending_icpdp_cancel',
+  'pending_postpone',
+  'pending_icpdp_postpone',
+  'pending_hide',
+  'pending_delete',
+  'pending_icpdp_delete',
+];
 
 const STATUS_META = {
   pending:               { label: 'Chờ duyệt',        tone: 'amber'  },
@@ -78,6 +89,9 @@ const STATUS_META = {
   rejected:              { label: 'Từ chối',          tone: 'red'    },
   revision:              { label: 'Cần chỉnh sửa',    tone: 'orange' },
   pending_edit:          { label: 'Chờ duyệt sửa',    tone: 'orange' },
+  pending_icpdp_edit:    { label: 'Chờ duyệt sửa (ICPDP)', tone: 'orange' },
+  pending_delete:        { label: 'Yêu cầu xóa',      tone: 'red'    },
+  pending_icpdp_delete:  { label: 'Yêu cầu xóa (ICPDP)', tone: 'red' },
   pending_cancel:        { label: 'Yêu cầu hủy',      tone: 'red'    },
   pending_icpdp_cancel:  { label: 'Yêu cầu hủy (ICPDP)', tone: 'red' },
   pending_postpone:      { label: 'Yêu cầu hoãn',     tone: 'orange' },
@@ -116,6 +130,27 @@ const Badge = ({ meta }) => (
   <span className={`adm-ev-badge adm-ev-badge--${meta?.tone || 'slate'}`}>{meta?.label || '—'}</span>
 );
 
+const PAGE_SIZE = 6;
+
+const getSubmittedAtMs = (item) => {
+  const values = [item.submittedAt, item.createdAt, item.updatedAt].filter(Boolean);
+  if (!values.length) return 0;
+  return Math.max(...values.map((v) => new Date(v).getTime()));
+};
+
+const resolveDetailHref = (item) => {
+  if (item.kind === 'partner') return `/admin/ctsv/partners/${item.id}`;
+  if (item.kind === 'proposal') {
+    if (item.linkedEventId) return `/admin/ctsv/events/${item.linkedEventId}`;
+    return `/admin/ctsv/proposals/${item.id}`;
+  }
+  if (item.kind === 'event') {
+    if (item.source === 'school' || item.source === 'club') return `/admin/ctsv/events/${item.id}`;
+    return `/events/${item.id}`;
+  }
+  return null;
+};
+
 const AdminDashboard = ({ showToast }) => {
   const [events, setEvents] = useState([]);
   const [proposals, setProposals] = useState([]);
@@ -135,6 +170,7 @@ const AdminDashboard = ({ showToast }) => {
   const [otherSub, setOtherSub] = useState('edit');
   const [approvedOpen, setApprovedOpen] = useState(false);
   const [otherOpen, setOtherOpen] = useState(false);
+  const [page, setPage] = useState(1);
   const ctsvRef = useRef(null);
   const icpdpRef = useRef(null);
   const approvedRef = useRef(null);
@@ -147,11 +183,13 @@ const AdminDashboard = ({ showToast }) => {
   const userRole = normalizeRole(localStorage.getItem('userRole'));
   const canAccess = isCtsvRole(userRole) || isAdminRole(userRole);
 
-  const loadAll = useCallback(() => {
-    setLoading(true);
+  useAdminEventsLiveStream(canAccess);
+
+  const loadAll = useCallback(({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     Promise.all([
-      fetchCtsvEvents({ status: 'all' }).catch(() => ({ success: false, events: [] })),
-      fetchCtsvProposals({ status: 'all' }).catch(() => ({ success: false, proposals: [] })),
+      fetchCtsvEventsForApproval({ status: 'all' }).catch(() => ({ success: false, events: [] })),
+      fetchCtsvProposalsForApproval({ status: 'all' }).catch(() => ({ success: false, proposals: [] })),
       isAdminRole(userRole)
         ? fetchAdminPartners('all').catch(() => ({ success: false, partners: [] }))
         : Promise.resolve({ success: false, partners: [] }),
@@ -162,7 +200,9 @@ const AdminDashboard = ({ showToast }) => {
         setPartnerRequests(partnerData.partners || []);
       })
       .catch(() => showToast('Lỗi máy chủ, không tải được dữ liệu.', 'error'))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   }, [showToast, userRole]);
 
   useEffect(() => {
@@ -173,6 +213,17 @@ const AdminDashboard = ({ showToast }) => {
     }
     loadAll();
   }, [canAccess, navigate, showToast, loadAll]);
+
+  useEffect(() => {
+    if (!canAccess) return undefined;
+    const onLive = () => loadAll({ silent: true });
+    window.addEventListener(ADMIN_EVENTS_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(ADMIN_EVENTS_LIVE_EVENT, onLive);
+  }, [canAccess, loadAll]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [sourceFilter, ctsvSub, icpdpSub, statusFilter, approvedSub, otherSub]);
 
   // Hợp nhất events + proposals thành một danh sách chuẩn hóa
   const items = useMemo(() => {
@@ -189,13 +240,21 @@ const AdminDashboard = ({ showToast }) => {
       date: e.date,
       time: e.time,
       startDate: e.startDate,
-      createdAt: e.createdAt || e.startDate,
+      createdAt: e.createdAt || null,
+      updatedAt: e.updatedAt || null,
+      submittedAt: e.createdAt || e.updatedAt || null,
       totalTickets: e.totalTickets,
       ticketTypes: e.ticketTypes,
       ticketPrice: e.ticketPrice,
       thumbnail: e.thumbnail,
       description: e.description,
       eventId: e.id || e._id,
+      hasEventPlan: e.hasEventPlan,
+      eventPlanFile: e.eventPlanFile || '',
+      eventPlanFileName: e.eventPlanFileName || '',
+      eventPlanFileMime: e.eventPlanFileMime || '',
+      eventPlanLink: e.eventPlanLink || '',
+      linkedEventId: null,
     }));
     const propItems = proposals.map((p) => ({
       key: `pr-${p.id}`,
@@ -210,13 +269,21 @@ const AdminDashboard = ({ showToast }) => {
       date: p.date,
       time: p.time,
       startDate: p.startDate,
-      createdAt: p.startDate,
+      createdAt: p.createdAt || null,
+      updatedAt: p.updatedAt || null,
+      submittedAt: p.createdAt || p.updatedAt || null,
       totalTickets: p.totalTickets,
       ticketTypes: p.ticketTypes,
       ticketPrice: p.ticketPrice,
       thumbnail: p.image,
       description: p.description,
       eventId: p.eventId || null,
+      linkedEventId: p.linkedEventId || null,
+      hasEventPlan: p.hasEventPlan,
+      eventPlanFile: p.eventPlanFile || '',
+      eventPlanFileName: p.eventPlanFileName || '',
+      eventPlanFileMime: p.eventPlanFileMime || '',
+      eventPlanLink: p.eventPlanLink || '',
     }));
     const partnerItems = partnerRequests
       .filter((p) => ['pending_admin', 'approved', 'rejected'].includes(p.status))
@@ -233,7 +300,9 @@ const AdminDashboard = ({ showToast }) => {
       date: null,
       time: '',
       startDate: p.eventStartDate || p.createdAt,
-      createdAt: p.ctsvApprovedAt || p.createdAt,
+      createdAt: p.createdAt || null,
+      updatedAt: p.updatedAt || null,
+      submittedAt: p.ctsvApprovedAt || p.createdAt || p.updatedAt || null,
       totalTickets: p.eventTotalTickets,
       ticketTypes: p.eventTicketTypes || [],
       ticketPrice: 0,
@@ -241,13 +310,18 @@ const AdminDashboard = ({ showToast }) => {
       description: p.description || '',
       eventId: null,
     }));
-    const all = [...propItems, ...evItems, ...partnerItems];
-    // Đang duyệt lên đầu, sau đó theo thời gian gửi mới nhất
+    const eventIds = new Set(evItems.map((e) => String(e.id)));
+    const dedupedProps = propItems.filter((p) => {
+      if (p.linkedEventId && eventIds.has(String(p.linkedEventId))) return false;
+      if (p.eventId && eventIds.has(String(p.eventId))) return false;
+      return true;
+    });
+    const all = [...dedupedProps, ...evItems, ...partnerItems];
+    // Mới gửi / mới cập nhật lên đầu
     return all.sort((a, b) => {
-      const ap = PENDING_KEYS.includes(a.statusKey) ? 0 : 1;
-      const bp = PENDING_KEYS.includes(b.statusKey) ? 0 : 1;
-      if (ap !== bp) return ap - bp;
-      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      const diff = getSubmittedAtMs(b) - getSubmittedAtMs(a);
+      if (diff !== 0) return diff;
+      return String(b.id || '').localeCompare(String(a.id || ''));
     });
   }, [events, proposals, partnerRequests]);
 
@@ -257,6 +331,29 @@ const AdminDashboard = ({ showToast }) => {
     ),
     [items, sourceFilter, ctsvSub, icpdpSub, statusFilter, approvedSub, otherSub],
   );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pageItems = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
+
+  const pageNumbers = useMemo(() => {
+    const maxButtons = 5;
+    const start = Math.max(1, Math.min(page - 2, totalPages - maxButtons + 1));
+    const end = Math.min(totalPages, start + maxButtons - 1);
+    const nums = [];
+    for (let i = start; i <= end; i += 1) nums.push(i);
+    return nums;
+  }, [page, totalPages]);
+
+  const pageStart = filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const pageEnd = Math.min(page * PAGE_SIZE, filtered.length);
 
   const counts = useMemo(() => {
     const bySource = items.filter((it) => matchSource(it, sourceFilter, ctsvSub, icpdpSub));
@@ -269,6 +366,10 @@ const AdminDashboard = ({ showToast }) => {
   }, [items, sourceFilter, ctsvSub, icpdpSub]);
 
   const handleApprove = async (item) => {
+    if (item.statusKey === 'pending_icpdp' && !isIcpdpRole(userRole)) {
+      showToast('Đề xuất đang chờ IC-PDP duyệt nội bộ.', 'error');
+      return;
+    }
     setActingId(item.id);
     try {
       if (item.kind === 'partner') {
@@ -485,15 +586,19 @@ const AdminDashboard = ({ showToast }) => {
         </div>
       ) : (
         <ul className="admin-proposal-list">
-          {filtered.map((item, index) => {
+          {pageItems.map((item, index) => {
             const isBusy = actingId === item.id;
             const acted = actedResults[item.id];
             const isPending = PENDING_KEYS.includes(item.statusKey) && !acted;
-            const detailHref = item.kind === 'partner'
-              ? `/admin/ctsv/partners/${item.id}`
-              : item.kind === 'event'
-                ? (item.source === 'school' ? `/admin/ctsv/events/${item.id}` : `/events/${item.id}`)
-                : (item.eventId ? `/events/${item.eventId}` : null);
+            const awaitsIcpdp = item.statusKey === 'pending_icpdp' && isAdminRole(userRole);
+            const canActOnList = isPending && !awaitsIcpdp;
+            const detailHref = resolveDetailHref(item);
+            const listIndex = (page - 1) * PAGE_SIZE + index;
+            const showPlanPanel =
+              item.hasEventPlan
+              || item.eventPlanFile
+              || item.eventPlanLink
+              || item.eventPlanFileName;
             const statusBadge = acted === 'approved'
               ? { label: 'Đã phê duyệt', tone: 'green' }
               : acted === 'rejected'
@@ -503,9 +608,12 @@ const AdminDashboard = ({ showToast }) => {
               <li key={item.key} className="admin-proposal-card">
                 <div className="admin-proposal-card__head">
                   <div className="admin-proposal-card__head-main">
-                    <span className="admin-proposal-card__index">#{index + 1}</span>
+                    <span className="admin-proposal-card__index">#{listIndex + 1}</span>
                     <h2 className="admin-proposal-card__title">{item.title}</h2>
                     <Badge meta={SOURCE_META[item.source]} />
+                    {showPlanPanel && (
+                      <span className="adm-ev-plan-badge">Có bảng KH</span>
+                    )}
                   </div>
                   <Badge meta={statusBadge} />
                 </div>
@@ -552,9 +660,20 @@ const AdminDashboard = ({ showToast }) => {
                         <p className="admin-proposal-card__desc-text">{item.description}</p>
                       </div>
                     ) : null}
+
+                    {showPlanPanel && (
+                      <div className="admin-fpt-unit-events__plan-panel">
+                        <EventPlanFilePanel
+                          fileUrl={item.eventPlanFile}
+                          fileName={item.eventPlanFileName}
+                          mimeType={item.eventPlanFileMime}
+                          externalLink={item.eventPlanLink}
+                        />
+                      </div>
+                    )}
                 </div>
 
-                {isPending ? (
+                {canActOnList ? (
                   <footer className="admin-proposal-card__footer">
                     <AdminProposalActions
                       itemTitle={item.title}
@@ -563,6 +682,23 @@ const AdminDashboard = ({ showToast }) => {
                       onApprove={() => handleApprove(item)}
                       onReject={(reason) => handleReject(item, reason)}
                     />
+                  </footer>
+                ) : awaitsIcpdp ? (
+                  <footer className="admin-proposal-card__footer">
+                    <div className="adm-ev-detail-bar">
+                      <span className="adm-ev-acted-note">
+                        Chờ IC-PDP duyệt nội bộ — Admin xử lý sau khi IC-PDP chuyển tiếp.
+                      </span>
+                      {detailHref && (
+                        <button
+                          type="button"
+                          className="adm-ev-detail-btn"
+                          onClick={() => navigate(detailHref)}
+                        >
+                          Xem chi tiết
+                        </button>
+                      )}
+                    </div>
                   </footer>
                 ) : (acted || detailHref) ? (
                   <footer className="admin-proposal-card__footer">
@@ -588,6 +724,45 @@ const AdminDashboard = ({ showToast }) => {
             );
           })}
         </ul>
+      )}
+
+      {!loading && filtered.length > PAGE_SIZE && (
+        <footer className="adm-ev-pagination adm-ev-pagination--numbered">
+          <p className="adm-ev-pagination__info">
+            Hiển thị {pageStart}–{pageEnd} / {filtered.length} mục
+          </p>
+          <nav className="adm-ev-pagination__nav" aria-label="Phân trang danh sách duyệt">
+            <button
+              type="button"
+              className="adm-ev-page-btn"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              aria-label="Trang trước"
+            >
+              ‹
+            </button>
+            {pageNumbers.map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`adm-ev-page-btn${page === n ? ' adm-ev-page-btn--active' : ''}`}
+                onClick={() => setPage(n)}
+                aria-current={page === n ? 'page' : undefined}
+              >
+                {n}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="adm-ev-page-btn"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              aria-label="Trang sau"
+            >
+              ›
+            </button>
+          </nav>
+        </footer>
       )}
     </main>
   );

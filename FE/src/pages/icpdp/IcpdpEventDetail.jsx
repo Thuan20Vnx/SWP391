@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpEvent, icpdpApproveEventModeration, icpdpRejectEventModeration } from '../../services/icpdpApi';
+import { PORTAL_EVENTS_LIVE_EVENT } from '../../utils/adminEventsLiveEvents';
 import { statusClass } from '../../utils/eventStatus';
 import { resolveEventSpeakers } from '../../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
@@ -51,6 +52,14 @@ const IcpdpEventDetail = () => {
   const [modRejectReason, setModRejectReason] = useState('');
   const [modBusy, setModBusy] = useState(false);
 
+  const reloadEvent = useCallback(() => {
+    fetchIcpdpEvent(id)
+      .then((d) => setEvent(d.event))
+      .catch(() => {
+        showToast?.('Không tải được sự kiện.', 'error');
+      });
+  }, [id, showToast]);
+
   useEffect(() => {
     fetchIcpdpEvent(id)
       .then((d) => setEvent(d.event))
@@ -59,6 +68,12 @@ const IcpdpEventDetail = () => {
         navigate('/icpdp/events');
       });
   }, [id, navigate, showToast]);
+
+  useEffect(() => {
+    const onLive = () => reloadEvent();
+    window.addEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+  }, [reloadEvent]);
 
   const stats = useMemo(() => {
     if (!event) return null;
@@ -284,6 +299,7 @@ const IcpdpEventDetail = () => {
               fileUrl={event.eventPlanFile}
               fileName={event.eventPlanFileName}
               mimeType={event.eventPlanFileMime}
+              externalLink={event.eventPlanLink}
             />
             <div className="ctsv-ed-info-grid">
               <div className="ctsv-ed-info-card">

@@ -2,15 +2,19 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { isAdminRole } from '../../utils/auth';
 import AppSelect from '../../components/ui/AppSelect';
+import ApprovalListPagination from '../../components/approval/ApprovalListPagination';
+import useAdminEventsLiveStream from '../../hooks/useAdminEventsLiveStream';
 import { fetchCtsvPartners } from '../../services/ctsvApi';
+import { PORTAL_EVENTS_LIVE_EVENT } from '../../utils/adminEventsLiveEvents';
 import {
   PARTNER_STATUS_LABEL,
   PARTNER_STATUS_TONE,
   formatPartnerDate,
   partnerInitials
 } from '../../utils/partnerDisplay';
+import '../../styles/admin-dashboard.css';
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 6;
 
 const FILTER_OPTIONS = [
   { value: '', label: 'Tất cả đơn' },
@@ -52,23 +56,33 @@ const CtsvPartnerList = () => {
   const [statusFilter, setStatusFilter] = useState('pending');
   const [page, setPage] = useState(1);
 
+  useAdminEventsLiveStream(true);
+
   // Ưu tiên từ khóa gõ trên header, fallback ô tìm kiếm trong trang
   const effectiveSearch = headerSearch.trim() || search.trim();
 
-  const load = useCallback(() => {
-    setLoading(true);
+  const load = useCallback(({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     const params = {};
     if (effectiveSearch) params.search = effectiveSearch;
     return fetchCtsvPartners(params)
       .then((d) => setAllPartners(d.partners || []))
       .catch(() => showToast?.('Không tải danh sách đơn đăng ký.', 'error'))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   }, [effectiveSearch, showToast]);
 
   useEffect(() => {
     const t = setTimeout(() => { setPage(1); load(); }, effectiveSearch ? 280 : 0);
     return () => clearTimeout(t);
   }, [load, effectiveSearch]);
+
+  useEffect(() => {
+    const onLive = () => load({ silent: true });
+    window.addEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+  }, [load]);
 
   const filteredPartners = useMemo(() => {
     if (!statusFilter) return allPartners;
@@ -89,13 +103,6 @@ const CtsvPartnerList = () => {
     approved: allPartners.filter((p) => p.status === 'approved').length,
     rejected: allPartners.filter((p) => p.status === 'rejected').length,
   }), [allPartners]);
-
-  const rangeLabel = useMemo(() => {
-    if (!filteredPartners.length) return 'Không có đơn nào';
-    const from = (pageSafe - 1) * PAGE_SIZE + 1;
-    const to = Math.min(pageSafe * PAGE_SIZE, filteredPartners.length);
-    return `${from}–${to} trong ${filteredPartners.length} đơn`;
-  }, [filteredPartners.length, pageSafe]);
 
   return (
     <div className="cplist-page">
@@ -239,18 +246,12 @@ const CtsvPartnerList = () => {
 
         {/* Footer / Pagination */}
         <div className="cplist-footer">
-          <span className="cplist-range">{rangeLabel}</span>
-          {totalPages > 1 && (
-            <div className="ctsv-section-pager">
-              <button type="button" className="ctsv-pager-btn" disabled={pageSafe <= 1} onClick={() => setPage((n) => Math.max(1, n - 1))}>
-                Trước
-              </button>
-              <span className="ctsv-pager-label">Trang {pageSafe} / {totalPages}</span>
-              <button type="button" className="ctsv-pager-btn" disabled={pageSafe >= totalPages} onClick={() => setPage((n) => Math.min(totalPages, n + 1))}>
-                Sau
-              </button>
-            </div>
-          )}
+          <ApprovalListPagination
+            page={pageSafe}
+            totalItems={filteredPartners.length}
+            pageSize={PAGE_SIZE}
+            onChange={setPage}
+          />
         </div>
       </section>
     </div>

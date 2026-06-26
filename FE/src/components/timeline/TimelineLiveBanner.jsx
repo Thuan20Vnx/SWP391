@@ -29,9 +29,14 @@ const TimelineLiveBanner = ({ active = true }) => {
   }, [active]);
 
   const handleReload = useCallback(() => {
+    const payload = notice;
     setNotice(null);
-    navigate(0);
-  }, [navigate]);
+    if (payload) {
+      window.dispatchEvent(new CustomEvent(TIMELINE_LIVE_EVENT, { detail: payload }));
+    } else {
+      navigate(0);
+    }
+  }, [navigate, notice]);
 
   if (!active || !notice) return null;
 
@@ -43,7 +48,7 @@ const TimelineLiveBanner = ({ active = true }) => {
       </div>
       <div className="portal-timeline-live-banner__actions">
         <button type="button" className="portal-timeline-live-banner__reload" onClick={handleReload}>
-          Tải lại trang
+          Cập nhật ngay
         </button>
         <button
           type="button"

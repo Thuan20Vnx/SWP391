@@ -38,6 +38,7 @@ const eventProposalSchema = new mongoose.Schema(
     eventPlanFile: { type: String, default: '' },
     eventPlanFileName: { type: String, default: '' },
     eventPlanFileMime: { type: String, default: '' },
+    eventPlanLink: { type: String, default: '' },
     clubId: { type: String, default: '' },
     clubName: { type: String, default: '' },
     submittedByEmail: { type: String, default: '' },

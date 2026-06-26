@@ -80,26 +80,35 @@ const IcpdpSemesterTimelineList = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const load = useCallback(
-    (overrideStatus) => {
+    ({ silent = false, overrideStatus } = {}) => {
       const status = overrideStatus ?? statusFilter;
-      setLoading(true);
+      if (!silent) setLoading(true);
       const params = {};
       if (status) params.status = status;
-      fetchIcpdpSemesterTimelines(params)
+      return fetchIcpdpSemesterTimelines(params)
         .then((d) => setTimelines(d.timelines || []))
         .catch(() => showToast?.('Không tải được danh sách timeline.', 'error'))
-        .finally(() => setLoading(false));
+        .finally(() => {
+          if (!silent) setLoading(false);
+        });
     },
     [statusFilter, showToast]
   );
 
-  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const loadRef = useRef(load);
+  loadRef.current = load;
 
   useEffect(() => {
-    const onLive = () => load(statusFilter);
+    loadRef.current();
+  }, [statusFilter]);
+
+  useEffect(() => {
+    const onLive = () => {
+      loadRef.current({ silent: true });
+    };
     window.addEventListener(TIMELINE_LIVE_EVENT, onLive);
     return () => window.removeEventListener(TIMELINE_LIVE_EVENT, onLive);
-  }, [load, statusFilter]);
+  }, []);
 
   useCloseOnClickOutside(filterRef, filterOpen, () => setFilterOpen(false));
 
@@ -108,7 +117,6 @@ const IcpdpSemesterTimelineList = () => {
   const handleStatusSelect = (id) => {
     setStatusFilter(id);
     setFilterOpen(false);
-    load(id);
   };
 
   const filtered = useMemo(() => {

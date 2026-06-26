@@ -1,6 +1,88 @@
 /* Student portal — mobile & tablet (logged-in student screens only)
    Scoped: .student-portal (StudentDashboardLayout + Profile /profile) */
 
+/* Student / guest public shell — sidebar giống Profile, có thể thu/mở */
+.student-public-portal .sidebar-aside {
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.student-public-portal.student-public-portal--sidebar-closed .sidebar-aside {
+  transform: translateX(-100%);
+  pointer-events: none;
+}
+
+.student-public-portal.student-public-portal--sidebar-open .sidebar-aside {
+  transform: translateX(0);
+  pointer-events: auto;
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.08);
+}
+
+.student-public-portal.student-public-portal--sidebar-closed .dashboard-main.student-public-main {
+  padding-left: 0;
+}
+
+.student-public-portal.student-public-portal--sidebar-open .dashboard-main.student-public-main {
+  padding-left: 280px;
+}
+
+.student-public-portal {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.student-public-portal .dashboard-container {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: visible;
+}
+
+.student-public-portal .dashboard-main.student-public-main {
+  padding-top: 0;
+  max-width: none;
+  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: visible;
+  transition: padding-left 0.28s ease;
+  box-sizing: border-box;
+}
+
+.student-public-portal .home-layout,
+.student-public-portal .events-page,
+.student-public-portal .events-page.home-layout {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  overflow-x: visible;
+  box-sizing: border-box;
+}
+
+.student-public-portal .dashboard-content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.student-public-portal .home-header.site-header {
+  padding-top: 10px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 120;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.student-public-portal .home-header.site-header .header-container.site-header__container {
+  min-height: 58px;
+}
+
 /* ── Shell & overflow ── */
 @media (max-width: 1024px) {
   .student-portal .dashboard-container {
@@ -24,10 +106,23 @@
     height: auto;
   }
 
-  .student-portal .dashboard-main {
+  .student-portal .dashboard-main:not(.student-public-main) {
     padding-left: 0;
     padding-top: calc(56px + env(safe-area-inset-top, 0px));
     min-height: 100dvh;
+  }
+
+  .student-public-portal .dashboard-main.student-public-main {
+    padding-left: 0;
+    padding-top: 0;
+  }
+
+  .student-public-portal.student-public-portal--sidebar-open .dashboard-main.student-public-main {
+    padding-left: 0;
+  }
+
+  .student-public-portal .sidebar-overlay {
+    z-index: 140;
   }
 
   .student-portal .dashboard-content-wrapper {

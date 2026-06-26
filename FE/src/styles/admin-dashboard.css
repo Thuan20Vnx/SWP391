@@ -2415,6 +2415,88 @@
   margin: 24px 0;
 }
 
+.adm-ev-pagination--numbered {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.adm-ev-pagination__info {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.adm-ev-pagination__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.adm-ev-page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #e0c0b2;
+  background: #fff;
+  color: #584238;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.adm-ev-page-btn:hover:not(:disabled) {
+  background: #fdf8f5;
+  border-color: #c9a896;
+}
+
+.adm-ev-page-btn--active,
+.adm-ev-page-btn--active:hover:not(:disabled) {
+  background: #ea580c;
+  border-color: #ea580c;
+  color: #fff;
+}
+
+.adm-ev-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.adm-ev-plan-badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #fdba74;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.adm-ev-plan-badge--moderation {
+  border-color: #fcd34d;
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.admin-fpt-unit-events__note--moderation {
+  border-left: 3px solid #f59e0b;
+  padding-left: 12px;
+}
+
+.admin-events-page .admin-fpt-unit-events__plan-panel {
+  margin-top: 4px;
+}
+
+.admin-events-page .admin-fpt-unit-events__plan-panel .ev-plan-file-panel {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .adm-ev-pagination__label {
   padding: 8px 16px;
   color: #64748b;

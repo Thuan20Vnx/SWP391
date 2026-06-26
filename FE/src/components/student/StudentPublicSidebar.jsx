@@ -1,22 +1,14 @@
 import React from 'react';
-import defaultAvatar from '../../constants/defaultAvatar';
-import { resolveUserAvatar } from '../../utils/image';
-import StudentSidebarAside from './StudentSidebarAside';
+import { resolveStudentPublicActiveNav } from '../../data/studentSidebarMenu';
+import StudentPortalSidebarAside from './StudentPortalSidebarAside';
 
-const StudentPublicSidebar = ({ open, pathname, userProfile, onClose }) => {
-  const profile = {
-    fullname: userProfile?.fullname || 'Sinh viên',
-    picture: resolveUserAvatar(userProfile, defaultAvatar),
-  };
-
-  return (
-    <StudentSidebarAside
-      sidebarOpen={open}
-      onClose={onClose}
-      userProfile={profile}
-      pathname={pathname}
-    />
-  );
-};
+const StudentPublicSidebar = ({ open, pathname, userProfile, onClose }) => (
+  <StudentPortalSidebarAside
+    sidebarActive={open}
+    activeMenu={resolveStudentPublicActiveNav(pathname)}
+    userProfile={userProfile}
+    onCloseSidebar={onClose}
+  />
+);
 
 export default StudentPublicSidebar;

@@ -276,7 +276,8 @@
 /* club_manager / CTSV / sinh vi├¬n public shell */
 .club-public-shell,
 .ctsv-public-shell,
-.student-public-shell {
+.student-public-shell,
+.student-public-portal {
   display: flex;
   width: 100%;
   min-height: 100vh;
@@ -300,13 +301,15 @@
 
 .ctsv-app-shell .home-header.site-header,
 .ctsv-public-shell .home-header.site-header,
-.student-public-shell .home-header.site-header {
+.student-public-shell .home-header.site-header,
+.student-public-portal .home-header.site-header {
   padding-top: 10px;
 }
 
 .ctsv-app-shell .home-header.site-header .header-container.site-header__container,
 .ctsv-public-shell .home-header.site-header .header-container.site-header__container,
-.student-public-shell .home-header.site-header .header-container.site-header__container {
+.student-public-shell .home-header.site-header .header-container.site-header__container,
+.student-public-portal .home-header.site-header .header-container.site-header__container {
   min-height: 58px;
 }
 
@@ -642,7 +645,8 @@
   .ctsv-app-shell .home-header.site-header,
   .icpdp-app-shell .home-header.site-header,
   .ctsv-public-shell .home-header.site-header,
-  .student-public-shell .home-header.site-header {
+  .student-public-shell .home-header.site-header,
+  .student-public-portal .home-header.site-header {
     position: sticky;
     top: 0;
     z-index: 1300;

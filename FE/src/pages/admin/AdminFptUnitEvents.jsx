@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom';
 import AdminProposalActions from '../../components/admin/AdminProposalActions';
+import AdminClubProposalCard from '../../components/admin/AdminClubProposalCard';
 import { fetchAdminUnitEvents } from '../../services/adminApi';
 import {
   approveCtsvEvent,
@@ -268,28 +269,21 @@ const AdminFptUnitEvents = () => {
           {scope === 'unit' && proposals.length > 0 && (
             <section className="admin-fpt-unit-events__proposals">
               <h2>{t('admin.unitEvents.proposalsTitle', { count: proposals.length })}</h2>
-              <ul className="admin-fpt-unit-events__proposal-list">
-                {proposals.map((proposal) => {
+              <ul className="admin-proposal-list admin-fpt-unit-events__proposal-list">
+                {proposals.map((proposal, index) => {
                   const proposalId = proposal.id;
                   const isBusy = actingId === proposalId;
                   return (
-                    <li key={proposalId} className="admin-fpt-unit-events__proposal-item">
-                      <div>
-                        <strong>{proposal.title}</strong>
-                        <span>
-                          {proposal.clubName || t('admin.common.club')} · {proposal.date || t('admin.common.empty')}{' '}
-                          {proposal.time || ''}
-                        </span>
-                      </div>
-                      <AdminProposalActions
-                        itemTitle={proposal.title}
-                        busy={isBusy}
-                        disabled={actingId !== null && !isBusy}
-                        hideApprove={proposal.statusKey === 'pending_icpdp'}
-                        onApprove={() => handleApproveProposal(proposalId)}
-                        onReject={(reason) => handleRejectProposal(proposalId, reason)}
-                      />
-                    </li>
+                    <AdminClubProposalCard
+                      key={proposalId}
+                      proposal={proposal}
+                      index={index}
+                      busy={isBusy}
+                      actionsDisabled={actingId !== null && !isBusy}
+                      hideApprove={proposal.statusKey === 'pending_icpdp'}
+                      onApprove={() => handleApproveProposal(proposalId)}
+                      onReject={(reason) => handleRejectProposal(proposalId, reason)}
+                    />
                   );
                 })}
               </ul>

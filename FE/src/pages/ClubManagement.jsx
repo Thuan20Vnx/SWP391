@@ -10,7 +10,10 @@ import './ClubManagement.css';
 import EventProposalForm from '../components/events/EventProposalForm';
 import ClubSemesterTimelinePanel from '../components/club/ClubSemesterTimelinePanel';
 import ClubEventListCard from '../components/club/mobile/ClubEventListCard';
+import ClubTablePagination from '../components/ui/ClubTablePagination';
 import { EMPTY_EVENT_FORM, mapApiEventToForm } from '../utils/eventFormState';
+
+const PAGE_SIZE = 10;
 
 const ClubManagement = () => {
   const navigate = useNavigate();
@@ -37,7 +40,6 @@ const ClubManagement = () => {
   const [bannerFileName, setBannerFileName] = useState('');
   const [eventFilter, setEventFilter] = useState('all');
   const [notifFilter, setNotifFilter] = useState('all');
-  const totalEvents = events.length;
 
   const eventNotifications = useMemo(() => {
     return events
@@ -151,6 +153,26 @@ const ClubManagement = () => {
     return { label: status || 'Không rõ', tone: 'pending' };
   };
 
+  const filteredEvents = useMemo(() => {
+    if (eventFilter === 'all') return events;
+    if (eventFilter === 'pending') {
+      return events.filter((e) => e.status && e.status.startsWith('pending'));
+    }
+    return events.filter((e) => e.status === eventFilter);
+  }, [events, eventFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredEvents.length / PAGE_SIZE));
+  const pageSafe = Math.min(currentPage, totalPages);
+
+  const pagedEvents = useMemo(() => {
+    const start = (pageSafe - 1) * PAGE_SIZE;
+    return filteredEvents.slice(start, start + PAGE_SIZE);
+  }, [filteredEvents, pageSafe]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [eventFilter]);
+
   const handleDeleteEvent = async (id) => {
     if (!window.confirm('Bạn có chắc muốn xóa sự kiện này?')) return;
     try {
@@ -180,6 +202,7 @@ const ClubManagement = () => {
         eventPlanFile: body.eventPlanFile,
         eventPlanFileName: body.eventPlanFileName,
         eventPlanFileMime: body.eventPlanFileMime,
+        eventPlanLink: body.eventPlanLink,
         speaker: body.speaker,
         agenda: body.agenda,
         learningOutcomes: body.learningOutcomes,
@@ -307,13 +330,11 @@ const ClubManagement = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(() => {
-                        const filtered = eventFilter === 'all' ? events
-                          : eventFilter === 'pending' ? events.filter(e => e.status && e.status.startsWith('pending'))
-                          : events.filter(e => e.status === eventFilter);
-                        if (loadingEvents) return <tr><td colSpan={6} className="clb-panel-empty-cell">Đang tải...</td></tr>;
-                        if (filtered.length === 0) return <tr><td colSpan={6} className="clb-panel-empty-cell">Không có sự kiện nào{eventFilter !== 'all' ? ' ở trạng thái này' : ''}.</td></tr>;
-                        return filtered.map(ev => {
+                      {loadingEvents ? (
+                        <tr><td colSpan={6} className="clb-panel-empty-cell">Đang tải...</td></tr>
+                      ) : filteredEvents.length === 0 ? (
+                        <tr><td colSpan={6} className="clb-panel-empty-cell">Không có sự kiện nào{eventFilter !== 'all' ? ' ở trạng thái này' : ''}.</td></tr>
+                      ) : pagedEvents.map((ev) => {
                         const { label, tone } = getStatusLabel(ev.status);
                         const startDate = ev.startDate ? new Date(ev.startDate).toLocaleDateString('vi-VN') : '--';
                         const startTime = ev.startDate ? new Date(ev.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--';
@@ -375,22 +396,16 @@ const ClubManagement = () => {
                             </td>
                           </tr>
                         );
-                      });
-                      })()}
+                      })}
                     </tbody>
                   </table>
                 </div>
-                <div className="clb-pagination">
-                  <span className="clb-pagination-info">1-{events.length} trong tổng số {totalEvents}</span>
-                  <div className="clb-pagination-btns">
-                    <button className="clb-page-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>
-                      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z" fill="currentColor" /></svg>
-                    </button>
-                    <button className="clb-page-btn" onClick={() => setCurrentPage(p => p + 1)}>
-                      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" fill="currentColor" /></svg>
-                    </button>
-                  </div>
-                </div>
+                <ClubTablePagination
+                  page={pageSafe}
+                  totalItems={filteredEvents.length}
+                  pageSize={PAGE_SIZE}
+                  onChange={setCurrentPage}
+                />
               </div>
 
               <div className="club-m-event-list club-m-show-mobile">

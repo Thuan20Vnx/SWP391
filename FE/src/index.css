@@ -1482,6 +1482,11 @@ body {
   width: 100vw;
 }
 
+.student-public-portal .dashboard-container {
+  width: 100%;
+  max-width: 100%;
+}
+
 /* Sidebar Navigation (Aside) */
 .sidebar-aside {
   position: fixed;
@@ -1504,7 +1509,6 @@ body {
   align-items: center;
   gap: 8px;
   padding: 4px 12px 12px 12px;
-  border-bottom: 1px solid var(--surface-border);
   margin-bottom: 12px;
   cursor: pointer;
 }
@@ -1532,7 +1536,6 @@ body {
   padding: 8px 12px;
   background-color: var(--surface-muted);
   border-radius: 12px;
-  margin-bottom: 12px;
   text-decoration: none;
   color: inherit;
   transition: var(--transition-fast);
@@ -1677,8 +1680,10 @@ body {
 
 .sidebar-footer {
   margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .btn-logout {
@@ -3093,10 +3098,85 @@ a.club-tag {
   position: relative;
   height: 520px;
   width: 100%;
+  max-width: 100%;
   background-color: #0c0a09;
   overflow: hidden;
   --hero-nav-btn-size: 44px;
   --hero-nav-btn-gap: 16px;
+}
+
+.hero-banner-slider--skeleton {
+  background-color: #1c1917;
+}
+
+.hero-banner-slider--skeleton-offline .hero-banner-skeleton {
+  animation: none;
+  background: #1c1917;
+}
+
+.hero-banner-skeleton {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(110deg, #1c1917 8%, #292524 18%, #1c1917 33%);
+  background-size: 200% 100%;
+  animation: heroSkeletonShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes heroSkeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.hero-banner-skeleton__content {
+  position: relative;
+  z-index: 1;
+  max-width: var(--home-content-max);
+  margin: 0 auto;
+  padding: 0 var(--home-content-padding);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+
+.hero-banner-skeleton__pill {
+  width: 120px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hero-banner-skeleton__title {
+  width: min(520px, 72%);
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-banner-skeleton__line {
+  width: min(420px, 58%);
+  height: 18px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.hero-banner-skeleton__line--short {
+  width: min(320px, 44%);
+}
+
+.hero-banner-skeleton__btn {
+  width: 160px;
+  height: 48px;
+  border-radius: 10px;
+  margin-top: 8px;
+  background: rgba(242, 111, 33, 0.35);
 }
 
 .hero-banner-slider--nav .hero-content-container {
@@ -3879,6 +3959,37 @@ a.club-tag {
 .chatbot-floating-wrapper .chatbot-fab-btn:not(.fab-active):hover .fab-text {
   max-width: 160px;
   opacity: 1;
+}
+
+.chatbot-qr-fab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background-color: #ffffff;
+  color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow:
+    0 10px 25px -5px rgba(15, 23, 42, 0.12),
+    0 8px 10px -6px rgba(15, 23, 42, 0.08);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.25s ease, color 0.2s ease;
+}
+
+.chatbot-qr-fab-btn:hover {
+  transform: translateY(-1px);
+  color: var(--primary-hover);
+  box-shadow:
+    0 12px 28px -3px rgba(242, 111, 33, 0.2),
+    0 10px 12px -4px rgba(15, 23, 42, 0.1);
+}
+
+.chatbot-qr-fab-btn:active {
+  transform: translateY(0);
 }
 
 .chatbot-fab-btn {
@@ -7790,7 +7901,7 @@ a.club-tag {
 .sidebar-user-card {
   width: 100%;
   border: none;
-  background: transparent;
+  background: var(--surface-muted);
   cursor: pointer;
   text-align: left;
 }
@@ -13554,44 +13665,49 @@ a.event-discovery-card__btn {
 
 @media (min-width: 1024px) {
   .ctsv-app-shell .ctsv-sidebar {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    width: 280px;
+    max-width: 280px;
     height: 100vh;
+    height: 100dvh;
     flex-shrink: 0;
-    transform: none;
-    transition: width 0.28s ease, padding 0.28s ease, border-width 0.28s ease;
+    transform: translateX(-100%);
+    visibility: visible;
+    pointer-events: none;
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
     overflow: hidden;
+    padding: 16px 12px;
+    box-sizing: border-box;
   }
 
   .ctsv-app-shell.sidebar-open .ctsv-sidebar {
-    width: 280px;
-    padding: 16px 12px;
+    transform: translateX(0);
+    pointer-events: auto;
     border-right-width: 1px;
     box-shadow: none;
   }
 
   .ctsv-app-shell.sidebar-closed .ctsv-sidebar {
-    width: 0;
-    padding: 0;
-    border-right-width: 0;
+    transform: translateX(-100%);
     pointer-events: none;
-    visibility: hidden;
+  }
+
+  .ctsv-app-shell.sidebar-open .ctsv-shell-main,
+  .ctsv-app-shell.sidebar-open .admin-shell-main,
+  .ctsv-app-shell.sidebar-open .public-shell-main {
+    margin-left: 280px;
+  }
+
+  .ctsv-app-shell.sidebar-closed .ctsv-shell-main,
+  .ctsv-app-shell.sidebar-closed .admin-shell-main,
+  .ctsv-app-shell.sidebar-closed .public-shell-main {
+    margin-left: 0;
   }
 
   .ctsv-drawer-backdrop {
     display: none;
-  }
-
-  .ctsv-app-shell.sidebar-open:not(.partner-app-shell):not(.icpdp-app-shell):not(.club-app-shell) .ctsv-portal-footer {
-    width: calc(100% + 280px);
-    margin-left: -280px;
-  }
-
-  .ctsv-app-shell.sidebar-open:not(.partner-app-shell):not(.icpdp-app-shell):not(.club-app-shell) .ctsv-portal-footer .footer-top-columns,
-  .ctsv-app-shell.sidebar-open:not(.partner-app-shell):not(.icpdp-app-shell):not(.club-app-shell) .ctsv-portal-footer .footer-bottom-row {
-    padding-left: calc(var(--home-content-padding, 24px) + 280px);
-    padding-right: var(--home-content-padding, 24px);
-    box-sizing: border-box;
   }
 
   .ctsv-top-nav {
@@ -16548,7 +16664,9 @@ a.event-discovery-card__btn {
   margin-bottom: 16px;
 }
 
-.admin-shell-content > .portal-timeline-live-banner {
+.admin-shell-content > .portal-timeline-live-banner,
+.ctsv-portal-body > .portal-timeline-live-banner,
+.icpdp-app-shell .ctsv-portal-body > .portal-timeline-live-banner {
   margin-bottom: 16px;
 }
 

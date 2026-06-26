@@ -7,6 +7,7 @@ const {
   requireSchoolEventSubmit,
   requireProposalModerate,
   requireIcpdpOrCtsv,
+  requireIcpdp,
   requireIcpdpTimeline,
   requireAdmin,
 } = require('../middleware/requireRole');
@@ -19,6 +20,7 @@ const Contract = require('../models/Contract');
 const Announcement = require('../models/Announcement');
 const { normalizeEventCategory } = require('../constants/eventCategories');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
+const { hydrateProposalPlanFromLinkedEvent, hydrateEventsPlanFromProposals } = require('../utils/eventPlanHydrate');
 const { normalizeSpeakers } = require('../constants/eventSpeaker');
 const {
   buildSchoolEventSubmitMeta,
@@ -254,12 +256,15 @@ router.get('/events', async (req, res) => {
     }
 
     const filter = buildEventFilter(req.query);
+    const forApproval = req.query.forApproval === '1' || req.query.forApproval === 'true';
     let queryBuilder = Event.find(filter);
 
     if (req.query.sort === 'newest') {
       queryBuilder = queryBuilder.sort({ createdAt: -1 });
     } else if (req.query.sort === 'updated') {
       queryBuilder = queryBuilder.sort({ updatedAt: -1 });
+    } else if (forApproval) {
+      queryBuilder = queryBuilder.sort({ createdAt: -1 });
     } else {
       queryBuilder = queryBuilder.sort({ startDate: 1 });
     }
@@ -276,9 +281,16 @@ router.get('/events', async (req, res) => {
     }
 
     const events = await queryBuilder.lean();
+    const pendingPlanStatuses = ['pending', 'pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'];
+    const enrichedEvents = forApproval ? await hydrateEventsPlanFromProposals(events) : events;
+
     return res.json({
       success: true,
-      events: events.map(formatEvent)
+      events: enrichedEvents.map((event) =>
+        formatEvent(event, {
+          includePlanFile: forApproval && pendingPlanStatuses.includes(event.status),
+        })
+      ),
     });
   } catch (error) {
     console.error('ctsv events list:', error);
@@ -308,11 +320,15 @@ router.get('/events/moderation/pending-icpdp', requireIcpdpOrCtsv, async (req, r
       source: 'club',
       status: { $in: ICPDP_MODERATION_PENDING_STATUSES }
     })
+      .populate('proposalId', 'clubName')
       .sort({ moderationRequestedAt: -1, updatedAt: -1 })
       .lean();
     return res.json({
       success: true,
-      events: events.map((ev) => formatEvent(ev))
+      events: events.map((ev) => ({
+        ...formatEvent(ev),
+        clubName: ev.proposalId?.clubName || '',
+      }))
     });
   } catch (error) {
     console.error('icpdp moderation list:', error);
@@ -852,7 +868,17 @@ router.get('/proposals', async (req, res) => {
       filter.$or = [{ title: re }, { clubName: re }];
     }
     const proposals = await EventProposal.find(filter).sort({ createdAt: -1 }).limit(100);
-    return res.json({ success: true, proposals: proposals.map(formatProposal) });
+    const forApproval = req.query.forApproval === '1' || req.query.forApproval === 'true';
+    const pendingPlanStatuses = ['pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'];
+    const hydrated = await Promise.all(proposals.map((p) => hydrateProposalPlanFromLinkedEvent(p)));
+    return res.json({
+      success: true,
+      proposals: hydrated.map((p) =>
+        formatProposal(p, {
+          includePlanFile: forApproval && pendingPlanStatuses.includes(p.status),
+        })
+      ),
+    });
   } catch (error) {
     console.error('ctsv proposals:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -865,7 +891,23 @@ router.get('/proposals/:id', async (req, res) => {
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đề xuất!' });
     }
-    return res.json({ success: true, proposal: formatProposal(proposal, { includePlanFile: true }) });
+    const proposalPayload = proposal.toObject();
+    if (proposalPayload.linkedEventId) {
+      const linked = await Event.findById(proposalPayload.linkedEventId)
+        .select('eventPlanFile eventPlanFileName eventPlanFileMime eventPlanLink')
+        .lean();
+      if (linked) {
+        if (!proposalPayload.eventPlanFile && linked.eventPlanFile) {
+          proposalPayload.eventPlanFile = linked.eventPlanFile;
+          proposalPayload.eventPlanFileName = linked.eventPlanFileName || proposalPayload.eventPlanFileName || '';
+          proposalPayload.eventPlanFileMime = linked.eventPlanFileMime || proposalPayload.eventPlanFileMime || '';
+        }
+        if (!proposalPayload.eventPlanLink && linked.eventPlanLink) {
+          proposalPayload.eventPlanLink = linked.eventPlanLink;
+        }
+      }
+    }
+    return res.json({ success: true, proposal: formatProposal(proposalPayload, { includePlanFile: true }) });
   } catch (error) {
     console.error('ctsv proposal detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -1096,25 +1138,83 @@ router.patch('/proposals/:id/reject', requireProposalModerate, async (req, res) 
   }
 });
 
-router.patch('/proposals/:id/request-revision', requireCtsvApprove, async (req, res) => {
+router.patch('/proposals/:id/icpdp-request-revision', requireIcpdp, async (req, res) => {
   try {
     const proposal = await EventProposal.findById(req.params.id);
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đề xuất!' });
     }
+    if (proposal.status !== 'pending_icpdp') {
+      return res.status(400).json({
+        success: false,
+        message: 'IC-PDP chỉ yêu cầu chỉnh sửa được đề xuất đang chờ IC-PDP duyệt!',
+      });
+    }
+    const note = req.body.note || '';
+    if (!String(note).trim()) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập ghi chú yêu cầu chỉnh sửa!' });
+    }
     proposal.status = 'revision';
-    proposal.ctsvNote = req.body.note || '';
+    proposal.icpdpNote = note;
     await proposal.save();
     if (proposal.linkedEventId) {
       await Event.findByIdAndUpdate(proposal.linkedEventId, {
         status: 'revision',
-        ctsvNote: req.body.note || '',
+        icpdpNote: note,
       });
     }
     createAndBroadcast({
       recipientEmails: [proposal.submittedByEmail],
       title: 'Đề xuất sự kiện cần chỉnh sửa',
-      body: proposal.ctsvNote || `Đề xuất "${proposal.title}" cần được bổ sung.`,
+      body: note || `Đề xuất "${proposal.title}" cần được bổ sung.`,
+      type: 'event_revision',
+      refId: String(proposal._id),
+      refType: 'event_proposal',
+    }).catch(() => {});
+    return res.json({ success: true, proposal: formatProposal(proposal) });
+  } catch (error) {
+    console.error('icpdp revision proposal:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/proposals/:id/request-revision', requireProposalModerate, async (req, res) => {
+  try {
+    const proposal = await EventProposal.findById(req.params.id);
+    if (!proposal) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đề xuất!' });
+    }
+    const note = req.body.note || '';
+    if (!String(note).trim()) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập ghi chú yêu cầu chỉnh sửa!' });
+    }
+    if (req.userRole === 'icpdp') {
+      if (proposal.status !== 'pending_icpdp') {
+        return res.status(403).json({
+          success: false,
+          message: 'ICPDP chỉ yêu cầu chỉnh sửa được đề xuất đang chờ ICPDP duyệt!'
+        });
+      }
+      proposal.icpdpNote = note;
+    } else {
+      proposal.ctsvNote = note;
+    }
+    proposal.status = 'revision';
+    await proposal.save();
+    if (proposal.linkedEventId) {
+      const eventUpdate = { status: 'revision' };
+      if (req.userRole === 'icpdp') {
+        eventUpdate.icpdpNote = note;
+      } else {
+        eventUpdate.ctsvNote = note;
+      }
+      await Event.findByIdAndUpdate(proposal.linkedEventId, eventUpdate);
+    }
+    const revisionNote = req.userRole === 'icpdp' ? proposal.icpdpNote : proposal.ctsvNote;
+    createAndBroadcast({
+      recipientEmails: [proposal.submittedByEmail],
+      title: 'Đề xuất sự kiện cần chỉnh sửa',
+      body: revisionNote || `Đề xuất "${proposal.title}" cần được bổ sung.`,
       type: 'event_revision',
       refId: String(proposal._id),
       refType: 'event_proposal'

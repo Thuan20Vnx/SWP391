@@ -18,6 +18,8 @@ const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 const { findClubManagedBy, findManagedClubs, resolveManagedClub } = require('./club.service');
 const { applyEventTextSearch, normalizeSearchTerm, escapeRegex } = require('../utils/eventSearch');
 const { getCachedApprovedEvents, setCachedApprovedEvents } = require('../utils/eventCache');
+const { createAndBroadcast } = require('./notification.service');
+const { canClubImmediateDelete } = require('../constants/eventModeration');
 
 /** Trạng thái chờ duyệt (đồng bộ với luồng CTSV / CLB) */
 const PENDING_EVENT_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'];
@@ -39,17 +41,23 @@ const buildProposalPayloadFromEvent = (event, managedClub, userEmail) => ({
   eventPlanFile: event.eventPlanFile || '',
   eventPlanFileName: event.eventPlanFileName || '',
   eventPlanFileMime: event.eventPlanFileMime || '',
+  eventPlanLink: event.eventPlanLink || '',
   clubId: managedClub ? String(managedClub._id) : (event.clubId ? String(event.clubId) : ''),
   clubName: managedClub?.name || event.clubName || '',
   submittedByEmail: userEmail || event.createdByEmail || '',
   linkedEventId: event._id,
 });
 
-const syncClubEventProposal = async (event, { managedClub, userEmail, proposalStatus = 'pending_icpdp' }) => {
+const syncClubEventProposal = async (event, { managedClub, userEmail, proposalStatus = 'pending_icpdp', resetReviewNotes = false }) => {
   const payload = {
     ...buildProposalPayloadFromEvent(event, managedClub, userEmail),
     status: proposalStatus,
   };
+  if (resetReviewNotes) {
+    payload.icpdpNote = '';
+    payload.ctsvNote = '';
+    payload.rejectionReason = '';
+  }
 
   if (event.proposalId) {
     await EventProposal.findByIdAndUpdate(event.proposalId, payload);
@@ -78,6 +86,52 @@ const assertApprovedTimelineForClub = async (clubId) => {
 };
 
 const isClubManagedEvent = (event) => event.source === 'club' || Boolean(event.clubId);
+
+const notifyClubProposalToIcpdp = async (event, { isResubmit = false, clubName = '' } = {}) => {
+  if (!isClubManagedEvent(event) && event.source !== 'club') return;
+
+  let proposalRef = event.proposalId ? String(event.proposalId) : '';
+  if (!proposalRef) {
+    const fresh = await Event.findById(event._id).select('proposalId').lean();
+    proposalRef = fresh?.proposalId ? String(fresh.proposalId) : String(event._id);
+  }
+
+  const label = clubName || event.clubName || 'CLB';
+  const eventTitle = event.title || 'đề xuất sự kiện';
+
+  createAndBroadcast({
+    recipientRoles: ['icpdp'],
+    title: isResubmit ? 'CLB đã gửi lại đề xuất sự kiện' : 'CLB gửi đề xuất sự kiện mới',
+    body: isResubmit
+      ? `${label} đã cập nhật và gửi lại đề xuất "${eventTitle}" để IC-PDP duyệt.`
+      : `${label} gửi đề xuất sự kiện "${eventTitle}" cần IC-PDP duyệt.`,
+    type: isResubmit ? 'event_resubmit' : 'event_submit',
+    refId: proposalRef,
+    refType: 'event_proposal',
+  }).catch(() => {});
+};
+
+const notifyClubProposalDeletedToIcpdp = async (event, { clubName = '' } = {}) => {
+  if (!isClubManagedEvent(event) && event.source !== 'club') return;
+
+  let proposalRef = event.proposalId ? String(event.proposalId) : '';
+  if (!proposalRef) {
+    const fresh = await Event.findById(event._id).select('proposalId').lean();
+    proposalRef = fresh?.proposalId ? String(fresh.proposalId) : String(event._id);
+  }
+
+  const label = clubName || event.clubName || 'CLB';
+  const eventTitle = event.title || 'đề xuất sự kiện';
+
+  createAndBroadcast({
+    recipientRoles: ['icpdp'],
+    title: 'CLB đã xóa đề xuất sự kiện',
+    body: `${label} đã hủy đề xuất "${eventTitle}" đang chờ duyệt. Vui lòng cập nhật hàng đợi phê duyệt.`,
+    type: 'event_delete',
+    refId: proposalRef,
+    refType: 'event_proposal',
+  }).catch(() => {});
+};
 
 const CLUB_META_FIELDS = 'name slug description memberCount eventsHeld coverImage logoText logoColor';
 
@@ -140,6 +194,7 @@ const createEvent = async (user, body, activeClubId = null) => {
     eventPlanFile,
     eventPlanFileName,
     eventPlanFileMime,
+    eventPlanLink,
     category,
     registrationStartDate,
     registrationEndDate,
@@ -179,8 +234,11 @@ const createEvent = async (user, body, activeClubId = null) => {
       throw new AppError('Không tìm thấy CLB bạn đang quản lý.', 400);
     }
     await assertApprovedTimelineForClub(managedClub._id);
-    if (!eventPlanFile?.trim()) {
-      throw new AppError('Vui lòng tải lên bảng kế hoạch sự kiện!', 400);
+    const planLink = String(eventPlanLink || '').trim();
+    const hasPlanFile = Boolean(eventPlanFile?.trim());
+    const hasPlanLink = /^https?:\/\//i.test(planLink);
+    if (!hasPlanFile && !hasPlanLink) {
+      throw new AppError('Vui lòng tải file hoặc dán link bảng kế hoạch sự kiện!', 400);
     }
   }
 
@@ -194,6 +252,7 @@ const createEvent = async (user, body, activeClubId = null) => {
     eventPlanFile: eventPlanFile || '',
     eventPlanFileName: eventPlanFileName?.trim() || '',
     eventPlanFileMime: eventPlanFileMime?.trim() || '',
+    eventPlanLink: String(eventPlanLink || '').trim(),
     category: normalizeEventCategory(category || 'Khác'),
     registrationStartDate: registrationStartDate || null,
     registrationEndDate: registrationEndDate || null,
@@ -221,6 +280,10 @@ const createEvent = async (user, body, activeClubId = null) => {
       managedClub,
       userEmail: user.email,
       proposalStatus: 'pending_icpdp',
+    });
+    await notifyClubProposalToIcpdp(newEvent, {
+      isResubmit: false,
+      clubName: managedClub?.name || '',
     });
   }
 
@@ -265,6 +328,8 @@ const getMyEvents = async (user, activeClubId = null) => {
   return { events };
 };
 
+const DELETABLE_CLUB_STATUSES = ['pending', 'pending_icpdp', 'pending_ctsv', 'pending_admin', 'revision', 'rejected'];
+
 const deleteMyEvent = async (eventId, user) => {
   const event = await Event.findById(eventId);
   if (!event) {
@@ -273,6 +338,31 @@ const deleteMyEvent = async (eventId, user) => {
   if (String(event.createdBy) !== String(user._id)) {
     throw new AppError('Bạn không có quyền xóa sự kiện này!', 403);
   }
+
+  const isClubEvent = isClubManagedEvent(event) || user.role === 'club_manager';
+  if (isClubEvent) {
+    if (!canClubImmediateDelete(event)) {
+      throw new AppError(
+        'Sự kiện đã được duyệt hoặc đang có yêu cầu chờ xử lý. Vui lòng gửi yêu cầu xóa qua IC-PDP.',
+        400
+      );
+    }
+
+    const managedClub = await resolveManagedClub(
+      user._id,
+      event.clubId ? String(event.clubId) : null
+    );
+    const clubName = managedClub?.name || event.clubName || '';
+
+    await notifyClubProposalDeletedToIcpdp(event, { clubName });
+
+    if (event.proposalId) {
+      await EventProposal.findByIdAndDelete(event.proposalId);
+    }
+    await Event.findByIdAndDelete(eventId);
+    return { message: 'Đã xóa sự kiện thành công!' };
+  }
+
   if (event.status !== 'rejected') {
     throw new AppError('Chỉ có thể xóa sự kiện ở trạng thái bị từ chối.', 400);
   }
@@ -291,6 +381,16 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   if (!EDITABLE_CLUB_STATUSES.includes(event.status)) {
     throw new AppError('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 400);
   }
+  if (
+    isClubManagedEvent(event) &&
+    ['approved', 'live', 'ended'].includes(event.status) &&
+    !event.clubEditUnlocked
+  ) {
+    throw new AppError(
+      'Sự kiện đã được duyệt. Vui lòng gửi yêu cầu chỉnh sửa và chờ IC-PDP/Admin phê duyệt trước.',
+      400
+    );
+  }
 
   if (user.role === 'club_manager' && !event.clubId) {
     const managedClub = await resolveManagedClub(user._id, activeClubId);
@@ -305,6 +405,7 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     eventPlanFile,
     eventPlanFileName,
     eventPlanFileMime,
+    eventPlanLink,
     category,
     registrationStartDate,
     registrationEndDate,
@@ -329,8 +430,14 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
   }
 
-  if (user.role === 'club_manager' && !eventPlanFile?.trim() && !event.eventPlanFile?.trim()) {
-    throw new AppError('Vui lòng tải lên bảng kế hoạch sự kiện!', 400);
+  const existingPlanLink = String(event.eventPlanLink || '').trim();
+  const incomingPlanLink = String(eventPlanLink ?? event.eventPlanLink ?? '').trim();
+  const hasIncomingPlanFile = Boolean(eventPlanFile?.trim());
+  const hasIncomingPlanLink = /^https?:\/\//i.test(incomingPlanLink);
+  const hasExistingPlan = Boolean(event.eventPlanFile?.trim()) || Boolean(existingPlanLink);
+
+  if (user.role === 'club_manager' && !hasIncomingPlanFile && !hasIncomingPlanLink && !hasExistingPlan) {
+    throw new AppError('Vui lòng tải file hoặc dán link bảng kế hoạch sự kiện!', 400);
   }
 
   event.title = title;
@@ -341,6 +448,9 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     event.eventPlanFile = eventPlanFile;
     event.eventPlanFileName = eventPlanFileName?.trim() || event.eventPlanFileName || '';
     event.eventPlanFileMime = eventPlanFileMime?.trim() || event.eventPlanFileMime || '';
+  }
+  if (eventPlanLink !== undefined) {
+    event.eventPlanLink = incomingPlanLink;
   }
   event.category = normalizeEventCategory(category || event.category);
   event.registrationStartDate = registrationStartDate || null;
@@ -359,12 +469,22 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   }
 
   const previousStatus = event.status;
-  if (previousStatus === 'rejected' || previousStatus === 'approved') {
-    event.status = isClubManagedEvent(event) || user.role === 'club_manager' ? 'pending_icpdp' : 'pending';
+  const wasUnlockedEdit = Boolean(event.clubEditUnlocked);
+  const shouldResubmitClubProposal =
+    isClubManagedEvent(event) &&
+    (['rejected', 'revision'].includes(previousStatus) ||
+      (['approved', 'live', 'ended'].includes(previousStatus) && wasUnlockedEdit));
+  if (shouldResubmitClubProposal) {
+    event.status = 'pending_icpdp';
     event.rejectionReason = '';
     event.moderationReason = '';
-    if (previousStatus === 'approved') {
+    event.icpdpNote = '';
+    event.ctsvNote = '';
+    if (['approved', 'live', 'ended'].includes(previousStatus)) {
       event.approvedByEmail = '';
+    }
+    if (wasUnlockedEdit) {
+      event.clubEditUnlocked = false;
     }
   }
   if (user.role === 'club_manager' && !event.source) {
@@ -382,7 +502,14 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
       managedClub,
       userEmail: user.email,
       proposalStatus: 'pending_icpdp',
+      resetReviewNotes: shouldResubmitClubProposal,
     });
+    if (shouldResubmitClubProposal) {
+      await notifyClubProposalToIcpdp(event, {
+        isResubmit: true,
+        clubName: managedClub?.name || event.clubName || '',
+      });
+    }
     return {
       message: 'Đã cập nhật đề xuất sự kiện và gửi lại duyệt!',
       event,
@@ -392,6 +519,7 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   const resubmitted =
     previousStatus === 'rejected' ||
     previousStatus === 'approved' ||
+    previousStatus === 'revision' ||
     event.status === 'pending';
   const message = resubmitted
     ? 'Đã cập nhật đề xuất sự kiện và gửi lại duyệt!'
