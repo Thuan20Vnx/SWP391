@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { fetchCtsvApprovedEvents } from '../../services/ctsvApi';
 import ProposalTicketsTable from '../../components/admin/ProposalTicketsTable';
+import ApprovalListPagination from '../../components/approval/ApprovalListPagination';
 import '../../styles/admin-dashboard.css';
 
 const SOURCE_TABS = [
@@ -274,23 +275,12 @@ export default function CtsvAllEvents() {
         </ul>
       )}
 
-      {totalPages > 1 && (
-        <div className="adm-ev-pagination">
-          <button
-            type="button"
-            className="ctsv-btn-secondary maintenance-readonly-allow"
-            disabled={page <= 1}
-            onClick={() => load(page - 1)}
-          >← Trước</button>
-          <span className="adm-ev-pagination__label">{page} / {totalPages}</span>
-          <button
-            type="button"
-            className="ctsv-btn-secondary maintenance-readonly-allow"
-            disabled={page >= totalPages}
-            onClick={() => load(page + 1)}
-          >Sau →</button>
-        </div>
-      )}
+      <ApprovalListPagination
+        page={page}
+        totalItems={data?.total || 0}
+        pageSize={data?.limit || 20}
+        onChange={load}
+      />
     </main>
   );
 }

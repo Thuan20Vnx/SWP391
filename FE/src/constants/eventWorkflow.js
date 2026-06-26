@@ -13,10 +13,13 @@ const NON_PUBLIC_STATUSES = [
   'hidden',
   'pending_icpdp_cancel',
   'pending_icpdp_postpone',
+  'pending_icpdp_delete',
+  'pending_icpdp_edit',
   'pending_cancel',
   'pending_hide',
   'pending_postpone',
-  'pending_edit'
+  'pending_edit',
+  'pending_delete',
 ];
 
 export const isEventPubliclyVisible = (eventOrStatus) => {
@@ -43,10 +46,13 @@ export const SCHOOL_EVENT_STATUS_LABELS = {
   ended: 'Đã kết thúc',
   pending_icpdp_cancel: 'Chờ IC-PDP — Hủy',
   pending_icpdp_postpone: 'Chờ IC-PDP — Hoãn',
+  pending_icpdp_delete: 'Chờ IC-PDP — Xóa',
+  pending_icpdp_edit: 'Chờ IC-PDP — Chỉnh sửa',
   pending_cancel: 'Chờ Admin — Hủy',
   pending_hide: 'Chờ Admin — Ẩn',
   pending_postpone: 'Chờ Admin — Hoãn',
   pending_edit: 'Chờ Admin — Chỉnh sửa',
+  pending_delete: 'Chờ Admin — Xóa',
   cancelled: 'Đã hủy',
   hidden: 'Đã ẩn'
 };

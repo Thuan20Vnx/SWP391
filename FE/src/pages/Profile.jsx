@@ -6,7 +6,6 @@ import { formatMssv } from '../utils/studentId';
 import { resolveUserAvatar } from '../utils/image';
 import AvatarCropModal from '../components/profile/AvatarCropModal';
 import { getRoleLabel } from '../utils/role';
-import { logoutWithConfirm } from '../utils/logout';
 import { dispatchAuthChanged } from '../utils/authEvents';
 import { cacheUserProfile, readUserProfileSummaryCache } from '../hooks/useUserProfile';
 import { buildProfilePicturePayload, updateUserAvatar } from '../utils/profileApi';
@@ -17,10 +16,8 @@ import {
   readProfileDetailCache,
   writeProfileDetailCache,
 } from '../utils/profileDetailCache';
-import DashboardSidebarNav from '../components/DashboardSidebarNav';
-import SiteFooter from '../components/SiteFooter';
 import ProfilePasswordSection from '../components/profile/ProfilePasswordSection';
-import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
+import StudentPortalShell from '../layouts/StudentPortalShell';
 
 const VN_PHONE_REGEX = /^0\d{9}$/;
 
@@ -54,8 +51,6 @@ const Profile = ({ showToast, embedded = false }) => {
 
   // Track if course cohort has been changed once
   const [courseChanged, setCourseChanged] = useState(() => bootstrapDetail?.courseChanged || false);
-
-  const [sidebarActive, setSidebarActive] = useState(false);
 
   const profileSectionRef = useRef(null);
 
@@ -164,33 +159,6 @@ const Profile = ({ showToast, embedded = false }) => {
     return () => controller.abort();
   }, [userRole]);
 
-  useEffect(() => {
-    if (!sidebarActive) {
-      document.body.style.overflow = '';
-      return undefined;
-    }
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [sidebarActive]);
-
-  // Handle Sidebar Menu item click
-  const handleFeatureNotImplemented = (e) => {
-    e.preventDefault();
-    showToast('Tính năng đang được phát triển.', 'info');
-  };
-
-  const handleSidebarNavigate = (path) => (e) => {
-    e.preventDefault();
-    setSidebarActive(false);
-    navigate(path);
-  };
-
-  const handleScanClick = () => {
-    navigate('/quet-qr');
-  };
-
   const displayAvatar = avatar || defaultAvatar;
   const profilePageTitle = 'Thông tin cá nhân';
   const isCtsvEmbedded = embedded && isCtsvRole(userRole) && !isAdminRole(userRole);
@@ -211,7 +179,6 @@ const Profile = ({ showToast, embedded = false }) => {
 
   const handleNavigateProfile = (e) => {
     e.preventDefault();
-    setSidebarActive(false);
     setIsEditing(false);
     profileSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -374,14 +341,6 @@ const Profile = ({ showToast, embedded = false }) => {
       setInterests(backupData.interests);
     }
     setIsEditing(false);
-  };
-
-  const handleLogout = (e) => {
-    e?.preventDefault?.();
-    logoutWithConfirm(navigate, {
-      showToast,
-      toastMessage: embedded ? 'Đã đăng xuất tài khoản CTSV.' : 'Đã đăng xuất.'
-    });
   };
 
   const renderAvatarCard = () => (
@@ -814,124 +773,16 @@ const Profile = ({ showToast, embedded = false }) => {
 
   return (
     <>
-    <div className="dashboard-body student-portal">
-      <div
-        className={`sidebar-overlay ${sidebarActive ? 'active' : ''}`}
-        id="sidebar-overlay"
-        onClick={() => setSidebarActive(false)}
-      />
-
-      <div className="dashboard-container">
-        <aside className={`sidebar-aside ${sidebarActive ? 'active' : ''}`} id="sidebar">
-          {/* Logo */}
-          <div
-            className="sidebar-logo"
-            onClick={() => navigate('/')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
-          >
-            <img src={FE_LOGO} alt={FE_LOGO_ALT} />
-          </div>
-
-          {/* User Profile Card */}
-          <a href="#" className="sidebar-user-card" onClick={(e) => e.preventDefault()}>
-            {profileLoading ? (
-              <div className="sidebar-avatar profile-skeleton profile-skeleton--avatar" aria-hidden="true" />
-            ) : (
-              <img className="sidebar-avatar" src={displayAvatar} alt="User Avatar" />
-            )}
-            <div className="sidebar-user-info">
-              {profileLoading ? (
-                <span className="profile-skeleton profile-skeleton--name" />
-              ) : (
-                <>
-                  <span className="sidebar-user-name">{profileData.fullname}</span>
-                  {userRole?.toLowerCase() !== 'student' && (
-                    <span className="sidebar-user-role">{getRoleLabel(userRole)}</span>
-                  )}
-                </>
-              )}
-            </div>
-          </a>
-
-          <DashboardSidebarNav
-            activeMenu="profile"
-            onScanClick={handleScanClick}
-            onCloseSidebar={() => setSidebarActive(false)}
-            onProfileMenuItem={(key, event) => {
-              if (key === 'profile') handleNavigateProfile(event);
-            }}
-            onNavigate={(path) => navigate(path)}
-          />
-
-          {/* Logout */}
-          <div className="sidebar-footer">
-            <a href="#" className="btn-logout" onClick={handleLogout}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-              <span>Đăng xuất</span>
-            </a>
-          </div>
-        </aside>
-
-        <main className="dashboard-main">
-          <header className="top-navbar">
-            <div className="navbar-left">
-              <button
-                className="btn-mobile-menu-toggle"
-                id="menu-toggle"
-                aria-label="Mở menu"
-                onClick={() => setSidebarActive(true)}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-              </button>
-              <div className="breadcrumbs">
-                <Link to="/">Trang chủ</Link>
-                <span style={{ color: '#cbd5e1' }}>/</span>
-                <span className="current">{profilePageTitle}</span>
-              </div>
-              <h2 className="student-mobile-nav-title">{profilePageTitle}</h2>
-            </div>
-
-            <div className="navbar-right">
-              {/* User Dropdown Menu link */}
-              <a href="#" className="navbar-user-menu" onClick={(e) => e.preventDefault()}>
-                {profileLoading ? (
-                  <div className="navbar-user-avatar profile-skeleton profile-skeleton--avatar" aria-hidden="true" />
-                ) : (
-                  <img className="navbar-user-avatar" src={displayAvatar} alt="User Profile" />
-                )}
-                <div className="navbar-user-details">
-                  {profileLoading ? (
-                    <span className="profile-skeleton profile-skeleton--name" />
-                  ) : (
-                    <>
-                      <span className="navbar-user-name">{profileData.fullname}</span>
-                      {userRole?.toLowerCase() !== 'student' && (
-                        <span className="navbar-user-role">{getRoleLabel(userRole)}</span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </a>
-            </div>
-          </header>
-
-          {profileContent}
-
-          <SiteFooter embedded />
-        </main>
-      </div>
-    </div>
-    {avatarCropModal}
+      <StudentPortalShell
+        activeMenu="profile"
+        contentClassName={null}
+        onProfileMenuItem={(key, event) => {
+          if (key === 'profile') handleNavigateProfile(event);
+        }}
+      >
+        {profileContent}
+      </StudentPortalShell>
+      {avatarCropModal}
     </>
   );
 };

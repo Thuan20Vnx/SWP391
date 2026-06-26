@@ -17,7 +17,9 @@ import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { resolveUserAvatar } from '../utils/image';
 import { cachedFetchDedup } from '../utils/apiCache';
 import StaffMaintenanceReadOnlyBanner from '../components/StaffMaintenanceReadOnlyBanner';
+import PortalEventsLiveBanner from '../components/approval/PortalEventsLiveBanner';
 import useMaintenanceReadOnly from '../hooks/useMaintenanceReadOnly';
+import { isPortalEventsApprovalRoute } from '../utils/adminEventsLiveEvents';
 import { fetchCtsvEvents, fetchCtsvAnnouncementLinkableEvents } from '../services/ctsvApi';
 import { fetchManagedAnnouncements } from '../services/announcementManageApi';
 
@@ -165,6 +167,7 @@ const CtsvLayout = ({ showToast }) => {
           />
 
           <StaffMaintenanceReadOnlyBanner />
+          <PortalEventsLiveBanner active={isPortalEventsApprovalRoute(location.pathname)} />
           <div className={`ctsv-portal-body${maintenanceReadOnly ? ' maintenance-readonly-portal' : ''}`}>
             <Outlet context={{
               showToast,

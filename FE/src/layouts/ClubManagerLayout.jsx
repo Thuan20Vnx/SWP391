@@ -200,7 +200,7 @@ const ClubManagerLayout = ({ showToast }) => {
           </main>
         </div>
       </div>
-      <ChatbotFloating context="club_manager" />
+      <ChatbotFloating context="club_manager" showQrFab />
     </div>
   );
 };

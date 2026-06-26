@@ -7,6 +7,7 @@ const SCHOOL_EVENT_SUBMIT_ROLES = ['ctsv', 'admin', 'icpdp'];
 const PROPOSAL_MODERATE_ROLES = ['ctsv', 'admin', 'icpdp'];
 const ICPDP_APPROVE_ROLES = ['icpdp', 'ctsv'];
 const ICPDP_TIMELINE_ROLES = ['icpdp', 'admin'];
+const ICPDP_ONLY_ROLES = ['icpdp'];
 
 const requireRole = (allowedRoles) => async (req, res, next) => {
   try {
@@ -42,6 +43,7 @@ const requireSchoolEventSubmit = requireRole(SCHOOL_EVENT_SUBMIT_ROLES);
 const requireProposalModerate = requireRole(PROPOSAL_MODERATE_ROLES);
 const requireIcpdpOrCtsv = requireRole(ICPDP_APPROVE_ROLES);
 const requireIcpdpTimeline = requireRole(ICPDP_TIMELINE_ROLES);
+const requireIcpdp = requireRole(ICPDP_ONLY_ROLES);
 const requireAdmin = requireRole(ADMIN_ROLES);
 
 module.exports = {
@@ -52,6 +54,7 @@ module.exports = {
   requireProposalModerate,
   requireIcpdpOrCtsv,
   requireIcpdpTimeline,
+  requireIcpdp,
   requireAdmin,
   CTSV_PORTAL_ROLES,
   CTSV_APPROVE_ROLES,

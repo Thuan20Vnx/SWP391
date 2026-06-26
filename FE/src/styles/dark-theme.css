@@ -31,10 +31,6 @@ html.dark .sidebar-aside {
   border-right-color: var(--surface-border);
 }
 
-html.dark .sidebar-logo {
-  border-bottom-color: var(--surface-border);
-}
-
 html.dark .sidebar-user-card:hover {
   background-color: var(--surface-hover);
 }

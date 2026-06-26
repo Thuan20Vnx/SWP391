@@ -1,61 +1,134 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import {
   approveCtsvProposal,
   fetchCtsvProposal,
   rejectCtsvProposal,
-  revisionCtsvProposal
+  revisionCtsvProposal,
 } from '../../services/ctsvApi';
+import useAdminEventsLiveStream from '../../hooks/useAdminEventsLiveStream';
+import { PORTAL_EVENTS_LIVE_EVENT } from '../../utils/adminEventsLiveEvents';import EventPlanFilePanel from '../../components/events/EventPlanFilePanel';
 import ProposalTicketsTable from '../../components/admin/ProposalTicketsTable';
-import { canCtsvFinalApprove, getUserRole } from '../../utils/auth';
+import { canCtsvFinalApprove, getUserRole, isAdminRole } from '../../utils/auth';
 import { statusClass } from '../../utils/eventStatus';
 
 const CtsvProposalDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { showToast } = useOutletContext() || {};
+  const basePath = isAdminRole() ? '/admin/ctsv' : '/ctsv';
   const [proposal, setProposal] = useState(null);
   const [note, setNote] = useState('');
   const isCtsv = getUserRole() === 'ctsv';
   const canFinalApprove = canCtsvFinalApprove();
+
+  useAdminEventsLiveStream(true);
+
+  const refresh = useCallback(
+    () => fetchCtsvProposal(id).then((d) => setProposal(d.proposal)),
+    [id]
+  );
 
   useEffect(() => {
     fetchCtsvProposal(id)
       .then((d) => setProposal(d.proposal))
       .catch(() => {
         showToast?.('Không tải được đề xuất.', 'error');
-        navigate('/ctsv/proposals');
+        navigate(`${basePath}/proposals`);
       });
-  }, [id, navigate, showToast]);
+  }, [id, navigate, showToast, basePath]);
 
-  const refresh = () => fetchCtsvProposal(id).then((d) => setProposal(d.proposal));
+  useEffect(() => {
+    const onLive = () => {
+      refresh().catch(() => {});
+    };
+    window.addEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+  }, [refresh]);
 
-  if (!proposal) return <div className="ctsv-page"><p className="ctsv-muted">Đang tải...</p></div>;
+  if (!proposal) {
+    return (
+      <div className="ctsv-ed-page">
+        <div className="ctsv-ed-skeleton-hero sk" />
+        <div className="ctsv-ed-skeleton-panel sk" />
+      </div>
+    );
+  }
 
   const canCtsvAct =
     proposal.statusKey === 'pending_admin' ||
-    (['pending_ctsv', 'pending_icpdp'].includes(proposal.statusKey) && !proposal.linkedEventId);
+    (proposal.statusKey === 'pending_ctsv' && !proposal.linkedEventId);
 
   return (
-    <div className="ctsv-page">
-      <Link to="/ctsv/proposals" className="ctsv-back-link">
+    <div className="ctsv-ed-page">
+      <Link to={`${basePath}/proposals`} className="ctsv-ed-back">
         ← Đề xuất CLB
       </Link>
-      <span className={`status-pill ${statusClass(proposal.status, proposal.statusKey)}`}>{proposal.status}</span>
-      <h1>{proposal.title}</h1>
-      <p className="ctsv-muted">
-        {proposal.clubName} • {proposal.date} {proposal.time} • {proposal.location}
-      </p>
 
-      <div className="ctsv-panel">
-        <p>{proposal.description || 'Không có mô tả.'}</p>
-        <p>Số vé dự kiến: {proposal.totalTickets}</p>
-        <ProposalTicketsTable
-          ticketTypes={proposal.ticketTypes}
-          ticketPrice={proposal.ticketPrice}
-        />
-        {proposal.ctsvNote && <p>Ghi chú CTSV: {proposal.ctsvNote}</p>}
-        {proposal.icpdpNote && <p>Ghi chú ICPDP: {proposal.icpdpNote}</p>}
+      <section className="ctsv-ed-hero icpdp-proposal-hero">
+        <div className="ctsv-ed-hero-body" style={{ flex: 1 }}>
+          <div className="ctsv-ed-hero-tags">
+            <span className="ctsv-ed-source ctsv-ed-source--club">Đề xuất CLB</span>
+            <span className={`status-pill ${statusClass(proposal.status, proposal.statusKey)}`}>
+              {proposal.status}
+            </span>
+          </div>
+          <h1>{proposal.title}</h1>
+          <ul className="ctsv-ed-meta">
+            <li>{proposal.clubName || 'CLB'}</li>
+            <li>{proposal.date} {proposal.time}</li>
+            <li>{proposal.location || '—'}</li>
+          </ul>
+        </div>
+      </section>
+
+      <div className="ctsv-ed-content">
+        <div className="ctsv-ed-panel">
+          <h2 className="ctsv-ed-panel-title">Nội dung đề xuất</h2>
+          <p className="ctsv-ed-description">
+            {proposal.description?.trim() || 'Không có mô tả chi tiết.'}
+          </p>
+
+          <EventPlanFilePanel
+            fileUrl={proposal.eventPlanFile}
+            fileName={proposal.eventPlanFileName}
+            mimeType={proposal.eventPlanFileMime}
+            externalLink={proposal.eventPlanLink}
+          />
+
+          <div className="ctsv-ed-info-grid">
+            <div className="ctsv-ed-info-card">
+              <span className="ctsv-ed-info-label">Câu lạc bộ</span>
+              <strong>{proposal.clubName || '—'}</strong>
+            </div>
+            <div className="ctsv-ed-info-card">
+              <span className="ctsv-ed-info-label">Số vé dự kiến</span>
+              <strong>{proposal.totalTickets || '—'}</strong>
+            </div>
+            <div className="ctsv-ed-info-card">
+              <span className="ctsv-ed-info-label">Danh mục</span>
+              <strong>{proposal.category || '—'}</strong>
+            </div>
+          </div>
+
+          <ProposalTicketsTable
+            ticketTypes={proposal.ticketTypes}
+            ticketPrice={proposal.ticketPrice}
+          />
+
+          {proposal.ctsvNote && (
+            <div className="icpdp-proposal-note-card" style={{ marginTop: 16 }}>
+              <span className="icpdp-proposal-note-label">Ghi chú CTSV</span>
+              <p>{proposal.ctsvNote}</p>
+            </div>
+          )}
+          {proposal.icpdpNote && (
+            <div className="icpdp-proposal-note-card" style={{ marginTop: 16 }}>
+              <span className="icpdp-proposal-note-label">Ghi chú IC-PDP</span>
+              <p>{proposal.icpdpNote}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {canCtsvAct && canFinalApprove && (
@@ -75,7 +148,7 @@ const CtsvProposalDetail = () => {
                 try {
                   const res = await approveCtsvProposal(id, note);
                   showToast?.('Đã phê duyệt — sự kiện đã được tạo!', 'success');
-                  if (res.event?.id) navigate(`/ctsv/events/${res.event.id}`);
+                  if (res.event?.id) navigate(`${basePath}/events/${res.event.id}`);
                   else refresh();
                 } catch (e) {
                   showToast?.(e.message, 'error');
@@ -120,7 +193,7 @@ const CtsvProposalDetail = () => {
       )}
 
       {!isCtsv && canCtsvAct && (
-        <p className="ctsv-muted">Tài khoản ICPDP: dùng bước duyệt nội bộ trước khi chuyển CTSV (API icpdp-approve).</p>
+        <p className="ctsv-muted">Tài khoản ICPDP/Admin: dùng luồng duyệt tương ứng trên cổng của bạn.</p>
       )}
     </div>
   );

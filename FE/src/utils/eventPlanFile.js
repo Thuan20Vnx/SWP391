@@ -18,6 +18,19 @@ export const isAllowedEventPlanFile = (file) => {
   return byExt || byMime;
 };
 
+export const isValidEventPlanLink = (value) => {
+  const url = String(value || '').trim();
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+export const normalizeEventPlanLink = (value) => String(value || '').trim();
+
 export const formatFileSize = (bytes) => {
   if (!bytes || bytes <= 0) return '—';
   if (bytes < 1024) return `${bytes} B`;

@@ -194,6 +194,19 @@
   line-height: 1.6;
 }
 
+.ev-revision-feedback {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: #fffbeb;
+}
+
+.ev-revision-feedback .ev-rejection-reason__label {
+  color: #b45309;
+}
+
+.ev-revision-feedback .ev-rejection-reason__text {
+  color: #92400e;
+}
+
 
 .ev-subtitle {
   font-size: 0.9rem;
@@ -385,6 +398,123 @@
 
 .ev-bento-desc--spaced {
   margin-top: 24px;
+}
+
+.ev-bento-grid--pending {
+  align-items: stretch;
+}
+
+.ev-bento-grid--pending .ev-bento-card--pending {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 176px;
+  background: #fafbfc;
+  border-style: dashed;
+}
+
+.ev-bento-grid--pending .ev-bento-card-header {
+  flex: 0 0 44px;
+  min-height: 44px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.ev-bento-grid--pending .ev-bento-card-header h3 {
+  line-height: 1.25;
+  padding-right: 10px;
+}
+
+.ev-bento-grid--pending .ev-bento-card-header svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ev-bento-grid--pending .ev-bento-value {
+  flex: 1 1 auto;
+  min-height: 68px;
+  align-items: flex-start;
+  margin-bottom: 0;
+}
+
+.ev-bento-grid--pending .ev-bento-value--metric {
+  align-items: baseline;
+}
+
+.ev-bento-grid--pending .ev-bento-desc {
+  flex: 0 0 auto;
+  min-height: 42px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ev-bento-grid--pending .ev-bento-num,
+.ev-bento-grid--pending .ev-bento-num--text,
+.ev-bento-grid--pending .ev-bento-num--sm {
+  font-size: 1.2rem;
+  line-height: 1.35;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.ev-bento-grid--pending .ev-bento-value--metric .ev-bento-num {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.ev-bento-grid--pending .ev-bento-total {
+  font-size: 0.95rem;
+}
+
+.ev-bento-num--text {
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+
+.ev-bento-num--sm {
+  font-size: 1.1rem;
+  line-height: 1.35;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ev-bento-num--muted {
+  color: #94a3b8;
+}
+
+.ev-pending-edit-hint {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.ev-report-stats--pending .ev-report-stat--pending {
+  background: #fafbfc;
+  border-style: dashed;
+}
+
+.ev-report-stat__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.ev-report-panel--pending .ev-overview-desc {
+  margin-bottom: 0;
 }
 
 .ev-bento-desc--delta {
@@ -1098,13 +1228,49 @@
 
 .ev-overview-ticket {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
   border-radius: 10px;
   background: #f8fafc;
   border: 1px solid #eef2f7;
+}
+
+.ev-icpdp-review-note {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+}
+
+.ev-icpdp-review-note__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 8px;
+}
+
+.ev-icpdp-review-note__input {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  resize: vertical;
+  min-height: 72px;
+}
+
+.ev-btn-outline--danger {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.ev-btn-outline--danger:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #f87171;
 }
 
 .ev-overview-ticket__main {
@@ -1147,6 +1313,34 @@
 
 .ev-overview-ticket__price.is-free {
   color: #16a34a;
+}
+
+.ev-overview-ticket__progress {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.ev-overview-ticket__progress-nums {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.ev-overview-ticket__progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.ev-overview-ticket__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #fb923c, #f26f21);
+  transition: width 0.2s ease;
 }
 
 @media (max-width: 900px) {

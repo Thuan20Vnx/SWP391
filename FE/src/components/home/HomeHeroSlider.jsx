@@ -4,12 +4,33 @@ import { prefetchPublicEventById } from '../../services/eventsApi';
 
 const HERO_AUTOPLAY_MS = 6000;
 
+const HeroBannerSkeleton = ({ offline = false }) => (
+  <section
+    className={`hero-banner-slider hero-banner-slider--skeleton${offline ? ' hero-banner-slider--skeleton-offline' : ''}`}
+    aria-busy={!offline}
+    aria-label={offline ? 'Không tải được banner sự kiện' : 'Đang tải banner sự kiện'}
+  >
+    <div className="hero-banner-skeleton">
+      <div className="hero-banner-skeleton__shimmer" aria-hidden="true" />
+      <div className="hero-banner-skeleton__content">
+        <div className="hero-banner-skeleton__pill" />
+        <div className="hero-banner-skeleton__title" />
+        <div className="hero-banner-skeleton__line hero-banner-skeleton__line--short" />
+        <div className="hero-banner-skeleton__line" />
+        <div className="hero-banner-skeleton__btn" />
+      </div>
+    </div>
+  </section>
+);
+
 /**
  * Hero slider dùng chung: trang chủ khách, CTSV home, Partner home.
  * Full-width ảnh, badge/meta, CTA 2 dòng, mũi tên trái/phải, dots.
  */
 const HomeHeroSlider = ({
   slides = [],
+  loading = false,
+  unavailable = false,
   featuredLabel = 'Sự kiện nổi bật',
   resolveDetailPath,
   fallbackCtaPath = '/events',
@@ -74,7 +95,12 @@ const HomeHeroSlider = ({
     navigate(fallbackCtaPath);
   };
 
-  if (!slideCount) return null;
+  if (slideCount === 0) {
+    if (loading || unavailable) {
+      return <HeroBannerSkeleton offline={unavailable && !loading} />;
+    }
+    return null;
+  }
 
   return (
     <section className={`hero-banner-slider${slideCount > 1 ? ' hero-banner-slider--nav' : ''}`}>

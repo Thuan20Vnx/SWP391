@@ -21,6 +21,8 @@ import {
   EVENT_PLAN_MAX_BYTES,
   formatFileSize,
   isAllowedEventPlanFile,
+  isValidEventPlanLink,
+  normalizeEventPlanLink,
 } from '../../utils/eventPlanFile';
 import EventProposalFormSkeleton from './EventProposalFormSkeleton';
 
@@ -172,8 +174,12 @@ const EventProposalForm = ({
       if (!form.title?.trim()) return 'Vui lòng nhập tên sự kiện.';
       if (!form.category) return 'Vui lòng chọn thể loại.';
       if (!form.thumbnail) return 'Vui lòng tải ảnh banner tỉ lệ 16:9.';
-      if (config.requireEventPlan && !form.eventPlanFile) {
-        return 'Vui lòng tải lên bảng kế hoạch sự kiện.';
+      if (config.requireEventPlan) {
+        const hasPlanFile = Boolean(form.eventPlanFile);
+        const hasPlanLink = isValidEventPlanLink(form.eventPlanLink);
+        if (!hasPlanFile && !hasPlanLink) {
+          return 'Vui lòng tải file hoặc dán link bảng kế hoạch sự kiện (Google Drive, OneDrive...).';
+        }
       }
     }
     if (step === 2) {
@@ -208,6 +214,9 @@ const EventProposalForm = ({
       payload.eventPlanFile = form.eventPlanFile;
       payload.eventPlanFileName = form.eventPlanFileName || 'bang-ke-hoach-su-kien';
       payload.eventPlanFileMime = form.eventPlanFileMime || '';
+    }
+    if (form.eventPlanLink?.trim()) {
+      payload.eventPlanLink = normalizeEventPlanLink(form.eventPlanLink);
     }
     await onSubmit?.(payload);
   };
@@ -490,6 +499,21 @@ const EventProposalForm = ({
                     <span className="ctsv-banner-filename">{form.eventPlanFileSizeLabel}</span>
                   )}
                 </div>
+                <div className="clb-plan-link-field">
+                  <label className="clb-plan-link-field__label" htmlFor="event-plan-link">
+                    Hoặc dán link tài liệu
+                  </label>
+                  <input
+                    id="event-plan-link"
+                    type="url"
+                    className="clb-input"
+                    placeholder="https://drive.google.com/..."
+                    value={form.eventPlanLink}
+                    onChange={(e) => patchForm({ eventPlanLink: e.target.value })}
+                    disabled={disabled}
+                  />
+                  <p className="clb-banner-hint">Dùng khi file quá lớn — Google Drive, OneDrive, v.v.</p>
+                </div>
               </div>
             )}
             <div className="clb-form-row">
@@ -736,7 +760,9 @@ const EventProposalForm = ({
                     {config.requireEventPlan && (
                       <p className="clb-confirm-speaker">
                         <span className="clb-confirm-speaker__label">Kế hoạch</span>
-                        {form.eventPlanFileName || 'Chưa tải file'}
+                        {form.eventPlanFileName
+                          || (isValidEventPlanLink(form.eventPlanLink) ? form.eventPlanLink.trim() : '')
+                          || 'Chưa có file/link'}
                       </p>
                     )}
                   </div>

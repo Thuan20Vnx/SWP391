@@ -7,6 +7,7 @@ import {
 } from '../services/notificationApi';
 import { normalizeRole } from '../utils/auth';
 import { dispatchTimelineLiveUpdate, shouldDispatchTimelineLive } from '../utils/timelineLiveEvents';
+import { dispatchPortalEventsLiveUpdate, shouldDispatchPortalEventsLive } from '../utils/adminEventsLiveEvents';
 
 const useNotifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -48,6 +49,9 @@ const useNotifications = () => {
         const role = normalizeRole(localStorage.getItem('userRole'));
         if (shouldDispatchTimelineLive(role)) {
           dispatchTimelineLiveUpdate(payload);
+        }
+        if (shouldDispatchPortalEventsLive(role)) {
+          dispatchPortalEventsLiveUpdate(payload);
         }
         refetch();
       },

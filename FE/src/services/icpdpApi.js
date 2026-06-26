@@ -56,11 +56,28 @@ export const fetchIcpdpProposals = (params = {}) => {
   return icpdpFetch(`/proposals${qs ? `?${qs}` : ''}`);
 };
 
+export const fetchIcpdpProposalsForApproval = (params = {}) => {
+  const qs = new URLSearchParams({ ...params, forApproval: '1' }).toString();
+  return icpdpFetch(`/proposals?${qs}`);
+};
+
 export const fetchIcpdpProposal = (id) => icpdpFetch(`/proposals/${id}`);
 
 /** Duyệt nội bộ ICPDP — đề xuất CLB liên kết sự kiện → pending_admin, còn lại → pending_ctsv */
 export const icpdpApproveProposal = (id, note = '') =>
   icpdpFetch(`/proposals/${id}/icpdp-approve`, {
+    method: 'PATCH',
+    body: JSON.stringify({ note })
+  });
+
+export const icpdpRejectProposal = (id, reason = '') =>
+  icpdpFetch(`/proposals/${id}/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason })
+  });
+
+export const icpdpRequestProposalRevision = (id, note = '') =>
+  icpdpFetch(`/proposals/${id}/icpdp-request-revision`, {
     method: 'PATCH',
     body: JSON.stringify({ note })
   });

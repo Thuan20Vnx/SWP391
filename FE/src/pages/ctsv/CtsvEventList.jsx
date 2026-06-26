@@ -2,11 +2,15 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { isAdminRole } from '../../utils/auth';
 import AppSelect from '../../components/ui/AppSelect';
-import { fetchCtsvEvents } from '../../services/ctsvApi';
+import ApprovalListPagination from '../../components/approval/ApprovalListPagination';
+import useAdminEventsLiveStream from '../../hooks/useAdminEventsLiveStream';
+import { fetchCtsvEventsForApproval } from '../../services/ctsvApi';
 import { getCtsvEventAccess, isCtsvManagedEvent } from '../../utils/ctsvEventAccess';
 import { isPendingApproval } from '../../utils/eventStatus';
+import { PORTAL_EVENTS_LIVE_EVENT } from '../../utils/adminEventsLiveEvents';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
 import EventDiscoveryCard from '../../components/EventDiscoveryCard';
+import '../../styles/admin-dashboard.css';
 
 const TIME_FILTER_OPTIONS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -49,23 +53,8 @@ const toDiscoveryCard = (ev) => ({
   primaryLabel: isCtsvManagedEvent(ev) ? 'Quản lý' : 'Xem chi tiết',
   priceLabel: ev.ticketPrice > 0 ? `${Number(ev.ticketPrice).toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
   organizerLabel: ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : 'CLB',
+  hasEventPlan: ev.hasEventPlan,
 });
-
-const SectionPager = ({ page, total, onChange }) => {
-  const totalPages = Math.ceil(total / PAGE_SIZE);
-  if (totalPages <= 1) return null;
-  return (
-    <div className="ctsv-section-pager">
-      <button type="button" className="ctsv-pager-btn" disabled={page === 1} onClick={() => onChange(page - 1)}>
-        Trước
-      </button>
-      <span className="ctsv-pager-label">Trang {page} / {totalPages}</span>
-      <button type="button" className="ctsv-pager-btn" disabled={page === totalPages} onClick={() => onChange(page + 1)}>
-        Sau
-      </button>
-    </div>
-  );
-};
 
 const IconSearch = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -89,13 +78,16 @@ const CtsvEventList = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
+  useAdminEventsLiveStream(true);
+
   const loadEvents = useCallback(
     (overrides = {}) => {
       const q = overrides.q ?? searchQuery;
       const category = overrides.category ?? categoryFilter;
       const time = overrides.time ?? timeFilter;
-      setLoading(true);
-      return fetchCtsvEvents({ q, category, time })
+      const silent = overrides.silent === true;
+      if (!silent) setLoading(true);
+      return fetchCtsvEventsForApproval({ q, category, time })
         .then((d) => {
           const list = d.events || [];
           setEvents(list);
@@ -112,7 +104,9 @@ const CtsvEventList = () => {
           showToast?.(msg, 'error');
           return [];
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          if (!silent) setLoading(false);
+        });
     },
     [searchQuery, categoryFilter, timeFilter, showToast]
   );
@@ -121,6 +115,12 @@ const CtsvEventList = () => {
     loadEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const onLive = () => loadEvents({ silent: true });
+    window.addEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+  }, [loadEvents]);
 
   useEffect(() => {
     registerHeaderSearchSubmit?.(() => {});
@@ -268,7 +268,12 @@ const CtsvEventList = () => {
               />
             ))}
           </div>
-          <SectionPager page={page} total={filtered.length} onChange={setPage} />
+          <ApprovalListPagination
+            page={page}
+            totalItems={filtered.length}
+            pageSize={PAGE_SIZE}
+            onChange={setPage}
+          />
         </>
       )}
     </div>

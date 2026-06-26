@@ -96,6 +96,17 @@ export const fetchCtsvProposals = (params = {}) => {
   return cachedFetchDedup(`ctsv:proposals:${qs}`, () => ctsvFetch(path), { ttl: 45000 });
 };
 
+/** Duyệt sự kiện — không cache, kèm file kế hoạch cho mục chờ duyệt */
+export const fetchCtsvEventsForApproval = (params = {}) => {
+  const qs = new URLSearchParams({ ...params, forApproval: '1', sort: 'newest' }).toString();
+  return ctsvFetch(`/events?${qs}`);
+};
+
+export const fetchCtsvProposalsForApproval = (params = {}) => {
+  const qs = new URLSearchParams({ ...params, forApproval: '1' }).toString();
+  return ctsvFetch(`/proposals?${qs}`);
+};
+
 export const fetchCtsvProposal = (id) => ctsvFetch(`/proposals/${id}`);
 
 export const approveCtsvProposal = (id, note = '') =>

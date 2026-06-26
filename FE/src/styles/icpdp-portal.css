@@ -928,6 +928,62 @@
   line-height: 1.55;
 }
 
+/* ── Ticket table — match ctsv-ed-info-grid tone (ICPDP only) ── */
+.icpdp-app-shell .ctsv-ed-panel .admin-proposal-tickets {
+  margin-top: 12px;
+}
+
+.icpdp-app-shell .ctsv-ed-panel .admin-proposal-tickets .admin-proposal-card__desc-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  margin: 0 0 8px;
+}
+
+.icpdp-app-shell .ctsv-ed-panel .admin-proposal-tickets__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+  margin-top: 0;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.icpdp-app-shell .ctsv-ed-panel .admin-proposal-tickets__table th,
+.icpdp-app-shell .ctsv-ed-panel .admin-proposal-tickets__table td {
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.icpdp-app-shell .ctsv-ed-panel .admin-proposal-tickets__table tr:last-child th,
+.icpdp-app-shell .ctsv-ed-panel .admin-proposal-tickets__table tr:last-child td {
+  border-bottom: none;
+}
+
+.icpdp-app-shell .ctsv-ed-panel .admin-proposal-tickets__table th {
+  background: #f8fafc;
+  font-weight: 600;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+}
+
+.icpdp-app-shell .ctsv-ed-panel .admin-proposal-tickets__table td {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  background: #fff;
+}
+
 /* ── Action Panel polish ── */
 .icpdp-action-panel__desc {
   font-size: 0.85rem;
@@ -936,11 +992,84 @@
   line-height: 1.55;
 }
 
-.icpdp-action-panel__buttons {
+.icpdp-app-shell .icpdp-action-panel__buttons {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+/* Action panel: outline-only buttons (no solid fill) */
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn {
+  background: transparent;
+  box-shadow: none;
+  border: 1px solid;
+  min-height: 40px;
+  padding: 9px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  transform: none;
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn--primary {
+  color: var(--icpdp-accent);
+  border-color: var(--icpdp-accent);
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn--primary:hover:not(:disabled) {
+  background: var(--icpdp-accent-bg);
+  color: var(--icpdp-accent-dark);
+  border-color: var(--icpdp-accent-dark);
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn--outline {
+  color: var(--icpdp-accent);
+  border-color: rgba(242, 111, 33, 0.45);
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn--outline:hover:not(:disabled) {
+  background: var(--icpdp-accent-bg);
+  border-color: var(--icpdp-accent);
+  color: var(--icpdp-accent-dark);
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn--danger {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn--danger:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.06);
+  border-color: #dc2626;
+  color: #b91c1c;
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn--ghost {
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn--ghost:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #475569;
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .ctsv-dash-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.icpdp-app-shell .icpdp-action-panel__buttons .btn-spinner {
+  border-color: rgba(242, 111, 33, 0.25);
+  border-top-color: var(--icpdp-accent);
 }
 
 /* ── Button spinner ── */
@@ -1413,4 +1542,31 @@
   .icpdp-app-shell .event-grid-cards {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+.icpdp-proposals-table-page {
+  padding: 0;
+}
+
+.icpdp-proposals-search-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.icpdp-proposals-search-inline input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font: inherit;
+  background: transparent;
+}
+
+.icpdp-proposals-table-page .clb-table-wrapper {
+  margin-top: 0;
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { audienceLabel, formatTicketPriceLabel } from '../../utils/eventTicketTypes';
+import { getTicketFillPct, mapTicketTypesWithProgress } from '../../utils/ticketRegistrationStats';
 import EventPlanFilePanel from './EventPlanFilePanel';
 
 const DEFAULT_BANNER =
@@ -66,10 +67,10 @@ const EventOverviewPanel = ({ event }) => {
   const bannerSrc = event.thumbnail || event.image || DEFAULT_BANNER;
   const formatLabel =
     event.format === 'online' ? 'Trực tuyến' : event.format === 'hybrid' ? 'Kết hợp' : 'Tại trường';
-  const ticketTypes = Array.isArray(event.ticketTypes) ? event.ticketTypes.filter((t) => t?.name || t?.qty) : [];
   const registered = event.registeredCount || 0;
   const capacity = event.capacity || event.totalTickets || 0;
   const fillPct = capacity > 0 ? Math.min(100, Math.round((registered / capacity) * 100)) : 0;
+  const ticketsWithProgress = mapTicketTypesWithProgress(event.ticketTypes, registered);
 
   return (
     <div className="ev-overview-panel">
@@ -143,15 +144,18 @@ const EventOverviewPanel = ({ event }) => {
           </div>
         </section>
 
-        {ticketTypes.length > 0 && (
+        {ticketsWithProgress.length > 0 && (
           <section className="ev-overview-section">
             <h3 className="ev-overview-title">Loại vé</h3>
             <ul className="ev-overview-tickets">
-              {ticketTypes.map((ticket, idx) => {
+              {ticketsWithProgress.map((ticket, idx) => {
                 const priceAmount =
                   ticket.priceType === 'paid' ? Number(ticket.priceAmount) || 0 : 0;
                 const price = formatTicketPriceLabel(priceAmount);
                 const isFree = price === 'Miễn phí';
+                const qty = ticket.qty || 0;
+                const ticketReg = ticket.registeredCount || 0;
+                const ticketPct = getTicketFillPct(ticketReg, qty);
                 return (
                   <li key={`${ticket.name}-${idx}`} className="ev-overview-ticket">
                     <div className="ev-overview-ticket__main">
@@ -159,10 +163,21 @@ const EventOverviewPanel = ({ event }) => {
                       <span className="ev-overview-ticket__audience">
                         {audienceLabel(ticket.audience)}
                       </span>
+                      <div className="ev-overview-ticket__progress">
+                        <span className="ev-overview-ticket__progress-nums">
+                          {ticketReg}/{qty} đã đăng ký
+                        </span>
+                        <div className="ev-overview-ticket__progress-bar">
+                          <div
+                            className="ev-overview-ticket__progress-fill"
+                            style={{ width: `${ticketPct}%` }}
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div className="ev-overview-ticket__meta">
                       <span className="ev-overview-ticket__qty">
-                        {Number(ticket.qty ?? ticket.quantity) || 0} vé
+                        {qty} vé
                       </span>
                       <span className={`ev-overview-ticket__price${isFree ? ' is-free' : ''}`}>
                         {price}
@@ -184,6 +199,7 @@ const EventOverviewPanel = ({ event }) => {
             fileUrl={event.eventPlanFile}
             fileName={event.eventPlanFileName}
             mimeType={event.eventPlanFileMime}
+            externalLink={event.eventPlanLink}
           />
         </section>
 

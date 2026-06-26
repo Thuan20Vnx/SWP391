@@ -51,7 +51,9 @@ const formatEvent = (doc, opts = {}) => {
     bannerFileName: o.bannerFileName || '',
     eventPlanFileName: o.eventPlanFileName || '',
     eventPlanFileMime: o.eventPlanFileMime || '',
+    eventPlanLink: o.eventPlanLink || '',
     hasEventPlanFile: Boolean(o.eventPlanFile),
+    hasEventPlan: Boolean(o.eventPlanFile) || Boolean(o.eventPlanLink),
     ...(includePlanFile ? { eventPlanFile: o.eventPlanFile || '' } : {}),
     eventType: o.eventType || '',
     duration: o.duration || '',
@@ -68,6 +70,7 @@ const formatEvent = (doc, opts = {}) => {
     moderationAction: getModerationActionFromStatus(o.status),
     icpdpNote: o.icpdpNote || '',
     ctsvEditUnlocked: o.ctsvEditUnlocked === true,
+    clubEditUnlocked: o.clubEditUnlocked === true,
     isHidden: o.isHidden === true,
     speaker: primarySpeaker?.name || '',
     speakerRole: primarySpeaker?.role || '',
@@ -90,7 +93,9 @@ const formatEvent = (doc, opts = {}) => {
     ctsvNote: o.ctsvNote,
     rejectionReason: o.rejectionReason,
     expectedRevenue: o.expectedRevenue || 0,
-    proposalId: o.proposalId?.toString?.() || o.proposalId
+    proposalId: o.proposalId?.toString?.() || o.proposalId,
+    createdAt: o.createdAt || null,
+    updatedAt: o.updatedAt || null,
   };
 };
 
@@ -116,7 +121,9 @@ const formatProposal = (doc, opts = {}) => {
     image: o.image || '',
     eventPlanFileName: o.eventPlanFileName || '',
     eventPlanFileMime: o.eventPlanFileMime || '',
+    eventPlanLink: o.eventPlanLink || '',
     hasEventPlanFile: Boolean(o.eventPlanFile),
+    hasEventPlan: Boolean(o.eventPlanFile) || Boolean(o.eventPlanLink),
     ...(includePlanFile ? { eventPlanFile: o.eventPlanFile || '' } : {}),
     clubId: o.clubId,
     clubName: o.clubName,
@@ -126,7 +133,10 @@ const formatProposal = (doc, opts = {}) => {
     icpdpNote: o.icpdpNote,
     ctsvNote: o.ctsvNote,
     rejectionReason: o.rejectionReason,
-    eventId: o.eventId?.toString?.() || o.eventId
+    eventId: o.eventId?.toString?.() || o.eventId,
+    linkedEventId: o.linkedEventId?.toString?.() || o.linkedEventId || null,
+    createdAt: o.createdAt,
+    updatedAt: o.updatedAt,
   };
 };
 

@@ -39,6 +39,8 @@ const ROLES_WITH_SYS_NOTIF = ['admin', 'ctsv', 'icpdp', 'club', 'partner', 'publ
 
 const TYPE_TO_TONE = {
   event_submit: 'info',
+  event_resubmit: 'info',
+  event_delete: 'alert',
   event_approve: 'success',
   event_reject: 'alert',
   partner_submit: 'info',

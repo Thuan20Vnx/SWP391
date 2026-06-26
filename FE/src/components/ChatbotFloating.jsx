@@ -52,7 +52,29 @@ const renderInline = (text) => {
   });
 };
 
-const ChatbotFloating = ({ context = 'home' }) => {
+const QrFabIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <path d="M14 14h.01M18 14h.01M14 18h.01M18 18h.01M21 14v4h-4" />
+  </svg>
+);
+
+const ChatbotFloating = ({
+  context = 'home',
+  showQrFab = context === 'home' || context === 'club_manager',
+}) => {
   const rootRef = useRef(null);
   const navigate = useNavigate();
   const [chatbotOpen, setChatbotOpen] = useState(false);
@@ -153,6 +175,11 @@ const ChatbotFloating = ({ context = 'home' }) => {
     navigate(`/announcements/${announcementId}`);
   };
 
+  const goToQrScan = () => {
+    setChatbotOpen(false);
+    navigate('/quet-qr');
+  };
+
   return (
     <div className="chatbot-floating-wrapper" ref={rootRef}>
       {chatbotOpen && (
@@ -242,6 +269,18 @@ const ChatbotFloating = ({ context = 'home' }) => {
             </button>
           </form>
         </div>
+      )}
+
+      {showQrFab && (
+        <button
+          type="button"
+          className="chatbot-qr-fab-btn"
+          onClick={goToQrScan}
+          aria-label="Quét mã QR check-in sự kiện"
+          title="Quét mã QR"
+        >
+          <QrFabIcon />
+        </button>
       )}
 
       <button

@@ -4,6 +4,7 @@ import {
   canPreviewEventPlan,
   downloadDataUrlFile,
   formatFileSize,
+  isValidEventPlanLink,
 } from '../../utils/eventPlanFile';
 
 const FileIcon = () => (
@@ -13,24 +14,57 @@ const FileIcon = () => (
   </svg>
 );
 
+const LinkIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </svg>
+);
+
 const EventPlanFilePanel = ({
   fileUrl,
   fileName = 'Bảng kế hoạch sự kiện',
   mimeType = '',
   sizeLabel = '',
+  externalLink = '',
   className = '',
 }) => {
-  const hasFile = Boolean(fileUrl || fileName);
-  if (!hasFile) return null;
+  const planLink = isValidEventPlanLink(externalLink) ? externalLink.trim() : '';
+  const hasFile = Boolean(fileUrl);
+  const hasPlan = hasFile || Boolean(fileName) || Boolean(planLink);
+  if (!hasPlan) return null;
 
   const displayName = fileName || 'Bảng kế hoạch sự kiện';
-  const previewable = fileUrl && canPreviewEventPlan(mimeType, displayName);
+  const previewable = hasFile && canPreviewEventPlan(mimeType, displayName);
 
   return (
     <div className={`ev-plan-file-panel${className ? ` ${className}` : ''}`}>
       <p className="ev-plan-file-panel__label">Bảng kế hoạch sự kiện</p>
-      {fileUrl ? (
-        <div className="ev-plan-file-panel__card">
+
+      {planLink && (
+        <div className="ev-plan-file-panel__card ev-plan-file-panel__card--link">
+          <span className="ev-plan-file-panel__icon ev-plan-file-panel__icon--link" aria-hidden>
+            <LinkIcon />
+          </span>
+          <div className="ev-plan-file-panel__body">
+            <span className="ev-plan-file-panel__name">Link tài liệu</span>
+            <span className="ev-plan-file-panel__size ev-plan-file-panel__link-text">{planLink}</span>
+          </div>
+          <div className="ev-plan-file-panel__actions">
+            <a
+              href={planLink}
+              target="_blank"
+              rel="noreferrer"
+              className="ev-plan-file-panel__btn ev-plan-file-panel__btn--view"
+            >
+              Mở link
+            </a>
+          </div>
+        </div>
+      )}
+
+      {hasFile && (
+        <div className={`ev-plan-file-panel__card${planLink ? ' ev-plan-file-panel__card--stacked' : ''}`}>
           <span className="ev-plan-file-panel__icon" aria-hidden>
             <FileIcon />
           </span>
@@ -58,7 +92,9 @@ const EventPlanFilePanel = ({
             </button>
           </div>
         </div>
-      ) : (
+      )}
+
+      {!hasFile && !planLink && fileName && (
         <p className="ev-plan-file-panel__missing">
           Có tệp <strong>{displayName}</strong> nhưng chưa tải được nội dung. Vui lòng mở lại trang chi tiết.
         </p>

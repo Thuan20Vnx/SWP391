@@ -1,4 +1,5 @@
 const Event = require('../models/Event');
+const EventProposal = require('../models/EventProposal');
 const AppError = require('../utils/AppError');
 const {
   MODERATION_ACTIONS,
@@ -12,7 +13,8 @@ const {
   isModerationPendingStatus,
   isIcpdpModerationPendingStatus,
   getModerationActionFromStatus,
-  buildClubModerationReason
+  buildClubModerationReason,
+  canClubRequestDeleteModeration,
 } = require('../constants/eventModeration');
 
 const applyWeatherPostpone = (event, reason, authEmail) => {
@@ -158,6 +160,33 @@ const requestClubModeration = async (
     };
   }
 
+  if (action === 'delete' || action === 'edit') {
+    const canSubmit =
+      action === 'edit'
+        ? canClubRequestModeration(event)
+        : canClubRequestDeleteModeration(event);
+    if (!canSubmit) {
+      throw new AppError(
+        `Sự kiện không thể gửi yêu cầu ${action === 'delete' ? 'xóa' : 'chỉnh sửa'} ở trạng thái hiện tại.`,
+        400
+      );
+    }
+    event.statusBeforeModeration = event.status;
+    event.status = ICPDP_MODERATION_STATUS_BY_ACTION[action];
+    event.moderationReason = fullReason;
+    event.moderationReasonCategory = reasonCategory;
+    event.moderationRequestedByEmail = authEmail || '';
+    event.moderationRequestedAt = new Date();
+    event.clubEditUnlocked = false;
+    event.icpdpNote = '';
+    await event.save();
+    const actionLabels = { delete: 'xóa', edit: 'chỉnh sửa' };
+    return {
+      message: `Đã gửi yêu cầu ${actionLabels[action]} — chờ IC-PDP phê duyệt.`,
+      event,
+    };
+  }
+
   if (!CLUB_MODERATION_ACTIONS.includes(action)) {
     throw new AppError('Hành động không hợp lệ. Chọn hoãn hoặc hủy sự kiện.', 400);
   }
@@ -251,9 +280,13 @@ const rejectIcpdpModeration = async (eventId, reason, authEmail) => {
     event.postponeReason = '';
     event.eventState = 'active';
   }
+  if (action === 'edit') {
+    event.clubEditUnlocked = false;
+    event.ctsvEditUnlocked = false;
+  }
 
   await event.save();
-  return { message: 'IC-PDP đã từ chối yêu cầu hoãn/hủy.', event };
+  return { message: 'IC-PDP đã từ chối yêu cầu.', event };
 };
 
 const approveModeration = async (eventId, authEmail) => {
@@ -280,7 +313,18 @@ const approveModeration = async (eventId, authEmail) => {
     event.postponeIsWeather = false;
   } else if (action === 'edit') {
     event.status = previous;
-    event.ctsvEditUnlocked = true;
+    if (event.source === 'club') {
+      event.clubEditUnlocked = true;
+    } else {
+      event.ctsvEditUnlocked = true;
+    }
+  } else if (action === 'delete') {
+    const proposalId = event.proposalId;
+    await Event.findByIdAndDelete(eventId);
+    if (proposalId) {
+      await EventProposal.findByIdAndDelete(proposalId);
+    }
+    return { message: 'Đã phê duyệt xóa sự kiện CLB.', event: null };
   }
 
   event.statusBeforeModeration = '';
@@ -324,6 +368,7 @@ const rejectModeration = async (eventId, reason, authEmail) => {
     event.eventState = 'active';
   }
   if (action === 'edit') {
+    event.clubEditUnlocked = false;
     event.ctsvEditUnlocked = false;
   }
 

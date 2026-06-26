@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import ChatbotFloating from '../components/ChatbotFloating';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import SiteFooter from '../components/SiteFooter';
 import AppSelect from '../components/ui/AppSelect';
@@ -100,6 +99,15 @@ const Home = ({ showToast }) => {
   const [events, setEvents] = useState(initialEventCards);
   const [eventsLoading, setEventsLoading] = useState(initialEventCards.length === 0);
   const [eventsError, setEventsError] = useState(false);
+
+  const initialHeroCards = mapListToCards(
+    getCachedPublicEventsList({}),
+    localStorage.getItem('authToken') ? getUserRole() || 'guest' : 'guest'
+  );
+  const [heroEvents, setHeroEvents] = useState(initialHeroCards);
+  const [heroLoading, setHeroLoading] = useState(initialHeroCards.length === 0);
+  const [heroUnavailable, setHeroUnavailable] = useState(false);
+
   const [recommendTab, setRecommendTab] = useState('newest');
   const filterParamsRef = useRef({ debouncedSearch, categoryFilter });
   filterParamsRef.current = { debouncedSearch, categoryFilter };
@@ -169,6 +177,44 @@ const Home = ({ showToast }) => {
     };
   }, [debouncedSearch, categoryFilter, viewerRole]);
 
+  // Hero banner — luôn lấy sự kiện nổi bật toàn sàn, không phụ thuộc bộ lọc lưới
+  useEffect(() => {
+    let cancelled = false;
+    const cached = getCachedPublicEventsList({});
+    const hasCached = Boolean(cached?.events?.length);
+
+    if (hasCached) {
+      setHeroEvents(mapListToCards(cached, viewerRole));
+      setHeroLoading(false);
+      setHeroUnavailable(false);
+    } else {
+      setHeroLoading(true);
+      setHeroUnavailable(false);
+    }
+
+    fetchPublicEvents({})
+      .then((data) => {
+        if (cancelled) return;
+        setHeroEvents(mapListToCards(data, viewerRole));
+        setHeroUnavailable(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (cancelled) return;
+        if (!hasCached) {
+          setHeroEvents([]);
+        }
+        setHeroUnavailable(true);
+      })
+      .finally(() => {
+        if (!cancelled) setHeroLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [viewerRole]);
+
   // Khi đăng nhập / đổi role — refresh isRegistered, không chặn UI
   useEffect(() => {
     if (!isLoggedIn) return undefined;
@@ -220,13 +266,13 @@ const Home = ({ showToast }) => {
   );
 
   const heroSlides = useMemo(() => {
-    return mapEventsToHeroSlides(sortEventsByPopular(events), {
+    return mapEventsToHeroSlides(sortEventsByPopular(heroEvents), {
       categoryLabel: (event) => event.categoryLabel || event.category,
       organizerLabel: (event) => event.organizerLabel || '',
       dateLabel: (event) => event.dateLabel || '',
       location: (event) => event.location || '',
     });
-  }, [events]);
+  }, [heroEvents]);
 
   const handleFilterSubmit = () => {
     /* filtered via useMemo */
@@ -311,6 +357,8 @@ const Home = ({ showToast }) => {
       <SystemMaintenanceBanner />
       <HomeHeroSlider
         slides={heroSlides}
+        loading={heroLoading}
+        unavailable={heroUnavailable && heroSlides.length === 0}
         resolveDetailPath={(slide) => (slide.eventId ? `/events/${slide.eventId}` : null)}
       />
 
@@ -468,8 +516,6 @@ const Home = ({ showToast }) => {
           </div>
         )}
       </main>
-
-      <ChatbotFloating context="home" />
 
       <SiteFooter />
     </div>

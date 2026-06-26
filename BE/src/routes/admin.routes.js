@@ -24,6 +24,7 @@ const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
 const PartnerMember = require('../models/PartnerMember');
 const PartnerEventRequest = require('../models/PartnerEventRequest');
 const { formatEvent, formatProposal } = require('../utils/eventFormat');
+const { hydrateProposalPlanFromLinkedEvent } = require('../utils/eventPlanHydrate');
 const {
   buildSchoolEventAdminApproveMeta,
   canAdminApproveSchoolEvent,
@@ -80,6 +81,11 @@ const listProposalsForAdmin = (filter, limit = 200) =>
     { $limit: limit },
   ]).allowDiskUse(true);
 
+const formatProposalsForAdmin = async (proposals) => {
+  const hydrated = await Promise.all(proposals.map((p) => hydrateProposalPlanFromLinkedEvent(p)));
+  return hydrated.map((p) => formatProposal(p, { includePlanFile: true }));
+};
+
 router.get('/unit-events', async (req, res) => {
   try {
     const { unitType, unitId, scope = 'unit' } = req.query;
@@ -90,11 +96,12 @@ router.get('/unit-events', async (req, res) => {
         listEventsForAdmin(baseFilter, 500),
         listProposalsForAdmin({ status: { $nin: ['draft', 'cancelled'] } }, 200),
       ]);
+      const formattedProposals = await formatProposalsForAdmin(proposals);
       return res.json({
         success: true,
         scope: 'all',
         events: events.map(formatEvent),
-        proposals: proposals.map(formatProposal),
+        proposals: formattedProposals,
       });
     }
 
@@ -133,9 +140,9 @@ router.get('/unit-events', async (req, res) => {
       } else {
         eventFilter = { ...baseFilter, _id: { $in: [] } };
       }
-      proposals = clubProposals
-        .filter((p) => CLUB_PROPOSAL_PENDING.includes(p.status))
-        .map(formatProposal);
+      proposals = await formatProposalsForAdmin(
+        clubProposals.filter((p) => CLUB_PROPOSAL_PENDING.includes(p.status))
+      );
     } else {
       return res.status(400).json({ success: false, message: 'Loại đơn vị không hỗ trợ!' });
     }

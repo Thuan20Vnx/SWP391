@@ -9,10 +9,15 @@ import {
   getRegistrationProgress,
 } from '../utils/eventBentoStats';
 import { fetchCtsvEvent } from '../services/ctsvApi';
+import { fetchIcpdpEvent, fetchIcpdpProposal, icpdpApproveProposal, icpdpRejectProposal, icpdpRequestProposalRevision } from '../services/icpdpApi';
+import { getUserRole, isIcpdpRole } from '../utils/auth';
 import { getCtsvEventAccess } from '../utils/ctsvEventAccess';
 import { canCtsvEditSchoolEvent } from '../constants/eventWorkflow';
-import { canClubEditEventProposal } from '../constants/clubEventModeration';
+import { canClubEditEventProposal, canClubDeleteEventProposal, isClubEventPendingApproval, canClubImmediateDelete, canClubDirectEdit, canClubRequestDeleteModeration, needsClubEditModerationRequest, hasClubModerationPending, wasClubEventAdminApproved, isIcpdpModerationPending, isAdminModerationPending } from '../constants/clubEventModeration';
+import { MODERATION_ACTION_LABELS } from '../constants/eventModeration';
+import ClubEventModerationDialog from '../components/events/ClubEventModerationDialog';
 import { getManagementEventId, normalizeManagementEvent } from '../utils/normalizeManagementEvent';
+import { PORTAL_EVENTS_LIVE_EVENT } from '../utils/adminEventsLiveEvents';
 import './EventManagementDetail.css';
 import BentoStarRating from '../components/events/BentoStarRating';
 import EventOverviewPanel from '../components/events/EventOverviewPanel';
@@ -29,7 +34,7 @@ const PORTAL_CONFIG = {
     eventsLabel: 'Sự kiện',
     eventsPath: '/quan-ly-clb',
     headerLabel: 'Quản lý sự kiện',
-    currentLabel: 'Chi tiết quản lý',
+    currentLabel: 'Chi tiết sự kiện',
   },
   ctsv: {
     rootLabel: 'CTSV',
@@ -38,6 +43,14 @@ const PORTAL_CONFIG = {
     eventsPath: '/ctsv/events',
     headerLabel: 'Quản lý sự kiện CTSV',
     currentLabel: 'Chi tiết quản lý',
+  },
+  icpdp: {
+    rootLabel: 'IC-PDP',
+    rootPath: '/icpdp/proposals',
+    eventsLabel: 'Đề xuất CLB',
+    eventsPath: '/icpdp/proposals',
+    headerLabel: 'Duyệt đề xuất',
+    currentLabel: 'Chi tiết đề xuất',
   },
 };
 
@@ -105,14 +118,31 @@ const formatStudentEventTime = (value) => {
   return date.toLocaleString('vi-VN');
 };
 
-const EventManagementDetail = ({ portal = 'club' }) => {
-  const { id } = useParams();
+const EventManagementDetail = ({
+  portal = 'club',
+  eventIdOverride,
+  proposalId,
+  proposalData,
+  listPath: listPathProp,
+}) => {
+  const { id: routeId } = useParams();
+  const id = eventIdOverride || routeId;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const outlet = useOutletContext() || {};
   const showToast = outlet.showToast;
   const isCtsvPortal = portal === 'ctsv';
+  const isIcpdpPortal = portal === 'icpdp';
+  const isClubPortal = portal === 'club';
   const config = PORTAL_CONFIG[portal] || PORTAL_CONFIG.club;
+  const [icpdpNote, setIcpdpNote] = useState('');
+  const [icpdpSubmitting, setIcpdpSubmitting] = useState(false);
+  const [proposalReview, setProposalReview] = useState(proposalData || null);
+  const [moderationDialog, setModerationDialog] = useState({ open: false, action: 'edit' });
+
+  useEffect(() => {
+    setProposalReview(proposalData || null);
+  }, [proposalData]);
 
   const [activeTab, setActiveTab] = useState(() => {
     const tab = new URLSearchParams(window.location.search).get('tab');
@@ -145,6 +175,38 @@ const EventManagementDetail = ({ portal = 'club' }) => {
         return;
       }
 
+      if (isIcpdpPortal) {
+        let reviewProposal = proposalData;
+        if (proposalId) {
+          try {
+            const propRes = await fetchIcpdpProposal(proposalId);
+            reviewProposal = propRes.proposal || reviewProposal;
+            setProposalReview(reviewProposal);
+          } catch {
+            /* keep existing */
+          }
+        }
+        const icpdpData = await fetchIcpdpEvent(id);
+        if (!icpdpData?.event) {
+          showToast?.('Không thể lấy thông tin sự kiện', 'error');
+          navigate(listPathProp || config.eventsPath);
+          return;
+        }
+        const normalized = normalizeManagementEvent(icpdpData.event);
+        if (reviewProposal?.clubName) {
+          normalized.clubName = reviewProposal.clubName;
+        }
+        if (reviewProposal?.statusKey) {
+          normalized.proposalStatusKey = reviewProposal.statusKey;
+          normalized.icpdpNote = reviewProposal.icpdpNote || normalized.icpdpNote;
+          normalized.ctsvNote = reviewProposal.ctsvNote || normalized.ctsvNote;
+          normalized.rejectionReason = reviewProposal.rejectionReason || normalized.rejectionReason;
+        }
+        setEventData(normalized);
+        setStudents(icpdpData.students || []);
+        return;
+      }
+
       let event = null;
       let studentList = [];
       try {
@@ -174,7 +236,7 @@ const EventManagementDetail = ({ portal = 'club' }) => {
     } finally {
       setLoading(false);
     }
-  }, [id, isCtsvPortal, navigate, config.eventsPath, showToast]);
+  }, [id, isCtsvPortal, isIcpdpPortal, navigate, config.eventsPath, listPathProp, showToast, proposalData, proposalId]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -187,7 +249,16 @@ const EventManagementDetail = ({ portal = 'club' }) => {
   }, [loadEventData]);
 
   useEffect(() => {
-    if (isCtsvPortal || !id) return;
+    if (!isIcpdpPortal && !isCtsvPortal) return undefined;
+    const onLive = () => {
+      loadEventData();
+    };
+    window.addEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+  }, [isIcpdpPortal, isCtsvPortal, loadEventData]);
+
+  useEffect(() => {
+    if (isCtsvPortal || isIcpdpPortal || !id) return;
     const fetchClubMeta = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/clubs/manage/profile`, { headers: getEventHeaders(false) });
@@ -215,14 +286,44 @@ const EventManagementDetail = ({ portal = 'club' }) => {
     canManageCtsv &&
     eventData?.source === 'school' &&
     canCtsvEditSchoolEvent(eventData);
-  const canEditClub = !isCtsvPortal && canClubEditEventProposal(eventData);
+  const canEditClub = isClubPortal && (canClubDirectEdit(eventData) || needsClubEditModerationRequest(eventData));
+  const canDeleteClub = isClubPortal && canClubDeleteEventProposal(eventData);
+  const canImmediateDeleteClub = isClubPortal && canClubImmediateDelete(eventData);
+  const canRequestDeleteClub = isClubPortal && canClubRequestDeleteModeration(eventData);
+  const clubModerationPending = isClubPortal && hasClubModerationPending(eventData);
+  const showClubPreApprovalUi =
+    isClubPortal && isClubEventPendingApproval(eventData) && !wasClubEventAdminApproved(eventData);
+  const clubIcpdpModerationPending = isClubPortal && isIcpdpModerationPending(eventData);
+  const clubAdminModerationPending = isClubPortal && isAdminModerationPending(eventData);
+  const canShowIcpdpActions =
+    isIcpdpPortal &&
+    (proposalReview?.statusKey === 'pending_icpdp' || eventData?.proposalStatusKey === 'pending_icpdp') &&
+    isIcpdpRole(getUserRole());
 
-  const statusMeta = getEventStatusMeta(eventData);
+  const statusMeta = useMemo(() => {
+    if (isIcpdpPortal && proposalReview?.statusKey) {
+      return getEventStatusMeta({ statusKey: proposalReview.statusKey });
+    }
+    return getEventStatusMeta(eventData);
+  }, [isIcpdpPortal, proposalReview, eventData]);
   const rejectionReason =
     eventData?.rejectionReason?.trim() ||
     eventData?.moderationReason?.trim() ||
     '';
   const isRejected = eventData?.statusKey === 'rejected' || eventData?.status === 'rejected';
+  const isRevision =
+    eventData?.statusKey === 'revision' ||
+    eventData?.status === 'revision' ||
+    proposalData?.statusKey === 'revision' ||
+    proposalReview?.statusKey === 'revision';
+  const icpdpRevisionNote = eventData?.icpdpNote?.trim() || '';
+  const ctsvRevisionNote = eventData?.ctsvNote?.trim() || '';
+  const revisionFeedback = icpdpRevisionNote || ctsvRevisionNote;
+  const revisionFeedbackLabel = icpdpRevisionNote
+    ? 'Yêu cầu bổ sung từ IC-PDP'
+    : ctsvRevisionNote
+      ? 'Yêu cầu bổ sung từ CTSV / Admin'
+      : 'Yêu cầu bổ sung';
   const eventIdStr = getManagementEventId(eventData);
 
   const registrationProgress = useMemo(
@@ -273,7 +374,11 @@ const EventManagementDetail = ({ portal = 'club' }) => {
       navigate(`/ctsv/events/${id}/edit`);
       return;
     }
-    if (!canClubEditEventProposal(eventData)) {
+    if (!canClubDirectEdit(eventData) && needsClubEditModerationRequest(eventData)) {
+      setModerationDialog({ open: true, action: 'edit' });
+      return;
+    }
+    if (!canClubDirectEdit(eventData)) {
       showToast?.('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 'info');
       return;
     }
@@ -284,6 +389,49 @@ const EventManagementDetail = ({ portal = 'club' }) => {
         editEventPrefill: eventData,
       },
     });
+  };
+
+  const handleDeleteClubEvent = async () => {
+    if (canRequestDeleteClub) {
+      setModerationDialog({ open: true, action: 'delete' });
+      return;
+    }
+    if (!canImmediateDeleteClub) {
+      showToast?.('Sự kiện đã được duyệt hoặc đang có yêu cầu chờ xử lý. Vui lòng gửi yêu cầu xóa qua IC-PDP.', 'info');
+      return;
+    }
+
+    const title = eventData?.title || 'sự kiện này';
+    const confirmed = window.confirm(
+      `Sự kiện sẽ bị xóa ngay (không cần duyệt). Hệ thống sẽ gửi thông báo ưu tiên cao đến IC-PDP.\n\nBạn có chắc muốn xóa "${title}"?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/events/${id}`, {
+        method: 'DELETE',
+        headers: getEventHeaders(false),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast?.('Đã xóa sự kiện. IC-PDP đã được thông báo.', 'success');
+        navigate(config.eventsPath);
+        return;
+      }
+      showToast?.(data.message || 'Xóa thất bại', 'error');
+    } catch {
+      showToast?.('Lỗi kết nối server', 'error');
+    }
+  };
+
+  const handleModerationSubmitted = (updatedEvent) => {
+    if (updatedEvent) {
+      setEventData(normalizeManagementEvent(updatedEvent));
+    } else if (moderationDialog.action === 'delete') {
+      navigate(config.eventsPath);
+      return;
+    }
+    loadEventData();
   };
 
   const scrollToTabContent = useCallback(() => {
@@ -303,6 +451,80 @@ const EventManagementDetail = ({ portal = 'club' }) => {
     setActiveTab('ma-qr');
     scrollToTabContent();
   }, [scrollToTabContent]);
+
+  const handleIcpdpApprove = async () => {
+    if (!proposalId) return;
+    setIcpdpSubmitting(true);
+    try {
+      await icpdpApproveProposal(proposalId, icpdpNote);
+      showToast?.('Đã duyệt nội bộ — đề xuất chuyển sang Admin phê duyệt!', 'success');
+      await loadEventData();
+    } catch (e) {
+      showToast?.(e.message, 'error');
+    } finally {
+      setIcpdpSubmitting(false);
+    }
+  };
+
+  const handleIcpdpReject = async () => {
+    if (!proposalId) return;
+    if (!icpdpNote.trim()) {
+      showToast?.('Vui lòng nhập lý do từ chối.', 'error');
+      return;
+    }
+    setIcpdpSubmitting(true);
+    try {
+      await icpdpRejectProposal(proposalId, icpdpNote);
+      showToast?.('Đã từ chối đề xuất.', 'success');
+      await loadEventData();
+    } catch (e) {
+      showToast?.(e.message, 'error');
+    } finally {
+      setIcpdpSubmitting(false);
+    }
+  };
+
+  const handleIcpdpRevision = async () => {
+    if (!proposalId) return;
+    if (!icpdpNote.trim()) {
+      showToast?.('Vui lòng nhập nội dung yêu cầu bổ sung.', 'error');
+      return;
+    }
+    setIcpdpSubmitting(true);
+    try {
+      await icpdpRequestProposalRevision(proposalId, icpdpNote);
+      showToast?.('Đã gửi yêu cầu chỉnh sửa.', 'success');
+      await loadEventData();
+    } catch (e) {
+      showToast?.(e.message, 'error');
+    } finally {
+      setIcpdpSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showClubPreApprovalUi && activeTab !== 'tong-quan') {
+      setActiveTab('tong-quan');
+    }
+  }, [showClubPreApprovalUi, activeTab]);
+
+  const formatPendingDateTime = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toLocaleString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const eventStartLabel = formatPendingDateTime(eventData?.startDate) || 'Chưa cập nhật';
+  const eventEndLabel = formatPendingDateTime(eventData?.endDate);
+  const pendingLocationLabel = (eventData?.location || '').trim() || 'Chưa cập nhật';
+  const pendingCategoryLabel = (eventData?.category || '').trim() || 'Chưa phân loại';
 
   if (loading) {
     return (
@@ -347,45 +569,158 @@ const EventManagementDetail = ({ portal = 'club' }) => {
               </p>
             </div>
             <div className="ev-header-actions">
-              {(isCtsvPortal ? canManageCtsv : canEditClub) && (
-                <button type="button" className="ev-btn-outline" onClick={handleEdit}>
-                  Chỉnh sửa thông tin
-                </button>
+              {isClubPortal ? (
+                <>
+                  {canEditClub && (
+                    <button type="button" className="ev-btn-outline" onClick={handleEdit}>
+                      {needsClubEditModerationRequest(eventData) ? 'Yêu cầu chỉnh sửa' : 'Chỉnh sửa'}
+                    </button>
+                  )}
+                  {canDeleteClub && (
+                    <button
+                      type="button"
+                      className="ev-btn-outline ev-btn-outline--danger"
+                      onClick={handleDeleteClubEvent}
+                    >
+                      {canRequestDeleteClub && !canImmediateDeleteClub ? 'Yêu cầu xóa' : 'Xóa'}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {(isCtsvPortal ? canManageCtsv : canEditClub) && (
+                    <button type="button" className="ev-btn-outline" onClick={handleEdit}>
+                      Chỉnh sửa thông tin
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="ev-btn-outline"
+                    onClick={async () => {
+                      if (!students.length) {
+                        showToast?.('Chưa có sinh viên đăng ký để xuất file.', 'info');
+                        return;
+                      }
+                      await downloadStudentsExcel(students, {
+                        eventTitle: eventData?.title || 'su-kien',
+                        clubName: eventData?.clubName || clubMeta.clubName || 'CTSV',
+                        clubPresident:
+                          eventData?.clubPresident ||
+                          clubMeta.clubPresident ||
+                          eventData?.createdBy?.fullname ||
+                          '',
+                        capacity: eventData?.capacity,
+                        registeredCount: eventData?.registeredCount,
+                        checkinCount: eventData?.checkinCount,
+                        startDate: eventData?.startDate,
+                        endDate: eventData?.endDate,
+                        location: eventData?.location,
+                      });
+                      showToast?.('Đã xuất danh sách sinh viên.', 'success');
+                    }}
+                  >
+                    Xuất danh sách SV (Excel)
+                  </button>
+                  {canShowIcpdpActions && (
+                    <>
+                      <button
+                        type="button"
+                        className="ev-btn-outline ev-btn-outline--danger"
+                        disabled={icpdpSubmitting}
+                        onClick={handleIcpdpReject}
+                      >
+                        Từ chối
+                      </button>
+                      <button
+                        type="button"
+                        className="ev-btn-outline"
+                        disabled={icpdpSubmitting}
+                        onClick={handleIcpdpRevision}
+                      >
+                        Yêu cầu bổ sung
+                      </button>
+                      <button
+                        type="button"
+                        className="ev-btn-primary"
+                        disabled={icpdpSubmitting}
+                        onClick={handleIcpdpApprove}
+                      >
+                        Phê duyệt
+                      </button>
+                    </>
+                  )}
+                  {!isIcpdpPortal && (
+                    <button type="button" className="ev-btn-primary ev-btn-qr" onClick={openQrTab}>
+                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm13-2h3v2h-3zm-5 0h3v2h-3zm3 3h3v2h-3zm-3 3h3v2h-3zm3 3h3v2h-3zm-5-3h3v2h-3z" fill="currentColor"/></svg>
+                      Mã QR check-in/out
+                    </button>
+                  )}
+                </>
               )}
-              <button
-                type="button"
-                className="ev-btn-outline"
-                onClick={async () => {
-                  if (!students.length) {
-                    showToast?.('Chưa có sinh viên đăng ký để xuất file.', 'info');
-                    return;
-                  }
-                  await downloadStudentsExcel(students, {
-                    eventTitle: eventData?.title || 'su-kien',
-                    clubName: eventData?.clubName || clubMeta.clubName || 'CTSV',
-                    clubPresident:
-                      eventData?.clubPresident ||
-                      clubMeta.clubPresident ||
-                      eventData?.createdBy?.fullname ||
-                      '',
-                    capacity: eventData?.capacity,
-                    registeredCount: eventData?.registeredCount,
-                    checkinCount: eventData?.checkinCount,
-                    startDate: eventData?.startDate,
-                    endDate: eventData?.endDate,
-                    location: eventData?.location,
-                  });
-                  showToast?.('Đã xuất danh sách sinh viên.', 'success');
-                }}
-              >
-                Xuất danh sách SV (Excel)
-              </button>
-              <button type="button" className="ev-btn-primary ev-btn-qr" onClick={openQrTab}>
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden><path d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm13-2h3v2h-3zm-5 0h3v2h-3zm3 3h3v2h-3zm-3 3h3v2h-3zm3 3h3v2h-3zm-5-3h3v2h-3z" fill="currentColor"/></svg>
-                Mã QR check-in/out
-              </button>
             </div>
           </div>
+          {showClubPreApprovalUi && (
+            <div className="ev-pending-edit-hint" role="note">
+              <strong>Lưu ý:</strong>{' '}
+              Bạn có thể sửa hoặc xóa ngay khi sự kiện chưa được Admin phê duyệt lần đầu. Sau khi đã duyệt, mọi chỉnh sửa
+              hoặc xóa phải qua IC-PDP và Admin.
+            </div>
+          )}
+          {clubIcpdpModerationPending && (
+            <div className="ev-moderation-banner ev-moderation-banner--pending" role="status">
+              <strong>Đang chờ IC-PDP duyệt</strong>
+              <p>
+                Yêu cầu{' '}
+                <strong>{MODERATION_ACTION_LABELS[eventData?.moderationAction] || 'điều phối'}</strong>
+                {eventData?.moderationReason ? `: ${eventData.moderationReason}` : '.'}
+              </p>
+              <p className="ev-moderation-banner__hint">
+                Sau khi IC-PDP duyệt, yêu cầu sẽ chuyển sang Admin phê duyệt.
+              </p>
+            </div>
+          )}
+          {clubAdminModerationPending && (
+            <div className="ev-moderation-banner ev-moderation-banner--pending" role="status">
+              <strong>IC-PDP đã duyệt — đang chờ Admin</strong>
+              <p>
+                Yêu cầu{' '}
+                <strong>{MODERATION_ACTION_LABELS[eventData?.moderationAction] || 'điều phối'}</strong>
+                {eventData?.moderationReason ? `: ${eventData.moderationReason}` : '.'}
+              </p>
+              {eventData?.icpdpNote ? (
+                <p className="ev-moderation-banner__hint">Ghi chú IC-PDP: {eventData.icpdpNote}</p>
+              ) : null}
+            </div>
+          )}
+          {eventData?.clubEditUnlocked && isClubPortal && (
+            <div className="ev-moderation-banner ev-moderation-banner--info" role="status">
+              <strong>Admin đã duyệt chỉnh sửa</strong>
+              <p>Bạn có thể mở form chỉnh sửa. Sau khi lưu, đề xuất sẽ được gửi lại IC-PDP duyệt.</p>
+            </div>
+          )}
+          {canShowIcpdpActions && (
+            <div className="ev-icpdp-review-note">
+              <label className="ev-icpdp-review-note__label" htmlFor="icpdp-review-note">
+                Ghi chú / lý do (tùy chọn khi duyệt, bắt buộc khi từ chối hoặc yêu cầu bổ sung)
+              </label>
+              <textarea
+                id="icpdp-review-note"
+                className="ev-icpdp-review-note__input"
+                rows={3}
+                value={icpdpNote}
+                onChange={(e) => setIcpdpNote(e.target.value)}
+                placeholder="Nhập ghi chú cho CLB…"
+              />
+            </div>
+          )}
+          {isRevision && (
+            <div className="ev-rejection-reason ev-revision-feedback">
+              <span className="ev-rejection-reason__label">{revisionFeedbackLabel}</span>
+              <p className="ev-rejection-reason__text">
+                {revisionFeedback || 'Ban tổ chức chưa nhận được nội dung chi tiết. Vui lòng xem thông báo hoặc liên hệ bộ phận duyệt.'}
+              </p>
+            </div>
+          )}
           {isRejected && (
             <div className="ev-rejection-reason">
               <span className="ev-rejection-reason__label">Lý do từ chối</span>
@@ -396,7 +731,60 @@ const EventManagementDetail = ({ portal = 'club' }) => {
           )}
         </div>
 
-        <div className="ev-bento-grid">
+        <div className={`ev-bento-grid${showClubPreApprovalUi ? ' ev-bento-grid--pending' : ''}`}>
+          {showClubPreApprovalUi ? (
+            <>
+              <div className="ev-bento-card ev-bento-card--pending">
+                <div className="ev-bento-card-header">
+                  <h3>TRẠNG THÁI DUYỆT</h3>
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="#f59e0b"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/></svg>
+                </div>
+                <div className="ev-bento-value">
+                  <span className="ev-bento-num ev-bento-num--text">{statusMeta.label}</span>
+                </div>
+                <p className="ev-bento-desc">Đề xuất đang trong hàng đợi IC-PDP</p>
+              </div>
+
+              <div className="ev-bento-card ev-bento-card--pending">
+                <div className="ev-bento-card-header">
+                  <h3>SỨC CHỨA DỰ KIẾN</h3>
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="#f26f21"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/></svg>
+                </div>
+                <div className="ev-bento-value ev-bento-value--metric">
+                  <span className="ev-bento-num">{eventData?.capacity || 0}</span>
+                  <span className="ev-bento-total">chỗ</span>
+                </div>
+                <p className="ev-bento-desc">Quy mô tham gia trong đề xuất</p>
+              </div>
+
+              <div className="ev-bento-card ev-bento-card--pending">
+                <div className="ev-bento-card-header">
+                  <h3>ĐỊA ĐIỂM DỰ KIẾN</h3>
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="#64748b" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
+                </div>
+                <div className="ev-bento-value">
+                  <span className="ev-bento-num ev-bento-num--sm" title={pendingLocationLabel}>
+                    {pendingLocationLabel}
+                  </span>
+                </div>
+                <p className="ev-bento-desc">Chủ đề: {pendingCategoryLabel}</p>
+              </div>
+
+              <div className="ev-bento-card ev-bento-card--pending">
+                <div className="ev-bento-card-header">
+                  <h3>THỜI GIAN DIỄN RA</h3>
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="#334155"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z" fill="currentColor"/></svg>
+                </div>
+                <div className="ev-bento-value">
+                  <span className="ev-bento-num ev-bento-num--sm">{eventStartLabel}</span>
+                </div>
+                <p className="ev-bento-desc">
+                  {eventEndLabel ? `Kết thúc: ${eventEndLabel}` : 'Chưa có thời gian kết thúc'}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
           <div className="ev-bento-card">
             <div className="ev-bento-card-header">
               <h3>LƯỢT ĐĂNG KÝ VÉ</h3>
@@ -471,20 +859,30 @@ const EventManagementDetail = ({ portal = 'club' }) => {
               <span className="ev-bento-delta-value">{reachDeltaLabel}</span> so với tuần trước
             </p>
           </div>
+            </>
+          )}
         </div>
 
         <div className="ev-tabs-container">
+          {showClubPreApprovalUi ? (
+            <button type="button" className="ev-tab active">Tổng quan sự kiện</button>
+          ) : (
+            <>
           <button type="button" className={`ev-tab ${activeTab === 'tong-quan' ? 'active' : ''}`} onClick={() => setActiveTab('tong-quan')}>Tổng quan sự kiện</button>
           <button type="button" className={`ev-tab ${activeTab === 'danh-sach' ? 'active' : ''}`} onClick={() => setActiveTab('danh-sach')}>Danh sách Sinh viên</button>
           {isCtsvPortal && (
             <button type="button" className={`ev-tab ${activeTab === 'dieu-phoi' ? 'active' : ''}`} onClick={() => setActiveTab('dieu-phoi')}>Phê duyệt & Điều phối</button>
           )}
           <button type="button" className={`ev-tab ${activeTab === 'huy-ve' ? 'active' : ''}`} onClick={() => setActiveTab('huy-ve')}>Yêu cầu hủy vé</button>
-          {!isCtsvPortal && (
+          {!isIcpdpPortal && (
             <button type="button" className={`ev-tab ${activeTab === 'hoan-huy' ? 'active' : ''}`} onClick={() => setActiveTab('hoan-huy')}>Hoãn / Hủy sự kiện</button>
           )}
           <button type="button" className={`ev-tab ${activeTab === 'bao-cao' ? 'active' : ''}`} onClick={() => setActiveTab('bao-cao')}>Báo cáo & Minh chứng</button>
-          <button type="button" className={`ev-tab ${activeTab === 'ma-qr' ? 'active' : ''}`} onClick={openQrTab}>Mã QR check-in/out</button>
+          {!isIcpdpPortal && (
+            <button type="button" className={`ev-tab ${activeTab === 'ma-qr' ? 'active' : ''}`} onClick={openQrTab}>Mã QR check-in/out</button>
+          )}
+            </>
+          )}
         </div>
 
         <div className="ev-tab-content" ref={tabContentRef}>
@@ -716,7 +1114,7 @@ const EventManagementDetail = ({ portal = 'club' }) => {
 
           {activeTab === 'huy-ve' && <EventCancelRequestsPanel students={students} />}
 
-          {activeTab === 'hoan-huy' && !isCtsvPortal && id && (
+          {activeTab === 'hoan-huy' && isClubPortal && id && (
             <EventPostponeCancelPanel
               event={eventData}
               eventId={id}
@@ -725,7 +1123,9 @@ const EventManagementDetail = ({ portal = 'club' }) => {
             />
           )}
 
-          {activeTab === 'bao-cao' && <EventReportPanel event={eventData} students={students} />}
+          {activeTab === 'bao-cao' && (
+            <EventReportPanel event={eventData} students={students} pendingApproval={showClubPreApprovalUi} />
+          )}
 
           {activeTab === 'ma-qr' && id && <EventQrGeneratePanel eventId={id} showToast={showToast} />}
         </div>
@@ -737,6 +1137,18 @@ const EventManagementDetail = ({ portal = 'club' }) => {
           <p>Hotline: 024.1234.5678 | Email: contact@fevents.com</p>
         </div>
       </footer>
+
+      {isClubPortal && (
+        <ClubEventModerationDialog
+          open={moderationDialog.open}
+          eventId={id}
+          action={moderationDialog.action}
+          eventTitle={eventData?.title || ''}
+          onClose={() => setModerationDialog((prev) => ({ ...prev, open: false }))}
+          onSubmitted={handleModerationSubmitted}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 };

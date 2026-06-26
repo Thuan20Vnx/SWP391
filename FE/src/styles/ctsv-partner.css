@@ -2950,28 +2950,45 @@ html:has(.ctsv-app-shell) body {
 
 @media (min-width: 1024px) {
   .ctsv-app-shell .ctsv-sidebar {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    width: 280px;
+    max-width: 280px;
     height: 100vh;
+    height: 100dvh;
     flex-shrink: 0;
-    transform: none;
-    transition: width 0.28s ease, padding 0.28s ease, border-width 0.28s ease;
+    transform: translateX(-100%);
+    visibility: visible;
+    pointer-events: none;
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
     overflow: hidden;
+    padding: 16px 12px;
+    box-sizing: border-box;
   }
 
   .ctsv-app-shell.sidebar-open .ctsv-sidebar {
-    width: 280px;
-    padding: 16px 12px;
+    transform: translateX(0);
+    pointer-events: auto;
     border-right-width: 1px;
     box-shadow: none;
   }
 
   .ctsv-app-shell.sidebar-closed .ctsv-sidebar {
-    width: 0;
-    padding: 0;
-    border-right-width: 0;
+    transform: translateX(-100%);
     pointer-events: none;
-    visibility: hidden;
+  }
+
+  .ctsv-app-shell.sidebar-open .ctsv-shell-main,
+  .ctsv-app-shell.sidebar-open .admin-shell-main,
+  .ctsv-app-shell.sidebar-open .public-shell-main {
+    margin-left: 280px;
+  }
+
+  .ctsv-app-shell.sidebar-closed .ctsv-shell-main,
+  .ctsv-app-shell.sidebar-closed .admin-shell-main,
+  .ctsv-app-shell.sidebar-closed .public-shell-main {
+    margin-left: 0;
   }
 
   .ctsv-drawer-backdrop {
