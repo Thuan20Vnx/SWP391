@@ -114,19 +114,27 @@ router.get('/:id/image', async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(404).send('Not found');
     }
-    const doc = await Announcement.findById(req.params.id).select('image').lean();
-    if (!doc || !doc.image) {
-      return res.status(404).send('No image');
+    const {
+      resolveAnnouncementImageResponse,
+      writeAnnouncementImageFromDataUri,
+    } = require('../utils/announcementImageStorage');
+    const { isImageDataUri } = require('../utils/dataUriStorage');
+    const doc = await Announcement.findById(req.params.id)
+      .select('image imageFileExt')
+      .lean();
+    if (!doc) return res.status(404).send('No image');
+    if (isImageDataUri(doc.image) && !doc.imageFileExt) {
+      writeAnnouncementImageFromDataUri(String(doc._id), doc.image)
+        .then((ext) =>
+          Announcement.updateOne({ _id: doc._id }, { $set: { imageFileExt: ext, image: '' } })
+        )
+        .catch(() => {});
     }
-    const match = doc.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-    if (!match) {
-      return res.status(400).send('Invalid image format');
-    }
-    const type = match[1];
-    const buffer = Buffer.from(match[2], 'base64');
-    res.set('Content-Type', type);
+    const resolved = await resolveAnnouncementImageResponse(doc);
+    if (!resolved) return res.status(404).send('No image');
+    res.set('Content-Type', resolved.mime);
     res.set('Cache-Control', 'public, max-age=86400');
-    return res.send(buffer);
+    return res.send(resolved.buffer);
   } catch (error) {
     console.error('announcement image:', error);
     return res.status(500).send('Server Error');

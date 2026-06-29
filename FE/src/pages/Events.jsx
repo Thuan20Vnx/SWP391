@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
 import AppSelect from '../components/ui/AppSelect';
 import PublicAdminShell from '../layouts/PublicAdminShell';
-import SiteFooter from '../components/SiteFooter';
 import useUserProfile from '../hooks/useUserProfile';
 import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
@@ -23,9 +22,6 @@ import {
   FIGMA_SAMPLE_EVENTS,
   mapApiEventToCard,
   markDiscoveryCardRegistered,
-  filterEventsByState,
-  filterEventsByOrganizer,
-  sortEventsByStatePriority,
 } from '../data/eventDiscoveryData';
 
 const PAGE_SIZE = 6;
@@ -52,34 +48,33 @@ const Events = ({ showToast }) => {
   const [stateFilter, setStateFilter] = useState(DEFAULT_STATE_FILTER);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebouncedValue(searchQuery.trim(), 400);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [listTotal, setListTotal] = useState(0);
 
-  const buildEventQuery = () => ({
+  const buildEventQuery = (page = currentPage) => ({
     q: debouncedSearch || undefined,
     category: activeFilter !== 'all' ? activeFilter : undefined,
     club: clubFilter || undefined,
+    page,
+    limit: PAGE_SIZE,
+    state: stateFilter || DEFAULT_STATE_FILTER,
+    organizer: clubFilter ? undefined : organizerFilter,
   });
 
   const mapListToCards = (data, roleForPricing = 'guest') => {
-    if (data?.success && data.events?.length > 0) {
-      return data.events.map((ev) => mapApiEventToCard(ev, { viewerRole: roleForPricing }));
-    }
-    if (USE_FIGMA_FALLBACK && !debouncedSearch && !clubFilter) {
-      return FIGMA_SAMPLE_EVENTS.filter((ev) => ev.cardState === 'active' && ev.filledSlots < ev.totalSlots);
-    }
-    return [];
+    if (!data?.events?.length) return [];
+    return data.events.map((ev) => mapApiEventToCard(ev, { viewerRole: roleForPricing }));
   };
 
   const initialCards = mapListToCards(
-    getCachedPublicEventsList(buildEventQuery()),
+    getCachedPublicEventsList(buildEventQuery(1)),
     localStorage.getItem('authToken') ? getUserRole() || 'guest' : 'guest'
   );
   const [events, setEvents] = useState(
     initialCards.length > 0 ? initialCards : USE_FIGMA_FALLBACK ? FIGMA_SAMPLE_EVENTS : []
   );
   const [loading, setLoading] = useState(initialCards.length === 0 && !USE_FIGMA_FALLBACK);
-  const filterParamsRef = useRef({ debouncedSearch, activeFilter, clubFilter });
-  filterParamsRef.current = { debouncedSearch, activeFilter, clubFilter };
+  const filterParamsRef = useRef({ debouncedSearch, activeFilter, clubFilter, stateFilter, organizerFilter, currentPage });
 
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = userProfile.role || getUserRole();
@@ -100,14 +95,21 @@ const Events = ({ showToast }) => {
     [isClubManager, managedClubs, activeClub?.id]
   );
 
+  filterParamsRef.current = { debouncedSearch, activeFilter, clubFilter, stateFilter, organizerFilter, currentPage };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, activeFilter, clubFilter, stateFilter, organizerFilter]);
+
   useEffect(() => {
     let cancelled = false;
-    const params = buildEventQuery();
+    const params = buildEventQuery(currentPage);
     const cached = getCachedPublicEventsList(params);
     const hasCached = Boolean(cached?.events?.length);
 
     if (hasCached) {
       setEvents(mapListToCards(cached, viewerRole));
+      setListTotal(cached.total ?? cached.events.length);
       setLoading(false);
     } else {
       setLoading(true);
@@ -117,6 +119,7 @@ const Events = ({ showToast }) => {
       .then((data) => {
         if (cancelled) return;
         setEvents(mapListToCards(data, viewerRole));
+        setListTotal(data.total ?? data.events?.length ?? 0);
       })
       .catch((err) => {
         console.error(err);
@@ -124,16 +127,17 @@ const Events = ({ showToast }) => {
         if (!hasCached) {
           if (USE_FIGMA_FALLBACK) setEvents(FIGMA_SAMPLE_EVENTS);
           showToast?.('Không thể tải danh sách sự kiện', 'error');
+          setListTotal(0);
         }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [showToast, debouncedSearch, activeFilter, clubFilter, viewerRole]);
+  }, [showToast, debouncedSearch, activeFilter, clubFilter, stateFilter, organizerFilter, currentPage, viewerRole]);
 
   useEffect(() => {
     if (!isLoggedIn) return undefined;
@@ -142,6 +146,7 @@ const Events = ({ showToast }) => {
 
     fetchPublicEvents(
       {
+        ...buildEventQuery(currentPage),
         q: search || undefined,
         category: filter !== 'all' ? filter : undefined,
         club: club || undefined,
@@ -188,23 +193,12 @@ const Events = ({ showToast }) => {
       .catch(() => setClubFilterLabel(''));
   }, [clubFilter, events]);
 
-  const filteredEvents = useMemo(() => {
-    let result = events;
-    if (!clubFilter) {
-      result = filterEventsByOrganizer(result, organizerFilter);
-    }
-    result = filterEventsByState(result, stateFilter);
-    return sortEventsByStatePriority(result);
-  }, [events, clubFilter, stateFilter, organizerFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredEvents.length / PAGE_SIZE));
-  const currentPage = Math.min(Math.max(1, Math.ceil(visibleCount / PAGE_SIZE)), totalPages);
-  const visibleEvents = filteredEvents.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(listTotal / PAGE_SIZE));
+  const visibleEvents = events;
   const hasPagination = totalPages > 1;
 
   const goToPage = (page) => {
-    const nextPage = Math.min(Math.max(1, page), totalPages);
-    setVisibleCount(nextPage * PAGE_SIZE);
+    setCurrentPage(Math.min(Math.max(1, page), totalPages));
   };
 
   const hasSecondaryFilters = organizerFilter !== 'all' || activeFilter !== 'all';
@@ -221,7 +215,7 @@ const Events = ({ showToast }) => {
     setOrganizerFilter('all');
     setStateFilter(DEFAULT_STATE_FILTER);
     setSearchQuery('');
-    setVisibleCount(PAGE_SIZE);
+    setCurrentPage(1);
     if (clubFilter) clearClubFilter();
   };
 
@@ -296,7 +290,7 @@ const Events = ({ showToast }) => {
       searchValue={searchQuery}
       onSearchChange={(value) => {
         setSearchQuery(value);
-        setVisibleCount(PAGE_SIZE);
+        setCurrentPage(1);
       }}
     >
     <div className={`events-page home-layout${isAdminViewer || isCtsvStaff || isClubManager ? ' events-page--admin-view' : ''}`}>
@@ -344,7 +338,7 @@ const Events = ({ showToast }) => {
                   className={`events-page__state-pill ${stateFilter === filter.id ? 'is-active' : ''}`}
                   onClick={() => {
                     setStateFilter(filter.id);
-                    setVisibleCount(PAGE_SIZE);
+                    setCurrentPage(1);
                   }}
                 >
                   {filter.label}
@@ -364,7 +358,7 @@ const Events = ({ showToast }) => {
                     value={organizerFilter}
                     onChange={(e) => {
                       setOrganizerFilter(e.target.value);
-                      setVisibleCount(PAGE_SIZE);
+                      setCurrentPage(1);
                     }}
                     options={ORGANIZER_SELECT_OPTIONS}
                     fullWidth={false}
@@ -382,7 +376,7 @@ const Events = ({ showToast }) => {
                   value={activeFilter}
                   onChange={(e) => {
                     setActiveFilter(e.target.value);
-                    setVisibleCount(PAGE_SIZE);
+                    setCurrentPage(1);
                   }}
                   options={CATEGORY_SELECT_OPTIONS}
                   fullWidth={false}
@@ -471,8 +465,6 @@ const Events = ({ showToast }) => {
           </nav>
         )}
       </main>
-
-      <SiteFooter />
     </div>
     </PublicAdminShell>
   );

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import EventProposalForm from '../../components/events/EventProposalForm';
-import { createCtsvEvent, fetchCtsvEvent, updateCtsvEvent } from '../../services/ctsvApi';
-import { createIcpdpSchoolEvent, fetchIcpdpEvent, updateIcpdpSchoolEvent } from '../../services/icpdpApi';
+import { createCtsvEvent, fetchCtsvEvent, fetchCtsvEvents, updateCtsvEvent } from '../../services/ctsvApi';
+import { createIcpdpSchoolEvent, fetchIcpdpEvent, fetchIcpdpEvents, updateIcpdpSchoolEvent } from '../../services/icpdpApi';
+import { fetchSchoolSemesterTimelines } from '../../services/schoolTimelineApi';
 import { canEditSchoolEventForPortal } from '../../constants/eventWorkflow';
 import { mapApiEventToForm } from '../../utils/eventFormState';
 
@@ -21,6 +22,32 @@ const CtsvEventCreate = () => {
   const [initialForm, setInitialForm] = useState(null);
   const [bannerFileName, setBannerFileName] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [approvedTimelines, setApprovedTimelines] = useState([]);
+  const [schoolEvents, setSchoolEvents] = useState([]);
+
+  useEffect(() => {
+    if (isEdit) return undefined;
+    let cancelled = false;
+    Promise.all([
+      fetchSchoolSemesterTimelines(),
+      isIcpdp ? fetchIcpdpEvents() : fetchCtsvEvents(),
+    ])
+      .then(([timelineRes, eventsRes]) => {
+        if (cancelled) return;
+        const timelines = (timelineRes.timelines || []).filter((tl) => tl.statusKey === 'approved');
+        setApprovedTimelines(timelines);
+        setSchoolEvents(eventsRes?.events || eventsRes?.items || []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isEdit, isIcpdp]);
+
+  const existingEvents = useMemo(
+    () => schoolEvents.map((ev) => ({ id: ev.id || ev._id, title: ev.title, status: ev.status })),
+    [schoolEvents]
+  );
 
   useEffect(() => {
     if (!isEdit) return undefined;
@@ -113,6 +140,8 @@ const CtsvEventCreate = () => {
         onSubmit={handleSubmit}
         hideHeader
         hideBackButton
+        approvedTimelines={approvedTimelines}
+        clubEvents={existingEvents}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import SiteHeader from '../components/SiteHeader';
 import QrCameraScanner from '../components/QrCameraScanner';
+import { useClubParticipateLayout } from '../context/ClubParticipateLayoutContext';
 import { selfScanByAttendanceCode, selfScanEvent } from '../services/scannerApi';
 import './QrScanPage.css';
 
@@ -17,6 +18,7 @@ const isDesktopDevice = () => {
 const sanitizeCodeInput = (value) => value.replace(/[^A-Za-z0-9]/g, '').slice(0, 6).toUpperCase();
 
 const QrScanPage = ({ showToast }) => {
+  const inClubParticipateLayout = useClubParticipateLayout();
   const [searchParams] = useSearchParams();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -172,7 +174,7 @@ const QrScanPage = ({ showToast }) => {
 
   return (
     <div className="qr-scan-page">
-      <SiteHeader activeNav="profile" />
+      {!inClubParticipateLayout && <SiteHeader activeNav="profile" />}
       <main className="qr-scan-main">
         <div className="qr-scan-header">
           <Link to="/profile" className="qr-scan-back">

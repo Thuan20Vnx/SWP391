@@ -4,6 +4,12 @@ const Contract = require('../models/Contract');
 const AppError = require('../utils/AppError');
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 const partnerQueryCache = require('../utils/partnerQueryCache');
+const { sanitizePartnerRequestForApi } = require('../utils/partnerMediaStorage');
+
+const toRequestApi = (doc) => {
+  const o = doc?.toObject ? doc.toObject() : { ...(doc || {}) };
+  return { ...o, ...sanitizePartnerRequestForApi(o) };
+};
 
 const MAX_IMAGE_LEN = 4_500_000;
 const MAX_ATTACHMENT_LEN = 2_000_000;
@@ -168,7 +174,7 @@ const saveDraft = async (email, body) => {
   Object.assign(doc, payload, { status: 'draft' });
   await doc.save();
   bumpPartnerCache(normalized);
-  return doc.toObject ? doc.toObject() : doc;
+  return toRequestApi(doc);
 };
 
 const { ensurePrimaryPartnerMember } = require('./partnerMember.service');
@@ -272,7 +278,7 @@ const submitRequest = async (email, body) => {
   );
 
   bumpPartnerCache(normalized);
-  return { request: doc.toObject ? doc.toObject() : doc, partner };
+  return { request: toRequestApi(doc), partner };
 };
 
 const cancelRequest = async (email, requestId) => {
@@ -291,7 +297,7 @@ const cancelRequest = async (email, requestId) => {
     });
   }
   bumpPartnerCache(doc.partnerEmail);
-  return doc.toObject ? doc.toObject() : doc;
+  return toRequestApi(doc);
 };
 
 const updatePendingRequest = async (email, requestId, body) => {
@@ -311,7 +317,7 @@ const updatePendingRequest = async (email, requestId, body) => {
   doc.partnerId = partner._id;
   await doc.save();
   bumpPartnerCache(doc.partnerEmail);
-  return doc.toObject ? doc.toObject() : doc;
+  return toRequestApi(doc);
 };
 
 const updateApprovedRequest = async (email, requestId, body) => {
@@ -327,7 +333,7 @@ const updateApprovedRequest = async (email, requestId, body) => {
   await doc.save();
   if (doc.partnerId) await syncPartnerRecord(email, payload, 'approved');
   bumpPartnerCache(doc.partnerEmail);
-  return doc.toObject ? doc.toObject() : doc;
+  return toRequestApi(doc);
 };
 
 const hideRequest = async (email, requestId) => {
@@ -342,7 +348,7 @@ const hideRequest = async (email, requestId) => {
   doc.hiddenAt = new Date();
   await doc.save();
   bumpPartnerCache(doc.partnerEmail);
-  return doc.toObject ? doc.toObject() : doc;
+  return toRequestApi(doc);
 };
 
 const deleteRequest = async (email, requestId) => {
@@ -376,7 +382,7 @@ const deleteRequest = async (email, requestId) => {
   }
 
   bumpPartnerCache(partnerEmail);
-  return doc.toObject ? doc.toObject() : doc;
+  return toRequestApi(doc);
 };
 
 const listCancelledForEmail = async (email) => {

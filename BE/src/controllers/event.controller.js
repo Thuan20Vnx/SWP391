@@ -24,9 +24,40 @@ const getApprovedEvents = async (req, res) => {
     search: req.query.search,
     q: req.query.q,
     club: req.query.club,
+    page: req.query.page,
+    limit: req.query.limit,
+    sort: req.query.sort,
+    state: req.query.state,
+    organizer: req.query.organizer,
     user: req.user || null,
   });
   res.status(200).json({ success: true, ...result });
+};
+
+const getFeaturedEvents = async (req, res) => {
+  const limit = Math.min(10, Math.max(1, parseInt(req.query.limit, 10) || 3));
+  const result = await eventService.getApprovedEvents({
+    page: 1,
+    limit,
+    sort: 'featured',
+    user: req.user || null,
+  });
+  res.status(200).json({ success: true, ...result });
+};
+
+const getEventCover = async (req, res) => {
+  await eventService.sendEventCover(req.params.id, res);
+};
+
+const getEventPlan = async (req, res) => {
+  await eventService.sendEventPlan(req.params.id, res, {
+    user: req.user || null,
+    activeClubId: req.headers['x-managed-club-id'],
+  });
+};
+
+const getSpeakerAvatar = async (req, res) => {
+  await eventService.sendSpeakerAvatar(req.params.id, req.params.index, res);
 };
 
 const getEventById = async (req, res) => {
@@ -69,6 +100,10 @@ module.exports = {
   getPendingEvents,
   updateEventStatus,
   getApprovedEvents,
+  getFeaturedEvents,
+  getEventCover,
+  getEventPlan,
+  getSpeakerAvatar,
   getEventById,
 };
 

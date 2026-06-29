@@ -4,6 +4,7 @@ import ProposalTicketsTable from '../admin/ProposalTicketsTable';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import { statusClass } from '../../utils/eventStatus';
 import { getVisibleProposalReviewNotes } from '../../utils/proposalReviewNotes';
+import TimelineSourceNotice from '../club/TimelineSourceNotice';
 import '../../styles/admin-dashboard.css';
 
 const THUMB_FALLBACK =
@@ -40,6 +41,7 @@ const ClubProposalReviewCard = ({
           <span className="admin-proposal-card__index">#{index + 1}</span>
           <h2 className="admin-proposal-card__title">{proposal.title}</h2>
           {sourceBadge}
+          <TimelineSourceNotice source={proposal} className="admin-proposal-card__timeline-source" />
           {showPlanPanel && <span className="adm-ev-plan-badge">Có bảng KH</span>}
         </div>
         <span className={`status-pill ${statusClass(statusText, statusToneKey)}`}>{statusText}</span>
@@ -109,7 +111,7 @@ const ClubProposalReviewCard = ({
         {showPlanPanel && (
           <div className="admin-fpt-unit-events__plan-panel">
             <EventPlanFilePanel
-              fileUrl={proposal.eventPlanFile}
+              fileUrl={proposal.eventPlanUrl || proposal.eventPlanFile}
               fileName={proposal.eventPlanFileName}
               mimeType={proposal.eventPlanFileMime}
               externalLink={proposal.eventPlanLink}

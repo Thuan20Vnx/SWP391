@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react-router-dom';
 
+import ClubManagerParticipateLayout from './layouts/ClubManagerParticipateLayout';
 import Home from './pages/Home';
 import CtsvLayout from './layouts/CtsvLayout';
 import CtsvDashboard from './pages/ctsv/CtsvDashboard';
@@ -21,6 +22,7 @@ import CtsvCalendar from './pages/ctsv/CtsvCalendar';
 import CtsvReports from './pages/ctsv/CtsvReports';
 import CtsvAllEvents from './pages/ctsv/CtsvAllEvents';
 import CtsvReportDetail from './pages/ctsv/CtsvReportDetail';
+import CtsvSemesterTimelines from './pages/ctsv/CtsvSemesterTimelines';
 import CtsvProfile from './pages/ctsv/CtsvProfile';
 import IcpdpLayout from './layouts/IcpdpLayout';
 import IcpdpHome from './pages/IcpdpHome';
@@ -35,6 +37,7 @@ import IcpdpCalendar from './pages/icpdp/IcpdpCalendar';
 import IcpdpReports from './pages/icpdp/IcpdpReports';
 import IcpdpProfileSettings from './pages/icpdp/IcpdpProfileSettings';
 import IcpdpSemesterTimelineList from './pages/icpdp/IcpdpSemesterTimelineList';
+import IcpdpMySemesterTimelines from './pages/icpdp/IcpdpMySemesterTimelines';
 import IcpdpSemesterTimelineDetail from './pages/icpdp/IcpdpSemesterTimelineDetail';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
@@ -247,8 +250,6 @@ function App() {
         <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
         <SystemMaintenanceGate>
         <Routes>
-          <Route path="/" element={<PublicHomeRoute showToast={showToast} />} />
-
           <Route path="/ctsv" element={<CtsvProtectedRoute />}>
             <Route element={<CtsvLayout showToast={showToast} />}>
               <Route index element={<Navigate to="/" replace />} />
@@ -262,8 +263,8 @@ function App() {
               <Route path="proposals/:id" element={<CtsvProposalDetail />} />
               <Route path="partners" element={<CtsvPartnerList />} />
               <Route path="partners/:id" element={<CtsvPartnerDetail />} />
-              <Route path="semester-timelines" element={<Navigate to="/ctsv/dashboard" replace />} />
-              <Route path="semester-timelines/*" element={<Navigate to="/ctsv/dashboard" replace />} />
+              <Route path="semester-timelines" element={<CtsvSemesterTimelines />} />
+              <Route path="semester-timelines/:id" element={<Navigate to="/ctsv/semester-timelines" replace />} />
               <Route path="announcements/publish" element={<CtsvAnnouncementPublish />} />
               <Route
                 path="announcements/:id"
@@ -294,6 +295,7 @@ function App() {
               <Route path="club-registrations/:id" element={<IcpdpClubRegistrationDetail />} />
               <Route path="semester-timelines" element={<IcpdpSemesterTimelineList />} />
               <Route path="semester-timelines/:id" element={<IcpdpSemesterTimelineDetail />} />
+              <Route path="my-semester-timelines" element={<IcpdpMySemesterTimelines />} />
               <Route path="events" element={<IcpdpEventList />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
               <Route path="events/:id/edit" element={<CtsvEventCreate />} />
@@ -360,33 +362,85 @@ function App() {
           <Route path="/forgot" element={<ForgotPassword showToast={showToast} />} />
           <Route path="/reset-password" element={<ResetPassword showToast={showToast} />} />
           <Route path="/unlock-account" element={<UnlockAccount showToast={showToast} />} />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                {isPartnerRole() ? (
-                  <Navigate to="/partner/profile" replace />
-                ) : isCtsvRole() ? (
-                  <Navigate to="/ctsv/profile" replace />
-                ) : (
-                  <Profile showToast={showToast} />
-                )}
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
 
-          <Route path="/events" element={<Events showToast={showToast} />} />
-          <Route path="/events/:eventId" element={<EventDetail showToast={showToast} />} />
-          <Route path="/clubs" element={<PublicClubsRoute showToast={showToast} />} />
-          <Route path="/clubs/:clubId" element={<ClubDetail showToast={showToast} />} />
+          <Route element={<ClubManagerParticipateLayout />}>
+            <Route path="/" element={<PublicHomeRoute showToast={showToast} />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  {isPartnerRole() ? (
+                    <Navigate to="/partner/profile" replace />
+                  ) : isCtsvRole() ? (
+                    <Navigate to="/ctsv/profile" replace />
+                  ) : (
+                    <Profile showToast={showToast} />
+                  )}
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings showToast={showToast} />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/events" element={<Events showToast={showToast} />} />
+            <Route path="/events/:eventId" element={<EventDetail showToast={showToast} />} />
+            <Route path="/clubs" element={<PublicClubsRoute showToast={showToast} />} />
+            <Route path="/clubs/:clubId" element={<ClubDetail showToast={showToast} />} />
+            <Route
+              path="/my-events"
+              element={
+                <ProtectedRoute>
+                  <MyEvents showToast={showToast} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-clubs"
+              element={
+                <ProtectedRoute>
+                  <MyClubs showToast={showToast} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/schedule"
+              element={
+                <ProtectedRoute>
+                  <Schedule showToast={showToast} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/event-reviews"
+              element={
+                <ProtectedRoute>
+                  <EventReviews showToast={showToast} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/announcements"
+              element={<PublicAnnouncementsRoute showToast={showToast} />}
+            />
+            <Route
+              path="/announcements/:id"
+              element={<PublicAnnouncementDetailRoute showToast={showToast} />}
+            />
+            <Route
+              path="/quet-qr"
+              element={
+                <ProtectedRoute>
+                  <QrScanPage showToast={showToast} />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
           <Route path="/dept/:deptType" element={<PublicDeptDetailRoute showToast={showToast} />} />
           <Route path="/partners/:partnerId" element={<PublicPartnerDetailRoute showToast={showToast} />} />
           <Route
@@ -406,14 +460,6 @@ function App() {
             <Route path="announcements/:id" element={<ClubAnnouncementDetailPage />} />
             <Route path="su-kien/:id" element={<EventManagementDetail />} />
           </Route>
-          <Route
-            path="/quet-qr"
-            element={
-              <ProtectedRoute>
-                <QrScanPage showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
           <Route path="/scan-qr" element={<ScanQrLegacyRedirect />} />
           <Route
             path="/create-event"
@@ -470,22 +516,6 @@ function App() {
           </Route>
           <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
           <Route
-            path="/my-events"
-            element={
-              <ProtectedRoute>
-                <MyEvents showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-clubs"
-            element={
-              <ProtectedRoute>
-                <MyClubs showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/my-payments"
             element={
               <ProtectedRoute>
@@ -493,31 +523,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/schedule"
-            element={
-              <ProtectedRoute>
-                <Schedule showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/event-reviews"
-            element={
-              <ProtectedRoute>
-                <EventReviews showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/announcements"
-            element={<PublicAnnouncementsRoute showToast={showToast} />}
-          />
-          <Route
-            path="/announcements/:id"
-            element={<PublicAnnouncementDetailRoute showToast={showToast} />}
-          />
-
           <Route path="/terms" element={<StaticPage pageKey="terms" />} />
           <Route path="/privacy" element={<StaticPage pageKey="privacy" />} />
           <Route path="/support" element={<StaticPage pageKey="support" />} />

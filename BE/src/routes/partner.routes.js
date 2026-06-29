@@ -31,6 +31,7 @@ const {
 } = require('../services/partnerEventRequest.service');
 const partnerQueryCache = require('../utils/partnerQueryCache');
 const { createAndBroadcast } = require('../services/notification.service');
+const { checkEventVenueConflicts } = require('../services/timelineLocationConflict.service');
 
 router.use(authMiddleware);
 router.use(requireRole(['partner']));
@@ -186,6 +187,16 @@ router.get('/proposals', async (req, res) => {
     return res.json({ success: true, proposals });
   } catch (error) {
     return handleError(res, error, 'partner proposals');
+  }
+});
+
+router.post('/proposals/check-venue-conflicts', async (req, res) => {
+  try {
+    const { location, startDate, endDate } = req.body || {};
+    const result = await checkEventVenueConflicts({ location, startDate, endDate });
+    return res.json({ success: true, ...result });
+  } catch (error) {
+    return handleError(res, error, 'partner venue conflicts');
   }
 });
 

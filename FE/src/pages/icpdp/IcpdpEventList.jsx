@@ -138,8 +138,11 @@ const IcpdpEventList = () => {
     showToast?.('Đã lọc danh sách sự kiện.', 'success');
   };
 
-  const filtered = useMemo(() => {
+  useEffect(() => {
     setPage(1);
+  }, [searchQuery, categoryFilter, sourceFilter, statusFilter]);
+
+  const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
     // Ưu tiên đưa sự kiện đang chờ duyệt (chưa tới/đang ở bước Admin) lên đầu
     // để IC-PDP thấy ngay, tránh bị đẩy xuống trang sau do sắp theo ngày bắt đầu.

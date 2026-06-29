@@ -25,6 +25,10 @@ import {
   normalizeEventPlanLink,
 } from '../../utils/eventPlanFile';
 import EventProposalFormSkeleton from './EventProposalFormSkeleton';
+import ClubTimelineQuickPick from '../club/ClubTimelineQuickPick';
+import TimelineLocationConflictNotice from '../timeline/TimelineLocationConflictNotice';
+import { checkEventVenueConflictsApi } from '../../services/schoolTimelineApi';
+import { checkPartnerVenueConflicts } from '../../services/partnerApi';
 
 const BANNER_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -61,6 +65,10 @@ const EventProposalForm = ({
   hideBackButton = false,
   loading = false,
   className = '',
+  approvedTimelines = [],
+  clubEvents = [],
+  onOpenExistingEvent,
+  onClearEditMode,
 }) => {
   const config = EVENT_FORM_ROLE_CONFIG[role] || EVENT_FORM_ROLE_CONFIG.club;
   const isControlled = controlledForm != null && typeof onFormChange === 'function';
@@ -74,6 +82,9 @@ const EventProposalForm = ({
   const [internalBannerFileName, setInternalBannerFileName] = useState('');
   const [bannerCropOpen, setBannerCropOpen] = useState(false);
   const [bannerCropSrc, setBannerCropSrc] = useState('');
+  const [selectedTimelineKey, setSelectedTimelineKey] = useState(null);
+  const [selectedTimelineSource, setSelectedTimelineSource] = useState(null);
+  const [venueConflicts, setVenueConflicts] = useState([]);
   const bannerInputRef = useRef(null);
   const planFileInputRef = useRef(null);
 
@@ -98,8 +109,56 @@ const EventProposalForm = ({
     if (!initialForm) return;
     if (isControlled) onFormChange({ ...EMPTY_EVENT_FORM, location: config.defaultLocation, ...initialForm });
     else setInternalForm({ ...EMPTY_EVENT_FORM, location: config.defaultLocation, ...initialForm });
+    setSelectedTimelineKey(null);
+    setSelectedTimelineSource(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingId]);
+
+  const showVenueConflictCheck = role === 'partner' || role === 'icpdp' || role === 'ctsv';
+  const supportsTimelineQuickPick = role === 'club' || role === 'icpdp' || role === 'ctsv';
+
+  useEffect(() => {
+    if (!showVenueConflictCheck || !form.location?.trim() || !form.eventStartDate) {
+      setVenueConflicts([]);
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      const startPart = form.eventStartTime || '00:00';
+      const endPart = form.eventEndTime || '23:59';
+      const startDate = new Date(`${form.eventStartDate}T${startPart}`).toISOString();
+      const endDate = form.eventEndDate
+        ? new Date(`${form.eventEndDate}T${endPart}`).toISOString()
+        : undefined;
+      const checkPromise =
+        role === 'partner'
+          ? checkPartnerVenueConflicts({ location: form.location, startDate, endDate })
+          : checkEventVenueConflictsApi({ location: form.location, startDate, endDate });
+      checkPromise
+        .then((res) => setVenueConflicts(res.conflicts || []))
+        .catch(() => setVenueConflicts([]));
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [form.location, form.eventStartDate, form.eventStartTime, form.eventEndDate, form.eventEndTime, role, showVenueConflictCheck]);
+
+  const handleTimelineQuickPick = (item, nextForm) => {
+    if (isEditMode || editingId) {
+      const confirmed = window.confirm(
+        'Thay thế nội dung form hiện tại bằng thông tin từ timeline? Các thay đổi chưa lưu sẽ bị mất.'
+      );
+      if (!confirmed) return;
+      onClearEditMode?.();
+    }
+
+    setSelectedTimelineKey(item.key);
+    setSelectedTimelineSource({
+      timelineId: item.timelineId,
+      itemTitle: item.title,
+      semesterLabel: item.semesterLabel,
+    });
+    setStep(1);
+    setForm(nextForm);
+    showToast?.('Đã điền thông tin từ timeline. Vui lòng bổ sung banner và gửi duyệt.', 'success');
+  };
 
   const patchForm = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
@@ -138,7 +197,7 @@ const EventProposalForm = ({
   const handlePlanFile = (file) => {
     if (disabled || !file) return;
     if (!isAllowedEventPlanFile(file)) {
-      showToast?.('Chỉ chấp nhận PDF, DOC, DOCX, XLS hoặc XLSX.', 'error');
+      showToast?.('Chỉ chấp nhận PDF, DOC, DOCX, XLS, XLSX hoặc ZIP.', 'error');
       return;
     }
     if (file.size > EVENT_PLAN_MAX_BYTES) {
@@ -218,6 +277,9 @@ const EventProposalForm = ({
     if (form.eventPlanLink?.trim()) {
       payload.eventPlanLink = normalizeEventPlanLink(form.eventPlanLink);
     }
+    if (selectedTimelineSource?.itemTitle) {
+      payload.timelineSource = selectedTimelineSource;
+    }
     await onSubmit?.(payload);
   };
 
@@ -279,6 +341,18 @@ const EventProposalForm = ({
             </p>
           </div>
         </div>
+      )}
+
+      {supportsTimelineQuickPick && approvedTimelines.length > 0 && (
+        <ClubTimelineQuickPick
+          timelines={approvedTimelines}
+          clubEvents={clubEvents}
+          currentForm={form}
+          selectedKey={selectedTimelineKey}
+          onSelectItem={handleTimelineQuickPick}
+          onOpenExistingEvent={onOpenExistingEvent}
+          disabled={disabled || submitting}
+        />
       )}
 
       <div className="clb-steps">
@@ -430,7 +504,7 @@ const EventProposalForm = ({
                 <label>
                   Bảng kế hoạch sự kiện <span className="clb-required">*</span>
                 </label>
-                <p className="clb-banner-hint">PDF, DOC, DOCX, XLS, XLSX — tối đa 10MB</p>
+                <p className="clb-banner-hint">PDF, DOC, DOCX, XLS, XLSX, ZIP — tối đa 10MB</p>
                 <input
                   ref={planFileInputRef}
                   type="file"
@@ -715,6 +789,18 @@ const EventProposalForm = ({
                 )}
               </div>
             </div>
+            {venueConflicts.length > 0 && (
+              <TimelineLocationConflictNotice
+                conflicts={venueConflicts}
+                venue={form.location}
+                plannedDate={form.eventStartDate ? `${form.eventStartDate}T${form.eventStartTime || '00:00'}` : null}
+                plannedEndDate={
+                  form.eventEndDate
+                    ? `${form.eventEndDate}T${form.eventEndTime || '23:59'}`
+                    : null
+                }
+              />
+            )}
             <div className="clb-form-group">
               <EventTicketTypesEditor
                 tickets={form.ticketTypes || []}

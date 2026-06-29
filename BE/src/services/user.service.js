@@ -2,8 +2,20 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const AppError = require('../utils/AppError');
 const { normalizeRole } = require('../utils/role');
+const {
+  persistUserAvatarPayload,
+  sanitizeUserAvatarForApi,
+  resolveUserAvatarResponse,
+  writeUserAvatarFromDataUri,
+} = require('../utils/userAvatarStorage');
+const { isImageDataUri } = require('../utils/dataUriStorage');
 
-const sanitizeUser = (user) => User.sanitizeUser(user);
+const sanitizeUser = (user) => {
+  const base = User.sanitizeUser(user);
+  if (!base) return null;
+  const avatar = sanitizeUserAvatarForApi(user?._id ? user : base);
+  return { ...base, ...avatar };
+};
 
 const MAX_IMAGE_DATA_URL_LENGTH = 800 * 1024;
 
@@ -76,15 +88,12 @@ const updateUserAvatar = async (email, picture) => {
     throw new AppError('Không tìm thấy thông tin người dùng!', 404);
   }
   await fixLegacyUserRole(user);
-  const result = await User.updateOne(
-    { _id: user._id },
-    { $set: { picture, avatar: picture } }
-  );
+  const avatarFields = await persistUserAvatarPayload(user._id, picture);
+  const result = await User.updateOne({ _id: user._id }, { $set: avatarFields });
   if (result.matchedCount === 0) {
     throw new AppError('Không tìm thấy thông tin người dùng!', 404);
   }
-  user.picture = picture;
-  user.avatar = picture;
+  Object.assign(user, avatarFields);
   return {
     message: 'Đã cập nhật ảnh đại diện.',
     user: sanitizeUser(user),
@@ -173,12 +182,9 @@ const updateProfile = async (email, body) => {
     course !== undefined;
 
   if (picturePayload !== null) {
-    await User.updateOne(
-      { _id: user._id },
-      { $set: { picture: picturePayload, avatar: picturePayload } }
-    );
-    user.picture = picturePayload;
-    user.avatar = picturePayload;
+    const avatarFields = await persistUserAvatarPayload(user._id, picturePayload);
+    await User.updateOne({ _id: user._id }, { $set: avatarFields });
+    Object.assign(user, avatarFields);
   }
 
   if (hasOtherUpdates) {
@@ -247,10 +253,40 @@ const verifyPassword = async (email, password) => {
   return { valid };
 };
 
+const sendUserAvatar = async (userId, res) => {
+  const user = await User.findById(userId).select('picture avatar avatarFileExt').lean();
+  if (!user) {
+    throw new AppError('Không tìm thấy ảnh đại diện', 404);
+  }
+  if (isImageDataUri(user.picture || user.avatar) && !user.avatarFileExt) {
+    const src = user.picture || user.avatar;
+    writeUserAvatarFromDataUri(String(userId), src)
+      .then((ext) =>
+        User.updateOne(
+          { _id: userId },
+          { $set: { avatarFileExt: ext, picture: '', avatar: '' } }
+        )
+      )
+      .catch(() => {});
+  }
+  const resolved = await resolveUserAvatarResponse({ ...user, _id: userId });
+  if (!resolved) {
+    throw new AppError('Không tìm thấy ảnh đại diện', 404);
+  }
+  if (resolved.redirectUrl) {
+    res.redirect(302, resolved.redirectUrl);
+    return;
+  }
+  res.set('Content-Type', resolved.mime);
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.send(resolved.buffer);
+};
+
 module.exports = {
   getProfile,
   updateProfile,
   updateUserAvatar,
+  sendUserAvatar,
   changePassword,
   verifyPassword,
 };

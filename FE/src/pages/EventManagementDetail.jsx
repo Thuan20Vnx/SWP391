@@ -14,8 +14,8 @@ import { getUserRole, isIcpdpRole } from '../utils/auth';
 import { getCtsvEventAccess } from '../utils/ctsvEventAccess';
 import { canCtsvEditSchoolEvent } from '../constants/eventWorkflow';
 import { canClubEditEventProposal, canClubDeleteEventProposal, isClubEventPendingApproval, canClubImmediateDelete, canClubDirectEdit, canClubRequestDeleteModeration, needsClubEditModerationRequest, hasClubModerationPending, wasClubEventAdminApproved, isIcpdpModerationPending, isAdminModerationPending } from '../constants/clubEventModeration';
-import { MODERATION_ACTION_LABELS } from '../constants/eventModeration';
 import ClubEventModerationDialog from '../components/events/ClubEventModerationDialog';
+import ClubModerationBannerContent from '../components/events/ClubModerationBannerContent';
 import { getManagementEventId, normalizeManagementEvent } from '../utils/normalizeManagementEvent';
 import { PORTAL_EVENTS_LIVE_EVENT } from '../utils/adminEventsLiveEvents';
 import './EventManagementDetail.css';
@@ -23,6 +23,7 @@ import BentoStarRating from '../components/events/BentoStarRating';
 import EventOverviewPanel from '../components/events/EventOverviewPanel';
 import EventCancelRequestsPanel from '../components/events/EventCancelRequestsPanel';
 import EventPostponeCancelPanel from '../components/events/EventPostponeCancelPanel';
+import TimelineSourceNotice from '../components/club/TimelineSourceNotice';
 import EventReportPanel from '../components/events/EventReportPanel';
 import EventQrGeneratePanel from '../components/events/EventQrGeneratePanel';
 import CtsvEventActionsPanel from '../components/events/CtsvEventActionsPanel';
@@ -669,27 +670,13 @@ const EventManagementDetail = ({
           {clubIcpdpModerationPending && (
             <div className="ev-moderation-banner ev-moderation-banner--pending" role="status">
               <strong>Đang chờ IC-PDP duyệt</strong>
-              <p>
-                Yêu cầu{' '}
-                <strong>{MODERATION_ACTION_LABELS[eventData?.moderationAction] || 'điều phối'}</strong>
-                {eventData?.moderationReason ? `: ${eventData.moderationReason}` : '.'}
-              </p>
-              <p className="ev-moderation-banner__hint">
-                Sau khi IC-PDP duyệt, yêu cầu sẽ chuyển sang Admin phê duyệt.
-              </p>
+              <ClubModerationBannerContent event={eventData} icpdpHint />
             </div>
           )}
           {clubAdminModerationPending && (
             <div className="ev-moderation-banner ev-moderation-banner--pending" role="status">
               <strong>IC-PDP đã duyệt — đang chờ Admin</strong>
-              <p>
-                Yêu cầu{' '}
-                <strong>{MODERATION_ACTION_LABELS[eventData?.moderationAction] || 'điều phối'}</strong>
-                {eventData?.moderationReason ? `: ${eventData.moderationReason}` : '.'}
-              </p>
-              {eventData?.icpdpNote ? (
-                <p className="ev-moderation-banner__hint">Ghi chú IC-PDP: {eventData.icpdpNote}</p>
-              ) : null}
+              <ClubModerationBannerContent event={eventData} icpdpNote={eventData?.icpdpNote} />
             </div>
           )}
           {eventData?.clubEditUnlocked && isClubPortal && (
@@ -697,6 +684,12 @@ const EventManagementDetail = ({
               <strong>Admin đã duyệt chỉnh sửa</strong>
               <p>Bạn có thể mở form chỉnh sửa. Sau khi lưu, đề xuất sẽ được gửi lại IC-PDP duyệt.</p>
             </div>
+          )}
+          {isIcpdpPortal && (
+            <TimelineSourceNotice
+              source={proposalReview || eventData}
+              className="ev-timeline-source-banner"
+            />
           )}
           {canShowIcpdpActions && (
             <div className="ev-icpdp-review-note">

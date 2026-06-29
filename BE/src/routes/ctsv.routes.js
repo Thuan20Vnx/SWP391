@@ -43,6 +43,11 @@ const {
 } = require('../utils/announcementEvents');
 const clubSemesterTimelineService = require('../services/clubSemesterTimeline.service');
 const {
+  checkItemConflicts,
+  checkEventVenueConflicts,
+  previewFormConflicts,
+} = require('../services/timelineLocationConflict.service');
+const {
   requestModeration,
   requestClubModeration,
   approveIcpdpModeration,
@@ -82,7 +87,12 @@ const pickSchoolEventFields = (body) => {
     learningOutcomes,
     expectedAttendees,
     ticketTypes,
-    ticketPrice
+    ticketPrice,
+    timelineSource,
+    eventPlanFile,
+    eventPlanFileName,
+    eventPlanFileMime,
+    eventPlanLink,
   } = body;
 
   if (image && image.length > MAX_IMAGE_DATA_LEN) {
@@ -103,6 +113,16 @@ const pickSchoolEventFields = (body) => {
   const primarySpeaker = normalizedSpeakers[0];
   const resolvedTickets = Number(totalTickets) || Number(capacity) || 100;
   const bannerImage = image || thumbnail || '';
+
+  const normalizedTimelineSource = (() => {
+    const src = timelineSource;
+    if (!src || !String(src.itemTitle || '').trim()) return null;
+    return {
+      timelineId: src.timelineId || null,
+      itemTitle: String(src.itemTitle).trim(),
+      semesterLabel: String(src.semesterLabel || '').trim(),
+    };
+  })();
 
   return {
     title: title?.trim(),
@@ -129,8 +149,21 @@ const pickSchoolEventFields = (body) => {
     agenda: agenda || '',
     learningOutcomes: normalizeLearningOutcomes(learningOutcomes),
     expectedAttendees: Number(expectedAttendees) || 0,
-    ticketTypes: normalizeTicketTypes(ticketTypes)
+    ticketTypes: normalizeTicketTypes(ticketTypes),
+    ...(normalizedTimelineSource ? { timelineSource: normalizedTimelineSource } : {}),
+    ...(eventPlanFile !== undefined ? { eventPlanFile: eventPlanFile || '' } : {}),
+    ...(eventPlanFileName !== undefined ? { eventPlanFileName: eventPlanFileName || '' } : {}),
+    ...(eventPlanFileMime !== undefined ? { eventPlanFileMime: eventPlanFileMime || '' } : {}),
+    ...(eventPlanLink !== undefined ? { eventPlanLink: eventPlanLink || '' } : {}),
   };
+};
+
+const resolveSchoolUnitRole = (userRole) => {
+  if (userRole === 'ctsv') return 'ctsv';
+  if (userRole === 'icpdp') return 'icpdp';
+  const err = new Error('Chỉ IC-PDP hoặc CTSV được quản lý timeline đơn vị!');
+  err.statusCode = 403;
+  throw err;
 };
 
 router.use(authMiddleware);
@@ -257,7 +290,9 @@ router.get('/events', async (req, res) => {
 
     const filter = buildEventFilter(req.query);
     const forApproval = req.query.forApproval === '1' || req.query.forApproval === 'true';
-    let queryBuilder = Event.find(filter);
+    let queryBuilder = Event.find(filter).select(
+      '-thumbnail -image -description -learningOutcomes -agenda -eventPlanFile'
+    );
 
     if (req.query.sort === 'newest') {
       queryBuilder = queryBuilder.sort({ createdAt: -1 });
@@ -301,7 +336,11 @@ router.get('/events', async (req, res) => {
 // GET /api/ctsv/events/calendar — toàn bộ sự kiện (mọi trạng thái, mọi nguồn)
 router.get('/events/calendar', async (req, res) => {
   try {
-    const events = await Event.find({}).sort({ startDate: 1 }).limit(500);
+    const events = await Event.find({})
+      .select('-thumbnail -image -description -learningOutcomes -agenda -eventPlanFile')
+      .sort({ startDate: 1 })
+      .limit(500)
+      .lean();
     return res.json({
       success: true,
       events: events.map(formatEvent)
@@ -361,7 +400,12 @@ router.get('/events/approved', async (req, res) => {
     const lim = Math.min(100, parseInt(limit) || 20);
 
     const [events, total] = await Promise.all([
-      Event.find(filter).sort({ startDate: -1 }).skip(skip).limit(lim),
+      Event.find(filter)
+        .select('-thumbnail -image -description -learningOutcomes -agenda -eventPlanFile')
+        .sort({ startDate: -1 })
+        .skip(skip)
+        .limit(lim)
+        .lean(),
       Event.countDocuments(filter),
     ]);
 
@@ -417,6 +461,12 @@ router.post('/events', requireSchoolEventSubmit, async (req, res) => {
     }
 
     const schoolOrganizerRole = resolveSchoolOrganizerRole(req.userRole);
+
+    const unitRole = schoolOrganizerRole === 'icpdp' ? 'icpdp' : schoolOrganizerRole === 'ctsv' ? 'ctsv' : null;
+    if (unitRole) {
+      const timelineId = data.timelineSource?.timelineId || null;
+      await clubSemesterTimelineService.assertApprovedTimelineForSchoolUnit(unitRole, timelineId);
+    }
 
     const event = await Event.create({
       ...data,
@@ -885,6 +935,49 @@ router.get('/proposals', async (req, res) => {
   }
 });
 
+router.get('/proposals/:id/cover', async (req, res) => {
+  try {
+    const EventProposal = require('../models/EventProposal');
+    const { resolveProposalCoverResponse } = require('../utils/proposalCoverStorage');
+    const { isImageDataUri } = require('../utils/dataUriStorage');
+    const { parseDataUri, extensionFromMime, writeBufferToFile } = require('../utils/dataUriStorage');
+    const path = require('path');
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).send('Not found');
+    }
+    const proposal = await EventProposal.findById(req.params.id).select('image coverFileExt').lean();
+    if (!proposal) return res.status(404).send('Not found');
+    if (isImageDataUri(proposal.image) && !proposal.coverFileExt) {
+      const PROPOSAL_COVERS = path.join(__dirname, '../../uploads/proposal-covers');
+      const { mime, buffer } = parseDataUri(proposal.image);
+      const ext = extensionFromMime(mime, '', 'jpg');
+      writeBufferToFile(path.join(PROPOSAL_COVERS, `${String(proposal._id)}.${ext}`), buffer)
+        .then(() =>
+          EventProposal.updateOne({ _id: proposal._id }, { $set: { coverFileExt: ext, image: '' } })
+        )
+        .catch(() => {});
+    }
+    const resolved = await resolveProposalCoverResponse(proposal);
+    if (!resolved) return res.status(404).send('No cover');
+    res.set('Content-Type', resolved.mime);
+    res.set('Cache-Control', 'public, max-age=86400');
+    return res.send(resolved.buffer);
+  } catch (error) {
+    console.error('proposal cover:', error);
+    return res.status(500).send('Server Error');
+  }
+});
+
+router.get('/proposals/:id/plan', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const { sendProposalPlan } = require('../utils/eventPlanStorage');
+    await sendProposalPlan(req.params.id, res);
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
 router.get('/proposals/:id', async (req, res) => {
   try {
     const proposal = await EventProposal.findById(req.params.id);
@@ -1302,13 +1395,17 @@ router.get('/partners/:id', async (req, res) => {
     const eventRequest = await PartnerEventRequest.findOne({
       partnerId: partner._id,
       status: { $nin: ['draft', 'cancelled', 'deleted'] }
-    }).sort({ updatedAt: -1 });
+    }).sort({ updatedAt: -1 }).lean();
+    const { sanitizePartnerRequestForApi } = require('../utils/partnerMediaStorage');
+    const eventRequestPayload = eventRequest
+      ? { ...eventRequest, ...sanitizePartnerRequestForApi(eventRequest) }
+      : null;
     return res.json({
       success: true,
       partner: partnerPayload,
       members,
       contracts,
-      eventRequest: eventRequest || null
+      eventRequest: eventRequestPayload
     });
   } catch (error) {
     console.error('ctsv partner detail:', error);
@@ -1618,6 +1715,7 @@ router.post('/announcements/:id/delete', requireCtsvApprove, deleteAnnouncementH
 // --- Semester timelines (CLB kế hoạch kỳ học — chỉ IC-PDP duyệt) ---
 router.get('/semester-timelines', requireIcpdpTimeline, async (req, res) => {
   try {
+    const ownerType = req.query.ownerType || (req.userRole === 'admin' ? 'all' : 'club');
     const defaultStatuses =
       req.userRole === 'admin'
         ? ['pending_admin']
@@ -1626,11 +1724,31 @@ router.get('/semester-timelines', requireIcpdpTimeline, async (req, res) => {
       status: req.query.status,
       q: req.query.q,
       defaultStatuses: req.query.status ? null : defaultStatuses,
+      ownerType,
     });
     return res.json({ success: true, timelines });
   } catch (error) {
     console.error('semester-timelines list:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/semester-timelines/:id/event-plan', requireIcpdpTimeline, async (req, res) => {
+  try {
+    const plan = await clubSemesterTimelineService.getEventPlanById(req.params.id);
+    return res.json({ success: true, plan });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/semester-timelines/:id/plan', requireIcpdpTimeline, async (req, res) => {
+  try {
+    await clubSemesterTimelineService.sendTimelinePlanFile(req.params.id, res);
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
   }
 });
 
@@ -1650,6 +1768,15 @@ router.patch('/semester-timelines/:id/icpdp-approve', requireIcpdpTimeline, asyn
       note: req.body.note,
       reviewerEmail: req.authEmail,
     });
+    createAndBroadcast({
+      recipientRoles: ['admin', 'club_manager'],
+      recipientEmails: [timeline.submittedByEmail].filter(Boolean),
+      title: 'Timeline đã qua IC-PDP',
+      body: `Timeline ${timeline.semesterLabel || ''} đang chờ Admin phê duyệt.`,
+      type: 'timeline_update',
+      refId: String(req.params.id),
+      refType: 'semester_timeline'
+    }).catch(() => {});
     createAndBroadcast({
       recipientRoles: ['admin'],
       title: 'Timeline CLB cần Admin duyệt',
@@ -1771,11 +1898,20 @@ router.patch('/semester-timelines/:id/change-request/admin-approve', requireAdmi
       recipientRoles: ['icpdp', 'club_manager'],
       recipientEmails: [result?.submittedByEmail].filter(Boolean),
       title: 'Yêu cầu thay đổi timeline đã được duyệt',
-      body: 'Admin đã chấp nhận yêu cầu thay đổi timeline.',
+      body: result?.changeRequest?.statusKey === 'scheduled_delete'
+        ? 'Admin đã duyệt xóa timeline — sẽ xóa sau 1 giờ. CLB có thể hủy yêu cầu trong thời gian này.'
+        : 'Admin đã chấp nhận yêu cầu thay đổi timeline.',
       type: 'timeline_approve',
       refId: String(req.params.id),
       refType: 'semester_timeline'
     }).catch(() => {});
+    if (result?.changeRequest?.statusKey === 'scheduled_delete' || result?.changeRequest?.status === 'scheduled_delete') {
+      return res.json({
+        success: true,
+        timeline: result,
+        message: 'Admin đã duyệt xóa — timeline sẽ bị xóa sau 1 giờ. CLB có thể hủy yêu cầu trong thời gian này.',
+      });
+    }
     if (result?.deleted) {
       return res.json({ success: true, ...result, message: 'Admin đã duyệt — timeline đã xóa.' });
     }
@@ -1804,6 +1940,183 @@ router.patch('/semester-timelines/:id/change-request/reject', requireIcpdpTimeli
       refType: 'semester_timeline'
     }).catch(() => {});
     return res.json({ success: true, timeline, message: 'Đã từ chối yêu cầu.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// --- School-unit semester timelines (ICPDP / CTSV own timelines) ---
+router.get('/school-semester-timelines', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const timelines = await clubSemesterTimelineService.listForSchoolUnit(role);
+    return res.json({ success: true, timelines });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/school-semester-timelines/:id/event-plan', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const plan = await clubSemesterTimelineService.getEventPlanByIdForSchoolUnit(req.params.id, role);
+    return res.json({ success: true, plan });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/school-semester-timelines/:id/plan', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    await clubSemesterTimelineService.sendTimelinePlanFile(req.params.id, res, { role });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.get('/school-semester-timelines/:id', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const timeline = await clubSemesterTimelineService.getByIdForSchoolUnit(req.params.id, role);
+    return res.json({ success: true, timeline });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/school-semester-timelines', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const timeline = await clubSemesterTimelineService.createForSchoolUnit(role, req.body, req.authEmail);
+    return res.status(201).json({ success: true, timeline, message: 'Đã tạo timeline kỳ học.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.put('/school-semester-timelines/:id', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const timeline = await clubSemesterTimelineService.updateForSchoolUnit(req.params.id, role, req.body);
+    return res.json({ success: true, timeline, message: 'Đã cập nhật timeline.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/school-semester-timelines/:id/submit', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const timeline = await clubSemesterTimelineService.submitForSchoolUnit(req.params.id, role, req.authEmail);
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: `Timeline ${timeline.ownerLabel || 'đơn vị'} cần Admin duyệt`,
+      body: `${timeline.ownerLabel || 'Đơn vị'} vừa gửi timeline ${timeline.semesterLabel || ''}.`,
+      type: 'timeline_submit',
+      refId: String(req.params.id),
+      refType: 'semester_timeline',
+    }).catch(() => {});
+    return res.json({ success: true, timeline, message: 'Đã gửi timeline lên Admin phê duyệt.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/school-semester-timelines/:id/withdraw', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const timeline = await clubSemesterTimelineService.withdrawForSchoolUnit(req.params.id, role);
+    return res.json({ success: true, timeline, message: 'Đã thu hồi đơn timeline.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.delete('/school-semester-timelines/:id', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const result = await clubSemesterTimelineService.deleteForSchoolUnit(req.params.id, role);
+    return res.json({ success: true, ...result, message: 'Đã xóa timeline.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/school-semester-timelines/:id/change-request', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const timeline = await clubSemesterTimelineService.requestChangeForSchoolUnit(req.params.id, req.body, role);
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: 'Yêu cầu thay đổi timeline đơn vị',
+      body: `${timeline.ownerLabel || 'Đơn vị'} gửi yêu cầu ${req.body.type || ''} timeline.`,
+      type: 'timeline_update',
+      refId: String(req.params.id),
+      refType: 'semester_timeline',
+    }).catch(() => {});
+    return res.json({ success: true, timeline, message: 'Đã gửi yêu cầu thay đổi.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/school-semester-timelines/:id/cancel-scheduled-delete', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const timeline = await clubSemesterTimelineService.cancelScheduledDeleteForSchoolUnit(req.params.id, role);
+    return res.json({ success: true, timeline, message: 'Đã hủy lịch xóa timeline.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/school-semester-timelines/check-conflicts', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const { items, excludeTimelineId, submittedAt } = req.body || {};
+    const results = await previewFormConflicts({ items, excludeTimelineId, submittedAt });
+    return res.json({ success: true, results });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/semester-timelines/check-conflicts', requireCtsvPortal, async (req, res) => {
+  try {
+    const { location, plannedDate, plannedEndDate, excludeTimelineId, excludeItemIndex, submittedAt } = req.body || {};
+    const result = await checkItemConflicts({
+      location,
+      plannedDate,
+      plannedEndDate,
+      excludeTimelineId,
+      excludeItemIndex,
+      submittedAt,
+    });
+    return res.json({ success: true, ...result });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/events/check-venue-conflicts', requireCtsvPortal, async (req, res) => {
+  try {
+    const { location, startDate, endDate, excludeEventId } = req.body || {};
+    const result = await checkEventVenueConflicts({ location, startDate, endDate, excludeEventId });
+    return res.json({ success: true, ...result });
   } catch (error) {
     const status = error.statusCode || 500;
     return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });

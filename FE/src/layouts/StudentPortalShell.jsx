@@ -9,8 +9,10 @@ import {
   persistStudentPublicSidebarOpen,
   readStudentPublicSidebarPref,
 } from '../components/student/studentNavConfig';
+import { useClubParticipateLayout } from '../context/ClubParticipateLayoutContext';
 import { resolveStudentPublicActiveNav } from '../data/studentSidebarMenu';
 import useUserProfile from '../hooks/useUserProfile';
+import { isClubManagerRole } from '../utils/auth';
 import { resolvePublicShellSearchPlaceholder } from '../utils/publicShellSearch';
 
 const mapMenuKeyToHeaderNav = (menuKey) => {
@@ -36,6 +38,7 @@ const StudentPortalShell = ({
 }) => {
   const { pathname } = useLocation();
   const { userProfile } = useUserProfile();
+  const inClubParticipateLayout = useClubParticipateLayout();
   const [sidebarOpen, setSidebarOpen] = useState(readStudentPublicSidebarPref);
 
   const resolvedActiveMenu = activeMenu ?? resolveStudentPublicActiveNav(pathname);
@@ -71,10 +74,6 @@ const StudentPortalShell = ({
     };
   }, [sidebarOpen]);
 
-  const portalClass = `profile-page student-portal student-public-portal${
-    sidebarOpen ? ' student-public-portal--sidebar-open' : ' student-public-portal--sidebar-closed'
-  }`;
-
   const content = (
     <>
       {(pageTitle || pageSubtitle) && (
@@ -87,8 +86,20 @@ const StudentPortalShell = ({
     </>
   );
 
+  if (isClubManagerRole() && inClubParticipateLayout) {
+    return contentClassName ? (
+      <div className={contentClassName}>{content}</div>
+    ) : (
+      content
+    );
+  }
+
   return (
-    <div className={portalClass}>
+    <div
+      className={`profile-page student-portal student-public-portal${
+        sidebarOpen ? ' student-public-portal--sidebar-open' : ' student-public-portal--sidebar-closed'
+      }`}
+    >
       {sidebarOpen && !isStudentDesktop() && (
         <div className="sidebar-overlay active" onClick={closeSidebar} aria-hidden="true" />
       )}

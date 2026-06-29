@@ -96,7 +96,7 @@ const getReply = async ({ messages, context }) => {
   }
 
   const [{ events } = {}, annList, weather] = await Promise.all([
-    eventService.getApprovedEvents({}),
+    eventService.getApprovedEvents({ skipPagination: true }),
     Announcement.find(PUBLIC_ANNOUNCEMENT_FILTER)
       .select('title content publishedAt')
       .sort({ publishedAt: -1 })

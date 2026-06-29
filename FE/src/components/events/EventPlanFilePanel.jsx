@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './EventPlanFilePanel.css';
 import {
   canPreviewEventPlan,
-  downloadDataUrlFile,
+  downloadPlanFile,
+  fetchPlanFileBlobUrl,
   formatFileSize,
   isValidEventPlanLink,
+  resolveEventPlanFileUrl,
 } from '../../utils/eventPlanFile';
 
 const FileIcon = () => (
@@ -29,9 +31,43 @@ const EventPlanFilePanel = ({
   externalLink = '',
   className = '',
 }) => {
+  const [resolvedFileUrl, setResolvedFileUrl] = useState('');
   const planLink = isValidEventPlanLink(externalLink) ? externalLink.trim() : '';
   const hasFile = Boolean(fileUrl);
   const hasPlan = hasFile || Boolean(fileName) || Boolean(planLink);
+
+  useEffect(() => {
+    let objectUrl = '';
+    let cancelled = false;
+
+    const load = async () => {
+      if (!fileUrl) {
+        setResolvedFileUrl('');
+        return;
+      }
+      const direct = resolveEventPlanFileUrl(fileUrl);
+      if (direct.startsWith('data:') || /^https?:\/\//i.test(direct)) {
+        if (!cancelled) setResolvedFileUrl(direct);
+        return;
+      }
+      try {
+        objectUrl = await fetchPlanFileBlobUrl(fileUrl);
+        if (!cancelled) setResolvedFileUrl(objectUrl);
+      } catch {
+        if (!cancelled) setResolvedFileUrl('');
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [fileUrl]);
+
   if (!hasPlan) return null;
 
   const displayName = fileName || 'Bảng kế hoạch sự kiện';
@@ -73,9 +109,9 @@ const EventPlanFilePanel = ({
             {sizeLabel ? <span className="ev-plan-file-panel__size">{sizeLabel}</span> : null}
           </div>
           <div className="ev-plan-file-panel__actions">
-            {previewable && (
+            {previewable && resolvedFileUrl && (
               <a
-                href={fileUrl}
+                href={resolvedFileUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="ev-plan-file-panel__btn ev-plan-file-panel__btn--view"
@@ -86,7 +122,7 @@ const EventPlanFilePanel = ({
             <button
               type="button"
               className="ev-plan-file-panel__btn ev-plan-file-panel__btn--download"
-              onClick={() => downloadDataUrlFile(fileUrl, displayName)}
+              onClick={() => downloadPlanFile(fileUrl, displayName)}
             >
               Tải xuống
             </button>
@@ -96,7 +132,7 @@ const EventPlanFilePanel = ({
 
       {!hasFile && !planLink && fileName && (
         <p className="ev-plan-file-panel__missing">
-          Có tệp <strong>{displayName}</strong> nhưng chưa tải được nội dung. Vui lòng mở lại trang chi tiết.
+          Không tải được nội dung tệp <strong>{displayName}</strong>. Thử tải lại trang hoặc liên hệ CLB tải file lên lại.
         </p>
       )}
     </div>

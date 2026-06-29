@@ -25,6 +25,10 @@ const updateAvatar = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const getAvatar = async (req, res) => {
+  await userService.sendUserAvatar(req.params.userId, res);
+};
+
 const changePassword = async (req, res) => {
   const result = await userService.changePassword(req.authEmail, req.body);
   res.status(200).json({ success: true, ...result });
@@ -58,6 +62,7 @@ module.exports = {
   getProfile,
   updateProfile,
   updateAvatar,
+  getAvatar,
   changePassword,
   verifyPassword,
   getMyEvents,

@@ -1,4 +1,5 @@
 const { verifyToken } = require('../utils/jwt');
+const { normalizeRole } = require('../utils/role');
 
 const authMiddleware = (req, res, next) => {
   const header = req.headers.authorization;
@@ -18,6 +19,7 @@ const authMiddleware = (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Token không hợp lệ!' });
     }
     req.authEmail = payload.email;
+    req.authRole = payload.role ? normalizeRole(payload.role) : '';
     next();
   } catch (error) {
     return res.status(401).json({

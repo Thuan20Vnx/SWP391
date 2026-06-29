@@ -113,7 +113,16 @@ router.post(
   asyncHandler(qrScannerController.selfScan)
 );
 
-router.get('/:id', optionalAuth, optionalAuthorize, asyncHandler(eventController.getEventById));
+router.get('/featured', optionalAuth, optionalAuthorize, asyncHandler(eventController.getFeaturedEvents));
 router.get('/', optionalAuth, optionalAuthorize, asyncHandler(eventController.getApprovedEvents));
+router.get(
+  '/:id/plan',
+  authMiddleware,
+  authorize('student', 'staff', 'club_manager', 'ctsv', 'icpdp', 'admin'),
+  asyncHandler(eventController.getEventPlan)
+);
+router.get('/:id/speakers/:index/avatar', optionalAuth, asyncHandler(eventController.getSpeakerAvatar));
+router.get('/:id/cover', optionalAuth, asyncHandler(eventController.getEventCover));
+router.get('/:id', optionalAuth, optionalAuthorize, asyncHandler(eventController.getEventById));
 
 module.exports = router;

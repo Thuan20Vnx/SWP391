@@ -90,7 +90,7 @@ const CtsvProposalDetail = () => {
           </p>
 
           <EventPlanFilePanel
-            fileUrl={proposal.eventPlanFile}
+            fileUrl={proposal.eventPlanUrl || proposal.eventPlanFile}
             fileName={proposal.eventPlanFileName}
             mimeType={proposal.eventPlanFileMime}
             externalLink={proposal.eventPlanLink}

@@ -20,6 +20,26 @@ const { applyEventTextSearch, normalizeSearchTerm, escapeRegex } = require('../u
 const { getCachedApprovedEvents, setCachedApprovedEvents } = require('../utils/eventCache');
 const { createAndBroadcast } = require('./notification.service');
 const { canClubImmediateDelete } = require('../constants/eventModeration');
+const {
+  eventHasAnyCover,
+  sanitizeEventCoverForApi,
+  resolveCoverResponse,
+  isDataUri,
+  writeCoverFromDataUri,
+} = require('../utils/eventCoverStorage');
+const {
+  entityHasAnyPlanFile,
+  sanitizeEventPlanForApi,
+  sendPlanFile,
+  PLAN_SCOPES,
+  writePlanFromDataUri,
+} = require('../utils/eventPlanStorage');
+const {
+  sanitizeSpeakersForApi,
+  resolveSpeakerAvatarResponse,
+  writeSpeakerAvatarFromDataUri,
+} = require('../utils/speakerAvatarStorage');
+const { isDataUri: isAnyDataUri } = require('../utils/dataUriStorage');
 
 /** Trạng thái chờ duyệt (đồng bộ với luồng CTSV / CLB) */
 const PENDING_EVENT_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'];
@@ -38,7 +58,8 @@ const buildProposalPayloadFromEvent = (event, managedClub, userEmail) => ({
   ticketTypes: event.ticketTypes || [],
   expectedAttendees: event.expectedAttendees ?? 0,
   image: event.thumbnail || event.image || '',
-  eventPlanFile: event.eventPlanFile || '',
+  eventPlanFile: '',
+  eventPlanFileExt: event.eventPlanFileExt || '',
   eventPlanFileName: event.eventPlanFileName || '',
   eventPlanFileMime: event.eventPlanFileMime || '',
   eventPlanLink: event.eventPlanLink || '',
@@ -46,7 +67,24 @@ const buildProposalPayloadFromEvent = (event, managedClub, userEmail) => ({
   clubName: managedClub?.name || event.clubName || '',
   submittedByEmail: userEmail || event.createdByEmail || '',
   linkedEventId: event._id,
+  timelineSource: event.timelineSource?.itemTitle
+    ? {
+        timelineId: event.timelineSource.timelineId || null,
+        itemTitle: event.timelineSource.itemTitle || '',
+        semesterLabel: event.timelineSource.semesterLabel || '',
+      }
+    : undefined,
 });
+
+const normalizeTimelineSource = (body) => {
+  const src = body?.timelineSource;
+  if (!src || !String(src.itemTitle || '').trim()) return null;
+  return {
+    timelineId: src.timelineId || null,
+    itemTitle: String(src.itemTitle).trim(),
+    semesterLabel: String(src.semesterLabel || '').trim(),
+  };
+};
 
 const syncClubEventProposal = async (event, { managedClub, userEmail, proposalStatus = 'pending_icpdp', resetReviewNotes = false }) => {
   const payload = {
@@ -135,8 +173,120 @@ const notifyClubProposalDeletedToIcpdp = async (event, { clubName = '' } = {}) =
 
 const CLUB_META_FIELDS = 'name slug description memberCount eventsHeld coverImage logoText logoColor';
 
-const EVENT_PUBLIC_LIST_FIELDS =
-  'title description thumbnail image category startDate endDate location capacity registeredCount ticketPrice eventState eventType source schoolOrganizerRole status clubId partnerId createdAt postponeReason';
+const EVENT_PUBLIC_LIST_META_FIELDS =
+  'title description category startDate endDate location capacity registeredCount ticketPrice eventState eventType source schoolOrganizerRole status clubId partnerId createdAt postponeReason coverFileExt';
+
+const PUBLIC_LIST_DESC_LIMIT = 320;
+const DEFAULT_LIST_LIMIT = 24;
+const MAX_LIST_LIMIT = 48;
+const MAX_PUBLIC_EVENTS_INDEX = 500;
+
+const parseListPage = (page) => Math.max(1, parseInt(page, 10) || 1);
+
+const parseListLimit = (limit) =>
+  Math.min(MAX_LIST_LIMIT, Math.max(1, parseInt(limit, 10) || DEFAULT_LIST_LIMIT));
+
+/** Metadata cache — không giữ base64; ảnh lấy qua GET /api/events/:id/cover */
+const stripImagesFromCachedEvent = (event) => {
+  const hasCover = eventHasAnyCover(event);
+  const { image: _image, thumbnail: _thumbnail, ...rest } = event;
+  return { ...rest, hasCover };
+};
+
+/** Payload danh sách công khai — nhẹ, có coverUrl lazy-load */
+const slimEventForPublicList = (event) => {
+  const { image: _image, thumbnail: _thumbnail, description, ...rest } = event;
+  const id = String(event._id || event.id || '');
+  const hasCover = event.hasCover === true || eventHasAnyCover(event);
+  return {
+    ...rest,
+    description: description ? String(description).slice(0, PUBLIC_LIST_DESC_LIMIT) : '',
+    hasCover,
+    coverUrl: hasCover && id ? `/api/events/${id}/cover` : '',
+  };
+};
+
+const attachEventMediaForApi = (event) => {
+  const cover = sanitizeEventCoverForApi(event);
+  const plan = sanitizeEventPlanForApi(event, PLAN_SCOPES.events);
+  const speakers = sanitizeSpeakersForApi(event);
+  const {
+    image: _image,
+    thumbnail: _thumbnail,
+    eventPlanFile: _plan,
+    speakers: _speakers,
+    ...rest
+  } = event;
+  return {
+    ...rest,
+    ...cover,
+    ...plan,
+    eventPlanFile: '',
+    speakers: speakers.speakers,
+    speaker: speakers.speaker,
+    speakerRole: speakers.speakerRole,
+    speakerAvatar: speakers.speakerAvatar,
+  };
+};
+
+const resolveOrganizerType = (event) => {
+  const source = event?.source || 'club';
+  if (source === 'partner') return 'partner';
+  if (source === 'club') return 'club';
+  if (source === 'school') {
+    return event?.schoolOrganizerRole === 'icpdp' ? 'icpdp' : 'ctsv';
+  }
+  return 'club';
+};
+
+const applyOrganizerFilter = (events, organizerId) => {
+  const key = String(organizerId || '').trim();
+  if (!key || key === 'all') return events;
+  return events.filter((event) => resolveOrganizerType(event) === key);
+};
+
+const applyStateFilter = (events, stateId, registeredSet) => {
+  const key = String(stateId || '').trim();
+  if (!key || key === 'all') return events;
+  const now = new Date();
+
+  return events.filter((event) => {
+    if (key === 'postponed') return event.eventState === 'postponed';
+    if (key === 'expired') {
+      if (event.eventState === 'expired') return true;
+      const end = new Date(event.endDate);
+      return !Number.isNaN(end.getTime()) && end < now;
+    }
+    if (key === 'registered') {
+      return registeredSet.has(String(event._id));
+    }
+    if (event.eventState !== 'active') return false;
+    const end = new Date(event.endDate);
+    if (!Number.isNaN(end.getTime()) && end < now) return false;
+    const capacity = event.capacity ?? 0;
+    const registered = event.registeredCount ?? 0;
+    if (capacity > 0 && registered >= capacity) return false;
+    return true;
+  });
+};
+
+const applySort = (events, sort) => {
+  const list = [...events];
+  switch (String(sort || '').trim()) {
+    case 'featured':
+    case 'popular':
+      return list.sort((a, b) => (b.registeredCount ?? 0) - (a.registeredCount ?? 0));
+    case 'newest':
+      return list.sort(
+        (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
+    case 'startDate':
+    default:
+      return list.sort(
+        (a, b) => new Date(a.startDate || 0).getTime() - new Date(b.startDate || 0).getTime()
+      );
+  }
+};
 
 const isValidClubId = (clubId) => {
   const value = String(clubId || '').trim();
@@ -207,7 +357,10 @@ const createEvent = async (user, body, activeClubId = null) => {
     speaker,
     agenda,
     learningOutcomes,
+    timelineSource: timelineSourceBody,
   } = body;
+
+  const timelineSource = normalizeTimelineSource({ timelineSource: timelineSourceBody });
 
   const normalizedTickets = normalizeTicketTypes(ticketTypes);
   const resolvedTicketPrice =
@@ -273,6 +426,7 @@ const createEvent = async (user, body, activeClubId = null) => {
     speaker: speaker || undefined,
     agenda: agenda || undefined,
     learningOutcomes: normalizeLearningOutcomes(learningOutcomes),
+    ...(timelineSource ? { timelineSource } : {}),
   });
 
   if (isClubManager) {
@@ -418,7 +572,10 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     speaker,
     agenda,
     learningOutcomes,
+    timelineSource: timelineSourceBody,
   } = body;
+
+  const timelineSource = normalizeTimelineSource({ timelineSource: timelineSourceBody });
 
   const normalizedTickets = normalizeTicketTypes(ticketTypes);
   const resolvedTicketPrice =
@@ -434,7 +591,8 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   const incomingPlanLink = String(eventPlanLink ?? event.eventPlanLink ?? '').trim();
   const hasIncomingPlanFile = Boolean(eventPlanFile?.trim());
   const hasIncomingPlanLink = /^https?:\/\//i.test(incomingPlanLink);
-  const hasExistingPlan = Boolean(event.eventPlanFile?.trim()) || Boolean(existingPlanLink);
+  const hasExistingPlan =
+    entityHasAnyPlanFile(event, PLAN_SCOPES.events) || Boolean(existingPlanLink);
 
   if (user.role === 'club_manager' && !hasIncomingPlanFile && !hasIncomingPlanLink && !hasExistingPlan) {
     throw new AppError('Vui lòng tải file hoặc dán link bảng kế hoạch sự kiện!', 400);
@@ -466,6 +624,9 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   if (agenda !== undefined) event.agenda = agenda;
   if (learningOutcomes !== undefined) {
     event.learningOutcomes = normalizeLearningOutcomes(learningOutcomes);
+  }
+  if (timelineSource) {
+    event.timelineSource = timelineSource;
   }
 
   const previousStatus = event.status;
@@ -607,7 +768,19 @@ const resolveClubRef = async (idOrSlug) => {
   return Club.findOne({ slug: raw }).select('_id').lean();
 };
 
-const getApprovedEvents = async ({ category, search, q, club, user } = {}) => {
+const getApprovedEvents = async ({
+  category,
+  search,
+  q,
+  club,
+  user,
+  page = 1,
+  limit = DEFAULT_LIST_LIMIT,
+  sort = 'startDate',
+  state,
+  organizer,
+  skipPagination = false,
+} = {}) => {
   let allEvents = getCachedApprovedEvents();
 
   if (!allEvents) {
@@ -618,12 +791,12 @@ const getApprovedEvents = async ({ category, search, q, club, user } = {}) => {
     };
 
     const rawEvents = await Event.find(query)
-      .select(EVENT_PUBLIC_LIST_FIELDS)
+      .select(`${EVENT_PUBLIC_LIST_META_FIELDS} thumbnail image`)
       .sort({ startDate: 1 })
-      .limit(300)
+      .limit(MAX_PUBLIC_EVENTS_INDEX)
       .lean();
 
-    allEvents = await attachClubMetaBatch(rawEvents);
+    allEvents = (await attachClubMetaBatch(rawEvents)).map(stripImagesFromCachedEvent);
     setCachedApprovedEvents(allEvents);
   }
 
@@ -671,14 +844,22 @@ const getApprovedEvents = async ({ category, search, q, club, user } = {}) => {
     });
   }
 
-  // Limit to 300 to match database query limit
-  const slicedEvents = filtered.slice(0, 300);
-
-  // 4. Map user-specific properties dynamically
   const registeredIds = user?._id ? await getRegisteredEventIds(user._id) : [];
-  const registeredSet = new Set(registeredIds.map(id => String(id)));
+  const registeredSet = new Set(registeredIds.map((id) => String(id)));
 
-  const finalEvents = slicedEvents.map((event) => {
+  filtered = applyOrganizerFilter(filtered, organizer);
+  filtered = applyStateFilter(filtered, state, registeredSet);
+  filtered = applySort(filtered, sort);
+
+  const total = filtered.length;
+  const safePage = parseListPage(page);
+  const safeLimit = skipPagination ? total || DEFAULT_LIST_LIMIT : parseListLimit(limit);
+  const skip = skipPagination ? 0 : (safePage - 1) * safeLimit;
+  const pagedEvents = skipPagination
+    ? filtered
+    : filtered.slice(skip, skip + safeLimit);
+
+  const finalEvents = pagedEvents.map((event) => {
     const doc = {
       ...event,
       isRegistered: registeredSet.has(String(event._id)),
@@ -686,7 +867,169 @@ const getApprovedEvents = async ({ category, search, q, club, user } = {}) => {
     return enrichEventWithPricing(doc, user);
   });
 
-  return { events: finalEvents, total: finalEvents.length };
+  return {
+    events: finalEvents.map(slimEventForPublicList),
+    total,
+    page: safePage,
+    limit: safeLimit,
+    totalPages: skipPagination ? 1 : Math.max(1, Math.ceil(total / safeLimit)),
+  };
+};
+
+const sendEventCover = async (eventId, res) => {
+  const id = String(eventId || '').trim();
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError('Không tìm thấy ảnh sự kiện', 404);
+  }
+
+  const event = await Event.findById(id)
+    .select('thumbnail image coverFileExt status isHidden isDeleted')
+    .lean();
+
+  if (!event) {
+    throw new AppError('Không tìm thấy ảnh sự kiện', 404);
+  }
+
+  const isPublic =
+    SCHOOL_EVENT_PUBLIC_STATUSES.includes(event.status) &&
+    event.isHidden !== true &&
+    event.isDeleted !== true;
+
+  if (!isPublic) {
+    throw new AppError('Không tìm thấy ảnh sự kiện', 404);
+  }
+
+  const resolved = await resolveCoverResponse({ ...event, _id: id });
+  if (!resolved) {
+    throw new AppError('Không tìm thấy ảnh sự kiện', 404);
+  }
+
+  const legacySrc = event.thumbnail || event.image || '';
+  if (isDataUri(legacySrc) && !event.coverFileExt) {
+    writeCoverFromDataUri(id, legacySrc)
+      .then((ext) =>
+        Event.updateOne({ _id: id }, { $set: { coverFileExt: ext, thumbnail: '', image: '' } })
+      )
+      .catch((err) => console.warn('[cover] lazy migrate failed:', id, err.message));
+  }
+
+  if (resolved.redirectUrl) {
+    res.redirect(302, resolved.redirectUrl);
+    return;
+  }
+
+  res.set('Content-Type', resolved.mime);
+  res.set('Cache-Control', 'public, max-age=86400, immutable');
+  res.set('Content-Length', String(resolved.buffer.length));
+  res.send(resolved.buffer);
+};
+
+const canAccessEventPlan = async (event, user, activeClubId) => {
+  if (!user?._id) return false;
+  const role = user.role || '';
+  if (['admin', 'ctsv', 'icpdp', 'staff'].includes(role)) return true;
+
+  const ownerId = event.createdBy?._id || event.createdBy;
+  if (ownerId && String(ownerId) === String(user._id)) return true;
+
+  if (role === 'club_manager' && event.clubId) {
+    const club = await resolveManagedClub(user._id, activeClubId);
+    if (club && String(club._id) === String(event.clubId)) return true;
+  }
+
+  return false;
+};
+
+const sendEventPlan = async (eventId, res, { user, activeClubId } = {}) => {
+  const id = String(eventId || '').trim();
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError('Không tìm thấy file kế hoạch', 404);
+  }
+
+  const event = await Event.findById(id)
+    .select('eventPlanFile eventPlanFileName eventPlanFileMime eventPlanFileExt eventPlanLink createdBy clubId')
+    .lean();
+
+  if (!event) {
+    throw new AppError('Không tìm thấy file kế hoạch', 404);
+  }
+
+  const allowed = await canAccessEventPlan(event, user, activeClubId);
+  if (!allowed) {
+    throw new AppError('Bạn không có quyền tải file kế hoạch này', 403);
+  }
+
+  if (isAnyDataUri(event.eventPlanFile) && !event.eventPlanFileExt) {
+    writePlanFromDataUri(
+      PLAN_SCOPES.events,
+      id,
+      event.eventPlanFile,
+      event.eventPlanFileMime,
+      event.eventPlanFileName
+    )
+      .then((ext) =>
+        Event.updateOne(
+          { _id: id },
+          { $set: { eventPlanFileExt: ext, eventPlanFile: '' } }
+        )
+      )
+      .catch((err) => console.warn('[plan] lazy migrate failed:', id, err.message));
+  }
+
+  await sendPlanFile({ ...event, _id: id }, PLAN_SCOPES.events, res);
+};
+
+const sendSpeakerAvatar = async (eventId, speakerIndex, res) => {
+  const id = String(eventId || '').trim();
+  const index = Number(speakerIndex);
+  if (!mongoose.Types.ObjectId.isValid(id) || !Number.isInteger(index) || index < 0) {
+    throw new AppError('Không tìm thấy ảnh diễn giả', 404);
+  }
+
+  const event = await Event.findById(id)
+    .select('thumbnail image coverFileExt status isHidden isDeleted speakers speaker speakerRole speakerAvatar speakerAvatarExts')
+    .lean();
+
+  if (!event) {
+    throw new AppError('Không tìm thấy ảnh diễn giả', 404);
+  }
+
+  const isPublic =
+    SCHOOL_EVENT_PUBLIC_STATUSES.includes(event.status) &&
+    event.isHidden !== true &&
+    event.isDeleted !== true;
+
+  if (!isPublic) {
+    throw new AppError('Không tìm thấy ảnh diễn giả', 404);
+  }
+
+  const resolved = await resolveSpeakerAvatarResponse({ ...event, _id: id }, index);
+  if (!resolved) {
+    throw new AppError('Không tìm thấy ảnh diễn giả', 404);
+  }
+
+  const { resolveEventSpeakers } = require('../constants/eventSpeaker');
+  const rawSpeakers = resolveEventSpeakers(event);
+  const legacyAvatar = rawSpeakers[index]?.avatar || '';
+  if (isDataUri(legacyAvatar) && !event.speakerAvatarExts?.[index]) {
+    writeSpeakerAvatarFromDataUri(id, index, legacyAvatar)
+      .then((ext) => {
+        const exts = Array.isArray(event.speakerAvatarExts) ? [...event.speakerAvatarExts] : [];
+        exts[index] = ext;
+        return Event.updateOne({ _id: id }, { $set: { speakerAvatarExts: exts } });
+      })
+      .catch((err) => console.warn('[speaker] lazy migrate failed:', id, index, err.message));
+  }
+
+  if (resolved.redirectUrl) {
+    res.redirect(302, resolved.redirectUrl);
+    return;
+  }
+
+  res.set('Content-Type', resolved.mime);
+  res.set('Cache-Control', 'public, max-age=86400, immutable');
+  res.set('Content-Length', String(resolved.buffer.length));
+  res.send(resolved.buffer);
 };
 
 const getEventById = async (eventId, { user, activeClubId } = {}) => {
@@ -776,7 +1119,7 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
   }));
 
   return {
-    event: enrichEventWithPricing(doc, user),
+    event: enrichEventWithPricing(attachEventMediaForApi(doc), user),
     students: isOwner ? students : undefined,
   };
 };
@@ -790,4 +1133,7 @@ module.exports = {
   updateEventStatus,
   getApprovedEvents,
   getEventById,
+  sendEventCover,
+  sendEventPlan,
+  sendSpeakerAvatar,
 };

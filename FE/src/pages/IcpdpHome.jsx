@@ -178,13 +178,15 @@ const IcpdpHome = ({ showToast }) => {
 
   return (
     <>
-      <HomeHeroSlider
-        slides={heroSlides}
-        resolveDetailPath={(slide) => (slide.eventId ? `/icpdp/events/${slide.eventId}` : null)}
-        fallbackCtaPath="/icpdp/dashboard"
-        fallbackCtaMain="Vào bảng điều khiển"
-        fallbackCtaSub="Giám sát sự kiện toàn hệ thống"
-      />
+      <div className="portal-home-hero-layout">
+        <HomeHeroSlider
+          slides={heroSlides}
+          resolveDetailPath={(slide) => (slide.eventId ? `/icpdp/events/${slide.eventId}` : null)}
+          fallbackCtaPath="/icpdp/dashboard"
+          fallbackCtaMain="Vào bảng điều khiển"
+          fallbackCtaSub="Giám sát sự kiện toàn hệ thống"
+        />
+      </div>
 
       <section className="ctsv-stats-section">
         <div className="ctsv-stats-grid">

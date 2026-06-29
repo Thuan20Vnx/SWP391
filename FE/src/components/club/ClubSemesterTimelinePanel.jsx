@@ -1,18 +1,21 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AppSelect from '../ui/AppSelect';
 import AutoGrowTextarea from '../ui/AutoGrowTextarea';
 import ConfirmDialog from '../ui/ConfirmDialog';
-import TimelineLiveBanner from '../timeline/TimelineLiveBanner';
-import useTimelineLiveStream from '../../hooks/useTimelineLiveStream';
-import {
-  createClubSemesterTimeline,
-  deleteClubSemesterTimeline,
-  fetchClubSemesterTimelines,
-  requestClubSemesterTimelineChange,
-  submitClubSemesterTimeline,
-  updateClubSemesterTimeline,
-} from '../../services/clubTimelineApi';
+import EventPlanFilePanel from '../events/EventPlanFilePanel';
+import EventPlanUploadField from '../events/EventPlanUploadField';
+import { useCloseOnClickOutside } from '../../hooks/useCloseOnClickOutside';
+import TimelineLocationConflictNotice from '../timeline/TimelineLocationConflictNotice';
+import { getTimelineApi } from '../../utils/semesterTimelineApiAdapter';
+import { defaultEndDateTimeInput, formatTimeRangeLabel } from '../../utils/timelineTimeRange';
+import { isValidEventPlanLink, normalizeEventPlanLink } from '../../utils/eventPlanFile';
 import { TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
+import {
+  buildTimelineChangeBannerCopy,
+  buildTimelineReviewFeedback,
+  isScheduledTimelineDelete,
+  shouldShowTimelineChangeBanner,
+} from '../../utils/timelineReviewFeedback';
 
 const TERM_OPTIONS = [
   { value: 'spring', label: 'Spring' },
@@ -30,27 +33,6 @@ const ClbTrashIcon = () => (
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
-    />
-  </svg>
-);
-
-const ClbEyeIcon = ({ size = 16 }) => (
-  <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
-    <path
-      d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <circle
-      cx="12"
-      cy="12"
-      r="3"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
     />
   </svg>
 );
@@ -74,6 +56,7 @@ const emptyItem = () => ({
   title: '',
   description: '',
   plannedDate: '',
+  plannedEndDate: '',
   category: 'Workshop',
   location: '',
   expectedAttendees: '',
@@ -102,11 +85,66 @@ const formatDateTime = (value) => {
     : `${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
 };
 
-const canEditTimeline = (timeline) =>
-  timeline && ['draft', 'revision', 'rejected', 'pending_icpdp', 'approved'].includes(timeline.statusKey);
+const formatDateTimeRange = (start, end) => {
+  if (!start) return '—';
+  const label = formatTimeRangeLabel(start, end);
+  const d = new Date(start);
+  if (Number.isNaN(d.getTime())) return '—';
+  const date = d.toLocaleDateString('vi-VN');
+  return label ? `${date} · ${label}` : formatDateTime(start);
+};
 
-const canDirectDeleteTimeline = (timeline) =>
-  timeline && ['draft', 'revision', 'rejected', 'pending_icpdp'].includes(timeline.statusKey);
+const canEditTimeline = (timeline, pendingKey = 'pending_icpdp') =>
+  timeline && ['draft', 'revision', 'rejected', pendingKey, 'approved'].includes(timeline.statusKey);
+
+const canDirectDeleteTimeline = (timeline, pendingKey = 'pending_icpdp') =>
+  timeline && ['draft', 'revision', 'rejected', pendingKey].includes(timeline.statusKey);
+
+const emptyPlanFields = () => ({
+  eventPlanFile: '',
+  eventPlanFileName: '',
+  eventPlanFileMime: '',
+  eventPlanFileSizeLabel: '',
+  eventPlanLink: '',
+  eventPlanExisting: false,
+});
+
+const timelineToForm = (timeline) => ({
+  semesterTerm: timeline.semesterTerm,
+  semesterYear: timeline.semesterYear,
+  summary: timeline.summary || '',
+  objectives: timeline.objectives || '',
+  ...emptyPlanFields(),
+  eventPlanFile: timeline.eventPlanFile || '',
+  eventPlanFileName: timeline.eventPlanFileName || '',
+  eventPlanFileMime: timeline.eventPlanFileMime || '',
+  eventPlanLink: timeline.eventPlanLink || '',
+  eventPlanExisting: Boolean(
+    timeline.hasEventPlan || timeline.eventPlanUrl || timeline.eventPlanFileName
+  ),
+  items: timeline.items?.length
+    ? timeline.items.map((item) => ({
+        title: item.title || '',
+        description: item.description || '',
+        plannedDate: toDateTimeInput(item.plannedDate),
+        plannedEndDate: toDateTimeInput(item.plannedEndDate),
+        category: item.category || 'Workshop',
+        location: item.location || '',
+        expectedAttendees: item.expectedAttendees || '',
+        notes: item.notes || '',
+      }))
+    : [emptyItem()],
+});
+
+const validateTimelinePlan = (form) => {
+  const hasPlanFile = Boolean(form.eventPlanFile);
+  const hasPlanLink = isValidEventPlanLink(form.eventPlanLink);
+  const hasExistingPlan = Boolean(form.eventPlanExisting);
+  if (!hasPlanFile && !hasPlanLink && !hasExistingPlan) {
+    return 'Vui lòng tải file hoặc dán link bảng kế hoạch sự kiện (Google Drive, OneDrive...).';
+  }
+  return null;
+};
 
 const validateTimelineItems = (items) => {
   const titledItems = items
@@ -118,7 +156,15 @@ const validateTimelineItems = (items) => {
   for (const item of titledItems) {
     const label = `Mốc #${item.index + 1}`;
     if (!item.plannedDate) {
-      return `${label}: Vui lòng chọn ngày & giờ dự kiến.`;
+      return `${label}: Vui lòng chọn thời gian bắt đầu dự kiến.`;
+    }
+    if (!item.plannedEndDate) {
+      return `${label}: Vui lòng chọn thời gian kết thúc dự kiến.`;
+    }
+    const start = new Date(item.plannedDate);
+    const end = new Date(item.plannedEndDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+      return `${label}: Thời gian kết thúc phải sau thời gian bắt đầu.`;
     }
     if (!String(item.category || '').trim()) {
       return `${label}: Vui lòng chọn thể loại.`;
@@ -136,7 +182,7 @@ const validateTimelineItems = (items) => {
 
 const hasPendingChange = (timeline) =>
   timeline?.changeRequest &&
-  ['pending_icpdp', 'pending_admin'].includes(timeline.changeRequest.statusKey);
+  ['pending_icpdp', 'pending_admin', 'scheduled_delete'].includes(timeline.changeRequest.statusKey);
 
 const REASON_MODAL_COPY = {
   cancel: {
@@ -185,6 +231,7 @@ const getStepStatusText = (timeline, step, state) => {
       if (timeline.changeRequest?.type === 'delete') return 'Từ chối xóa';
       return 'Từ chối yêu cầu';
     }
+    if (timeline.changeRequest?.statusKey === 'scheduled_delete') return 'Chờ xóa';
     if (timeline.statusKey === 'approved') return 'Đã duyệt';
     if (timeline.statusKey === 'rejected') return 'Từ chối';
     if (timeline.statusKey === 'cancelled') return 'Đã hủy';
@@ -206,8 +253,57 @@ const timelineStatusBadgeClass = (statusKey) => {
   return 'registered';
 };
 
-const ClubSemesterTimelinePanel = ({ showToast }) => {
-  useTimelineLiveStream(true);
+const CLB_STATUS_FILTERS = [
+  { id: 'all', label: 'Tất cả' },
+  { id: 'draft', label: 'Bản nháp' },
+  { id: 'pending_icpdp', label: 'Chờ IC-PDP' },
+  { id: 'pending_admin', label: 'Chờ Admin' },
+  { id: 'approved', label: 'Đã duyệt' },
+  { id: 'revision', label: 'Cần chỉnh sửa' },
+  { id: 'rejected', label: 'Từ chối' },
+  { id: 'cancelled', label: 'Đã hủy' },
+];
+
+const CLB_STATUS_META = {
+  draft: { tone: 'slate' },
+  pending_icpdp: { tone: 'amber' },
+  pending_admin: { tone: 'blue' },
+  approved: { tone: 'green' },
+  revision: { tone: 'orange' },
+  rejected: { tone: 'red' },
+  cancelled: { tone: 'slate' },
+  pending_hide: { tone: 'amber' },
+  scheduled_delete: { tone: 'orange' },
+};
+
+const resolveClubTimelineMeta = (tl) => {
+  const badgeKey = tl.statusBadgeKey || tl.statusKey;
+  const meta = CLB_STATUS_META[badgeKey] || CLB_STATUS_META[tl.statusKey];
+  return {
+    label: tl.status || '—',
+    tone: meta?.tone || 'slate',
+  };
+};
+
+const matchesClubStatusFilter = (tl, filter) => {
+  if (!filter || filter === 'all') return true;
+  const badgeKey = tl.statusBadgeKey || tl.statusKey;
+  if (filter === 'pending_icpdp') {
+    return tl.statusKey === 'pending_icpdp' || tl.changeRequest?.statusKey === 'pending_icpdp';
+  }
+  if (filter === 'pending_admin') {
+    return tl.statusKey === 'pending_admin' || tl.changeRequest?.statusKey === 'pending_admin';
+  }
+  return tl.statusKey === filter || badgeKey === filter;
+};
+
+const emptyListHint = (statusFilter) => {
+  if (statusFilter === 'all') return 'Chưa có timeline kỳ học. Bấm «Lập timeline kỳ mới» để bắt đầu.';
+  return 'Thử đổi bộ lọc hoặc từ khóa tìm kiếm.';
+};
+
+const ClubSemesterTimelinePanel = ({ showToast, mode = 'club' }) => {
+  const api = useMemo(() => getTimelineApi(mode), [mode]);
   const defaults = useMemo(() => inferDefaultSemester(), []);
   const [timelines, setTimelines] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -218,38 +314,169 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   const [submitting, setSubmitting] = useState(false);
   const [reasonModal, setReasonModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef(null);
+  const [formConflictResults, setFormConflictResults] = useState({});
   const [form, setForm] = useState({
     semesterTerm: defaults.semesterTerm,
     semesterYear: defaults.semesterYear,
     summary: '',
     objectives: '',
+    ...emptyPlanFields(),
     items: [emptyItem()],
   });
+  const patchPlan = (patch) => setForm((prev) => {
+    const next = { ...prev, ...patch };
+    if (patch.eventPlanFile) next.eventPlanExisting = false;
+    if (patch.eventPlanFile === '') next.eventPlanExisting = false;
+    return next;
+  });
 
-  const load = useCallback(() => {
-    setLoading(true);
-    fetchClubSemesterTimelines()
-      .then((d) => setTimelines(d.timelines || []))
-      .catch(() => showToast?.('Không tải được timeline kỳ học.', 'error'))
-      .finally(() => setLoading(false));
-  }, [showToast]);
+  useCloseOnClickOutside(filterRef, filterOpen, () => setFilterOpen(false));
+
+  const activeFilterLabel = CLB_STATUS_FILTERS.find((f) => f.id === statusFilter)?.label || 'Tất cả';
+
+  const filteredTimelines = useMemo(() => {
+    let list = timelines.filter((tl) => matchesClubStatusFilter(tl, statusFilter));
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (t) =>
+          (t.semesterLabel || '').toLowerCase().includes(q) ||
+          (t.summary || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [timelines, statusFilter, searchQuery]);
+
+  const actionNeededCount = useMemo(
+    () => timelines.filter((t) => ['revision', 'rejected', 'draft'].includes(t.statusKey)).length,
+    [timelines]
+  );
+
+  const pendingReviewCount = useMemo(
+    () => timelines.filter((t) => t.statusKey === api.pendingKey).length,
+    [timelines, api.pendingKey]
+  );
+
+  const handleStatusSelect = (id) => {
+    setStatusFilter(id);
+    setFilterOpen(false);
+  };
+
+  const loadDetailTimeline = useCallback(async (id, fallback = null) => {
+    const [detailRes, planRes] = await Promise.allSettled([
+      api.fetchDetail(id),
+      api.fetchPlan(id),
+    ]);
+    if (detailRes.status !== 'fulfilled') {
+      throw detailRes.reason;
+    }
+    const base = detailRes.value || fallback || {};
+    const plan = planRes.status === 'fulfilled' ? (planRes.value || {}) : {};
+    return { ...(fallback || {}), ...base, ...plan };
+  }, [api]);
+
+  const load = useCallback(({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    return api.fetchList()
+      .then((rows) => setTimelines(rows))
+      .catch(() => {
+        if (!silent) showToast?.('Không tải được timeline kỳ học.', 'error');
+      })
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
+  }, [api, showToast]);
+
+  const detailTimelineRef = useRef(detailTimeline);
+  detailTimelineRef.current = detailTimeline;
+  const viewRef = useRef(view);
+  viewRef.current = view;
 
   useEffect(() => {
     load();
   }, [load]);
 
   useEffect(() => {
+    if (view !== 'form') {
+      setFormConflictResults({});
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      const editingTimeline = timelines.find((t) => t.id === editingId);
+      api.checkConflicts({
+        items: form.items,
+        excludeTimelineId: editingId,
+        submittedAt: editingTimeline?.submittedAt,
+      })
+        .then((rows) => {
+          const byIndex = {};
+          (rows || []).forEach((row) => {
+            if (row && Number.isInteger(row.index)) byIndex[row.index] = row;
+          });
+          setFormConflictResults(byIndex);
+        })
+        .catch(() => setFormConflictResults({}));
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [form.items, editingId, view, api, timelines]);
+
+  useEffect(() => {
     const onLive = () => {
-      load();
-      if (detailTimeline?.id) {
-        fetchClubSemesterTimeline(detailTimeline.id)
-          .then((d) => setDetailTimeline(d.timeline))
+      load({ silent: true });
+      const current = detailTimelineRef.current;
+      if (current?.id) {
+        loadDetailTimeline(current.id, current)
+          .then(setDetailTimeline)
           .catch(() => {});
       }
     };
     window.addEventListener(TIMELINE_LIVE_EVENT, onLive);
     return () => window.removeEventListener(TIMELINE_LIVE_EVENT, onLive);
-  }, [load, detailTimeline?.id]);
+  }, [load, loadDetailTimeline]);
+
+  useEffect(() => {
+    if (view === 'form') return undefined;
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return;
+      load({ silent: true });
+      const current = detailTimelineRef.current;
+      if (viewRef.current === 'detail' && current?.id) {
+        loadDetailTimeline(current.id, current)
+          .then(setDetailTimeline)
+          .catch(() => {});
+      }
+    };
+    const pollId = window.setInterval(refresh, 8000);
+    const handleVisibility = () => refresh();
+    window.addEventListener('focus', handleVisibility);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.clearInterval(pollId);
+      window.removeEventListener('focus', handleVisibility);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [load, loadDetailTimeline, view]);
+
+  useEffect(() => {
+    if (view !== 'detail' || !detailTimeline?.id) return undefined;
+    if (detailTimeline.eventPlanFile || detailTimeline.eventPlanUrl) return undefined;
+    if (!detailTimeline.hasEventPlan && !detailTimeline.eventPlanFileName && !detailTimeline.eventPlanLink) {
+      return undefined;
+    }
+    let cancelled = false;
+    loadDetailTimeline(detailTimeline.id, detailTimeline)
+      .then((next) => {
+        if (!cancelled) setDetailTimeline(next);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [view, detailTimeline?.id, detailTimeline?.eventPlanFile, detailTimeline?.hasEventPlan, detailTimeline?.eventPlanFileName, detailTimeline?.eventPlanLink, loadDetailTimeline]);
 
   useEffect(() => {
     if (!reasonModal) return undefined;
@@ -270,6 +497,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
       semesterYear: defaults.semesterYear,
       summary: '',
       objectives: '',
+      ...emptyPlanFields(),
       items: [emptyItem()],
     });
     setEditingId(null);
@@ -281,42 +509,46 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     setView('form');
   };
 
-  const openDetail = (timeline) => {
+  const openDetail = async (timeline) => {
     setDetailTimeline(timeline);
     setView('detail');
+    try {
+      setDetailTimeline(await loadDetailTimeline(timeline.id, timeline));
+    } catch {
+      // giữ bản tóm tắt từ danh sách
+    }
   };
 
-  const openEdit = (timeline) => {
-    if (!canEditTimeline(timeline)) {
+  const openEdit = async (timeline) => {
+    if (!canEditTimeline(timeline, api.pendingKey)) {
       showToast?.('Timeline này không thể chỉnh sửa trực tiếp.', 'warning');
       return;
     }
     setEditingId(timeline.id);
     setEditingStatusKey(timeline.statusKey);
-    setForm({
-      semesterTerm: timeline.semesterTerm,
-      semesterYear: timeline.semesterYear,
-      summary: timeline.summary || '',
-      objectives: timeline.objectives || '',
-      items: timeline.items?.length
-        ? timeline.items.map((item) => ({
-            title: item.title || '',
-            description: item.description || '',
-            plannedDate: toDateTimeInput(item.plannedDate),
-            category: item.category || 'Workshop',
-            location: item.location || '',
-            expectedAttendees: item.expectedAttendees || '',
-            notes: item.notes || '',
-          }))
-        : [emptyItem()],
-    });
     setView('form');
+    try {
+      const detail = await api.fetchDetail(timeline.id);
+      const plan = await api.fetchPlan(timeline.id).catch(() => ({}));
+      const full = { ...(detail || timeline), ...plan };
+      setForm(timelineToForm(full));
+    } catch {
+      setForm(timelineToForm(timeline));
+      showToast?.('Không tải được file kế hoạch — bạn có thể tải lại nếu cần.', 'warning');
+    }
   };
 
   const updateItem = (index, field, value) => {
     setForm((prev) => ({
       ...prev,
-      items: prev.items.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+      items: prev.items.map((item, i) => {
+        if (i !== index) return item;
+        const next = { ...item, [field]: value };
+        if (field === 'plannedDate' && value && !item.plannedEndDate) {
+          next.plannedEndDate = defaultEndDateTimeInput(value);
+        }
+        return next;
+      }),
     }));
   };
 
@@ -331,27 +563,44 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     }));
   };
 
-  const buildPayload = () => ({
-    semesterTerm: form.semesterTerm,
-    semesterYear: Number(form.semesterYear),
-    summary: form.summary,
-    objectives: form.objectives,
-    items: form.items.map((item) => ({
-      title: item.title,
-      description: item.description,
-      plannedDate: item.plannedDate || null,
-      category: item.category,
-      location: item.location,
-      expectedAttendees: Number(item.expectedAttendees) || 0,
-      notes: item.notes,
-    })),
-  });
+  const buildPayload = () => {
+    const payload = {
+      semesterTerm: form.semesterTerm,
+      semesterYear: Number(form.semesterYear),
+      summary: form.summary,
+      objectives: form.objectives,
+      items: form.items.map((item) => ({
+        title: item.title,
+        description: item.description,
+        plannedDate: item.plannedDate || null,
+        plannedEndDate: item.plannedEndDate || null,
+        category: item.category,
+        location: item.location,
+        expectedAttendees: Number(item.expectedAttendees) || 0,
+        notes: item.notes,
+      })),
+      eventPlanLink: normalizeEventPlanLink(form.eventPlanLink),
+    };
+    if (form.eventPlanFile) {
+      payload.eventPlanFile = form.eventPlanFile;
+      payload.eventPlanFileName = form.eventPlanFileName || 'bang-ke-hoach-su-kien';
+      payload.eventPlanFileMime = form.eventPlanFileMime || '';
+    }
+    return payload;
+  };
 
   const handleSave = async (andSubmit = false) => {
     const validationError = validateTimelineItems(form.items);
     if (validationError) {
       showToast?.(validationError, 'error');
       return;
+    }
+    if (andSubmit) {
+      const planError = validateTimelinePlan(form);
+      if (planError) {
+        showToast?.(planError, 'error');
+        return;
+      }
     }
     setSubmitting(true);
     try {
@@ -360,16 +609,16 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
 
       let timelineId = editingId;
       if (editingId) {
-        await updateClubSemesterTimeline(editingId, payload);
+        await api.update(editingId, payload);
       } else {
-        const created = await createClubSemesterTimeline(payload);
-        timelineId = created.timeline?.id;
+        const created = await api.create(payload);
+        timelineId = created?.id;
       }
       if (andSubmit && timelineId) {
-        await submitClubSemesterTimeline(timelineId);
-        showToast?.('Đã gửi timeline kỳ học — chờ IC-PDP xét duyệt!', 'success');
+        await api.submit(timelineId);
+        showToast?.(`Đã gửi timeline kỳ học — chờ ${api.reviewerLabel} xét duyệt!`, 'success');
       } else if (wasApproved) {
-        showToast?.('Đã lưu thay đổi — timeline chuyển về chờ IC-PDP duyệt lại!', 'success');
+        showToast?.(`Đã lưu thay đổi — timeline chuyển về chờ ${api.reviewerLabel} duyệt lại!`, 'success');
       } else {
         showToast?.(editingId ? 'Đã lưu timeline.' : 'Đã tạo timeline kỳ học.', 'success');
       }
@@ -384,11 +633,11 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   };
 
   const handleSubmitExisting = async (id) => {
-    if (!window.confirm('Gửi timeline này cho IC-PDP duyệt?')) return;
+    if (!window.confirm(`Gửi timeline này cho ${api.reviewerLabel} duyệt?`)) return;
     setSubmitting(true);
     try {
-      await submitClubSemesterTimeline(id);
-      showToast?.('Đã gửi timeline — chờ IC-PDP xét duyệt!', 'success');
+      await api.submit(id);
+      showToast?.(`Đã gửi timeline — chờ ${api.reviewerLabel} xét duyệt!`, 'success');
       load();
     } catch (e) {
       showToast?.(e.message || 'Gửi timeline thất bại.', 'error');
@@ -401,10 +650,10 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     if (!deleteTarget) return;
     setSubmitting(true);
     try {
-      await deleteClubSemesterTimeline(deleteTarget.id);
+      await api.delete(deleteTarget.id);
       showToast?.(
-        ['pending_icpdp', 'revision'].includes(deleteTarget.statusKey)
-          ? 'Đã hủy đơn timeline — IC-PDP sẽ thấy trạng thái «Đã hủy» trong mục Tất cả.'
+        [api.pendingKey, 'revision'].includes(deleteTarget.statusKey)
+          ? `Đã hủy đơn timeline — ${api.reviewerLabel} sẽ thấy trạng thái «Đã hủy» trong mục Tất cả.`
           : 'Đã xóa timeline.',
         'success'
       );
@@ -416,6 +665,21 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
       load();
     } catch (e) {
       showToast?.(e.message || 'Xóa thất bại.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancelScheduledDelete = async (timeline) => {
+    if (!window.confirm('Hủy lịch xóa timeline? Timeline sẽ được giữ lại.')) return;
+    setSubmitting(true);
+    try {
+      const result = await api.cancelScheduledDelete(timeline.id);
+      showToast?.('Đã hủy yêu cầu xóa timeline.', 'success');
+      setDetailTimeline(result.timeline || null);
+      load();
+    } catch (e) {
+      showToast?.(e.message || 'Không hủy được lịch xóa.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -441,8 +705,13 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
     setSubmitting(true);
     try {
       const { timeline, type } = reasonModal;
-      await requestClubSemesterTimelineChange(timeline.id, { type, reason });
-      showToast?.('Đã gửi yêu cầu — chờ IC-PDP và Admin duyệt!', 'success');
+      await api.requestChange(timeline.id, { type, reason });
+      showToast?.(
+        api.isSchool
+          ? 'Đã gửi yêu cầu — chờ Admin duyệt!'
+          : 'Đã gửi yêu cầu — chờ IC-PDP và Admin duyệt!',
+        'success'
+      );
       setReasonModal(null);
       load();
       setDetailTimeline((prev) =>
@@ -539,18 +808,19 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
 
   const renderForm = () => (
     <div className="clb-timeline-page">
-      <TimelineLiveBanner active />
       <div className="clb-page-header">
         <div>
           <h1 className="clb-page-title">TIMELINE KỲ HỌC</h1>
           <p className="clb-page-subtitle">
             {editingStatusKey === 'approved'
-              ? 'Chỉnh sửa timeline đã duyệt — sau khi lưu, timeline sẽ chuyển về trạng thái chờ IC-PDP duyệt lại.'
-              : editingStatusKey === 'pending_icpdp'
+              ? `Chỉnh sửa timeline đã duyệt — sau khi lưu, timeline sẽ chuyển về trạng thái chờ ${api.reviewerLabel} duyệt lại.`
+              : editingStatusKey === api.pendingKey
                 ? 'Chỉnh sửa trực tiếp — đơn đang chờ duyệt, thay đổi được lưu ngay không cần phê duyệt lại.'
                 : editingStatusKey === 'rejected' || editingStatusKey === 'revision'
-                  ? 'Chỉnh sửa theo góp ý người duyệt, sau đó gửi lại IC-PDP.'
-                  : 'Lập kế hoạch hoạt động theo kỳ Spring / Summer / Fall và gửi IC-PDP phê duyệt.'}
+                  ? `Chỉnh sửa theo góp ý người duyệt, sau đó gửi lại ${api.reviewerLabel}.`
+                  : api.isSchool
+                    ? `Lập kế hoạch hoạt động theo kỳ Spring / Summer / Fall và gửi ${api.reviewerLabel} phê duyệt.`
+                    : 'Lập kế hoạch hoạt động theo kỳ Spring / Summer / Fall và gửi IC-PDP phê duyệt.'}
           </p>
         </div>
         <button
@@ -559,7 +829,11 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
           onClick={() => {
             resetForm();
             setView(editingId ? 'detail' : 'list');
-            if (editingId && detailTimeline) setDetailTimeline(timelines.find((t) => t.id === editingId) || detailTimeline);
+            if (editingId && detailTimeline) {
+              loadDetailTimeline(editingId, detailTimeline)
+                .then(setDetailTimeline)
+                .catch(() => setDetailTimeline(timelines.find((t) => t.id === editingId) || detailTimeline));
+            }
           }}
         >
           Quay lại
@@ -610,6 +884,17 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
           />
         </label>
 
+        <EventPlanUploadField
+          planFile={form.eventPlanFile}
+          planFileName={form.eventPlanFileName}
+          planFileMime={form.eventPlanFileMime}
+          planFileSizeLabel={form.eventPlanFileSizeLabel}
+          planLink={form.eventPlanLink}
+          onChange={patchPlan}
+          showToast={showToast}
+          linkInputId="timeline-event-plan-link"
+        />
+
         <div className="clb-timeline-items-head">
           <h2>Hoạt động / sự kiện dự kiến</h2>
           <button type="button" className="clb-create-btn clb-create-btn--sm" onClick={addItem}>
@@ -644,11 +929,21 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
                 />
               </label>
               <label>
-                Ngày &amp; giờ dự kiến *
+                Bắt đầu dự kiến *
                 <input
                   type="datetime-local"
                   value={item.plannedDate}
                   onChange={(e) => updateItem(index, 'plannedDate', e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Kết thúc dự kiến *
+                <input
+                  type="datetime-local"
+                  value={item.plannedEndDate}
+                  onChange={(e) => updateItem(index, 'plannedEndDate', e.target.value)}
+                  min={item.plannedDate || undefined}
                   required
                 />
               </label>
@@ -665,10 +960,11 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
               <label>
                 Địa điểm *
                 <input
-                  spellCheck={false}
+                  type="text"
                   value={item.location}
                   onChange={(e) => updateItem(index, 'location', e.target.value)}
-                  placeholder="Hall A / Online..."
+                  placeholder="VD: Sảnh tòa Beta, Phòng A101..."
+                  maxLength={200}
                   required
                 />
               </label>
@@ -692,11 +988,19 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
                 onChange={(e) => updateItem(index, 'description', e.target.value)}
               />
             </label>
+            {(formConflictResults[index]?.hasLocationConflict || item.locationConflicts?.length > 0) && (
+              <TimelineLocationConflictNotice
+                conflicts={formConflictResults[index]?.conflicts || item.locationConflicts}
+                venue={item.location}
+                plannedDate={item.plannedDate}
+                plannedEndDate={item.plannedEndDate}
+              />
+            )}
           </div>
         ))}
 
         <div className="clb-timeline-form-actions">
-          {['pending_icpdp', 'approved'].includes(editingStatusKey) ? (
+          {['pending_icpdp', 'pending_admin', 'approved'].includes(editingStatusKey) ? (
             <button type="button" className="clb-create-btn" disabled={submitting} onClick={() => handleSave(false)}>
               {submitting ? 'Đang lưu...' : 'Lưu thay đổi'}
             </button>
@@ -716,7 +1020,10 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   );
 
   const renderDetail = () => {
-    const tl = timelines.find((t) => t.id === detailTimeline?.id) || detailTimeline;
+    const listItem = timelines.find((t) => t.id === detailTimeline?.id);
+    const tl = detailTimeline
+      ? { ...detailTimeline, ...(listItem || {}) }
+      : listItem;
     if (!tl) {
       return (
         <div className="clb-timeline-page">
@@ -730,13 +1037,13 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
 
     const pendingChange = hasPendingChange(tl);
     const canRequestCancel = tl.statusKey === 'approved' && !pendingChange;
-    const canDirectEdit = canEditTimeline(tl) && !pendingChange;
-    const canDirectDelete = canDirectDeleteTimeline(tl) && !pendingChange;
+    const canDirectEdit = canEditTimeline(tl, api.pendingKey) && !pendingChange && !['revision', 'rejected'].includes(tl.statusKey);
+    const canDirectDelete = canDirectDeleteTimeline(tl, api.pendingKey) && !pendingChange;
     const canRequestDelete = tl.statusKey === 'approved' && !pendingChange;
+    const scheduledDelete = isScheduledTimelineDelete(tl);
 
     return (
       <div className="clb-timeline-page">
-        <TimelineLiveBanner active />
         <div className="clb-page-header">
           <div>
             <h1 className="clb-page-title">{tl.semesterLabel}</h1>
@@ -750,7 +1057,7 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         <div className="clb-timeline-detail">
           <div className="clb-timeline-status-block">
             <div className="clb-timeline-status-track">
-              {STATUS_STEPS.map((step) => {
+              {api.statusSteps.map((step) => {
                 const state = getStepState(tl, step);
                 return (
                   <div
@@ -772,27 +1079,32 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
             </p>
           </div>
 
-          {tl.changeRequest && tl.changeRequest.statusKey !== 'none' && (
-            <div className={`clb-timeline-change-banner${tl.changeRequest.statusKey === 'rejected' ? ' clb-timeline-change-banner--rejected' : ''}`}>
-              <strong>{tl.changeRequest.typeLabel}</strong>
-              <span>{tl.changeRequest.status}</span>
-              {tl.changeRequest.reason && <p style={{ marginTop: 8 }}>Lý do CLB: {tl.changeRequest.reason}</p>}
-              {(tl.changeRequest.adminNote || tl.changeRequest.icpdpNote) && (
-                <p style={{ marginTop: 8 }}>
-                  Lý do từ chối: {tl.changeRequest.adminNote || tl.changeRequest.icpdpNote}
-                </p>
-              )}
-            </div>
-          )}
+          {(() => {
+            const reviewFeedback = buildTimelineReviewFeedback(tl);
+            if (!reviewFeedback) return null;
+            return (
+              <div className={`clb-timeline-review-banner clb-timeline-review-banner--${reviewFeedback.tone}`}>
+                <strong>{reviewFeedback.title}</strong>
+                <p>{reviewFeedback.body}</p>
+              </div>
+            );
+          })()}
 
-          {(tl.rejectionReason || tl.icpdpNote || tl.ctsvNote) && (
-            <div className="clb-timeline-detail-panel">
-              <h2>Ghi chú từ người duyệt</h2>
-              {tl.rejectionReason && <p><strong>Từ chối:</strong> {tl.rejectionReason}</p>}
-              {tl.icpdpNote && <p><strong>IC-PDP:</strong> {tl.icpdpNote}</p>}
-              {tl.ctsvNote && <p><strong>Admin / CTSV:</strong> {tl.ctsvNote}</p>}
-            </div>
-          )}
+          {shouldShowTimelineChangeBanner(tl) && (() => {
+            const { clubReason, icpdpNote, adminNote, scheduledDeleteLine } = buildTimelineChangeBannerCopy(tl.changeRequest);
+            const isRejected = tl.changeRequest.statusKey === 'rejected';
+            const isScheduled = tl.changeRequest.statusKey === 'scheduled_delete';
+            return (
+              <div className={`clb-timeline-change-banner${isRejected ? ' clb-timeline-change-banner--rejected' : ''}${isScheduled ? ' clb-timeline-change-banner--scheduled' : ''}`}>
+                <strong>{tl.changeRequest.typeLabel}</strong>
+                <span>{tl.changeRequest.status}</span>
+                {clubReason ? <p style={{ marginTop: 8 }}>Lý do CLB gửi: {clubReason}</p> : null}
+                {icpdpNote ? <p style={{ marginTop: 8 }}>Phản hồi IC-PDP: {icpdpNote}</p> : null}
+                {adminNote ? <p style={{ marginTop: 8 }}>Phản hồi Admin: {adminNote}</p> : null}
+                {scheduledDeleteLine ? <p className="ev-moderation-banner__hint" style={{ marginTop: 8 }}>{scheduledDeleteLine}</p> : null}
+              </div>
+            );
+          })()}
 
           {tl.summary && (
             <div className="clb-timeline-detail-panel">
@@ -808,15 +1120,43 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
             </div>
           )}
 
+          {(tl.hasEventPlan || tl.eventPlanFile || tl.eventPlanLink || tl.eventPlanFileName) && (
+            <div className="clb-timeline-detail-panel">
+              <EventPlanFilePanel
+                fileUrl={tl.eventPlanUrl || tl.eventPlanFile}
+                fileName={tl.eventPlanFileName}
+                mimeType={tl.eventPlanFileMime}
+                externalLink={tl.eventPlanLink}
+              />
+            </div>
+          )}
+
           <div className="clb-timeline-detail-panel">
             <h2>Hoạt động dự kiến ({tl.items?.length || 0})</h2>
+            {tl.hasLocationConflict && (
+              <TimelineLocationConflictNotice
+                variant="info"
+                conflicts={(tl.items || []).flatMap((item) => item.locationConflicts || [])}
+                title="Có hoạt động trùng địa điểm trong ngày"
+                className="tl-conflict-notice--detail"
+              />
+            )}
             <ul className="clb-timeline-milestone-list">
               {(tl.items || []).map((item, i) => (
                 <li key={`${item.title}-${i}`}>
                   <strong>{item.title}</strong>
-                  {item.plannedDate && <span>{formatDateTime(item.plannedDate)} · </span>}
+                  {item.plannedDate && <span>{formatDateTimeRange(item.plannedDate, item.plannedEndDate)} · </span>}
                   {item.category}
                   {item.location && <> · {item.location}</>}
+                  {item.hasLocationConflict && (
+                    <TimelineLocationConflictNotice
+                      conflicts={item.locationConflicts}
+                      venue={item.location}
+                      plannedDate={item.plannedDate}
+                      plannedEndDate={item.plannedEndDate}
+                      className="tl-conflict-notice--inline"
+                    />
+                  )}
                   {item.description && <p style={{ marginTop: 6, color: '#64748b' }}>{item.description}</p>}
                 </li>
               ))}
@@ -830,6 +1170,16 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
           </div>
 
           <div className="clb-timeline-detail-actions">
+            {scheduledDelete && (
+              <button
+                type="button"
+                className="clb-view-detail-btn clb-view-detail-btn--edit"
+                disabled={submitting}
+                onClick={() => handleCancelScheduledDelete(tl)}
+              >
+                Hủy yêu cầu xóa
+              </button>
+            )}
             {canRequestCancel && (
               <button
                 type="button"
@@ -893,8 +1243,8 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
         open={Boolean(deleteTarget)}
         title="Xóa timeline"
         message={
-          ['pending_icpdp', 'revision'].includes(deleteTarget?.statusKey)
-            ? 'Đơn timeline sẽ chuyển sang trạng thái «Đã hủy» và biến mất khỏi hàng chờ IC-PDP. Bạn có chắc không?'
+          [api.pendingKey, 'revision'].includes(deleteTarget?.statusKey)
+            ? `Đơn timeline sẽ chuyển sang trạng thái «Đã hủy» và biến mất khỏi hàng chờ ${api.reviewerLabel}. Bạn có chắc không?`
             : ['draft', 'rejected'].includes(deleteTarget?.statusKey)
               ? 'Timeline sẽ bị xóa vĩnh viễn và không thể khôi phục. Bạn có chắc không?'
               : 'Timeline sẽ bị xóa. Bạn có chắc không?'
@@ -929,130 +1279,258 @@ const ClubSemesterTimelinePanel = ({ showToast }) => {
   return (
     <>
       {renderDialogs()}
-      <div className="clb-timeline-page">
-      <TimelineLiveBanner active />
-      <div className="clb-page-header">
-        <div>
-          <h1 className="clb-page-title">TIMELINE KỲ HỌC</h1>
-          <p className="clb-page-subtitle">
-            Trước mỗi kỳ Spring / Summer / Fall, CLB lập timeline hoạt động và gửi IC-PDP phê duyệt.
-          </p>
-        </div>
-        <button type="button" className="clb-create-btn" onClick={openCreate}>
-          + Lập timeline kỳ mới
-        </button>
-      </div>
+      <div className="ctsv-events-page">
+        <header className="ctsv-events-hero">
+          <div className="ctsv-events-hero-text">
+            <span className="ctsv-events-eyebrow">{api.unitLabel} · Kế hoạch kỳ</span>
+            <h1>Timeline kỳ học</h1>
+            <p>
+              {api.isSchool
+                ? `Lập kế hoạch hoạt động theo kỳ Spring / Summer / Fall và gửi ${api.reviewerLabel} phê duyệt.`
+                : 'Trước mỗi kỳ Spring / Summer / Fall, CLB lập timeline hoạt động và gửi IC-PDP phê duyệt.'}
+            </p>
+          </div>
+          <div className="ctsv-events-hero-aside">
+            <div className="ctsv-events-hero-stat" aria-live="polite">
+              <span className="ctsv-events-hero-stat-num">{loading ? '—' : filteredTimelines.length}</span>
+              <span className="ctsv-events-hero-stat-label">
+                {statusFilter === 'all' ? 'Timeline' : 'Timeline (bộ lọc hiện tại)'}
+              </span>
+            </div>
+            {!loading && actionNeededCount > 0 && (
+              <p className="stl-pending-hint">{actionNeededCount} cần hành động</p>
+            )}
+            {!loading && actionNeededCount === 0 && pendingReviewCount > 0 && (
+              <p className="stl-pending-hint">{pendingReviewCount} chờ {api.reviewerLabel} duyệt</p>
+            )}
+            <button type="button" className="ctsv-events-hero-cta" onClick={openCreate}>
+              + Lập timeline kỳ mới
+            </button>
+          </div>
+        </header>
 
-      <div className="clb-table-wrapper club-m-hide-mobile">
-        <div className="clb-table-scroll">
-          <table className="clb-table clb-table--timeline">
-            <thead>
-              <tr>
-                <th>KỲ (SPRING/SUMMER/FALL)</th>
-                <th>SỐ HOẠT ĐỘNG</th>
-                <th>GỬI LÚC</th>
-                <th className="clb-table-col-status">TRẠNG THÁI</th>
-                <th className="clb-table-col-action">HÀNH ĐỘNG</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={5} className="clb-panel-empty-cell">Đang tải...</td></tr>
-              ) : timelines.length === 0 ? (
+        <section className="ctsv-events-filter-card">
+          <div className="ctsv-events-filter-form" style={{ flexWrap: 'wrap', gap: 12 }}>
+            <label className="ctsv-events-search" style={{ flex: '1 1 220px', maxWidth: 340 }}>
+              <span className="ctsv-events-search-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <circle cx="11" cy="11" r="7" /><path d="M20 20l-3-3" />
+                </svg>
+              </span>
+              <input
+                type="search"
+                className="ctsv-events-search-input"
+                placeholder="Tìm Spring/Summer/Fall..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </label>
+            <div className="stl-filter-dropdown" ref={filterRef}>
+              <button
+                type="button"
+                className={`stl-filter-pill${filterOpen ? ' stl-filter-pill--open' : ''}`}
+                onClick={() => setFilterOpen((open) => !open)}
+                aria-expanded={filterOpen}
+                aria-haspopup="listbox"
+                aria-label="Lọc theo trạng thái timeline"
+              >
+                <span>{activeFilterLabel}</span>
+                <svg className="stl-filter-caret" viewBox="0 0 10 6" width="10" height="6" fill="currentColor" aria-hidden>
+                  <path d="M0 0l5 6 5-6z" />
+                </svg>
+              </button>
+              {filterOpen && (
+                <div className="stl-filter-menu" role="listbox" aria-label="Trạng thái timeline">
+                  {CLB_STATUS_FILTERS.map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      role="option"
+                      aria-selected={statusFilter === f.id}
+                      className={`stl-filter-menu-item${statusFilter === f.id ? ' stl-filter-menu-item--active' : ''}`}
+                      onClick={() => handleStatusSelect(f.id)}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          {!loading && (
+            <p className="ctsv-events-filter-summary">
+              <strong>{filteredTimelines.length}</strong> timeline
+            </p>
+          )}
+        </section>
+
+        <section className="stl-card club-m-hide-mobile">
+          <div className="stl-table-wrap">
+            <table className="stl-table">
+              <thead>
                 <tr>
-                  <td colSpan={5} className="clb-panel-empty-cell">
-                    Chưa có timeline kỳ học. Bấm &quot;Lập timeline kỳ mới&quot; để bắt đầu.
-                  </td>
+                  <th>Kỳ học</th>
+                  <th className="col-center">Hoạt động</th>
+                  <th className="col-center">Bảng KH</th>
+                  <th className="col-center">Gửi lúc</th>
+                  <th className="col-center">Trạng thái</th>
+                  <th className="col-center">Thao tác</th>
                 </tr>
-              ) : (
-                timelines.map((tl) => (
-                  <tr key={tl.id}>
-                    <td>
-                      <button type="button" className="clb-event-name clb-link-btn" onClick={() => openDetail(tl)}>
-                        {tl.semesterLabel}
-                      </button>
-                      {tl.summary && <span className="clb-table-sub">{tl.summary.slice(0, 60)}{tl.summary.length > 60 ? '…' : ''}</span>}
-                      {tl.changeRequest?.statusKey === 'pending_icpdp' && (
-                        <span className="clb-table-sub">Yêu cầu: {tl.changeRequest.typeLabel}</span>
-                      )}
-                      {tl.changeRequest?.statusKey === 'pending_admin' && (
-                        <span className="clb-table-sub">Đã chuyển Admin: {tl.changeRequest.typeLabel}</span>
-                      )}
-                      {tl.changeRequest?.statusKey === 'rejected' && (
-                        <span className="clb-table-sub clb-table-sub--danger">{tl.status}</span>
-                      )}
-                    </td>
-                    <td className="clb-table-col-compact">{tl.items?.length || 0}</td>
-                    <td className="clb-table-col-compact">{formatDate(tl.submittedAt || tl.createdAt)}</td>
-                    <td className="clb-table-col-status">
-                      <span className={`clb-table-status clb-table-status--${timelineStatusBadgeClass(tl.statusBadgeKey || tl.statusKey)}`}>
-                        {tl.status}
-                      </span>
-                    </td>
-                    <td className="clb-table-col-action">
-                      <div className="clb-timeline-table-actions">
-                        <button
-                          type="button"
-                          className="clb-view-detail-btn"
-                          title="Xem chi tiết"
-                          aria-label={`Xem chi tiết ${tl.semesterLabel}`}
-                          onClick={() => openDetail(tl)}
-                        >
-                          <ClbEyeIcon />
-                          Xem chi tiết
-                        </button>
-                        {tl.statusKey === 'draft' && (
+              </thead>
+              <tbody>
+                {loading && Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i} className="stl-row--skeleton">
+                    <td><div className="stl-sk stl-sk--sm" /></td>
+                    <td><div className="stl-sk stl-sk--sm" /></td>
+                    <td><div className="stl-sk stl-sk--sm" /></td>
+                    <td><div className="stl-sk stl-sk--sm" /></td>
+                    <td><div className="stl-sk stl-sk--sm" /></td>
+                    <td><div className="stl-sk stl-sk--sm" /></td>
+                  </tr>
+                ))}
+                {!loading && filteredTimelines.length === 0 && (
+                  <tr>
+                    <td colSpan={6}>
+                      <div className="stl-empty">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" aria-hidden>
+                          <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+                        </svg>
+                        <p>Không có timeline nào.</p>
+                        <p className="stl-empty-hint">{emptyListHint(statusFilter)}</p>
+                        {statusFilter !== 'all' && (
                           <button
                             type="button"
-                            className="clb-action-btn clb-action-btn--success"
-                            disabled={submitting}
-                            onClick={() => handleSubmitExisting(tl.id)}
+                            className="stl-empty-action-btn"
+                            onClick={() => handleStatusSelect('all')}
                           >
-                            Gửi duyệt
+                            Hiển thị tất cả
                           </button>
                         )}
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                )}
+                {!loading && filteredTimelines.map((tl) => {
+                  const meta = resolveClubTimelineMeta(tl);
+                  return (
+                    <tr key={tl.id} className="stl-row">
+                      <td>
+                        <button
+                          type="button"
+                          className="stl-club-name stl-timeline-semester-btn"
+                          onClick={() => openDetail(tl)}
+                        >
+                          {tl.semesterLabel || '—'}
+                        </button>
+                        {tl.summary && (
+                          <p className="stl-timeline-summary">{tl.summary.slice(0, 72)}{tl.summary.length > 72 ? '…' : ''}</p>
+                        )}
+                      </td>
+                      <td className="col-center stl-count">{tl.items?.length ?? 0}</td>
+                      <td className="col-center">
+                        {tl.hasEventPlan || tl.eventPlanFile || tl.eventPlanLink || tl.eventPlanFileName ? (
+                          <span className="stl-badge stl-badge--green">Có file</span>
+                        ) : (
+                          <span style={{ color: '#94a3b8' }}>—</span>
+                        )}
+                      </td>
+                      <td className="col-center stl-date">{formatDate(tl.submittedAt || tl.createdAt)}</td>
+                      <td className="col-center">
+                        <span className={`stl-badge stl-badge--${meta.tone}`}>{meta.label}</span>
+                      </td>
+                      <td className="col-center">
+                        <div className="stl-timeline-actions">
+                          {tl.statusKey === 'draft' && (
+                            <button
+                              type="button"
+                              className="stl-action-btn stl-action-btn--primary"
+                              disabled={submitting}
+                              onClick={() => handleSubmitExisting(tl.id)}
+                            >
+                              Gửi duyệt
+                            </button>
+                          )}
+                          {(tl.statusKey === 'revision' || tl.statusKey === 'rejected') && (
+                            <button
+                              type="button"
+                              className="stl-action-btn stl-action-btn--primary"
+                              onClick={() => openEdit(tl)}
+                            >
+                              Chỉnh sửa & gửi lại
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="stl-action-btn"
+                            onClick={() => openDetail(tl)}
+                          >
+                            Xem chi tiết
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div className="club-m-timeline-list club-m-show-mobile">
+          {loading ? (
+            <p className="clb-panel-empty">Đang tải...</p>
+          ) : filteredTimelines.length === 0 ? (
+            <p className="clb-panel-empty">{emptyListHint(statusFilter)}</p>
+          ) : (
+            filteredTimelines.map((tl) => {
+              const meta = resolveClubTimelineMeta(tl);
+              return (
+                <article key={tl.id} className="club-m-timeline-card">
+                  <span className="club-m-timeline-card__label">{tl.semesterLabel}</span>
+                  {tl.summary && (
+                    <span className="club-m-timeline-card__summary">
+                      {tl.summary.slice(0, 80)}{tl.summary.length > 80 ? '…' : ''}
+                    </span>
+                  )}
+                  <div className="club-m-timeline-card__row">
+                    <span>{tl.items?.length || 0} hoạt động</span>
+                    <span>{formatDate(tl.submittedAt || tl.createdAt)}</span>
+                  </div>
+                  <span className={`stl-badge stl-badge--${meta.tone}`}>{meta.label}</span>
+                  {tl.statusKey === 'revision' && tl.icpdpNote && (
+                    <span className="club-m-timeline-card__summary">IC-PDP yêu cầu chỉnh sửa: {tl.icpdpNote}</span>
+                  )}
+                  {tl.statusKey === 'rejected' && tl.rejectionReason && (
+                    <span className="club-m-timeline-card__summary clb-table-sub--danger">
+                      Từ chối: {tl.rejectionReason}
+                    </span>
+                  )}
+                  <div className="club-m-timeline-card__actions">
+                    {tl.statusKey === 'draft' && (
+                      <button
+                        type="button"
+                        className="stl-action-btn stl-action-btn--primary"
+                        disabled={submitting}
+                        onClick={() => handleSubmitExisting(tl.id)}
+                      >
+                        Gửi duyệt
+                      </button>
+                    )}
+                    {(tl.statusKey === 'revision' || tl.statusKey === 'rejected') && (
+                      <button type="button" className="stl-action-btn stl-action-btn--primary" onClick={() => openEdit(tl)}>
+                        Chỉnh sửa & gửi lại
+                      </button>
+                    )}
+                    <button type="button" className="stl-action-btn" onClick={() => openDetail(tl)}>
+                      Xem chi tiết
+                    </button>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
       </div>
-
-      <div className="club-m-timeline-list club-m-show-mobile">
-        {loading ? (
-          <p className="clb-panel-empty">Đang tải...</p>
-        ) : timelines.length === 0 ? (
-          <p className="clb-panel-empty">Chưa có timeline. Bấm &quot;Lập timeline kỳ mới&quot; để bắt đầu.</p>
-        ) : (
-          timelines.map((tl) => (
-            <article key={tl.id} className="club-m-timeline-card">
-              <span className="club-m-timeline-card__label">{tl.semesterLabel}</span>
-              {tl.summary && (
-                <span className="club-m-timeline-card__summary">
-                  {tl.summary.slice(0, 80)}{tl.summary.length > 80 ? '…' : ''}
-                </span>
-              )}
-              <div className="club-m-timeline-card__row">
-                <span>{tl.items?.length || 0} hoạt động</span>
-                <span>{formatDate(tl.submittedAt || tl.createdAt)}</span>
-              </div>
-              <span className={`clb-table-status clb-table-status--${timelineStatusBadgeClass(tl.statusKey)}`}>
-                {tl.status}
-              </span>
-              <div className="club-m-timeline-card__actions">
-                <button type="button" className="clb-view-detail-btn" onClick={() => openDetail(tl)}>
-                  <ClbEyeIcon />
-                  Xem chi tiết
-                </button>
-              </div>
-            </article>
-          ))
-        )}
-      </div>
-    </div>
     </>
   );
 };

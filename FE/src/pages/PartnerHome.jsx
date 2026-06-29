@@ -96,7 +96,7 @@ const PartnerHome = ({ showToast }) => {
     Promise.all([
       fetchPartnerStats().catch(() => ({ stats: [], partnership: null })),
       fetchPartnerEvents().catch(() => ({ events: [] })),
-      fetchPublicEvents().catch(() => ({ events: [] })),
+      fetchPublicEvents({ page: 1, limit: 24, sort: 'featured' }).catch(() => ({ events: [] })),
     ]).then(([statsRes, partnerEventsRes, publicEventsRes]) => {
       const ownEvents = partnerEventsRes.events || [];
       const publicCards = filterActiveDiscoveryEvents((publicEventsRes.events || []).map(mapApiEventToCard));

@@ -10,6 +10,7 @@ import {
 const LIST_TTL = 45_000;
 const DETAIL_TTL = 90_000;
 const SUMMARY_TTL = 120_000;
+const FEATURED_TTL = 60_000;
 
 const resolveEventId = (event) => String(event?._id || event?.id || '').trim();
 
@@ -27,7 +28,17 @@ const listCacheScope = () => {
   return `${auth}:${role}`;
 };
 
-export const buildPublicEventsListCacheKey = ({ q, search, category, club } = {}) => {
+export const buildPublicEventsListCacheKey = ({
+  q,
+  search,
+  category,
+  club,
+  page,
+  limit,
+  sort,
+  state,
+  organizer,
+} = {}) => {
   const params = new URLSearchParams();
   const term = String(q || search || '').trim();
   if (term) params.set('q', term);
@@ -35,6 +46,11 @@ export const buildPublicEventsListCacheKey = ({ q, search, category, club } = {}
     params.set('category', category);
   }
   if (club?.trim()) params.set('club', club.trim());
+  if (page) params.set('page', String(page));
+  if (limit) params.set('limit', String(limit));
+  if (sort) params.set('sort', sort);
+  if (state && state !== 'all') params.set('state', state);
+  if (organizer && organizer !== 'all') params.set('organizer', organizer);
   const qs = params.toString();
   return `events:list:${listCacheScope()}:${qs || 'all'}`;
 };
@@ -94,7 +110,7 @@ export const syncEventRegistrationInCache = (eventId, apiEvent = null, { registe
   }
 };
 
-export const fetchPublicEvents = async (params = {}, { forceRefresh = false } = {}) => {
+const buildEventsQueryString = (params = {}) => {
   const urlParams = new URLSearchParams();
   const term = String(params.q || params.search || '').trim();
   if (term) urlParams.set('q', term);
@@ -102,8 +118,16 @@ export const fetchPublicEvents = async (params = {}, { forceRefresh = false } = 
     urlParams.set('category', params.category);
   }
   if (params.club?.trim()) urlParams.set('club', params.club.trim());
+  if (params.page) urlParams.set('page', String(params.page));
+  if (params.limit) urlParams.set('limit', String(params.limit));
+  if (params.sort) urlParams.set('sort', params.sort);
+  if (params.state && params.state !== 'all') urlParams.set('state', params.state);
+  if (params.organizer && params.organizer !== 'all') urlParams.set('organizer', params.organizer);
+  return urlParams.toString();
+};
 
-  const qs = urlParams.toString();
+export const fetchPublicEvents = async (params = {}, { forceRefresh = false } = {}) => {
+  const qs = buildEventsQueryString(params);
   const cacheKey = buildPublicEventsListCacheKey(params);
 
   const data = await cachedFetchDedup(
@@ -119,6 +143,33 @@ export const fetchPublicEvents = async (params = {}, { forceRefresh = false } = 
       return parsed.data;
     },
     { ttl: LIST_TTL, forceRefresh }
+  );
+
+  if (data?.events?.length) {
+    seedEventsFromList(data.events);
+  }
+
+  return data;
+};
+
+/** Hero / banner — endpoint nhẹ, sort theo lượt đăng ký */
+export const fetchFeaturedEvents = async (params = {}, { forceRefresh = false } = {}) => {
+  const limit = params.limit || 3;
+  const cacheKey = `events:featured:${listCacheScope()}:${limit}`;
+
+  const data = await cachedFetchDedup(
+    cacheKey,
+    async () => {
+      const res = await fetch(`${API_BASE}/api/events/featured?limit=${limit}`, {
+        headers: getAuthHeaders(false),
+      });
+      const parsed = await parseApiResponse(res);
+      if (!parsed.ok || !parsed.data.success) {
+        throw new Error(parsed.data.message || 'Không thể tải sự kiện nổi bật');
+      }
+      return parsed.data;
+    },
+    { ttl: FEATURED_TTL, forceRefresh }
   );
 
   if (data?.events?.length) {

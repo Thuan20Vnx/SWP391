@@ -5,6 +5,7 @@ import ProposalTicketsTable from './ProposalTicketsTable';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import { statusClass } from '../../utils/eventStatus';
 import { getVisibleProposalReviewNotes } from '../../utils/proposalReviewNotes';
+import TimelineSourceNotice from '../club/TimelineSourceNotice';
 
 const THUMB_FALLBACK =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%23f1ede9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%23b0a090'%3EKhông có ảnh%3C/text%3E%3C/svg%3E";
@@ -33,6 +34,7 @@ const AdminClubProposalCard = ({
         <div className="admin-proposal-card__head-main">
           <span className="admin-proposal-card__index">#{index + 1}</span>
           <h2 className="admin-proposal-card__title">{proposal.title}</h2>
+          <TimelineSourceNotice source={proposal} className="admin-proposal-card__timeline-source" />
         </div>
         <span className={`status-pill ${statusClass(proposal.status, proposal.statusKey)}`}>
           {proposal.status}
@@ -103,7 +105,7 @@ const AdminClubProposalCard = ({
         {hasPlan ? (
           <div className="admin-fpt-unit-events__plan-panel">
             <EventPlanFilePanel
-              fileUrl={proposal.eventPlanFile}
+              fileUrl={proposal.eventPlanUrl || proposal.eventPlanFile}
               fileName={proposal.eventPlanFileName}
               mimeType={proposal.eventPlanFileMime}
               externalLink={proposal.eventPlanLink}

@@ -4,6 +4,10 @@ const PartnerMember = require('../models/PartnerMember');
 const Contract = require('../models/Contract');
 const PartnerEventRequest = require('../models/PartnerEventRequest');
 const { formatEvent } = require('../utils/eventFormat');
+const {
+  sanitizePartnerRequestForApi,
+  sanitizePartnerForApi,
+} = require('../utils/partnerMediaStorage');
 
 const REQUEST_STATUS_LABELS = {
   pending: 'CHỜ DUYỆT',
@@ -12,6 +16,7 @@ const REQUEST_STATUS_LABELS = {
 };
 
 const formatPendingRequestAsEvent = (doc) => {
+  const media = sanitizePartnerRequestForApi(doc);
   const cap = doc.totalTickets || 0;
   return {
     id: `req-${doc._id}`,
@@ -31,18 +36,20 @@ const formatPendingRequestAsEvent = (doc) => {
     registeredCount: 0,
     status: REQUEST_STATUS_LABELS[doc.status] || doc.status,
     statusKey: doc.status,
-    image: doc.image || '',
-    thumbnail: doc.image || '',
+    image: media.coverUrl || '',
+    thumbnail: media.coverUrl || '',
+    coverUrl: media.coverUrl || '',
+    hasCover: media.hasCover,
     eventType: doc.eventType || '',
     format: doc.format || 'campus',
     campus: doc.campus || '',
     agenda: doc.agenda || '',
     learningOutcomes: doc.learningOutcomes || [],
-    speakers: doc.speakers || [],
+    speakers: media.speakers || [],
     ticketTypes: doc.ticketTypes || [],
     benefits: doc.benefits || [],
     partnerMessage: doc.partnerMessage || '',
-    attachments: doc.attachments || [],
+    attachments: media.attachments || [],
     rejectionReason: doc.rejectionReason || '',
     supplementReason: doc.supplementReason || '',
     source: 'partner',
@@ -126,10 +133,13 @@ const getPartnerMePayload = async (email) => {
   }
 
   const primaryBase = proposals.find((item) => item.status === 'approved') || proposals[0];
-  const logoDoc = await Partner.findById(primaryBase._id).select('logo attachments').lean();
+  const logoDoc = await Partner.findById(primaryBase._id).select('logo logoFileExt attachments').lean();
+  const partnerMedia = sanitizePartnerForApi({ ...primaryBase, logo: logoDoc?.logo, logoFileExt: logoDoc?.logoFileExt });
   const partner = {
     ...primaryBase,
-    logo: logoDoc?.logo || '',
+    logo: partnerMedia.logo || '',
+    logoUrl: partnerMedia.logoUrl || '',
+    hasLogo: partnerMedia.hasLogo,
     attachments: logoDoc?.attachments || []
   };
 

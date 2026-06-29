@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import SiteFooter from '../components/SiteFooter';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import EventTicketModal from '../components/EventTicketModal';
@@ -397,7 +396,6 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
             ← Quay lại
           </button>
         </main>
-        <SiteFooter />
       </div>
     );
     if (embedded) {
@@ -825,7 +823,6 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
         {detailMain}
       </div>
       {dialogs}
-      <SiteFooter />
     </>
   );
 };

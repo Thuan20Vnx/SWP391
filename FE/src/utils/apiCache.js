@@ -79,7 +79,7 @@ export const cachedFetch = async (cacheKey, fetchFn, options = {}) => {
 
 // Dedup: nếu cùng 1 key đang fetch, tái sử dụng promise đang chạy
 const _inflight = new Map();
-const FETCH_TIMEOUT_MS = 20_000;
+const FETCH_TIMEOUT_MS = 45_000;
 
 const runWithTimeout = (promise, cacheKey) => {
   let timer;

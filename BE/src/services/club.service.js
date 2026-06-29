@@ -3,6 +3,7 @@ const Club = require('../models/Club');
 const ClubFollow = require('../models/ClubFollow');
 const ClubMembership = require('../models/ClubMembership');
 const AppError = require('../utils/AppError');
+const { sanitizeClubMediaForApi, resolveClubMediaResponse } = require('../utils/clubMediaStorage');
 
 const resolveClub = async (idOrSlug) => {
   if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
@@ -43,7 +44,8 @@ const attachUserClubFlags = (clubDoc, followedSet, membershipMap) => {
   doc.membershipRequestedAt = membership?.requestedAt || null;
   doc.membershipJoinedAt = membership?.joinedAt || null;
 
-  return doc;
+  const media = sanitizeClubMediaForApi(doc);
+  return { ...doc, ...media };
 };
 
 const buildClubQuery = ({ category, search }) => {
@@ -206,6 +208,7 @@ const approveMembership = async (staffUserId, idOrSlug, targetUserId) => {
 const formatClubForFollowList = (follow) => {
   const club = follow.club;
   if (!club || typeof club !== 'object') return null;
+  const media = sanitizeClubMediaForApi(club);
 
   return {
     id: follow._id,
@@ -215,7 +218,10 @@ const formatClubForFollowList = (follow) => {
     category: club.category,
     logoText: club.logoText,
     logoColor: club.logoColor,
-    coverImage: club.coverImage,
+    coverImage: media.coverImage,
+    logoImage: media.logoImage,
+    coverUrl: media.coverUrl,
+    logoUrl: media.logoUrl,
     memberCount: club.memberCount,
     followerCount: club.followerCount,
     description: club.description,
@@ -228,6 +234,7 @@ const formatClubForFollowList = (follow) => {
 const formatClubForMembershipList = (membership) => {
   const club = membership.club;
   if (!club || typeof club !== 'object') return null;
+  const media = sanitizeClubMediaForApi(club);
 
   const isPending = membership.status === 'pending';
 
@@ -239,7 +246,10 @@ const formatClubForMembershipList = (membership) => {
     category: club.category,
     logoText: club.logoText,
     logoColor: club.logoColor,
-    coverImage: club.coverImage,
+    coverImage: media.coverImage,
+    logoImage: media.logoImage,
+    coverUrl: media.coverUrl,
+    logoUrl: media.logoUrl,
     memberCount: club.memberCount,
     followerCount: club.followerCount,
     description: club.description,
@@ -422,7 +432,24 @@ const getManagedClubProfile = async (userId, activeClubId = null) => {
     await club.save();
   }
 
-  return { club };
+  return { club: attachUserClubFlags(club, new Set(), new Map()) };
+};
+
+const sendClubMedia = async (clubId, kind, res) => {
+  if (!mongoose.Types.ObjectId.isValid(clubId)) {
+    throw new AppError('Không tìm thấy media CLB', 404);
+  }
+  const club = await Club.findById(clubId).lean();
+  if (!club) throw new AppError('Không tìm thấy media CLB', 404);
+  const resolved = await resolveClubMediaResponse(club, kind);
+  if (!resolved) throw new AppError('Không tìm thấy media CLB', 404);
+  if (resolved.redirectUrl) {
+    res.redirect(302, resolved.redirectUrl);
+    return;
+  }
+  res.set('Content-Type', resolved.mime);
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.send(resolved.buffer);
 };
 
 const updateManagedClubProfile = async (userId, payload = {}, activeClubId = null) => {
@@ -517,5 +544,6 @@ module.exports = {
   getAllClubsForManagement,
   updateClubByIcpdp,
   deleteClubByIcpdp,
+  sendClubMedia,
   MANAGED_CLUB_SLUG,
 };

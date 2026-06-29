@@ -10,7 +10,8 @@ import {
   isHideModerationPending,
   isIcpdpModerationPending,
 } from '../../constants/clubEventModeration';
-import { MODERATION_ACTION_LABELS } from '../../constants/eventModeration';
+import ClubModerationBannerContent from './ClubModerationBannerContent';
+import { buildClubModerationBannerCopy } from '../../utils/clubModerationBanner';
 import { SCHOOL_EVENT_STATUS_LABELS } from '../../constants/eventWorkflow';
 import { requestClubEventModeration } from '../../utils/api';
 
@@ -237,7 +238,9 @@ const EventPostponeCancelPanel = ({ event, eventId, showToast, onEventUpdated })
       {isCancelled && (
         <div className="ev-moderation-banner ev-moderation-banner--danger" role="status">
           <strong>Sự kiện đã bị hủy</strong>
-          {event.moderationReason && <p>{event.moderationReason}</p>}
+          {event.moderationReason && (
+            <p>{buildClubModerationBannerCopy(event).reasonLine || event.moderationReason}</p>
+          )}
         </div>
       )}
 
@@ -246,43 +249,34 @@ const EventPostponeCancelPanel = ({ event, eventId, showToast, onEventUpdated })
           <strong>Sự kiện đang ẩn</strong>
           <p>Sự kiện không hiển thị trên cổng sinh viên. Bạn có thể hiện lại ngay mà không cần Admin duyệt.</p>
           {event.moderationReason && (
-            <p className="ev-moderation-banner__hint">Lý do ẩn: {event.moderationReason}</p>
+            <p className="ev-moderation-banner__hint">
+              {buildClubModerationBannerCopy(event).reasonLine || `Lý do ẩn: ${event.moderationReason}`}
+            </p>
           )}
         </div>
       )}
 
       {hidePending && (
         <div className="ev-moderation-banner ev-moderation-banner--pending" role="status">
-          <strong>Đang chờ Admin duyệt yêu cầu ẩn</strong>
-          {event.moderationReason && <p>{event.moderationReason}</p>}
+          <strong>Đang chờ Admin duyệt yêu cầu ẩn sự kiện</strong>
+          <ClubModerationBannerContent event={event} />
         </div>
       )}
 
       {icpdpPending && (
         <div className="ev-moderation-banner ev-moderation-banner--pending" role="status">
           <strong>Đang chờ IC-PDP duyệt</strong>
-          <p>
-            Yêu cầu{' '}
-            <strong>{MODERATION_ACTION_LABELS[event.moderationAction] || 'điều phối'}</strong>
-            {event.moderationReason ? `: ${event.moderationReason}` : '.'}
-          </p>
-          <p className="ev-moderation-banner__hint">
-            Sau khi IC-PDP duyệt, yêu cầu sẽ chuyển sang Admin ({statusLabel(event.statusKey)}).
-          </p>
+          <ClubModerationBannerContent
+            event={event}
+            icpdpHint
+          />
         </div>
       )}
 
       {adminPending && !hidePending && (
         <div className="ev-moderation-banner ev-moderation-banner--pending" role="status">
           <strong>IC-PDP đã duyệt — đang chờ Admin</strong>
-          <p>
-            Yêu cầu{' '}
-            <strong>{MODERATION_ACTION_LABELS[event.moderationAction] || 'điều phối'}</strong>
-            {event.moderationReason ? `: ${event.moderationReason}` : '.'}
-          </p>
-          {event.icpdpNote && (
-            <p className="ev-moderation-banner__hint">Ghi chú IC-PDP: {event.icpdpNote}</p>
-          )}
+          <ClubModerationBannerContent event={event} icpdpNote={event.icpdpNote} />
         </div>
       )}
 

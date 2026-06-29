@@ -5,6 +5,7 @@ const timelineItemSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true, maxlength: 200 },
     description: { type: String, default: '', maxlength: 2000 },
     plannedDate: { type: Date, default: null },
+    plannedEndDate: { type: Date, default: null },
     category: { type: String, default: 'Workshop', trim: true, maxlength: 80 },
     location: { type: String, default: '', trim: true, maxlength: 200 },
     expectedAttendees: { type: Number, default: 0, min: 0 },
@@ -29,7 +30,7 @@ const changeRequestSchema = new mongoose.Schema(
     type: { type: String, enum: ['none', 'cancel', 'edit', 'delete'], default: 'none' },
     status: {
       type: String,
-      enum: ['none', 'pending_icpdp', 'pending_admin', 'approved', 'rejected'],
+      enum: ['none', 'pending_icpdp', 'pending_admin', 'approved', 'rejected', 'scheduled_delete'],
       default: 'none',
     },
     reason: { type: String, default: '', maxlength: 1000 },
@@ -38,13 +39,21 @@ const changeRequestSchema = new mongoose.Schema(
     icpdpNote: { type: String, default: '' },
     adminNote: { type: String, default: '' },
     reviewedAt: { type: Date, default: null },
+    scheduledDeleteAt: { type: Date, default: null },
   },
   { _id: false }
 );
 
 const clubSemesterTimelineSchema = new mongoose.Schema(
   {
-    clubId: { type: mongoose.Schema.Types.ObjectId, ref: 'Club', required: true },
+    ownerType: {
+      type: String,
+      enum: ['club', 'icpdp', 'ctsv'],
+      default: 'club',
+      index: true,
+    },
+    ownerLabel: { type: String, default: '', trim: true },
+    clubId: { type: mongoose.Schema.Types.ObjectId, ref: 'Club', default: null },
     clubName: { type: String, default: '', trim: true },
     clubSlug: { type: String, default: '', trim: true },
     semesterTerm: { type: String, enum: ['spring', 'summer', 'fall'], required: true },
@@ -52,6 +61,11 @@ const clubSemesterTimelineSchema = new mongoose.Schema(
     semesterLabel: { type: String, required: true, trim: true, maxlength: 80 },
     summary: { type: String, default: '', maxlength: 3000 },
     objectives: { type: String, default: '', maxlength: 2000 },
+    eventPlanFile: { type: String, default: '' },
+    eventPlanFileName: { type: String, default: '' },
+    eventPlanFileMime: { type: String, default: '' },
+    eventPlanFileExt: { type: String, default: '' },
+    eventPlanLink: { type: String, default: '' },
     items: { type: [timelineItemSchema], default: [] },
     status: {
       type: String,
@@ -71,10 +85,22 @@ const clubSemesterTimelineSchema = new mongoose.Schema(
 );
 
 clubSemesterTimelineSchema.index({ clubId: 1, semesterYear: 1, semesterTerm: 1 });
+clubSemesterTimelineSchema.index(
+  { ownerType: 1, semesterYear: 1, semesterTerm: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { ownerType: { $in: ['icpdp', 'ctsv'] } },
+  }
+);
 clubSemesterTimelineSchema.index({ status: 1, createdAt: -1 });
 clubSemesterTimelineSchema.index({ clubName: 'text', semesterLabel: 'text' });
 
 clubSemesterTimelineSchema.statics.STATUSES = TIMELINE_STATUSES;
+
+clubSemesterTimelineSchema.pre('save', async function () {
+  const { persistEventPlanOnDocument, PLAN_SCOPES } = require('../utils/eventPlanStorage');
+  await persistEventPlanOnDocument(this, PLAN_SCOPES.timelines);
+});
 
 const ClubSemesterTimeline = mongoose.model('ClubSemesterTimeline', clubSemesterTimelineSchema);
 

@@ -42,11 +42,29 @@ router.post(
   asyncHandler(clubController.transferClubChairman)
 );
 
+router.post(
+  '/manage/semester-timelines/check-conflicts',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.checkSemesterTimelineConflicts)
+);
 router.get(
   '/manage/semester-timelines',
   authMiddleware,
   authorize('club_manager'),
   asyncHandler(clubController.listSemesterTimelines)
+);
+router.get(
+  '/manage/semester-timelines/:id/plan',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.getSemesterTimelinePlanFile)
+);
+router.get(
+  '/manage/semester-timelines/:id/event-plan',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.getSemesterTimelinePlan)
 );
 router.get(
   '/manage/semester-timelines/:id',
@@ -90,6 +108,12 @@ router.post(
   authorize('club_manager'),
   asyncHandler(clubController.requestSemesterTimelineChange)
 );
+router.post(
+  '/manage/semester-timelines/:id/cancel-scheduled-delete',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.cancelScheduledSemesterTimelineDelete)
+);
 
 router.get(
   '/manage/all',
@@ -109,6 +133,9 @@ router.delete(
   authorize('icpdp', 'admin'),
   asyncHandler(clubController.icpdpDeleteClub)
 );
+
+router.get('/:id/cover', asyncHandler(clubController.getClubCover));
+router.get('/:id/logo', asyncHandler(clubController.getClubLogo));
 
 router.get('/:slug', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubBySlug));
 

@@ -16,7 +16,8 @@ const attachmentSchema = new mongoose.Schema(
     name: { type: String, default: '' },
     url: { type: String, default: '' },
     sizeLabel: { type: String, default: '' },
-    mimeType: { type: String, default: '' }
+    mimeType: { type: String, default: '' },
+    storedExt: { type: String, default: '' },
   },
   { _id: false }
 );
@@ -78,10 +79,12 @@ const partnerEventRequestSchema = new mongoose.Schema(
     learningOutcomes: { type: [String], default: [] },
     expectedAttendees: { type: Number, default: 0 },
     image: { type: String, default: '' },
+    coverFileExt: { type: String, default: '' },
     bannerFileName: { type: String, default: '' },
     totalTickets: { type: Number, default: 0 },
     ticketTypes: { type: [ticketTypeSchema], default: [] },
     speakers: { type: [speakerSchema], default: [] },
+    speakerAvatarExts: { type: [String], default: [] },
     submittedAt: { type: Date, default: null },
     hiddenAt: { type: Date, default: null },
     deletedAt: { type: Date, default: null },
@@ -93,6 +96,11 @@ const partnerEventRequestSchema = new mongoose.Schema(
 
 partnerEventRequestSchema.index({ partnerEmail: 1, status: 1, updatedAt: -1 });
 partnerEventRequestSchema.index({ partnerId: 1, status: 1, updatedAt: -1 });
+
+partnerEventRequestSchema.pre('save', async function () {
+  const { persistPartnerRequestMediaOnDocument } = require('../utils/partnerMediaStorage');
+  await persistPartnerRequestMediaOnDocument(this);
+});
 
 const PartnerEventRequest = mongoose.model('PartnerEventRequest', partnerEventRequestSchema);
 

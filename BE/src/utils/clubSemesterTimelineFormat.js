@@ -1,3 +1,5 @@
+const { sanitizeEventPlanForApi, PLAN_SCOPES, buildClubTimelinePlanUrl, buildSchoolTimelinePlanUrl } = require('./eventPlanStorage');
+
 const STATUS_LABELS = {
   draft: 'Bản nháp',
   pending_icpdp: 'Chờ IC-PDP duyệt',
@@ -22,6 +24,7 @@ const CHANGE_STATUS_LABELS = {
   pending_admin: 'Chờ Admin duyệt yêu cầu',
   approved: 'Yêu cầu đã được thực hiện',
   rejected: 'Yêu cầu bị từ chối',
+  scheduled_delete: 'Đã duyệt xóa — đang chờ xóa',
 };
 
 const TERM_LABELS = {
@@ -32,19 +35,32 @@ const TERM_LABELS = {
 
 const TERM_ORDER = { spring: 1, summer: 2, fall: 3 };
 
+const OWNER_TYPE_LABELS = {
+  club: 'CLB',
+  icpdp: 'IC-PDP',
+  ctsv: 'CTSV',
+};
+
+const { EVENT_VENUES, isValidEventVenue } = require('../constants/eventVenues');
+const { attachConflictsToTimeline, invalidateRegistryCache } = require('../services/timelineLocationConflict.service');
+
 const buildSemesterLabel = (term, year) => {
   const termLabel = TERM_LABELS[term] || term;
   return `${termLabel} ${year}`;
 };
 
-const formatTimelineItem = (item) => ({
+const formatTimelineItem = (item, extra = {}) => ({
   title: item.title || '',
   description: item.description || '',
   plannedDate: item.plannedDate || null,
+  plannedEndDate: item.plannedEndDate || null,
   category: item.category || 'Workshop',
   location: item.location || '',
   expectedAttendees: Number(item.expectedAttendees) || 0,
   notes: item.notes || '',
+  locationConflicts: item.locationConflicts || [],
+  hasLocationConflict: Boolean(item.hasLocationConflict),
+  ...extra,
 });
 
 const formatChangeRequest = (cr) => {
@@ -54,6 +70,14 @@ const formatChangeRequest = (cr) => {
   if (statusKey === 'rejected') {
     if (cr.type === 'cancel') status = 'Từ chối yêu cầu hủy đơn';
     else if (cr.type === 'delete') status = 'Từ chối yêu cầu xóa';
+  }
+  if (statusKey === 'scheduled_delete' && cr.scheduledDeleteAt) {
+    const at = new Date(cr.scheduledDeleteAt);
+    if (!Number.isNaN(at.getTime())) {
+      const time = at.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      const date = at.toLocaleDateString('vi-VN');
+      status = `Sẽ xóa lúc ${time} · ${date}`;
+    }
   }
   return {
     type: cr.type,
@@ -66,6 +90,7 @@ const formatChangeRequest = (cr) => {
     icpdpNote: cr.icpdpNote || '',
     adminNote: cr.adminNote || '',
     reviewedAt: cr.reviewedAt || null,
+    scheduledDeleteAt: cr.scheduledDeleteAt || null,
   };
 };
 
@@ -82,10 +107,21 @@ const resolveDisplayStatus = (statusKey, changeRequest) => {
   const hasPendingChange =
     cr?.type &&
     cr.type !== 'none' &&
-    ['pending_icpdp', 'pending_admin'].includes(cr.status);
+    ['pending_icpdp', 'pending_admin', 'scheduled_delete'].includes(cr.status);
 
   if (hasPendingChange) {
     const actionLabel = cr.type === 'cancel' ? 'hủy' : cr.type === 'delete' ? 'xóa' : 'thay đổi';
+    if (cr.status === 'scheduled_delete') {
+      const at = cr.scheduledDeleteAt ? new Date(cr.scheduledDeleteAt) : null;
+      const when =
+        at && !Number.isNaN(at.getTime())
+          ? at.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+          : '1 giờ nữa';
+      return {
+        status: `Đã duyệt xóa — xóa lúc ${when}`,
+        statusBadgeKey: 'pending_admin',
+      };
+    }
     if (cr.status === 'pending_icpdp') {
       return {
         status: `Chờ IC-PDP duyệt ${actionLabel}`,
@@ -104,23 +140,34 @@ const resolveDisplayStatus = (statusKey, changeRequest) => {
   };
 };
 
-const formatClubSemesterTimeline = (doc) => {
+const formatClubSemesterTimeline = async (doc, opts = {}) => {
   if (!doc) return null;
+  const includePlanFile = opts.includePlanFile === true;
   const r = doc.toObject ? doc.toObject() : doc;
   const statusKey = r.status || 'draft';
+  const ownerType = r.ownerType || 'club';
   const changeRequest = formatChangeRequest(r.changeRequest);
   const display = resolveDisplayStatus(statusKey, r.changeRequest);
-  return {
+  const base = {
     id: String(r._id),
+    ownerType,
+    ownerLabel: r.ownerLabel || OWNER_TYPE_LABELS[ownerType] || r.clubName || 'CLB',
     clubId: r.clubId ? String(r.clubId) : '',
-    clubName: r.clubName || '',
+    clubName: ownerType === 'club' ? (r.clubName || '') : (r.ownerLabel || OWNER_TYPE_LABELS[ownerType] || ''),
     clubSlug: r.clubSlug || '',
     semesterTerm: r.semesterTerm,
     semesterYear: r.semesterYear,
     semesterLabel: r.semesterLabel || buildSemesterLabel(r.semesterTerm, r.semesterYear),
     summary: r.summary || '',
     objectives: r.objectives || '',
-    items: Array.isArray(r.items) ? r.items.map(formatTimelineItem) : [],
+    ...(sanitizeEventPlanForApi(r, PLAN_SCOPES.timelines, {
+      planUrlBuilder: (id) =>
+        (r.ownerType || 'club') === 'club'
+          ? buildClubTimelinePlanUrl(id)
+          : buildSchoolTimelinePlanUrl(id),
+    })),
+    eventPlanFile: '',
+    items: Array.isArray(r.items) ? r.items.map((item) => formatTimelineItem(item)) : [],
     status: display.status,
     statusKey,
     statusBadgeKey: display.statusBadgeKey,
@@ -134,7 +181,15 @@ const formatClubSemesterTimeline = (doc) => {
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     changeRequest,
+    hasLocationConflict: false,
+    locationConflictCount: 0,
   };
+
+  if (opts.attachConflicts !== false) {
+    await attachConflictsToTimeline(r, base);
+  }
+
+  return base;
 };
 
 module.exports = {
@@ -143,7 +198,10 @@ module.exports = {
   CHANGE_STATUS_LABELS,
   TERM_LABELS,
   TERM_ORDER,
+  OWNER_TYPE_LABELS,
   buildSemesterLabel,
   formatTimelineItem,
   formatClubSemesterTimeline,
+  EVENT_VENUES,
+  isValidEventVenue,
 };

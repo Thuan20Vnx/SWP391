@@ -1,3 +1,5 @@
+const { sanitizeAnnouncementImageForApi } = require('./announcementImageStorage');
+const { sanitizeUserAvatarForApi } = require('./userAvatarStorage');
 const { normalizeEventCategory } = require('../constants/eventCategories');
 const { resolveDocTargetRoles, viewerMatchesTargets } = require('../constants/announcementTargets');
 const {
@@ -91,10 +93,8 @@ const buildPublisherUserMap = (users = []) => {
 
 const resolvePublisherAvatar = (user) => {
   if (!user) return '';
-  const isCustom = (value) => typeof value === 'string' && value.startsWith('data:image/');
-  if (isCustom(user.picture)) return user.picture;
-  if (isCustom(user.avatar)) return user.avatar;
-  return user.picture || user.avatar || '';
+  const av = sanitizeUserAvatarForApi(user);
+  return av.picture || av.avatar || av.avatarUrl || '';
 };
 
 const resolvePublisherFields = (doc, userMap, options = {}) => {
@@ -130,6 +130,7 @@ const formatPublicAnnouncement = (doc, userMap, options = {}) => {
   const publisher = resolvePublisherFields(doc, userMap, options);
   const noticeCategory = normalizeNoticeCategory(doc.noticeCategory);
   const notificationTone = getNoticeCategoryTone(noticeCategory);
+  const imageMeta = sanitizeAnnouncementImageForApi(doc);
   return {
     id,
     title: doc.title,
@@ -148,7 +149,9 @@ const formatPublicAnnouncement = (doc, userMap, options = {}) => {
     category: resolveCategoryLabel(doc),
     noticeCategory,
     noticeCategoryLabel: getNoticeCategoryLabel(noticeCategory),
-    image: doc.image || '',
+    image: imageMeta.imageUrl || '',
+    hasImage: imageMeta.hasImage,
+    imageUrl: imageMeta.imageUrl || '',
     eventId: doc.eventId?._id?.toString?.() || doc.eventId?.toString?.() || null,
     eventTitle: doc.eventId?.title || null,
     important: noticeCategory === 'action' || noticeCategory === 'urgent' || Boolean(doc.eventId) || doc.type === 'event' || Boolean(doc.is_pinned),

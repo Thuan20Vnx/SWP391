@@ -56,6 +56,50 @@
   font: inherit;
 }
 
+.club-sidebar .ctsv-sidebar-nav {
+  padding-top: 8px;
+  scroll-padding-top: 8px;
+}
+
+.club-sidebar-mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 0 4px 14px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #e8dfd8;
+  flex-shrink: 0;
+}
+
+.club-sidebar-mode-btn {
+  border: 1px solid #e8dfd8;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  padding: 8px 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.club-sidebar-mode-btn:hover {
+  background: var(--club-accent-bg);
+  color: var(--club-accent);
+  border-color: color-mix(in srgb, var(--club-accent) 35%, #e8dfd8);
+}
+
+.club-sidebar-mode-btn--active {
+  background: var(--club-accent) !important;
+  border-color: var(--club-accent) !important;
+  color: #fff !important;
+}
+
+.club-sidebar-scan-btn {
+  margin-top: 8px;
+}
+
 /* Mobile: header sticky (z-index 1300) che mục đầu sidebar — Hồ sơ CLB */
 @media (max-width: 1023px) {
   .club-app-shell.sidebar-open .ctsv-sidebar {

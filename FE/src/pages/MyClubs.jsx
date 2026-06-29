@@ -52,12 +52,6 @@ const MyClubs = ({ showToast }) => {
   const [activeCategory, setActiveCategory] = useState('');
 
   useEffect(() => {
-    if (isClubManagerRole()) {
-      navigate('/quan-ly-clb', { replace: true });
-    }
-  }, [navigate]);
-
-  useEffect(() => {
     if (isClubManagerRole()) return undefined;
     setLoading(true);
     fetch(`${API_BASE}/api/user/my-clubs?tab=following`, { headers: getAuthHeaders(false) })

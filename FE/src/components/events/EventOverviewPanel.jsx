@@ -196,7 +196,7 @@ const EventOverviewPanel = ({ event }) => {
             {event.description?.trim() || 'Chưa có mô tả chi tiết.'}
           </p>
           <EventPlanFilePanel
-            fileUrl={event.eventPlanFile}
+            fileUrl={event.eventPlanUrl || event.eventPlanFile}
             fileName={event.eventPlanFileName}
             mimeType={event.eventPlanFileMime}
             externalLink={event.eventPlanLink}

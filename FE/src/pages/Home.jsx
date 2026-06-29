@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PublicAdminShell from '../layouts/PublicAdminShell';
-import SiteFooter from '../components/SiteFooter';
 import AppSelect from '../components/ui/AppSelect';
 import EventDiscoveryCard from '../components/EventDiscoveryCard';
 import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
@@ -27,7 +26,7 @@ const HOME_CATEGORY_FILTERS = [
 
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import useDebouncedValue from '../hooks/useDebouncedValue';
-import { fetchPublicEvents, getCachedPublicEventsList, prefetchPublicEventById, syncEventRegistrationInCache } from '../services/eventsApi';
+import { fetchPublicEvents, fetchFeaturedEvents, getCachedPublicEventsList, prefetchPublicEventById, syncEventRegistrationInCache } from '../services/eventsApi';
 import useUserProfile from '../hooks/useUserProfile';
 import useManagedClubs from '../hooks/useManagedClubs';
 import {
@@ -52,6 +51,14 @@ const CTSV_HOME_SOURCE_TABS = [
   { id: 'club', label: 'Sự kiện CLB' },
 ];
 
+const HOME_GRID_FETCH_LIMIT = 48;
+
+const homeTabToApiSort = (tabId) => {
+  if (tabId === 'popular') return 'featured';
+  if (tabId === 'newest') return 'newest';
+  return 'startDate';
+};
+
 const filterCtsvHomeEventsByTab = (events, tabId) => {
   switch (tabId) {
     case 'all':
@@ -73,16 +80,19 @@ const Home = ({ showToast }) => {
   const navigate = useNavigate();
   const { isLoggedIn, userProfile } = useUserProfile();
 
-  const buildEventQuery = (search, category) => ({
+  const buildEventQuery = (search, category, sort = 'startDate') => ({
     q: search || undefined,
     category: category !== 'Tất cả' ? category : undefined,
+    page: 1,
+    limit: HOME_GRID_FETCH_LIMIT,
+    sort,
   });
 
-  const mapListToCards = (data, roleForPricing = 'guest') => {
-    if (!data?.success || !data.events?.length) return [];
-    return filterActiveDiscoveryEvents(data.events).map((ev) =>
-      mapApiEventToCard(ev, { viewerRole: roleForPricing })
-    );
+  const mapListToCards = (data, roleForPricing = 'guest', { activeOnly = true } = {}) => {
+    const rows = data?.events;
+    if (!Array.isArray(rows) || !rows.length) return [];
+    const source = activeOnly ? filterActiveDiscoveryEvents(rows) : rows;
+    return source.map((ev) => mapApiEventToCard(ev, { viewerRole: roleForPricing }));
   };
 
   // Search & Filters State
@@ -92,7 +102,7 @@ const Home = ({ showToast }) => {
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
 
   const initialEventCards = mapListToCards(
-    getCachedPublicEventsList(buildEventQuery('', 'Tất cả')),
+    getCachedPublicEventsList(buildEventQuery('', 'Tất cả', 'startDate')),
     localStorage.getItem('authToken') ? getUserRole() || 'guest' : 'guest'
   );
 
@@ -100,12 +110,8 @@ const Home = ({ showToast }) => {
   const [eventsLoading, setEventsLoading] = useState(initialEventCards.length === 0);
   const [eventsError, setEventsError] = useState(false);
 
-  const initialHeroCards = mapListToCards(
-    getCachedPublicEventsList({}),
-    localStorage.getItem('authToken') ? getUserRole() || 'guest' : 'guest'
-  );
-  const [heroEvents, setHeroEvents] = useState(initialHeroCards);
-  const [heroLoading, setHeroLoading] = useState(initialHeroCards.length === 0);
+  const [heroEvents, setHeroEvents] = useState([]);
+  const [heroLoading, setHeroLoading] = useState(true);
   const [heroUnavailable, setHeroUnavailable] = useState(false);
 
   const [recommendTab, setRecommendTab] = useState('newest');
@@ -139,10 +145,10 @@ const Home = ({ showToast }) => {
     }
   }, [recommendTab, recommendTabs]);
 
-  // Load events — hiển thị cache ngay, fetch nền cập nhật
+  // Load events — phân trang nhẹ (metadata + cover lazy-load)
   useEffect(() => {
     let cancelled = false;
-    const params = buildEventQuery(debouncedSearch, categoryFilter);
+    const params = buildEventQuery(debouncedSearch, categoryFilter, homeTabToApiSort(recommendTab));
     const cached = getCachedPublicEventsList(params);
     const hasCached = Boolean(cached?.events?.length);
 
@@ -169,45 +175,34 @@ const Home = ({ showToast }) => {
         }
       })
       .finally(() => {
-        if (!cancelled) setEventsLoading(false);
+        setEventsLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, categoryFilter, viewerRole]);
+  }, [debouncedSearch, categoryFilter, recommendTab, viewerRole]);
 
-  // Hero banner — luôn lấy sự kiện nổi bật toàn sàn, không phụ thuộc bộ lọc lưới
+  // Hero banner — endpoint /featured (3 sự kiện, không tải cả danh sách)
   useEffect(() => {
     let cancelled = false;
-    const cached = getCachedPublicEventsList({});
-    const hasCached = Boolean(cached?.events?.length);
+    setHeroLoading(true);
+    setHeroUnavailable(false);
 
-    if (hasCached) {
-      setHeroEvents(mapListToCards(cached, viewerRole));
-      setHeroLoading(false);
-      setHeroUnavailable(false);
-    } else {
-      setHeroLoading(true);
-      setHeroUnavailable(false);
-    }
-
-    fetchPublicEvents({})
+    fetchFeaturedEvents({ limit: 3 }, { forceRefresh: true })
       .then((data) => {
         if (cancelled) return;
-        setHeroEvents(mapListToCards(data, viewerRole));
+        setHeroEvents(mapListToCards(data, viewerRole, { activeOnly: false }));
         setHeroUnavailable(false);
       })
       .catch((err) => {
         console.error(err);
         if (cancelled) return;
-        if (!hasCached) {
-          setHeroEvents([]);
-        }
+        setHeroEvents([]);
         setHeroUnavailable(true);
       })
       .finally(() => {
-        if (!cancelled) setHeroLoading(false);
+        setHeroLoading(false);
       });
 
     return () => {
@@ -221,7 +216,7 @@ const Home = ({ showToast }) => {
     let cancelled = false;
     const { debouncedSearch: search, categoryFilter: category } = filterParamsRef.current;
 
-    fetchPublicEvents(buildEventQuery(search, category), { forceRefresh: true })
+    fetchPublicEvents(buildEventQuery(search, category, homeTabToApiSort(recommendTab)), { forceRefresh: true })
       .then((data) => {
         if (!cancelled) setEvents(mapListToCards(data));
       })
@@ -456,7 +451,7 @@ const Home = ({ showToast }) => {
               onClick={() => {
                 setEventsError(false);
                 setEventsLoading(true);
-                fetchPublicEvents(buildEventQuery(debouncedSearch, categoryFilter), { forceRefresh: true })
+                fetchPublicEvents(buildEventQuery(debouncedSearch, categoryFilter, homeTabToApiSort(recommendTab)), { forceRefresh: true })
                   .then((data) => setEvents(mapListToCards(data)))
                   .catch(() => setEventsError(true))
                   .finally(() => setEventsLoading(false));
@@ -516,8 +511,6 @@ const Home = ({ showToast }) => {
           </div>
         )}
       </main>
-
-      <SiteFooter />
     </div>
     </PublicAdminShell>
   );

@@ -93,8 +93,12 @@ const startServer = async () => {
   }, 5 * 60 * 1000);
 
   server = http.createServer(app);
-  server.listen(PORT, () => {
+  const HOST = process.env.HOST || '0.0.0.0';
+  server.listen(PORT, HOST, () => {
     console.log(`Backend server running at http://localhost:${PORT}/`);
+    if (HOST === '0.0.0.0') {
+      console.log(`LAN API: bind 0.0.0.0:${PORT} (use this PC's WiFi IP from phone)`);
+    }
   });
 
   server.on('error', (err) => {

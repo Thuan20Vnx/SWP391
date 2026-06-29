@@ -84,7 +84,7 @@ export const getHomePathForRole = (role = getUserRole()) => {
   const r = normalizeRole(role);
   if (r === USER_ROLES.ICPDP) return '/icpdp';
   if (isPartnerRole(r)) return '/partner';
-  if (isClubManagerRole(r)) return '/quan-ly-clb';
+  if (isClubManagerRole(r)) return '/';
   if (r === USER_ROLES.CTSV) return '/ctsv/dashboard';
   if (isAdminRole(r)) return '/admin';
   return '/';

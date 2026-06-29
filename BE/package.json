@@ -15,7 +15,13 @@
     "db:sync-indexes": "node scripts/db-health.js --sync",
     "db:repair-counts": "node scripts/db-health.js --repair-counts",
     "db:cleanup-orphans": "node scripts/db-health.js --cleanup-orphans",
-    "db:cleanup-orphans:dry": "node scripts/db-health.js --cleanup-orphans --dry-run"
+    "db:cleanup-orphans:dry": "node scripts/db-health.js --cleanup-orphans --dry-run",
+    "migrate:event-covers": "node scripts/migrateEventCoversToFiles.js",
+    "migrate:event-covers:dry": "node scripts/migrateEventCoversToFiles.js --dry-run",
+    "migrate:event-attachments": "node scripts/migrateEventAttachments.js",
+    "migrate:event-attachments:dry": "node scripts/migrateEventAttachments.js --dry-run",
+    "migrate:media-phase4": "node scripts/migrateMediaPhase4.js",
+    "migrate:media-phase4:dry": "node scripts/migrateMediaPhase4.js --dry-run"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

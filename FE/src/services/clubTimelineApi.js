@@ -18,6 +18,9 @@ export const fetchClubSemesterTimelines = () =>
 export const fetchClubSemesterTimeline = (id) =>
   clubFetch(`/manage/semester-timelines/${id}`);
 
+export const fetchClubSemesterTimelinePlan = (id) =>
+  clubFetch(`/manage/semester-timelines/${id}/event-plan`);
+
 export const createClubSemesterTimeline = (body) =>
   clubFetch('/manage/semester-timelines', {
     method: 'POST',
@@ -43,6 +46,12 @@ export const requestClubSemesterTimelineChange = (id, body) =>
   clubFetch(`/manage/semester-timelines/${id}/change-request`, {
     method: 'POST',
     body: JSON.stringify(body),
+  });
+
+export const cancelScheduledTimelineDelete = (id) =>
+  clubFetch(`/manage/semester-timelines/${id}/cancel-scheduled-delete`, {
+    method: 'POST',
+    body: '{}',
   });
 
 export const fetchIcpdpClubs = () => clubFetch('/manage/all');

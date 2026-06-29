@@ -1,6 +1,7 @@
 const clubService = require('../services/club.service');
 const clubRegistrationService = require('../services/clubRegistration.service');
 const clubSemesterTimelineService = require('../services/clubSemesterTimeline.service');
+const { previewFormConflicts } = require('../services/timelineLocationConflict.service');
 const { createAndBroadcast } = require('../services/notification.service');
 
 const getClubs = async (req, res) => {
@@ -15,6 +16,14 @@ const getClubs = async (req, res) => {
 const getClubBySlug = async (req, res) => {
   const result = await clubService.getClubBySlug(req.params.slug, req.user?._id);
   res.status(200).json({ success: true, ...result });
+};
+
+const getClubCover = async (req, res) => {
+  await clubService.sendClubMedia(req.params.id, 'cover', res);
+};
+
+const getClubLogo = async (req, res) => {
+  await clubService.sendClubMedia(req.params.id, 'logo', res);
 };
 
 const followClub = async (req, res) => {
@@ -121,6 +130,31 @@ const getSemesterTimeline = async (req, res) => {
       readActiveClubId(req)
     );
     res.status(200).json({ success: true, timeline });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const getSemesterTimelinePlan = async (req, res) => {
+  try {
+    const plan = await clubSemesterTimelineService.getEventPlanByIdForClub(
+      req.params.id,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({ success: true, plan });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const getSemesterTimelinePlanFile = async (req, res) => {
+  try {
+    await clubSemesterTimelineService.sendTimelinePlanFile(req.params.id, res, {
+      forClub: true,
+      userId: req.user._id,
+      activeClubId: readActiveClubId(req),
+    });
   } catch (error) {
     handleTimelineError(res, error);
   }
@@ -247,6 +281,23 @@ const requestSemesterTimelineChange = async (req, res) => {
   }
 };
 
+const cancelScheduledSemesterTimelineDelete = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.cancelScheduledDeleteForClub(
+      req.params.id,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({
+      success: true,
+      timeline,
+      message: 'Đã hủy lịch xóa timeline.',
+    });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
 const withdrawSemesterTimeline = async (req, res) => {
   try {
     const timeline = await clubSemesterTimelineService.withdrawForClub(
@@ -279,9 +330,21 @@ const icpdpDeleteClub = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const checkSemesterTimelineConflicts = async (req, res) => {
+  try {
+    const { items, excludeTimelineId, submittedAt } = req.body || {};
+    const results = await previewFormConflicts({ items, excludeTimelineId, submittedAt });
+    res.status(200).json({ success: true, results });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
 module.exports = {
   getClubs,
   getClubBySlug,
+  getClubCover,
+  getClubLogo,
   followClub,
   unfollowClub,
   joinClub,
@@ -294,12 +357,16 @@ module.exports = {
   submitClubRegistration,
   listSemesterTimelines,
   getSemesterTimeline,
+  getSemesterTimelinePlan,
+  getSemesterTimelinePlanFile,
   createSemesterTimeline,
   updateSemesterTimeline,
   submitSemesterTimeline,
   deleteSemesterTimeline,
   withdrawSemesterTimeline,
   requestSemesterTimelineChange,
+  cancelScheduledSemesterTimelineDelete,
+  checkSemesterTimelineConflicts,
   icpdpListClubs,
   icpdpUpdateClub,
   icpdpDeleteClub,

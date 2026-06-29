@@ -10,6 +10,11 @@ export const ICPDP_NAV_ITEMS = [
     label: 'Duyệt timeline Spring/Summer/Fall',
     icon: 'calendar',
   },
+  {
+    path: '/icpdp/my-semester-timelines',
+    label: 'Timeline kỳ IC-PDP',
+    icon: 'calendar',
+  },
   { path: '/icpdp/events', label: 'Xem sự kiện', icon: 'events' },
   { path: '/icpdp/events/create', label: 'Tạo sự kiện cấp trường', section: 'SỰ KIỆN', icon: 'create' },
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
@@ -69,6 +74,9 @@ export const isIcpdpNavActive = (path, pathname) => {
   }
   if (path === '/icpdp/semester-timelines') {
     return pathname === '/icpdp/semester-timelines' || pathname.startsWith('/icpdp/semester-timelines/');
+  }
+  if (path === '/icpdp/my-semester-timelines') {
+    return pathname === '/icpdp/my-semester-timelines' || pathname.startsWith('/icpdp/my-semester-timelines/');
   }
   if (path === '/icpdp/announcements') {
     return pathname.startsWith('/icpdp/announcements');

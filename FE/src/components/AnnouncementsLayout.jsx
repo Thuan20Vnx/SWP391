@@ -1,6 +1,5 @@
 import React from 'react';
 import PublicAdminShell from '../layouts/PublicAdminShell';
-import SiteFooter from './SiteFooter';
 import '../styles/announcements-page.css';
 
 const AnnouncementsLayout = ({
@@ -29,7 +28,6 @@ const AnnouncementsLayout = ({
           {children}
         </div>
       </main>
-      <SiteFooter />
     </div>
   </PublicAdminShell>
 );

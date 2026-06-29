@@ -266,3 +266,9 @@ export const changePartnerPassword = (currentPassword, newPassword) =>
     headers: getAuthHeaders(),
     body: JSON.stringify({ currentPassword, newPassword })
   }).then(parseJson);
+
+export const checkPartnerVenueConflicts = (body) =>
+  partnerFetch('/proposals/check-venue-conflicts', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
