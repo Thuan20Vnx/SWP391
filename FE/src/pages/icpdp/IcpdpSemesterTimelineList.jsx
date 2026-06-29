@@ -64,6 +64,13 @@ const isTimelinePendingReview = (tl, isAdmin) => {
   return tl.statusKey === 'pending_icpdp' || tl.changeRequest?.statusKey === 'pending_icpdp';
 };
 
+const ADMIN_OWNER_FILTERS = [
+  { id: 'all', label: 'Tất cả đơn vị' },
+  { id: 'club', label: 'CLB' },
+  { id: 'icpdp', label: 'IC-PDP' },
+  { id: 'ctsv', label: 'CTSV' },
+];
+
 const IcpdpSemesterTimelineList = () => {
   const { showToast, headerSearch = '' } = useOutletContext() || {};
 
@@ -73,6 +80,7 @@ const IcpdpSemesterTimelineList = () => {
   const STATUS_FILTERS = isAdmin ? ADMIN_STATUS_FILTERS : ICPDP_STATUS_FILTERS;
 
   const [statusFilter, setStatusFilter] = useState(isAdmin ? 'pending_admin' : '');
+  const [ownerTypeFilter, setOwnerTypeFilter] = useState(isAdmin ? 'all' : 'club');
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef(null);
   const [timelines, setTimelines] = useState([]);
@@ -85,6 +93,7 @@ const IcpdpSemesterTimelineList = () => {
       if (!silent) setLoading(true);
       const params = {};
       if (status) params.status = status;
+      if (isAdmin) params.ownerType = ownerTypeFilter;
       return fetchIcpdpSemesterTimelines(params)
         .then((d) => setTimelines(d.timelines || []))
         .catch(() => showToast?.('Không tải được danh sách timeline.', 'error'))
@@ -92,7 +101,7 @@ const IcpdpSemesterTimelineList = () => {
           if (!silent) setLoading(false);
         });
     },
-    [statusFilter, showToast]
+    [statusFilter, ownerTypeFilter, isAdmin, showToast]
   );
 
   const loadRef = useRef(load);
@@ -100,7 +109,7 @@ const IcpdpSemesterTimelineList = () => {
 
   useEffect(() => {
     loadRef.current();
-  }, [statusFilter]);
+  }, [statusFilter, ownerTypeFilter]);
 
   useEffect(() => {
     const onLive = () => {
@@ -138,9 +147,13 @@ const IcpdpSemesterTimelineList = () => {
       {/* Hero */}
       <header className="ctsv-events-hero">
         <div className="ctsv-events-hero-text">
-          <span className="ctsv-events-eyebrow">IC-PDP · Kế hoạch kỳ</span>
-          <h1>Duyệt timeline kỳ CLB</h1>
-          <p>CLB gửi kế hoạch hoạt động trước mỗi kỳ Spring / Summer / Fall. IC-PDP thẩm định, chuyển Admin phê duyệt cuối.</p>
+          <span className="ctsv-events-eyebrow">{isAdmin ? 'Admin · Timeline kỳ' : 'IC-PDP · Kế hoạch kỳ'}</span>
+          <h1>{isAdmin ? 'Duyệt timeline kỳ học' : 'Duyệt timeline kỳ CLB'}</h1>
+          <p>
+            {isAdmin
+              ? 'Timeline từ CLB, IC-PDP và CTSV — lọc theo đơn vị và trạng thái duyệt.'
+              : 'CLB gửi kế hoạch hoạt động trước mỗi kỳ Spring / Summer / Fall. IC-PDP thẩm định, chuyển Admin phê duyệt cuối.'}
+          </p>
         </div>
         <div className="ctsv-events-hero-aside">
           <div className="ctsv-events-hero-stat" aria-live="polite">
@@ -205,6 +218,20 @@ const IcpdpSemesterTimelineList = () => {
               </div>
             )}
           </div>
+          {isAdmin && (
+            <div className="stl-filter-chips" role="group" aria-label="Lọc đơn vị">
+              {ADMIN_OWNER_FILTERS.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  className={`stl-filter-chip${ownerTypeFilter === f.id ? ' is-active' : ''}`}
+                  onClick={() => setOwnerTypeFilter(f.id)}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         {!loading && (
           <p className="ctsv-events-filter-summary">
@@ -219,9 +246,10 @@ const IcpdpSemesterTimelineList = () => {
           <table className="stl-table">
             <thead>
               <tr>
-                <th>CLB</th>
+                <th>{isAdmin && ownerTypeFilter === 'all' ? 'Đơn vị' : 'CLB'}</th>
                 <th>Kỳ học</th>
                 <th className="col-center">Hoạt động</th>
+                <th className="col-center">Bảng KH</th>
                 <th className="col-center">Gửi lúc</th>
                 <th className="col-center">Trạng thái</th>
                 <th className="col-center">Thao tác</th>
@@ -230,8 +258,9 @@ const IcpdpSemesterTimelineList = () => {
             <tbody>
               {loading && Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="stl-row--skeleton">
-                  <td><div className="stl-sk stl-sk--wide" /></td>
-                  <td><div className="stl-sk" /></td>
+                  <td><div className="stl-sk stl-sk--sm" /></td>
+                  <td><div className="stl-sk stl-sk--sm" /></td>
+                  <td><div className="stl-sk stl-sk--sm" /></td>
                   <td><div className="stl-sk stl-sk--sm" /></td>
                   <td><div className="stl-sk stl-sk--sm" /></td>
                   <td><div className="stl-sk stl-sk--sm" /></td>
@@ -240,7 +269,7 @@ const IcpdpSemesterTimelineList = () => {
               ))}
               {!loading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="stl-empty">
                       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" aria-hidden>
                         <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
@@ -265,9 +294,21 @@ const IcpdpSemesterTimelineList = () => {
                 const isPending = isTimelinePendingReview(tl, isAdmin);
                 return (
                   <tr key={tl.id} className="stl-row">
-                    <td><strong className="stl-club-name">{tl.clubName || '—'}</strong></td>
+                    <td>
+                      <strong className="stl-club-name">{tl.ownerLabel || tl.clubName || '—'}</strong>
+                      {tl.hasLocationConflict && (
+                        <span className="stl-badge stl-badge--orange" style={{ marginLeft: 8 }}>Trùng địa điểm</span>
+                      )}
+                    </td>
                     <td className="stl-semester">{tl.semesterLabel || '—'}</td>
                     <td className="col-center stl-count">{tl.items?.length ?? 0}</td>
+                    <td className="col-center">
+                      {tl.hasEventPlan || tl.eventPlanFile || tl.eventPlanLink || tl.eventPlanFileName ? (
+                        <span className="stl-badge stl-badge--green">Có file</span>
+                      ) : (
+                        <span style={{ color: '#94a3b8' }}>—</span>
+                      )}
+                    </td>
                     <td className="col-center stl-date">{fmt(tl.submittedAt || tl.createdAt)}</td>
                     <td className="col-center">
                       <span className={`stl-badge stl-badge--${meta.tone}`}>{meta.label}</span>

@@ -4,13 +4,17 @@ import {
   adminApproveSemesterTimeline,
   adminApproveTimelineChangeRequest,
   fetchIcpdpSemesterTimeline,
+  fetchIcpdpSemesterTimelinePlan,
   icpdpApproveSemesterTimeline,
   icpdpApproveTimelineChangeRequest,
   rejectIcpdpSemesterTimeline,
   rejectTimelineChangeRequest,
   revisionIcpdpSemesterTimeline,
 } from '../../services/icpdpApi';
+import EventPlanFilePanel from '../../components/events/EventPlanFilePanel';
+import TimelineLocationConflictNotice from '../../components/timeline/TimelineLocationConflictNotice';
 import { getUserRole, isAdminRole } from '../../utils/auth';
+import { formatTimeRangeLabel } from '../../utils/timelineTimeRange';
 import { TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
 
 const fmt = (v) => {
@@ -19,12 +23,12 @@ const fmt = (v) => {
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('vi-VN');
 };
 
-const fmtDateTime = (v) => {
-  if (!v) return '—';
-  const d = new Date(v);
-  return Number.isNaN(d.getTime())
-    ? '—'
-    : `${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+const fmtSchedule = (start, end) => {
+  if (!start) return '—';
+  const d = new Date(start);
+  if (Number.isNaN(d.getTime())) return '—';
+  const range = formatTimeRangeLabel(start, end);
+  return range ? `${d.toLocaleDateString('vi-VN')} · ${range}` : d.toLocaleString('vi-VN');
 };
 
 const STATUS_META = {
@@ -56,8 +60,18 @@ const IcpdpSemesterTimelineDetail = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const refresh = () =>
-    fetchIcpdpSemesterTimeline(id).then((d) => setTimeline(d.timeline));
+  const refresh = async () => {
+    const [detailRes, planRes] = await Promise.allSettled([
+      fetchIcpdpSemesterTimeline(id),
+      fetchIcpdpSemesterTimelinePlan(id),
+    ]);
+    if (detailRes.status !== 'fulfilled') {
+      throw detailRes.reason;
+    }
+    const base = detailRes.value.timeline || {};
+    const plan = planRes.status === 'fulfilled' ? (planRes.value.plan || {}) : {};
+    setTimeline({ ...base, ...plan });
+  };
 
   useEffect(() => {
     refresh().catch(() => {
@@ -90,7 +104,7 @@ const IcpdpSemesterTimelineDetail = () => {
     const tone = STATUS_META[badgeKey]?.tone || STATUS_META[timeline.statusKey]?.tone || 'slate';
     return { label: timeline.status, tone };
   })();
-  const canIcpdpForward = !isAdmin && ['pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
+  const canIcpdpForward = !isAdmin && (timeline?.ownerType || 'club') === 'club' && ['pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
   const canAdminApprove = isAdmin && timeline.statusKey === 'pending_admin';
   const pendingIcpdpChange = timeline.changeRequest?.statusKey === 'pending_icpdp';
   const canIcpdpChangeAction = !isAdmin && pendingIcpdpChange;
@@ -111,7 +125,7 @@ const IcpdpSemesterTimelineDetail = () => {
       else if (action === 'change-reject')  { await rejectTimelineChangeRequest(id, rejectReason || note, 'icpdp'); showToast?.('Đã từ chối.', 'info'); }
       else if (action === 'change-admin-approve') {
         await adminApproveTimelineChangeRequest(id, note);
-        showToast?.(changeType === 'delete' ? 'Đã duyệt xóa timeline.' : 'Đã duyệt hủy timeline.', 'success');
+        showToast?.(changeType === 'delete' ? 'Đã duyệt xóa — timeline sẽ bị xóa sau 1 giờ.' : 'Đã duyệt hủy timeline.', 'success');
       }
       else if (action === 'change-admin-reject') {
         await rejectTimelineChangeRequest(id, rejectReason || note, 'admin');
@@ -167,6 +181,17 @@ const IcpdpSemesterTimelineDetail = () => {
           </div>
         </div>
       </header>
+
+      {(timeline.hasEventPlan || timeline.eventPlanFile || timeline.eventPlanLink || timeline.eventPlanFileName) && (
+        <div className="clb-timeline-detail-panel">
+          <EventPlanFilePanel
+            fileUrl={timeline.eventPlanUrl || timeline.eventPlanFile}
+            fileName={timeline.eventPlanFileName}
+            mimeType={timeline.eventPlanFileMime}
+            externalLink={timeline.eventPlanLink}
+          />
+        </div>
+      )}
 
       {pendingIcpdpChange && (
         <div className="stl-banner stl-banner--amber">
@@ -258,6 +283,14 @@ const IcpdpSemesterTimelineDetail = () => {
             <span className="stl-section-count">{timeline.items?.length || 0}</span>
           </h2>
         </div>
+        {timeline.hasLocationConflict && (
+          <TimelineLocationConflictNotice
+            variant="info"
+            conflicts={(timeline.items || []).flatMap((item) => item.locationConflicts || [])}
+            title="Có hoạt động trùng địa điểm trong ngày"
+            className="tl-conflict-notice--detail"
+          />
+        )}
         <div className="stl-table-wrap">
           <table className="stl-table">
             <thead>
@@ -274,12 +307,21 @@ const IcpdpSemesterTimelineDetail = () => {
                 <tr><td colSpan={5}><div className="stl-empty"><p>Chưa có hoạt động nào.</p></div></td></tr>
               ) : (
                 (timeline.items || []).map((item, i) => (
-                  <tr key={i} className="stl-row">
+                  <tr key={i} className={`stl-row${item.hasLocationConflict ? ' stl-row--conflict' : ''}`}>
                     <td>
                       <strong className="stl-club-name">{item.title}</strong>
                       {item.description && <div className="stl-activity-desc">{item.description}</div>}
+                      {item.hasLocationConflict && (
+                        <TimelineLocationConflictNotice
+                          conflicts={item.locationConflicts}
+                          venue={item.location}
+                          plannedDate={item.plannedDate}
+                          plannedEndDate={item.plannedEndDate}
+                          className="tl-conflict-notice--inline"
+                        />
+                      )}
                     </td>
-                    <td className="col-center stl-date">{fmtDateTime(item.plannedDate)}</td>
+                    <td className="col-center stl-date">{fmtSchedule(item.plannedDate, item.plannedEndDate)}</td>
                     <td className="stl-semester">{item.category || '—'}</td>
                     <td className="stl-semester">{item.location || '—'}</td>
                     <td className="col-center stl-count">{item.expectedAttendees || '—'}</td>
@@ -446,8 +488,9 @@ const IcpdpSemesterTimelineDetail = () => {
         </section>
       )}
 
-      {/* Review notes */}
-      {(timeline.icpdpNote || timeline.ctsvNote || timeline.rejectionReason) && (
+      {/* Review notes — ẩn khi đang xử lý yêu cầu xóa timeline */}
+      {(timeline.icpdpNote || timeline.ctsvNote || timeline.rejectionReason)
+        && timeline.changeRequest?.type !== 'delete' && (
         <section className="stl-notes-card">
           <h2 className="stl-section-title">
             <PanelIcon><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></PanelIcon>

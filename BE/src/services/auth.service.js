@@ -43,8 +43,14 @@ const {
   verifyPasswordWithTiming,
   unlockAccount,
 } = require('./loginLockout.service');
+const { sanitizeUserAvatarForApi } = require('../utils/userAvatarStorage');
 
-const sanitizeUser = (user) => User.sanitizeUser(user);
+const sanitizeUser = (user) => {
+  const base = User.sanitizeUser(user);
+  if (!base) return null;
+  const avatar = sanitizeUserAvatarForApi(user?._id ? user : base);
+  return { ...base, ...avatar };
+};
 
 const EMAIL_CONTACT_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const PHONE_CONTACT_PATTERN = /^0[35789]\d{8}$/;

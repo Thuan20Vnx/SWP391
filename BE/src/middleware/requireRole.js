@@ -11,6 +11,12 @@ const ICPDP_ONLY_ROLES = ['icpdp'];
 
 const requireRole = (allowedRoles) => async (req, res, next) => {
   try {
+    const tokenRole = normalizeRole(req.authRole);
+    if (tokenRole && allowedRoles.includes(tokenRole)) {
+      req.userRole = tokenRole;
+      return next();
+    }
+
     const email = String(req.authEmail || '').trim().toLowerCase();
     const user = await User.findOne({ email });
     if (!user) {

@@ -62,6 +62,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  avatarFileExt: { type: String, default: '' },
   picture: {
     type: String,
     default: ''

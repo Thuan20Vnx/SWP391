@@ -14,7 +14,9 @@ import {
   PARTNER_STATUS_TONE,
   formatPartnerDate,
   formatVnd,
+  resolvePartnerAttachmentUrl,
 } from '../../utils/partnerDisplay';
+import { isProtectedMediaUrl, openProtectedMedia } from '../../utils/mediaFile';
 import PartnerAvatar from '../../components/partner/PartnerAvatar';
 import ProposalTicketsTable from '../../components/admin/ProposalTicketsTable';
 import '../../styles/admin-dashboard.css';
@@ -85,7 +87,25 @@ const CtsvPartnerDetail = () => {
     : 'Đại diện liên hệ';
   const contactLine = [partner.email, partner.phone].filter(Boolean).join(' • ');
 
-  const attachmentItems = (eventRequest?.attachments || []).map((f, i) => ({ key: `req-att-${i}`, ...f }));
+  const attachmentItems = (eventRequest?.attachments || []).map((f, i) => ({
+    key: `req-att-${i}`,
+    ...f,
+    href: resolvePartnerAttachmentUrl(f),
+  }));
+
+  const openAttachment = async (file) => {
+    const href = file.href || file.url || '';
+    if (!href || href === '#') return;
+    try {
+      if (isProtectedMediaUrl(file.url) || isProtectedMediaUrl(file.attachmentUrl) || href.startsWith('/api/')) {
+        await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
+        return;
+      }
+      window.open(href, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      showToast?.(e.message || 'Không mở được tệp.', 'error');
+    }
+  };
 
   return (
     <div className="ctsv-pd-page">
@@ -235,7 +255,12 @@ const CtsvPartnerDetail = () => {
               <ul className="ctsv-pd-files">
                 {attachmentItems.map((f) => (
                   <li key={f.key}>
-                    <a href={f.url || '#'} className="ctsv-pd-file" target="_blank" rel="noreferrer">
+                    <button
+                      type="button"
+                      className="ctsv-pd-file"
+                      onClick={() => openAttachment(f)}
+                      disabled={!f.href}
+                    >
                       <span className="ctsv-pd-file-icon">
                         <FileIcon />
                       </span>
@@ -250,7 +275,7 @@ const CtsvPartnerDetail = () => {
                           <line x1="10" y1="14" x2="21" y2="3" />
                         </svg>
                       </span>
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>

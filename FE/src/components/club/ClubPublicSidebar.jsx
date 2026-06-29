@@ -1,10 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
-import defaultAvatar from '../../constants/defaultAvatar';
-import { getRoleDisplayLabel, getUserRole } from '../../utils/auth';
 import { isClubDesktop, navigateClubNavItem, resolveClubPublicActiveNav } from './clubNavConfig';
-import ClubSidebarNav from './ClubSidebarNav';
+import ClubSidebarShell from './ClubSidebarShell';
 
 const ClubPublicSidebar = ({
   open,
@@ -31,23 +28,15 @@ const ClubPublicSidebar = ({
   );
 
   return (
-    <aside className="ctsv-sidebar club-sidebar club-public-sidebar" aria-hidden={!open}>
-      <div className="ctsv-sidebar-header">
-        <img src={FE_LOGO} alt={FE_LOGO_ALT} className="ctsv-sidebar-logo" />
-      </div>
-      <ClubSidebarNav
-        activeNav={activeNav}
-        onNavSelect={handleNavSelect}
-        hasNewNotifs={hasNewNotifs}
-      />
-      <div className="ctsv-sidebar-footer">
-        <img src={userProfile?.picture || defaultAvatar} alt="" className="ctsv-sidebar-avatar" />
-        <div className="ctsv-sidebar-footer-text">
-          <p className="ctsv-sidebar-user">{userProfile?.fullname || 'Quản lý CLB'}</p>
-          <p className="ctsv-sidebar-role">{getRoleDisplayLabel(getUserRole())}</p>
-        </div>
-      </div>
-    </aside>
+    <ClubSidebarShell
+      open={open}
+      asideClassName="ctsv-sidebar club-sidebar club-public-sidebar"
+      userProfile={userProfile}
+      onClose={onClose}
+      activeNav={activeNav}
+      onNavSelect={handleNavSelect}
+      hasNewNotifs={hasNewNotifs}
+    />
   );
 };
 

@@ -1,5 +1,11 @@
 export const CLUB_SIDEBAR_KEY = 'clubSidebarOpen';
 export const CLUB_PUBLIC_SIDEBAR_KEY = 'clubPublicSidebarOpen';
+export const CLUB_SIDEBAR_MODE_KEY = 'clubSidebarMode';
+
+export const CLUB_SIDEBAR_MODE = {
+  MANAGE: 'manage',
+  PARTICIPATE: 'participate',
+};
 
 export const CLUB_NAV_ITEMS = [
   { key: 'profile', label: 'Hồ sơ CLB', mobileLabel: 'Hồ sơ CLB', icon: 'profile' },
@@ -50,6 +56,26 @@ export const readClubPublicSidebarPref = () => {
 
 export const persistClubPublicSidebarOpen = (open) => {
   try { sessionStorage.setItem(CLUB_PUBLIC_SIDEBAR_KEY, open ? '1' : '0'); } catch { /* ignore */ }
+};
+
+export const inferClubSidebarMode = (pathname = '') => (
+  String(pathname).startsWith('/quan-ly-clb')
+    ? CLUB_SIDEBAR_MODE.MANAGE
+    : CLUB_SIDEBAR_MODE.PARTICIPATE
+);
+
+export const readClubSidebarMode = (pathname = '') => {
+  try {
+    const saved = sessionStorage.getItem(CLUB_SIDEBAR_MODE_KEY);
+    if (saved === CLUB_SIDEBAR_MODE.MANAGE || saved === CLUB_SIDEBAR_MODE.PARTICIPATE) {
+      return saved;
+    }
+  } catch { /* ignore */ }
+  return inferClubSidebarMode(pathname);
+};
+
+export const persistClubSidebarMode = (mode) => {
+  try { sessionStorage.setItem(CLUB_SIDEBAR_MODE_KEY, mode); } catch { /* ignore */ }
 };
 
 export const isClubDesktop = () => window.matchMedia('(min-width: 1024px)').matches;

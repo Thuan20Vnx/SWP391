@@ -1,13 +1,23 @@
+import { resolveMediaUrl } from './mediaUrls';
+
 /** Resize/compress image before upload to avoid payload limits */
 export const isCustomUploadedAvatar = (value) =>
-  typeof value === 'string' && value.startsWith('data:image/');
+  typeof value === 'string' &&
+  (value.startsWith('data:image/') || value.startsWith('/api/user/avatar/'));
 
-/** Prefer user-uploaded avatar over Google profile URL */
+/** Resolve avatar URL for <img> — supports stored file, data URI, and remote http(s). */
 export const resolveUserAvatar = (user, fallback = '') => {
   if (!user) return fallback;
-  if (isCustomUploadedAvatar(user.picture)) return user.picture;
-  if (isCustomUploadedAvatar(user.avatar)) return user.avatar;
-  return user.picture || user.avatar || fallback;
+  const candidates = [user.picture, user.avatar, user.avatarUrl];
+  for (const value of candidates) {
+    if (!value || typeof value !== 'string') continue;
+    if (value.startsWith('/api/')) return resolveMediaUrl(value);
+    if (/^https?:\/\//i.test(value)) return value;
+    if (isCustomUploadedAvatar(value)) {
+      return value.startsWith('/api/') ? resolveMediaUrl(value) : value;
+    }
+  }
+  return fallback;
 };
 
 export const compressImageFile = (file, maxSize = 512, quality = 0.85) =>

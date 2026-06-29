@@ -4,6 +4,8 @@ import defaultAvatar from '../constants/defaultAvatar';
 import SiteHeader from '../components/SiteHeader';
 import ClubSidebarAside from '../components/club/ClubSidebarAside';
 import ChatbotFloating from '../components/ChatbotFloating';
+import TimelineLiveBanner from '../components/timeline/TimelineLiveBanner';
+import { isClubTimelineNav } from '../utils/timelineLiveEvents';
 import {
   isClubDesktop,
   navigateClubNavItem,
@@ -80,6 +82,9 @@ const ClubManagerLayout = ({ showToast }) => {
         if (!data?.user) return;
         const u = data.user;
         const role = u.role || '';
+        if (role) {
+          localStorage.setItem('userRole', role);
+        }
         setUserProfile({
           fullname: u.fullname || '',
           course: u.course || 'K18',
@@ -184,6 +189,7 @@ const ClubManagerLayout = ({ showToast }) => {
             onTogglePortalSidebar={toggleSidebar}
             portalSidebarOpen={sidebarOpen}
           />
+          <TimelineLiveBanner active={isClubTimelineNav(activeNav)} />
           <main className="clb-main">
             <Outlet
               context={{

@@ -35,9 +35,11 @@ const eventProposalSchema = new mongoose.Schema(
     ticketTypes: { type: [ticketTypeSchema], default: [] },
     expectedAttendees: { type: Number, default: 0 },
     image: { type: String, default: '' },
+    coverFileExt: { type: String, default: '' },
     eventPlanFile: { type: String, default: '' },
     eventPlanFileName: { type: String, default: '' },
     eventPlanFileMime: { type: String, default: '' },
+    eventPlanFileExt: { type: String, default: '' },
     eventPlanLink: { type: String, default: '' },
     clubId: { type: String, default: '' },
     clubName: { type: String, default: '' },
@@ -52,13 +54,33 @@ const eventProposalSchema = new mongoose.Schema(
     rejectionReason: { type: String, default: '' },
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null },
     /** Sự kiện CLB đã tạo trước — IC-PDP duyệt đề xuất rồi chuyển Admin */
-    linkedEventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null }
+    linkedEventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null },
+    timelineSource: {
+      timelineId: { type: mongoose.Schema.Types.ObjectId, ref: 'ClubSemesterTimeline', default: null },
+      itemTitle: { type: String, default: '', trim: true, maxlength: 200 },
+      semesterLabel: { type: String, default: '', trim: true, maxlength: 80 },
+    },
   },
   { timestamps: true }
 );
 
 eventProposalSchema.index({ status: 1, createdAt: -1 });
 eventProposalSchema.index({ submittedByEmail: 1, createdAt: -1 });
+
+eventProposalSchema.pre('save', async function () {
+  const { persistEventPlanOnDocument, PLAN_SCOPES } = require('../utils/eventPlanStorage');
+  const { isImageDataUri, parseDataUri, extensionFromMime, writeBufferToFile } = require('../utils/dataUriStorage');
+  const path = require('path');
+  await persistEventPlanOnDocument(this, PLAN_SCOPES.proposals);
+  if (this._id && isImageDataUri(this.image)) {
+    const PROPOSAL_COVERS = path.join(__dirname, '../../uploads/proposal-covers');
+    const { mime, buffer } = parseDataUri(this.image);
+    const ext = extensionFromMime(mime, '', 'jpg');
+    await writeBufferToFile(path.join(PROPOSAL_COVERS, `${String(this._id)}.${ext}`), buffer);
+    this.coverFileExt = ext;
+    this.image = '';
+  }
+});
 
 const EventProposal = mongoose.model('EventProposal', eventProposalSchema);
 

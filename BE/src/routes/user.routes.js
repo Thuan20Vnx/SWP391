@@ -6,6 +6,9 @@ const userController = require('../controllers/user.controller');
 
 const router = express.Router();
 
+/** Public — <img src="/api/user/avatar/:id"> cannot send Bearer token */
+router.get('/avatar/:userId', asyncHandler(userController.getAvatar));
+
 router.use(authMiddleware);
 
 router.get('/profile', asyncHandler(userController.getProfile));

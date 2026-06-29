@@ -11404,6 +11404,15 @@ a.event-discovery-card__btn {
 @media (max-width: 768px) {
   .ctsv-home-layout .portal-home-hero-layout .hero-banner-slider {
     height: 420px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .ctsv-home-layout .portal-home-hero-layout .hero-slide,
+  .ctsv-home-layout .portal-home-hero-layout .hero-slide.active {
+    border-radius: 0;
   }
 }
 
@@ -16560,6 +16569,31 @@ a.event-discovery-card__btn {
 .stl-count     { font-weight: 600; color: #0f172a; }
 .stl-date      { color: #64748b; font-size: 0.8125rem; white-space: nowrap; }
 
+.stl-timeline-semester-btn {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.stl-timeline-semester-btn:hover { color: #ea580c; }
+
+.stl-timeline-summary {
+  margin: 4px 0 0;
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.stl-timeline-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
 .stl-badge {
   display: inline-block;
   padding: 3px 11px;
@@ -16594,6 +16628,10 @@ a.event-discovery-card__btn {
   white-space: nowrap;
 }
 .stl-action-btn:hover { border-color: #f97316; color: #ea580c; }
+button.stl-action-btn {
+  cursor: pointer;
+  font-family: inherit;
+}
 .stl-action-btn--primary {
   background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
   border-color: transparent;
@@ -16666,7 +16704,8 @@ a.event-discovery-card__btn {
 
 .admin-shell-content > .portal-timeline-live-banner,
 .ctsv-portal-body > .portal-timeline-live-banner,
-.icpdp-app-shell .ctsv-portal-body > .portal-timeline-live-banner {
+.icpdp-app-shell .ctsv-portal-body > .portal-timeline-live-banner,
+.club-app-shell .clb-page > .portal-timeline-live-banner {
   margin-bottom: 16px;
 }
 
@@ -16747,6 +16786,17 @@ a.event-discovery-card__btn {
   max-width: 960px;
   width: 100%;
   margin: 0 auto;
+}
+
+.stl-detail-page .clb-timeline-detail-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  background: #fff;
+}
+
+.stl-detail-page .clb-timeline-detail-panel .ev-plan-file-panel {
+  margin-top: 0;
 }
 
 .stl-detail-loading { padding: 32px; }
@@ -21364,4 +21414,63 @@ a.event-discovery-card__btn {
     margin: 12px 0 0 !important;
     flex: 1 1 100% !important;
   }
+}
+
+/* Timeline location conflict notices */
+.tl-conflict-notice {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.tl-conflict-notice--warning {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+}
+.tl-conflict-notice--info {
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
+  color: #1e40af;
+  margin-bottom: 12px;
+}
+.tl-conflict-notice--inline {
+  margin-top: 8px;
+}
+.tl-conflict-notice__title {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+.tl-conflict-notice__list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+.tl-conflict-notice__meta {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+.stl-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.stl-filter-chip {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.stl-filter-chip.is-active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+.stl-row--conflict td {
+  background: #fffbeb;
 }

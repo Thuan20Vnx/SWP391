@@ -862,6 +862,10 @@
 .icpdp-app-shell .ctsv-portal-body:has(.hero-banner-slider) {
   background: #ffffff;
 }
+.icpdp-app-shell .ctsv-portal-body:has(.portal-home-hero-layout) {
+  max-width: none;
+  padding: 0 0 32px;
+}
 
 /* ── Filter submit button ── */
 .icpdp-app-shell .filter-submit-btn {

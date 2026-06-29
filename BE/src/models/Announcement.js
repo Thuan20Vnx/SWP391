@@ -7,6 +7,7 @@ const announcementSchema = new mongoose.Schema(
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', default: null },
     image: { type: String, default: '' },
     imageFileName: { type: String, default: '' },
+    imageFileExt: { type: String, default: '' },
     /** Đối tượng nhận: all | guest | student | club_manager | partner | icpdp | ctsv | admin */
     targetRoles: { type: [String], default: ['all'] },
     /** Doanh mục: info | action | urgent */
@@ -27,6 +28,11 @@ announcementSchema.index({ isHidden: 1, publishedAt: -1 });
 announcementSchema.index({ eventId: 1, publishedAt: -1 });
 announcementSchema.index({ publishedByRole: 1, publishedAt: -1 });
 announcementSchema.index({ targetRoles: 1, publishedAt: -1 });
+
+announcementSchema.pre('save', async function () {
+  const { persistAnnouncementImageOnDocument } = require('../utils/announcementImageStorage');
+  await persistAnnouncementImageOnDocument(this);
+});
 
 const Announcement = mongoose.model('Announcement', announcementSchema);
 

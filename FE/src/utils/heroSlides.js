@@ -1,3 +1,5 @@
+import { resolveEventDisplayImage } from './eventDisplay';
+
 const getNumericTime = (value) => {
   const time = new Date(value || 0).getTime();
   return Number.isFinite(time) ? time : 0;
@@ -5,8 +7,7 @@ const getNumericTime = (value) => {
 
 const getRegisteredCount = (event) => Number(event?.registeredCount ?? event?.filledSlots ?? 0) || 0;
 
-const resolveHeroImage = (event) =>
-  event?.image || event?.thumbnail || event?.flyer || '';
+const resolveHeroImage = (event) => resolveEventDisplayImage(event, '');
 
 export const pickFeaturedEvents = (events = [], limit = 3) =>
   [...events]

@@ -1,6 +1,9 @@
-const { resolveEventSpeakers } = require('../constants/eventSpeaker');
 const { STATUS_LABELS } = require('../constants/eventWorkflow');
 const { getModerationActionFromStatus } = require('../constants/eventModeration');
+const { sanitizeEventCoverForApi } = require('./eventCoverStorage');
+const { sanitizeEventPlanForApi, PLAN_SCOPES, buildClubTimelinePlanUrl, buildSchoolTimelinePlanUrl } = require('./eventPlanStorage');
+const { sanitizeSpeakersForApi } = require('./speakerAvatarStorage');
+const { sanitizeProposalCoverForApi } = require('./proposalCoverStorage');
 
 const formatDate = (d) => {
   if (!d) return '';
@@ -24,9 +27,9 @@ const formatEvent = (doc, opts = {}) => {
   const o = doc.toObject ? doc.toObject({ virtuals: true }) : { ...doc };
   const cap = o.capacity || o.totalTickets || 0;
   const remaining = Math.max(0, cap - (o.registeredCount || 0));
-  const speakers = resolveEventSpeakers(o);
-  const primarySpeaker = speakers[0];
-  const includePlanFile = opts.includePlanFile === true;
+  const cover = sanitizeEventCoverForApi(o);
+  const plan = sanitizeEventPlanForApi(o, PLAN_SCOPES.events);
+  const speakerMeta = sanitizeSpeakersForApi(o);
   return {
     id: o._id?.toString() || o.id,
     title: o.title,
@@ -46,15 +49,18 @@ const formatEvent = (doc, opts = {}) => {
     registeredCount: o.registeredCount || 0,
     status: STATUS_LABELS[o.status] || o.status,
     statusKey: o.status,
-    image: o.image || o.thumbnail || '',
-    thumbnail: o.image || o.thumbnail || '',
+    image: cover.image,
+    thumbnail: cover.thumbnail,
+    hasCover: cover.hasCover,
+    coverUrl: cover.coverUrl,
     bannerFileName: o.bannerFileName || '',
-    eventPlanFileName: o.eventPlanFileName || '',
-    eventPlanFileMime: o.eventPlanFileMime || '',
-    eventPlanLink: o.eventPlanLink || '',
-    hasEventPlanFile: Boolean(o.eventPlanFile),
-    hasEventPlan: Boolean(o.eventPlanFile) || Boolean(o.eventPlanLink),
-    ...(includePlanFile ? { eventPlanFile: o.eventPlanFile || '' } : {}),
+    eventPlanFileName: plan.eventPlanFileName,
+    eventPlanFileMime: plan.eventPlanFileMime,
+    eventPlanLink: plan.eventPlanLink,
+    hasEventPlanFile: plan.hasEventPlanFile,
+    hasEventPlan: plan.hasEventPlan,
+    eventPlanUrl: plan.eventPlanUrl,
+    eventPlanFile: '',
     eventType: o.eventType || '',
     duration: o.duration || '',
     format: o.format || 'campus',
@@ -72,10 +78,10 @@ const formatEvent = (doc, opts = {}) => {
     ctsvEditUnlocked: o.ctsvEditUnlocked === true,
     clubEditUnlocked: o.clubEditUnlocked === true,
     isHidden: o.isHidden === true,
-    speaker: primarySpeaker?.name || '',
-    speakerRole: primarySpeaker?.role || '',
-    speakerAvatar: primarySpeaker?.avatar || '',
-    speakers,
+    speaker: speakerMeta.speaker,
+    speakerRole: speakerMeta.speakerRole,
+    speakerAvatar: speakerMeta.speakerAvatar,
+    speakers: speakerMeta.speakers,
     agenda: o.agenda || '',
     learningOutcomes: Array.isArray(o.learningOutcomes) ? o.learningOutcomes : [],
     expectedAttendees: o.expectedAttendees ?? 0,
@@ -94,6 +100,13 @@ const formatEvent = (doc, opts = {}) => {
     rejectionReason: o.rejectionReason,
     expectedRevenue: o.expectedRevenue || 0,
     proposalId: o.proposalId?.toString?.() || o.proposalId,
+    timelineSource: o.timelineSource?.itemTitle
+      ? {
+          timelineId: o.timelineSource.timelineId?.toString?.() || o.timelineSource.timelineId || null,
+          itemTitle: o.timelineSource.itemTitle || '',
+          semesterLabel: o.timelineSource.semesterLabel || '',
+        }
+      : null,
     createdAt: o.createdAt || null,
     updatedAt: o.updatedAt || null,
   };
@@ -102,7 +115,8 @@ const formatEvent = (doc, opts = {}) => {
 const formatProposal = (doc, opts = {}) => {
   if (!doc) return null;
   const o = doc.toObject ? doc.toObject() : { ...doc };
-  const includePlanFile = opts.includePlanFile === true;
+  const plan = sanitizeEventPlanForApi(o, PLAN_SCOPES.proposals);
+  const cover = sanitizeProposalCoverForApi(o);
   return {
     id: o._id?.toString() || o.id,
     title: o.title,
@@ -118,13 +132,16 @@ const formatProposal = (doc, opts = {}) => {
     ticketPrice: o.ticketPrice ?? 0,
     ticketTypes: o.ticketTypes || [],
     expectedAttendees: o.expectedAttendees ?? 0,
-    image: o.image || '',
-    eventPlanFileName: o.eventPlanFileName || '',
-    eventPlanFileMime: o.eventPlanFileMime || '',
-    eventPlanLink: o.eventPlanLink || '',
-    hasEventPlanFile: Boolean(o.eventPlanFile),
-    hasEventPlan: Boolean(o.eventPlanFile) || Boolean(o.eventPlanLink),
-    ...(includePlanFile ? { eventPlanFile: o.eventPlanFile || '' } : {}),
+    image: cover.image || '',
+    coverUrl: cover.coverUrl || '',
+    hasCover: cover.hasCover,
+    eventPlanFileName: plan.eventPlanFileName,
+    eventPlanFileMime: plan.eventPlanFileMime,
+    eventPlanLink: plan.eventPlanLink,
+    hasEventPlanFile: plan.hasEventPlanFile,
+    hasEventPlan: plan.hasEventPlan,
+    eventPlanUrl: plan.eventPlanUrl,
+    eventPlanFile: '',
     clubId: o.clubId,
     clubName: o.clubName,
     submittedByEmail: o.submittedByEmail,
@@ -135,6 +152,13 @@ const formatProposal = (doc, opts = {}) => {
     rejectionReason: o.rejectionReason,
     eventId: o.eventId?.toString?.() || o.eventId,
     linkedEventId: o.linkedEventId?.toString?.() || o.linkedEventId || null,
+    timelineSource: o.timelineSource?.itemTitle
+      ? {
+          timelineId: o.timelineSource.timelineId?.toString?.() || o.timelineSource.timelineId || null,
+          itemTitle: o.timelineSource.itemTitle || '',
+          semesterLabel: o.timelineSource.semesterLabel || '',
+        }
+      : null,
     createdAt: o.createdAt,
     updatedAt: o.updatedAt,
   };

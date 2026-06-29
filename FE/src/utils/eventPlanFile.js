@@ -1,19 +1,23 @@
+import { API_BASE, getAuthHeaders } from './api';
+
 export const EVENT_PLAN_MAX_BYTES = 10 * 1024 * 1024;
 
 export const EVENT_PLAN_ACCEPT =
-  '.pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  '.pdf,.doc,.docx,.xls,.xlsx,.zip,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip,application/x-zip-compressed';
 
 const PLAN_MIME_PREFIXES = [
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument',
   'application/vnd.ms-excel',
+  'application/zip',
+  'application/x-zip-compressed',
 ];
 
 export const isAllowedEventPlanFile = (file) => {
   if (!file) return false;
   const name = (file.name || '').toLowerCase();
-  const byExt = /\.(pdf|docx?|xlsx?)$/.test(name);
+  const byExt = /\.(pdf|docx?|xlsx?|zip)$/.test(name);
   const byMime = PLAN_MIME_PREFIXES.some((prefix) => (file.type || '').startsWith(prefix));
   return byExt || byMime;
 };
@@ -30,6 +34,40 @@ export const isValidEventPlanLink = (value) => {
 };
 
 export const normalizeEventPlanLink = (value) => String(value || '').trim();
+
+/** URL tải/xem file kế hoạch — hỗ trợ data URL, http và /api/... */
+export const resolveEventPlanFileUrl = (source) => {
+  const raw =
+    typeof source === 'string'
+      ? source
+      : source?.eventPlanUrl || source?.eventPlanFile || '';
+  if (!raw) return '';
+  if (raw.startsWith('data:') || /^https?:\/\//i.test(raw)) return raw;
+  const base = API_BASE || '';
+  return `${base}${raw.startsWith('/') ? raw : `/${raw}`}`;
+};
+
+export const fetchPlanFileBlobUrl = async (source) => {
+  const resolved = resolveEventPlanFileUrl(source);
+  if (!resolved) return '';
+  if (resolved.startsWith('data:') || /^https?:\/\//i.test(resolved)) return resolved;
+  const res = await fetch(resolved, { headers: getAuthHeaders(false) });
+  if (!res.ok) throw new Error('Không tải được file kế hoạch.');
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
+};
+
+export const downloadPlanFile = async (source, fileName = 'bang-ke-hoach-su-kien') => {
+  const blobUrl = await fetchPlanFileBlobUrl(source);
+  if (!blobUrl) return;
+  try {
+    downloadDataUrlFile(blobUrl, fileName);
+  } finally {
+    if (blobUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(blobUrl);
+    }
+  }
+};
 
 export const formatFileSize = (bytes) => {
   if (!bytes || bytes <= 0) return '—';

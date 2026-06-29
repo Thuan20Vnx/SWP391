@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminProposalActions from '../components/admin/AdminProposalActions';
 import ProposalTicketsTable from '../components/admin/ProposalTicketsTable';
 import EventPlanFilePanel from '../components/events/EventPlanFilePanel';
+import TimelineSourceNotice from '../components/club/TimelineSourceNotice';
 import useAdminEventsLiveStream from '../hooks/useAdminEventsLiveStream';
 import { ADMIN_EVENTS_LIVE_EVENT } from '../utils/adminEventsLiveEvents';
 import {
@@ -284,6 +285,7 @@ const AdminDashboard = ({ showToast }) => {
       eventPlanFileName: p.eventPlanFileName || '',
       eventPlanFileMime: p.eventPlanFileMime || '',
       eventPlanLink: p.eventPlanLink || '',
+      timelineSource: p.timelineSource || null,
     }));
     const partnerItems = partnerRequests
       .filter((p) => ['pending_admin', 'approved', 'rejected'].includes(p.status))
@@ -610,6 +612,7 @@ const AdminDashboard = ({ showToast }) => {
                   <div className="admin-proposal-card__head-main">
                     <span className="admin-proposal-card__index">#{listIndex + 1}</span>
                     <h2 className="admin-proposal-card__title">{item.title}</h2>
+                    <TimelineSourceNotice source={item} className="admin-proposal-card__timeline-source" />
                     <Badge meta={SOURCE_META[item.source]} />
                     {showPlanPanel && (
                       <span className="adm-ev-plan-badge">Có bảng KH</span>
@@ -664,7 +667,7 @@ const AdminDashboard = ({ showToast }) => {
                     {showPlanPanel && (
                       <div className="admin-fpt-unit-events__plan-panel">
                         <EventPlanFilePanel
-                          fileUrl={item.eventPlanFile}
+                          fileUrl={item.eventPlanUrl || item.eventPlanFile}
                           fileName={item.eventPlanFileName}
                           mimeType={item.eventPlanFileMime}
                           externalLink={item.eventPlanLink}

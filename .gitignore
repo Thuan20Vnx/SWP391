@@ -6,6 +6,24 @@ dist/
 last_otp.txt
 BE/data/users.json
 BE/data/last_otp.txt
+BE/uploads/event-covers/*
+!BE/uploads/event-covers/.gitkeep
+BE/uploads/event-plans/**
+!BE/uploads/event-plans/.gitkeep
+BE/uploads/speaker-avatars/**
+!BE/uploads/speaker-avatars/.gitkeep
+BE/uploads/user-avatars/**
+!BE/uploads/user-avatars/.gitkeep
+BE/uploads/announcement-images/**
+!BE/uploads/announcement-images/.gitkeep
+BE/uploads/club-media/**
+!BE/uploads/club-media/.gitkeep
+BE/uploads/partner-requests/**
+!BE/uploads/partner-requests/.gitkeep
+BE/uploads/partner-logos/**
+!BE/uploads/partner-logos/.gitkeep
+BE/uploads/proposal-covers/**
+!BE/uploads/proposal-covers/.gitkeep
 figma-ui-mcp-plugin/
 
 .cursor/

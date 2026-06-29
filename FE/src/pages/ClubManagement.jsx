@@ -11,6 +11,7 @@ import EventProposalForm from '../components/events/EventProposalForm';
 import ClubSemesterTimelinePanel from '../components/club/ClubSemesterTimelinePanel';
 import ClubEventListCard from '../components/club/mobile/ClubEventListCard';
 import ClubTablePagination from '../components/ui/ClubTablePagination';
+import { fetchClubSemesterTimelines } from '../services/clubTimelineApi';
 import { EMPTY_EVENT_FORM, mapApiEventToForm } from '../utils/eventFormState';
 
 const PAGE_SIZE = 10;
@@ -40,6 +41,7 @@ const ClubManagement = () => {
   const [bannerFileName, setBannerFileName] = useState('');
   const [eventFilter, setEventFilter] = useState('all');
   const [notifFilter, setNotifFilter] = useState('all');
+  const [approvedTimelines, setApprovedTimelines] = useState([]);
 
   const eventNotifications = useMemo(() => {
     return events
@@ -90,6 +92,44 @@ const ClubManagement = () => {
     fetchMyEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (activeNav !== 'create') return undefined;
+    let cancelled = false;
+    fetchClubSemesterTimelines()
+      .then((data) => {
+        if (!cancelled) setApprovedTimelines(data.timelines || []);
+      })
+      .catch(() => {
+        if (!cancelled) setApprovedTimelines([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeNav]);
+
+  const handleOpenExistingEventFromTimeline = async (event) => {
+    const eventId = event?._id || event?.id;
+    if (!eventId) return;
+    setEditingEventId(eventId);
+    setEditReturnTo(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/events/${eventId}?includeMedia=1`, {
+        headers: getEventHeaders(false),
+      });
+      const data = await res.json();
+      if (data.success && data.event) {
+        setEventForm(mapApiEventToForm(data.event));
+        setBannerFileName(data.event.bannerFileName || 'event-banner.jpg');
+        setEventFormKey((k) => k + 1);
+        showToast?.('Đã mở sự kiện từ timeline để chỉnh sửa.', 'info');
+      } else {
+        showToast?.(data.message || 'Không tải được sự kiện.', 'error');
+      }
+    } catch {
+      showToast?.('Lỗi khi tải sự kiện.', 'error');
+    }
+  };
 
   useEffect(() => {
     const editId = location.state?.editEventId;
@@ -149,6 +189,7 @@ const ClubManagement = () => {
     if (status === 'pending_admin') return { label: 'Chờ Admin', tone: 'pending' };
     if (status === 'pending' || status === 'pending_ctsv') return { label: 'Chờ duyệt', tone: 'pending' };
     if (status === 'revision') return { label: 'Cần chỉnh sửa', tone: 'pending' };
+    if (status === 'pending_hide') return { label: 'Đang chờ ẩn', tone: 'pending' };
     if (status === 'rejected') return { label: 'Từ chối', tone: 'rejected' };
     return { label: status || 'Không rõ', tone: 'pending' };
   };
@@ -216,6 +257,7 @@ const ClubManagement = () => {
         ticketPrice: body.ticketPrice,
         ticketTypes: body.ticketTypes,
         totalTickets: body.totalTickets,
+        timelineSource: body.timelineSource,
       };
       const endpoint = editingEventId
         ? `${API_BASE}/api/events/${editingEventId}`
@@ -457,6 +499,13 @@ const ClubManagement = () => {
               }}
               onDraftSave={() => showToast('Đã lưu bản nháp!', 'info')}
               onSubmit={handleClubEventSubmit}
+              approvedTimelines={approvedTimelines}
+              clubEvents={events}
+              onOpenExistingEvent={handleOpenExistingEventFromTimeline}
+              onClearEditMode={() => {
+                setEditingEventId(null);
+                setEditReturnTo(null);
+              }}
             />
           )}
 

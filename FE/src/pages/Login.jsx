@@ -261,7 +261,7 @@ const Login = ({ showToast }) => {
           if (isCtsvRole(role)) {
             resetCtsvSidebarOnLogin();
           }
-          if (role === USER_ROLES.STUDENT) {
+          if (role === USER_ROLES.STUDENT || role === USER_ROLES.CLUB_MANAGER) {
             resetStudentPublicSidebarOnLogin();
           }
           navigate(getHomePathForRole(role));

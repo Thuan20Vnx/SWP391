@@ -43,10 +43,14 @@ const eventSchema = new mongoose.Schema(
         'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80'
     },
     image: { type: String, default: '' },
+    /** jpg|png|webp — ảnh bìa lưu tại uploads/event-covers/{id}.{ext} */
+    coverFileExt: { type: String, default: '' },
     bannerFileName: { type: String, default: '' },
     eventPlanFile: { type: String, default: '' },
     eventPlanFileName: { type: String, default: '' },
     eventPlanFileMime: { type: String, default: '' },
+    /** pdf|docx|xlsx… — file tại uploads/event-plans/events/{id}.{ext} */
+    eventPlanFileExt: { type: String, default: '' },
     eventPlanLink: { type: String, default: '' },
     category: {
       type: String,
@@ -185,6 +189,8 @@ const eventSchema = new mongoose.Schema(
     speaker: { type: String, default: '' },
     speakerRole: { type: String, default: '' },
     speakerAvatar: { type: String, default: '' },
+    /** ext theo index speakers[] — file tại uploads/speaker-avatars/{eventId}/{index}.ext */
+    speakerAvatarExts: { type: [String], default: [] },
     speakers: { type: [speakerSchema], default: [] },
     agenda: { type: String, default: '' },
     learningOutcomes: { type: [String], default: [] },
@@ -210,6 +216,11 @@ const eventSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'EventProposal',
       default: null
+    },
+    timelineSource: {
+      timelineId: { type: mongoose.Schema.Types.ObjectId, ref: 'ClubSemesterTimeline', default: null },
+      itemTitle: { type: String, default: '', trim: true, maxlength: 200 },
+      semesterLabel: { type: String, default: '', trim: true, maxlength: 80 },
     },
     expectedRevenue: { type: Number, default: 0 },
     isHidden: { type: Boolean, default: false },
@@ -252,7 +263,7 @@ eventSchema.pre('validate', function () {
   this.category = normalizeEventCategory(this.category);
 });
 
-eventSchema.pre('save', function () {
+eventSchema.pre('save', async function () {
   if (!this.capacity && this.totalTickets) {
     this.capacity = this.totalTickets;
   }
@@ -273,6 +284,13 @@ eventSchema.pre('save', function () {
     this.eventState = 'expired';
   }
   syncPrimarySpeakerFields(this);
+
+  const { persistEventCoverOnDocument } = require('../utils/eventCoverStorage');
+  const { persistEventPlanOnDocument, PLAN_SCOPES } = require('../utils/eventPlanStorage');
+  const { persistSpeakersOnDocument } = require('../utils/speakerAvatarStorage');
+  await persistEventCoverOnDocument(this);
+  await persistEventPlanOnDocument(this, PLAN_SCOPES.events);
+  await persistSpeakersOnDocument(this);
 });
 
 eventSchema.set('toJSON', { virtuals: true });

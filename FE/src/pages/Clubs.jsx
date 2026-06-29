@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ClubDiscoveryCard from '../components/ClubDiscoveryCard';
 import PublicAdminShell from '../layouts/PublicAdminShell';
-import SiteFooter from '../components/SiteFooter';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import {
   CLUB_SAMPLE_DATA,
@@ -248,8 +247,6 @@ const Clubs = ({ showToast }) => {
           )}
         </section>
       </main>
-
-      <SiteFooter />
 
       <button
         type="button"

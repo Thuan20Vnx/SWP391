@@ -59,7 +59,9 @@ const GoogleAuthCallback = ({ showToast }) => {
             persistProfileFromUser(data.user);
             role = normalizeRole(data.user.role);
             if (isCtsvRole(role)) resetCtsvSidebarOnLogin();
-            if (role === USER_ROLES.STUDENT) resetStudentPublicSidebarOnLogin();
+            if (role === USER_ROLES.STUDENT || role === USER_ROLES.CLUB_MANAGER) {
+              resetStudentPublicSidebarOnLogin();
+            }
           }
         } catch {
           // Profile fetch failed — still proceed with token session

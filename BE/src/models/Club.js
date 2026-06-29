@@ -51,6 +51,7 @@ const clubSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    coverFileExt: { type: String, default: '' },
     coverPositionY: {
       type: Number,
       default: 50,
@@ -160,6 +161,7 @@ const clubSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    logoFileExt: { type: String, default: '' },
     foundedDate: {
       type: String,
       default: '',
@@ -178,6 +180,11 @@ clubSchema.index({ status: 1, category: 1 });
 clubSchema.index({ name: 'text', description: 'text', tags: 'text' });
 
 clubSchema.statics.CATEGORIES = CLUB_CATEGORIES;
+
+clubSchema.pre('save', async function () {
+  const { persistClubMediaOnDocument } = require('../utils/clubMediaStorage');
+  await persistClubMediaOnDocument(this);
+});
 
 const Club = mongoose.model('Club', clubSchema);
 

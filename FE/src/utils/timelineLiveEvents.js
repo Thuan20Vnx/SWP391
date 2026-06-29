@@ -25,5 +25,7 @@ export const dispatchTimelineLiveUpdate = (notification) => {
   window.dispatchEvent(new CustomEvent(TIMELINE_LIVE_EVENT, { detail: notification }));
 };
 
+export const isClubTimelineNav = (activeNav = '') => activeNav === 'semester-timeline';
+
 export const isTimelineLiveRoute = (pathname = '') =>
   pathname.includes('/semester-timelines');

@@ -1,4 +1,16 @@
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+const isBrowserLocalHost = () => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1';
+};
+
+/** localhost:5173 → Vite proxy (/api). LAN/phone → VITE_API_BASE from .env.lan.local */
+const API_BASE = (() => {
+  if (import.meta.env.DEV && isBrowserLocalHost()) return '';
+  const fromEnv = import.meta.env.VITE_API_BASE;
+  if (fromEnv) return fromEnv.replace(/\/$/, '');
+  return import.meta.env.DEV ? '' : 'http://localhost:5000';
+})();
 
 export const getAuthHeaders = (json = true) => {
   const headers = {};

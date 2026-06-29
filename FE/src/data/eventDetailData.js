@@ -2,15 +2,15 @@ import { getCategoryColor, getFillPercent } from './eventDiscoveryData';
 import { formatVnd, resolveEventPricing } from '../utils/ticketPricing';
 import { resolveEventSpeakers } from '../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../constants/eventCategories';
-import { resolveEventDisplayImage } from '../utils/eventDisplay';
+import { resolveEventDisplayImage, resolveSpeakerAvatarUrl } from '../utils/eventDisplay';
 const DEFAULT_HERO_IMAGE =
   'https://images.unsplash.com/photo-1517694712202-14dd9538aa65?auto=format&fit=crop&w=1600&q=80';
 
 const mapSpeakersForDetail = (event) =>
-  resolveEventSpeakers(event).map((speaker) => ({
+  resolveEventSpeakers(event).map((speaker, index) => ({
     name: speaker.name,
     role: speaker.role,
-    avatar: speaker.avatar || '',
+    avatar: resolveSpeakerAvatarUrl(event, index, speaker.avatar || ''),
     quote: speaker.quote || '',
   }));
 

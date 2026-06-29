@@ -12,6 +12,7 @@ const partnerSchema = new mongoose.Schema(
     description: { type: String, default: '' },
     partnerCode: { type: String, default: '', trim: true },
     logo: { type: String, default: '' },
+    logoFileExt: { type: String, default: '' },
     category: { type: String, default: '', trim: true },
     proposedEventTitle: { type: String, default: '', trim: true },
     expectedSponsorAmount: { type: Number, default: 0 },
@@ -20,7 +21,9 @@ const partnerSchema = new mongoose.Schema(
       {
         name: { type: String, default: '' },
         url: { type: String, default: '' },
-        sizeLabel: { type: String, default: '' }
+        sizeLabel: { type: String, default: '' },
+        mimeType: { type: String, default: '' },
+        storedExt: { type: String, default: '' },
       }
     ],
     representativeTitle: { type: String, default: '', trim: true },
@@ -49,6 +52,11 @@ const partnerSchema = new mongoose.Schema(
 
 partnerSchema.index({ status: 1, createdAt: -1 });
 partnerSchema.index({ email: 1, createdAt: -1 });
+
+partnerSchema.pre('save', async function () {
+  const { persistPartnerLogoOnDocument } = require('../utils/partnerMediaStorage');
+  await persistPartnerLogoOnDocument(this);
+});
 
 const Partner = mongoose.model('Partner', partnerSchema);
 

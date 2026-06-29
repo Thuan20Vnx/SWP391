@@ -1,3 +1,5 @@
+import { resolveMediaUrl } from './mediaUrls';
+
 export const PARTNER_STATUS_LABEL = {
   pending: 'Chờ duyệt',
   pending_admin: 'Chờ Admin duyệt',
@@ -60,19 +62,32 @@ export const partnerInitials = (name = '') => {
 
 export const isPartnerImageSrc = (src) =>
   typeof src === 'string' &&
-  (src.startsWith('data:image/') || /^https?:\/\//i.test(src.trim()));
+  (src.startsWith('data:image/') ||
+    /^https?:\/\//i.test(src.trim()) ||
+    src.startsWith('/api/'));
+
+export const resolvePartnerMediaUrl = (src) => {
+  if (!src) return '';
+  if (src.startsWith('/api/')) return resolveMediaUrl(src);
+  return src;
+};
 
 /** Logo công ty hoặc avatar đại diện (từ API) */
 export const resolvePartnerAvatarSrc = (partner) => {
   if (!partner) return '';
   const candidates = [
+    partner.logoUrl,
     partner.avatar,
     partner.logo,
     partner.representativeAvatar,
     partner.picture,
   ];
-  return candidates.find((c) => isPartnerImageSrc(c)) || '';
+  const hit = candidates.find((c) => isPartnerImageSrc(c));
+  return resolvePartnerMediaUrl(hit || '');
 };
+
+export const resolvePartnerAttachmentUrl = (attachment) =>
+  resolvePartnerMediaUrl(attachment?.attachmentUrl || attachment?.url || '');
 
 export const formatPartnerDate = (value) => {
   if (!value) return '—';

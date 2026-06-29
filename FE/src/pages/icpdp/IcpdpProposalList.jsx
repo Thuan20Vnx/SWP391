@@ -9,6 +9,7 @@ import {
 import { SCHOOL_EVENT_STATUS_LABELS } from '../../constants/eventWorkflow';
 import { MODERATION_ACTION_LABELS } from '../../constants/eventModeration';
 import { PORTAL_EVENTS_LIVE_EVENT } from '../../utils/adminEventsLiveEvents';
+import { buildTimelineSourceMessage } from '../../utils/timelineSourceLabel';
 import '../ClubManagement.css';
 
 const PAGE_SIZE = 10;
@@ -264,11 +265,17 @@ const IcpdpProposalList = () => {
                   const moderationLabel = item.kind === 'moderation'
                     ? MODERATION_ACTION_LABELS[ev.moderationAction] || ''
                     : '';
+                  const timelineSourceMessage = item.kind === 'proposal'
+                    ? buildTimelineSourceMessage(ev.timelineSource)
+                    : null;
 
                   return (
                     <tr key={item.id}>
                       <td>
                         <span className="clb-event-name">{ev.title}</span>
+                        {timelineSourceMessage && (
+                          <span className="clb-table-sub">{timelineSourceMessage}</span>
+                        )}
                         {moderationLabel && (
                           <span className="clb-table-sub">{moderationLabel}</span>
                         )}

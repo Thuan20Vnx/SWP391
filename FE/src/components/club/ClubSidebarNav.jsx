@@ -2,7 +2,7 @@ import React from 'react';
 import CtsvNavIcon from '../ctsv/CtsvNavIcon';
 import { CLUB_NAV_ITEMS, isClubNavActive } from './clubNavConfig';
 
-const ClubSidebarNav = ({ activeNav, onNavSelect, hasNewNotifs = false }) => {
+const ClubSidebarNav = ({ activeNav, onNavSelect, hasNewNotifs = false, embedded = false }) => {
   const items = [];
   let lastSection = null;
 
@@ -54,6 +54,8 @@ const ClubSidebarNav = ({ activeNav, onNavSelect, hasNewNotifs = false }) => {
       </button>
     );
   });
+
+  if (embedded) return items;
 
   return <nav className="ctsv-sidebar-nav">{items}</nav>;
 };
