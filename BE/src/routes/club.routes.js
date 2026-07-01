@@ -114,6 +114,12 @@ router.post(
   authorize('club_manager'),
   asyncHandler(clubController.cancelScheduledSemesterTimelineDelete)
 );
+router.post(
+  '/manage/semester-timelines/:id/withdraw-cancel-change-request',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(clubController.withdrawCancelSemesterTimelineChange)
+);
 
 router.get(
   '/manage/all',

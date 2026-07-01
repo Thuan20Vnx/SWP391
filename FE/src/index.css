@@ -3919,6 +3919,177 @@ a.club-tag {
   gap: 16px;
 }
 
+.chatbot-floating-wrapper--collapsed {
+  bottom: auto;
+  right: 0;
+  gap: 0;
+  align-items: stretch;
+}
+
+.chatbot-floating-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+  overflow: visible;
+}
+
+.chatbot-floating-fab-slot {
+  position: relative;
+  align-self: flex-end;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.chatbot-floating-fab-slot .chatbot-fab-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.chatbot-floating-hide-btn {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 8px);
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid rgba(242, 111, 33, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.72;
+  transform: translateY(-50%);
+  box-shadow: 0 4px 10px -6px rgba(15, 23, 42, 0.18);
+  transition: opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  z-index: 2;
+}
+
+.chatbot-floating-hide-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.chatbot-floating-hide-btn:hover {
+  opacity: 1;
+  border-color: rgba(242, 111, 33, 0.45);
+  box-shadow: 0 6px 14px -6px rgba(242, 111, 33, 0.22);
+}
+
+.chatbot-floating-edge-tab {
+  width: 22px;
+  height: 48px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid rgba(242, 111, 33, 0.28);
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--primary);
+  cursor: grab;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: -3px 4px 14px -8px rgba(15, 23, 42, 0.2);
+  touch-action: none;
+  user-select: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chatbot-floating-edge-tab:hover {
+  border-color: rgba(242, 111, 33, 0.45);
+}
+
+.chatbot-floating-edge-tab:active,
+.chatbot-floating-wrapper.is-dragging .chatbot-floating-edge-tab {
+  cursor: grabbing;
+}
+
+.chatbot-floating-wrapper--mobile .chatbot-fab-btn:not(.fab-active) {
+  max-width: 48px;
+  padding: 0;
+  gap: 0;
+}
+
+.chatbot-floating-wrapper--mobile .chatbot-fab-btn:not(.fab-active) .fab-text {
+  max-width: 0;
+  opacity: 0;
+}
+
+.chatbot-floating-wrapper--mobile .chatbot-fab-btn:not(.fab-active):hover {
+  max-width: 48px;
+  padding: 0;
+  gap: 0;
+}
+
+.chatbot-floating-wrapper--mobile .chatbot-fab-btn:not(.fab-active):hover .fab-text {
+  max-width: 0;
+  opacity: 0;
+}
+
+.chatbot-floating-wrapper--mobile .weather-widget--floating:hover,
+.chatbot-floating-wrapper--mobile .weather-widget--floating.weather-widget--open {
+  width: 48px;
+  min-width: 48px;
+  max-width: 48px;
+  height: 48px;
+  padding: 0;
+  transform: none;
+}
+
+.chatbot-floating-wrapper--mobile .weather-widget--floating:hover .weather-widget-expanded,
+.chatbot-floating-wrapper--mobile .weather-widget--floating.weather-widget--open .weather-widget-expanded {
+  max-width: 0;
+  opacity: 0;
+}
+
+.chatbot-floating-wrapper--mobile .weather-widget--floating:hover .weather-widget-compact,
+.chatbot-floating-wrapper--mobile .weather-widget--floating.weather-widget--open .weather-widget-compact {
+  position: static;
+  opacity: 1;
+  pointer-events: auto;
+  max-width: none;
+}
+
+.chatbot-floating-wrapper .weather-widget-wrap {
+  align-self: flex-end;
+}
+
+.chatbot-floating-wrapper .weather-widget--floating {
+  animation: none;
+}
+
+.chatbot-floating-wrapper .weather-widget--floating .weather-widget-compact {
+  transition: none;
+}
+
+.chatbot-floating-wrapper .weather-widget--floating-loading,
+.chatbot-floating-wrapper .weather-widget--floating-error {
+  pointer-events: none;
+  cursor: default;
+}
+
+.chatbot-floating-wrapper .weather-widget:hover,
+.chatbot-floating-wrapper .weather-widget--floating:hover {
+  transform: none;
+}
+
+.weather-widget-loading-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0.55;
+}
+
 .chatbot-floating-wrapper .chatbot-fab-btn:not(.fab-active) {
   width: auto;
   min-width: 48px;
@@ -16640,6 +16811,19 @@ button.stl-action-btn {
 }
 .stl-action-btn--primary:hover { color: #fff; box-shadow: 0 4px 12px rgba(234,88,12,0.35); transform: translateY(-1px); }
 
+.stl-action-btn--danger {
+  border-color: #ef4444;
+  color: #dc2626;
+  background: #fff;
+}
+
+.stl-action-btn--danger:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+  transform: none;
+}
+
 .stl-row--skeleton td { padding: 14px 16px; }
 .stl-sk {
   height: 13px;
@@ -21467,9 +21651,13 @@ button.stl-action-btn {
   cursor: pointer;
 }
 .stl-filter-chip.is-active {
-  background: #0f172a;
-  border-color: #0f172a;
+  background: #006633;
+  border-color: #006633;
   color: #fff;
+}
+.stl-filter-chip.is-active:hover {
+  background: #005229;
+  border-color: #005229;
 }
 .stl-row--conflict td {
   background: #fffbeb;

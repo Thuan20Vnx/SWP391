@@ -1,8 +1,9 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import SettingsRow from '../SettingsRow';
 import { SettingsCard, SettingsSectionHeader } from '../SettingsLayout';
 import { SECTION_META } from '../settingsConfig';
 import { normalizeSettingsRole } from '../settingsRoleConfig';
+import { navigateClubPortalHome } from '../../club/clubNavConfig';
 
 const SUPPORT_LINKS = {
   student: [
@@ -39,8 +40,17 @@ const SUPPORT_LINKS = {
 
 const SupportSection = ({ role = 'student' }) => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const normalized = normalizeSettingsRole(role);
   const links = SUPPORT_LINKS[normalized] || SUPPORT_LINKS.student;
+
+  const handleLinkClick = (item) => {
+    if (normalized === 'club_manager' && item.path === '/quan-ly-clb') {
+      navigateClubPortalHome(navigate, pathname);
+      return;
+    }
+    navigate(item.path);
+  };
 
   return (
     <div className="settings-section">
@@ -52,7 +62,7 @@ const SupportSection = ({ role = 'student' }) => {
             key={item.path + item.label}
             label={item.label}
             description={item.description}
-            onClick={() => navigate(item.path)}
+            onClick={() => handleLinkClick(item)}
           />
         ))}
       </SettingsCard>

@@ -3,6 +3,8 @@ import { audienceLabel, formatTicketPriceLabel } from '../../utils/eventTicketTy
 import { getTicketFillPct, mapTicketTypesWithProgress } from '../../utils/ticketRegistrationStats';
 import EventPlanFilePanel from './EventPlanFilePanel';
 
+import { resolveEventDisplayImage } from '../../utils/eventDisplay';
+
 const DEFAULT_BANNER =
   'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80';
 
@@ -64,7 +66,7 @@ const EventOverviewPanel = ({ event }) => {
     return <p className="ev-panel-empty">Đang tải thông tin sự kiện…</p>;
   }
 
-  const bannerSrc = event.thumbnail || event.image || DEFAULT_BANNER;
+  const bannerSrc = resolveEventDisplayImage(event, DEFAULT_BANNER);
   const formatLabel =
     event.format === 'online' ? 'Trực tuyến' : event.format === 'hybrid' ? 'Kết hợp' : 'Tại trường';
   const registered = event.registeredCount || 0;

@@ -8,6 +8,8 @@ import {
   isClubDesktop,
   navigateClubPortalHome,
   persistClubSidebarMode,
+  persistClubSidebarOpen,
+  persistClubPublicSidebarOpen,
   readClubSidebarMode,
 } from './clubNavConfig';
 import ClubParticipateSidebarNav from './ClubParticipateSidebarNav';
@@ -47,14 +49,16 @@ const ClubSidebarShell = ({
       setMode(nextMode);
 
       if (nextMode === CLUB_SIDEBAR_MODE.MANAGE && !pathname.startsWith('/quan-ly-clb')) {
-        navigateClubPortalHome(navigate, pathname);
+        navigateClubPortalHome(navigate, pathname, { keepSidebarOpen: open });
       } else if (nextMode === CLUB_SIDEBAR_MODE.PARTICIPATE && pathname.startsWith('/quan-ly-clb')) {
-        navigate('/');
+        if (open) {
+          persistClubSidebarOpen(true);
+          persistClubPublicSidebarOpen(true);
+        }
+        navigate('/', { state: open ? { keepSidebarOpen: true } : undefined });
       }
-
-      closeOnMobile();
     },
-    [closeOnMobile, navigate, pathname]
+    [navigate, open, pathname]
   );
 
   const picture = userProfile?.picture || '';

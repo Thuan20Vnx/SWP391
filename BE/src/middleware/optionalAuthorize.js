@@ -11,6 +11,8 @@ const optionalAuthorize = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: email.trim().toLowerCase() });
   if (user) {
     req.user = user;
+    const { normalizeRole } = require('../utils/role');
+    req.userRole = normalizeRole(user.role);
   }
 
   next();

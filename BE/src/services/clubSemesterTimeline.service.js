@@ -8,6 +8,8 @@ const {
 } = require('../utils/clubSemesterTimelineFormat');
 const { invalidateRegistryCache } = require('./timelineLocationConflict.service');
 const { entityHasAnyPlanFile, PLAN_SCOPES } = require('../utils/eventPlanStorage');
+const { assertOnOrAfterToday, formatInvalidDateHint, parseStrictInstant } = require('../utils/dateValidation');
+const AppError = require('../utils/AppError');
 
 const SCHOOL_OWNER_META = {
   icpdp: { ownerType: 'icpdp', ownerLabel: 'IC-PDP' },
@@ -15,6 +17,73 @@ const SCHOOL_OWNER_META = {
 };
 
 const bumpRegistry = () => invalidateRegistryCache();
+
+const timelineWasEverApproved = (timeline) =>
+  Boolean(timeline?.everApproved) || timeline?.status === 'approved';
+
+const captureApprovedSnapshot = (timeline) => ({
+  semesterTerm: timeline.semesterTerm,
+  semesterYear: timeline.semesterYear,
+  semesterLabel: timeline.semesterLabel,
+  summary: timeline.summary || '',
+  objectives: timeline.objectives || '',
+  items: JSON.parse(JSON.stringify(timeline.items || [])),
+  eventPlanFile: timeline.eventPlanFile || '',
+  eventPlanFileName: timeline.eventPlanFileName || '',
+  eventPlanFileMime: timeline.eventPlanFileMime || '',
+  eventPlanLink: timeline.eventPlanLink || '',
+});
+
+const restoreApprovedSnapshot = (timeline) => {
+  const snap = timeline.approvedSnapshot;
+  if (!snap || typeof snap !== 'object') return false;
+  timeline.semesterTerm = snap.semesterTerm;
+  timeline.semesterYear = snap.semesterYear;
+  timeline.semesterLabel = snap.semesterLabel || buildSemesterLabel(snap.semesterTerm, snap.semesterYear);
+  timeline.summary = snap.summary || '';
+  timeline.objectives = snap.objectives || '';
+  timeline.items = JSON.parse(JSON.stringify(snap.items || []));
+  timeline.eventPlanFile = snap.eventPlanFile || '';
+  timeline.eventPlanFileName = snap.eventPlanFileName || '';
+  timeline.eventPlanFileMime = snap.eventPlanFileMime || '';
+  timeline.eventPlanLink = snap.eventPlanLink || '';
+  timeline.approvedSnapshot = null;
+  return true;
+};
+
+const shouldStartReapprovalEdit = (timeline) =>
+  timelineWasEverApproved(timeline) &&
+  (timeline.status === 'approved' || hasPendingChangeRequest(timeline));
+
+const hasStaleRejectedChange = (timeline) =>
+  timeline.changeRequest?.type &&
+  timeline.changeRequest.type !== 'none' &&
+  timeline.changeRequest.status === 'rejected';
+
+const shouldClearStaleRejectedChange = (timeline) =>
+  hasStaleRejectedChange(timeline) &&
+  ['pending_admin', 'pending_icpdp'].includes(timeline.status);
+
+const isReapprovalRejection = (timeline, reviewerRole) => {
+  if (!timelineWasEverApproved(timeline) || !timeline.approvedSnapshot) return false;
+  if (hasPendingChangeRequest(timeline)) return false;
+  if (reviewerRole === 'admin' && timeline.status === 'pending_admin') return true;
+  if (reviewerRole !== 'admin' && timeline.status === 'pending_icpdp' && (timeline.ownerType || 'club') === 'club') {
+    return true;
+  }
+  return false;
+};
+
+const beginReapprovalEdit = (timeline, pendingStatus) => {
+  timeline.approvedSnapshot = captureApprovedSnapshot(timeline);
+  clearChangeRequest(timeline);
+  timeline.everApproved = true;
+  timeline.status = pendingStatus;
+  timeline.submittedAt = new Date();
+  timeline.rejectionReason = '';
+  timeline.icpdpNote = '';
+  timeline.ctsvNote = '';
+};
 
 const VALID_TERMS = ['spring', 'summer', 'fall'];
 const MAX_LOCATION_LEN = 200;
@@ -33,11 +102,28 @@ const normalizeItems = (items) => {
         err.statusCode = 400;
         throw err;
       }
+      const plannedDate = item.plannedDate ? parseStrictInstant(item.plannedDate) : null;
+      const plannedEndDate = item.plannedEndDate ? parseStrictInstant(item.plannedEndDate) : null;
+      if (item.plannedDate && !plannedDate) {
+        throw new AppError(
+          `Thời gian bắt đầu dự kiến không hợp lệ. ${formatInvalidDateHint(item.plannedDate)}`,
+          400
+        );
+      }
+      if (item.plannedEndDate && !plannedEndDate) {
+        throw new AppError(
+          `Thời gian kết thúc dự kiến không hợp lệ. ${formatInvalidDateHint(item.plannedEndDate)}`,
+          400
+        );
+      }
+      if (plannedDate) {
+        assertOnOrAfterToday(plannedDate, 'Thời gian bắt đầu dự kiến');
+      }
       return {
         title: String(item.title || '').trim(),
         description: String(item.description || '').trim(),
-        plannedDate: item.plannedDate ? new Date(item.plannedDate) : null,
-        plannedEndDate: item.plannedEndDate ? new Date(item.plannedEndDate) : null,
+        plannedDate,
+        plannedEndDate,
         category: String(item.category || 'Workshop').trim(),
         location,
         expectedAttendees: Math.max(0, Number(item.expectedAttendees) || 0),
@@ -87,7 +173,7 @@ const applyPlanFields = (timeline, payload, { requirePlan = false } = {}) => {
   }
 };
 
-const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'rejected', 'pending_icpdp', 'pending_admin', 'approved'];
+const DIRECT_EDIT_STATUSES = ['draft', 'revision', 'rejected', 'cancelled', 'pending_icpdp', 'pending_admin', 'approved'];
 
 const assertEditable = (timeline) => {
   if (!DIRECT_EDIT_STATUSES.includes(timeline.status)) {
@@ -257,7 +343,7 @@ const updateForClub = async (id, payload, userId, activeClubId) => {
     throw err;
   }
   assertEditable(timeline);
-  const wasApproved = timeline.status === 'approved';
+  const startReapproval = shouldStartReapprovalEdit(timeline);
 
   const nextTerm = payload.semesterTerm ? String(payload.semesterTerm).trim() : timeline.semesterTerm;
   const nextYear = payload.semesterYear ? Number(payload.semesterYear) : timeline.semesterYear;
@@ -270,6 +356,12 @@ const updateForClub = async (id, payload, userId, activeClubId) => {
     await ensureUniqueSemester(club._id, nextTerm, nextYear, timeline._id);
   }
 
+  if (startReapproval) {
+    beginReapprovalEdit(timeline, 'pending_icpdp');
+  } else if (shouldClearStaleRejectedChange(timeline)) {
+    clearChangeRequest(timeline);
+  }
+
   timeline.semesterTerm = nextTerm;
   timeline.semesterYear = nextYear;
   timeline.semesterLabel = buildSemesterLabel(nextTerm, nextYear);
@@ -279,15 +371,6 @@ const updateForClub = async (id, payload, userId, activeClubId) => {
   applyPlanFields(timeline, payload);
   timeline.clubName = club.name;
   timeline.clubSlug = club.slug;
-
-  if (wasApproved) {
-    // Sửa timeline đã duyệt nghĩa là nội dung thay đổi — phải duyệt lại từ đầu.
-    timeline.status = 'pending_icpdp';
-    timeline.submittedAt = new Date();
-    timeline.rejectionReason = '';
-    timeline.icpdpNote = '';
-    timeline.ctsvNote = '';
-  }
 
   await timeline.save();
   return await formatClubSemesterTimeline(timeline, { includePlanFile: true });
@@ -480,6 +563,8 @@ const adminApprove = async (id, { note, reviewerEmail } = {}) => {
     throw err;
   }
   timeline.status = 'approved';
+  timeline.everApproved = true;
+  timeline.approvedSnapshot = null;
   timeline.ctsvNote = String(note || '').trim();
   timeline.reviewedByEmail = reviewerEmail || '';
   timeline.reviewedAt = new Date();
@@ -511,6 +596,21 @@ const rejectTimeline = async (id, { reason, reviewerEmail, reviewerRole } = {}) 
     const err = new Error('Vui lòng nhập lý do từ chối!');
     err.statusCode = 400;
     throw err;
+  }
+  if (isReapprovalRejection(timeline, reviewerRole)) {
+    restoreApprovedSnapshot(timeline);
+    timeline.status = 'approved';
+    timeline.rejectionReason = '';
+    if (reviewerRole === 'admin') {
+      timeline.ctsvNote = trimmed;
+    } else {
+      timeline.icpdpNote = trimmed;
+    }
+    timeline.reviewedByEmail = reviewerEmail || '';
+    timeline.reviewedAt = new Date();
+    await timeline.save();
+    bumpRegistry();
+    return await formatClubSemesterTimeline(timeline);
   }
   timeline.status = 'rejected';
   timeline.rejectionReason = trimmed;
@@ -561,7 +661,7 @@ const requestRevision = async (id, { note, reviewerEmail } = {}) => {
 };
 
 const clearChangeRequest = (timeline) => {
-  timeline.changeRequest = {
+  timeline.set('changeRequest', {
     type: 'none',
     status: 'none',
     reason: '',
@@ -571,7 +671,8 @@ const clearChangeRequest = (timeline) => {
     adminNote: '',
     reviewedAt: null,
     scheduledDeleteAt: null,
-  };
+  });
+  timeline.markModified('changeRequest');
 };
 
 const hasPendingChangeRequest = (timeline) =>
@@ -587,12 +688,17 @@ const deleteForClub = async (id, userId, activeClubId) => {
     err.statusCode = 404;
     throw err;
   }
-  if (!['draft', 'revision', 'rejected', 'pending_icpdp'].includes(timeline.status)) {
-    const err = new Error('Chỉ có thể xóa timeline ở trạng thái bản nháp, từ chối, chờ duyệt hoặc yêu cầu chỉnh sửa!');
+  if (!['draft', 'revision', 'rejected', 'pending_icpdp', 'cancelled'].includes(timeline.status)) {
+    const err = new Error('Không thể xóa timeline ở trạng thái này!');
     err.statusCode = 400;
     throw err;
   }
-  if (['draft', 'rejected'].includes(timeline.status)) {
+  if (timeline.status === 'pending_icpdp' && timelineWasEverApproved(timeline)) {
+    const err = new Error('Timeline đã từng được duyệt. Vui lòng gửi yêu cầu hủy đơn để Admin phê duyệt.');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (['draft', 'rejected', 'cancelled'].includes(timeline.status)) {
     await timeline.deleteOne();
     return { id: String(id), deleted: true, mode: 'hard' };
   }
@@ -632,15 +738,29 @@ const requestChangeForClub = async (id, { type, reason, payload }, userId, activ
   }
 
   if (action === 'cancel' && timeline.status !== 'approved') {
-    const err = new Error('Chỉ timeline đã duyệt mới cần gửi yêu cầu hủy kèm lý do!');
-    err.statusCode = 400;
-    throw err;
+    const reapprovalPending =
+      timelineWasEverApproved(timeline) &&
+      ['pending_icpdp', 'pending_admin'].includes(timeline.status);
+    if (!reapprovalPending) {
+      const err = new Error('Chỉ timeline đã duyệt mới cần gửi yêu cầu hủy kèm lý do!');
+      err.statusCode = 400;
+      throw err;
+    }
   }
 
   if (action === 'delete' && timeline.status !== 'approved') {
-    const err = new Error('Chỉ timeline đã duyệt mới cần gửi yêu cầu xóa kèm lý do!');
-    err.statusCode = 400;
-    throw err;
+    const reapprovalPending =
+      timelineWasEverApproved(timeline) &&
+      ['pending_icpdp', 'pending_admin'].includes(timeline.status);
+    if (!reapprovalPending) {
+      const err = new Error('Chỉ timeline đã duyệt mới cần gửi yêu cầu xóa kèm lý do!');
+      err.statusCode = 400;
+      throw err;
+    }
+  }
+
+  if (timelineWasEverApproved(timeline) && ['pending_icpdp', 'pending_admin'].includes(timeline.status)) {
+    timeline.status = 'approved';
   }
 
   timeline.changeRequest = {
@@ -675,8 +795,20 @@ const withdrawForClub = async (id, userId, activeClubId) => {
     err.statusCode = 400;
     throw err;
   }
-  timeline.status = 'draft';
-  timeline.submittedAt = null;
+  if (timelineWasEverApproved(timeline)) {
+    if (timeline.approvedSnapshot) {
+      restoreApprovedSnapshot(timeline);
+    }
+    timeline.status = 'approved';
+    timeline.submittedAt = timeline.reviewedAt || timeline.submittedAt;
+    timeline.rejectionReason = '';
+    if (hasStaleRejectedChange(timeline)) {
+      clearChangeRequest(timeline);
+    }
+  } else {
+    timeline.status = 'draft';
+    timeline.submittedAt = null;
+  }
   await timeline.save();
   return await formatClubSemesterTimeline(timeline);
 };
@@ -793,6 +925,40 @@ const cancelScheduledDeleteForClub = async (id, userId, activeClubId) => {
   return await formatClubSemesterTimeline(timeline);
 };
 
+const assertWithdrawablePendingChangeRequest = (timeline) => {
+  const cr = timeline.changeRequest;
+  if (!cr || !['cancel', 'delete'].includes(cr.type)) {
+    const err = new Error('Không có yêu cầu đang chờ!');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (!['pending_icpdp', 'pending_admin'].includes(cr.status)) {
+    const err = new Error('Yêu cầu không còn chờ duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (!timelineWasEverApproved(timeline)) {
+    const err = new Error('Chỉ có thể hoàn tác yêu cầu của timeline đã từng được duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+};
+
+const withdrawCancelChangeRequestForClub = async (id, userId, activeClubId) => {
+  const club = await resolveClubForManager(userId, activeClubId);
+  const timeline = await ClubSemesterTimeline.findById(id);
+  if (!timeline || String(timeline.clubId) !== String(club._id)) {
+    const err = new Error('Không tìm thấy timeline kỳ học!');
+    err.statusCode = 404;
+    throw err;
+  }
+  assertWithdrawablePendingChangeRequest(timeline);
+  clearChangeRequest(timeline);
+  await timeline.save();
+  bumpRegistry();
+  return await formatClubSemesterTimeline(timeline);
+};
+
 // --- School unit (ICPDP / CTSV) timelines — submit goes straight to Admin ---
 
 const listForSchoolUnit = async (role) => {
@@ -892,7 +1058,7 @@ const updateForSchoolUnit = async (id, role, payload) => {
   const timeline = await ClubSemesterTimeline.findById(id);
   assertSchoolTimeline(timeline, role);
   assertEditable(timeline);
-  const wasApproved = timeline.status === 'approved';
+  const startReapproval = shouldStartReapprovalEdit(timeline);
   const nextTerm = payload.semesterTerm ? String(payload.semesterTerm).trim() : timeline.semesterTerm;
   const nextYear = payload.semesterYear ? Number(payload.semesterYear) : timeline.semesterYear;
   if (payload.semesterTerm && !VALID_TERMS.includes(nextTerm)) {
@@ -903,6 +1069,13 @@ const updateForSchoolUnit = async (id, role, payload) => {
   if (nextTerm !== timeline.semesterTerm || nextYear !== timeline.semesterYear) {
     await ensureUniqueSchoolSemester(meta.ownerType, nextTerm, nextYear, timeline._id);
   }
+
+  if (startReapproval) {
+    beginReapprovalEdit(timeline, 'pending_admin');
+  } else if (shouldClearStaleRejectedChange(timeline)) {
+    clearChangeRequest(timeline);
+  }
+
   timeline.semesterTerm = nextTerm;
   timeline.semesterYear = nextYear;
   timeline.semesterLabel = buildSemesterLabel(nextTerm, nextYear);
@@ -912,13 +1085,7 @@ const updateForSchoolUnit = async (id, role, payload) => {
   applyPlanFields(timeline, payload);
   timeline.ownerLabel = meta.ownerLabel;
   timeline.clubName = meta.ownerLabel;
-  if (wasApproved) {
-    timeline.status = 'pending_admin';
-    timeline.submittedAt = new Date();
-    timeline.rejectionReason = '';
-    timeline.icpdpNote = '';
-    timeline.ctsvNote = '';
-  }
+
   await timeline.save();
   bumpRegistry();
   return await formatClubSemesterTimeline(timeline, { includePlanFile: true });
@@ -960,6 +1127,11 @@ const deleteForSchoolUnit = async (id, role) => {
     bumpRegistry();
     return { id: String(id), deleted: true, mode: 'hard' };
   }
+  if (timeline.status === 'pending_admin' && timelineWasEverApproved(timeline)) {
+    const err = new Error('Timeline đã từng được duyệt. Vui lòng gửi yêu cầu hủy đơn để Admin phê duyệt.');
+    err.statusCode = 400;
+    throw err;
+  }
   timeline.status = 'cancelled';
   timeline.rejectionReason = 'Đơn vị đã hủy timeline kỳ học.';
   timeline.reviewedAt = new Date();
@@ -981,8 +1153,20 @@ const withdrawForSchoolUnit = async (id, role) => {
     err.statusCode = 400;
     throw err;
   }
-  timeline.status = 'draft';
-  timeline.submittedAt = null;
+  if (timelineWasEverApproved(timeline)) {
+    if (timeline.approvedSnapshot) {
+      restoreApprovedSnapshot(timeline);
+    }
+    timeline.status = 'approved';
+    timeline.submittedAt = timeline.reviewedAt || timeline.submittedAt;
+    timeline.rejectionReason = '';
+    if (hasStaleRejectedChange(timeline)) {
+      clearChangeRequest(timeline);
+    }
+  } else {
+    timeline.status = 'draft';
+    timeline.submittedAt = null;
+  }
   await timeline.save();
   bumpRegistry();
   return await formatClubSemesterTimeline(timeline);
@@ -1009,9 +1193,16 @@ const requestChangeForSchoolUnit = async (id, { type, reason }, role) => {
     throw err;
   }
   if (timeline.status !== 'approved') {
-    const err = new Error('Chỉ timeline đã duyệt mới cần gửi yêu cầu thay đổi kèm lý do!');
-    err.statusCode = 400;
-    throw err;
+    const reapprovalPending =
+      timelineWasEverApproved(timeline) && timeline.status === 'pending_admin';
+    if (!reapprovalPending) {
+      const err = new Error('Chỉ timeline đã duyệt mới cần gửi yêu cầu thay đổi kèm lý do!');
+      err.statusCode = 400;
+      throw err;
+    }
+  }
+  if (timelineWasEverApproved(timeline) && timeline.status === 'pending_admin') {
+    timeline.status = 'approved';
   }
   timeline.changeRequest = {
     type: action,
@@ -1036,6 +1227,16 @@ const cancelScheduledDeleteForSchoolUnit = async (id, role) => {
     err.statusCode = 400;
     throw err;
   }
+  clearChangeRequest(timeline);
+  await timeline.save();
+  bumpRegistry();
+  return await formatClubSemesterTimeline(timeline);
+};
+
+const withdrawCancelChangeRequestForSchoolUnit = async (id, role) => {
+  const timeline = await ClubSemesterTimeline.findById(id);
+  assertSchoolTimeline(timeline, role);
+  assertWithdrawablePendingChangeRequest(timeline);
   clearChangeRequest(timeline);
   await timeline.save();
   bumpRegistry();
@@ -1085,6 +1286,7 @@ module.exports = {
   adminApproveChangeRequest,
   rejectChangeRequest,
   cancelScheduledDeleteForClub,
+  withdrawCancelChangeRequestForClub,
   formatTimelineItem,
   listForSchoolUnit,
   getByIdForSchoolUnit,
@@ -1097,5 +1299,6 @@ module.exports = {
   withdrawForSchoolUnit,
   requestChangeForSchoolUnit,
   cancelScheduledDeleteForSchoolUnit,
+  withdrawCancelChangeRequestForSchoolUnit,
   assertApprovedTimelineForSchoolUnit,
 };

@@ -16,7 +16,6 @@ const ADMIN_STATUS_FILTERS = [
 
 const ICPDP_STATUS_FILTERS = [
   { id: '',              label: 'Chờ xử lý' },
-  { id: 'pending_icpdp', label: 'Chờ IC-PDP' },
   { id: 'pending_admin', label: 'Chờ Admin' },
   { id: 'approved',      label: 'Đã duyệt' },
   { id: 'revision',      label: 'Cần chỉnh sửa' },
@@ -34,11 +33,11 @@ const STATUS_META = {
 };
 
 const emptyTimelineHint = (statusFilter, isAdmin) => {
-  if (statusFilter === 'all') return 'Chưa có timeline nào trong hệ thống.';
-  if (statusFilter === '' || statusFilter === 'pending_icpdp' || statusFilter === 'pending_admin') {
+  if (statusFilter === 'all') return 'Chưa có timeline CLB nào trong hệ thống.';
+  if (statusFilter === '' || statusFilter === 'pending_admin') {
     return isAdmin
       ? 'Không có timeline chờ Admin duyệt. Thử bộ lọc «Tất cả» để xem lịch sử.'
-      : 'Không có timeline chờ IC-PDP xử lý. CLB hủy đơn hoặc timeline đã duyệt nằm ở bộ lọc «Tất cả».';
+      : 'Không có timeline CLB chờ IC-PDP xử lý. Thử bộ lọc «Tất cả» để xem các trạng thái khác.';
   }
   return 'Thử đổi bộ lọc hoặc từ khóa tìm kiếm.';
 };
@@ -79,7 +78,7 @@ const IcpdpSemesterTimelineList = () => {
   const detailBase = isAdmin ? '/admin/semester-timelines' : '/icpdp/semester-timelines';
   const STATUS_FILTERS = isAdmin ? ADMIN_STATUS_FILTERS : ICPDP_STATUS_FILTERS;
 
-  const [statusFilter, setStatusFilter] = useState(isAdmin ? 'pending_admin' : '');
+  const [statusFilter, setStatusFilter] = useState(isAdmin ? 'pending_admin' : 'all');
   const [ownerTypeFilter, setOwnerTypeFilter] = useState(isAdmin ? 'all' : 'club');
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef(null);
@@ -93,9 +92,19 @@ const IcpdpSemesterTimelineList = () => {
       if (!silent) setLoading(true);
       const params = {};
       if (status) params.status = status;
-      if (isAdmin) params.ownerType = ownerTypeFilter;
+      if (isAdmin) {
+        params.ownerType = ownerTypeFilter;
+      } else {
+        params.ownerType = 'club';
+      }
       return fetchIcpdpSemesterTimelines(params)
-        .then((d) => setTimelines(d.timelines || []))
+        .then((d) => {
+          const rows = d.timelines || [];
+          const clubOnly = isAdmin
+            ? rows
+            : rows.filter((t) => (t.ownerType || 'club') === 'club');
+          setTimelines(clubOnly);
+        })
         .catch(() => showToast?.('Không tải được danh sách timeline.', 'error'))
         .finally(() => {
           if (!silent) setLoading(false);
@@ -121,7 +130,7 @@ const IcpdpSemesterTimelineList = () => {
 
   useCloseOnClickOutside(filterRef, filterOpen, () => setFilterOpen(false));
 
-  const activeFilterLabel = STATUS_FILTERS.find((f) => f.id === statusFilter)?.label || 'Chờ xử lý';
+  const activeFilterLabel = STATUS_FILTERS.find((f) => f.id === statusFilter)?.label || 'Tất cả';
 
   const handleStatusSelect = (id) => {
     setStatusFilter(id);

@@ -71,6 +71,11 @@ const formatChangeRequest = (cr) => {
     if (cr.type === 'cancel') status = 'Từ chối yêu cầu hủy đơn';
     else if (cr.type === 'delete') status = 'Từ chối yêu cầu xóa';
   }
+  let typeLabel = CHANGE_TYPE_LABELS[cr.type] || cr.type;
+  if (statusKey === 'rejected') {
+    if (cr.type === 'cancel') typeLabel = 'Đã từng bị hủy đơn timeline';
+    else if (cr.type === 'delete') typeLabel = 'Đã từng bị yêu cầu xóa timeline';
+  }
   if (statusKey === 'scheduled_delete' && cr.scheduledDeleteAt) {
     const at = new Date(cr.scheduledDeleteAt);
     if (!Number.isNaN(at.getTime())) {
@@ -81,7 +86,7 @@ const formatChangeRequest = (cr) => {
   }
   return {
     type: cr.type,
-    typeLabel: CHANGE_TYPE_LABELS[cr.type] || cr.type,
+    typeLabel,
     status,
     statusKey,
     reason: cr.reason || '',
@@ -94,14 +99,24 @@ const formatChangeRequest = (cr) => {
   };
 };
 
-const resolveDisplayStatus = (statusKey, changeRequest) => {
+const resolveDisplayStatus = (statusKey, changeRequest, { everApproved = false } = {}) => {
   const cr = changeRequest;
   if (cr?.type && cr.type !== 'none' && cr.status === 'rejected') {
-    const actionLabel = cr.type === 'cancel' ? 'hủy đơn' : cr.type === 'delete' ? 'xóa' : 'thay đổi';
-    return {
-      status: `Từ chối yêu cầu ${actionLabel}`,
-      statusBadgeKey: 'rejected',
-    };
+    if (statusKey === 'approved') {
+      const actionLabel = cr.type === 'cancel' ? 'hủy' : cr.type === 'delete' ? 'xóa' : 'sửa';
+      return {
+        status: `Đã phê duyệt (yêu cầu ${actionLabel} từ chối)`,
+        statusBadgeKey: 'approved',
+      };
+    }
+    // Stale rejected change while re-approval is in progress — show workflow status instead.
+    if (!['pending_admin', 'pending_icpdp'].includes(statusKey)) {
+      const actionLabel = cr.type === 'cancel' ? 'hủy đơn' : cr.type === 'delete' ? 'xóa' : 'thay đổi';
+      return {
+        status: `Từ chối yêu cầu ${actionLabel}`,
+        statusBadgeKey: 'rejected',
+      };
+    }
   }
 
   const hasPendingChange =
@@ -134,6 +149,19 @@ const resolveDisplayStatus = (statusKey, changeRequest) => {
     };
   }
 
+  if (statusKey === 'pending_admin' && everApproved) {
+    return {
+      status: 'Chờ Admin duyệt lại',
+      statusBadgeKey: 'pending_admin',
+    };
+  }
+  if (statusKey === 'pending_icpdp' && everApproved) {
+    return {
+      status: 'Chờ IC-PDP duyệt lại',
+      statusBadgeKey: 'pending_icpdp',
+    };
+  }
+
   return {
     status: STATUS_LABELS[statusKey] || statusKey,
     statusBadgeKey: statusKey,
@@ -147,7 +175,8 @@ const formatClubSemesterTimeline = async (doc, opts = {}) => {
   const statusKey = r.status || 'draft';
   const ownerType = r.ownerType || 'club';
   const changeRequest = formatChangeRequest(r.changeRequest);
-  const display = resolveDisplayStatus(statusKey, r.changeRequest);
+  const everApproved = Boolean(r.everApproved) || r.status === 'approved';
+  const display = resolveDisplayStatus(statusKey, r.changeRequest, { everApproved });
   const base = {
     id: String(r._id),
     ownerType,
@@ -178,6 +207,7 @@ const formatClubSemesterTimeline = async (doc, opts = {}) => {
     reviewedByEmail: r.reviewedByEmail || '',
     reviewedAt: r.reviewedAt || null,
     submittedAt: r.submittedAt || null,
+    everApproved,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     changeRequest,

@@ -144,13 +144,26 @@ export const navigateClubNavItem = ({
 };
 
 /** Header / menu chính — luôn mở trang danh sách sự kiện, không nhớ tab "Tạo đề xuất" */
-export const navigateClubPortalHome = (navigate, pathname = '') => {
+export const navigateClubPortalHome = (navigate, pathname = '', options = {}) => {
+  const { keepSidebarOpen = false } = options;
+
   try {
     sessionStorage.setItem('clb_active_nav', CLUB_PORTAL_HOME_NAV);
   } catch { /* ignore */ }
 
+  const alreadyOnPortal = String(pathname || '').startsWith('/quan-ly-clb');
+
+  if (keepSidebarOpen) {
+    persistClubSidebarOpen(true);
+    persistClubPublicSidebarOpen(true);
+  }
+
   navigate('/quan-ly-clb', {
-    state: { clubPortalHome: true },
-    replace: pathname.startsWith('/quan-ly-clb'),
+    state: keepSidebarOpen
+      ? { clubPortalHome: true, keepSidebarOpen: true }
+      : { clubPortalHome: true, closeSidebar: true },
+    replace: alreadyOnPortal,
   });
+
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 };

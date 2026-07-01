@@ -16,6 +16,7 @@ import TimelineLocationConflictNotice from '../../components/timeline/TimelineLo
 import { getUserRole, isAdminRole } from '../../utils/auth';
 import { formatTimeRangeLabel } from '../../utils/timelineTimeRange';
 import { TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
+import { getTimelineOwnerCopy, getChangeRequestTypeLabel } from '../../utils/timelineReviewFeedback';
 
 const fmt = (v) => {
   if (!v) return '—';
@@ -47,6 +48,28 @@ const PanelIcon = ({ children }) => (
     </svg>
   </span>
 );
+
+const adminApproveBannerCopy = (ownerType = 'club') => {
+  if (ownerType === 'icpdp') {
+    return (
+      <>
+        IC-PDP gửi kế hoạch kỳ học — <strong>Admin phê duyệt cuối</strong> để timeline chính thức có hiệu lực.
+      </>
+    );
+  }
+  if (ownerType === 'ctsv') {
+    return (
+      <>
+        CTSV gửi kế hoạch kỳ học — <strong>Admin phê duyệt cuối</strong> để timeline chính thức có hiệu lực.
+      </>
+    );
+  }
+  return (
+    <>
+      Timeline đã qua IC-PDP. <strong>Admin phê duyệt cuối</strong> để CLB bắt đầu tạo đề xuất.
+    </>
+  );
+};
 
 const IcpdpSemesterTimelineDetail = () => {
   const { id } = useParams();
@@ -104,6 +127,7 @@ const IcpdpSemesterTimelineDetail = () => {
     const tone = STATUS_META[badgeKey]?.tone || STATUS_META[timeline.statusKey]?.tone || 'slate';
     return { label: timeline.status, tone };
   })();
+  const ownerCopy = getTimelineOwnerCopy(timeline.ownerType || 'club');
   const canIcpdpForward = !isAdmin && (timeline?.ownerType || 'club') === 'club' && ['pending_icpdp', 'pending_ctsv'].includes(timeline.statusKey);
   const canAdminApprove = isAdmin && timeline.statusKey === 'pending_admin';
   const pendingIcpdpChange = timeline.changeRequest?.statusKey === 'pending_icpdp';
@@ -200,11 +224,11 @@ const IcpdpSemesterTimelineDetail = () => {
           </svg>
           {isAdmin ? (
             <>
-              CLB gửi yêu cầu <strong>{timeline.changeRequest.typeLabel}</strong> — đang chờ <strong>IC-PDP xét duyệt</strong>. Admin chỉ xử lý sau khi IC-PDP chuyển lên.
+              {ownerCopy.requestor} gửi yêu cầu <strong>{timeline.changeRequest.typeLabel}</strong> — đang chờ <strong>IC-PDP xét duyệt</strong>. Admin chỉ xử lý sau khi IC-PDP chuyển lên.
             </>
           ) : (
             <>
-              CLB gửi yêu cầu <strong>{timeline.changeRequest.typeLabel}</strong> — cần IC-PDP xét duyệt trước khi chuyển Admin.
+              {ownerCopy.requestor} gửi yêu cầu <strong>{timeline.changeRequest.typeLabel}</strong> — cần IC-PDP xét duyệt trước khi chuyển Admin.
             </>
           )}
         </div>
@@ -224,7 +248,7 @@ const IcpdpSemesterTimelineDetail = () => {
             <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
           </svg>
           <span>
-            <strong>{timeline.changeRequest.typeLabel}</strong> — {timeline.changeRequest.status}.
+            <strong>{getChangeRequestTypeLabel(timeline.changeRequest)}</strong> — {timeline.changeRequest.status}.
             {(timeline.changeRequest.adminNote || timeline.changeRequest.icpdpNote) && (
               <> Lý do: {timeline.changeRequest.adminNote || timeline.changeRequest.icpdpNote}</>
             )}
@@ -246,7 +270,7 @@ const IcpdpSemesterTimelineDetail = () => {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
-          Timeline đã qua IC-PDP. <strong>Admin phê duyệt cuối</strong> để CLB bắt đầu tạo đề xuất.
+          {adminApproveBannerCopy(timeline.ownerType || 'club')}
         </div>
       )}
 
@@ -336,10 +360,10 @@ const IcpdpSemesterTimelineDetail = () => {
       {/* Change request (ICPDP only) */}
       {canIcpdpChangeAction && (
         <section className="stl-action-card">
-          <h2 className="stl-action-card__title">Yêu cầu thay đổi từ CLB</h2>
+          <h2 className="stl-action-card__title">Yêu cầu thay đổi từ {ownerCopy.requestor}</h2>
           <div className="stl-action-card__info">
             <span className="stl-badge stl-badge--amber">{timeline.changeRequest.typeLabel}</span>
-            <p className="stl-action-card__reason">Lý do CLB: {timeline.changeRequest.reason}</p>
+            <p className="stl-action-card__reason">{ownerCopy.reasonShort}: {timeline.changeRequest.reason}</p>
           </div>
           <div className="stl-textarea-group">
             <label className="stl-textarea-label">Ghi chú IC-PDP</label>
@@ -372,7 +396,7 @@ const IcpdpSemesterTimelineDetail = () => {
         <section className="stl-info-card stl-info-card--warn">
           <h2 className="stl-info-card__title">Yêu cầu thay đổi — chờ IC-PDP</h2>
           <p><strong>{timeline.changeRequest.typeLabel}</strong></p>
-          <p className="stl-action-card__reason">Lý do CLB: {timeline.changeRequest.reason || '—'}</p>
+          <p className="stl-action-card__reason">{ownerCopy.reasonShort}: {timeline.changeRequest.reason || '—'}</p>
           <p className="stl-action-card__reason" style={{ marginTop: 8, color: '#64748b' }}>
             IC-PDP cần duyệt và chuyển lên trước — Admin sẽ thấy nút quyết định khi yêu cầu vào hàng chờ Admin.
           </p>
@@ -385,7 +409,7 @@ const IcpdpSemesterTimelineDetail = () => {
           <h2 className="stl-action-card__title">Quyết định Admin — {timeline.changeRequest.typeLabel}</h2>
           <div className="stl-action-card__info">
             <span className="stl-badge stl-badge--blue">{timeline.changeRequest.typeLabel}</span>
-            <p className="stl-action-card__reason">Lý do CLB: {timeline.changeRequest.reason}</p>
+            <p className="stl-action-card__reason">{ownerCopy.reasonShort}: {timeline.changeRequest.reason}</p>
             <p className="stl-action-card__reason">Ghi chú IC-PDP: {timeline.changeRequest.icpdpNote || '—'}</p>
           </div>
           <div className="stl-textarea-group">

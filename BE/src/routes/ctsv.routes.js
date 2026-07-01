@@ -61,6 +61,8 @@ const {
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 const { buildEventTextSearchOr } = require('../utils/eventSearch');
 const { createAndBroadcast } = require('../services/notification.service');
+const AppError = require('../utils/AppError');
+const { assertEventScheduleDates } = require('../utils/dateValidation');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -383,16 +385,35 @@ router.get('/events/approved', async (req, res) => {
 
     const filter = {
       isDeleted: { $ne: true },
-      source: { $in: ['school', 'partner'] },
-      status: { $in: ['approved', 'live', 'ended'] }
+      status: { $in: ['approved', 'live', 'ended'] },
     };
-    if (status && status !== 'all') filter.status = status;
-    if (source && source !== 'all') filter.source = source;
-    if (search) {
+
+    if (source === 'school') {
+      filter.source = 'school';
+      filter.schoolOrganizerRole = { $ne: 'icpdp' };
+    } else if (source === 'partner') {
+      filter.source = 'partner';
+    } else {
       filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } },
+        { source: 'partner' },
+        { source: 'school', schoolOrganizerRole: { $ne: 'icpdp' } },
       ];
+    }
+    if (status && status !== 'all') filter.status = status;
+    if (search) {
+      filter.$and = [
+        ...(filter.$and || []),
+        {
+          $or: [
+            { title: { $regex: search, $options: 'i' } },
+            { location: { $regex: search, $options: 'i' } },
+          ],
+        },
+      ];
+      if (filter.$or) {
+        filter.$and.unshift({ $or: filter.$or });
+        delete filter.$or;
+      }
     }
     applyEventTimeFilter(filter, time);
 
@@ -441,7 +462,12 @@ router.get('/events/:id', async (req, res) => {
         student: registration.user,
       }));
     }
-    return res.json({ success: true, event: formatEvent(event, { includePlanFile: true }), students });
+    let formatted = formatEvent(event, { includePlanFile: true });
+    if (canRoleManageSchoolEvent(event, req.userRole)) {
+      const { attachInlineEventCover } = require('../utils/eventCoverStorage');
+      formatted = await attachInlineEventCover(formatted, event);
+    }
+    return res.json({ success: true, event: formatted, students });
   } catch (error) {
     console.error('ctsv event detail:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
@@ -460,11 +486,17 @@ router.post('/events', requireSchoolEventSubmit, async (req, res) => {
       });
     }
 
+    assertEventScheduleDates({
+      registrationStartDate: new Date(data.registrationStartDate),
+      startDate: new Date(data.startDate),
+    });
+
     const schoolOrganizerRole = resolveSchoolOrganizerRole(req.userRole);
 
     const unitRole = schoolOrganizerRole === 'icpdp' ? 'icpdp' : schoolOrganizerRole === 'ctsv' ? 'ctsv' : null;
-    if (unitRole) {
-      const timelineId = data.timelineSource?.timelineId || null;
+    const timelineId = data.timelineSource?.timelineId || null;
+    // Sự kiện phát sinh (không gắn timeline) — chỉ Admin duyệt, không cần timeline đã duyệt.
+    if (unitRole && timelineId) {
       await clubSemesterTimelineService.assertApprovedTimelineForSchoolUnit(unitRole, timelineId);
     }
 
@@ -495,6 +527,9 @@ router.post('/events', requireSchoolEventSubmit, async (req, res) => {
       message: 'Đã gửi đơn tổ chức sự kiện. Chờ Admin phê duyệt.'
     });
   } catch (error) {
+    if (error instanceof AppError || error.statusCode) {
+      return res.status(error.statusCode || 400).json({ success: false, message: error.message });
+    }
     if (error.code === 'IMAGE_TOO_LARGE') {
       return res.status(400).json({
         success: false,
@@ -534,6 +569,11 @@ router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
         message: 'Tiêu đề, thời gian đăng ký và thời gian sự kiện là bắt buộc!'
       });
     }
+
+    assertEventScheduleDates({
+      registrationStartDate: new Date(data.registrationStartDate),
+      startDate: new Date(data.startDate),
+    });
 
     if (event.source !== 'school') {
       return res.status(403).json({ success: false, message: 'Chỉ cập nhật sự kiện cấp trường!' });
@@ -587,6 +627,9 @@ router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
       message: 'Đã cập nhật và gửi lại Admin phê duyệt.'
     });
   } catch (error) {
+    if (error instanceof AppError || error.statusCode) {
+      return res.status(error.statusCode || 400).json({ success: false, message: error.message });
+    }
     if (error.code === 'IMAGE_TOO_LARGE') {
       return res.status(400).json({
         success: false,
@@ -2077,6 +2120,17 @@ router.post('/school-semester-timelines/:id/cancel-scheduled-delete', requireSch
     const role = resolveSchoolUnitRole(req.userRole);
     const timeline = await clubSemesterTimelineService.cancelScheduledDeleteForSchoolUnit(req.params.id, role);
     return res.json({ success: true, timeline, message: 'Đã hủy lịch xóa timeline.' });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.post('/school-semester-timelines/:id/withdraw-cancel-change-request', requireSchoolEventSubmit, async (req, res) => {
+  try {
+    const role = resolveSchoolUnitRole(req.userRole);
+    const timeline = await clubSemesterTimelineService.withdrawCancelChangeRequestForSchoolUnit(req.params.id, role);
+    return res.json({ success: true, timeline, message: 'Đã hoàn tác yêu cầu hủy đơn timeline.' });
   } catch (error) {
     const status = error.statusCode || 500;
     return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });

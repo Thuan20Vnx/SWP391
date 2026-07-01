@@ -122,7 +122,7 @@ router.get(
   asyncHandler(eventController.getEventPlan)
 );
 router.get('/:id/speakers/:index/avatar', optionalAuth, asyncHandler(eventController.getSpeakerAvatar));
-router.get('/:id/cover', optionalAuth, asyncHandler(eventController.getEventCover));
+router.get('/:id/cover', optionalAuth, optionalAuthorize, asyncHandler(eventController.getEventCover));
 router.get('/:id', optionalAuth, optionalAuthorize, asyncHandler(eventController.getEventById));
 
 module.exports = router;

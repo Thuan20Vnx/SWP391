@@ -54,6 +54,12 @@ export const cancelScheduledSchoolTimelineDelete = (id) =>
     body: '{}',
   });
 
+export const withdrawCancelSchoolTimelineChangeRequest = (id) =>
+  schoolFetch(`/school-semester-timelines/${id}/withdraw-cancel-change-request`, {
+    method: 'POST',
+    body: '{}',
+  });
+
 export const checkSchoolTimelineConflicts = (body) =>
   schoolFetch('/school-semester-timelines/check-conflicts', {
     method: 'POST',

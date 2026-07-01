@@ -475,6 +475,10 @@ const SiteHeader = ({
               className="site-header__nav-toggle"
               onClick={() => {
                 setMobileSearchOpen(false);
+                if (activeNavItem?.key === 'club-manage') {
+                  navigateClubPortalHome(navigate, pathname);
+                  return;
+                }
                 setMobileMenuOpen((open) => !open);
               }}
               aria-label={mobileMenuOpen ? 'Đóng menu trang' : 'Mở menu trang'}

@@ -7,6 +7,7 @@ import {
   totalTicketQty,
   validateTicketTypesStep,
 } from './eventTicketTypes';
+import { formatInvalidDateMessage, isOnOrAfterToday, parseDateInput } from './dateValidation';
 
 export { validateTicketTypesStep };
 
@@ -57,8 +58,19 @@ export const splitDateTimeFields = (value) => {
 
 export const buildDateTime = (date, time) => {
   if (!date || !time) return null;
-  const parsed = new Date(`${date}T${time}:00`);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  const day = parseDateInput(date);
+  if (!day) return null;
+  const [hour, minute] = String(time).split(':').map((part) => Number(part));
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) return null;
+  const parsed = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, minute, 0, 0);
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getHours() !== hour ||
+    parsed.getMinutes() !== minute
+  ) {
+    return null;
+  }
+  return parsed;
 };
 
 export const formatScheduleLabel = (date, time) => (date && time ? `${time} · ${date}` : 'Chưa nhập');
@@ -111,10 +123,29 @@ export const validateScheduleStep = (form) => {
   if (!form.eventStartDate || !form.eventStartTime) {
     return 'Vui lòng nhập ngày và giờ bắt đầu sự kiện.';
   }
+  if (!parseDateInput(form.regStartDate) || !parseDateInput(form.eventStartDate)) {
+    const badDate = !parseDateInput(form.regStartDate) ? form.regStartDate : form.eventStartDate;
+    return formatInvalidDateMessage(badDate).replace(
+      /^Ngày không hợp lệ/,
+      'Ngày bắt đầu không hợp lệ',
+    );
+  }
   const regStartDt = buildDateTime(form.regStartDate, form.regStartTime);
   const regEndDt = buildDateTime(form.regEndDate, form.regEndTime);
   const eventStartDt = buildDateTime(form.eventStartDate, form.eventStartTime);
   const eventEndDt = buildDateTime(form.eventEndDate, form.eventEndTime);
+  if (!regStartDt) {
+    return 'Giờ bắt đầu đăng ký không hợp lệ.';
+  }
+  if (!eventStartDt) {
+    return 'Giờ bắt đầu sự kiện không hợp lệ.';
+  }
+  if (!isOnOrAfterToday(regStartDt)) {
+    return 'Ngày bắt đầu đăng ký phải từ hôm nay trở đi.';
+  }
+  if (!isOnOrAfterToday(eventStartDt)) {
+    return 'Ngày bắt đầu sự kiện phải từ hôm nay trở đi.';
+  }
   if (regEndDt && regEndDt <= regStartDt) {
     return 'Ngày kết thúc đăng ký phải sau ngày bắt đầu đăng ký.';
   }

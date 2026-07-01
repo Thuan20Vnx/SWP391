@@ -7,6 +7,7 @@ import { resolveEventSpeakers } from '../../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import { isIcpdpModerationPending } from '../../constants/clubEventModeration';
 import { MODERATION_ACTION_LABELS } from '../../constants/eventModeration';
+import { resolveEventDisplayImage } from '../../utils/eventDisplay';
 import EventQrGeneratePanel from '../../components/events/EventQrGeneratePanel';
 import EventPlanFilePanel from '../../components/events/EventPlanFilePanel';
 
@@ -84,6 +85,8 @@ const IcpdpEventDetail = () => {
     return { total, remaining, registered, fillRate };
   }, [event]);
 
+  const coverSrc = useMemo(() => (event ? resolveEventDisplayImage(event, '') : ''), [event]);
+
   const formatLabel = (value) => {
     if (!value) return '—';
     if (value === 'campus') return 'Tại campus';
@@ -153,8 +156,8 @@ const IcpdpEventDetail = () => {
 
       <section className="ctsv-ed-hero">
         <div className="ctsv-ed-hero-media">
-          {event.image ? (
-            <img src={event.image} alt="" className="ctsv-ed-hero-img" />
+          {coverSrc ? (
+            <img src={coverSrc} alt="" className="ctsv-ed-hero-img" />
           ) : (
             <div className="ctsv-ed-hero-img ctsv-ed-hero-img--placeholder" aria-hidden />
           )}

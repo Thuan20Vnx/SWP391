@@ -24,6 +24,22 @@ const COPY = {
     placeholder: 'Nhập lý do từ chối đề xuất…',
     confirm: 'Xác nhận từ chối',
     danger: true
+  },
+  adminEventReject: {
+    title: 'Từ chối đơn tổ chức sự kiện',
+    subtitle: 'Sự kiện sẽ chuyển sang trạng thái Từ chối. Nhập lý do để CTSV biết và xử lý tiếp.',
+    label: 'Lý do từ chối',
+    placeholder: 'Nhập lý do từ chối đơn…',
+    confirm: 'Xác nhận từ chối đơn',
+    danger: true
+  },
+  adminModerationReject: {
+    title: 'Từ chối yêu cầu điều phối',
+    subtitle: 'Sự kiện vẫn giữ trạng thái hiện tại (ví dụ Mở đăng ký). Chỉ yêu cầu chỉnh sửa/hủy/hoãn bị từ chối.',
+    label: 'Lý do từ chối yêu cầu',
+    placeholder: 'Nhập lý do từ chối yêu cầu…',
+    confirm: 'Xác nhận từ chối yêu cầu',
+    danger: true
   }
 };
 

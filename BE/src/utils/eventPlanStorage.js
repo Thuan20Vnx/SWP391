@@ -65,11 +65,13 @@ const sanitizeEventPlanForApi = (doc, scope, { planUrlBuilder } = {}) => {
   const id = String(doc?._id || doc?.id || '');
   const hasFile = entityHasAnyPlanFile(doc, scope);
   const buildUrl = planUrlBuilder || ((entityId) => buildPlanUrl(scope, entityId));
+  const rawName = String(doc?.eventPlanFileName || '').trim();
+  const eventPlanFileName = rawName.replace(/\.+(?=\.[a-z0-9]{2,8}$)/i, '');
   return {
     hasEventPlanFile: hasFile,
     hasEventPlan: hasFile || Boolean(String(doc?.eventPlanLink || '').trim()),
     eventPlanUrl: hasFile && id ? buildUrl(id) : '',
-    eventPlanFileName: doc?.eventPlanFileName || '',
+    eventPlanFileName,
     eventPlanFileMime: doc?.eventPlanFileMime || '',
     eventPlanLink: doc?.eventPlanLink || '',
     eventPlanFile: '',
@@ -95,7 +97,10 @@ const persistEventPlanOnDocument = async (doc, scope) => {
   }
 
   if (src === '') {
-    if (doc.eventPlanFileExt || hasStoredPlanFile(scope, id)) {
+    const stillHasPlanMeta =
+      Boolean(String(doc.eventPlanFileName || '').trim()) ||
+      Boolean(String(doc.eventPlanLink || '').trim());
+    if (!stillHasPlanMeta && (doc.eventPlanFileExt || hasStoredPlanFile(scope, id))) {
       const existing = findStoredFile(planDirForScope(scope), id, doc.eventPlanFileExt || '');
       if (existing) deleteFileIfExists(existing.filePath);
       doc.eventPlanFileExt = '';

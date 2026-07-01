@@ -12,6 +12,7 @@ import {
   persistClubSidebarOpen,
   readClubSidebarPref,
   resolveClubActiveNav,
+  CLUB_PORTAL_HOME_NAV,
 } from '../components/club/clubNavConfig';
 import { API_BASE, getAuthHeaders, getEventHeaders, parseApiResponse } from '../utils/api';
 import { ACTIVE_CLUB_CHANGED } from '../utils/activeManagedClub';
@@ -29,7 +30,11 @@ const ClubManagerLayout = ({ showToast }) => {
     picture: defaultAvatar,
     role: '',
   });
-  const [sidebarOpen, setSidebarOpen] = useState(readClubSidebarPref);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (location.state?.keepSidebarOpen) return true;
+    if (location.state?.clubPortalHome || location.state?.closeSidebar) return false;
+    return readClubSidebarPref();
+  });
   const [activeNav, setActiveNav] = useState(() => resolveClubActiveNav(pathname));
   const [events, setEvents] = useState([]);
   const [lastSeenNotifs, setLastSeenNotifs] = useState(() =>
@@ -58,10 +63,40 @@ const ClubManagerLayout = ({ showToast }) => {
       persistClubSidebarOpen(false);
     };
 
-    closeSidebarOnMobile();
     window.addEventListener('resize', closeSidebarOnMobile);
     return () => window.removeEventListener('resize', closeSidebarOnMobile);
   }, []);
+
+  useEffect(() => {
+    if (location.state?.keepSidebarOpen) {
+      setSidebarOpen(true);
+      persistClubSidebarOpen(true);
+      if (location.state?.clubPortalHome) {
+        setActiveNav(CLUB_PORTAL_HOME_NAV);
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      }
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
+
+    if (!location.state?.clubPortalHome && !location.state?.closeSidebar) return;
+
+    setSidebarOpen(false);
+    persistClubSidebarOpen(false);
+
+    if (location.state?.clubPortalHome) {
+      setActiveNav(CLUB_PORTAL_HOME_NAV);
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [
+    location.state?.clubPortalHome,
+    location.state?.closeSidebar,
+    location.state?.keepSidebarOpen,
+    location.pathname,
+    navigate,
+  ]);
 
   useEffect(() => {
     if (!pathname.startsWith('/quan-ly-clb') || pathname.startsWith('/quan-ly-clb/announcements')) return;

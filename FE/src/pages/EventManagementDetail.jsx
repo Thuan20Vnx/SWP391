@@ -10,9 +10,17 @@ import {
 } from '../utils/eventBentoStats';
 import { fetchCtsvEvent } from '../services/ctsvApi';
 import { fetchIcpdpEvent, fetchIcpdpProposal, icpdpApproveProposal, icpdpRejectProposal, icpdpRequestProposalRevision } from '../services/icpdpApi';
+import {
+  approveAdminModeration,
+  approveAdminSchoolEvent,
+  rejectAdminModeration,
+  rejectAdminSchoolEvent,
+} from '../services/adminApi';
+import PartnerActionDialog from '../components/ctsv/PartnerActionDialog';
 import { getUserRole, isIcpdpRole } from '../utils/auth';
 import { getCtsvEventAccess } from '../utils/ctsvEventAccess';
-import { canCtsvEditSchoolEvent } from '../constants/eventWorkflow';
+import { canCtsvEditSchoolEvent, isSchoolEventPendingAdmin, SCHOOL_EVENT_STATUS_LABELS } from '../constants/eventWorkflow';
+import { isModerationPending } from '../constants/eventModeration';
 import { canClubEditEventProposal, canClubDeleteEventProposal, isClubEventPendingApproval, canClubImmediateDelete, canClubDirectEdit, canClubRequestDeleteModeration, needsClubEditModerationRequest, hasClubModerationPending, wasClubEventAdminApproved, isIcpdpModerationPending, isAdminModerationPending } from '../constants/clubEventModeration';
 import ClubEventModerationDialog from '../components/events/ClubEventModerationDialog';
 import ClubModerationBannerContent from '../components/events/ClubModerationBannerContent';
@@ -27,6 +35,7 @@ import TimelineSourceNotice from '../components/club/TimelineSourceNotice';
 import EventReportPanel from '../components/events/EventReportPanel';
 import EventQrGeneratePanel from '../components/events/EventQrGeneratePanel';
 import CtsvEventActionsPanel from '../components/events/CtsvEventActionsPanel';
+import AdminSchoolEventActionsPanel from '../components/events/AdminSchoolEventActionsPanel';
 
 const PORTAL_CONFIG = {
   club: {
@@ -44,6 +53,15 @@ const PORTAL_CONFIG = {
     eventsPath: '/ctsv/events',
     headerLabel: 'Quản lý sự kiện CTSV',
     currentLabel: 'Chi tiết quản lý',
+  },
+  admin: {
+    rootLabel: 'Quản trị',
+    rootPath: '/admin/events',
+    eventsLabel: 'Duyệt sự kiện',
+    eventsPath: '/admin/events',
+    headerLabel: 'Chi tiết sự kiện',
+    currentLabel: 'Xem & xử lý',
+    eventEditPath: (id) => `/admin/ctsv/events/${id}/edit`,
   },
   icpdp: {
     rootLabel: 'IC-PDP',
@@ -70,6 +88,15 @@ const EVENT_STATUS_LABELS = {
 
 const getEventStatusMeta = (event) => {
   const key = event?.statusKey || event?.status || '';
+  if (event?.source === 'school' && SCHOOL_EVENT_STATUS_LABELS[key]) {
+    const schoolLabel = SCHOOL_EVENT_STATUS_LABELS[key];
+    if (key === 'rejected') return { label: schoolLabel, tone: 'rejected' };
+    if (key === 'live' || key === 'approved') return { label: schoolLabel, tone: 'approved' };
+    if (String(key).includes('pending') || key === 'revision') {
+      return { label: schoolLabel, tone: 'pending' };
+    }
+    return { label: schoolLabel, tone: 'live' };
+  }
   const label = EVENT_STATUS_LABELS[key];
 
   if (key === 'rejected') return { label: label || 'Từ chối', tone: 'rejected' };
@@ -132,12 +159,15 @@ const EventManagementDetail = ({
   const [searchParams] = useSearchParams();
   const outlet = useOutletContext() || {};
   const showToast = outlet.showToast;
-  const isCtsvPortal = portal === 'ctsv';
+  const isCtsvPortal = portal === 'ctsv' || portal === 'admin';
+  const isAdminEventView = portal === 'admin';
   const isIcpdpPortal = portal === 'icpdp';
   const isClubPortal = portal === 'club';
   const config = PORTAL_CONFIG[portal] || PORTAL_CONFIG.club;
   const [icpdpNote, setIcpdpNote] = useState('');
   const [icpdpSubmitting, setIcpdpSubmitting] = useState(false);
+  const [adminActionBusy, setAdminActionBusy] = useState(false);
+  const [adminRejectOpen, setAdminRejectOpen] = useState(false);
   const [proposalReview, setProposalReview] = useState(proposalData || null);
   const [moderationDialog, setModerationDialog] = useState({ open: false, action: 'edit' });
 
@@ -246,6 +276,13 @@ const EventManagementDetail = ({
   }, [searchParams, isCtsvPortal]);
 
   useEffect(() => {
+    if (!isAdminEventView || !eventData) return;
+    if (isModerationPending(eventData) || isSchoolEventPendingAdmin(eventData)) {
+      setActiveTab('dieu-phoi');
+    }
+  }, [isAdminEventView, eventData?.statusKey, eventData?.source]);
+
+  useEffect(() => {
     loadEventData();
   }, [loadEventData]);
 
@@ -298,8 +335,17 @@ const EventManagementDetail = ({
   const clubAdminModerationPending = isClubPortal && isAdminModerationPending(eventData);
   const canShowIcpdpActions =
     isIcpdpPortal &&
+    eventData?.source !== 'school' &&
     (proposalReview?.statusKey === 'pending_icpdp' || eventData?.proposalStatusKey === 'pending_icpdp') &&
     isIcpdpRole(getUserRole());
+  const showSchoolPendingAdminBanner =
+    isCtsvPortal && !isAdminEventView && eventData?.source === 'school' && isSchoolEventPendingAdmin(eventData);
+  const showAdminApprovalActions =
+    isAdminEventView &&
+    eventData?.source === 'school' &&
+    (isModerationPending(eventData) || isSchoolEventPendingAdmin(eventData));
+  const adminApprovalIsModeration = showAdminApprovalActions && isModerationPending(eventData);
+  const adminApprovalIsSubmit = showAdminApprovalActions && isSchoolEventPendingAdmin(eventData);
 
   const statusMeta = useMemo(() => {
     if (isIcpdpPortal && proposalReview?.statusKey) {
@@ -307,11 +353,14 @@ const EventManagementDetail = ({
     }
     return getEventStatusMeta(eventData);
   }, [isIcpdpPortal, proposalReview, eventData]);
-  const rejectionReason =
-    eventData?.rejectionReason?.trim() ||
-    eventData?.moderationReason?.trim() ||
-    '';
+  const rejectionReason = eventData?.rejectionReason?.trim() || '';
   const isRejected = eventData?.statusKey === 'rejected' || eventData?.status === 'rejected';
+  const showModerationRejectedBanner =
+    eventData?.source === 'school' &&
+    !isRejected &&
+    !isModerationPending(eventData) &&
+    Boolean(rejectionReason) &&
+    ['approved', 'live', 'ended'].includes(eventData?.statusKey);
   const isRevision =
     eventData?.statusKey === 'revision' ||
     eventData?.status === 'revision' ||
@@ -372,7 +421,7 @@ const EventManagementDetail = ({
         setActiveTab('dieu-phoi');
         return;
       }
-      navigate(`/ctsv/events/${id}/edit`);
+      navigate(config.eventEditPath?.(id) || `/ctsv/events/${id}/edit`);
       return;
     }
     if (!canClubDirectEdit(eventData) && needsClubEditModerationRequest(eventData)) {
@@ -433,6 +482,72 @@ const EventManagementDetail = ({
       return;
     }
     loadEventData();
+  };
+
+  const handleExportStudents = useCallback(async () => {
+    if (!students.length) {
+      showToast?.('Chưa có sinh viên đăng ký để xuất file.', 'info');
+      return;
+    }
+    await downloadStudentsExcel(students, {
+      eventTitle: eventData?.title || 'su-kien',
+      clubName: eventData?.clubName || clubMeta.clubName || 'CTSV',
+      clubPresident:
+        eventData?.clubPresident ||
+        clubMeta.clubPresident ||
+        eventData?.createdBy?.fullname ||
+        '',
+      capacity: eventData?.capacity,
+      registeredCount: eventData?.registeredCount,
+      checkinCount: eventData?.checkinCount,
+      startDate: eventData?.startDate,
+      endDate: eventData?.endDate,
+      location: eventData?.location,
+    });
+    showToast?.('Đã xuất danh sách sinh viên.', 'success');
+  }, [students, eventData, clubMeta, showToast]);
+
+  const handleAdminApprove = async () => {
+    if (!id || !eventData || adminActionBusy) return;
+    setAdminActionBusy(true);
+    try {
+      if (isModerationPending(eventData)) {
+        await approveAdminModeration(id);
+        showToast?.('Đã duyệt yêu cầu điều phối.', 'success');
+      } else {
+        await approveAdminSchoolEvent(id);
+        showToast?.('Đã phê duyệt sự kiện cấp trường.', 'success');
+      }
+      await loadEventData();
+    } catch (e) {
+      showToast?.(e.message || 'Duyệt thất bại.', 'error');
+    } finally {
+      setAdminActionBusy(false);
+    }
+  };
+
+  const handleAdminRejectConfirm = async (reason) => {
+    if (!id || !eventData || adminActionBusy) return;
+    setAdminActionBusy(true);
+    try {
+      if (isModerationPending(eventData)) {
+        await rejectAdminModeration(id, reason);
+        showToast?.(
+          'Đã từ chối yêu cầu điều phối. Sự kiện vẫn giữ trạng thái hiện tại (ví dụ Mở đăng ký).',
+          'info'
+        );
+      } else {
+        await rejectAdminSchoolEvent(id, reason);
+        showToast?.('Đã từ chối đơn tổ chức sự kiện.', 'info');
+      }
+      setAdminRejectOpen(false);
+      await loadEventData();
+    } catch (e) {
+      showToast?.(e.message || 'Từ chối thất bại.', 'error');
+      throw e;
+    } finally {
+      setAdminActionBusy(false);
+    }
   };
 
   const scrollToTabContent = useCallback(() => {
@@ -587,6 +702,36 @@ const EventManagementDetail = ({
                     </button>
                   )}
                 </>
+              ) : isAdminEventView ? (
+                <>
+                  {showAdminApprovalActions && (
+                    <>
+                      <button
+                        type="button"
+                        className="ev-btn-primary"
+                        disabled={adminActionBusy}
+                        onClick={handleAdminApprove}
+                      >
+                        {adminActionBusy
+                          ? 'Đang xử lý…'
+                          : adminApprovalIsModeration
+                            ? 'Duyệt yêu cầu'
+                            : 'Phê duyệt'}
+                      </button>
+                      <button
+                        type="button"
+                        className="ev-btn-outline ev-btn-outline--danger"
+                        disabled={adminActionBusy}
+                        onClick={() => setAdminRejectOpen(true)}
+                      >
+                        {adminApprovalIsModeration ? 'Từ chối yêu cầu' : 'Từ chối đơn'}
+                      </button>
+                    </>
+                  )}
+                  <button type="button" className="ev-btn-outline" onClick={handleExportStudents}>
+                    Xuất danh sách SV (Excel)
+                  </button>
+                </>
               ) : (
                 <>
                   {(isCtsvPortal ? canManageCtsv : canEditClub) && (
@@ -594,32 +739,7 @@ const EventManagementDetail = ({
                       Chỉnh sửa thông tin
                     </button>
                   )}
-                  <button
-                    type="button"
-                    className="ev-btn-outline"
-                    onClick={async () => {
-                      if (!students.length) {
-                        showToast?.('Chưa có sinh viên đăng ký để xuất file.', 'info');
-                        return;
-                      }
-                      await downloadStudentsExcel(students, {
-                        eventTitle: eventData?.title || 'su-kien',
-                        clubName: eventData?.clubName || clubMeta.clubName || 'CTSV',
-                        clubPresident:
-                          eventData?.clubPresident ||
-                          clubMeta.clubPresident ||
-                          eventData?.createdBy?.fullname ||
-                          '',
-                        capacity: eventData?.capacity,
-                        registeredCount: eventData?.registeredCount,
-                        checkinCount: eventData?.checkinCount,
-                        startDate: eventData?.startDate,
-                        endDate: eventData?.endDate,
-                        location: eventData?.location,
-                      });
-                      showToast?.('Đã xuất danh sách sinh viên.', 'success');
-                    }}
-                  >
+                  <button type="button" className="ev-btn-outline" onClick={handleExportStudents}>
                     Xuất danh sách SV (Excel)
                   </button>
                   {canShowIcpdpActions && (
@@ -660,6 +780,38 @@ const EventManagementDetail = ({
               )}
             </div>
           </div>
+          {showAdminApprovalActions && (
+            <div className="ev-moderation-banner ev-moderation-banner--pending" role="status">
+              <strong>
+                {adminApprovalIsModeration
+                  ? 'Yêu cầu điều phối đang chờ Admin xử lý'
+                  : 'Đơn tổ chức sự kiện đang chờ Admin phê duyệt'}
+              </strong>
+              <p>
+                {adminApprovalIsModeration
+                  ? 'Từ chối yêu cầu không làm thay đổi trạng thái sự kiện (ví dụ vẫn Mở đăng ký). Chỉ từ chối đơn mới chuyển sang Từ chối.'
+                  : 'Dùng Phê duyệt để mở đăng ký, hoặc Từ chối đơn nếu không chấp nhận tổ chức sự kiện.'}
+              </p>
+            </div>
+          )}
+          {showModerationRejectedBanner && (
+            <div className="ev-moderation-banner ev-moderation-banner--orange" role="status">
+              <strong>Admin đã từ chối yêu cầu sửa</strong>
+              <p>
+                Sự kiện vẫn ở trạng thái <strong>{SCHOOL_EVENT_STATUS_LABELS[eventData?.statusKey] || 'hiện tại'}</strong>.
+                Lý do: {rejectionReason}
+              </p>
+            </div>
+          )}
+          {showSchoolPendingAdminBanner && (
+            <div className="ev-moderation-banner ev-moderation-banner--info" role="status">
+              <strong>Đang chờ Admin phê duyệt</strong>
+              <p>
+                Đơn tổ chức sự kiện cấp trường (kể cả sự kiện phát sinh) chỉ Admin duyệt — không qua IC-PDP.
+                Bạn có thể chỉnh sửa và gửi lại trước khi Admin xử lý.
+              </p>
+            </div>
+          )}
           {showClubPreApprovalUi && (
             <div className="ev-pending-edit-hint" role="note">
               <strong>Lưu ý:</strong>{' '}
@@ -867,11 +1019,11 @@ const EventManagementDetail = ({
             <button type="button" className={`ev-tab ${activeTab === 'dieu-phoi' ? 'active' : ''}`} onClick={() => setActiveTab('dieu-phoi')}>Phê duyệt & Điều phối</button>
           )}
           <button type="button" className={`ev-tab ${activeTab === 'huy-ve' ? 'active' : ''}`} onClick={() => setActiveTab('huy-ve')}>Yêu cầu hủy vé</button>
-          {!isIcpdpPortal && (
+          {!isIcpdpPortal && !isAdminEventView && (
             <button type="button" className={`ev-tab ${activeTab === 'hoan-huy' ? 'active' : ''}`} onClick={() => setActiveTab('hoan-huy')}>Hoãn / Hủy sự kiện</button>
           )}
           <button type="button" className={`ev-tab ${activeTab === 'bao-cao' ? 'active' : ''}`} onClick={() => setActiveTab('bao-cao')}>Báo cáo & Minh chứng</button>
-          {!isIcpdpPortal && (
+          {!isIcpdpPortal && !isAdminEventView && (
             <button type="button" className={`ev-tab ${activeTab === 'ma-qr' ? 'active' : ''}`} onClick={openQrTab}>Mã QR check-in/out</button>
           )}
             </>
@@ -1097,12 +1249,22 @@ const EventManagementDetail = ({
           {activeTab === 'tong-quan' && <EventOverviewPanel event={eventData} />}
 
           {activeTab === 'dieu-phoi' && isCtsvPortal && id && (
-            <CtsvEventActionsPanel
-              event={eventData}
-              eventId={id}
-              showToast={showToast}
-              onEventUpdated={loadEventData}
-            />
+            isAdminEventView ? (
+              <AdminSchoolEventActionsPanel
+                event={eventData}
+                busy={adminActionBusy}
+                isModerationRequest={adminApprovalIsModeration}
+                onApprove={handleAdminApprove}
+                onReject={() => setAdminRejectOpen(true)}
+              />
+            ) : (
+              <CtsvEventActionsPanel
+                event={eventData}
+                eventId={id}
+                showToast={showToast}
+                onEventUpdated={loadEventData}
+              />
+            )
           )}
 
           {activeTab === 'huy-ve' && <EventCancelRequestsPanel students={students} />}
@@ -1140,6 +1302,16 @@ const EventManagementDetail = ({
           onClose={() => setModerationDialog((prev) => ({ ...prev, open: false }))}
           onSubmitted={handleModerationSubmitted}
           showToast={showToast}
+        />
+      )}
+
+      {isAdminEventView && (
+        <PartnerActionDialog
+          open={adminRejectOpen}
+          mode={adminApprovalIsModeration ? 'adminModerationReject' : 'adminEventReject'}
+          loading={adminActionBusy}
+          onCancel={() => !adminActionBusy && setAdminRejectOpen(false)}
+          onConfirm={handleAdminRejectConfirm}
         />
       )}
     </div>

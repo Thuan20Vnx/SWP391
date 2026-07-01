@@ -28,6 +28,7 @@ const isUsableImageSrc = (value) =>
   (value.startsWith('data:') || value.startsWith('http') || value.startsWith('/'));
 
 export const resolveEventDisplayImage = (event, fallback = DEFAULT_EVENT_IMAGE) => {
+  if (event?.coverInline && isUsableImageSrc(event.coverInline)) return event.coverInline;
   if (event?.coverUrl) return resolveAbsoluteUrl(event.coverUrl);
   if (event?.hasCover && (event?._id || event?.id)) {
     return resolveEventCoverUrl(event);
