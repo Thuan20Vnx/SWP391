@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import ClubPublicSidebar from '../components/club/ClubPublicSidebar';
 import {
   persistClubPublicSidebarOpen,
+  persistClubSidebarOpen,
   readClubPublicSidebarPref,
 } from '../components/club/clubNavConfig';
 import ChatbotFloating from '../components/ChatbotFloating';
@@ -30,9 +31,12 @@ const ClubParticipatePortalShell = ({
   showChatbot = true,
   contentClassName = null,
 }) => {
-  const { pathname } = useLocation();
+  const { pathname, state: locationState } = useLocation();
   const { userProfile } = useUserProfile();
-  const [sidebarOpen, setSidebarOpen] = useState(readClubPublicSidebarPref);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (locationState?.keepSidebarOpen) return true;
+    return readClubPublicSidebarPref();
+  });
   const [clubEvents, setClubEvents] = useState([]);
   const [lastSeenNotifs, setLastSeenNotifs] = useState(() =>
     parseInt(localStorage.getItem('clb_last_seen_notifs') || '0', 10)
@@ -48,13 +52,19 @@ const ClubParticipatePortalShell = ({
   };
 
   useEffect(() => {
+    if (!locationState?.keepSidebarOpen) return;
+    setSidebarOpen(true);
+    persistClubPublicSidebarOpen(true);
+    persistClubSidebarOpen(true);
+  }, [locationState?.keepSidebarOpen]);
+
+  useEffect(() => {
     const collapseOnMobile = () => {
       if (window.innerWidth > 900) return;
       setSidebarOpen(false);
       persistClubPublicSidebarOpen(false);
     };
 
-    collapseOnMobile();
     window.addEventListener('resize', collapseOnMobile);
     return () => window.removeEventListener('resize', collapseOnMobile);
   }, []);

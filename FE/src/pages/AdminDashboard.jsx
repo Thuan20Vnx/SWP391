@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AdminProposalActions from '../components/admin/AdminProposalActions';
-import ProposalTicketsTable from '../components/admin/ProposalTicketsTable';
-import EventPlanFilePanel from '../components/events/EventPlanFilePanel';
-import TimelineSourceNotice from '../components/club/TimelineSourceNotice';
+import AdminPortalListLayout from '../components/admin/AdminPortalListLayout';
+import AdminStlFilterDropdown from '../components/admin/AdminStlFilterDropdown';
+import ClubTablePagination from '../components/ui/ClubTablePagination';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import PartnerActionDialog from '../components/ctsv/PartnerActionDialog';
 import useAdminEventsLiveStream from '../hooks/useAdminEventsLiveStream';
 import { ADMIN_EVENTS_LIVE_EVENT } from '../utils/adminEventsLiveEvents';
 import {
@@ -18,20 +19,17 @@ import {
 import {
   approveAdminSchoolEvent,
   rejectAdminSchoolEvent,
+  approveAdminModeration,
+  rejectAdminModeration,
   fetchAdminPartners,
   approveAdminPartner,
   rejectAdminPartner,
 } from '../services/adminApi';
+import { MODERATION_PENDING_STATUSES } from '../constants/eventModeration';
 import { isAdminRole, isCtsvRole, isIcpdpRole, normalizeRole } from '../utils/auth';
-import { useCloseOnClickOutside } from '../hooks/useCloseOnClickOutside';
+import { formatPortalDate, toStlBadgeTone } from '../utils/adminStlBadge';
 import '../styles/admin-dashboard.css';
 
-const formatDateTime = (value) => {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleString('vi-VN');
-};
 
 // --- Phân loại nguồn (trái) ---
 const SOURCE_FILTERS = [
@@ -40,13 +38,11 @@ const SOURCE_FILTERS = [
   { id: 'icpdp', label: 'IC-PDP' },
 ];
 
-const CTSV_SUB_OPTS  = [{ id: 'all', label: 'Tất cả' }, { id: 'school', label: 'Cấp trường' }, { id: 'partner', label: 'Đối tác' }];
-const ICPDP_SUB_OPTS = [{ id: 'all', label: 'Tất cả' }, { id: 'school', label: 'Cấp trường' }, { id: 'club',    label: 'CLB' }];
 
 const SOURCE_META = {
-  school:  { label: 'Cấp trường', tone: 'orange' },
-  partner: { label: 'Đối tác',    tone: 'teal'   },
-  club:    { label: 'CLB',        tone: 'indigo' },
+  school: { label: 'Cấp trường', tone: 'orange' },
+  partner: { label: 'Đối tác', tone: 'green' },
+  club: { label: 'CLB', tone: 'blue' },
 };
 
 const matchSource = (item, sourceFilter, ctsvSub, icpdpSub) => {
@@ -117,19 +113,25 @@ const matchStatus = (item, statusFilter, approvedSub, otherSub) => {
   return true;
 };
 
-const APPROVED_SUBS = [
-  { id: 'all',    label: 'Tất cả' },
-  { id: 'accept', label: 'Chấp nhận' },
-  { id: 'reject', label: 'Từ chối' },
-];
-const OTHER_SUBS = [
-  { id: 'edit',   label: 'Chỉnh sửa' },
-  { id: 'cancel', label: 'Yêu cầu hủy' },
+const SOURCE_DROPDOWN_OPTIONS = [
+  { id: 'all', label: 'Tất cả nguồn' },
+  { id: 'ctsv:all', label: 'CTSV — Tất cả' },
+  { id: 'ctsv:school', label: 'CTSV — Cấp trường' },
+  { id: 'ctsv:partner', label: 'CTSV — Đối tác' },
+  { id: 'icpdp:all', label: 'IC-PDP — Tất cả' },
+  { id: 'icpdp:school', label: 'IC-PDP — Cấp trường' },
+  { id: 'icpdp:club', label: 'IC-PDP — CLB' },
 ];
 
-const Badge = ({ meta }) => (
-  <span className={`adm-ev-badge adm-ev-badge--${meta?.tone || 'slate'}`}>{meta?.label || '—'}</span>
-);
+const STATUS_DROPDOWN_OPTIONS = [
+  { id: 'all', label: 'Tất cả trạng thái' },
+  { id: 'pending', label: 'Đang duyệt' },
+  { id: 'approved:all', label: 'Đã duyệt — Tất cả' },
+  { id: 'approved:accept', label: 'Đã duyệt — Chấp nhận' },
+  { id: 'approved:reject', label: 'Đã duyệt — Từ chối' },
+  { id: 'other:edit', label: 'Khác — Chỉnh sửa' },
+  { id: 'other:cancel', label: 'Khác — Yêu cầu hủy' },
+];
 
 const PAGE_SIZE = 6;
 
@@ -146,7 +148,11 @@ const resolveDetailHref = (item) => {
     return `/admin/ctsv/proposals/${item.id}`;
   }
   if (item.kind === 'event') {
-    if (item.source === 'school' || item.source === 'club') return `/admin/ctsv/events/${item.id}`;
+    if (item.source === 'school' || item.source === 'club') {
+      const needsCoordTab =
+        MODERATION_PENDING_STATUSES.includes(item.statusKey) || item.statusKey === 'pending_admin';
+      return `/admin/ctsv/events/${item.id}${needsCoordTab ? '?tab=dieu-phoi' : ''}`;
+    }
     return `/events/${item.id}`;
   }
   return null;
@@ -160,26 +166,17 @@ const AdminDashboard = ({ showToast }) => {
   const [actingId, setActingId] = useState(null);
   const navigate = useNavigate();
 
-  const [actedResults, setActedResults] = useState({}); // { [id]: 'approved' | 'rejected' }
+  const [actedResults, setActedResults] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [ctsvSub, setCtsvSub] = useState('all');
   const [icpdpSub, setIcpdpSub] = useState('all');
-  const [ctsvOpen, setCtsvOpen] = useState(false);
-  const [icpdpOpen, setIcpdpOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('pending');
   const [approvedSub, setApprovedSub] = useState('all');
   const [otherSub, setOtherSub] = useState('edit');
-  const [approvedOpen, setApprovedOpen] = useState(false);
-  const [otherOpen, setOtherOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const ctsvRef = useRef(null);
-  const icpdpRef = useRef(null);
-  const approvedRef = useRef(null);
-  const otherRef = useRef(null);
-  useCloseOnClickOutside(ctsvRef, ctsvOpen, () => setCtsvOpen(false));
-  useCloseOnClickOutside(icpdpRef, icpdpOpen, () => setIcpdpOpen(false));
-  useCloseOnClickOutside(approvedRef, approvedOpen, () => setApprovedOpen(false));
-  useCloseOnClickOutside(otherRef, otherOpen, () => setOtherOpen(false));
+  const [approveTarget, setApproveTarget] = useState(null);
+  const [rejectTarget, setRejectTarget] = useState(null);
 
   const userRole = normalizeRole(localStorage.getItem('userRole'));
   const canAccess = isCtsvRole(userRole) || isAdminRole(userRole);
@@ -327,12 +324,19 @@ const AdminDashboard = ({ showToast }) => {
     });
   }, [events, proposals, partnerRequests]);
 
-  const filtered = useMemo(
-    () => items.filter(
-      (it) => matchSource(it, sourceFilter, ctsvSub, icpdpSub) && matchStatus(it, statusFilter, approvedSub, otherSub),
-    ),
-    [items, sourceFilter, ctsvSub, icpdpSub, statusFilter, approvedSub, otherSub],
-  );
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return items.filter((it) => {
+      if (!matchSource(it, sourceFilter, ctsvSub, icpdpSub)) return false;
+      if (!matchStatus(it, statusFilter, approvedSub, otherSub)) return false;
+      if (!q) return true;
+      return (
+        (it.title || '').toLowerCase().includes(q) ||
+        (it.organizer || '').toLowerCase().includes(q) ||
+        (it.location || '').toLowerCase().includes(q)
+      );
+    });
+  }, [items, sourceFilter, ctsvSub, icpdpSub, statusFilter, approvedSub, otherSub, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
 
@@ -345,17 +349,56 @@ const AdminDashboard = ({ showToast }) => {
     return filtered.slice(start, start + PAGE_SIZE);
   }, [filtered, page]);
 
-  const pageNumbers = useMemo(() => {
-    const maxButtons = 5;
-    const start = Math.max(1, Math.min(page - 2, totalPages - maxButtons + 1));
-    const end = Math.min(totalPages, start + maxButtons - 1);
-    const nums = [];
-    for (let i = start; i <= end; i += 1) nums.push(i);
-    return nums;
-  }, [page, totalPages]);
+  useEffect(() => {
+    setPage(1);
+  }, [sourceFilter, ctsvSub, icpdpSub, statusFilter, approvedSub, otherSub, searchQuery]);
 
-  const pageStart = filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const pageEnd = Math.min(page * PAGE_SIZE, filtered.length);
+  const sourceDropdownValue = useMemo(() => {
+    if (sourceFilter === 'all') return 'all';
+    if (sourceFilter === 'ctsv') return `ctsv:${ctsvSub}`;
+    if (sourceFilter === 'icpdp') return `icpdp:${icpdpSub}`;
+    return 'all';
+  }, [sourceFilter, ctsvSub, icpdpSub]);
+
+  const statusDropdownValue = useMemo(() => {
+    if (statusFilter === 'all') return 'all';
+    if (statusFilter === 'pending') return 'pending';
+    if (statusFilter === 'approved') return `approved:${approvedSub}`;
+    if (statusFilter === 'other') return `other:${otherSub}`;
+    return 'all';
+  }, [statusFilter, approvedSub, otherSub]);
+
+  const handleSourceDropdown = (value) => {
+    if (value === 'all') {
+      setSourceFilter('all');
+      return;
+    }
+    const [group, sub] = value.split(':');
+    setSourceFilter(group);
+    if (group === 'ctsv') setCtsvSub(sub || 'all');
+    if (group === 'icpdp') setIcpdpSub(sub || 'all');
+  };
+
+  const handleStatusDropdown = (value) => {
+    if (value === 'all') {
+      setStatusFilter('all');
+      return;
+    }
+    if (value === 'pending') {
+      setStatusFilter('pending');
+      return;
+    }
+    const [group, sub] = value.split(':');
+    if (group === 'approved') {
+      setStatusFilter('approved');
+      setApprovedSub(sub || 'all');
+      return;
+    }
+    if (group === 'other') {
+      setStatusFilter('other');
+      setOtherSub(sub || 'edit');
+    }
+  };
 
   const counts = useMemo(() => {
     const bySource = items.filter((it) => matchSource(it, sourceFilter, ctsvSub, icpdpSub));
@@ -383,7 +426,11 @@ const AdminDashboard = ({ showToast }) => {
           await approveCtsvProposal(item.id);
         }
       } else if (item.source === 'school') {
-        await approveAdminSchoolEvent(item.id);
+        if (MODERATION_PENDING_STATUSES.includes(item.statusKey)) {
+          await approveAdminModeration(item.id);
+        } else {
+          await approveAdminSchoolEvent(item.id);
+        }
       } else {
         await approveCtsvEvent(item.id);
       }
@@ -405,7 +452,11 @@ const AdminDashboard = ({ showToast }) => {
       } else if (item.kind === 'proposal') {
         await rejectCtsvProposal(item.id, reason);
       } else if (item.source === 'school') {
-        await rejectAdminSchoolEvent(item.id, reason);
+        if (MODERATION_PENDING_STATUSES.includes(item.statusKey)) {
+          await rejectAdminModeration(item.id, reason);
+        } else {
+          await rejectAdminSchoolEvent(item.id, reason);
+        }
       } else {
         await rejectCtsvEvent(item.id, reason);
       }
@@ -421,352 +472,223 @@ const AdminDashboard = ({ showToast }) => {
 
   if (!canAccess) return null;
 
-  const approvedPillLabel = statusFilter === 'approved' && approvedSub !== 'all'
-    ? `Đã duyệt: ${APPROVED_SUBS.find((s) => s.id === approvedSub)?.label}`
-    : 'Đã duyệt';
-  const otherPillLabel = statusFilter === 'other'
-    ? `Khác: ${OTHER_SUBS.find((s) => s.id === otherSub)?.label}`
-    : 'Khác';
+  const pendingHint = !loading && counts.pending > 0 ? `${counts.pending} đang chờ duyệt` : null;
 
   return (
-    <main className="admin-main admin-events-page">
-      <header className="admin-events-page__header">
-        <div className="admin-events-page__title-row">
-          <div>
-            <h1 className="admin-main__title">Duyệt đề xuất sự kiện</h1>
-            <p className="admin-events-page__subtitle">
-              Các đề xuất sự kiện từ CLB, sự kiện cấp trường và đối tác — lọc theo nguồn và trạng thái.
-            </p>
+    <main className="admin-main">
+      <AdminPortalListLayout
+        eyebrow="Admin · Phê duyệt"
+        title="Duyệt đề xuất sự kiện"
+        description="Đề xuất từ CLB, sự kiện cấp trường và đối tác — lọc theo nguồn, trạng thái và tìm kiếm nhanh."
+        statNum={loading ? '—' : filtered.length}
+        statLabel={statusFilter === 'all' && sourceFilter === 'all' ? 'Mục' : 'Mục (bộ lọc)'}
+        statHint={pendingHint}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Tìm tên sự kiện, CLB, địa điểm…"
+        filterSlot={(
+          <>
+            <AdminStlFilterDropdown
+              label="Nguồn"
+              value={sourceDropdownValue}
+              options={SOURCE_DROPDOWN_OPTIONS}
+              onChange={handleSourceDropdown}
+              ariaLabel="Lọc theo nguồn"
+            />
+            <AdminStlFilterDropdown
+              label="Trạng thái"
+              value={statusDropdownValue}
+              options={STATUS_DROPDOWN_OPTIONS}
+              onChange={handleStatusDropdown}
+              ariaLabel="Lọc theo trạng thái"
+            />
+          </>
+        )}
+        summaryText={loading ? null : (
+          <>
+            <strong>{filtered.length}</strong> mục
+            {searchQuery.trim() ? ` · «${searchQuery.trim()}»` : ''}
+          </>
+        )}
+        loading={loading}
+        footer={
+          !loading && filtered.length > PAGE_SIZE ? (
+            <ClubTablePagination
+              page={page}
+              totalItems={filtered.length}
+              pageSize={PAGE_SIZE}
+              onChange={setPage}
+            />
+          ) : null
+        }
+      >
+        <section className="stl-card">
+          <div className="stl-table-wrap">
+            <table className="stl-table">
+              <thead>
+                <tr>
+                  <th>Đề xuất / Sự kiện</th>
+                  <th className="col-center">Nguồn</th>
+                  <th>Người gửi</th>
+                  <th className="col-center">Gửi lúc</th>
+                  <th className="col-center">Trạng thái</th>
+                  <th className="col-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading &&
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="stl-row--skeleton">
+                      {Array.from({ length: 6 }).map((__, j) => (
+                        <td key={j}><div className="stl-sk stl-sk--sm" /></td>
+                      ))}
+                    </tr>
+                  ))}
+                {!loading && filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={6}>
+                      <div className="stl-empty">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" aria-hidden>
+                          <rect x="3" y="4" width="18" height="18" rx="2" />
+                          <path d="M16 2v4M8 2v4M3 10h18" />
+                        </svg>
+                        <p>Không có mục nào.</p>
+                        <p className="stl-empty-hint">Thử đổi bộ lọc nguồn, trạng thái hoặc từ khóa.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                {!loading &&
+                  pageItems.map((item) => {
+                    const isBusy = actingId === item.id;
+                    const acted = actedResults[item.id];
+                    const isPending = PENDING_KEYS.includes(item.statusKey) && !acted;
+                    const awaitsIcpdp = item.statusKey === 'pending_icpdp' && isAdminRole(userRole);
+                    const canActOnList = isPending && !awaitsIcpdp;
+                    const detailHref = resolveDetailHref(item);
+                    const statusBadge = acted === 'approved'
+                      ? { label: 'Đã phê duyệt', tone: 'green' }
+                      : acted === 'rejected'
+                        ? { label: 'Đã từ chối', tone: 'red' }
+                        : (STATUS_META[item.statusKey] || { label: item.statusKey, tone: 'amber' });
+                    const srcMeta = SOURCE_META[item.source] || { label: item.source || '—', tone: 'amber' };
+
+                    return (
+                      <tr key={item.key} className="stl-row">
+                        <td>
+                          {detailHref ? (
+                            <button
+                              type="button"
+                              className="stl-club-name stl-timeline-semester-btn"
+                              onClick={() => navigate(detailHref)}
+                            >
+                              {item.title || '—'}
+                            </button>
+                          ) : (
+                            <span className="stl-club-name">{item.title || '—'}</span>
+                          )}
+                          <p className="stl-timeline-summary">
+                            {[item.category, item.location].filter(Boolean).join(' · ') || '—'}
+                          </p>
+                        </td>
+                        <td className="col-center">
+                          <span className={`stl-badge stl-badge--${toStlBadgeTone(srcMeta.tone)}`}>
+                            {srcMeta.label}
+                          </span>
+                        </td>
+                        <td className="stl-semester">{item.organizer || '—'}</td>
+                        <td className="col-center stl-date">
+                          {formatPortalDate(item.submittedAt || item.createdAt)}
+                        </td>
+                        <td className="col-center">
+                          <span className={`stl-badge stl-badge--${toStlBadgeTone(statusBadge.tone)}`}>
+                            {statusBadge.label}
+                          </span>
+                        </td>
+                        <td className="col-center">
+                          <div className="stl-timeline-actions">
+                            {canActOnList && (
+                              <button
+                                type="button"
+                                className="stl-action-btn stl-action-btn--primary"
+                                disabled={isBusy || (actingId !== null && !isBusy)}
+                                onClick={() => setApproveTarget(item)}
+                              >
+                                Duyệt
+                              </button>
+                            )}
+                            {canActOnList && (
+                              <button
+                                type="button"
+                                className="stl-action-btn stl-action-btn--danger"
+                                disabled={isBusy || (actingId !== null && !isBusy)}
+                                onClick={() => setRejectTarget(item)}
+                              >
+                                Từ chối
+                              </button>
+                            )}
+                            {detailHref && (
+                              <button
+                                type="button"
+                                className="stl-action-btn"
+                                onClick={() => navigate(detailHref)}
+                              >
+                                Chi tiết
+                              </button>
+                            )}
+                            {awaitsIcpdp && (
+                              <span className="stl-timeline-summary" style={{ margin: 0 }}>
+                                Chờ IC-PDP
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
           </div>
-          {!loading && (
-            <span className="admin-events-page__count" aria-live="polite">
-              {filtered.length} mục
-            </span>
-          )}
-        </div>
-      </header>
+        </section>
+      </AdminPortalListLayout>
 
-      {/* Toolbar 2 nhóm pill */}
-      <div className="adm-ev-toolbar">
-        <div className="adm-ev-pills" role="group" aria-label="Lọc theo nguồn">
-          <button
-            type="button"
-            className={`adm-ev-pill${sourceFilter === 'all' ? ' adm-ev-pill--active' : ''}`}
-            onClick={() => { setSourceFilter('all'); setCtsvOpen(false); setIcpdpOpen(false); }}
-          >Tất cả</button>
+      <ConfirmDialog
+        open={Boolean(approveTarget)}
+        title="Phê duyệt đề xuất"
+        message={
+          approveTarget?.title
+            ? `Xác nhận phê duyệt «${approveTarget.title}»?`
+            : 'Xác nhận phê duyệt mục này?'
+        }
+        confirmLabel="Phê duyệt"
+        loading={actingId !== null}
+        onCancel={() => !actingId && setApproveTarget(null)}
+        onConfirm={async () => {
+          if (!approveTarget) return;
+          try {
+            await handleApprove(approveTarget);
+            setApproveTarget(null);
+          } catch {
+            /* toast in handleApprove */
+          }
+        }}
+      />
 
-          {/* CTSV pill + dropdown */}
-          <div ref={ctsvRef} style={{ position: 'relative' }}>
-            <button
-              type="button"
-              className={`adm-ev-pill${sourceFilter === 'ctsv' ? ' adm-ev-pill--active' : ''}`}
-              onClick={() => { setSourceFilter('ctsv'); setCtsvOpen(o => !o); setIcpdpOpen(false); }}
-            >
-              CTSV {ctsvSub !== 'all' && `· ${CTSV_SUB_OPTS.find(o => o.id === ctsvSub)?.label}`} ▾
-            </button>
-            {ctsvOpen && (
-              <div className="adm-ev-menu">
-                {CTSV_SUB_OPTS.map(o => (
-                  <button key={o.id} type="button"
-                    className={`adm-ev-menu-item${ctsvSub === o.id ? ' adm-ev-menu-item--active' : ''}`}
-                    onClick={() => { setCtsvSub(o.id); setCtsvOpen(false); }}
-                  >{o.label}</button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* IC-PDP pill + dropdown */}
-          <div ref={icpdpRef} style={{ position: 'relative' }}>
-            <button
-              type="button"
-              className={`adm-ev-pill${sourceFilter === 'icpdp' ? ' adm-ev-pill--active' : ''}`}
-              onClick={() => { setSourceFilter('icpdp'); setIcpdpOpen(o => !o); setCtsvOpen(false); }}
-            >
-              IC-PDP {icpdpSub !== 'all' && `· ${ICPDP_SUB_OPTS.find(o => o.id === icpdpSub)?.label}`} ▾
-            </button>
-            {icpdpOpen && (
-              <div className="adm-ev-menu">
-                {ICPDP_SUB_OPTS.map(o => (
-                  <button key={o.id} type="button"
-                    className={`adm-ev-menu-item${icpdpSub === o.id ? ' adm-ev-menu-item--active' : ''}`}
-                    onClick={() => { setIcpdpSub(o.id); setIcpdpOpen(false); }}
-                  >{o.label}</button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="adm-ev-pills adm-ev-pills--right" role="group" aria-label="Lọc theo trạng thái">
-          <button
-            type="button"
-            className={`adm-ev-pill${statusFilter === 'all' ? ' adm-ev-pill--active' : ''}`}
-            onClick={() => { setStatusFilter('all'); setApprovedOpen(false); setOtherOpen(false); }}
-          >
-            Tất cả <span className="adm-ev-pill__count">{counts.all}</span>
-          </button>
-          <button
-            type="button"
-            className={`adm-ev-pill${statusFilter === 'pending' ? ' adm-ev-pill--active' : ''}`}
-            onClick={() => { setStatusFilter('pending'); setApprovedOpen(false); setOtherOpen(false); }}
-          >
-            Đang duyệt <span className="adm-ev-pill__count">{counts.pending}</span>
-          </button>
-
-          {/* Đã duyệt + dropdown */}
-          <div className="adm-ev-dropdown" ref={approvedRef}>
-            <button
-              type="button"
-              className={`adm-ev-pill adm-ev-pill--caret${statusFilter === 'approved' ? ' adm-ev-pill--active' : ''}`}
-              onClick={() => {
-                if (statusFilter !== 'approved') setStatusFilter('approved');
-                setApprovedOpen((o) => !o);
-                setOtherOpen(false);
-              }}
-            >
-              {approvedPillLabel} <span className="adm-ev-pill__count">{counts.approved}</span>
-              <svg className="adm-ev-caret" viewBox="0 0 10 6" width="10" height="6" fill="currentColor" aria-hidden><path d="M0 0l5 6 5-6z" /></svg>
-            </button>
-            {approvedOpen && (
-              <div className="adm-ev-menu">
-                {APPROVED_SUBS.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className={`adm-ev-menu-item${statusFilter === 'approved' && approvedSub === s.id ? ' adm-ev-menu-item--active' : ''}`}
-                    onClick={() => { setStatusFilter('approved'); setApprovedSub(s.id); setApprovedOpen(false); }}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Khác + dropdown */}
-          <div className="adm-ev-dropdown" ref={otherRef}>
-            <button
-              type="button"
-              className={`adm-ev-pill adm-ev-pill--caret${statusFilter === 'other' ? ' adm-ev-pill--active' : ''}`}
-              onClick={() => {
-                if (statusFilter !== 'other') setStatusFilter('other');
-                setOtherOpen((o) => !o);
-                setApprovedOpen(false);
-              }}
-            >
-              {otherPillLabel} <span className="adm-ev-pill__count">{counts.other}</span>
-              <svg className="adm-ev-caret" viewBox="0 0 10 6" width="10" height="6" fill="currentColor" aria-hidden><path d="M0 0l5 6 5-6z" /></svg>
-            </button>
-            {otherOpen && (
-              <div className="adm-ev-menu">
-                {OTHER_SUBS.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className={`adm-ev-menu-item${statusFilter === 'other' && otherSub === s.id ? ' adm-ev-menu-item--active' : ''}`}
-                    onClick={() => { setStatusFilter('other'); setOtherSub(s.id); setOtherOpen(false); }}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="admin-events-page__loading">
-          <span className="btn-spinner admin-events-page__spinner" aria-hidden="true" />
-          <p>Đang tải dữ liệu…</p>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="admin-events-empty">
-          <p className="admin-events-empty__title">Không có mục nào</p>
-          <p className="admin-events-empty__hint">Thử đổi bộ lọc nguồn hoặc trạng thái phía trên.</p>
-        </div>
-      ) : (
-        <ul className="admin-proposal-list">
-          {pageItems.map((item, index) => {
-            const isBusy = actingId === item.id;
-            const acted = actedResults[item.id];
-            const isPending = PENDING_KEYS.includes(item.statusKey) && !acted;
-            const awaitsIcpdp = item.statusKey === 'pending_icpdp' && isAdminRole(userRole);
-            const canActOnList = isPending && !awaitsIcpdp;
-            const detailHref = resolveDetailHref(item);
-            const listIndex = (page - 1) * PAGE_SIZE + index;
-            const showPlanPanel =
-              item.hasEventPlan
-              || item.eventPlanFile
-              || item.eventPlanLink
-              || item.eventPlanFileName;
-            const statusBadge = acted === 'approved'
-              ? { label: 'Đã phê duyệt', tone: 'green' }
-              : acted === 'rejected'
-                ? { label: 'Đã từ chối', tone: 'red' }
-                : (STATUS_META[item.statusKey] || { label: item.statusKey, tone: 'slate' });
-            return (
-              <li key={item.key} className="admin-proposal-card">
-                <div className="admin-proposal-card__head">
-                  <div className="admin-proposal-card__head-main">
-                    <span className="admin-proposal-card__index">#{listIndex + 1}</span>
-                    <h2 className="admin-proposal-card__title">{item.title}</h2>
-                    <TimelineSourceNotice source={item} className="admin-proposal-card__timeline-source" />
-                    <Badge meta={SOURCE_META[item.source]} />
-                    {showPlanPanel && (
-                      <span className="adm-ev-plan-badge">Có bảng KH</span>
-                    )}
-                  </div>
-                  <Badge meta={statusBadge} />
-                </div>
-
-                <div className="admin-proposal-card__body">
-                  {item.thumbnail ? (
-                    <div className="admin-proposal-card__thumb-wrap">
-                      <img src={item.thumbnail} alt="" className="admin-proposal-card__thumb" />
-                    </div>
-                  ) : null}
-
-                  <div className="admin-proposal-card__details">
-                    <dl className="admin-proposal-meta">
-                      <div className="admin-proposal-meta__row">
-                        <dt>{item.kind === 'proposal' ? 'CLB' : 'Người gửi'}</dt>
-                        <dd>{item.organizer}</dd>
-                      </div>
-                      <div className="admin-proposal-meta__row">
-                        <dt>Danh mục</dt>
-                        <dd>{item.category}</dd>
-                      </div>
-                      <div className="admin-proposal-meta__row">
-                        <dt>Địa điểm</dt>
-                        <dd>{item.location}</dd>
-                      </div>
-                      <div className="admin-proposal-meta__row">
-                        <dt>Thời gian</dt>
-                        <dd>{item.date || formatDateTime(item.startDate)} {item.time || ''}</dd>
-                      </div>
-                      <div className="admin-proposal-meta__row">
-                        <dt>Tổng vé</dt>
-                        <dd>{item.totalTickets != null ? item.totalTickets : '—'}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                </div>
-
-                <div className="admin-proposal-card__full">
-                    <ProposalTicketsTable ticketTypes={item.ticketTypes} ticketPrice={item.ticketPrice} />
-
-                    {item.description?.trim() ? (
-                      <div className="admin-proposal-card__desc">
-                        <p className="admin-proposal-card__desc-label">Mô tả</p>
-                        <p className="admin-proposal-card__desc-text">{item.description}</p>
-                      </div>
-                    ) : null}
-
-                    {showPlanPanel && (
-                      <div className="admin-fpt-unit-events__plan-panel">
-                        <EventPlanFilePanel
-                          fileUrl={item.eventPlanUrl || item.eventPlanFile}
-                          fileName={item.eventPlanFileName}
-                          mimeType={item.eventPlanFileMime}
-                          externalLink={item.eventPlanLink}
-                        />
-                      </div>
-                    )}
-                </div>
-
-                {canActOnList ? (
-                  <footer className="admin-proposal-card__footer">
-                    <AdminProposalActions
-                      itemTitle={item.title}
-                      busy={isBusy}
-                      disabled={actingId !== null && !isBusy}
-                      onApprove={() => handleApprove(item)}
-                      onReject={(reason) => handleReject(item, reason)}
-                    />
-                  </footer>
-                ) : awaitsIcpdp ? (
-                  <footer className="admin-proposal-card__footer">
-                    <div className="adm-ev-detail-bar">
-                      <span className="adm-ev-acted-note">
-                        Chờ IC-PDP duyệt nội bộ — Admin xử lý sau khi IC-PDP chuyển tiếp.
-                      </span>
-                      {detailHref && (
-                        <button
-                          type="button"
-                          className="adm-ev-detail-btn"
-                          onClick={() => navigate(detailHref)}
-                        >
-                          Xem chi tiết
-                        </button>
-                      )}
-                    </div>
-                  </footer>
-                ) : (acted || detailHref) ? (
-                  <footer className="admin-proposal-card__footer">
-                    <div className="adm-ev-detail-bar">
-                      {acted && (
-                        <span className={`adm-ev-acted-note adm-ev-acted-note--${acted}`}>
-                          {acted === 'approved' ? '✓ Đã phê duyệt thành công' : '✕ Đã từ chối'}
-                        </span>
-                      )}
-                      {detailHref && (
-                        <button
-                          type="button"
-                          className="adm-ev-detail-btn"
-                          onClick={() => navigate(detailHref)}
-                        >
-                          Xem chi tiết
-                        </button>
-                      )}
-                    </div>
-                  </footer>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      {!loading && filtered.length > PAGE_SIZE && (
-        <footer className="adm-ev-pagination adm-ev-pagination--numbered">
-          <p className="adm-ev-pagination__info">
-            Hiển thị {pageStart}–{pageEnd} / {filtered.length} mục
-          </p>
-          <nav className="adm-ev-pagination__nav" aria-label="Phân trang danh sách duyệt">
-            <button
-              type="button"
-              className="adm-ev-page-btn"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              aria-label="Trang trước"
-            >
-              ‹
-            </button>
-            {pageNumbers.map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={`adm-ev-page-btn${page === n ? ' adm-ev-page-btn--active' : ''}`}
-                onClick={() => setPage(n)}
-                aria-current={page === n ? 'page' : undefined}
-              >
-                {n}
-              </button>
-            ))}
-            <button
-              type="button"
-              className="adm-ev-page-btn"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              aria-label="Trang sau"
-            >
-              ›
-            </button>
-          </nav>
-        </footer>
-      )}
+      <PartnerActionDialog
+        open={Boolean(rejectTarget)}
+        mode="proposalReject"
+        loading={actingId !== null}
+        onCancel={() => !actingId && setRejectTarget(null)}
+        onConfirm={async (reason) => {
+          if (!rejectTarget) return;
+          try {
+            await handleReject(rejectTarget, reason);
+            setRejectTarget(null);
+          } catch {
+            /* toast in handleReject */
+          }
+        }}
+      />
     </main>
   );
 };

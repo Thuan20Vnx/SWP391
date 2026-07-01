@@ -46,7 +46,11 @@ const getFeaturedEvents = async (req, res) => {
 };
 
 const getEventCover = async (req, res) => {
-  await eventService.sendEventCover(req.params.id, res);
+  await eventService.sendEventCover(req.params.id, res, {
+    user: req.user,
+    userRole: req.userRole || req.authRole,
+    activeClubId: req.headers['x-managed-club-id'],
+  });
 };
 
 const getEventPlan = async (req, res) => {

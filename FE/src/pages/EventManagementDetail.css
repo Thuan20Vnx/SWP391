@@ -1789,6 +1789,12 @@
   margin-bottom: 6px;
 }
 
+.ev-moderation-banner p strong {
+  display: inline;
+  margin-bottom: 0;
+  color: #334155;
+}
+
 .ev-moderation-banner p {
   margin: 0;
   color: #475569;
@@ -1806,9 +1812,19 @@
   background: #eff6ff;
 }
 
+.ev-moderation-banner--orange {
+  border-color: #fcd9b8;
+  background: #fff4eb;
+}
+
+.ev-moderation-banner--orange p strong {
+  display: inline;
+  margin-bottom: 0;
+}
+
 .ev-moderation-banner--pending {
-  border-color: #fde68a;
-  background: #fffbeb;
+  border-color: #fcd9b8;
+  background: #fff4eb;
 }
 
 .ev-moderation-banner--danger {
@@ -2409,4 +2425,195 @@
 }
 .ctsv-action-btn--cancel:hover {
   background: #ffe4e6;
+}
+
+/* Admin approval panel (Phê duyệt & Điều phối) */
+.admin-approval-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.admin-approval-panel--empty {
+  padding: 28px 32px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.admin-approval-panel--empty p {
+  margin: 0;
+}
+
+.admin-approval-panel__hero {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 28px 32px 24px;
+  background: linear-gradient(135deg, #fff4eb 0%, #ffffff 55%);
+  border-bottom: 1px solid #fcd9b8;
+}
+
+.admin-approval-panel__icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f26f21;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(242, 111, 33, 0.28);
+}
+
+.admin-approval-panel__eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d35400;
+}
+
+.admin-approval-panel__title {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.admin-approval-panel__lead {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.admin-approval-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.admin-approval-panel__cell {
+  padding: 18px 24px;
+  border-right: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.admin-approval-panel__cell:last-child {
+  border-right: none;
+}
+
+.admin-approval-panel__cell--wide {
+  grid-column: 1 / -1;
+}
+
+.admin-approval-panel__cell dt {
+  margin: 0 0 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.admin-approval-panel__cell dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.admin-approval-panel__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-approval-panel__badge--pending {
+  background: #fff0e6;
+  color: #d35400;
+  border: 1px solid #f5c9a8;
+}
+
+.admin-approval-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 20px 32px 24px;
+  border-top: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.admin-approval-panel__reason {
+  padding: 20px 32px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafafa;
+}
+
+.admin-approval-panel__reason-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.admin-approval-panel__reason p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.admin-approval-panel__hint {
+  padding: 18px 32px 24px;
+  background: #f8fafc;
+}
+
+.admin-approval-panel__hint strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #1e293b;
+  font-size: 0.9rem;
+}
+
+.admin-approval-panel__hint p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .admin-approval-panel__hero {
+    flex-direction: column;
+    padding: 22px 20px 18px;
+  }
+
+  .admin-approval-panel__cell {
+    border-right: none;
+    padding: 16px 20px;
+  }
+
+  .admin-approval-panel__reason,
+  .admin-approval-panel__hint,
+  .admin-approval-panel__actions {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
 }

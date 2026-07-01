@@ -54,6 +54,12 @@ export const cancelScheduledTimelineDelete = (id) =>
     body: '{}',
   });
 
+export const withdrawCancelTimelineChangeRequest = (id) =>
+  clubFetch(`/manage/semester-timelines/${id}/withdraw-cancel-change-request`, {
+    method: 'POST',
+    body: '{}',
+  });
+
 export const fetchIcpdpClubs = () => clubFetch('/manage/all');
 
 export const updateIcpdpClub = (id, body) =>

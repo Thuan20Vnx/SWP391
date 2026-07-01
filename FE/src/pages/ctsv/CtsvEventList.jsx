@@ -169,9 +169,15 @@ const CtsvEventList = () => {
     <div className="ctsv-events-page">
       <header className="ctsv-events-hero">
         <div className="ctsv-events-hero-text">
-          <span className="ctsv-events-eyebrow">Quản lý sự kiện CTSV</span>
-          <h1>Tìm kiếm &amp; Duyệt sự kiện</h1>
-          <p>Phê duyệt sự kiện cấp trường; sự kiện CLB và đối tác chỉ xem thông tin (ICPDP quản lý CLB).</p>
+          <span className="ctsv-events-eyebrow">
+            {isAdminRole() ? 'Quản trị hệ thống' : 'Quản lý sự kiện CTSV'}
+          </span>
+          <h1>{isAdminRole() ? 'Xem & xử lý sự kiện' : 'Tìm kiếm & Duyệt sự kiện'}</h1>
+          <p>
+            {isAdminRole()
+              ? 'Admin xem chi tiết sự kiện cấp trường, CLB và đối tác từ bảng duyệt.'
+              : 'Phê duyệt sự kiện cấp trường; sự kiện CLB và đối tác chỉ xem thông tin (ICPDP quản lý CLB).'}
+          </p>
         </div>
         <div className="ctsv-events-hero-aside">
           <div className="ctsv-events-hero-stat" aria-live="polite">

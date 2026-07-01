@@ -132,6 +132,34 @@ const persistEventCoverOnDocument = async (doc) => {
   return doc;
 };
 
+const resolveCoverInlineDataUri = async (event) => {
+  const id = String(event?._id || event?.id || '');
+  if (!id) return '';
+
+  const resolved = await resolveCoverResponse({ ...event, _id: id });
+  if (resolved?.buffer && resolved.mime) {
+    return `data:${resolved.mime};base64,${resolved.buffer.toString('base64')}`;
+  }
+  if (resolved?.redirectUrl) return resolved.redirectUrl;
+
+  const legacy = event?.thumbnail || event?.image || '';
+  if (isDataUri(legacy)) return legacy;
+  if (isHttpUrl(legacy)) return legacy;
+  return '';
+};
+
+const attachInlineEventCover = async (formatted, eventDoc) => {
+  const inline = await resolveCoverInlineDataUri(eventDoc);
+  if (!inline) return formatted;
+  return {
+    ...formatted,
+    coverInline: inline,
+    image: inline,
+    thumbnail: inline,
+    hasCover: true,
+  };
+};
+
 const resolveCoverResponse = async (event) => {
   const eventId = String(event?._id || '');
   const stored = readCoverFile(eventId);
@@ -167,4 +195,6 @@ module.exports = {
   sanitizeEventCoverForApi,
   persistEventCoverOnDocument,
   resolveCoverResponse,
+  resolveCoverInlineDataUri,
+  attachInlineEventCover,
 };

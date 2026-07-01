@@ -2610,9 +2610,9 @@
 }
 
 .clb-view-detail-btn--danger:hover:not(:disabled) {
-  background: #fef2f2;
-  border-color: #b91c1c;
-  color: #b91c1c;
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
 }
 
 .clb-view-detail-btn--muted {
@@ -2635,6 +2635,17 @@
   background: #eff6ff;
   border-color: #2563eb;
   color: #1d4ed8;
+}
+
+.clb-view-detail-btn--orange {
+  border-color: #f26f21;
+  color: #f26f21;
+}
+
+.clb-view-detail-btn--orange:hover:not(:disabled) {
+  background: #f26f21;
+  border-color: #e05f15;
+  color: #fff;
 }
 
 .clb-action-btn--success {

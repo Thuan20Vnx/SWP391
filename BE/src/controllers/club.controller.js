@@ -248,7 +248,7 @@ const deleteSemesterTimeline = async (req, res) => {
     res.status(200).json({
       success: true,
       ...result,
-      message: result.mode === 'cancelled' ? 'Đã hủy đơn timeline.' : 'Đã xóa timeline.',
+      message: result.mode === 'cancelled' ? 'Đã hủy đơn timeline.' : result.mode === 'hard' ? 'Đã xóa timeline.' : 'Đã hủy timeline.',
     });
   } catch (error) {
     handleTimelineError(res, error);
@@ -292,6 +292,23 @@ const cancelScheduledSemesterTimelineDelete = async (req, res) => {
       success: true,
       timeline,
       message: 'Đã hủy lịch xóa timeline.',
+    });
+  } catch (error) {
+    handleTimelineError(res, error);
+  }
+};
+
+const withdrawCancelSemesterTimelineChange = async (req, res) => {
+  try {
+    const timeline = await clubSemesterTimelineService.withdrawCancelChangeRequestForClub(
+      req.params.id,
+      req.user._id,
+      readActiveClubId(req)
+    );
+    res.status(200).json({
+      success: true,
+      timeline,
+      message: 'Đã hoàn tác yêu cầu hủy đơn timeline.',
     });
   } catch (error) {
     handleTimelineError(res, error);
@@ -366,6 +383,7 @@ module.exports = {
   withdrawSemesterTimeline,
   requestSemesterTimelineChange,
   cancelScheduledSemesterTimelineDelete,
+  withdrawCancelSemesterTimelineChange,
   checkSemesterTimelineConflicts,
   icpdpListClubs,
   icpdpUpdateClub,

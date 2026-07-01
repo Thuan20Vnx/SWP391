@@ -6,7 +6,7 @@ const EventRegistration = require('../models/EventRegistration');
 const AppError = require('../utils/AppError');
 const { isValidEventVenue } = require('../constants/eventVenues');
 const { normalizeEventCategory } = require('../constants/eventCategories');
-const { SCHOOL_EVENT_PUBLIC_STATUSES } = require('../constants/eventWorkflow');
+const { SCHOOL_EVENT_PUBLIC_STATUSES, canRoleManageSchoolEvent } = require('../constants/eventWorkflow');
 const { getRegisteredEventIds } = require('./registration.service');
 const { enrichEventWithPricing } = require('../constants/eventPricing');
 const {
@@ -20,10 +20,12 @@ const { applyEventTextSearch, normalizeSearchTerm, escapeRegex } = require('../u
 const { getCachedApprovedEvents, setCachedApprovedEvents } = require('../utils/eventCache');
 const { createAndBroadcast } = require('./notification.service');
 const { canClubImmediateDelete } = require('../constants/eventModeration');
+const { assertEventScheduleDates } = require('../utils/dateValidation');
 const {
   eventHasAnyCover,
   sanitizeEventCoverForApi,
   resolveCoverResponse,
+  attachInlineEventCover,
   isDataUri,
   writeCoverFromDataUri,
 } = require('../utils/eventCoverStorage');
@@ -373,6 +375,11 @@ const createEvent = async (user, body, activeClubId = null) => {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
   }
 
+  assertEventScheduleDates({
+    registrationStartDate: new Date(registrationStartDate),
+    startDate: new Date(startDate),
+  });
+
   const isClubManager = user.role === 'club_manager';
   const managedClub = isClubManager ? await resolveManagedClub(user._id, activeClubId) : null;
   if (!isClubManager && !isValidEventVenue(location)) {
@@ -586,6 +593,11 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   if (!title || !registrationStartDate || !startDate || !location || !capacity) {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
   }
+
+  assertEventScheduleDates({
+    registrationStartDate: new Date(registrationStartDate),
+    startDate: new Date(startDate),
+  });
 
   const existingPlanLink = String(event.eventPlanLink || '').trim();
   const incomingPlanLink = String(eventPlanLink ?? event.eventPlanLink ?? '').trim();
@@ -876,26 +888,51 @@ const getApprovedEvents = async ({
   };
 };
 
-const sendEventCover = async (eventId, res) => {
+const canAccessEventCover = async (event, { user, userRole, activeClubId } = {}) => {
+  if (!event || event.isDeleted) return false;
+
+  const isPublic =
+    SCHOOL_EVENT_PUBLIC_STATUSES.includes(event.status) &&
+    event.isHidden !== true &&
+    event.isDeleted !== true;
+  if (isPublic) return true;
+
+  if (!user?._id && !userRole) return false;
+
+  const role = userRole || user?.role || '';
+  if (['admin', 'staff', 'ctsv'].includes(role)) return true;
+
+  if (event.source === 'school' && canRoleManageSchoolEvent(event, role)) return true;
+
+  if (role === 'icpdp') return true;
+
+  if (role === 'club_manager' && event.clubId && user?._id) {
+    const club = await resolveManagedClub(user._id, activeClubId);
+    return Boolean(club && String(club._id) === String(event.clubId));
+  }
+
+  const ownerId = event.createdBy?._id || event.createdBy;
+  if (ownerId && user?._id && String(ownerId) === String(user._id)) return true;
+
+  return false;
+};
+
+const sendEventCover = async (eventId, res, { user, userRole, activeClubId } = {}) => {
   const id = String(eventId || '').trim();
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new AppError('Không tìm thấy ảnh sự kiện', 404);
   }
 
   const event = await Event.findById(id)
-    .select('thumbnail image coverFileExt status isHidden isDeleted')
+    .select('thumbnail image coverFileExt status isHidden isDeleted source schoolOrganizerRole clubId createdBy')
     .lean();
 
   if (!event) {
     throw new AppError('Không tìm thấy ảnh sự kiện', 404);
   }
 
-  const isPublic =
-    SCHOOL_EVENT_PUBLIC_STATUSES.includes(event.status) &&
-    event.isHidden !== true &&
-    event.isDeleted !== true;
-
-  if (!isPublic) {
+  const canView = await canAccessEventCover(event, { user, userRole, activeClubId });
+  if (!canView) {
     throw new AppError('Không tìm thấy ảnh sự kiện', 404);
   }
 
@@ -1118,8 +1155,13 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
     student: r.user,
   }));
 
+  let eventPayload = enrichEventWithPricing(attachEventMediaForApi(doc), user);
+  if (!isPublic) {
+    eventPayload = await attachInlineEventCover(eventPayload, doc);
+  }
+
   return {
-    event: enrichEventWithPricing(attachEventMediaForApi(doc), user),
+    event: eventPayload,
     students: isOwner ? students : undefined,
   };
 };

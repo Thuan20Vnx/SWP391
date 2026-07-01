@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../../pages/ClubManagement.css';
 import AppSelect from '../ui/AppSelect';
 import BannerCropModal from '../ctsv/BannerCropModal';
@@ -16,6 +16,7 @@ import {
   validateTicketTypesStep,
 } from '../../utils/eventFormState';
 import { audienceLabel, formatTicketPriceLabel } from '../../utils/eventTicketTypes';
+import { toLocalDateInputMin } from '../../utils/dateValidation';
 import {
   EVENT_PLAN_ACCEPT,
   EVENT_PLAN_MAX_BYTES,
@@ -79,6 +80,7 @@ const EventProposalForm = ({
     ...initialForm,
   }));
   const [step, setStep] = useState(1);
+  const todayDateMin = useMemo(() => toLocalDateInputMin(), []);
   const [internalBannerFileName, setInternalBannerFileName] = useState('');
   const [bannerCropOpen, setBannerCropOpen] = useState(false);
   const [bannerCropSrc, setBannerCropSrc] = useState('');
@@ -159,6 +161,11 @@ const EventProposalForm = ({
     setForm(nextForm);
     showToast?.('Đã điền thông tin từ timeline. Vui lòng bổ sung banner và gửi duyệt.', 'success');
   };
+
+  const handleAdHocEventMode = useCallback(() => {
+    setSelectedTimelineKey(null);
+    setSelectedTimelineSource(null);
+  }, []);
 
   const patchForm = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
@@ -350,6 +357,7 @@ const EventProposalForm = ({
           currentForm={form}
           selectedKey={selectedTimelineKey}
           onSelectItem={handleTimelineQuickPick}
+          onSelectAdHoc={handleAdHocEventMode}
           onOpenExistingEvent={onOpenExistingEvent}
           disabled={disabled || submitting}
         />
@@ -662,6 +670,7 @@ const EventProposalForm = ({
                   type="date"
                   value={form.regStartDate}
                   onChange={(e) => patchForm({ regStartDate: e.target.value })}
+                  min={todayDateMin}
                   required
                   className="clb-input"
                   disabled={disabled}
@@ -714,6 +723,7 @@ const EventProposalForm = ({
                   type="date"
                   value={form.eventStartDate}
                   onChange={(e) => patchForm({ eventStartDate: e.target.value })}
+                  min={todayDateMin}
                   required
                   className="clb-input"
                   disabled={disabled}

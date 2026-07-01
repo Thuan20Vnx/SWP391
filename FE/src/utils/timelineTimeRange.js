@@ -1,3 +1,5 @@
+import { parseDatetimeLocalInput } from './dateValidation';
+
 export const DEFAULT_DURATION_MS = 2 * 60 * 60 * 1000;
 
 const toMs = (value) => {
@@ -39,9 +41,9 @@ export const formatTimeRangeLabel = (startValue, endValue) => {
 
 /** Default end = start + 2h (for datetime-local inputs). */
 export const defaultEndDateTimeInput = (startInput) => {
-  if (!startInput) return '';
-  const d = new Date(startInput);
-  if (Number.isNaN(d.getTime())) return '';
+  const start = parseDatetimeLocalInput(startInput);
+  if (!start) return '';
+  const d = new Date(start.getTime());
   d.setHours(d.getHours() + 2);
   const pad = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;

@@ -190,7 +190,7 @@ const WeatherDetailPanel = ({ weather, advice, events, onClose }) => (
   </div>
 );
 
-const WeatherWidget = () => {
+const WeatherWidget = ({ floating = false } = {}) => {
   const wrapRef = useRef(null);
   const [state, setState] = useState({ loading: true, error: null, weather: null, advice: '', events: [] });
   const [slideIndex, setSlideIndex] = useState(0);
@@ -240,7 +240,43 @@ const WeatherWidget = () => {
     };
   }, [detailOpen]);
 
-  if (state.loading || state.error || !state.weather) return null;
+  if (state.loading) {
+    if (!floating) return null;
+    return (
+      <div className="weather-widget-wrap" ref={wrapRef}>
+        <div
+          className="weather-widget weather-widget--floating weather-widget--floating-loading"
+          aria-busy="true"
+          aria-label="Đang tải thời tiết"
+        >
+          <div className="weather-widget-compact">
+            <div className="weather-widget-compact-icon">
+              <span className="weather-widget-loading-dot" aria-hidden />
+            </div>
+            <span className="weather-widget-compact-divider" aria-hidden />
+            <span className="weather-widget-compact-temp">…</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.error || !state.weather) {
+    if (!floating) return null;
+    return (
+      <div className="weather-widget-wrap" ref={wrapRef}>
+        <div className="weather-widget weather-widget--floating weather-widget--floating-error" aria-label="Không tải được thời tiết">
+          <div className="weather-widget-compact">
+            <div className="weather-widget-compact-icon">
+              <WeatherIcon main="Clouds" />
+            </div>
+            <span className="weather-widget-compact-divider" aria-hidden />
+            <span className="weather-widget-compact-temp">—</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const { weather, advice, events } = state;
   const activeIndex = slideIndex % slideCount;
@@ -264,7 +300,7 @@ const WeatherWidget = () => {
       )}
       <button
         type="button"
-        className={`weather-widget ${detailOpen ? 'weather-widget--open' : ''}`}
+        className={`weather-widget ${detailOpen ? 'weather-widget--open' : ''}${floating ? ' weather-widget--floating' : ''}`}
         onClick={() => setDetailOpen((open) => !open)}
         aria-expanded={detailOpen}
         aria-label="Xem chi tiết thời tiết"

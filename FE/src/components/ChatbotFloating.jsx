@@ -1,7 +1,32 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sendChatbotMessage, registerEventFromChat } from '../services/chatbotApi';
 import WeatherWidget from './WeatherWidget';
+
+const MOBILE_BREAKPOINT = 768;
+const EDGE_TAB_HEIGHT = 48;
+const EDGE_TOP_STORAGE_KEY = 'fevents-chatbot-edge-top';
+
+const isMobileViewport = () =>
+  typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
+
+const readStoredEdgeTop = () => {
+  try {
+    const raw = localStorage.getItem(EDGE_TOP_STORAGE_KEY);
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const clampEdgeTop = (top) => {
+  const margin = 72;
+  const maxTop = Math.max(margin, window.innerHeight - EDGE_TAB_HEIGHT - margin);
+  return Math.min(Math.max(margin, top), maxTop);
+};
+
+const defaultEdgeTop = () => clampEdgeTop(window.innerHeight - 80 - EDGE_TAB_HEIGHT);
 
 const HOME_GREETING =
   'Xin chào! Tôi là trợ lý ảo F-Events. Bạn cần tôi giúp gì hôm nay?';
@@ -71,12 +96,31 @@ const QrFabIcon = () => (
   </svg>
 );
 
+const ChevronRightIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+    <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ChevronLeftIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+    <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const ChatbotFloating = ({
   context = 'home',
   showQrFab = context === 'home' || context === 'club_manager',
 }) => {
   const rootRef = useRef(null);
+  const dragRef = useRef({ moved: false, pointerId: null });
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(() => isMobileViewport());
+  const [collapsed, setCollapsed] = useState(() => isMobileViewport());
+  const [edgeTop, setEdgeTop] = useState(() => readStoredEdgeTop() ?? defaultEdgeTop());
+  const edgeTopRef = useRef(edgeTop);
+  edgeTopRef.current = edgeTop;
+  const [isDragging, setIsDragging] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     { sender: 'bot', text: context === 'admin' ? ADMIN_GREETING : HOME_GREETING, events: [] },
@@ -85,15 +129,92 @@ const ChatbotFloating = ({
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
+    const onResize = () => {
+      const mobile = isMobileViewport();
+      setIsMobile(mobile);
+      if (mobile) {
+        setCollapsed(true);
+        setChatbotOpen(false);
+      }
+      setEdgeTop((prev) => clampEdgeTop(prev ?? defaultEdgeTop()));
+    };
+
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const persistEdgeTop = useCallback((top) => {
+    try {
+      localStorage.setItem(EDGE_TOP_STORAGE_KEY, String(top));
+    } catch {
+      // ignore quota / private mode
+    }
+  }, []);
+
+  const handleCollapse = useCallback(() => {
+    setChatbotOpen(false);
+    setCollapsed(true);
+  }, []);
+
+  const dismissFloating = useCallback(() => {
+    setChatbotOpen(false);
+    if (isMobile) setCollapsed(true);
+  }, [isMobile]);
+
+  const handleExpand = useCallback(() => {
+    setCollapsed(false);
+  }, []);
+
+  const handleEdgePointerDown = (e) => {
+    dragRef.current = {
+      moved: false,
+      pointerId: e.pointerId,
+      startY: e.clientY,
+      startTop: edgeTop,
+    };
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handleEdgePointerMove = (e) => {
+    if (!isDragging || dragRef.current.pointerId !== e.pointerId) return;
+    const deltaY = e.clientY - dragRef.current.startY;
+    if (Math.abs(deltaY) > 4) dragRef.current.moved = true;
+    setEdgeTop(clampEdgeTop(dragRef.current.startTop + deltaY));
+  };
+
+  const handleEdgePointerUp = (e) => {
+    if (dragRef.current.pointerId !== e.pointerId) return;
+    setIsDragging(false);
+    if (dragRef.current.moved) {
+      persistEdgeTop(edgeTopRef.current);
+    }
+    dragRef.current.pointerId = null;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleEdgeClick = () => {
+    if (dragRef.current.moved) {
+      dragRef.current.moved = false;
+      return;
+    }
+    handleExpand();
+  };
+
+  useEffect(() => {
     if (!chatbotOpen) return undefined;
 
     const closeOnOutside = (e) => {
       if (rootRef.current?.contains(e.target)) return;
-      setChatbotOpen(false);
+      dismissFloating();
     };
 
     const closeOnEscape = (e) => {
-      if (e.key === 'Escape') setChatbotOpen(false);
+      if (e.key === 'Escape') dismissFloating();
     };
 
     document.addEventListener('mousedown', closeOnOutside);
@@ -102,7 +223,7 @@ const ChatbotFloating = ({
       document.removeEventListener('mousedown', closeOnOutside);
       document.removeEventListener('keydown', closeOnEscape);
     };
-  }, [chatbotOpen]);
+  }, [chatbotOpen, dismissFloating]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -165,25 +286,54 @@ const ChatbotFloating = ({
     }
   };
 
+  const finishAndCollapseMobile = dismissFloating;
+
   const goToEvent = (eventId) => {
-    setChatbotOpen(false);
+    finishAndCollapseMobile();
     navigate(`/events/${eventId}`);
   };
 
   const goToAnnouncement = (announcementId) => {
-    setChatbotOpen(false);
+    finishAndCollapseMobile();
     navigate(`/announcements/${announcementId}`);
   };
 
   const goToQrScan = () => {
-    setChatbotOpen(false);
+    finishAndCollapseMobile();
     navigate('/quet-qr');
   };
 
+  const wrapperClassName = [
+    'chatbot-floating-wrapper',
+    collapsed ? 'chatbot-floating-wrapper--collapsed' : '',
+    isDragging ? 'is-dragging' : '',
+    isMobile ? 'chatbot-floating-wrapper--mobile' : '',
+  ].filter(Boolean).join(' ');
+
+  const wrapperStyle = collapsed
+    ? { top: edgeTop, bottom: 'auto', right: 0 }
+    : undefined;
+
   return (
-    <div className="chatbot-floating-wrapper" ref={rootRef}>
-      {chatbotOpen && (
-        <div className="chatbot-window">
+    <div className={wrapperClassName} ref={rootRef} style={wrapperStyle}>
+      {collapsed ? (
+        <button
+          type="button"
+          className="chatbot-floating-edge-tab"
+          onPointerDown={handleEdgePointerDown}
+          onPointerMove={handleEdgePointerMove}
+          onPointerUp={handleEdgePointerUp}
+          onPointerCancel={handleEdgePointerUp}
+          onClick={handleEdgeClick}
+          aria-label="Mở trợ lý ảo và tiện ích"
+          title="Kéo để di chuyển · Bấm để mở"
+        >
+          <ChevronLeftIcon />
+        </button>
+      ) : (
+        <div className="chatbot-floating-stack">
+          {chatbotOpen && (
+            <div className="chatbot-window">
           <div className="chat-window-header">
             <div className="chat-header-user">
               <div className="chat-avatar-circle">AI</div>
@@ -195,7 +345,7 @@ const ChatbotFloating = ({
             <button
               type="button"
               className="chat-close-btn"
-              onClick={() => setChatbotOpen(false)}
+              onClick={dismissFloating}
               aria-label="Đóng chat"
             >
               <svg viewBox="0 0 24 24" width="20" height="20">
@@ -268,40 +418,54 @@ const ChatbotFloating = ({
               </svg>
             </button>
           </form>
+            </div>
+          )}
+
+          {showQrFab && (
+            <button
+              type="button"
+              className="chatbot-qr-fab-btn"
+              onClick={goToQrScan}
+              aria-label="Quét mã QR check-in sự kiện"
+              title="Quét mã QR"
+            >
+              <QrFabIcon />
+            </button>
+          )}
+
+          <div className="chatbot-floating-fab-slot">
+            <button
+              type="button"
+              className={`chatbot-fab-btn ${chatbotOpen ? 'fab-active' : ''}`}
+              onClick={() => (chatbotOpen ? dismissFloating() : setChatbotOpen(true))}
+              aria-label="Trợ lý ảo F-Events"
+              aria-expanded={chatbotOpen}
+            >
+              <span className="fab-icon">
+                <svg viewBox="0 0 24 24" width="26" height="26">
+                  <path
+                    d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </span>
+              <span className="fab-text">Bạn cần giúp gì?</span>
+            </button>
+
+            <button
+              type="button"
+              className="chatbot-floating-hide-btn"
+              onClick={handleCollapse}
+              aria-label="Thu gọn"
+              title="Thu gọn"
+            >
+              <ChevronRightIcon />
+            </button>
+          </div>
+
+          <WeatherWidget floating />
         </div>
       )}
-
-      {showQrFab && (
-        <button
-          type="button"
-          className="chatbot-qr-fab-btn"
-          onClick={goToQrScan}
-          aria-label="Quét mã QR check-in sự kiện"
-          title="Quét mã QR"
-        >
-          <QrFabIcon />
-        </button>
-      )}
-
-      <button
-        type="button"
-        className={`chatbot-fab-btn ${chatbotOpen ? 'fab-active' : ''}`}
-        onClick={() => setChatbotOpen(!chatbotOpen)}
-        aria-label="Trợ lý ảo F-Events"
-        aria-expanded={chatbotOpen}
-      >
-        <span className="fab-icon">
-          <svg viewBox="0 0 24 24" width="26" height="26">
-            <path
-              d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"
-              fill="currentColor"
-            />
-          </svg>
-        </span>
-        <span className="fab-text">Bạn cần giúp gì?</span>
-      </button>
-
-      <WeatherWidget />
     </div>
   );
 };

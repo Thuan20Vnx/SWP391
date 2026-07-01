@@ -3,6 +3,7 @@ const PartnerEventRequest = require('../models/PartnerEventRequest');
 const Contract = require('../models/Contract');
 const AppError = require('../utils/AppError');
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
+const { assertEventScheduleDates } = require('../utils/dateValidation');
 const partnerQueryCache = require('../utils/partnerQueryCache');
 const { sanitizePartnerRequestForApi } = require('../utils/partnerMediaStorage');
 
@@ -238,6 +239,10 @@ const submitRequest = async (email, body) => {
   if (!payload.startDate || Number.isNaN(payload.startDate.getTime())) {
     throw new AppError('Thời gian bắt đầu sự kiện là bắt buộc!', 400);
   }
+  assertEventScheduleDates({
+    registrationStartDate: payload.registrationStartDate,
+    startDate: payload.startDate,
+  });
 
   let doc =
     (body.requestId && (await PartnerEventRequest.findById(body.requestId))) ||

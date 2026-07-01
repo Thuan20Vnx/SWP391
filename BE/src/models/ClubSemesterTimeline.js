@@ -79,6 +79,8 @@ const clubSemesterTimelineSchema = new mongoose.Schema(
     reviewedByEmail: { type: String, default: '' },
     reviewedAt: { type: Date, default: null },
     submittedAt: { type: Date, default: null },
+    everApproved: { type: Boolean, default: false },
+    approvedSnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
     changeRequest: { type: changeRequestSchema, default: () => ({}) },
   },
   { timestamps: true }

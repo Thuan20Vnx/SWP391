@@ -7,6 +7,8 @@ import {
   mapTimelineItemToEventForm,
 } from '../../utils/timelineEventQuickFill';
 
+const AD_HOC_EVENT_VALUE = '__ad_hoc__';
+
 const isUsableApprovedTimeline = (timeline) => {
   if (timeline.statusKey !== 'approved') return false;
   const pendingChange = timeline.changeRequest?.statusKey;
@@ -20,11 +22,12 @@ const ClubTimelineQuickPick = ({
   currentForm,
   selectedKey,
   onSelectItem,
+  onSelectAdHoc,
   onOpenExistingEvent,
   disabled = false,
 }) => {
   const [expanded, setExpanded] = useState(true);
-  const [selectedTimelineId, setSelectedTimelineId] = useState('');
+  const [selectedTimelineId, setSelectedTimelineId] = useState(AD_HOC_EVENT_VALUE);
 
   const timelineOptions = useMemo(
     () =>
@@ -35,19 +38,29 @@ const ClubTimelineQuickPick = ({
     [timelines]
   );
 
+  const selectOptions = useMemo(
+    () => [
+      { value: AD_HOC_EVENT_VALUE, label: 'Sự kiện phát sinh' },
+      ...(timelineOptions.length > 1 ? [{ value: '', label: 'Tất cả timeline' }] : []),
+      ...timelineOptions,
+    ],
+    [timelineOptions]
+  );
+
+  const isAdHoc = selectedTimelineId === AD_HOC_EVENT_VALUE;
+
   useEffect(() => {
-    if (timelineOptions.length === 1) {
-      setSelectedTimelineId(timelineOptions[0].value);
-      return;
+    if (isAdHoc) {
+      onSelectAdHoc?.();
     }
-    setSelectedTimelineId('');
-  }, [timelineOptions]);
+  }, [isAdHoc, onSelectAdHoc]);
 
   const items = useMemo(() => {
+    if (isAdHoc) return [];
     const allItems = collectApprovedTimelineItems(timelines);
     if (!selectedTimelineId) return allItems;
     return allItems.filter((item) => String(item.timelineId) === selectedTimelineId);
-  }, [timelines, selectedTimelineId]);
+  }, [timelines, selectedTimelineId, isAdHoc]);
 
   if (!timelineOptions.length) return null;
 
@@ -78,15 +91,12 @@ const ClubTimelineQuickPick = ({
           <AppSelect
             value={selectedTimelineId}
             onChange={(e) => setSelectedTimelineId(e.target.value)}
-            options={[
-              ...(timelineOptions.length > 1 ? [{ value: '', label: 'Tất cả timeline' }] : []),
-              ...timelineOptions,
-            ]}
-            placeholder="Chọn timeline"
+            options={selectOptions}
+            placeholder="Chọn nguồn sự kiện"
             disabled={disabled}
             fullWidth={false}
             className="clb-timeline-quick-pick__timeline-select"
-            aria-label="Chọn timeline kỳ học"
+            aria-label="Chọn nguồn sự kiện"
           />
           <button
             type="button"
@@ -104,7 +114,12 @@ const ClubTimelineQuickPick = ({
 
       {expanded && (
         <div className="clb-timeline-quick-pick__list">
-          {!items.length && (
+          {isAdHoc && (
+            <p className="clb-timeline-quick-pick__empty">
+              Sự kiện phát sinh không lấy nội dung từ timeline. Điền thông tin sự kiện ở form bên dưới.
+            </p>
+          )}
+          {!isAdHoc && !items.length && (
             <p className="clb-timeline-quick-pick__empty">Không có hoạt động nào trong timeline đã chọn.</p>
           )}
           {items.map((item) => {

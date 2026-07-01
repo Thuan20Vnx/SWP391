@@ -5,6 +5,24 @@ export const hasMeaningfulClubChangeReason = (reason) => {
   return true;
 };
 
+const TIMELINE_OWNER_COPY = {
+  club: { reasonLong: 'Lý do CLB gửi', reasonShort: 'Lý do CLB', requestor: 'CLB' },
+  icpdp: { reasonLong: 'Lý do IC-PDP gửi', reasonShort: 'Lý do IC-PDP', requestor: 'IC-PDP' },
+  ctsv: { reasonLong: 'Lý do CTSV gửi', reasonShort: 'Lý do CTSV', requestor: 'CTSV' },
+};
+
+export const getTimelineOwnerCopy = (ownerType = 'club') =>
+  TIMELINE_OWNER_COPY[ownerType] || TIMELINE_OWNER_COPY.club;
+
+export const getChangeRequestTypeLabel = (changeRequest) => {
+  if (!changeRequest?.type || changeRequest.type === 'none') return '';
+  if (changeRequest.statusKey === 'rejected') {
+    if (changeRequest.type === 'cancel') return 'Đã từng bị hủy đơn timeline';
+    if (changeRequest.type === 'delete') return 'Đã từng bị yêu cầu xóa timeline';
+  }
+  return changeRequest.typeLabel || '';
+};
+
 export const isScheduledTimelineDelete = (timeline) =>
   timeline?.changeRequest?.statusKey === 'scheduled_delete';
 

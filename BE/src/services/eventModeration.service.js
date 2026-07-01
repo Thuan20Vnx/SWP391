@@ -65,6 +65,7 @@ const requestModeration = async (eventId, { action, reason, isWeatherPostpone },
   event.moderationRequestedAt = new Date();
   event.postponeIsWeather = false;
   event.ctsvEditUnlocked = false;
+  event.rejectionReason = '';
 
   if (action === 'postpone') {
     event.postponeReason = trimmedReason;
@@ -332,6 +333,7 @@ const approveModeration = async (eventId, authEmail) => {
   event.moderationReasonCategory = '';
   event.moderationRequestedByEmail = '';
   event.moderationRequestedAt = null;
+  event.rejectionReason = '';
   event.adminApprovedByEmail = authEmail || event.adminApprovedByEmail;
   event.adminApprovedAt = new Date();
 

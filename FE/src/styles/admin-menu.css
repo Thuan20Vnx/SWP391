@@ -59,7 +59,8 @@
   box-sizing: border-box;
 }
 
-.admin-app-shell .admin-main > .ctsv-announce-page {
+.admin-app-shell .admin-main > .ctsv-announce-page,
+.admin-app-shell .admin-main > .ctsv-events-page {
   width: 100%;
   max-width: 1200px;
   margin-left: auto;

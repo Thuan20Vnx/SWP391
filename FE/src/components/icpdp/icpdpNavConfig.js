@@ -7,16 +7,17 @@ export const ICPDP_NAV_ITEMS = [
   { path: '/icpdp/club-registrations', label: 'Quản lý CLB', icon: 'accounts' },
   {
     path: '/icpdp/semester-timelines',
-    label: 'Duyệt timeline Spring/Summer/Fall',
-    icon: 'calendar',
-  },
-  {
-    path: '/icpdp/my-semester-timelines',
-    label: 'Timeline kỳ IC-PDP',
+    label: 'Duyệt timeline CLB',
     icon: 'calendar',
   },
   { path: '/icpdp/events', label: 'Xem sự kiện', icon: 'events' },
-  { path: '/icpdp/events/create', label: 'Tạo sự kiện cấp trường', section: 'SỰ KIỆN', icon: 'create' },
+  {
+    path: '/icpdp/my-semester-timelines',
+    label: 'Timeline kỳ IC-PDP',
+    section: 'SỰ KIỆN',
+    icon: 'calendar',
+  },
+  { path: '/icpdp/events/create', label: 'Tạo sự kiện cấp trường', icon: 'create' },
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
   { path: '/icpdp/reports', label: 'Báo cáo sau SK', icon: 'reports' },
   { path: '/icpdp/announcements', label: 'Thông báo CLB', icon: 'announce' }

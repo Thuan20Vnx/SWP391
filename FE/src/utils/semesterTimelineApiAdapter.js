@@ -8,6 +8,8 @@ import {
   submitClubSemesterTimeline,
   updateClubSemesterTimeline,
   cancelScheduledTimelineDelete,
+  withdrawClubSemesterTimeline,
+  withdrawCancelTimelineChangeRequest,
 } from '../services/clubTimelineApi';
 import { API_BASE, getAuthHeaders, parseApiResponse } from './api';
 import {
@@ -20,6 +22,8 @@ import {
   submitSchoolSemesterTimeline,
   updateSchoolSemesterTimeline,
   cancelScheduledSchoolTimelineDelete,
+  withdrawSchoolSemesterTimeline,
+  withdrawCancelSchoolTimelineChangeRequest,
   checkSchoolTimelineConflicts,
 } from '../services/schoolTimelineApi';
 
@@ -68,6 +72,8 @@ export const getTimelineApi = (mode = 'club') => {
       delete: (id) => deleteClubSemesterTimeline(id),
       requestChange: (id, body) => requestClubSemesterTimelineChange(id, body),
       cancelScheduledDelete: (id) => cancelScheduledTimelineDelete(id),
+      withdrawCancelChangeRequest: (id) => withdrawCancelTimelineChangeRequest(id),
+      withdrawPendingSubmit: (id) => withdrawClubSemesterTimeline(id),
       checkConflicts: clubCheckConflicts,
     };
   }
@@ -104,6 +110,8 @@ export const getTimelineApi = (mode = 'club') => {
     delete: (id) => deleteSchoolSemesterTimeline(id),
     requestChange: (id, body) => requestSchoolSemesterTimelineChange(id, body),
     cancelScheduledDelete: (id) => cancelScheduledSchoolTimelineDelete(id),
+    withdrawCancelChangeRequest: (id) => withdrawCancelSchoolTimelineChangeRequest(id),
+    withdrawPendingSubmit: (id) => withdrawSchoolSemesterTimeline(id),
     checkConflicts: async (body) => {
       const data = await checkSchoolTimelineConflicts(body);
       return data.results || [];
