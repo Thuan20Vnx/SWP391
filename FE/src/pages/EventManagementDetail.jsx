@@ -327,13 +327,13 @@ const EventManagementDetail = ({
   }, [loadEventData]);
 
   useEffect(() => {
-    if (!isIcpdpPortal && !isSchoolManagePortal) return undefined;
+    if (!isIcpdpPortal && !isSchoolManagePortal && !isClubPortal) return undefined;
     const onLive = () => {
       loadEventData();
     };
     window.addEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
     return () => window.removeEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
-  }, [isIcpdpPortal, isSchoolManagePortal, loadEventData]);
+  }, [isIcpdpPortal, isSchoolManagePortal, isClubPortal, loadEventData]);
 
   useEffect(() => {
     if (isSchoolManagePortal || isIcpdpPortal || !id) return;

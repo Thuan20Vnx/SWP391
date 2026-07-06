@@ -1,7 +1,5 @@
 const { EVENT_CATEGORIES, normalizeEventCategory } = require('../constants/eventCategories');
-
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const { extractJson } = require('./aiProvider.service');
 
 const MAX_INPUT_CHARS = 20000;
 
@@ -13,7 +11,9 @@ Quy tắc:
 - "category" phải là MỘT trong các giá trị: ${EVENT_CATEGORIES.join(', ')}. Chọn giá trị gần nghĩa nhất; nếu không rõ để "".
 - "maxSlots" là số nguyên sức chứa/số vé; 0 nếu không rõ.
 - "learningOutcomes" là mảng các mục ngắn "bạn sẽ học được gì"; [] nếu không có.
-- "description" là đoạn mô tả/giới thiệu sự kiện. "agenda" là chương trình/lịch trình dự kiến.`;
+- "description" là đoạn mô tả/giới thiệu sự kiện. "agenda" là chương trình/lịch trình dự kiến.
+- BẮT BUỘC xuất đủ TẤT CẢ khóa sau trong object JSON, không được bỏ sót khóa nào (điền giá trị nếu văn bản có, ngược lại để "" hoặc 0): title, category, speaker, description, agenda, location, maxSlots, learningOutcomes, regStartDate, regStartTime, regEndDate, regEndTime, eventStartDate, eventStartTime, eventEndDate, eventEndTime.
+- "title" là TÊN sự kiện (thường sau nhãn "Tên sự kiện") — luôn cố gắng điền, KHÔNG để trống nếu văn bản có tên.`;
 
 const RESPONSE_SCHEMA = {
   type: 'object',
@@ -70,53 +70,17 @@ const cleanPatch = (parsed) => {
  * @returns {Promise<{ patch: object }>}
  */
 const extractEventFromText = async (rawText) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY chưa được cấu hình trên server.');
-  }
   const text = String(rawText || '').trim();
   if (!text) {
     throw new Error('Không có nội dung văn bản để trích xuất.');
   }
 
-  const body = {
-    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: `NỘI DUNG FILE KẾ HOẠCH:\n${text.slice(0, MAX_INPUT_CHARS)}` }],
-      },
-    ],
-    generationConfig: {
-      responseMimeType: 'application/json',
-      responseSchema: RESPONSE_SCHEMA,
-      temperature: 0.1,
-    },
-  };
-
-  const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+  const parsed = await extractJson({
+    systemPrompt: SYSTEM_PROMPT,
+    userPrompt: `NỘI DUNG FILE KẾ HOẠCH:\n${text.slice(0, MAX_INPUT_CHARS)}`,
+    temperature: 0.1,
+    responseSchema: RESPONSE_SCHEMA,
   });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Gemini API lỗi (${response.status}): ${errText}`);
-  }
-
-  const data = await response.json();
-  const out = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('').trim();
-  if (!out) {
-    throw new Error('Gemini không trả về nội dung hợp lệ.');
-  }
-
-  let parsed;
-  try {
-    parsed = JSON.parse(out);
-  } catch {
-    throw new Error('Không đọc được kết quả từ AI.');
-  }
 
   return { patch: cleanPatch(parsed) };
 };

@@ -20,7 +20,7 @@ export const PORTAL_EVENTS_LIVE_TYPES = new Set([
 /** @deprecated */
 export const ADMIN_EVENTS_LIVE_TYPES = PORTAL_EVENTS_LIVE_TYPES;
 
-export const PORTAL_EVENTS_LIVE_ROLES = new Set(['admin', 'ctsv', 'icpdp']);
+export const PORTAL_EVENTS_LIVE_ROLES = new Set(['admin', 'ctsv', 'icpdp', 'club_manager', 'partner']);
 
 /** @deprecated */
 export const ADMIN_EVENTS_LIVE_ROLES = PORTAL_EVENTS_LIVE_ROLES;
