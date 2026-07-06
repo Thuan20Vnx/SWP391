@@ -83,6 +83,7 @@ const beginReapprovalEdit = (timeline, pendingStatus) => {
   timeline.rejectionReason = '';
   timeline.icpdpNote = '';
   timeline.ctsvNote = '';
+  timeline.editRejected = false;
 };
 
 const VALID_TERMS = ['spring', 'summer', 'fall'];
@@ -565,6 +566,7 @@ const adminApprove = async (id, { note, reviewerEmail } = {}) => {
   timeline.status = 'approved';
   timeline.everApproved = true;
   timeline.approvedSnapshot = null;
+  timeline.editRejected = false;
   timeline.ctsvNote = String(note || '').trim();
   timeline.reviewedByEmail = reviewerEmail || '';
   timeline.reviewedAt = new Date();
@@ -600,6 +602,7 @@ const rejectTimeline = async (id, { reason, reviewerEmail, reviewerRole } = {}) 
   if (isReapprovalRejection(timeline, reviewerRole)) {
     restoreApprovedSnapshot(timeline);
     timeline.status = 'approved';
+    timeline.editRejected = true;
     timeline.rejectionReason = '';
     if (reviewerRole === 'admin') {
       timeline.ctsvNote = trimmed;

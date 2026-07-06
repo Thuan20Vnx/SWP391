@@ -4,6 +4,7 @@ import AutoGrowTextarea from '../ui/AutoGrowTextarea';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import EventPlanFilePanel from '../events/EventPlanFilePanel';
 import EventPlanUploadField from '../events/EventPlanUploadField';
+import TimelineDocImportPanel from './TimelineDocImportPanel';
 import { useCloseOnClickOutside } from '../../hooks/useCloseOnClickOutside';
 import TimelineLocationConflictNotice from '../timeline/TimelineLocationConflictNotice';
 import { getTimelineApi } from '../../utils/semesterTimelineApiAdapter';
@@ -346,6 +347,10 @@ const CLB_STATUS_META = {
 };
 
 const resolveClubTimelineMeta = (tl) => {
+  // Bản chỉnh sửa của timeline đã duyệt bị người duyệt từ chối — đơn giữ nội dung cũ đã duyệt.
+  if (tl.editRejected && (tl.statusBadgeKey || tl.statusKey) === 'approved') {
+    return { label: 'Đã duyệt · từ chối sửa', tone: 'amber' };
+  }
   const badgeKey = tl.statusBadgeKey || tl.statusKey;
   const meta = CLB_STATUS_META[badgeKey] || CLB_STATUS_META[tl.statusKey];
   return {
@@ -401,6 +406,31 @@ const ClubSemesterTimelinePanel = ({ showToast, mode = 'club', initialTimelineId
     const next = { ...prev, ...patch };
     if (patch.eventPlanFile) next.eventPlanExisting = false;
     if (patch.eventPlanFile === '') next.eventPlanExisting = false;
+    return next;
+  });
+
+  /** Áp dụng kết quả AI trích xuất từ file vào form (chỉ ghi đè trường có giá trị). */
+  const applyDocImport = (patch) => setForm((prev) => {
+    const next = { ...prev };
+    if (patch.semesterTerm) next.semesterTerm = patch.semesterTerm;
+    if (patch.semesterYear) next.semesterYear = String(patch.semesterYear);
+    if (patch.summary) next.summary = patch.summary;
+    if (patch.objectives) next.objectives = patch.objectives;
+    if (Array.isArray(patch.items) && patch.items.length) {
+      next.items = patch.items.map((it) => ({
+        ...emptyItem(),
+        title: it.title || '',
+        description: it.description || '',
+        plannedDate: it.plannedDate || '',
+        plannedEndDate: it.plannedEndDate || '',
+        category: CATEGORY_OPTIONS.includes(it.category) ? it.category : 'Workshop',
+        location: it.location || '',
+        expectedAttendees:
+          it.expectedAttendees != null && it.expectedAttendees !== ''
+            ? String(it.expectedAttendees)
+            : '',
+      }));
+    }
     return next;
   });
 
@@ -995,6 +1025,12 @@ const ClubSemesterTimelinePanel = ({ showToast, mode = 'club', initialTimelineId
       </div>
 
       <div className="clb-timeline-form">
+        <TimelineDocImportPanel
+          onApply={applyDocImport}
+          onAttachPlanFile={patchPlan}
+          showToast={showToast}
+        />
+
         <div className="clb-timeline-form-row">
             <label>
               Kỳ học (FPT)

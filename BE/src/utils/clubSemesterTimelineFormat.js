@@ -208,6 +208,7 @@ const formatClubSemesterTimeline = async (doc, opts = {}) => {
     reviewedAt: r.reviewedAt || null,
     submittedAt: r.submittedAt || null,
     everApproved,
+    editRejected: Boolean(r.editRejected) && statusKey === 'approved',
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     changeRequest,

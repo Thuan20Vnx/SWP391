@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
+import { PORTAL_EVENTS_LIVE_EVENT } from '../../utils/adminEventsLiveEvents';
 import {
   fetchPartnerEvent,
   deletePartnerEventRequest,
@@ -54,14 +55,29 @@ const PartnerEventDetail = () => {
   const [nowTs] = useState(() => Date.now());
   const tabContentRef = useRef(null);
 
+  const loadEvent = useCallback(
+    ({ silent = false } = {}) => {
+      fetchPartnerEvent(id)
+        .then((d) => setEvent(d.event))
+        .catch(() => {
+          if (silent) return;
+          showToast?.('Không tải được sự kiện.', 'error');
+          navigate('/partner/events');
+        });
+    },
+    [id, navigate, showToast]
+  );
+
   useEffect(() => {
-    fetchPartnerEvent(id)
-      .then((d) => setEvent(d.event))
-      .catch(() => {
-        showToast?.('Không tải được sự kiện.', 'error');
-        navigate('/partner/events');
-      });
-  }, [id, navigate, showToast]);
+    loadEvent();
+  }, [loadEvent]);
+
+  // Cập nhật realtime khi có thay đổi liên quan (duyệt/từ chối/điều chỉnh...).
+  useEffect(() => {
+    const onLive = () => loadEvent({ silent: true });
+    window.addEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+    return () => window.removeEventListener(PORTAL_EVENTS_LIVE_EVENT, onLive);
+  }, [loadEvent]);
 
   useEffect(() => {
     let cancelled = false;

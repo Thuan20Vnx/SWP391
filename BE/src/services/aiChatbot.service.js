@@ -2,9 +2,7 @@ const eventService = require('./event.service');
 const Announcement = require('../models/Announcement');
 const { PUBLIC_ANNOUNCEMENT_FILTER } = require('../utils/announcementFormat');
 const { fetchCurrentWeather } = require('./weather.service');
-
-const GEMINI_MODEL = 'gemini-2.5-flash';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const { chatJson } = require('./aiProvider.service');
 
 const HOME_SYSTEM_PROMPT = `Bạn là trợ lý ảo "F-Events" của nền tảng quản lý sự kiện sinh viên FPT.
 Trả lời ngắn gọn, thân thiện, bằng tiếng Việt, dùng Markdown đơn giản (đoạn văn ngắn, gạch đầu dòng "-" khi liệt kê, **in đậm** tên sự kiện/thông báo).
@@ -15,7 +13,11 @@ Nếu câu hỏi không liên quan (chào hỏi, hỏi cách dùng web), trả l
 Quy tắc tham chiếu (rất quan trọng — để hệ thống hiển thị ô điều hướng cho người dùng):
 - Mỗi SỰ KIỆN có mã "E#<n>". Khi bạn nhắc tới / gợi ý một sự kiện cụ thể, thêm số <n> vào mảng "eventRefs".
 - Mỗi THÔNG BÁO có mã "A#<n>". Khi bạn nhắc tới / gợi ý một thông báo cụ thể, thêm số <n> vào mảng "announcementRefs".
-- Khi người dùng yêu cầu ĐĂNG KÝ / MUA VÉ một sự kiện cụ thể (vd: "đăng ký vé Miss grand", "cho mình đăng ký sự kiện X"), đặt mã số <n> của đúng sự kiện đó vào "registerEventRef" (chỉ một số). Trong câu trả lời, xác nhận ngắn gọn rằng bạn đang đăng ký giúp. Nếu không chắc người dùng muốn sự kiện nào, hãy hỏi lại thay vì đặt registerEventRef.`;
+- Khi người dùng yêu cầu ĐĂNG KÝ / MUA VÉ một sự kiện cụ thể (vd: "đăng ký vé Miss grand", "cho mình đăng ký sự kiện X"), đặt mã số <n> của đúng sự kiện đó vào "registerEventRef" (chỉ một số). Trong câu trả lời, xác nhận ngắn gọn rằng bạn đang đăng ký giúp. Nếu không chắc người dùng muốn sự kiện nào, hãy hỏi lại thay vì đặt registerEventRef.
+
+ĐỊNH DẠNG KẾT QUẢ (BẮT BUỘC): trả về DUY NHẤT một object JSON với đúng 4 khóa:
+  {"reply": "<câu trả lời Markdown cho người dùng>", "eventRefs": [<các số n>], "announcementRefs": [<các số n>], "registerEventRef": <số n hoặc 0>}
+"reply" KHÔNG được để trống. "eventRefs"/"announcementRefs" là mảng số nguyên (rỗng [] nếu không có). "registerEventRef" là 0 nếu người dùng không yêu cầu đăng ký.`;
 
 const formatEventsForPrompt = (events) => {
   if (!events.length) return 'Hiện chưa có sự kiện công khai nào.';
@@ -63,38 +65,27 @@ const RESPONSE_SCHEMA = {
   required: ['reply', 'eventRefs', 'announcementRefs', 'registerEventRef'],
 };
 
-const buildContents = (history, context, dataBlock) => {
-  const systemPrompt =
+const buildChatInput = (history, context, dataBlock) => {
+  const systemBase =
     context === 'admin'
       ? `${HOME_SYSTEM_PROMPT}\nNgười dùng hiện tại là ADMIN/quản trị viên, có thể hỏi về quy trình duyệt đề xuất, xử lý yêu cầu sửa/ẩn/xóa, quản lý tài khoản.`
       : HOME_SYSTEM_PROMPT;
 
-  const contents = history
+  const messages = (history || [])
     .filter((m) => m.text && m.text.trim())
     .slice(-10)
     .map((m) => ({
-      role: m.sender === 'user' ? 'user' : 'model',
-      parts: [{ text: m.text }],
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: m.text,
     }));
 
   return {
-    systemInstruction: {
-      parts: [{ text: `${systemPrompt}\n\n${dataBlock}` }],
-    },
-    contents,
-    generationConfig: {
-      responseMimeType: 'application/json',
-      responseSchema: RESPONSE_SCHEMA,
-    },
+    systemPrompt: `${systemBase}\n\n${dataBlock}`,
+    messages,
   };
 };
 
 const getReply = async ({ messages, context }) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY chưa được cấu hình trên server.');
-  }
-
   const [{ events } = {}, annList, weather] = await Promise.all([
     eventService.getApprovedEvents({ skipPagination: true }),
     Announcement.find(PUBLIC_ANNOUNCEMENT_FILTER)
@@ -113,42 +104,24 @@ const getReply = async ({ messages, context }) => {
     : 'DỮ LIỆU THỜI TIẾT HIỆN TẠI: chưa lấy được dữ liệu thời tiết.';
   const dataBlock = `DỮ LIỆU SỰ KIỆN HIỆN CÓ:\n${formatEventsForPrompt(eventList)}\n\nDỮ LIỆU THÔNG BÁO HIỆN CÓ:\n${formatAnnouncementsForPrompt(annItems)}\n\n${weatherBlock}`;
 
-  const body = buildContents(messages || [], context, dataBlock);
+  const { systemPrompt, messages: chatMessages } = buildChatInput(messages || [], context, dataBlock);
 
-  let rawText;
+  let parsed;
   try {
-    const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+    parsed = await chatJson({
+      systemPrompt,
+      messages: chatMessages,
+      responseSchema: RESPONSE_SCHEMA,
+      temperature: 0.4,
     });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Gemini API lỗi (${response.status}): ${errText}`);
-    }
-
-    const data = await response.json();
-    rawText = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('').trim();
-
-    if (!rawText) {
-      throw new Error('Gemini không trả về nội dung hợp lệ.');
-    }
   } catch (err) {
-    console.error('Chatbot Gemini lỗi, dùng fallback:', err.message);
+    console.error('Chatbot AI lỗi (tất cả provider), dùng fallback:', err.message);
     return {
       reply: 'Trợ lý ảo đang quá tải hoặc tạm thời không kết nối được với AI, bạn vui lòng thử lại sau ít phút nhé. Trong lúc đó bạn có thể xem trực tiếp danh sách sự kiện và thông báo trên trang.',
       events: [],
       announcements: [],
       action: null,
     };
-  }
-
-  let parsed;
-  try {
-    parsed = JSON.parse(rawText);
-  } catch {
-    return { reply: rawText, events: [], announcements: [], action: null };
   }
 
   const eventRefs = Array.isArray(parsed.eventRefs) ? parsed.eventRefs : [];
@@ -171,7 +144,7 @@ const getReply = async ({ messages, context }) => {
   }
 
   return {
-    reply: parsed.reply || rawText,
+    reply: parsed.reply || 'Mình chưa có thông tin phù hợp cho câu hỏi này.',
     events: suggestedEvents,
     announcements: suggestedAnnouncements,
     action,

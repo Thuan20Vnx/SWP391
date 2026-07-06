@@ -74,6 +74,17 @@ export const buildTimelineReviewFeedback = (timeline) => {
   const icpdpNote = String(timeline?.icpdpNote || '').trim();
   const rejectionReason = String(timeline?.rejectionReason || '').trim();
 
+  if (statusKey === 'approved' && timeline?.editRejected) {
+    const note = String(timeline?.ctsvNote || timeline?.icpdpNote || '').trim();
+    return {
+      title: 'Bản chỉnh sửa đã bị từ chối',
+      body: note
+        ? `Timeline vẫn giữ nguyên nội dung đã duyệt trước đó (không áp dụng thay đổi). Lý do: ${note}`
+        : 'Timeline vẫn giữ nguyên nội dung đã duyệt trước đó (không áp dụng thay đổi).',
+      tone: 'rejected',
+    };
+  }
+
   if (statusKey === 'revision' && icpdpNote) {
     return {
       title: 'IC-PDP yêu cầu chỉnh sửa timeline',

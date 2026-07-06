@@ -248,6 +248,7 @@ const EventProposalForm = ({
       eventPlanFileName: '',
       eventPlanFileMime: '',
       eventPlanFileSizeLabel: '',
+      eventPlanUrl: '',
     });
     if (planFileInputRef.current) planFileInputRef.current.value = '';
   };
@@ -269,7 +270,10 @@ const EventProposalForm = ({
       if (config.requireEventPlan) {
         const hasPlanFile = Boolean(form.eventPlanFile);
         const hasPlanLink = isValidEventPlanLink(form.eventPlanLink);
-        if (!hasPlanFile && !hasPlanLink) {
+        // Khi sửa đơn, file đã lưu trước đó (eventPlanUrl/tên file từ BE) vẫn được tính là
+        // hợp lệ — không bắt buộc tải lại file mới. Bấm "Xóa file" sẽ clear cả hai.
+        const hasExistingPlan = Boolean(form.eventPlanUrl) || Boolean(form.eventPlanFileName);
+        if (!hasPlanFile && !hasPlanLink && !hasExistingPlan) {
           return 'Vui lòng tải file hoặc dán link bảng kế hoạch sự kiện (Google Drive, OneDrive...).';
         }
       }

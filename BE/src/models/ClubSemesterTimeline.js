@@ -80,6 +80,9 @@ const clubSemesterTimelineSchema = new mongoose.Schema(
     reviewedAt: { type: Date, default: null },
     submittedAt: { type: Date, default: null },
     everApproved: { type: Boolean, default: false },
+    // true khi bản chỉnh sửa của timeline ĐÃ DUYỆT bị người duyệt (Admin/IC-PDP) từ chối —
+    // timeline giữ nguyên nội dung đã duyệt trước đó. Reset khi sửa lại hoặc được duyệt.
+    editRejected: { type: Boolean, default: false },
     approvedSnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
     changeRequest: { type: changeRequestSchema, default: () => ({}) },
   },
