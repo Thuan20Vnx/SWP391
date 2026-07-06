@@ -73,12 +73,27 @@ eventProposalSchema.pre('save', async function () {
   const path = require('path');
   await persistEventPlanOnDocument(this, PLAN_SCOPES.proposals);
   if (this._id && isImageDataUri(this.image)) {
-    const PROPOSAL_COVERS = path.join(__dirname, '../../uploads/proposal-covers');
-    const { mime, buffer } = parseDataUri(this.image);
-    const ext = extensionFromMime(mime, '', 'jpg');
-    await writeBufferToFile(path.join(PROPOSAL_COVERS, `${String(this._id)}.${ext}`), buffer);
-    this.coverFileExt = ext;
-    this.image = '';
+    const { isCloudinaryConfigured, uploadDataUri } = require('../utils/cloudinary');
+    let stored = false;
+    if (isCloudinaryConfigured()) {
+      const uploaded = await uploadDataUri(this.image, {
+        folder: 'fevents/proposal-covers',
+        publicId: String(this._id),
+      }).catch(() => null);
+      if (uploaded?.url) {
+        this.coverFileExt = '';
+        this.image = uploaded.url;
+        stored = true;
+      }
+    }
+    if (!stored) {
+      const PROPOSAL_COVERS = path.join(__dirname, '../../uploads/proposal-covers');
+      const { mime, buffer } = parseDataUri(this.image);
+      const ext = extensionFromMime(mime, '', 'jpg');
+      await writeBufferToFile(path.join(PROPOSAL_COVERS, `${String(this._id)}.${ext}`), buffer);
+      this.coverFileExt = ext;
+      this.image = '';
+    }
   }
 });
 

@@ -9,6 +9,7 @@ const {
   deleteFileIfExists,
   findStoredFile,
 } = require('./dataUriStorage');
+const { isCloudinaryConfigured, uploadDataUri } = require('./cloudinary');
 const { resolveEventSpeakers } = require('../constants/eventSpeaker');
 
 const AVATARS_ROOT = path.join(__dirname, '../../uploads/speaker-avatars');
@@ -68,6 +69,20 @@ const persistSpeakersOnDocument = async (doc) => {
     const avatar = speakers[i]?.avatar || '';
 
     if (isImageDataUri(avatar)) {
+      if (isCloudinaryConfigured()) {
+        const uploaded = await uploadDataUri(avatar, {
+          folder: `fevents/speaker-avatars/${eventId}`,
+          publicId: String(i),
+        });
+        if (uploaded?.url) {
+          if (storedExts[i] || hasStoredSpeakerAvatar(eventId, i)) {
+            deleteSpeakerAvatar(eventId, i);
+          }
+          storedExts[i] = '';
+          speakers[i].avatar = uploaded.url;
+          continue;
+        }
+      }
       const ext = await writeSpeakerAvatarFromDataUri(eventId, i, avatar);
       storedExts[i] = ext;
       speakers[i].avatar = '';
