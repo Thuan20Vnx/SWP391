@@ -19,6 +19,8 @@ const router = express.Router();
 
 router.post('/', authMiddleware, authorize('student', 'staff', 'club_manager'), asyncHandler(eventController.createEvent));
 router.get('/my', authMiddleware, authorize('club_manager', 'student', 'staff'), asyncHandler(eventController.getMyEvents));
+router.get('/my/report-submissions', authMiddleware, authorize('club_manager'), asyncHandler(eventController.listMyReportSubmissions));
+router.post('/:id/report-submit', authMiddleware, authorize('club_manager'), asyncHandler(eventController.submitMyEventReport));
 router.get('/pending', authorize('ctsv', 'admin'), asyncHandler(eventController.getPendingEvents));
 router.put('/:id/status', authorize('ctsv', 'admin'), asyncHandler(eventController.updateEventStatus));
 router.delete('/:id', authMiddleware, authorize('club_manager', 'student', 'staff'), asyncHandler(eventController.deleteMyEvent));
@@ -95,6 +97,12 @@ router.post(
 );
 
 router.get(
+  '/:id/rating-stats',
+  authMiddleware,
+  authorize('club_manager', 'ctsv', 'icpdp', 'admin', 'partner'),
+  asyncHandler(reviewController.getEventRatingStats)
+);
+router.get(
   '/:id/station-qr',
   authMiddleware,
   authorize('club_manager', 'ctsv', 'icpdp', 'admin'),
@@ -121,6 +129,8 @@ router.get(
   authorize('student', 'staff', 'club_manager', 'ctsv', 'icpdp', 'admin'),
   asyncHandler(eventController.getEventPlan)
 );
+router.post('/:id/remind', optionalAuth, asyncHandler(eventController.remindEvent));
+router.get('/:id/remind/status', optionalAuth, asyncHandler(eventController.remindEventStatus));
 router.get('/:id/speakers/:index/avatar', optionalAuth, asyncHandler(eventController.getSpeakerAvatar));
 router.get('/:id/cover', optionalAuth, optionalAuthorize, asyncHandler(eventController.getEventCover));
 router.get('/:id', optionalAuth, optionalAuthorize, asyncHandler(eventController.getEventById));

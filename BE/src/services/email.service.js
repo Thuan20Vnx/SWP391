@@ -179,7 +179,7 @@ const buildEmailShell = ({ title, bodyHtml }) => `<!DOCTYPE html>
         <table border="0" cellpadding="0" cellspacing="0" width="480" role="presentation" style="max-width:480px;width:100%;">
           <tr>
             <td style="padding-bottom:20px;">
-              <img src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM" alt="F-Events" width="96" height="54" style="display:block;border:0;" />
+              <img src="https://lh3.googleusercontent.com/d/1zQNsDmGHl1ho4Xk8SN6dOPXSQVQQbhWM" alt="F-Events" height="40" style="display:block;border:0;height:40px;width:auto;max-width:180px;" />
             </td>
           </tr>
           <tr>
@@ -618,8 +618,202 @@ const sendPaymentConfirmationEmail = async ({ to, fullname, eventTitle, amount, 
   await sendMail({ to, subject: `Xác nhận thanh toán vé: ${eventTitle}`, html: htmlContent });
 };
 
+// ─── Nhắc mở đăng ký & sắp diễn ra ────────────────────────────────────────────
+
+const pad2 = (n) => String(n).padStart(2, '0');
+
+const toGCalDate = (value) => {
+  const d = new Date(value);
+  return `${d.getUTCFullYear()}${pad2(d.getUTCMonth() + 1)}${pad2(d.getUTCDate())}T${pad2(d.getUTCHours())}${pad2(d.getUTCMinutes())}${pad2(d.getUTCSeconds())}Z`;
+};
+
+const fmtVnDateTime = (value) =>
+  new Date(value).toLocaleString('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+const buildGoogleCalendarUrl = ({ title, start, end, details = '', location = '' }) => {
+  const startDate = start ? new Date(start) : new Date();
+  const endDate = end ? new Date(end) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title || 'Sự kiện F-Events',
+    dates: `${toGCalDate(startDate)}/${toGCalDate(endDate)}`,
+    details,
+    location: location || '',
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+};
+
+const infoRow = (label, value) => `
+  <tr>
+    <td style="font-size:13px;color:#8a7b72;padding:7px 0;white-space:nowrap;vertical-align:top;">${label}</td>
+    <td align="right" style="font-size:14px;font-weight:600;color:#1e293b;padding:7px 0;line-height:20px;">${value}</td>
+  </tr>`;
+
+const infoCard = (rows) => `
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color:#faf8f6;border:1px solid #e8ddd6;border-radius:10px;margin:0 0 24px;">
+    <tr><td style="padding:6px 18px;">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">${rows}</table>
+    </td></tr>
+  </table>`;
+
+const ctaButton = (href, label, bg = '#f26f21') => `
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin:0 0 12px;">
+    <tr><td align="center">
+      <a href="${href}" style="display:inline-block;background-color:${bg};color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:13px 30px;border-radius:8px;">${label}</a>
+    </td></tr>
+  </table>`;
+
+/** Mail xác nhận khi bấm "Nhắc tôi khi mở đăng ký". */
+const sendReminderSignupEmail = async ({
+  to,
+  fullname,
+  eventTitle,
+  eventStart,
+  eventEnd,
+  location,
+  registrationStart,
+  eventUrl,
+}) => {
+  const greeting = fullname ? `Xin chào ${fullname},` : 'Xin chào bạn,';
+  const calendarUrl = buildGoogleCalendarUrl({
+    title: `Mở đăng ký: ${eventTitle}`,
+    start: registrationStart,
+    end: new Date(new Date(registrationStart).getTime() + 30 * 60 * 1000),
+    details: `Mở đăng ký vé sự kiện "${eventTitle}" trên F-Events.\n${eventUrl || ''}`,
+    location: location || '',
+  });
+
+  const htmlContent = buildEmailShell({
+    title: 'Đã đặt nhắc mở đăng ký — F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Nhắc mở đăng ký</p>
+      <h1 style="margin:0 0 18px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Chúng tôi sẽ nhắc bạn</h1>
+      <p style="margin:0 0 6px;font-size:15px;line-height:24px;color:#334155;">${greeting}</p>
+      <p style="margin:0 0 22px;font-size:15px;line-height:24px;color:#334155;">Bạn đã đặt nhắc cho sự kiện <strong style="color:#1e293b;">${eventTitle}</strong>. Chúng tôi sẽ gửi email nhắc bạn <strong>trước 5 phút khi mở đăng ký</strong> để bạn kịp giữ vé.</p>
+      ${infoCard(
+        infoRow('Mở đăng ký lúc', fmtVnDateTime(registrationStart)) +
+        infoRow('Sự kiện diễn ra', fmtVnDateTime(eventStart)) +
+        (location ? infoRow('Địa điểm', location) : '')
+      )}
+      ${ctaButton(calendarUrl, 'Thêm vào Google Calendar')}
+      ${eventUrl ? ctaButton(eventUrl, 'Xem chi tiết sự kiện', '#1e293b') : ''}
+      <p style="margin:16px 0 0;font-size:13px;line-height:20px;color:#8a7b72;border-top:1px solid #f0e8e2;padding-top:18px;">Bạn nhận email này vì đã bấm "Nhắc tôi" trên F-Events. Nếu không phải bạn, có thể bỏ qua email này.</p>
+    `,
+  });
+
+  return sendMail({ to, subject: `Đã đặt nhắc mở đăng ký: ${eventTitle}`, html: htmlContent });
+};
+
+/** Mail nhắc trước khi mở đăng ký (≈5 phút). */
+const sendRegistrationOpeningSoonEmail = async ({
+  to,
+  fullname,
+  eventTitle,
+  registrationStart,
+  minutesLeft,
+  eventUrl,
+}) => {
+  const greeting = fullname ? `Xin chào ${fullname},` : 'Xin chào bạn,';
+  const minLabel = minutesLeft > 0 ? `còn khoảng ${minutesLeft} phút nữa` : 'ngay bây giờ';
+  const htmlContent = buildEmailShell({
+    title: 'Sắp mở đăng ký — F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#f26f21;font-weight:600;">Sắp mở đăng ký</p>
+      <h1 style="margin:0 0 18px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Chuẩn bị giữ vé — ${minLabel}!</h1>
+      <p style="margin:0 0 6px;font-size:15px;line-height:24px;color:#334155;">${greeting}</p>
+      <p style="margin:0 0 22px;font-size:15px;line-height:24px;color:#334155;">Đăng ký vé cho sự kiện <strong style="color:#1e293b;">${eventTitle}</strong> sẽ mở <strong style="color:#f26f21;">${minLabel}</strong>. Hãy sẵn sàng để không bỏ lỡ suất của mình.</p>
+      ${infoCard(infoRow('Mở đăng ký lúc', fmtVnDateTime(registrationStart)))}
+      ${eventUrl ? ctaButton(eventUrl, 'Mở trang đăng ký') : ''}
+      <p style="margin:16px 0 0;font-size:13px;line-height:20px;color:#8a7b72;border-top:1px solid #f0e8e2;padding-top:18px;">Số lượng vé có thể giới hạn — vào sớm để chắc suất nhé.</p>
+    `,
+  });
+
+  return sendMail({ to, subject: `Sắp mở đăng ký (${minLabel}): ${eventTitle}`, html: htmlContent });
+};
+
+/** Mail "sắp diễn ra" trước 6 tiếng, kèm gợi ý chuẩn bị theo thời tiết. */
+const sendEventStartingSoonEmail = async ({
+  to,
+  fullname,
+  eventTitle,
+  eventStart,
+  eventEnd,
+  location,
+  weather,
+  weatherAdvice,
+  checklist = [],
+  eventUrl,
+}) => {
+  const greeting = fullname ? `Xin chào ${fullname},` : 'Xin chào bạn,';
+  const calendarUrl = buildGoogleCalendarUrl({
+    title: eventTitle,
+    start: eventStart,
+    end: eventEnd,
+    details: `Sự kiện "${eventTitle}" trên F-Events.\n${eventUrl || ''}`,
+    location: location || '',
+  });
+
+  const weatherBlock = weather
+    ? `
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background:linear-gradient(135deg,#fff4ec,#f7f2ee);border:1px solid #f0d9cb;border-radius:10px;margin:0 0 20px;">
+        <tr><td style="padding:16px 18px;">
+          <p style="margin:0 0 4px;font-size:12px;color:#b06a3f;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Thời tiết Đà Nẵng</p>
+          <p style="margin:0;font-size:16px;font-weight:700;color:#1e293b;">${weather.temp}°C · ${weather.description || ''}</p>
+          <p style="margin:6px 0 0;font-size:13px;color:#64748b;">Cảm giác ${weather.feelsLike}°C · Độ ẩm ${weather.humidity}% · Gió ${weather.windSpeed} m/s</p>
+        </td></tr>
+      </table>`
+    : '';
+
+  const checklistBlock = checklist.length
+    ? `
+      <p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#1e293b;">Gợi ý nên mang theo</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin:0 0 22px;">
+        ${checklist
+          .map(
+            (item) => `<tr><td style="padding:6px 0;font-size:14px;line-height:20px;color:#334155;vertical-align:top;">
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f26f21;margin:0 10px 2px 0;"></span>${item}
+            </td></tr>`
+          )
+          .join('')}
+      </table>`
+    : '';
+
+  const htmlContent = buildEmailShell({
+    title: 'Sự kiện sắp diễn ra — F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#f26f21;font-weight:600;">Sắp diễn ra</p>
+      <h1 style="margin:0 0 18px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">${eventTitle}</h1>
+      <p style="margin:0 0 6px;font-size:15px;line-height:24px;color:#334155;">${greeting}</p>
+      <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#334155;">Sự kiện bạn quan tâm sẽ bắt đầu trong khoảng <strong>6 tiếng nữa</strong>. Cùng chuẩn bị để có một buổi trọn vẹn nhé.</p>
+      ${infoCard(
+        infoRow('Bắt đầu', fmtVnDateTime(eventStart)) +
+        (location ? infoRow('Địa điểm', location) : '')
+      )}
+      ${weatherBlock}
+      ${weatherAdvice ? `<p style="margin:0 0 20px;font-size:14px;line-height:22px;color:#334155;background:#f8fafc;border-left:3px solid #f26f21;padding:10px 14px;border-radius:4px;">${weatherAdvice}</p>` : ''}
+      ${checklistBlock}
+      ${ctaButton(calendarUrl, 'Thêm vào Google Calendar')}
+      ${eventUrl ? ctaButton(eventUrl, 'Xem chi tiết sự kiện', '#1e293b') : ''}
+      <p style="margin:16px 0 0;font-size:13px;line-height:20px;color:#8a7b72;border-top:1px solid #f0e8e2;padding-top:18px;">Hẹn gặp bạn tại sự kiện. Chúc bạn có trải nghiệm tuyệt vời cùng F-Events.</p>
+    `,
+  });
+
+  return sendMail({ to, subject: `Sắp diễn ra: ${eventTitle}`, html: htmlContent });
+};
+
 module.exports = {
   sendOtpEmail,
+  sendReminderSignupEmail,
+  sendRegistrationOpeningSoonEmail,
+  sendEventStartingSoonEmail,
   sendResetEmail,
   sendLoginLockAlertEmail,
   sendActivationEmail,

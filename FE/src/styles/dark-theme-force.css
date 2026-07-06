@@ -1224,6 +1224,16 @@ html.dark .ctsv-rd-highlights {
   background: var(--bg-card) !important;
 }
 
+html.dark .ctsv-rd-sent-note {
+  background: rgba(34, 197, 94, 0.12) !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+  color: #4ade80 !important;
+}
+
+html.dark .ctsv-rd-sent-note svg {
+  color: #4ade80 !important;
+}
+
 html.dark .ctsv-rd-stat {
   background: var(--bg-card) !important;
 }
@@ -1418,6 +1428,35 @@ html.dark .clb-profile-actions {
 
 html.dark .clb-reports-summary-card {
   background: var(--bg-card) !important;
+}
+
+html.dark .clb-reports-fill-bar {
+  background: rgba(148, 163, 184, 0.25) !important;
+}
+
+html.dark .clb-reports-fill-pct {
+  color: var(--text-secondary, #cbd5e1) !important;
+}
+
+html.dark .clb-reports-sk {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.12) 25%, rgba(148, 163, 184, 0.22) 37%, rgba(148, 163, 184, 0.12) 63%) !important;
+  background-size: 400% 100% !important;
+}
+
+html.dark .clb-reports-sent-tag {
+  background: rgba(34, 197, 94, 0.12) !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+  color: #4ade80 !important;
+}
+
+html.dark .clb-reports-sent-tag svg {
+  color: #4ade80 !important;
+}
+
+html.dark .ctsv-reports-phase--accepted {
+  background: rgba(59, 130, 246, 0.18) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #93c5fd !important;
 }
 
 html.dark .ev-header-block {

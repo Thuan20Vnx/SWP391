@@ -97,7 +97,10 @@ const canCtsvPublishSchoolEvent = (event) =>
 
 const canCtsvEditSchoolEvent = (event) =>
   event?.source === 'school' &&
-  (event?.ctsvEditUnlocked === true || event?.status === 'rejected');
+  (event?.ctsvEditUnlocked === true ||
+    event?.status === 'rejected' ||
+    event?.status === SCHOOL_EVENT_SUBMIT_STATUS ||
+    event?.status === 'revision');
 
 const shouldResubmitSchoolEventForAdmin = (event) => canCtsvEditSchoolEvent(event);
 

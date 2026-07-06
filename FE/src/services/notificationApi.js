@@ -35,6 +35,30 @@ export const markAllRead = async () => {
   return data;
 };
 
+export const deleteNotification = async (id) => {
+  const res = await fetch(`${API_BASE}/api/notifications/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  const { ok, data } = await parseApiResponse(res);
+  if (!ok || !data.success) {
+    throw new Error(data.message || 'Không thể xóa thông báo.');
+  }
+  return data;
+};
+
+export const deleteAllNotifications = async () => {
+  const res = await fetch(`${API_BASE}/api/notifications/all`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  const { ok, data } = await parseApiResponse(res);
+  if (!ok || !data.success) {
+    throw new Error(data.message || 'Không thể xóa tất cả thông báo.');
+  }
+  return data;
+};
+
 export const createNotificationSSE = (onMessage, onError) => {
   const token = localStorage.getItem('authToken');
   if (!token) {

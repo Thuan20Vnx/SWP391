@@ -5,6 +5,12 @@ const submitReview = async (req, res) => {
   res.status(201).json({ success: true, ...result });
 };
 
+const getEventRatingStats = async (req, res) => {
+  const stats = await reviewService.getEventRatingStats(req.params.id);
+  res.json({ success: true, stats });
+};
+
 module.exports = {
   submitReview,
+  getEventRatingStats,
 };

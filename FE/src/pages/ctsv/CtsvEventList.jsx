@@ -7,6 +7,7 @@ import useAdminEventsLiveStream from '../../hooks/useAdminEventsLiveStream';
 import { fetchCtsvEventsForApproval } from '../../services/ctsvApi';
 import { getCtsvEventAccess, isCtsvManagedEvent } from '../../utils/ctsvEventAccess';
 import { isPendingApproval } from '../../utils/eventStatus';
+import { resolveEventDisplayImage } from '../../utils/eventDisplay';
 import { PORTAL_EVENTS_LIVE_EVENT } from '../../utils/adminEventsLiveEvents';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
 import EventDiscoveryCard from '../../components/EventDiscoveryCard';
@@ -25,12 +26,15 @@ const CATEGORY_FILTER_OPTIONS = [
 
 const PAGE_SIZE = 6;
 
-const STATE_FILTERS = [
-  { value: 'all', label: 'Tất cả' },
-  { value: 'needs_approval', label: 'Cần duyệt' },
-];
-
 const needsCtsvApproval = (ev) => getCtsvEventAccess(ev).canManage && isPendingApproval(ev);
+
+const STATUS_TABS = [
+  { key: 'all', label: 'Tất cả', tone: 'all', match: () => true },
+  { key: 'needs_approval', label: 'Cần duyệt', tone: 'warning', match: needsCtsvApproval },
+  { key: 'approved', label: 'Mở đăng ký', tone: 'success', match: (ev) => (ev.statusKey || ev.status) === 'approved' },
+  { key: 'live', label: 'Đang diễn ra', tone: 'success', match: (ev) => (ev.statusKey || ev.status) === 'live' },
+  { key: 'ended', label: 'Đã kết thúc', tone: 'all', match: (ev) => (ev.statusKey || ev.status) === 'ended' },
+];
 
 const cardStateFromEv = (ev) => {
   const s = ev.statusKey || ev.status || '';
@@ -42,7 +46,8 @@ const cardStateFromEv = (ev) => {
 const toDiscoveryCard = (ev) => ({
   id: String(ev._id || ev.id || ''),
   title: ev.title,
-  thumbnail: ev.image || ev.thumbnail || ev.flyer || '',
+  thumbnail: resolveEventDisplayImage(ev),
+  isPending: isPendingApproval(ev),
   category: ev.category || 'Sự kiện',
   categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
   dateLabel: ev.date ? `${ev.date}${ev.time ? ' ' + ev.time : ''}` : '',
@@ -137,22 +142,29 @@ const CtsvEventList = () => {
     [events]
   );
 
+  const searchFiltered = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    if (!q) return events;
+    return events.filter(
+      (ev) =>
+        (ev.title || '').toLowerCase().includes(q) ||
+        (ev.location || '').toLowerCase().includes(q)
+    );
+  }, [events, searchQuery]);
+
+  const statusCounts = useMemo(() => {
+    const counts = {};
+    STATUS_TABS.forEach((tab) => {
+      counts[tab.key] = searchFiltered.filter(tab.match).length;
+    });
+    return counts;
+  }, [searchFiltered]);
+
   const filtered = useMemo(() => {
     setPage(1);
-    const q = searchQuery.toLowerCase();
-    let result = events;
-    if (q) {
-      result = result.filter(
-        (ev) =>
-          (ev.title || '').toLowerCase().includes(q) ||
-          (ev.location || '').toLowerCase().includes(q)
-      );
-    }
-    if (stateFilter === 'needs_approval') {
-      result = result.filter(needsCtsvApproval);
-    }
-    return result;
-  }, [events, searchQuery, stateFilter]);
+    const tab = STATUS_TABS.find((t) => t.key === stateFilter) || STATUS_TABS[0];
+    return searchFiltered.filter(tab.match);
+  }, [searchFiltered, stateFilter]);
 
   const pagedEvents = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -191,16 +203,16 @@ const CtsvEventList = () => {
       </header>
 
       <section className="ctsv-events-filter-card">
-        <div className="events-page__state-filters" role="group" aria-label="Trạng thái">
-          {STATE_FILTERS.map((filter) => (
+        <div className="evt-filter-tabs" role="group" aria-label="Trạng thái">
+          {STATUS_TABS.map((tab) => (
             <button
-              key={filter.value}
+              key={tab.key}
               type="button"
-              className={`events-page__state-pill ${stateFilter === filter.value ? 'is-active' : ''}`}
-              onClick={() => setStateFilter(filter.value)}
+              className={`evt-filter-tab evt-filter-tab--${tab.tone}${stateFilter === tab.key ? ' is-active' : ''}`}
+              onClick={() => setStateFilter(tab.key)}
             >
-              {filter.label}
-              {filter.value === 'needs_approval' && managedPendingCount > 0 ? ` (${managedPendingCount})` : ''}
+              <span className="evt-filter-tab__label">{tab.label}</span>
+              <span className="evt-filter-tab__count">{statusCounts[tab.key] ?? 0}</span>
             </button>
           ))}
         </div>
@@ -267,7 +279,9 @@ const CtsvEventList = () => {
               <EventDiscoveryCard
                 key={ev.id}
                 event={toDiscoveryCard(ev)}
+                protectedImage
                 viewOnly
+                detailTo={`${basePath}/events/${ev.id}`}
                 onManage={isCtsvManagedEvent(ev) ? () => navigate(`${basePath}/events/${ev.id}`) : undefined}
                 manageLabel="Quản lý"
                 onPrimaryAction={() => navigate(`${basePath}/events/${ev.id}`)}

@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { getCategoryColor, getFillPercent } from '../data/eventDiscoveryData';
 import { prefetchPublicEventById } from '../services/eventsApi';
+import { DEFAULT_EVENT_IMAGE } from '../utils/eventDisplay';
+import AuthedImage from './AuthedImage';
 const CalendarIcon = () => (
   <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
     <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
@@ -22,6 +24,8 @@ const EventDiscoveryCard = ({
   manageLabel = 'Quản lý',
   manageHint = '',
   viewOnly = false,
+  protectedImage = false,
+  detailTo = null,
 }) => {
   const {
     title,
@@ -39,6 +43,9 @@ const EventDiscoveryCard = ({
     priceLabel,
     studentPrivilegeApplied,
     organizerLabel,
+    isPending,
+    registrationNotOpen,
+    registrationClosed,
   } = event;
 
   const fillPercent = getFillPercent(filledSlots, totalSlots);
@@ -46,10 +53,13 @@ const EventDiscoveryCard = ({
   const isExpired = cardState === 'expired';
   const isPostponed = cardState === 'postponed';
   const isRegistered = cardState === 'registered' || registered;
+  const upcoming = registrationNotOpen && !isRegistered && !viewOnly;
+  const closed = registrationClosed && !isRegistered && !viewOnly;
+  const notOpen = upcoming || closed;
   const showProgress = !isPostponed;
   const hasManageAction = viewOnly && typeof onManage === 'function';
   const singleAction = isPostponed || (viewOnly && !hasManageAction);
-  const detailPath = event?.id ? `/events/${event.id}` : null;
+  const detailPath = detailTo || (event?.id ? `/events/${event.id}` : null);
   // Khi consumer cung cấp onPrimaryAction (vd: ICPDP/CTSV điều hướng tới trang
   // chi tiết riêng), dùng callback đó thay vì link công khai /events/:id.
   const usesCustomDetail = viewOnly && !hasManageAction && typeof onPrimaryAction === 'function';
@@ -63,7 +73,26 @@ const EventDiscoveryCard = ({
       onMouseEnter={prefetchDetail}
     >
       <div className="event-discovery-card__media">
-        <img src={thumbnail} alt={title} className="event-discovery-card__img" />
+        {protectedImage ? (
+          <AuthedImage
+            src={thumbnail || DEFAULT_EVENT_IMAGE}
+            alt={title}
+            className="event-discovery-card__img"
+            fallback={DEFAULT_EVENT_IMAGE}
+          />
+        ) : (
+          <img
+            src={thumbnail || DEFAULT_EVENT_IMAGE}
+            alt={title}
+            className="event-discovery-card__img"
+            loading="lazy"
+            onError={(e) => {
+              if (e.currentTarget.src !== DEFAULT_EVENT_IMAGE) {
+                e.currentTarget.src = DEFAULT_EVENT_IMAGE;
+              }
+            }}
+          />
+        )}
         {isExpired && <div className="event-discovery-card__desaturate" aria-hidden="true" />}
 
         <span
@@ -72,6 +101,10 @@ const EventDiscoveryCard = ({
         >
           {categoryLabel || category}
         </span>
+
+        {isPending && !isExpired && (
+          <span className="event-discovery-card__pending-pill">Chờ duyệt</span>
+        )}
 
         {isRegistered && !isExpired && !isPostponed && (
           <span className="event-discovery-card__registered-badge">Đã đăng ký</span>
@@ -193,8 +226,10 @@ const EventDiscoveryCard = ({
             type="button"
             className={`event-discovery-card__btn event-discovery-card__btn--primary ${
               hasManageAction ? 'event-discovery-card__btn--manage' : ''
-            } ${isExpired && !viewOnly ? 'is-disabled' : ''} ${singleAction ? 'is-full' : ''}`}
-            disabled={isExpired && !viewOnly}
+            } ${(isExpired && !viewOnly) || notOpen ? 'is-disabled' : ''} ${
+              upcoming ? 'event-discovery-card__btn--upcoming' : ''
+            } ${closed ? 'event-discovery-card__btn--closed' : ''} ${singleAction ? 'is-full' : ''}`}
+            disabled={(isExpired && !viewOnly) || notOpen}
             onClick={() => {
               if (hasManageAction) onManage?.(event);
               else onPrimaryAction?.(event);

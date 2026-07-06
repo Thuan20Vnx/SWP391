@@ -4,6 +4,8 @@ import AppSelect from '../../components/ui/AppSelect';
 import { fetchIcpdpEvents } from '../../services/icpdpApi';
 import EventDiscoveryCard from '../../components/EventDiscoveryCard';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
+import { resolveEventDisplayImage } from '../../utils/eventDisplay';
+import { isPendingApproval } from '../../utils/eventStatus';
 
 const TIME_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả thời gian' },
@@ -25,27 +27,25 @@ const CATEGORY_FILTERS = [
 
 const SOURCE_FILTERS = [
   { value: 'Tất cả', label: 'Tất cả nguồn' },
-  { value: 'Cấp trường', label: 'Cấp trường' },
-  { value: 'Đối tác', label: 'Đối tác' },
+  { value: 'Cấp trường', label: 'Cấp trường (IC-PDP)' },
   { value: 'Câu lạc bộ', label: 'Câu lạc bộ' }
 ];
 
-const STATUS_FILTERS = [
-  { value: '', label: 'Tất cả trạng thái' },
-  { value: 'approved', label: 'Mở đăng ký' },
-  { value: 'live', label: 'Đang diễn ra' },
-  { value: 'ended', label: 'Đã kết thúc' },
-  { value: 'pending_icpdp', label: 'Chờ ICPDP' },
-  { value: 'pending_ctsv', label: 'Chờ CTSV' },
-  { value: 'pending_admin', label: 'Chờ Admin' },
-  { value: 'rejected', label: 'Từ chối' }
-];
+// IC-PDP chỉ quản lý sự kiện của CLB và sự kiện cấp trường do IC-PDP tổ chức.
+const isIcpdpScopeEvent = (ev) =>
+  ev.source === 'club' ||
+  (ev.source === 'school' && ev.schoolOrganizerRole === 'icpdp');
 
-const matchesStatusFilter = (statusKey, filter) => {
-  if (!filter) return true;
-  if (filter === 'published') return statusKey === 'approved' || statusKey === 'live';
-  return statusKey === filter;
-};
+const isPendingStatus = (sk) =>
+  ['pending_icpdp', 'pending_ctsv', 'pending_admin', 'revision'].includes(sk);
+
+const STATUS_TABS = [
+  { key: 'all', label: 'Tất cả', tone: 'all', match: () => true },
+  { key: 'pending', label: 'Chờ duyệt', tone: 'warning', match: (ev) => isPendingStatus(ev.statusKey) },
+  { key: 'approved', label: 'Mở đăng ký', tone: 'success', match: (ev) => ev.statusKey === 'approved' },
+  { key: 'live', label: 'Đang diễn ra', tone: 'info', match: (ev) => ev.statusKey === 'live' },
+  { key: 'ended', label: 'Đã kết thúc', tone: 'all', match: (ev) => ev.statusKey === 'ended' },
+];
 
 const cardStateFromEv = (ev) => {
   const s = ev.statusKey || ev.status || '';
@@ -57,7 +57,8 @@ const cardStateFromEv = (ev) => {
 const toDiscoveryCard = (ev) => ({
   id: String(ev._id || ev.id || ''),
   title: ev.title,
-  thumbnail: ev.image || ev.thumbnail || ev.flyer || '',
+  thumbnail: resolveEventDisplayImage(ev),
+  isPending: isPendingApproval(ev),
   category: ev.category || 'Sự kiện',
   categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
   dateLabel: ev.date ? `${ev.date}${ev.time ? ' ' + ev.time : ''}` : '',
@@ -65,9 +66,9 @@ const toDiscoveryCard = (ev) => ({
   filledSlots: ev.registeredCount ?? (ev.totalTickets - (ev.remainingTickets ?? ev.totalTickets)) ?? 0,
   totalSlots: ev.totalTickets || ev.capacity || 0,
   cardState: cardStateFromEv(ev),
-  primaryLabel: 'Xem chi tiết',
+  primaryLabel: 'Quản lý',
   priceLabel: ev.ticketPrice > 0 ? `${Number(ev.ticketPrice).toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
-  organizerLabel: ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : 'CLB',
+  organizerLabel: ev.source === 'school' ? 'IC-PDP' : 'CLB',
 });
 
 const PAGE_SIZE = 6;
@@ -107,7 +108,7 @@ const IcpdpEventList = () => {
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [categoryFilter, setCategoryFilter] = useState('Tất cả');
   const [sourceFilter, setSourceFilter] = useState('Tất cả');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
 
   const loadEvents = () => {
@@ -142,10 +143,31 @@ const IcpdpEventList = () => {
     setPage(1);
   }, [searchQuery, categoryFilter, sourceFilter, statusFilter]);
 
-  const filtered = useMemo(() => {
+  // Danh sách sau khi lọc scope + tìm kiếm + chủ đề + nguồn (chưa lọc trạng thái) —
+  // dùng để đếm số lượng cho các thẻ filter trạng thái.
+  const baseFiltered = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    // Ưu tiên đưa sự kiện đang chờ duyệt (chưa tới/đang ở bước Admin) lên đầu
-    // để IC-PDP thấy ngay, tránh bị đẩy xuống trang sau do sắp theo ngày bắt đầu.
+    return events.filter(isIcpdpScopeEvent).filter((ev) => {
+      if (q && !(ev.title || '').toLowerCase().includes(q) && !(ev.location || '').toLowerCase().includes(q)) return false;
+      if (categoryFilter !== 'Tất cả' && ev.category !== categoryFilter) return false;
+      if (sourceFilter !== 'Tất cả') {
+        const sourceMap = { 'Cấp trường': 'school', 'Câu lạc bộ': 'club' };
+        if (ev.source !== sourceMap[sourceFilter]) return false;
+      }
+      return true;
+    });
+  }, [events, searchQuery, categoryFilter, sourceFilter]);
+
+  const statusCounts = useMemo(() => {
+    const counts = {};
+    STATUS_TABS.forEach((tab) => {
+      counts[tab.key] = baseFiltered.filter(tab.match).length;
+    });
+    return counts;
+  }, [baseFiltered]);
+
+  const filtered = useMemo(() => {
+    // Ưu tiên đưa sự kiện đang chờ duyệt lên đầu để IC-PDP thấy ngay.
     const pendingRank = (sk) => {
       if (sk === 'pending_icpdp') return 0;
       if (sk === 'pending_ctsv') return 1;
@@ -153,24 +175,14 @@ const IcpdpEventList = () => {
       if (sk === 'revision') return 3;
       return 9;
     };
-    return events
-      .filter((ev) => {
-        if (q && !(ev.title || '').toLowerCase().includes(q) && !(ev.location || '').toLowerCase().includes(q)) return false;
-        if (categoryFilter !== 'Tất cả' && ev.category !== categoryFilter) return false;
-        if (sourceFilter !== 'Tất cả') {
-          const sourceMap = { 'Cấp trường': 'school', 'Đối tác': 'partner', 'Câu lạc bộ': 'club' };
-          if (ev.source !== sourceMap[sourceFilter]) return false;
-        }
-        if (!matchesStatusFilter(ev.statusKey, statusFilter)) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        const ra = pendingRank(a.statusKey);
-        const rb = pendingRank(b.statusKey);
-        if (ra !== rb) return ra - rb;
-        return new Date(b.startDate || 0) - new Date(a.startDate || 0);
-      });
-  }, [events, searchQuery, categoryFilter, sourceFilter, statusFilter]);
+    const tab = STATUS_TABS.find((t) => t.key === statusFilter) || STATUS_TABS[0];
+    return baseFiltered.filter(tab.match).sort((a, b) => {
+      const ra = pendingRank(a.statusKey);
+      const rb = pendingRank(b.statusKey);
+      if (ra !== rb) return ra - rb;
+      return new Date(b.startDate || 0) - new Date(a.startDate || 0);
+    });
+  }, [baseFiltered, statusFilter]);
 
   const pagedEvents = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -181,9 +193,9 @@ const IcpdpEventList = () => {
     <div className="ctsv-events-page">
       <header className="ctsv-events-hero">
         <div className="ctsv-events-hero-text">
-          <span className="ctsv-events-eyebrow">Giám sát sự kiện</span>
-          <h1>Xem sự kiện toàn trường</h1>
-          <p>Giám sát toàn bộ các sự kiện từ Cấp trường, Đối tác và Câu lạc bộ trên hệ thống. (Chế độ chỉ xem)</p>
+          <span className="ctsv-events-eyebrow">Quản lý sự kiện IC-PDP</span>
+          <h1>Quản lý sự kiện CLB & IC-PDP</h1>
+          <p>Quản lý sự kiện của Câu lạc bộ và sự kiện cấp trường do IC-PDP tổ chức — duyệt, theo dõi và xử lý điều phối.</p>
         </div>
         <div className="ctsv-events-hero-aside">
           <div className="ctsv-events-hero-stat" aria-live="polite">
@@ -197,6 +209,19 @@ const IcpdpEventList = () => {
       </header>
 
       <section className="ctsv-events-filter-card">
+        <div className="evt-filter-tabs" role="group" aria-label="Trạng thái">
+          {STATUS_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={`evt-filter-tab evt-filter-tab--${tab.tone}${statusFilter === tab.key ? ' is-active' : ''}`}
+              onClick={() => setStatusFilter(tab.key)}
+            >
+              <span className="evt-filter-tab__label">{tab.label}</span>
+              <span className="evt-filter-tab__count">{statusCounts[tab.key] ?? 0}</span>
+            </button>
+          ))}
+        </div>
         <form className="ctsv-events-filter-form" onSubmit={handleFilter}>
           <label className="ctsv-events-search">
             <span className="ctsv-events-search-icon"><IconSearch /></span>
@@ -212,7 +237,6 @@ const IcpdpEventList = () => {
             <AppSelect value={timeFilter} onChange={(e) => setTimeFilter(e.target.value)} options={TIME_FILTERS} fullWidth={false} />
             <AppSelect value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} options={CATEGORY_FILTERS} fullWidth={false} />
             <AppSelect value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} options={SOURCE_FILTERS} fullWidth={false} />
-            <AppSelect value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} options={STATUS_FILTERS} fullWidth={false} />
           </div>
           <button type="submit" className="ctsv-events-filter-btn" disabled={loading}>
             {loading ? 'Đang lọc…' : 'Lọc kết quả'}
@@ -252,7 +276,7 @@ const IcpdpEventList = () => {
             setTimeFilter('Tất cả');
             setCategoryFilter('Tất cả');
             setSourceFilter('Tất cả');
-            setStatusFilter('');
+            setStatusFilter('all');
           }}>
             Xóa bộ lọc
           </button>
@@ -264,6 +288,7 @@ const IcpdpEventList = () => {
               <EventDiscoveryCard
                 key={ev.id}
                 event={toDiscoveryCard(ev)}
+                protectedImage
                 viewOnly
                 onPrimaryAction={() => navigate(`/icpdp/events/${ev.id}`)}
               />

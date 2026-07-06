@@ -31,6 +31,7 @@ const {
   SCHOOL_EVENT_SUBMIT_STATUS
 } = require('../constants/eventWorkflow');
 const { getCtsvReportDetail } = require('../services/ctsvReport.service');
+const reviewService = require('../services/review.service');
 const {
   submitCtsvReport,
   getSubmissionMeta,
@@ -377,45 +378,63 @@ router.get('/events/moderation/pending-icpdp', requireIcpdpOrCtsv, async (req, r
   }
 });
 
-// GET /api/ctsv/events/approved — tất cả sự kiện đã duyệt (dùng cho trang Quản lý sự kiện CTSV)
+// GET /api/ctsv/events/approved — sự kiện CTSV/Partner trên trang Quản lý sự kiện
 // PHẢI đặt trước /events/:id để tránh Express match 'approved' vào :id
+const CTSV_MANAGED_EVENT_STATUSES = [
+  'pending_admin',
+  'revision',
+  'approved',
+  'live',
+  'ended',
+  'hidden',
+  'pending_edit',
+  'pending_cancel',
+  'pending_hide',
+  'pending_postpone',
+  'pending_delete',
+  'rejected',
+];
+
+const buildCtsvManagedEventsFilter = ({ source, search, status, time }) => {
+  const clauses = [
+    { isDeleted: { $ne: true } },
+    { status: { $in: CTSV_MANAGED_EVENT_STATUSES } },
+  ];
+
+  if (source === 'school') {
+    clauses.push({ source: 'school', schoolOrganizerRole: { $ne: 'icpdp' } });
+  } else if (source === 'icpdp') {
+    clauses.push({ source: 'school', schoolOrganizerRole: 'icpdp' });
+  } else if (source === 'partner') {
+    clauses.push({ source: 'partner' });
+  } else {
+    clauses.push({ source: { $in: ['school', 'partner'] } });
+  }
+
+  if (status && status !== 'all') {
+    clauses.push({ status });
+  }
+
+  const q = String(search || '').trim();
+  if (q) {
+    clauses.push({
+      $or: [
+        { title: { $regex: q, $options: 'i' } },
+        { location: { $regex: q, $options: 'i' } },
+      ],
+    });
+  }
+
+  const filter = { $and: clauses };
+  applyEventTimeFilter(filter, time);
+  return filter;
+};
+
 router.get('/events/approved', async (req, res) => {
   try {
     const { source, search, status, time, page = 1, limit = 20 } = req.query;
 
-    const filter = {
-      isDeleted: { $ne: true },
-      status: { $in: ['approved', 'live', 'ended'] },
-    };
-
-    if (source === 'school') {
-      filter.source = 'school';
-      filter.schoolOrganizerRole = { $ne: 'icpdp' };
-    } else if (source === 'partner') {
-      filter.source = 'partner';
-    } else {
-      filter.$or = [
-        { source: 'partner' },
-        { source: 'school', schoolOrganizerRole: { $ne: 'icpdp' } },
-      ];
-    }
-    if (status && status !== 'all') filter.status = status;
-    if (search) {
-      filter.$and = [
-        ...(filter.$and || []),
-        {
-          $or: [
-            { title: { $regex: search, $options: 'i' } },
-            { location: { $regex: search, $options: 'i' } },
-          ],
-        },
-      ];
-      if (filter.$or) {
-        filter.$and.unshift({ $or: filter.$or });
-        delete filter.$or;
-      }
-    }
-    applyEventTimeFilter(filter, time);
+    const filter = buildCtsvManagedEventsFilter({ source, search, status, time });
 
     const skip = (Math.max(1, parseInt(page)) - 1) * Math.min(100, parseInt(limit) || 20);
     const lim = Math.min(100, parseInt(limit) || 20);
@@ -423,7 +442,7 @@ router.get('/events/approved', async (req, res) => {
     const [events, total] = await Promise.all([
       Event.find(filter)
         .select('-thumbnail -image -description -learningOutcomes -agenda -eventPlanFile')
-        .sort({ startDate: -1 })
+        .sort({ updatedAt: -1, startDate: -1 })
         .skip(skip)
         .limit(lim)
         .lean(),
@@ -434,6 +453,126 @@ router.get('/events/approved', async (req, res) => {
   } catch (err) {
     console.error('ctsv events/approved:', err);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// GET /api/ctsv/events/icpdp-managed — Quản lý sự kiện IC-PDP (cấp trường IC-PDP + CLB)
+const ICPDP_MANAGED_EVENT_STATUSES = [
+  'pending',
+  'pending_icpdp',
+  'pending_ctsv',
+  'pending_admin',
+  'revision',
+  'approved',
+  'live',
+  'ended',
+  'hidden',
+  'pending_edit',
+  'pending_cancel',
+  'pending_hide',
+  'pending_postpone',
+  'pending_delete',
+  'pending_icpdp_cancel',
+  'pending_icpdp_postpone',
+  'pending_icpdp_delete',
+  'pending_icpdp_edit',
+  'rejected',
+];
+
+const buildIcpdpManagedEventsFilter = ({ source, search, status, time }) => {
+  const clauses = [
+    { isDeleted: { $ne: true } },
+    { status: { $in: ICPDP_MANAGED_EVENT_STATUSES } },
+  ];
+
+  if (source === 'school' || source === 'icpdp') {
+    clauses.push({ source: 'school', schoolOrganizerRole: 'icpdp' });
+  } else if (source === 'club') {
+    clauses.push({ source: 'club' });
+  } else {
+    clauses.push({
+      $or: [
+        { source: 'school', schoolOrganizerRole: 'icpdp' },
+        { source: 'club' },
+      ],
+    });
+  }
+
+  if (status && status !== 'all') {
+    clauses.push({ status });
+  }
+
+  const q = String(search || '').trim();
+  if (q) {
+    clauses.push({
+      $or: [
+        { title: { $regex: q, $options: 'i' } },
+        { location: { $regex: q, $options: 'i' } },
+      ],
+    });
+  }
+
+  const filter = { $and: clauses };
+  applyEventTimeFilter(filter, time);
+  return filter;
+};
+
+const mapIcpdpManagedEvent = (ev) => {
+  const formatted = formatEvent(ev);
+  const clubName = ev.proposalId?.clubName || ev.clubId?.name || '';
+  return { ...formatted, clubName };
+};
+
+router.get('/events/icpdp-managed', requireIcpdpOrCtsv, async (req, res) => {
+  try {
+    const { source, search, status, time, page = 1, limit = 20 } = req.query;
+
+    const filter = buildIcpdpManagedEventsFilter({ source, search, status, time });
+
+    const skip = (Math.max(1, parseInt(page)) - 1) * Math.min(100, parseInt(limit) || 20);
+    const lim = Math.min(100, parseInt(limit) || 20);
+
+    const [events, total] = await Promise.all([
+      Event.find(filter)
+        .select('-thumbnail -image -description -learningOutcomes -agenda -eventPlanFile')
+        .populate('proposalId', 'clubName submittedByEmail')
+        .populate('clubId', 'name')
+        .sort({ updatedAt: -1, startDate: -1 })
+        .skip(skip)
+        .limit(lim)
+        .lean(),
+      Event.countDocuments(filter),
+    ]);
+
+    return res.json({
+      success: true,
+      events: events.map(mapIcpdpManagedEvent),
+      total,
+      page: parseInt(page),
+      limit: lim,
+    });
+  } catch (err) {
+    console.error('ctsv events/icpdp-managed:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// GET /api/ctsv/events/:id/rating-stats — thống kê đánh giá (CTSV / IC-PDP / Admin)
+router.get('/events/:id/rating-stats', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id).select('_id').lean();
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
+    }
+    const stats = await reviewService.getEventRatingStats(req.params.id);
+    return res.json({ success: true, stats });
+  } catch (error) {
+    console.error('ctsv event rating-stats:', error);
+    const status = error.statusCode || 500;
+    return res.status(status).json({
+      success: false,
+      message: error.message || 'Không tải được thống kê đánh giá.',
+    });
   }
 });
 
@@ -877,7 +1016,24 @@ router.get('/reports', async (req, res) => {
       'pending_admin',
       'revision'
     ];
-    const events = await Event.find({
+    // Phạm vi báo cáo theo cổng:
+    // - ICPDP: sự kiện của CLB và của IC-PDP (cấp trường do IC-PDP tổ chức).
+    // - CTSV: sự kiện của CTSV (cấp trường không phải IC-PDP) và của đối tác.
+    // - Admin: xem tất cả.
+    let sourceScope = null;
+    if (req.userRole === 'icpdp') {
+      sourceScope = [
+        { source: 'club' },
+        { source: 'school', schoolOrganizerRole: 'icpdp' },
+      ];
+    } else if (req.userRole === 'ctsv') {
+      sourceScope = [
+        { source: 'partner' },
+        { source: 'school', schoolOrganizerRole: { $ne: 'icpdp' } },
+      ];
+    }
+
+    const query = {
       status: { $nin: excludedStatuses },
       $or: [
         { status: { $in: ['live', 'ended'] } },
@@ -886,15 +1042,39 @@ router.get('/reports', async (req, res) => {
         { endDate: null, startDate: { $lte: now } },
         { endDate: { $exists: false }, startDate: { $lte: now } }
       ]
-    })
+    };
+    if (sourceScope) {
+      query.$and = [{ $or: sourceScope }];
+    }
+
+    const events = await Event.find(query)
       .sort({ startDate: -1 })
       .limit(100);
+
+    const reportIds = events.map((e) => String(e._id));
+    const submittedRows = await SubmittedCtsvReport.find({
+      reportId: { $in: reportIds },
+      submittedByRole: { $in: ['club_manager', 'partner'] },
+    })
+      .select('reportId submittedAt submittedByRole')
+      .lean();
+    const clubSubmittedMap = new Map();
+    const partnerSubmittedMap = new Map();
+    submittedRows.forEach((s) => {
+      if (s.submittedByRole === 'club_manager') {
+        clubSubmittedMap.set(String(s.reportId), s.submittedAt);
+      } else if (s.submittedByRole === 'partner') {
+        partnerSubmittedMap.set(String(s.reportId), s.submittedAt);
+      }
+    });
 
     const reports = events.map((e) => {
       const cap = e.capacity || e.totalTickets || 0;
       const registered = e.registeredCount || 0;
       const reportPhase = resolveReportPhase(e);
       const display = getReportDisplayStatus(reportPhase, e.status);
+      const clubSubmittedAt = clubSubmittedMap.get(String(e._id)) || null;
+      const partnerSubmittedAt = partnerSubmittedMap.get(String(e._id)) || null;
 
       return {
         ...formatEvent(e),
@@ -903,7 +1083,11 @@ router.get('/reports', async (req, res) => {
         registeredCount: registered,
         totalTickets: cap,
         attendanceRate: cap > 0 ? Math.round((registered / cap) * 100) : 0,
-        reportPhase
+        reportPhase,
+        clubSubmitted: Boolean(clubSubmittedAt),
+        clubSubmittedAt,
+        partnerSubmitted: Boolean(partnerSubmittedAt),
+        partnerSubmittedAt
       };
     });
 
@@ -931,7 +1115,7 @@ router.get('/reports/:id', async (req, res) => {
 
 router.post('/reports/:id/submit-admin', async (req, res) => {
   try {
-    const result = await submitCtsvReport(req.params.id, req.authEmail);
+    const result = await submitCtsvReport(req.params.id, req.authEmail, req.userRole || 'ctsv');
     return res.json({
       success: true,
       submission: result.submission,
@@ -2168,8 +2352,15 @@ router.post('/semester-timelines/check-conflicts', requireCtsvPortal, async (req
 
 router.post('/events/check-venue-conflicts', requireCtsvPortal, async (req, res) => {
   try {
-    const { location, startDate, endDate, excludeEventId } = req.body || {};
-    const result = await checkEventVenueConflicts({ location, startDate, endDate, excludeEventId });
+    const { location, startDate, endDate, excludeEventId, excludeTimelineId, excludeItemIndex } = req.body || {};
+    const result = await checkEventVenueConflicts({
+      location,
+      startDate,
+      endDate,
+      excludeEventId,
+      excludeTimelineId,
+      excludeItemIndex,
+    });
     return res.json({ success: true, ...result });
   } catch (error) {
     const status = error.statusCode || 500;

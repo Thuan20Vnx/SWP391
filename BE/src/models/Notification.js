@@ -10,6 +10,7 @@ const notificationSchema = new mongoose.Schema({
   refType: { type: String, default: '' },
   isRead: { type: Boolean, default: false },
   readByEmails: [{ type: String, trim: true, lowercase: true }],
+  deletedByEmails: [{ type: String, trim: true, lowercase: true }],
   createdAt: { type: Date, default: Date.now }
 });
 

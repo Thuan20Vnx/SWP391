@@ -1,4 +1,12 @@
 const eventService = require('../services/event.service');
+const {
+  submitClubReport,
+  listClubSubmittedReports,
+} = require('../services/ctsvReportSubmission.service');
+const {
+  subscribeReminder,
+  getReminderStatus,
+} = require('../services/eventReminder.service');
 
 const createEvent = async (req, res) => {
   const result = await eventService.createEvent(req.user, req.body, req.headers['x-managed-club-id']);
@@ -96,11 +104,43 @@ const updateMyEvent = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const submitMyEventReport = async (req, res) => {
+  const result = await submitClubReport(req.params.id, req.user);
+  res.status(200).json({ success: true, ...result });
+};
+
+const listMyReportSubmissions = async (req, res) => {
+  const submissions = await listClubSubmittedReports(req.user);
+  res.status(200).json({ success: true, submissions });
+};
+
+const remindEvent = async (req, res) => {
+  const result = await subscribeReminder({
+    eventId: req.params.id,
+    email: req.body?.email,
+    user: req.user || null,
+  });
+  res.status(200).json({ success: true, ...result });
+};
+
+const remindEventStatus = async (req, res) => {
+  const result = await getReminderStatus({
+    eventId: req.params.id,
+    email: req.query?.email,
+    user: req.user || null,
+  });
+  res.status(200).json({ success: true, ...result });
+};
+
 module.exports = {
   createEvent,
+  remindEvent,
+  remindEventStatus,
   getMyEvents,
   deleteMyEvent,
   updateMyEvent,
+  submitMyEventReport,
+  listMyReportSubmissions,
   getPendingEvents,
   updateEventStatus,
   getApprovedEvents,

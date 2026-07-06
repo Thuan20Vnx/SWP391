@@ -38,6 +38,14 @@ export const fetchIcpdpEvents = (params = {}) => {
 
 export const fetchIcpdpEvent = (id) => icpdpFetch(`/events/${id}`);
 
+export const fetchIcpdpManagedEvents = ({ source = '', search = '', time = '', page = 1, limit = 20 } = {}) => {
+  const params = new URLSearchParams({ page, limit });
+  if (source && source !== 'all') params.set('source', source);
+  if (search) params.set('search', search);
+  if (time) params.set('time', time);
+  return icpdpFetch(`/events/icpdp-managed?${params}`);
+};
+
 export const createIcpdpSchoolEvent = (body) =>
   icpdpFetch('/events', { method: 'POST', body: JSON.stringify(body) });
 
@@ -49,6 +57,12 @@ export const fetchIcpdpCalendar = () => icpdpFetch('/events/calendar');
 
 /* ── Reports ── */
 export const fetchIcpdpReports = () => icpdpFetch('/reports');
+
+export const fetchIcpdpReportDetail = (id) => icpdpFetch(`/reports/${id}`);
+
+/** IC-PDP gửi báo cáo (SK trường/CLB) lên Admin — dùng chung endpoint CTSV. */
+export const submitIcpdpReport = (id) =>
+  icpdpFetch(`/reports/${id}/submit-admin`, { method: 'POST', body: '{}' });
 
 /* ── Proposals (core ICPDP feature) ── */
 export const fetchIcpdpProposals = (params = {}) => {

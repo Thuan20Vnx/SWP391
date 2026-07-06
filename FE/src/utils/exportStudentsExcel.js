@@ -190,6 +190,7 @@ const buildStudentRows = (students) =>
     const s = row.student || row.user || {};
     const registeredAt = row.createdAt || row.registeredAt || row.registrationTime;
     const checkinAt = row.checkinAt || row.checkInAt || row.checkedInAt || row.attendedAt;
+    const checkoutAt = row.checkoutAt || row.checkOutAt || row.checkedOutAt;
     const status = statusLabel(row.status);
     return {
       no: index + 1,
@@ -197,9 +198,13 @@ const buildStudentRows = (students) =>
       name: getStudentName(s),
       email: s.email || row.email || '',
       phone: s.phone || s.phoneNumber || row.phone || '',
+      ticketType: row.ticketType || row.ticketName || row.ticket || '',
       registeredAt: formatDateTime(registeredAt),
       status,
       checkinAt: formatDateTime(checkinAt),
+      checkoutAt: formatDateTime(checkoutAt),
+      hasCheckin: Boolean(checkinAt),
+      hasCheckout: Boolean(checkoutAt),
       note: row.note || row.cancelReason || '',
     };
   });
@@ -217,23 +222,30 @@ const createSummarySheet = (workbook, meta, rows) => {
   const eventTitle = meta.eventTitle || meta.title || 'Sự kiện';
   const capacity = Number(meta.capacity || meta.totalTickets || 0);
   const registeredCount = Number(meta.registeredCount ?? rows.length);
-  const checkinCount = Number(meta.checkinCount ?? rows.filter((r) => r.status === 'Đã check-in').length);
+  const checkinCount = Number(
+    meta.checkinCount ?? rows.filter((r) => r.hasCheckin || r.status === 'Đã check-in').length
+  );
+  const checkoutCount = Number(meta.checkoutCount ?? rows.filter((r) => r.hasCheckout).length);
   const cancelledCount = rows.filter((r) => r.status === 'Đã hủy').length;
   const remainingCount = Math.max((capacity || registeredCount) - registeredCount, 0);
   const checkinRate = registeredCount ? `${Math.round((checkinCount / registeredCount) * 100)}%` : '0%';
+  const checkoutRate = registeredCount ? `${Math.round((checkoutCount / registeredCount) * 100)}%` : '0%';
+  const reviewCount = Number(meta.reviewCount ?? meta.ratingCount ?? 0);
+  const avgRatingRaw = Number(meta.averageRating ?? meta.rating ?? 0) || 0;
+  const avgRating = reviewCount ? `${Math.round(avgRatingRaw * 10) / 10}/5` : 'Chưa có';
 
   const data = [
-    ['F-EVENTS | BÁO CÁO DANH SÁCH SINH VIÊN'],
+    ['F-EVENTS | BÁO CÁO SAU SỰ KIỆN'],
     [`Xuất lúc ${formatDateTime(new Date())}`],
     [],
     ['THÔNG TIN SỰ KIỆN', '', '', 'TỔNG QUAN NHANH', '', '', ''],
-    ['Tên sự kiện', eventTitle, '', 'Đăng ký', registeredCount, 'Sức chứa', capacity || 'Không giới hạn'],
+    ['Tên sự kiện', eventTitle, '', 'Lượt đăng ký vé', registeredCount, 'Sức chứa', capacity || 'Không giới hạn'],
     ['Đơn vị phụ trách', meta.clubName || meta.organizer || 'CTSV', '', 'Đã check-in', checkinCount, 'Tỷ lệ check-in', checkinRate],
-    ['Người phụ trách', meta.clubPresident || meta.president || '', '', 'Đã hủy', cancelledCount, 'Còn trống', remainingCount],
-    ['Thời gian', getEventDateRange(meta), '', 'Trạng thái báo cáo', 'Sẵn sàng', '', ''],
-    ['Địa điểm', meta.location || meta.address || '', '', '', '', ''],
+    ['Người phụ trách', meta.clubPresident || meta.president || '', '', 'Đã check-out', checkoutCount, 'Tỷ lệ check-out', checkoutRate],
+    ['Thời gian', getEventDateRange(meta), '', 'Đã hủy', cancelledCount, 'Còn trống', remainingCount],
+    ['Địa điểm', meta.location || meta.address || '', '', 'Đánh giá TB', avgRating, 'Số đánh giá', reviewCount],
     [],
-    ['Ghi chú', 'File gồm sheet tổng quan và sheet danh sách sinh viên. Có thể lọc, sắp xếp và in trực tiếp từ Excel.', '', '', '', '', ''],
+    ['Ghi chú', 'File gồm sheet tổng quan và sheet danh sách sinh viên (kèm giờ check-in / check-out). Có thể lọc, sắp xếp và in trực tiếp từ Excel.', '', '', '', '', ''],
   ];
 
   const sheet = XLSX.utils.aoa_to_sheet(data);
@@ -253,17 +265,18 @@ const createSummarySheet = (workbook, meta, rows) => {
     { wch: 16 },
     { wch: 18 },
   ];
-  setRows(sheet, [30, 22, 8, 24, 26, 26, 26, 26, 28, 8, 34]);
+  setRows(sheet, [30, 22, 8, 24, 26, 26, 26, 26, 26, 8, 34]);
 
   setRangeStyle(sheet, 'A1:G1', styles.title);
   setRangeStyle(sheet, 'A2:G2', styles.subtitle);
   setRangeStyle(sheet, 'A4:B4', styles.section);
   setRangeStyle(sheet, 'D4:G4', styles.section);
-  ['A5:A9', 'D5:D8', 'F5:F8'].forEach((range) => setRangeStyle(sheet, range, styles.label));
-  ['B5:B9', 'E5:E8', 'G5:G8'].forEach((range) => setRangeStyle(sheet, range, styles.value));
+  ['A5:A9', 'D5:D9', 'F5:F9'].forEach((range) => setRangeStyle(sheet, range, styles.label));
+  ['B5:B9', 'E5:E9', 'G5:G9'].forEach((range) => setRangeStyle(sheet, range, styles.value));
   setRangeStyle(sheet, 'A11:A11', styles.label);
   setRangeStyle(sheet, 'B11:G11', styles.note);
-  ['E5:E8', 'G5:G8'].forEach((range) => setRangeStyle(sheet, range, styles.kpiValue));
+  // KPI số liệu (đăng ký / check-in / check-out / hủy / đánh giá và các tỷ lệ) tô nổi bật.
+  ['E5:E9', 'G5:G9'].forEach((range) => setRangeStyle(sheet, range, styles.kpiValue));
 
   sheet['!freeze'] = { ySplit: 4, topLeftCell: 'A5', activePane: 'bottomLeft', state: 'frozen' };
   XLSX.utils.book_append_sheet(workbook, sheet, 'Tong quan');
@@ -277,9 +290,11 @@ const createStudentSheet = (workbook, meta, rows) => {
     'Họ và tên',
     'Email',
     'Số điện thoại',
+    'Loại vé',
     'Thời gian đăng ký',
     'Trạng thái vé',
     'Check-in lúc',
+    'Check-out lúc',
     'Ghi chú',
   ];
   const body = rows.map((r) => [
@@ -288,9 +303,11 @@ const createStudentSheet = (workbook, meta, rows) => {
     r.name,
     r.email,
     r.phone,
+    r.ticketType,
     r.registeredAt,
     r.status,
     r.checkinAt,
+    r.checkoutAt,
     r.note,
   ]);
   const data = [
@@ -305,9 +322,9 @@ const createStudentSheet = (workbook, meta, rows) => {
   const sheet = XLSX.utils.aoa_to_sheet(data);
   const lastRow = Math.max(data.length, 5);
   sheet['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } },
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 10 } },
   ];
   sheet['!cols'] = [
     { wch: 7 },
@@ -315,29 +332,32 @@ const createStudentSheet = (workbook, meta, rows) => {
     { wch: 30 },
     { wch: 34 },
     { wch: 16 },
+    { wch: 16 },
     { wch: 20 },
     { wch: 18 },
     { wch: 20 },
+    { wch: 20 },
     { wch: 28 },
   ];
-  sheet['!autofilter'] = { ref: `A5:I${lastRow}` };
+  sheet['!autofilter'] = { ref: `A5:K${lastRow}` };
   sheet['!freeze'] = { ySplit: 5, topLeftCell: 'A6', activePane: 'bottomLeft', state: 'frozen' };
   setRows(sheet, [30, 24, 22, 8, 26, ...body.map(() => 24)]);
 
-  setRangeStyle(sheet, 'A1:I1', styles.title);
-  setRangeStyle(sheet, 'A2:I2', styles.subtitle);
-  setRangeStyle(sheet, 'A3:I3', styles.note);
-  setRangeStyle(sheet, 'A5:I5', styles.tableHeader);
+  setRangeStyle(sheet, 'A1:K1', styles.title);
+  setRangeStyle(sheet, 'A2:K2', styles.subtitle);
+  setRangeStyle(sheet, 'A3:K3', styles.note);
+  setRangeStyle(sheet, 'A5:K5', styles.tableHeader);
 
   if (body.length) {
-    setRangeStyle(sheet, `A6:I${lastRow}`, styles.tableCell);
+    setRangeStyle(sheet, `A6:K${lastRow}`, styles.tableCell);
     setRangeStyle(sheet, `A6:B${lastRow}`, styles.tableCenter);
-    setRangeStyle(sheet, `F6:H${lastRow}`, styles.tableCenter);
+    setRangeStyle(sheet, `F6:J${lastRow}`, styles.tableCenter);
     for (let i = 0; i < body.length; i += 1) {
       const rowNumber = 6 + i;
-      setCellStyle(sheet, rowNumber, 7, statusStyle(rows[i].status));
+      // Cột 8 = "Trạng thái vé" tô màu theo trạng thái.
+      setCellStyle(sheet, rowNumber, 8, statusStyle(rows[i].status));
       if (i % 2 === 1) {
-        ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I'].forEach((col) => {
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'J', 'K'].forEach((col) => {
           const cell = sheet[`${col}${rowNumber}`];
           if (cell?.s) {
             cell.s = {
@@ -350,11 +370,130 @@ const createStudentSheet = (workbook, meta, rows) => {
     }
   } else {
     sheet.A6 = { t: 's', v: 'Chưa có sinh viên đăng ký.' };
-    sheet['!merges'].push({ s: { r: 5, c: 0 }, e: { r: 5, c: 8 } });
-    setRangeStyle(sheet, 'A6:I6', styles.note);
+    sheet['!merges'].push({ s: { r: 5, c: 0 }, e: { r: 5, c: 10 } });
+    setRangeStyle(sheet, 'A6:K6', styles.note);
   }
 
   XLSX.utils.book_append_sheet(workbook, sheet, 'Danh sach SV');
+};
+
+const ratingCellStyle = (rating) => {
+  const score = Number(rating) || 0;
+  if (score >= 4) {
+    return {
+      font: { bold: true, color: { rgb: BRAND.green } },
+      fill: { patternType: 'solid', fgColor: { rgb: BRAND.greenSoft } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: thinBorder,
+    };
+  }
+  if (score >= 3) {
+    return {
+      font: { bold: true, color: { rgb: BRAND.amber } },
+      fill: { patternType: 'solid', fgColor: { rgb: BRAND.amberSoft } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: thinBorder,
+    };
+  }
+  return {
+    font: { bold: true, color: { rgb: BRAND.red } },
+    fill: { patternType: 'solid', fgColor: { rgb: BRAND.redSoft } },
+    alignment: { horizontal: 'center', vertical: 'center' },
+    border: thinBorder,
+  };
+};
+
+const createReviewSheet = (workbook, meta) => {
+  const reviews = Array.isArray(meta.reviews) ? meta.reviews : [];
+  const reviewCount = Number(meta.reviewCount ?? reviews.length) || reviews.length;
+  const avgRatingRaw = Number(meta.averageRating ?? meta.rating ?? 0) || 0;
+  const avgLine = reviewCount
+    ? `Điểm trung bình: ${Math.round(avgRatingRaw * 10) / 10}/5 · ${reviewCount} lượt đánh giá`
+    : 'Chưa có lượt đánh giá nào cho sự kiện này.';
+
+  // Phân bố sao (từ distribution nếu có, nếu không thì đếm từ danh sách review).
+  const distMap = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  if (Array.isArray(meta.distribution) && meta.distribution.length) {
+    meta.distribution.forEach((d) => {
+      const stars = Number(d.stars ?? d.rating);
+      if (distMap[stars] != null) distMap[stars] = Number(d.count) || 0;
+    });
+  } else {
+    reviews.forEach((r) => {
+      const stars = Math.round(Number(r.rating) || 0);
+      if (distMap[stars] != null) distMap[stars] += 1;
+    });
+  }
+  const distLine = `5 sao: ${distMap[5]}    4 sao: ${distMap[4]}    3 sao: ${distMap[3]}    2 sao: ${distMap[2]}    1 sao: ${distMap[1]}`;
+
+  const header = ['STT', 'Người gửi', 'Email', 'MSSV', 'Điểm', 'Nội dung', 'Thời gian'];
+  const body = reviews.map((r, index) => [
+    index + 1,
+    r.authorName || r.name || '',
+    r.authorEmail || r.email || '',
+    r.studentId || '',
+    r.rating != null ? `${r.rating}/5` : '',
+    r.comment?.trim() ? r.comment.trim() : 'Không có nhận xét.',
+    formatDateTime(r.createdAt),
+  ]);
+  const data = [
+    ['F-EVENTS | ĐÁNH GIÁ SỰ KIỆN'],
+    [avgLine],
+    [distLine],
+    [],
+    header,
+    ...body,
+  ];
+
+  const sheet = XLSX.utils.aoa_to_sheet(data);
+  const lastRow = Math.max(data.length, 5);
+  sheet['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } },
+  ];
+  sheet['!cols'] = [
+    { wch: 7 },
+    { wch: 24 },
+    { wch: 32 },
+    { wch: 16 },
+    { wch: 10 },
+    { wch: 56 },
+    { wch: 20 },
+  ];
+  sheet['!autofilter'] = { ref: `A5:G${lastRow}` };
+  sheet['!freeze'] = { ySplit: 5, topLeftCell: 'A6', activePane: 'bottomLeft', state: 'frozen' };
+  setRows(sheet, [30, 24, 22, 8, 26, ...body.map(() => 32)]);
+
+  setRangeStyle(sheet, 'A1:G1', styles.title);
+  setRangeStyle(sheet, 'A2:G2', styles.subtitle);
+  setRangeStyle(sheet, 'A3:G3', styles.note);
+  setRangeStyle(sheet, 'A5:G5', styles.tableHeader);
+
+  if (body.length) {
+    setRangeStyle(sheet, `A6:G${lastRow}`, styles.tableCell);
+    setRangeStyle(sheet, `A6:A${lastRow}`, styles.tableCenter);
+    setRangeStyle(sheet, `D6:E${lastRow}`, styles.tableCenter);
+    setRangeStyle(sheet, `G6:G${lastRow}`, styles.tableCenter);
+    for (let i = 0; i < body.length; i += 1) {
+      const rowNumber = 6 + i;
+      setCellStyle(sheet, rowNumber, 5, ratingCellStyle(reviews[i].rating));
+      if (i % 2 === 1) {
+        ['A', 'B', 'C', 'D', 'F', 'G'].forEach((col) => {
+          const cell = sheet[`${col}${rowNumber}`];
+          if (cell?.s) {
+            cell.s = { ...cell.s, fill: { patternType: 'solid', fgColor: { rgb: 'FCFCFD' } } };
+          }
+        });
+      }
+    }
+  } else {
+    sheet.A6 = { t: 's', v: 'Chưa có lượt đánh giá nào.' };
+    sheet['!merges'].push({ s: { r: 5, c: 0 }, e: { r: 5, c: 6 } });
+    setRangeStyle(sheet, 'A6:G6', styles.note);
+  }
+
+  XLSX.utils.book_append_sheet(workbook, sheet, 'Danh gia');
 };
 
 export async function downloadStudentsExcel(students, meta = {}) {
@@ -362,8 +501,8 @@ export async function downloadStudentsExcel(students, meta = {}) {
   const rows = buildStudentRows(Array.isArray(students) ? students : []);
   const workbook = XLSX.utils.book_new();
   workbook.Props = {
-    Title: `Danh sách sinh viên - ${meta.eventTitle || meta.title || 'Sự kiện'}`,
-    Subject: 'F-Events student registration export',
+    Title: `Báo cáo sau sự kiện - ${meta.eventTitle || meta.title || 'Sự kiện'}`,
+    Subject: 'F-Events post-event report export',
     Author: 'F-Events',
     Company: 'FPT Event Platform',
     CreatedDate: new Date(),
@@ -374,7 +513,8 @@ export async function downloadStudentsExcel(students, meta = {}) {
 
   createSummarySheet(workbook, meta, rows);
   createStudentSheet(workbook, meta, rows);
+  createReviewSheet(workbook, meta);
 
-  const filename = `${sanitizeFileName(meta.eventTitle || meta.title)}-danh-sach-sv.xlsx`;
+  const filename = `${sanitizeFileName(meta.eventTitle || meta.title)}-bao-cao-su-kien.xlsx`;
   XLSX.writeFile(workbook, filename, { bookType: 'xlsx', cellStyles: true });
 }

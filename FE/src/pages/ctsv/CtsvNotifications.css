@@ -1,0 +1,100 @@
+.ctsv-notifications-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ctsv-notifications-mark-all {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #334155;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ctsv-notifications-mark-all:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.ctsv-notifications-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ctsv-notifications-mark-all--danger {
+  color: #b91c1c;
+}
+
+.ctsv-notifications-mark-all--danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.ctsv-notifications-card {
+  background: #fff;
+  border: 1px solid #eef2f7;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+
+.ctsv-notifications-list {
+  overflow: visible;
+  flex: none;
+  padding: 10px;
+}
+
+.ctsv-notifications-list .header-notif-item {
+  padding: 14px 12px;
+  border-radius: 12px;
+}
+
+.ctsv-notifications-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.ctsv-notifications-row .header-notif-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctsv-notifications-delete {
+  flex-shrink: 0;
+  align-self: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+.ctsv-notifications-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.ctsv-notifications-list li + li {
+  border-top: 1px solid #f1f5f9;
+}
+
+.ctsv-notifications-loading {
+  padding: 32px 24px;
+  text-align: center;
+}

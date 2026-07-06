@@ -16,11 +16,12 @@ import CtsvAnnouncementPublish, {
   AdminAnnouncementManage,
   IcpdpAnnouncementManage,
   ClubAnnouncementManage,
-  PartnerAnnouncementManage
+  PartnerAnnouncementManage,
+  PortalAnnouncementManage
 } from './pages/ctsv/CtsvAnnouncementPublish';
+import CtsvNotifications from './pages/ctsv/CtsvNotifications';
 import CtsvCalendar from './pages/ctsv/CtsvCalendar';
 import CtsvReports from './pages/ctsv/CtsvReports';
-import CtsvAllEvents from './pages/ctsv/CtsvAllEvents';
 import CtsvReportDetail from './pages/ctsv/CtsvReportDetail';
 import CtsvSemesterTimelines from './pages/ctsv/CtsvSemesterTimelines';
 import CtsvProfile from './pages/ctsv/CtsvProfile';
@@ -35,6 +36,7 @@ import IcpdpEventList from './pages/icpdp/IcpdpEventList';
 import IcpdpEventDetail from './pages/icpdp/IcpdpEventDetail';
 import IcpdpCalendar from './pages/icpdp/IcpdpCalendar';
 import IcpdpReports from './pages/icpdp/IcpdpReports';
+import IcpdpReportDetail from './pages/icpdp/IcpdpReportDetail';
 import IcpdpProfileSettings from './pages/icpdp/IcpdpProfileSettings';
 import IcpdpSemesterTimelineList from './pages/icpdp/IcpdpSemesterTimelineList';
 import IcpdpMySemesterTimelines from './pages/icpdp/IcpdpMySemesterTimelines';
@@ -121,7 +123,11 @@ initThemeFromStorage();
 
 const ProtectedRoute = ({ children }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  return isLoggedIn ? children : <Navigate to="/login" replace />;
+  const location = useLocation();
+  if (isLoggedIn) return children;
+  // Giữ lại đích đến (vd link check-in QR /quet-qr?eventId&token) để đăng nhập xong quay lại đúng chỗ.
+  const redirect = encodeURIComponent(`${location.pathname}${location.search}`);
+  return <Navigate to={`/login?redirect=${redirect}`} replace />;
 };
 
 const ScanQrLegacyRedirect = () => {
@@ -199,6 +205,13 @@ const PublicAnnouncementsRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (!isLoggedIn) return <Navigate to="/login" replace />;
   if (isAdminRole()) return <AdminPublicAnnouncements showToast={showToast} />;
+  if (isCtsvRole()) {
+    return (
+      <PublicAdminShell activeNav="news">
+        <PortalAnnouncementManage portalRole="ctsv" showToast={showToast} />
+      </PublicAdminShell>
+    );
+  }
   return <Announcements showToast={showToast} />;
 };
 
@@ -255,7 +268,6 @@ function App() {
               <Route index element={<Navigate to="/" replace />} />
               <Route path="dashboard" element={<CtsvDashboard />} />
               <Route path="events" element={<CtsvEventList />} />
-              <Route path="all-events" element={<CtsvAllEvents />} />
               <Route path="events/create" element={<CtsvEventCreate />} />
               <Route path="events/:id/edit" element={<CtsvEventCreate />} />
               <Route path="events/:id" element={<CtsvEventDetail />} />
@@ -264,7 +276,8 @@ function App() {
               <Route path="partners" element={<CtsvPartnerList />} />
               <Route path="partners/:id" element={<CtsvPartnerDetail />} />
               <Route path="semester-timelines" element={<CtsvSemesterTimelines />} />
-              <Route path="semester-timelines/:id" element={<Navigate to="/ctsv/semester-timelines" replace />} />
+              <Route path="semester-timelines/:id" element={<CtsvSemesterTimelines />} />
+              <Route path="notifications" element={<CtsvNotifications />} />
               <Route path="announcements/publish" element={<CtsvAnnouncementPublish />} />
               <Route
                 path="announcements/:id"
@@ -302,6 +315,7 @@ function App() {
               <Route path="events/:id" element={<IcpdpEventDetail />} />
               <Route path="calendar" element={<IcpdpCalendar />} />
               <Route path="reports" element={<IcpdpReports />} />
+              <Route path="reports/:id" element={<IcpdpReportDetail />} />
               <Route path="profile" element={<IcpdpProfileSettings showToast={showToast} />} />
               <Route path="settings" element={<PortalSettingsView showToast={showToast} role="icpdp" />} />
               <Route path="announcements" element={<IcpdpAnnouncementManage />} />

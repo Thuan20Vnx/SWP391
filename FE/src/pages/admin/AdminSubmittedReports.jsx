@@ -47,7 +47,7 @@ const AdminSubmittedReports = () => {
         <div>
           <span className="ctsv-events-eyebrow">Admin / Báo cáo đơn vị</span>
           <h1>Báo cáo đơn vị đã gửi lên Admin</h1>
-          <p>Admin xem các báo cáo sau sự kiện do CTSV gửi lên — gồm báo cáo SK đối tác (gửi đồng thời cho Partner).</p>
+          <p>Admin xem các báo cáo sau sự kiện do CTSV, IC-PDP và Câu lạc bộ gửi lên — gồm báo cáo SK đối tác (gửi đồng thời cho Partner) và báo cáo nghiệm thu của CLB.</p>
         </div>
       </header>
 

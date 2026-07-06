@@ -44,6 +44,12 @@ const submittedCtsvReportSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    submittedByRole: {
+      type: String,
+      default: '',
+      trim: true,
+      lowercase: true,
+    },
     submittedAt: {
       type: Date,
       default: Date.now,

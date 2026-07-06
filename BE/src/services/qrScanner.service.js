@@ -9,6 +9,21 @@ const MAX_QR_DURATION_MINUTES = 7 * 24 * 60;
 const ATTENDANCE_CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const ATTENDANCE_CODE_REGEX = /^[A-Za-z0-9]{6}$/;
 
+/**
+ * Chỉ được tạo mã QR điểm danh khi sự kiện đã được duyệt (đang mở đăng ký,
+ * đang diễn ra, hoặc đã kết thúc — cho check-out trễ). Các trạng thái còn chờ
+ * duyệt / bản nháp / bị từ chối thì không có mã QR.
+ */
+const QR_BLOCKED_STATUSES = new Set([
+  'pending',
+  'pending_ctsv',
+  'pending_icpdp',
+  'pending_admin',
+  'revision',
+  'draft',
+  'rejected',
+]);
+
 const parseDurationMinutes = (raw) => {
   if (typeof raw === 'number' && Number.isFinite(raw)) return Math.trunc(raw);
   const minutes = parseInt(String(raw ?? '').trim(), 10);
@@ -167,6 +182,9 @@ const getStationQrCodes = async (user, eventId) => {
 
 const generateStationQr = async (user, eventId, body = {}) => {
   const event = await assertCanManageEventQr(user, eventId);
+  if (QR_BLOCKED_STATUSES.has(event.status)) {
+    throw new AppError('Chỉ có thể tạo mã QR khi sự kiện đã được duyệt.', 400);
+  }
   const action = body.action === 'checkout' ? 'checkout' : 'checkin';
   const token = crypto.randomBytes(24).toString('hex');
   const attendanceCode = await generateUniqueAttendanceCode();

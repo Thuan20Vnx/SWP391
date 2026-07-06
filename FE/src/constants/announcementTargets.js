@@ -106,37 +106,42 @@ export const getAnnouncementDetailPathForNotifRole = (notifRole, id) => {
 export const PORTAL_ANNOUNCEMENT_CONFIG = {
   admin: {
     eyebrow: 'Truyền thông Admin',
-    title: 'Thông báo hệ thống',
-    subtitle: 'Soạn, phát hành và quản lý thông báo tới mọi nhóm người dùng trên nền tảng F-Events.',
-    publishLabel: 'Phát hành thông báo',
-    manageLink: '/announcements'
+    title: 'Tin tức hệ thống',
+    subtitle: 'Soạn, phát hành và quản lý tin tức tới mọi nhóm người dùng trên nền tảng F-Events.',
+    publishLabel: 'Phát hành tin tức',
+    manageLink: '/announcements',
+    noun: 'Tin tức'
   },
   ctsv: {
     eyebrow: 'Truyền thông CTSV',
-    title: 'Thông báo chính thức',
-    subtitle: 'Phát hành thông báo toàn trường và quản lý danh sách đã gửi.',
-    publishLabel: 'Phát hành thông báo',
-    manageLink: '/ctsv/announcements/publish'
+    title: 'Tin tức',
+    subtitle: 'Soạn, phát hành và quản lý tin tức toàn trường.',
+    publishLabel: 'Phát hành tin tức',
+    manageLink: '/ctsv/announcements/publish',
+    noun: 'Tin tức'
   },
   icpdp: {
     eyebrow: 'Truyền thông IC-PDP',
-    title: 'Thông báo CLB',
-    subtitle: 'Gửi thông báo nội bộ tới sinh viên, CLB và CTSV.',
-    publishLabel: 'Gửi thông báo',
-    manageLink: '/icpdp/announcements'
+    title: 'Tin tức CLB',
+    subtitle: 'Gửi tin tức nội bộ tới sinh viên, CLB và CTSV.',
+    publishLabel: 'Gửi tin tức',
+    manageLink: '/icpdp/announcements',
+    noun: 'Tin tức'
   },
   club_manager: {
     eyebrow: 'Truyền thông CLB',
-    title: 'Thông báo câu lạc bộ',
-    subtitle: 'Thông báo tới thành viên và sinh viên quan tâm CLB.',
-    publishLabel: 'Gửi thông báo',
-    manageLink: '/quan-ly-clb/announcements'
+    title: 'Tin tức câu lạc bộ',
+    subtitle: 'Tin tức tới thành viên và sinh viên quan tâm CLB.',
+    publishLabel: 'Gửi tin tức',
+    manageLink: '/quan-ly-clb/announcements',
+    noun: 'Tin tức'
   },
   partner: {
     eyebrow: 'Truyền thông đối tác',
-    title: 'Thông báo đối tác',
-    subtitle: 'Gửi thông báo trực tiếp tới Phòng CTSV (phê duyệt, bổ sung hồ sơ, cập nhật sự kiện).',
+    title: 'Tin tức đối tác',
+    subtitle: 'Gửi tin tức trực tiếp tới Phòng CTSV (phê duyệt, bổ sung hồ sơ, cập nhật sự kiện).',
     publishLabel: 'Gửi tới CTSV',
-    manageLink: '/partner/announcements'
+    manageLink: '/partner/announcements',
+    noun: 'Tin tức'
   }
 };

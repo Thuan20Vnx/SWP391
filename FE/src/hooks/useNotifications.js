@@ -3,6 +3,8 @@ import {
   fetchNotifications,
   markNotificationRead as apiMarkRead,
   markAllRead as apiMarkAllRead,
+  deleteNotification as apiDeleteNotification,
+  deleteAllNotifications as apiDeleteAllNotifications,
   createNotificationSSE
 } from '../services/notificationApi';
 import { normalizeRole } from '../utils/auth';
@@ -107,7 +109,27 @@ const useNotifications = () => {
     }
   }, []);
 
-  return { notifications, unreadCount, markRead, markAllRead, refetch, loading };
+  const deleteOne = useCallback(async (id) => {
+    try {
+      await apiDeleteNotification(id);
+      setNotifications((prev) => prev.filter((n) => String(n._id || n.id) !== String(id)));
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const deleteAll = useCallback(async () => {
+    try {
+      await apiDeleteAllNotifications();
+      setNotifications([]);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  return { notifications, unreadCount, markRead, markAllRead, deleteOne, deleteAll, refetch, loading };
 };
 
 export default useNotifications;

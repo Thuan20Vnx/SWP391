@@ -1,4 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  fetchClubReportSubmissions,
+  submitClubEventReport,
+} from '../../services/eventsApi';
 
 const getReportPhase = (event) => {
   const now = Date.now();
@@ -15,9 +19,74 @@ const phaseLabel = (phase) => {
   return 'Sắp diễn ra';
 };
 
-const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewReport }) => {
+const fillTier = (pct) => {
+  if (pct >= 80) return 'high';
+  if (pct >= 40) return 'mid';
+  if (pct > 0) return 'low';
+  return 'empty';
+};
+
+const actionLabel = (phase) => {
+  if (phase === 'ended') return 'Xem báo cáo';
+  if (phase === 'live') return 'Xem số liệu';
+  return 'Xem chi tiết';
+};
+
+const ReportRowSkeleton = () => (
+  <tr aria-hidden>
+    <td><span className="clb-reports-sk clb-reports-sk--lg" /></td>
+    <td><span className="clb-reports-sk" /></td>
+    <td><span className="clb-reports-sk clb-reports-sk--sm" /></td>
+    <td><span className="clb-reports-sk" /></td>
+    <td><span className="clb-reports-sk clb-reports-sk--sm" /></td>
+    <td className="clb-table-col-action"><span className="clb-reports-sk clb-reports-sk--btn" /></td>
+  </tr>
+);
+
+const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewReport, showToast }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [phaseFilter, setPhaseFilter] = useState('all');
+  const [submittedMap, setSubmittedMap] = useState({});
+  const [submittingId, setSubmittingId] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchClubReportSubmissions()
+      .then((rows) => {
+        if (cancelled) return;
+        const map = {};
+        rows.forEach((r) => {
+          map[String(r.reportId)] = r.submittedAt || true;
+        });
+        setSubmittedMap(map);
+      })
+      .catch(() => {
+        if (!cancelled) setSubmittedMap({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (eventId) => {
+      if (!eventId || submittingId) return;
+      setSubmittingId(eventId);
+      try {
+        const data = await submitClubEventReport(eventId);
+        setSubmittedMap((prev) => ({
+          ...prev,
+          [String(eventId)]: data.submission?.submittedAt || new Date().toISOString(),
+        }));
+        showToast?.(data.message || 'Đã gửi báo cáo nghiệm thu cho IC-PDP và Admin.', 'success');
+      } catch (err) {
+        showToast?.(err.message || 'Không gửi được báo cáo.', 'error');
+      } finally {
+        setSubmittingId(null);
+      }
+    },
+    [submittingId, showToast]
+  );
 
   const reportEvents = useMemo(() => {
     return events
@@ -59,8 +128,9 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
   const stats = useMemo(() => {
     const ended = filtered.filter((ev) => ev.phase === 'ended').length;
     const live = filtered.filter((ev) => ev.phase === 'live').length;
-    const avgFill = filtered.length
-      ? Math.round(filtered.reduce((sum, ev) => sum + ev.fill, 0) / filtered.length)
+    const rates = filtered.map((ev) => ev.fill).filter((n) => n > 0);
+    const avgFill = rates.length
+      ? Math.round(rates.reduce((sum, n) => sum + n, 0) / rates.length)
       : 0;
     return { total: filtered.length, ended, live, avgFill };
   }, [filtered]);
@@ -126,7 +196,7 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
           <strong>{stats.ended}</strong>
         </article>
         <article className="clb-reports-summary-card">
-          <span>Tỉ lệ người tham gia</span>
+          <span>TB tỷ lệ đăng ký</span>
           <strong>{stats.avgFill}%</strong>
         </article>
       </div>
@@ -139,62 +209,99 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
                 <th>SỰ KIỆN</th>
                 <th>THỜI GIAN</th>
                 <th>ĐĂNG KÝ</th>
-                <th>TỈ LỆ NGƯỜI THAM GIA</th>
+                <th>TỶ LỆ ĐĂNG KÝ</th>
                 <th>TRẠNG THÁI</th>
                 <th className="clb-table-col-action">HÀNH ĐỘNG</th>
               </tr>
             </thead>
             <tbody>
               {loadingEvents ? (
-                <tr>
-                  <td colSpan={6} className="clb-panel-empty-cell">
-                    Đang tải...
-                  </td>
-                </tr>
+                <>
+                  <ReportRowSkeleton />
+                  <ReportRowSkeleton />
+                  <ReportRowSkeleton />
+                </>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="clb-panel-empty-cell">
                     {reportEvents.length === 0
-                      ? 'Chưa có sự kiện đã duyệt để báo cáo.'
+                      ? 'Chưa có sự kiện đã duyệt để báo cáo. Sự kiện xuất hiện tại đây sau khi được phê duyệt.'
                       : 'Không có sự kiện phù hợp bộ lọc.'}
                   </td>
                 </tr>
               ) : (
-                filtered.map((ev) => (
-                  <tr key={ev.id}>
-                    <td data-label="Sự kiện">
-                      <span className="clb-event-name">{ev.title}</span>
-                    </td>
-                    <td data-label="Thời gian">
-                      <div className="clb-table-date">
-                        <span>{ev.time}</span>
-                        <strong>{ev.date}</strong>
-                      </div>
-                    </td>
-                    <td data-label="Đăng ký">
-                      <span className="clb-slot-nums">
-                        {ev.reg}/{ev.cap || '—'}
-                      </span>
-                    </td>
-                    <td data-label="Tỉ lệ người tham gia">
-                      <span className="clb-slot-nums">{ev.fill}%</span>
-                    </td>
-                    <td data-label="Trạng thái">
-                      <span className={`clb-reports-phase clb-reports-phase--${ev.phase}`}>
-                        {phaseLabel(ev.phase)}
-                      </span>
-                    </td>
-                    <td className="clb-table-col-action" data-label="">
-                      <button
-                        type="button"
-                        className="clb-btn-secondary clb-reports-view-btn"
-                        onClick={() => onViewReport?.(ev.id)}
-                      >
-                        Xem báo cáo
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                filtered.map((ev) => {
+                  const tier = fillTier(ev.fill);
+                  const isSubmitted = Boolean(submittedMap[String(ev.id)]);
+                  const isSubmitting = submittingId === ev.id;
+                  const canSubmit = ev.phase === 'ended';
+                  return (
+                    <tr key={ev.id}>
+                      <td data-label="Sự kiện">
+                        <span className="clb-event-name">{ev.title}</span>
+                      </td>
+                      <td data-label="Thời gian">
+                        <div className="clb-table-date">
+                          <span>{ev.time}</span>
+                          <strong>{ev.date}</strong>
+                        </div>
+                      </td>
+                      <td data-label="Đăng ký">
+                        <span className="clb-slot-nums">
+                          {ev.reg}/{ev.cap || '—'}
+                        </span>
+                      </td>
+                      <td data-label="Tỷ lệ đăng ký">
+                        <div className="clb-reports-fill">
+                          <div className="clb-reports-fill-bar" aria-hidden>
+                            <span
+                              className={`clb-reports-fill-progress clb-reports-fill-progress--${tier}`}
+                              style={{ width: `${Math.min(100, ev.fill)}%` }}
+                            />
+                          </div>
+                          <span className={`clb-reports-fill-pct clb-reports-fill-pct--${tier}`}>
+                            {ev.fill}%
+                          </span>
+                        </div>
+                      </td>
+                      <td data-label="Trạng thái">
+                        <span className={`clb-reports-phase clb-reports-phase--${ev.phase}`}>
+                          {phaseLabel(ev.phase)}
+                        </span>
+                      </td>
+                      <td className="clb-table-col-action" data-label="">
+                        <div className="clb-reports-actions">
+                          <button
+                            type="button"
+                            className="clb-btn-secondary clb-reports-view-btn"
+                            onClick={() => onViewReport?.(ev.id)}
+                          >
+                            {actionLabel(ev.phase)}
+                          </button>
+                          {canSubmit && (
+                            isSubmitted ? (
+                              <span className="clb-reports-sent-tag">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                  <path d="M20 6L9 17l-5-5" />
+                                </svg>
+                                Đã nghiệm thu
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                className="clb-btn-primary clb-reports-view-btn"
+                                onClick={() => handleSubmit(ev.id)}
+                                disabled={isSubmitting}
+                              >
+                                {isSubmitting ? 'Đang gửi...' : 'Gửi nghiệm thu'}
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

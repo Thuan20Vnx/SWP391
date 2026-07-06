@@ -24,6 +24,13 @@ const recipientFilter = (user) => ({
   ]
 });
 
+const visibleFilter = (user) => ({
+  $and: [
+    recipientFilter(user),
+    { deletedByEmails: { $ne: String(user.email || '').trim().toLowerCase() } }
+  ]
+});
+
 const formatForUser = (notification, email) => {
   const normalizedEmail = String(email || '').trim().toLowerCase();
   const readBy = Array.isArray(notification.readByEmails) ? notification.readByEmails : [];
@@ -94,7 +101,7 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    const notifications = await Notification.find(recipientFilter(user))
+    const notifications = await Notification.find(visibleFilter(user))
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
@@ -154,6 +161,55 @@ router.patch('/:id/read', async (req, res) => {
     return res.json({ success: true, notification: formatForUser(notification, user.email) });
   } catch (err) {
     console.error('PATCH /notifications/:id/read:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// DELETE /api/notifications/all — xóa (ẩn) tất cả thông báo của user hiện tại
+router.delete('/all', async (req, res) => {
+  let user;
+  try {
+    user = await getAuthenticatedUser(req);
+  } catch {
+    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
+  }
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Người dùng không tồn tại!' });
+  }
+
+  try {
+    await Notification.updateMany(recipientFilter(user), {
+      $addToSet: { deletedByEmails: String(user.email).trim().toLowerCase() }
+    });
+    return res.json({ success: true, message: 'Đã xóa tất cả thông báo.' });
+  } catch (err) {
+    console.error('DELETE /notifications/all:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// DELETE /api/notifications/:id — xóa (ẩn) một thông báo của user hiện tại
+router.delete('/:id', async (req, res) => {
+  let user;
+  try {
+    user = await getAuthenticatedUser(req);
+  } catch {
+    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
+  }
+  if (!user) return res.status(401).json({ success: false, message: 'Người dùng không tồn tại!' });
+
+  try {
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, ...recipientFilter(user) },
+      { $addToSet: { deletedByEmails: String(user.email).trim().toLowerCase() } },
+      { new: true }
+    ).lean();
+    if (!notification) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thông báo!' });
+    }
+    return res.json({ success: true, message: 'Đã xóa thông báo.' });
+  } catch (err) {
+    console.error('DELETE /notifications/:id:', err);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

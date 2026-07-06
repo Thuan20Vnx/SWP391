@@ -8496,6 +8496,29 @@ a.club-tag {
   border-radius: 9999px;
 }
 
+.event-discovery-card__pending-pill {
+  position: absolute;
+  top: 11px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4.5px 13px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+}
+.event-discovery-card__pending-pill::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
 .event-discovery-card__overlay {
   position: absolute;
   inset: 0;
@@ -8823,6 +8846,20 @@ a.event-discovery-card__btn {
   background: #e5e7eb;
   color: #6b7280;
   cursor: not-allowed;
+}
+
+/* "Sắp mở đăng ký" — tông hổ phách, gợi trạng thái chờ/sắp diễn ra */
+.event-discovery-card__btn--primary.is-disabled.event-discovery-card__btn--upcoming {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+/* "Đã đóng đăng ký" — tông xám lạnh, gợi trạng thái đã kết thúc */
+.event-discovery-card__btn--primary.is-disabled.event-discovery-card__btn--closed {
+  background: #eef1f5;
+  color: #94a3b8;
+  border: 1px solid #dbe1e8;
 }
 
 .event-discovery-card__btn.is-full {
@@ -10547,6 +10584,13 @@ a.event-discovery-card__btn {
 
 .event-detail-page {
   background: #fff;
+  overflow-x: clip;
+}
+
+/* Grid item mặc định min-width:auto — nội dung rộng (mô tả, ảnh) có thể đẩy
+   layout vượt viewport khiến hero full-width bị lệch/dính mép trái trên mobile. */
+.event-detail-page__grid > * {
+  min-width: 0;
 }
 
 .event-detail-page__main {
@@ -10583,6 +10627,10 @@ a.event-discovery-card__btn {
   border-radius: 16px;
   overflow: hidden;
   margin-bottom: 0;
+  /* width cố định theo cột — nếu không, aspect-ratio + min-height sẽ tính
+     ngược ra width lớn hơn cột và làm banner tràn mép phải trên mobile. */
+  width: 100%;
+  max-width: 100%;
   aspect-ratio: 2.35 / 1;
   min-height: 300px;
   max-height: min(400px, 42vh);
@@ -11199,6 +11247,105 @@ a.event-discovery-card__btn {
 .event-detail-page__register-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.event-detail-page__remind {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.event-detail-page__remind-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.event-detail-page__remind-input {
+  width: 100%;
+  border: 1px solid #e2d6ce;
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-size: 15px;
+  color: #1e293b;
+  background: #faf8f6;
+  box-sizing: border-box;
+}
+
+.event-detail-page__remind-input:focus {
+  outline: none;
+  border-color: #f26f21;
+  background: #fff;
+}
+
+.event-detail-page__remind-hint {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: #8a7b72;
+}
+
+.event-detail-page__remind-account {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #334155;
+  background: #faf8f6;
+  border: 1px solid #e2d6ce;
+  border-radius: 12px;
+  padding: 12px 14px;
+  word-break: break-all;
+}
+
+.event-detail-page__remind-account strong {
+  color: #1e293b;
+}
+
+.event-detail-page__calendar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d9c7bc;
+  border-radius: 14px;
+  background: #fff;
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 13px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.event-detail-page__calendar-btn:hover {
+  background: #faf5f1;
+  border-color: #f26f21;
+}
+
+.event-detail-page__calendar-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.event-detail-page__remind-done {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13.5px;
+  line-height: 20px;
+}
+
+.event-detail-page__remind-done svg {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .event-detail-page__share {
@@ -13173,6 +13320,78 @@ a.event-discovery-card__btn {
   text-align: left;
 }
 
+/* Thanh line sự kiện theo lane — kéo dài từ ngày bắt đầu tới ngày kết thúc. */
+.ctsv-cal-lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  /* Tràn ra sát mép ô (bù padding 8px) để thanh nối liền giữa các ngày. */
+  margin: 5px -8px 0;
+}
+
+.ctsv-cal-lane {
+  height: 18px;
+  min-height: 18px;
+}
+
+.ctsv-cal-lane--empty {
+  background: transparent;
+}
+
+.ctsv-cal-bar {
+  display: flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  overflow: hidden;
+  border-style: solid;
+  border-width: 0;
+}
+
+.ctsv-cal-bar:hover {
+  filter: brightness(0.97);
+}
+
+/* Đầu/cuối sự kiện: bo góc + tách nhẹ khỏi mép ô; đoạn giữa để vuông cho liền mạch. */
+.ctsv-cal-bar.is-start {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+  border-left-width: 3px;
+  margin-left: 4px;
+}
+
+.ctsv-cal-bar.is-end {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  margin-right: 4px;
+}
+
+.ctsv-cal-bar--single {
+  border-left-width: 3px;
+}
+
+.ctsv-cal-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ctsv-cal-bar-time {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.ctsv-cal-bar-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .ctsv-cal-sidebar {
   background: #fff;
   border: 1px solid #e2e8f0;
@@ -13912,6 +14131,7 @@ a.event-discovery-card__btn {
 /* Trang Tß║ío sß╗▒ kiß╗çn cß║Ñp tr╞░ß╗¥ng ΓÇö Figma 75:50895 */
 .ctsv-create-page {
   max-width: 960px;
+  margin: 0 auto;
 }
 
 .ctsv-breadcrumb {
@@ -18495,6 +18715,7 @@ button.stl-action-btn {
   gap: 28px;
   padding-top: 8px;
   max-width: 1100px;
+  margin: 0 auto;
 }
 
 .ctsv-announce-hero {
@@ -19263,6 +19484,12 @@ button.stl-action-btn {
   border-color: #a5b4fc;
   color: #4338ca;
   background: #eef2ff;
+}
+
+.ctsv-announce-history-btn--copy:hover:not(:disabled) {
+  border-color: #86efac;
+  color: #15803d;
+  background: #f0fdf4;
 }
 
 .ctsv-announce-history-btn--more.is-open,
@@ -21661,4 +21888,59 @@ button.stl-action-btn {
 }
 .stl-row--conflict td {
   background: #fffbeb;
+}
+
+/* Thanh filter dạng thẻ đếm (chia sẻ giữa CLB / CTSV / IC-PDP / Partner) */
+.evt-filter-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.evt-filter-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.14s, box-shadow 0.14s;
+  text-align: left;
+}
+.evt-filter-tab:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+.evt-filter-tab__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.evt-filter-tab__count {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.evt-filter-tab--all.is-active { border-color: #334155; border-width: 2px; }
+.evt-filter-tab--all.is-active .evt-filter-tab__count { color: #0f172a; }
+.evt-filter-tab--success.is-active { border-color: #10b981; border-width: 2px; }
+.evt-filter-tab--success.is-active .evt-filter-tab__count { color: #047857; }
+.evt-filter-tab--warning.is-active { border-color: #f59e0b; border-width: 2px; }
+.evt-filter-tab--warning.is-active .evt-filter-tab__count { color: #92400e; }
+.evt-filter-tab--alert.is-active { border-color: #ef4444; border-width: 2px; }
+.evt-filter-tab--alert.is-active .evt-filter-tab__count { color: #b91c1c; }
+.evt-filter-tab--revision.is-active { border-color: #f26f21; border-width: 2px; }
+.evt-filter-tab--revision.is-active .evt-filter-tab__count { color: #c2410c; }
+.evt-filter-tab--info.is-active { border-color: #3b82f6; border-width: 2px; }
+.evt-filter-tab--info.is-active .evt-filter-tab__count { color: #1d4ed8; }
+@media (max-width: 768px) {
+  .evt-filter-tabs { grid-template-columns: repeat(2, 1fr); gap: 8px; }
 }

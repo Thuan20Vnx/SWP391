@@ -371,7 +371,7 @@ const emptyListHint = (statusFilter) => {
   return 'Thử đổi bộ lọc hoặc từ khóa tìm kiếm.';
 };
 
-const ClubSemesterTimelinePanel = ({ showToast, mode = 'club' }) => {
+const ClubSemesterTimelinePanel = ({ showToast, mode = 'club', initialTimelineId }) => {
   const api = useMemo(() => getTimelineApi(mode), [mode]);
   const defaults = useMemo(() => inferDefaultSemester(), []);
   const [timelines, setTimelines] = useState([]);
@@ -590,6 +590,13 @@ const ClubSemesterTimelinePanel = ({ showToast, mode = 'club' }) => {
       // giữ bản tóm tắt từ danh sách
     }
   };
+
+  const openedInitialIdRef = useRef(null);
+  useEffect(() => {
+    if (!initialTimelineId || openedInitialIdRef.current === initialTimelineId) return;
+    openedInitialIdRef.current = initialTimelineId;
+    openDetail({ id: initialTimelineId });
+  }, [initialTimelineId]);
 
   const openEdit = async (timeline) => {
     if (!canEditTimeline(timeline, api.pendingKey)) {
