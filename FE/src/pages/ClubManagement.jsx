@@ -9,10 +9,45 @@ import ClubEventReportsPanel from '../components/club/ClubEventReportsPanel';
 import './ClubManagement.css';
 import EventProposalForm from '../components/events/EventProposalForm';
 import ClubSemesterTimelinePanel from '../components/club/ClubSemesterTimelinePanel';
-import ClubEventListCard from '../components/club/mobile/ClubEventListCard';
 import ClubTablePagination from '../components/ui/ClubTablePagination';
+import EventDiscoveryCard from '../components/EventDiscoveryCard';
+import { resolveEventDisplayImage } from '../utils/eventDisplay';
+import { getCategoryDisplayLabel } from '../constants/eventCategories';
 import { fetchClubSemesterTimelines } from '../services/clubTimelineApi';
 import { EMPTY_EVENT_FORM, mapApiEventToForm } from '../utils/eventFormState';
+
+// Ánh xạ sự kiện CLB sang card giống trang quản lý sự kiện của CTSV.
+const clubCardState = (ev) => {
+  const s = ev.status || '';
+  if (s === 'ended') return 'expired';
+  if (s === 'postponed') return 'postponed';
+  const end = ev.endDate ? new Date(ev.endDate) : null;
+  if (end && !Number.isNaN(end.getTime()) && end.getTime() < Date.now()) return 'expired';
+  return 'active';
+};
+
+const toClubDiscoveryCard = (ev) => {
+  const start = ev.startDate ? new Date(ev.startDate) : null;
+  const dateLabel = start && !Number.isNaN(start.getTime())
+    ? `${start.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} · ${start.toLocaleDateString('vi-VN')}`
+    : '';
+  return {
+    id: String(ev._id || ev.id || ''),
+    title: ev.title,
+    thumbnail: resolveEventDisplayImage(ev),
+    isPending: /^pending/.test(ev.status || '') || ev.status === 'revision',
+    category: ev.category || 'Sự kiện',
+    categoryLabel: getCategoryDisplayLabel(ev.category) || ev.category,
+    dateLabel,
+    location: ev.location || 'Chưa có địa điểm',
+    filledSlots: ev.registeredCount ?? 0,
+    totalSlots: ev.capacity ?? 0,
+    cardState: clubCardState(ev),
+    primaryLabel: 'Quản lý',
+    priceLabel: ev.ticketPrice > 0 ? `${Number(ev.ticketPrice).toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
+    organizerLabel: 'CLB',
+  };
+};
 
 const PAGE_SIZE = 10;
 
@@ -183,17 +218,6 @@ const ClubManagement = () => {
     }
   };
 
-  const getStatusLabel = (status) => {
-    if (status === 'approved') return { label: 'Đã duyệt', tone: 'approved' };
-    if (status === 'pending_icpdp') return { label: 'Chờ IC-PDP', tone: 'pending' };
-    if (status === 'pending_admin') return { label: 'Chờ Admin', tone: 'pending' };
-    if (status === 'pending' || status === 'pending_ctsv') return { label: 'Chờ duyệt', tone: 'pending' };
-    if (status === 'revision') return { label: 'Cần chỉnh sửa', tone: 'pending' };
-    if (status === 'pending_hide') return { label: 'Đang chờ ẩn', tone: 'pending' };
-    if (status === 'rejected') return { label: 'Từ chối', tone: 'rejected' };
-    return { label: status || 'Không rõ', tone: 'pending' };
-  };
-
   const filteredEvents = useMemo(() => {
     if (eventFilter === 'all') return events;
     if (eventFilter === 'pending') {
@@ -358,120 +382,66 @@ const ClubManagement = () => {
                 );
               })()}
 
-              <div className="clb-table-wrapper club-m-hide-mobile">
-                <div className="clb-table-scroll">
-                  <table className="clb-table">
-                    <thead>
-                      <tr>
-                        <th>TÊN SỰ KIỆN</th>
-                        <th>THỂ LOẠI</th>
-                        <th>THỜI GIAN</th>
-                        <th>SỐ SLOT</th>
-                        <th>TRẠNG THÁI</th>
-                        <th className="clb-table-col-action">HÀNH ĐỘNG</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loadingEvents ? (
-                        <tr><td colSpan={6} className="clb-panel-empty-cell">Đang tải...</td></tr>
-                      ) : filteredEvents.length === 0 ? (
-                        <tr><td colSpan={6} className="clb-panel-empty-cell">Không có sự kiện nào{eventFilter !== 'all' ? ' ở trạng thái này' : ''}.</td></tr>
-                      ) : pagedEvents.map((ev) => {
-                        const { label, tone } = getStatusLabel(ev.status);
-                        const startDate = ev.startDate ? new Date(ev.startDate).toLocaleDateString('vi-VN') : '--';
-                        const startTime = ev.startDate ? new Date(ev.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--';
-                        const reg = ev.registeredCount || 0;
-                        const cap = ev.capacity || 0;
-                        const pct = cap > 0 ? Math.min(100, Math.round((reg / cap) * 100)) : 0;
-                        return (
-                          <tr key={ev._id}>
-                            <td><span className="clb-event-name">{ev.title}</span></td>
-                            <td><span className="clb-table-chip">{ev.category || 'Workshop'}</span></td>
-                            <td>
-                              <div className="clb-table-date">
-                                <strong>{startDate}</strong>
-                                <span>{startTime}</span>
-                              </div>
-                            </td>
-                            <td>
-                              <div className="clb-slot-cell">
-                                <span className="clb-slot-nums">{reg}/{cap}</span>
-                                <div className="clb-slot-bar-bg">
-                                  <div className="clb-slot-bar-fill" style={{ width: `${pct}%` }} />
-                                </div>
-                              </div>
-                            </td>
-                            <td>
-                              <span className={`clb-table-status clb-table-status--${tone}`}>{label}</span>
-                            </td>
-                            <td className="clb-table-col-action">
-                              <div className="clb-table-actions">
-                                <button
-                                  type="button"
-                                  className="clb-action-btn clb-action-btn--info"
-                                  title="Xem chi tiết"
-                                  aria-label={`Xem chi tiết ${ev.title}`}
-                                  onClick={() => navigate(`/quan-ly-clb/su-kien/${ev._id}`)}
-                                >
-                                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-                                    <path d="M12 10v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    <circle cx="12" cy="7.5" r="1.25" fill="currentColor" />
-                                  </svg>
-                                </button>
-                                {ev.status === 'rejected' ? (
-                                  <button
-                                    type="button"
-                                    className="clb-action-btn clb-action-btn--danger"
-                                    title="Xóa sự kiện"
-                                    aria-label={`Xóa sự kiện ${ev.title}`}
-                                    onClick={() => handleDeleteEvent(ev._id)}
-                                  >
-                                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                                      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    </svg>
-                                  </button>
-                                ) : (
-                                  <span className="clb-action-btn-spacer" aria-hidden="true" />
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+              {loadingEvents ? (
+                <div className="event-grid-cards" aria-busy="true">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="event-discovery-card event-discovery-card--active" style={{ minHeight: 320 }}>
+                      <div className="event-discovery-card__media" style={{ background: '#f1f5f9' }} />
+                      <div className="event-discovery-card__body" style={{ padding: 16 }}>
+                        <div className="sk sk-line sk-line--lg" />
+                        <div className="sk sk-line" />
+                        <div className="sk sk-line sk-line--short" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <ClubTablePagination
-                  page={pageSafe}
-                  totalItems={filteredEvents.length}
-                  pageSize={PAGE_SIZE}
-                  onChange={setCurrentPage}
-                />
-              </div>
-
-              <div className="club-m-event-list club-m-show-mobile">
-                {loadingEvents ? (
-                  <p className="clb-panel-empty">Đang tải...</p>
-                ) : events.length === 0 ? (
-                  <p className="clb-panel-empty">Chưa có sự kiện nào. Tạo sự kiện đầu tiên của bạn!</p>
-                ) : (
-                  events.map((ev) => {
-                    const { label, tone } = getStatusLabel(ev.status);
-                    return (
-                      <ClubEventListCard
-                        key={ev._id}
-                        event={ev}
-                        statusLabel={label}
-                        statusTone={tone}
-                        onView={(id) => navigate(`/quan-ly-clb/su-kien/${id}`)}
-                        onDelete={handleDeleteEvent}
-                        showDelete={ev.status === 'rejected'}
-                      />
-                    );
-                  })
-                )}
-              </div>
+              ) : filteredEvents.length === 0 ? (
+                <div className="ctsv-events-empty">
+                  <span className="ctsv-events-empty-icon" aria-hidden>
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" />
+                      <path d="M16 2v4M8 2v4M3 10h18" />
+                    </svg>
+                  </span>
+                  <h2>Không có sự kiện nào{eventFilter !== 'all' ? ' ở trạng thái này' : ''}.</h2>
+                  <p>Tạo sự kiện mới hoặc đổi bộ lọc trạng thái phía trên.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="event-grid-cards">
+                    {pagedEvents.map((ev) => (
+                      <div key={ev._id} className="clb-event-card-cell">
+                        <EventDiscoveryCard
+                          event={toClubDiscoveryCard(ev)}
+                          protectedImage
+                          viewOnly
+                          detailTo={`/quan-ly-clb/su-kien/${ev._id}`}
+                          onManage={() => navigate(`/quan-ly-clb/su-kien/${ev._id}`)}
+                          manageLabel="Quản lý"
+                        />
+                        {ev.status === 'rejected' && (
+                          <button
+                            type="button"
+                            className="clb-card-delete-btn"
+                            onClick={() => handleDeleteEvent(ev._id)}
+                          >
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                            Xóa sự kiện
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <ClubTablePagination
+                    page={pageSafe}
+                    totalItems={filteredEvents.length}
+                    pageSize={PAGE_SIZE}
+                    onChange={setCurrentPage}
+                  />
+                </>
+              )}
             </>
           )}
 
@@ -530,6 +500,7 @@ const ClubManagement = () => {
             <ClubEventReportsPanel
               events={events}
               loadingEvents={loadingEvents}
+              showToast={showToast}
               onViewReport={(eventId) =>
                 navigate(`/quan-ly-clb/su-kien/${eventId}?tab=bao-cao`)
               }

@@ -61,6 +61,18 @@ const assertEventRegisterable = (event) => {
   if (event.eventState === 'postponed') {
     throw new AppError('Sự kiện đang hoãn, chưa thể đăng ký.', 400);
   }
+  if (event.registrationStartDate) {
+    const regStart = new Date(event.registrationStartDate);
+    if (!Number.isNaN(regStart.getTime()) && Date.now() < regStart.getTime()) {
+      throw new AppError('Sự kiện chưa tới ngày mở đăng ký.', 400);
+    }
+  }
+  if (event.registrationEndDate) {
+    const regEnd = new Date(event.registrationEndDate);
+    if (!Number.isNaN(regEnd.getTime()) && Date.now() > regEnd.getTime()) {
+      throw new AppError('Đã hết hạn đăng ký sự kiện.', 400);
+    }
+  }
   if (event.registeredCount >= event.capacity) {
     throw new AppError('Sự kiện đã hết chỗ.', 400);
   }

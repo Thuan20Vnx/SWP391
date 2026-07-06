@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpCalendar } from '../../services/icpdpApi';
 import {
+  CALENDAR_STATUS_LEGEND,
   WEEKDAYS_VI,
   buildMonthCells,
   formatMonthLabel,
@@ -53,7 +54,7 @@ const IcpdpCalendar = () => {
 
   const sidebarEvents = useMemo(() => {
     const list = selectedDay
-      ? eventsInMonth.filter((e) => e.date.getDate() === selectedDay)
+      ? eventsInMonth.filter((e) => selectedDay >= e.startDay && selectedDay <= e.endDay)
       : eventsInMonth;
     return [...list].sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [eventsInMonth, selectedDay]);
@@ -144,18 +145,11 @@ const IcpdpCalendar = () => {
         </div>
 
         <div className="ctsv-cal-legend">
-          <span className="ctsv-cal-legend-item">
-            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--school" /> Cấp trường
-          </span>
-          <span className="ctsv-cal-legend-item">
-            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--partner" /> Đối tác
-          </span>
-          <span className="ctsv-cal-legend-item">
-            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--club" /> CLB
-          </span>
-          <span className="ctsv-cal-legend-item">
-            <i className="ctsv-cal-legend-dot ctsv-cal-legend-dot--pending" /> Chờ duyệt
-          </span>
+          {CALENDAR_STATUS_LEGEND.map((item) => (
+            <span key={item.id} className="ctsv-cal-legend-item">
+              <i className="ctsv-cal-legend-dot" style={{ backgroundColor: item.color }} /> {item.label}
+            </span>
+          ))}
         </div>
       </section>
 
@@ -199,25 +193,48 @@ const IcpdpCalendar = () => {
                     <span className={`student-calendar__day ${cell.isToday ? 'ctsv-cal-day--today' : ''}`}>
                       {cell.day}
                     </span>
-                    <div className="ctsv-cal-cell-events">
-                      {cell.events.slice(0, 3).map((event) => (
-                        <Link
-                          key={event.id}
-                          to={`/icpdp/events/${event.id}`}
-                          className="ctsv-cal-event-pill"
-                          style={{
-                            backgroundColor: event.colors.bg,
-                            borderColor: event.colors.border,
-                            color: event.colors.text
-                          }}
-                          title={`${event.time} · ${event.title}`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <span className="ctsv-cal-event-pill-time">{event.time}</span>
-                          <span className="ctsv-cal-event-pill-title">{event.title}</span>
-                        </Link>
-                      ))}
-                      {cell.events.length > 3 && (
+                    <div className="ctsv-cal-lanes">
+                      {Array.from({ length: cell.laneCount }).map((_, laneIndex) => {
+                        const seg = cell.lanes[laneIndex];
+                        if (!seg) {
+                          return <span key={`lane-${laneIndex}`} className="ctsv-cal-lane ctsv-cal-lane--empty" />;
+                        }
+                        const { event } = seg;
+                        const showLabel = seg.isSegmentStart || seg.isWeekStart;
+                        const barClass = [
+                          'ctsv-cal-lane',
+                          'ctsv-cal-bar',
+                          seg.multiDay ? 'ctsv-cal-bar--span' : 'ctsv-cal-bar--single',
+                          seg.isStart ? 'is-start' : '',
+                          seg.isEnd ? 'is-end' : ''
+                        ]
+                          .filter(Boolean)
+                          .join(' ');
+                        return (
+                          <Link
+                            key={event.id}
+                            to={`/icpdp/events/${event.id}`}
+                            className={barClass}
+                            style={{
+                              backgroundColor: event.colors.bg,
+                              borderColor: event.colors.border,
+                              color: event.colors.text
+                            }}
+                            title={`${event.title}${event.time ? ` · ${event.time}` : ''}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {showLabel ? (
+                              <span className="ctsv-cal-bar-label">
+                                {!seg.multiDay && event.time ? (
+                                  <span className="ctsv-cal-bar-time">{event.time}</span>
+                                ) : null}
+                                <span className="ctsv-cal-bar-title">{event.title}</span>
+                              </span>
+                            ) : null}
+                          </Link>
+                        );
+                      })}
+                      {cell.hiddenCount > 0 && (
                         <button
                           type="button"
                           className="ctsv-cal-more"
@@ -226,7 +243,7 @@ const IcpdpCalendar = () => {
                             setSelectedDay(cell.day);
                           }}
                         >
-                          +{cell.events.length - 3} sự kiện
+                          +{cell.hiddenCount} sự kiện
                         </button>
                       )}
                     </div>
@@ -267,7 +284,9 @@ const IcpdpCalendar = () => {
                     <div className="ctsv-cal-sidebar-body">
                       <strong>{event.title}</strong>
                       <p>
-                        {event.date.toLocaleDateString('vi-VN')} · {event.time}
+                        {event.multiDay
+                          ? `${event.start.toLocaleDateString('vi-VN')} – ${event.end.toLocaleDateString('vi-VN')}`
+                          : `${event.date.toLocaleDateString('vi-VN')}${event.time ? ` · ${event.time}` : ''}`}
                         {event.location ? ` · ${event.location}` : ''}
                       </p>
                       <div className="ctsv-cal-sidebar-tags">

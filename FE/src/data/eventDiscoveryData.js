@@ -250,7 +250,12 @@ export const markDiscoveryCardRegistered = (card) => ({
 });
 
 export const mapApiEventToCard = (event, { viewerRole = 'guest' } = {}) => {
-  const eventState = event.eventState || 'active';
+  // Sự kiện đã qua ngày kết thúc thì coi như đã kết thúc, kể cả khi BE để eventState = 'active'.
+  const cardEndDate = event.endDate ? new Date(event.endDate) : null;
+  const cardHasEnded =
+    cardEndDate && !Number.isNaN(cardEndDate.getTime()) && Date.now() > cardEndDate.getTime();
+  const rawCardState = event.eventState || 'active';
+  const eventState = cardHasEnded && rawCardState === 'active' ? 'expired' : rawCardState;
   const totalSlots = event.capacity || 100;
   const filledSlots = event.registeredCount ?? 0;
   const category = event.category || 'Sự kiện';
@@ -260,6 +265,23 @@ export const mapApiEventToCard = (event, { viewerRole = 'guest' } = {}) => {
   const { listPrice, amountDue, priceLabel, studentPrivilegeApplied, primaryActionLabel } = pricing;
   const organizerType = resolveEventOrganizerType(event);
   const organizerLabel = getOrganizerLabel(organizerType);
+
+  // Đã publish nhưng chưa tới ngày mở đăng ký thì chỉ cho xem.
+  const regStart = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
+  const regEnd = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
+  const registrationNotOpen =
+    !isRegistered &&
+    eventState === 'active' &&
+    regStart &&
+    !Number.isNaN(regStart.getTime()) &&
+    Date.now() < regStart.getTime();
+  const registrationClosed =
+    !isRegistered &&
+    eventState === 'active' &&
+    !registrationNotOpen &&
+    regEnd &&
+    !Number.isNaN(regEnd.getTime()) &&
+    Date.now() > regEnd.getTime();
 
   return {
     id: String(event._id || event.id || ''),
@@ -283,7 +305,15 @@ export const mapApiEventToCard = (event, { viewerRole = 'guest' } = {}) => {
     totalSlots,
     cardState: isRegistered ? 'registered' : eventState,
     postponeReason: event.postponeReason || '',
-    primaryLabel: isRegistered ? 'Đã đăng ký' : primaryActionLabel,
+    primaryLabel: isRegistered
+      ? 'Đã đăng ký'
+      : registrationNotOpen
+        ? 'Sắp mở đăng ký'
+        : registrationClosed
+          ? 'Đã đóng đăng ký'
+          : primaryActionLabel,
+    registrationNotOpen: Boolean(registrationNotOpen),
+    registrationClosed: Boolean(registrationClosed),
     registered: isRegistered,
     filterTags: [CATEGORY_TO_FILTER[category] || 'all'],
     listPrice,
@@ -314,8 +344,12 @@ export const mapApiEventToHomeCard = (event) => {
   const isRegistered = event.isRegistered === true;
   const fillPercent = totalTickets ? (filled / totalTickets) * 100 : 0;
 
+  const homeEnd = event.endDate ? new Date(event.endDate) : null;
+  const homeHasEnded =
+    homeEnd && !Number.isNaN(homeEnd.getTime()) && Date.now() > homeEnd.getTime();
+
   let status = 'MỞ ĐĂNG KÝ';
-  if (event.eventState === 'expired') status = 'ĐÃ KẾT THÚC';
+  if (event.eventState === 'expired' || homeHasEnded) status = 'ĐÃ KẾT THÚC';
   else if (event.eventState === 'postponed') status = 'HOÃN';
   else if (remainingTickets === 0) status = 'HẾT CHỖ';
   else if (fillPercent >= 85) status = 'SẮP HẾT CHỖ';
@@ -338,7 +372,7 @@ export const mapApiEventToHomeCard = (event) => {
     status,
     image: resolveEventDisplayImage(event),
     registered: isRegistered,
-    eventState: event.eventState || 'active',
+    eventState: homeHasEnded && (event.eventState || 'active') === 'active' ? 'expired' : (event.eventState || 'active'),
     listPrice: event.listPrice ?? Math.max(0, Number(event.ticketPrice) || 0),
     amountDue: event.amountDue ?? Math.max(0, Number(event.ticketPrice) || 0),
     priceLabel: event.priceLabel || 'MIỄN PHÍ',

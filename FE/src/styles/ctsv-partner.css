@@ -3017,6 +3017,7 @@ html:has(.ctsv-app-shell) body {
 /* Trang T├ƒΓòæ├¡o s├ƒΓòùΓûÆ ki├ƒΓòù├ºn c├ƒΓòæ├æp trΓò₧Γûæ├ƒΓòù┬Ñng ╬ô├ç├╢ Figma 75:50895 */
 .ctsv-create-page {
   max-width: 960px;
+  margin: 0 auto;
 }
 
 .ctsv-breadcrumb {
@@ -6427,6 +6428,7 @@ html:has(.ctsv-app-shell) body {
   gap: 28px;
   padding-top: 8px;
   max-width: 1100px;
+  margin: 0 auto;
 }
 
 .ctsv-announce-hero {
@@ -7252,6 +7254,12 @@ html:has(.ctsv-app-shell) body {
   border-color: #a5b4fc;
   color: #4338ca;
   background: #eef2ff;
+}
+
+.ctsv-announce-history-btn--copy:hover:not(:disabled) {
+  border-color: #86efac;
+  color: #15803d;
+  background: #f0fdf4;
 }
 
 .ctsv-announce-history-btn--more.is-open,
@@ -8470,6 +8478,12 @@ html:has(.ctsv-app-shell) body {
   color: #475569;
 }
 
+.ctsv-reports-phase--accepted {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
 .ctsv-reports-date-cell {
   display: flex;
   align-items: flex-start;
@@ -8643,6 +8657,26 @@ html:has(.ctsv-app-shell) body {
   border-color: #fdba74;
   color: #9a3412;
   text-decoration: none;
+}
+
+.ctsv-rd-sent-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ctsv-rd-sent-note svg {
+  flex-shrink: 0;
+  color: #16a34a;
 }
 
 .ctsv-reports-empty {

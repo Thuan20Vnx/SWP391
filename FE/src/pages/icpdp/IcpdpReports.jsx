@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpReports } from '../../services/icpdpApi';
-import { statusClass } from '../../utils/eventStatus';
+import { getReportDisplayStatus, reportStatusClass } from '../../constants/ctsvReportDisplay';
+import { REPORT_FILL_RATE_AVG_LABEL, REPORT_FILL_RATE_LABEL } from '../../constants/ctsvReportLabels';
 
 const PHASE_FILTERS = [
   { id: 'all', label: 'Tất cả' },
@@ -21,13 +22,19 @@ const phaseLabel = (phase) => {
   return 'Đã diễn ra';
 };
 
+const fillTier = (pct) => {
+  if (pct >= 80) return 'high';
+  if (pct >= 40) return 'mid';
+  if (pct > 0) return 'low';
+  return 'empty';
+};
+
 const ReportRowSkeleton = () => (
   <tr className="ctsv-reports-row ctsv-reports-row--skeleton" aria-hidden>
     <td><div className="sk sk-line sk-line--lg" /></td>
     <td><div className="sk sk-line" /></td>
-    <td><div className="sk sk-line sk-line--short" /></td>
-    <td><div className="sk sk-line sk-line--short" /></td>
-    <td><div className="sk sk-btn" /></td>
+    <td className="ctsv-reports-metric-cell"><div className="sk sk-line sk-line--short" /></td>
+    <td className="ctsv-reports-actions-cell"><div className="sk sk-btn" /></td>
   </tr>
 );
 
@@ -41,7 +48,13 @@ const IcpdpReports = () => {
   useEffect(() => {
     setLoading(true);
     fetchIcpdpReports()
-      .then((d) => setReports(d.reports || []))
+      .then((d) => {
+        const rows = (d.reports || []).map((r) => {
+          const display = getReportDisplayStatus(r.reportPhase, r.statusKey);
+          return { ...r, status: display.label, statusKey: display.statusKey };
+        });
+        setReports(rows);
+      })
       .catch(() => {
         setReports([]);
         showToast?.('Không thể tải danh sách báo cáo.', 'error');
@@ -52,7 +65,6 @@ const IcpdpReports = () => {
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return reports.filter((r) => {
-      // Mặc định IC-PDP quan tâm nhiều nhất đến CLB, nhưng cho xem hết
       if (phaseFilter === 'live' && r.reportPhase !== 'live') return false;
       if (phaseFilter === 'ended' && !['ended', 'completed'].includes(r.reportPhase)) return false;
       if (!q) return true;
@@ -80,16 +92,19 @@ const IcpdpReports = () => {
           <span className="ctsv-events-eyebrow">Báo cáo IC-PDP</span>
           <h1>Quản lý báo cáo sau sự kiện</h1>
           <p>
-            Thống kê đăng ký và nghiệm thu báo cáo từ các Câu lạc bộ sau khi sự kiện kết thúc.
+            Theo dõi số liệu đăng ký và {REPORT_FILL_RATE_LABEL.toLowerCase()} của các sự kiện Câu lạc
+            bộ đang diễn ra hoặc đã kết thúc.
           </p>
         </div>
         <div className="ctsv-events-hero-aside">
           <div className="ctsv-events-hero-stat" aria-live="polite">
             <span className="ctsv-events-hero-stat-num">{loading ? '—' : stats.count}</span>
-            <span className="ctsv-events-hero-stat-label">Báo cáo</span>
+            <span className="ctsv-events-hero-stat-label">Sự kiện báo cáo</span>
           </div>
           {!loading && stats.liveCount > 0 && (
-            <p className="ctsv-reports-hero-live" style={{ color: 'var(--icpdp-accent)' }}>{stats.liveCount} sự kiện đang diễn ra</p>
+            <p className="ctsv-reports-hero-live" style={{ color: 'var(--icpdp-accent)' }}>
+              {stats.liveCount} đang diễn ra
+            </p>
           )}
         </div>
       </header>
@@ -102,7 +117,7 @@ const IcpdpReports = () => {
           </svg>
           <input
             type="search"
-            placeholder="Tìm theo tên sự kiện, CLB…"
+            placeholder="Tìm theo tên sự kiện, địa điểm…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Tìm báo cáo"
@@ -128,20 +143,25 @@ const IcpdpReports = () => {
           <strong>{loading ? '—' : stats.totalRegistered.toLocaleString('vi-VN')}</strong>
         </div>
         <div className="ctsv-reports-summary-card">
-          <span className="ctsv-reports-summary-label">TB tỷ lệ lấp đầy</span>
+          <span className="ctsv-reports-summary-label">{REPORT_FILL_RATE_AVG_LABEL}</span>
           <strong>{loading ? '—' : `${stats.avgFill}%`}</strong>
         </div>
       </div>
 
       <div className="ctsv-reports-table-card">
+        <div className="ctsv-reports-table-head">
+          <p className="ctsv-reports-table-head-title">Danh sách sự kiện</p>
+          {!loading && (
+            <span className="ctsv-reports-table-head-count">{filtered.length} sự kiện</span>
+          )}
+        </div>
         <table className="ctsv-reports-table">
           <thead>
             <tr>
               <th>Sự kiện</th>
-              <th>Ngày</th>
-              <th>Đăng ký</th>
-              <th>Tỷ lệ lấp đầy</th>
-              <th aria-hidden />
+              <th className="ctsv-reports-th-date">Ngày</th>
+              <th className="ctsv-reports-th-metric">Đăng ký · {REPORT_FILL_RATE_LABEL.toLowerCase()}</th>
+              <th className="ctsv-reports-th-actions">Trạng thái</th>
             </tr>
           </thead>
           <tbody>
@@ -153,14 +173,20 @@ const IcpdpReports = () => {
               </>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={4}>
                   <div className="ctsv-reports-empty">
                     <p className="ctsv-reports-empty-title">Chưa có báo cáo phù hợp</p>
                     <p className="ctsv-reports-empty-desc">
-                      Báo cáo hiển thị khi sự kiện <strong>đang diễn ra</strong> hoặc <strong>đã kết thúc</strong>.
+                      Báo cáo hiển thị khi sự kiện <strong>đang diễn ra</strong> hoặc{' '}
+                      <strong>đã kết thúc</strong>. Duyệt đề xuất CLB để sự kiện chuyển sang trạng
+                      thái live, hoặc chờ sự kiện kết thúc để thấy số liệu tại đây.
                     </p>
-                    <Link to="/icpdp/events" className="ctsv-events-hero-cta" style={{ background: 'var(--icpdp-accent)', borderColor: 'var(--icpdp-accent)' }}>
-                      Xem sự kiện
+                    <Link
+                      to="/icpdp/events"
+                      className="ctsv-events-hero-cta"
+                      style={{ background: 'var(--icpdp-accent)', borderColor: 'var(--icpdp-accent)' }}
+                    >
+                      Xem danh sách sự kiện
                     </Link>
                   </div>
                 </td>
@@ -169,8 +195,14 @@ const IcpdpReports = () => {
               filtered.map((r) => {
                 const source = SOURCE_META[r.source] || SOURCE_META.club;
                 const fill = Math.min(100, Math.max(0, r.attendanceRate ?? 0));
+                const tier = fillTier(fill);
+                const isLive = r.reportPhase === 'live';
+                const isEnded = ['ended', 'completed'].includes(r.reportPhase);
                 return (
-                  <tr key={r.id} className="ctsv-reports-row">
+                  <tr
+                    key={r.id}
+                    className={`ctsv-reports-row${isLive ? ' ctsv-reports-row--live' : ''}`}
+                  >
                     <td className="ctsv-reports-event-cell">
                       <strong>{r.title}</strong>
                       <div className="ctsv-reports-event-meta">
@@ -180,33 +212,65 @@ const IcpdpReports = () => {
                         <span className={`ctsv-reports-phase ctsv-reports-phase--${r.reportPhase || 'completed'}`}>
                           {phaseLabel(r.reportPhase)}
                         </span>
+                        {r.clubSubmitted ? (
+                          <span className="ctsv-reports-phase ctsv-reports-phase--accepted">
+                            Đã nghiệm thu
+                          </span>
+                        ) : null}
                       </div>
+                      {r.location ? (
+                        <span className="ctsv-reports-event-location">{r.location}</span>
+                      ) : null}
                     </td>
                     <td>
-                      <span className="ctsv-reports-date">{r.date}</span>
-                      <span className="ctsv-reports-time">{r.time}</span>
-                    </td>
-                    <td>
-                      <span className="ctsv-reports-reg">
-                        {r.registeredCount ?? 0}
-                        <span className="ctsv-reports-reg-cap"> / {r.totalTickets ?? 0}</span>
-                      </span>
-                    </td>
-                    <td>
-                      <div className="ctsv-reports-fill">
-                        <div className="ctsv-reports-fill-bar" aria-hidden>
-                          <span className="ctsv-reports-fill-progress" style={{ width: `${fill}%` }} />
+                      <div className="ctsv-reports-date-cell">
+                        <span className="ctsv-reports-date-icon" aria-hidden>
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <path d="M16 2v4M8 2v4M3 10h18" />
+                          </svg>
+                        </span>
+                        <div>
+                          <span className="ctsv-reports-date">{r.date}</span>
+                          <span className="ctsv-reports-time">{r.time}</span>
                         </div>
-                        <span className="ctsv-reports-fill-pct">{fill}%</span>
                       </div>
                     </td>
-                    <td className="ctsv-reports-actions">
-                      <span className={`status-pill ${statusClass(r.status, r.statusKey)}`}>
-                        {r.status}
-                      </span>
-                      <Link to={`/icpdp/events/${r.id}`} className="ctsv-reports-detail-link" style={{ color: 'var(--icpdp-accent)' }}>
-                        Chi tiết
-                      </Link>
+                    <td className={`ctsv-reports-metric-cell${tier === 'empty' ? ' ctsv-reports-metric-cell--empty' : ''}`}>
+                      <div className="ctsv-reports-metric-top">
+                        <span className="ctsv-reports-reg">
+                          <strong>{r.registeredCount ?? 0}</strong>
+                          <span className="ctsv-reports-reg-cap"> / {r.totalTickets ?? 0}</span>
+                        </span>
+                        <span className={`ctsv-reports-fill-pct ctsv-reports-fill-pct--${tier}`}>{fill}%</span>
+                      </div>
+                      <div
+                        className={`ctsv-reports-fill${tier === 'empty' ? ' ctsv-reports-fill--empty' : ''}`}
+                        title={`${REPORT_FILL_RATE_LABEL}: ${fill}%`}
+                      >
+                        <div className="ctsv-reports-fill-bar" aria-hidden>
+                          <span
+                            className={`ctsv-reports-fill-progress ctsv-reports-fill-progress--${tier}`}
+                            style={{ width: `${fill}%` }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="ctsv-reports-actions-cell">
+                      <div className="ctsv-reports-actions-stack">
+                        <span className={`status-pill ${reportStatusClass(r.statusKey)}`}>
+                          {r.status}
+                        </span>
+                        <Link
+                          to={isEnded ? `/icpdp/reports/${r.id}` : `/icpdp/events/${r.id}`}
+                          className="ctsv-reports-detail-btn"
+                        >
+                          {isEnded ? 'Xem báo cáo' : 'Chi tiết'}
+                          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+                            <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );

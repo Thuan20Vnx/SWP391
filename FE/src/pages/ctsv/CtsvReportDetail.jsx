@@ -9,7 +9,7 @@ import {
   REPORT_FILL_RATE_LABEL,
   normalizeReportHighlightText,
 } from '../../constants/ctsvReportLabels';
-import exportCtsvReportExcel from '../../utils/exportCtsvReportExcel';
+import { downloadStudentsExcel } from '../../utils/exportStudentsExcel';
 
 const SOURCE_META = {
   school: { label: 'Cấp trường', tone: 'school' },
@@ -101,8 +101,29 @@ const CtsvReportDetail = () => {
     if (!report || exporting) return;
     setExporting(true);
     try {
-      await exportCtsvReportExcel(report);
-      showToast?.('Đã xuất file Excel báo cáo CTSV.', 'success');
+      const s = report.stats || {};
+      const students = (report.recentRegistrations || []).map((row) => ({
+        student: { name: row.name, email: row.email },
+        email: row.email,
+        status: row.status,
+        registeredAt: row.registeredAt,
+      }));
+      const meta = {
+        eventTitle: report.title,
+        clubName: source.label,
+        organizer: source.label,
+        location: report.location,
+        capacity: s.totalCapacity ?? 0,
+        registeredCount: s.registeredCount ?? students.length,
+        checkinCount: s.attendedCount ?? 0,
+        cancelledCount: s.cancelledCount ?? 0,
+        averageRating: s.averageRating ?? 0,
+        reviewCount: s.reviewCount ?? 0,
+        reviews: report.recentReviews || [],
+        distribution: report.ratingDistribution || [],
+      };
+      await downloadStudentsExcel(students, meta);
+      showToast?.('Đã xuất báo cáo sự kiện.', 'success');
     } catch (error) {
       showToast?.(error.message || 'Không xuất được file Excel.', 'error');
     } finally {
@@ -203,8 +224,20 @@ const CtsvReportDetail = () => {
                 : submitLabel}
             </button>
             {isPartnerReport && alreadySentToPartner && submission?.partnerEmail ? (
-              <p className="ctsv-rd-muted" style={{ width: '100%', margin: '8px 0 0' }}>
-                Đã gửi cho Partner ({submission.partnerEmail}) và Admin.
+              <p className="ctsv-rd-sent-note" style={{ width: '100%' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+                Đã gửi cho Partner ({submission.partnerEmail}) và Admin
+                {submission.submittedAt ? ` · ${formatReviewDate(submission.submittedAt)}` : ''}.
+              </p>
+            ) : !isPartnerReport && alreadySent ? (
+              <p className="ctsv-rd-sent-note" style={{ width: '100%' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+                Đã gửi Admin
+                {submission.submittedAt ? ` · ${formatReviewDate(submission.submittedAt)}` : ''}.
               </p>
             ) : null}
           </div>
@@ -377,8 +410,17 @@ const CtsvReportDetail = () => {
         <button type="button" className="ctsv-btn-secondary" onClick={handleExportExcel} disabled={exporting}>
           {exporting ? 'Đang xuất Excel...' : 'Xuất file Excel'}
         </button>
-        <button type="button" className="ctsv-btn-primary" onClick={handleSubmitAdmin} disabled={submitting}>
-          {submitting ? 'Đang gửi Admin...' : 'Gửi Admin xem'}
+        <button
+          type="button"
+          className="ctsv-btn-primary"
+          onClick={handleSubmitReport}
+          disabled={submitting || (isPartnerReport ? alreadySentToPartner : alreadySent)}
+        >
+          {submitting
+            ? isPartnerReport
+              ? 'Đang gửi Partner & Admin...'
+              : 'Đang gửi Admin...'
+            : submitLabel}
         </button>
         {report.isDemo && (
           <p className="ctsv-rd-demo-note">

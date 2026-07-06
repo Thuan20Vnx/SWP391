@@ -119,6 +119,12 @@ export const fetchPartnerReports = () => partnerFetch('/reports');
 
 export const fetchPartnerReportDetail = (id) => partnerFetch(`/reports/${id}`);
 
+/* ── Đối tác tự gửi báo cáo sau sự kiện (đến CTSV & Admin) ── */
+export const fetchPartnerOwnReportSubmissions = () => partnerFetch('/my-report-submissions');
+
+export const submitPartnerEventReport = (id) =>
+  partnerFetch(`/events/${id}/report-submit`, { method: 'POST', body: '{}' });
+
 export const fetchPartnerProposals = () => partnerFetch('/proposals');
 
 export const createPartnerProposal = (body) =>

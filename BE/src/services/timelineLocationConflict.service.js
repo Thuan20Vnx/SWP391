@@ -248,7 +248,14 @@ const checkItemConflicts = async ({
   };
 };
 
-const checkEventVenueConflicts = async ({ location, startDate, endDate, excludeEventId }) => {
+const checkEventVenueConflicts = async ({
+  location,
+  startDate,
+  endDate,
+  excludeEventId,
+  excludeTimelineId,
+  excludeItemIndex,
+}) => {
   await loadRegistry();
   const { canonicalVenue } = normalizeEventVenue(location);
   const range = resolveTimeRange(startDate, endDate);
@@ -258,6 +265,8 @@ const checkEventVenueConflicts = async ({ location, startDate, endDate, excludeE
   const overlaps = findOverlappingHolds({
     canonicalVenue,
     range,
+    excludeTimelineId,
+    excludeItemIndex,
     candidates: registryCache.items,
     currentSubmittedAt: Date.now(),
   });

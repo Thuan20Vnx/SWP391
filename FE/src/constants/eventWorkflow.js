@@ -62,7 +62,10 @@ export const canCtsvPublishSchoolEvent = (event) =>
 
 export const canCtsvEditSchoolEvent = (event) =>
   event?.source === 'school' &&
-  (event?.ctsvEditUnlocked === true || event?.statusKey === 'rejected');
+  (event?.ctsvEditUnlocked === true ||
+    event?.statusKey === 'rejected' ||
+    event?.statusKey === SCHOOL_EVENT_SUBMIT_STATUS ||
+    event?.statusKey === 'revision');
 
 /** Chỉnh sửa sự kiện cấp trường theo đơn vị gửi đơn (CTSV / IC-PDP) */
 export const canEditSchoolEventForPortal = (event, portalRole = 'ctsv') => {

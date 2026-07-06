@@ -1,14 +1,29 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useOutletContext } from 'react-router-dom';
-import { fetchPartnerEvent, deletePartnerEventRequest } from '../../services/partnerApi';
+import {
+  fetchPartnerEvent,
+  deletePartnerEventRequest,
+  fetchPartnerOwnReportSubmissions,
+  submitPartnerEventReport,
+} from '../../services/partnerApi';
 import { statusClass } from '../../utils/eventStatus';
 import { resolveEventSpeakers } from '../../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import EventBentoStatsGrid from '../../components/events/EventBentoStatsGrid';
+import EventRatingDetailPanel from '../../components/events/EventRatingDetailPanel';
+import {
+  formatEventRating,
+  getCheckinProgress,
+  getReachWeekDelta,
+  getRegistrationProgress,
+} from '../../utils/eventBentoStats';
+import '../EventManagementDetail.css';
 
 const TABS = [
   { id: 'info', label: 'Thông tin' },
-  { id: 'tickets', label: 'Vé' }
+  { id: 'tickets', label: 'Vé' },
+  { id: 'danh-gia', label: 'Đánh giá' },
 ];
 
 const IconCalendar = () => (
@@ -33,6 +48,11 @@ const PartnerEventDetail = () => {
   const [activeTab, setActiveTab] = useState('info');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activeBentoCard, setActiveBentoCard] = useState('');
+  const [reportSubmittedAt, setReportSubmittedAt] = useState(null);
+  const [submittingReport, setSubmittingReport] = useState(false);
+  const [nowTs] = useState(() => Date.now());
+  const tabContentRef = useRef(null);
 
   useEffect(() => {
     fetchPartnerEvent(id)
@@ -43,6 +63,22 @@ const PartnerEventDetail = () => {
       });
   }, [id, navigate, showToast]);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetchPartnerOwnReportSubmissions()
+      .then((d) => {
+        if (cancelled) return;
+        const match = (d.submissions || []).find((s) => String(s.reportId) === String(id));
+        setReportSubmittedAt(match?.submittedAt || null);
+      })
+      .catch(() => {
+        if (!cancelled) setReportSubmittedAt(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
   const stats = useMemo(() => {
     if (!event) return null;
     const total = event.totalTickets || event.capacity || 0;
@@ -51,6 +87,12 @@ const PartnerEventDetail = () => {
     const fillRate = total > 0 ? Math.round((registered / total) * 100) : 0;
     return { total, remaining, registered, fillRate };
   }, [event]);
+
+  useEffect(() => {
+    if (activeTab === 'danh-gia') {
+      setActiveBentoCard('rating');
+    }
+  }, [activeTab]);
 
   const formatLabel = (value) => {
     if (!value) return '—';
@@ -83,10 +125,61 @@ const PartnerEventDetail = () => {
     }
   };
 
+  const isEndedPhase = (() => {
+    if (!event || event.isRequest) return false;
+    if (event.statusKey === 'live') return false;
+    if (event.statusKey === 'ended' || event.eventState === 'expired') return true;
+    const end = event.endDate ? new Date(event.endDate).getTime() : null;
+    if (end && !Number.isNaN(end)) return end <= nowTs;
+    const start = event.startDate ? new Date(event.startDate).getTime() : null;
+    return Boolean(start && !Number.isNaN(start) && start <= nowTs);
+  })();
+
+  const handleSubmitReport = async () => {
+    if (submittingReport || reportSubmittedAt) return;
+    setSubmittingReport(true);
+    try {
+      const data = await submitPartnerEventReport(id);
+      setReportSubmittedAt(data.submission?.submittedAt || new Date().toISOString());
+      showToast?.(data.message || 'Đã gửi báo cáo cho CTSV và Admin.', 'success');
+    } catch (err) {
+      showToast?.(err.message || 'Không gửi được báo cáo.', 'error');
+    } finally {
+      setSubmittingReport(false);
+    }
+  };
+
   const eventSpeakers = resolveEventSpeakers(event);
   const ticketTypes = event.ticketTypes?.length
     ? event.ticketTypes
     : [{ name: 'Vé chung', qty: stats.total }];
+
+  const registrationProgress = getRegistrationProgress(event.registeredCount, event.capacity || stats.total);
+  const checkinProgress = getCheckinProgress(event.checkinCount, event.registeredCount);
+  const ratingStats = formatEventRating(event);
+  const reachDelta = getReachWeekDelta(event);
+  const reachDeltaLabel = reachDelta > 0 ? `+${reachDelta}%` : `${reachDelta}%`;
+  const reachDeltaTone = reachDelta > 0 ? 'up' : reachDelta < 0 ? 'down' : 'flat';
+
+  const handleBentoCardClick = (cardKey) => {
+    setActiveBentoCard(cardKey);
+    if (cardKey === 'registration' || cardKey === 'checkin') {
+      setActiveTab('tickets');
+      tabContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (cardKey === 'rating') {
+      setActiveTab('danh-gia');
+      tabContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (cardKey === 'reach') {
+      setActiveTab('info');
+      tabContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const visibleTabs = event?.isRequest ? TABS.filter((tab) => tab.id !== 'danh-gia') : TABS;
 
   return (
     <div className="ctsv-ed-page">
@@ -146,8 +239,22 @@ const PartnerEventDetail = () => {
         </div>
       </section>
 
+      {!event.isRequest && (
+        <EventBentoStatsGrid
+          eventData={event}
+          registrationProgress={registrationProgress}
+          checkinProgress={checkinProgress}
+          ratingStats={ratingStats}
+          reachDelta={reachDelta}
+          reachDeltaLabel={reachDeltaLabel}
+          reachDeltaTone={reachDeltaTone}
+          activeCard={activeBentoCard}
+          onCardClick={handleBentoCardClick}
+        />
+      )}
+
       <div className="ctsv-ed-tabs" role="tablist" aria-label="Chi tiết sự kiện">
-        {TABS.map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -202,6 +309,7 @@ const PartnerEventDetail = () => {
         </div>
       )}
 
+      <div ref={tabContentRef}>
       {activeTab === 'info' && (
         <div className="ctsv-ed-panels">
           <section className="ctsv-ed-panel">
@@ -300,11 +408,40 @@ const PartnerEventDetail = () => {
         </section>
       )}
 
+      {activeTab === 'danh-gia' && !event.isRequest && (
+        <EventRatingDetailPanel
+          eventId={id}
+          eventTitle={event.title}
+          fallbackStats={ratingStats}
+        />
+      )}
+      </div>
+
       <div className="ctsv-ed-footer-actions">
         <Link to={`/partner/analytics`} className="ctsv-dash-btn ctsv-dash-btn--ghost">
           Xem báo cáo hiệu suất
         </Link>
+        {isEndedPhase && !reportSubmittedAt && (
+          <button
+            type="button"
+            className="ctsv-dash-btn"
+            onClick={handleSubmitReport}
+            disabled={submittingReport}
+          >
+            {submittingReport ? 'Đang gửi...' : 'Gửi báo cáo cho CTSV & Admin'}
+          </button>
+        )}
       </div>
+
+      {isEndedPhase && reportSubmittedAt && (
+        <p className="ctsv-rd-sent-note">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+          Đã gửi CTSV & Admin
+          {reportSubmittedAt ? ` · ${new Date(reportSubmittedAt).toLocaleString('vi-VN')}` : ''}.
+        </p>
+      )}
 
       <ConfirmDialog
         open={confirmDelete}

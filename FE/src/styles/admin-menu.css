@@ -71,6 +71,7 @@
 .admin-app-shell .admin-shell-content > .ctsv-events-page,
 .admin-app-shell .admin-shell-content > .ctsv-ed-page,
 .admin-app-shell .admin-shell-content > .ctsv-calendar-page,
+.admin-app-shell .admin-shell-content > .ctsv-portal-body:has(.ev-detail-content),
 .admin-app-shell .admin-shell-content > .admin-icpdp-club-reg-page {
   width: 100%;
   max-width: var(--home-content-max, 1280px);

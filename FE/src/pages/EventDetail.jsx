@@ -22,12 +22,36 @@ import {
   getCachedEventSummary,
   syncEventRegistrationInCache,
   eventDetailCacheKey,
+  remindEventRegistration,
+  fetchEventRemindStatus,
 } from '../services/eventsApi';
 import { getCached } from '../utils/apiCache';
 import { formatVnd } from '../utils/ticketPricing';
 import { eventRequiresPayment } from '../utils/eventRegisterAction';
 import { buildTicketFromDetailEvent } from '../utils/eventTicket';
 import '../styles/admin-public-pages.css';
+
+const pad2 = (n) => String(n).padStart(2, '0');
+const toGCalDate = (value) => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getUTCFullYear()}${pad2(d.getUTCMonth() + 1)}${pad2(d.getUTCDate())}T${pad2(d.getUTCHours())}${pad2(d.getUTCMinutes())}${pad2(d.getUTCSeconds())}Z`;
+};
+const buildGoogleCalendarUrl = ({ title, start, end, details = '', location = '' }) => {
+  const startDate = start ? new Date(start) : null;
+  if (!startDate || Number.isNaN(startDate.getTime())) return '';
+  const endDate = end && !Number.isNaN(new Date(end).getTime())
+    ? new Date(end)
+    : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title || 'Sự kiện F-Events',
+    dates: `${toGCalDate(startDate)}/${toGCalDate(endDate)}`,
+    details,
+    location: location || '',
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+};
 
 const CalendarIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="20" fill="currentColor" aria-hidden="true">
@@ -88,6 +112,9 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
   const [paymentPaid, setPaymentPaid] = useState(false);
   const [adminPayments, setAdminPayments] = useState(null);
   const [adminPaymentsLoading, setAdminPaymentsLoading] = useState(false);
+  const [remindEmail, setRemindEmail] = useState(() => localStorage.getItem('userEmail') || '');
+  const [remindLoading, setRemindLoading] = useState(false);
+  const [remindDone, setRemindDone] = useState(false);
   const checkoutTriggeredRef = useRef(false);
   const { isLoggedIn, userProfile } = useUserProfile();
   const role = userProfile.role || getUserRole();
@@ -174,6 +201,20 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
     };
   }, [eventId, isLoggedIn, userProfile.role, viewerRole]);
 
+  // Kiểm tra đã đặt nhắc chưa (giữ trạng thái sau khi tải lại trang).
+  useEffect(() => {
+    if (!event?.registrationNotOpen) return;
+    const accountEmail = userProfile?.email || localStorage.getItem('userEmail') || '';
+    if (!isLoggedIn && !accountEmail) return; // khách chưa nhập email thì chưa kiểm tra được
+    let cancelled = false;
+    fetchEventRemindStatus(eventId, accountEmail).then((res) => {
+      if (!cancelled && res?.subscribed) setRemindDone(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId, event?.registrationNotOpen, isLoggedIn, userProfile?.email]);
+
   const openTicket = () => {
     if (!event) return;
     setTicketData(
@@ -182,6 +223,26 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
         registrationId,
       })
     );
+  };
+
+  const handleRemind = async () => {
+    if (remindLoading) return;
+    const accountEmail = userProfile?.email || localStorage.getItem('userEmail') || '';
+    const email = isLoggedIn ? accountEmail : String(remindEmail || '').trim();
+    if (!isLoggedIn && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showToast?.('Vui lòng nhập email hợp lệ để nhận nhắc.', 'error');
+      return;
+    }
+    setRemindLoading(true);
+    try {
+      const data = await remindEventRegistration(eventId, email);
+      setRemindDone(true);
+      showToast?.(data.message || 'Đã đặt nhắc — kiểm tra email của bạn nhé.', 'success');
+    } catch (err) {
+      showToast?.(err.message || 'Không đặt được nhắc.', 'error');
+    } finally {
+      setRemindLoading(false);
+    }
   };
 
   const handlePrimaryAction = () => {
@@ -427,8 +488,17 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
               </div>
               <h1>{event.title}</h1>
               <div className="event-detail-page__hero-meta">
-                <span><CalendarIcon /> {event.dateShort}</span>
-                <span><ClockIcon /> {event.timeRange}</span>
+                {event.isMultiDay ? (
+                  <>
+                    <span><CalendarIcon /> Bắt đầu: {event.startDateTimeLabel}</span>
+                    <span><ClockIcon /> Kết thúc: {event.endDateTimeLabel}</span>
+                  </>
+                ) : (
+                  <>
+                    <span><CalendarIcon /> {event.dateShort}</span>
+                    <span><ClockIcon /> {event.timeRange}</span>
+                  </>
+                )}
                 <span><LocationIcon /> {event.location}</span>
               </div>
             </div>
@@ -713,10 +783,21 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                     Khách mua vé theo giá niêm yết
                   </p>
                 )}
+                {event.registrationNotOpen && event.registrationStartLabel && (
+                  <div>
+                    <span>Mở đăng ký:</span>
+                    <strong>{event.registrationStartLabel}</strong>
+                  </div>
+                )}
                 <div>
                   <span>Hạn đăng ký:</span>
                   <strong>{event.registrationDeadline}</strong>
                 </div>
+                {event.registrationNotOpen && (
+                  <p className="event-detail-page__guest-price-note">
+                    Sự kiện chưa tới ngày mở đăng ký — bạn có thể xem thông tin, nút đăng ký sẽ mở khi tới ngày.
+                  </p>
+                )}
                 {event.reviewCount > 0 && (
                   <div>
                     <span>Đánh giá:</span>
@@ -724,14 +805,138 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                   </div>
                 )}
               </div>
-              <button
-                type="button"
-                className="event-detail-page__register-btn"
-                disabled={(event.primaryDisabled && !event.isRegistered) || registerLoading}
-                onClick={handlePrimaryAction}
-              >
-                {registerLoading ? 'Đang xử lý...' : event.primaryActionLabel}
-              </button>
+              {event.registrationNotOpen ? (
+                remindDone ? (
+                  <div className="event-detail-page__remind">
+                    <div className="event-detail-page__remind-done">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      Đã đặt nhắc. Chúng tôi sẽ email trước khi mở đăng ký 5 phút.
+                    </div>
+                    {buildGoogleCalendarUrl({
+                      title: `Mở đăng ký: ${event.title}`,
+                      start: event.registrationStartISO,
+                      end: event.registrationStartISO
+                        ? new Date(new Date(event.registrationStartISO).getTime() + 30 * 60 * 1000)
+                        : null,
+                      details: `Mở đăng ký vé sự kiện "${event.title}" trên F-Events.`,
+                      location: event.location || '',
+                    }) && (
+                      <a
+                        className="event-detail-page__calendar-btn"
+                        href={buildGoogleCalendarUrl({
+                          title: `Mở đăng ký: ${event.title}`,
+                          start: event.registrationStartISO,
+                          end: event.registrationStartISO
+                            ? new Date(new Date(event.registrationStartISO).getTime() + 30 * 60 * 1000)
+                            : null,
+                          details: `Mở đăng ký vé sự kiện "${event.title}" trên F-Events.`,
+                          location: event.location || '',
+                        })}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <CalendarIcon />
+                        Thêm vào Google Calendar
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <div className="event-detail-page__remind">
+                    <label className="event-detail-page__remind-label" htmlFor="remind-email">
+                      Nhắc tôi khi mở đăng ký
+                    </label>
+                    {isLoggedIn ? (
+                      <p className="event-detail-page__remind-account">
+                        Gửi tới email tài khoản:{' '}
+                        <strong>{userProfile?.email || localStorage.getItem('userEmail') || ''}</strong>
+                      </p>
+                    ) : (
+                      <input
+                        id="remind-email"
+                        type="email"
+                        className="event-detail-page__remind-input"
+                        placeholder="Email nhận nhắc"
+                        value={remindEmail}
+                        onChange={(e) => setRemindEmail(e.target.value)}
+                        disabled={remindLoading}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      className="event-detail-page__register-btn"
+                      disabled={remindLoading}
+                      onClick={handleRemind}
+                    >
+                      {remindLoading ? 'Đang đặt nhắc...' : 'Nhắc tôi qua email'}
+                    </button>
+                    {buildGoogleCalendarUrl({
+                      title: `Mở đăng ký: ${event.title}`,
+                      start: event.registrationStartISO,
+                      end: event.registrationStartISO
+                        ? new Date(new Date(event.registrationStartISO).getTime() + 30 * 60 * 1000)
+                        : null,
+                      details: `Mở đăng ký vé sự kiện "${event.title}" trên F-Events.`,
+                      location: event.location || '',
+                    }) && (
+                      <a
+                        className="event-detail-page__calendar-btn"
+                        href={buildGoogleCalendarUrl({
+                          title: `Mở đăng ký: ${event.title}`,
+                          start: event.registrationStartISO,
+                          end: event.registrationStartISO
+                            ? new Date(new Date(event.registrationStartISO).getTime() + 30 * 60 * 1000)
+                            : null,
+                          details: `Mở đăng ký vé sự kiện "${event.title}" trên F-Events.`,
+                          location: event.location || '',
+                        })}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <CalendarIcon />
+                        Thêm vào Google Calendar
+                      </a>
+                    )}
+                    <p className="event-detail-page__remind-hint">
+                      Bấm "Nhắc tôi" để nhận email trước khi mở đăng ký 5 phút. Bạn cũng có thể thêm mốc mở đăng ký vào Google Calendar.
+                    </p>
+                  </div>
+                )
+              ) : (
+                <button
+                  type="button"
+                  className="event-detail-page__register-btn"
+                  disabled={(event.primaryDisabled && !event.isRegistered) || registerLoading}
+                  onClick={handlePrimaryAction}
+                >
+                  {registerLoading ? 'Đang xử lý...' : event.primaryActionLabel}
+                </button>
+              )}
+              {event.isRegistered && event.eventState !== 'expired' && buildGoogleCalendarUrl({
+                title: event.title,
+                start: event.startISO,
+                end: event.endISO,
+                details: `Sự kiện "${event.title}" trên F-Events.`,
+                location: event.location || '',
+              }) && (
+                <a
+                  className="event-detail-page__calendar-btn"
+                  style={{ marginTop: 10 }}
+                  href={buildGoogleCalendarUrl({
+                    title: event.title,
+                    start: event.startISO,
+                    end: event.endISO,
+                    details: `Sự kiện "${event.title}" trên F-Events.`,
+                    location: event.location || '',
+                  })}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <CalendarIcon />
+                  Thêm vào Google Calendar
+                </a>
+              )}
               {event.isRegistered && event.eventState !== 'expired' && (
                 <button
                   type="button"

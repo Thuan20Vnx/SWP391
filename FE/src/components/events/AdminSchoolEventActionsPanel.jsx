@@ -1,6 +1,7 @@
 import React from 'react';
 import { isModerationPending, MODERATION_ACTION_LABELS } from '../../constants/eventModeration';
 import { isSchoolEventPendingAdmin } from '../../constants/eventWorkflow';
+import { getSchoolEventOrganizerMeta } from '../../utils/schoolEventOrganizer';
 
 const formatDateTime = (value) => {
   if (!value) return '—';
@@ -20,6 +21,7 @@ const formatDateTime = (value) => {
 const AdminSchoolEventActionsPanel = ({ event, busy = false, isModerationRequest = false, onApprove, onReject }) => {
   if (!event || event.source !== 'school') return null;
 
+  const organizer = getSchoolEventOrganizerMeta(event);
   const moderationPending = isModerationPending(event);
   const submitPending = isSchoolEventPendingAdmin(event);
   const canAct = moderationPending || submitPending;
@@ -36,6 +38,8 @@ const AdminSchoolEventActionsPanel = ({ event, busy = false, isModerationRequest
     ? MODERATION_ACTION_LABELS[event.moderationAction] || 'Điều phối'
     : 'Phê duyệt đơn tổ chức';
 
+  const senderUnitLabel = organizer.unitLabel;
+
   return (
     <div className="admin-approval-panel">
       <div className="admin-approval-panel__hero">
@@ -49,13 +53,13 @@ const AdminSchoolEventActionsPanel = ({ event, busy = false, isModerationRequest
           <h2 className="admin-approval-panel__title">{actionLabel}</h2>
           <p className="admin-approval-panel__lead">
             {moderationPending
-              ? 'CTSV đã gửi yêu cầu điều phối. Từ chối yêu cầu không đổi trạng thái sự kiện (ví dụ vẫn Mở đăng ký).'
-              : 'Đơn tổ chức sự kiện cấp trường đang chờ Admin phê duyệt lần đầu — không qua IC-PDP.'}
+              ? `${senderUnitLabel} đã gửi yêu cầu điều phối. Từ chối yêu cầu không đổi trạng thái sự kiện (ví dụ vẫn Mở đăng ký).`
+              : `${organizer.sourceLine} — không qua bước duyệt nội bộ IC-PDP.`}
           </p>
         </div>
       </div>
 
-      <dl className="admin-approval-panel__grid">
+      <div className="admin-approval-panel__grid">
         <div className="admin-approval-panel__cell">
           <dt>Trạng thái</dt>
           <dd>
@@ -64,35 +68,54 @@ const AdminSchoolEventActionsPanel = ({ event, busy = false, isModerationRequest
             </span>
           </dd>
         </div>
+
+        <div className="admin-approval-panel__cell">
+          <dt>Đơn vị tổ chức</dt>
+          <dd>
+            <span className={`admin-approval-panel__unit admin-approval-panel__unit--${organizer.organizerType}`}>
+              {organizer.unitLine}
+            </span>
+          </dd>
+        </div>
+
         {moderationPending && (
           <div className="admin-approval-panel__cell">
             <dt>Loại yêu cầu</dt>
             <dd>{actionLabel}</dd>
           </div>
         )}
-        {event.moderationRequestedByEmail && (
+
+        {(event.moderationRequestedByEmail || organizer.submitterEmail) && (
           <div className="admin-approval-panel__cell">
-            <dt>Người gửi</dt>
-            <dd>{event.moderationRequestedByEmail}</dd>
+            <dt>{moderationPending ? 'Người gửi yêu cầu' : 'Người gửi đơn'}</dt>
+            <dd>{event.moderationRequestedByEmail || organizer.submitterEmail || '—'}</dd>
           </div>
         )}
-        {event.moderationRequestedAt && (
+
+        {(event.moderationRequestedAt || organizer.submittedAt) && (
           <div className="admin-approval-panel__cell">
             <dt>Thời gian gửi</dt>
-            <dd>{formatDateTime(event.moderationRequestedAt)}</dd>
+            <dd>{formatDateTime(event.moderationRequestedAt || organizer.submittedAt)}</dd>
           </div>
         )}
+
         {submitPending && !moderationPending && (
           <div className="admin-approval-panel__cell admin-approval-panel__cell--wide">
-            <dt>Nguồn</dt>
-            <dd>Sự kiện cấp trường (CTSV / IC-PDP)</dd>
+            <dt>Nguồn sự kiện</dt>
+            <dd>
+              {organizer.isIcpdp
+                ? 'Sự kiện do IC-PDP khởi tạo (ngoài luồng timeline hoặc theo kế hoạch đơn vị). Admin là bước duyệt cuối.'
+                : 'Sự kiện do CTSV khởi tạo (phát sinh hoặc theo kế hoạch đơn vị). Admin là bước duyệt cuối.'}
+            </dd>
           </div>
         )}
-      </dl>
+      </div>
 
       {event.moderationReason?.trim() && (
         <div className="admin-approval-panel__reason">
-          <span className="admin-approval-panel__reason-label">Lý do / ghi chú từ CTSV</span>
+          <span className="admin-approval-panel__reason-label">
+            Lý do / ghi chú từ {senderUnitLabel}
+          </span>
           <p>{event.moderationReason.trim()}</p>
         </div>
       )}
@@ -100,7 +123,7 @@ const AdminSchoolEventActionsPanel = ({ event, busy = false, isModerationRequest
       <div className="admin-approval-panel__hint" role="note">
         <strong>Gợi ý xử lý</strong>
         <p>
-          Sau khi duyệt yêu cầu chỉnh sửa, CTSV sẽ được mở form cập nhật nội dung sự kiện. Từ chối
+          Sau khi duyệt, {senderUnitLabel} có thể tiếp tục xử lý theo quy trình đơn vị. Từ chối
           cần kèm lý do rõ ràng để bên gửi điều chỉnh hoặc liên hệ lại.
         </p>
       </div>

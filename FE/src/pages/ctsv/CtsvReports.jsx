@@ -178,7 +178,7 @@ const CtsvReports = () => {
                     <p className="ctsv-reports-empty-desc">
                       Báo cáo hiển thị khi sự kiện <strong>đang diễn ra</strong>,{' '}
                       <strong>đã kết thúc</strong> hoặc <strong>đã qua ngày tổ chức</strong>.
-                      Publish sự kiện live hoặc chờ sự kiện kết thúc để thấy số liệu tại đây.
+                      Duyệt sự kiện để nó chuyển sang trạng thái live, hoặc chờ sự kiện kết thúc để thấy số liệu tại đây.
                     </p>
                     <Link to="/ctsv/events" className="ctsv-events-hero-cta">
                       Xem danh sách sự kiện
@@ -211,6 +211,16 @@ const CtsvReports = () => {
                         <span className={`ctsv-reports-phase ctsv-reports-phase--${r.reportPhase || 'completed'}`}>
                           {phaseLabel(r.reportPhase)}
                         </span>
+                        {r.clubSubmitted ? (
+                          <span className="ctsv-reports-phase ctsv-reports-phase--accepted">
+                            CLB đã nghiệm thu
+                          </span>
+                        ) : null}
+                        {r.partnerSubmitted ? (
+                          <span className="ctsv-reports-phase ctsv-reports-phase--accepted">
+                            Đối tác đã gửi
+                          </span>
+                        ) : null}
                       </div>
                       {r.location ? (
                         <span className="ctsv-reports-event-location">{r.location}</span>

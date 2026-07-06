@@ -17,6 +17,7 @@ export const ICPDP_NAV_ITEMS = [
     section: 'SỰ KIỆN',
     icon: 'calendar',
   },
+  { path: '/icpdp/events', label: 'Quản lý sự kiện', icon: 'calendar' },
   { path: '/icpdp/events/create', label: 'Tạo sự kiện cấp trường', icon: 'create' },
   { path: '/icpdp/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
   { path: '/icpdp/reports', label: 'Báo cáo sau SK', icon: 'reports' },

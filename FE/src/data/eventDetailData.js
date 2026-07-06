@@ -107,6 +107,24 @@ const buildTimeRange = (startDate, endDate) => {
   return `${start} - ${end}`;
 };
 
+const formatDateTime = (dateInput) => {
+  const time = formatTime(dateInput);
+  const date = formatShortDate(dateInput);
+  if (!date) return '';
+  return time ? `${time} · ${date}` : date;
+};
+
+const isSameCalendarDay = (a, b) => {
+  const da = new Date(a);
+  const db = new Date(b);
+  if (Number.isNaN(da.getTime()) || Number.isNaN(db.getTime())) return true;
+  return (
+    da.getFullYear() === db.getFullYear() &&
+    da.getMonth() === db.getMonth() &&
+    da.getDate() === db.getDate()
+  );
+};
+
 const buildRegistrationDeadline = (startDate) => {
   const start = new Date(startDate);
   if (Number.isNaN(start.getTime())) return '';
@@ -188,14 +206,44 @@ const getPrimaryActionLabel = (event, isRegistered, amountDue, listPrice) => {
 };
 
 export const mapApiEventToDetail = (event, { viewerRole = 'guest' } = {}) => {
-  const eventState = event.eventState || 'active';
+  // Sự kiện đã qua ngày kết thúc thì coi như đã kết thúc, kể cả khi BE vẫn để eventState = 'active'.
+  const endDateObj = event.endDate ? new Date(event.endDate) : null;
+  const hasEnded =
+    endDateObj && !Number.isNaN(endDateObj.getTime()) && Date.now() > endDateObj.getTime();
+  const rawEventState = event.eventState || 'active';
+  const eventState = hasEnded && rawEventState === 'active' ? 'expired' : rawEventState;
   const capacity = event.capacity || 100;
   const registeredCount = event.registeredCount ?? 0;
   const isRegistered = event.isRegistered === true;
   const fillPercent = getFillPercent(registeredCount, capacity);
+
+  // Cửa sổ đăng ký: đã publish nhưng chưa tới ngày mở đăng ký thì chỉ cho xem.
+  const regStart = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
+  const regEnd = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
+  const registrationNotOpen =
+    !isRegistered &&
+    eventState === 'active' &&
+    regStart &&
+    !Number.isNaN(regStart.getTime()) &&
+    Date.now() < regStart.getTime();
+  const registrationClosed =
+    !isRegistered &&
+    eventState === 'active' &&
+    !registrationNotOpen &&
+    regEnd &&
+    !Number.isNaN(regEnd.getTime()) &&
+    Date.now() > regEnd.getTime();
+  const registrationOpenLabel = regStart && !Number.isNaN(regStart.getTime())
+    ? formatShortDate(event.registrationStartDate)
+    : '';
+
   const registrationStatus = isRegistered
     ? { label: 'Đã đăng ký', tone: 'open' }
-    : getRegistrationStatus(event);
+    : registrationNotOpen
+      ? { label: 'Sắp mở đăng ký', tone: 'warning' }
+      : registrationClosed
+        ? { label: 'Đã đóng đăng ký', tone: 'muted' }
+        : getRegistrationStatus(event);
   const pricing = resolveEventPricing(event, viewerRole);
   const { listPrice, amountDue, priceLabel, studentPrivilegeApplied } = pricing;
 
@@ -209,7 +257,11 @@ export const mapApiEventToDetail = (event, { viewerRole = 'guest' } = {}) => {
     eventType: event.eventType || '',
     secondaryTag: event.eventType || '',
     dateShort: formatShortDate(event.startDate),
+    endDateShort: formatShortDate(event.endDate),
     timeRange: buildTimeRange(event.startDate, event.endDate),
+    startDateTimeLabel: formatDateTime(event.startDate),
+    endDateTimeLabel: formatDateTime(event.endDate),
+    isMultiDay: !isSameCalendarDay(event.startDate, event.endDate),
     location: event.location,
     campus: event.campus,
     description: event.description,
@@ -235,11 +287,25 @@ export const mapApiEventToDetail = (event, { viewerRole = 'guest' } = {}) => {
     amountDue,
     priceLabel,
     studentPrivilegeApplied,
-    registrationDeadline: buildRegistrationDeadline(event.startDate),
+    registrationDeadline: regEnd && !Number.isNaN(regEnd.getTime())
+      ? formatDateTime(event.registrationEndDate)
+      : buildRegistrationDeadline(event.startDate),
+    registrationStartLabel: registrationOpenLabel,
+    registrationStartISO: event.registrationStartDate || null,
+    startISO: event.startDate || null,
+    endISO: event.endDate || null,
+    registrationNotOpen: Boolean(registrationNotOpen),
+    registrationClosed: Boolean(registrationClosed),
     registrationStatus,
-    primaryActionLabel: pricing.primaryActionLabel || getPrimaryActionLabel(event, isRegistered, amountDue, listPrice),
+    primaryActionLabel: registrationNotOpen
+      ? (registrationOpenLabel ? `Mở đăng ký ${registrationOpenLabel}` : 'Chưa mở đăng ký')
+      : registrationClosed
+        ? 'Đã đóng đăng ký'
+        : pricing.primaryActionLabel || getPrimaryActionLabel(event, isRegistered, amountDue, listPrice),
     primaryDisabled:
       eventState === 'expired' ||
+      Boolean(registrationNotOpen) ||
+      Boolean(registrationClosed) ||
       (eventState !== 'postponed' &&
         !isRegistered &&
         capacity > 0 &&

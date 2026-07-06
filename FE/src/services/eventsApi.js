@@ -215,3 +215,61 @@ export const prefetchPublicEventById = (eventId) => {
   if (getCached(eventDetailCacheKey(id))) return;
   fetchPublicEventById(id).catch(() => {});
 };
+
+/* ── CLB nghiệm thu — gửi báo cáo sau sự kiện (đến IC-PDP & Admin) ── */
+export const fetchClubReportSubmissions = async () => {
+  const res = await fetch(`${API_BASE}/api/events/my/report-submissions`, {
+    headers: getAuthHeaders(),
+  });
+  const parsed = await parseApiResponse(res);
+  if (!parsed.ok || !parsed.data.success) {
+    throw new Error(parsed.data.message || 'Không tải được trạng thái báo cáo');
+  }
+  return parsed.data.submissions || [];
+};
+
+export const fetchEventRemindStatus = async (eventId, email) => {
+  const id = String(eventId || '').trim();
+  if (!id) return { subscribed: false };
+  const qs = email ? `?email=${encodeURIComponent(email)}` : '';
+  try {
+    const res = await fetch(`${API_BASE}/api/events/${id}/remind/status${qs}`, {
+      headers: getAuthHeaders(),
+    });
+    const parsed = await parseApiResponse(res);
+    if (!parsed.ok || !parsed.data.success) return { subscribed: false };
+    return parsed.data;
+  } catch {
+    return { subscribed: false };
+  }
+};
+
+export const remindEventRegistration = async (eventId, email) => {
+  const id = String(eventId || '').trim();
+  if (!id) throw new Error('Thiếu mã sự kiện');
+  const res = await fetch(`${API_BASE}/api/events/${id}/remind`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ email: email || undefined }),
+  });
+  const parsed = await parseApiResponse(res);
+  if (!parsed.ok || !parsed.data.success) {
+    throw new Error(parsed.data.message || 'Không đặt được nhắc');
+  }
+  return parsed.data;
+};
+
+export const submitClubEventReport = async (eventId) => {
+  const id = String(eventId || '').trim();
+  if (!id) throw new Error('Thiếu mã sự kiện');
+  const res = await fetch(`${API_BASE}/api/events/${id}/report-submit`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: '{}',
+  });
+  const parsed = await parseApiResponse(res);
+  if (!parsed.ok || !parsed.data.success) {
+    throw new Error(parsed.data.message || 'Không gửi được báo cáo');
+  }
+  return parsed.data;
+};

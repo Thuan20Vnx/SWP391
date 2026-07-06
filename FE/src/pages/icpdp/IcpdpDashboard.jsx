@@ -88,15 +88,15 @@ const IcpdpDashboard = () => {
         }
       />
 
-      <Link to="/icpdp/proposals" className="ctsv-dash-create-card">
+      <Link to="/icpdp/events/create" className="ctsv-dash-create-card">
         <span className="ctsv-dash-create-card__icon">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+            <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
           </svg>
         </span>
         <span className="ctsv-dash-create-card__body">
-          <strong>Duyệt đề xuất CLB</strong>
-          <span>Xét duyệt nội bộ các đề xuất sự kiện từ Ban chủ nhiệm CLB trước khi chuyển CTSV.</span>
+          <strong>Tạo sự kiện cấp trường</strong>
+          <span>Tạo sự kiện cấp trường do IC-PDP tổ chức và gửi lên Admin phê duyệt.</span>
         </span>
         <span className="ctsv-dash-create-card__arrow" aria-hidden>
           <svg viewBox="0 0 24 24" width="22" height="22">

@@ -17,7 +17,7 @@ const STAT_STYLES = [
 ];
 
 const QUICK_ACTIONS = [
-  { path: '/ctsv/events', label: 'Publish sự kiện', desc: 'Duyệt & xuất bản', icon: 'publish' },
+  { path: '/ctsv/events', label: 'Quản lý sự kiện', desc: 'Duyệt & quản lý', icon: 'publish' },
   {
     path: '/ctsv/partners',
     label: 'Duyệt đơn đối tác',
@@ -26,7 +26,7 @@ const QUICK_ACTIONS = [
     icon: 'partners',
   },
   { path: '/ctsv/calendar', label: 'Lịch toàn trường', desc: 'Lịch tổng hợp', icon: 'calendar' },
-  { path: '/ctsv/announcements/publish', label: 'Thông báo', desc: 'Phát hành chính thức', icon: 'announce' },
+  { path: '/ctsv/notifications', label: 'Thông báo', desc: 'Xem thông báo hệ thống', icon: 'announce' },
   { path: '/ctsv/reports', label: 'Báo cáo sau SK', desc: 'Tổng hợp kết quả', icon: 'reports' }
 ];
 
@@ -280,7 +280,7 @@ const CtsvDashboard = () => {
               </li>
               <li>
                 <CtsvNavIcon type="announce" />
-                <span>Phát hành thông báo sau khi publish sự kiện quan trọng.</span>
+                <span>Phát hành thông báo sau khi duyệt sự kiện quan trọng.</span>
               </li>
             </ul>
             <Link to="/ctsv/calendar" className="ctsv-dash-btn ctsv-dash-btn--outline ctsv-dash-btn--block">

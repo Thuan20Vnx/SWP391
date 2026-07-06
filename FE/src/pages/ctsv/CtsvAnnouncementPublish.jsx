@@ -177,6 +177,8 @@ const PortalAnnouncementManage = ({
   eventDetailPathPrefix,
 }) => {
   const portalConfig = PORTAL_ANNOUNCEMENT_CONFIG[portalRole] || PORTAL_ANNOUNCEMENT_CONFIG.ctsv;
+  const noun = portalConfig.noun || 'Thông báo';
+  const nounLower = noun.toLowerCase();
   const canLinkEvents = portalRole === 'ctsv';
   const resolveAnnouncementDetailPath = (id) => {
     const annId = String(id || '').trim();
@@ -256,7 +258,7 @@ const PortalAnnouncementManage = ({
         const msg =
           err?.message?.includes('token') || err?.message?.includes('đăng nhập')
             ? err.message
-            : 'Không tải dữ liệu thông báo. Hãy restart backend và đăng nhập lại.';
+            : `Không tải dữ liệu ${nounLower}. Hãy restart backend và đăng nhập lại.`;
         showToastRef.current?.(msg, 'error');
         return [];
       })
@@ -397,11 +399,11 @@ const PortalAnnouncementManage = ({
 
   const validateForm = () => {
     if (!form.title.trim()) {
-      showToast?.('Nhập tiêu đề thông báo.', 'error');
+      showToast?.(`Nhập tiêu đề ${nounLower}.`, 'error');
       return false;
     }
     if (!form.content.trim()) {
-      showToast?.('Nhập nội dung thông báo.', 'error');
+      showToast?.(`Nhập nội dung ${nounLower}.`, 'error');
       return false;
     }
     return true;
@@ -425,11 +427,11 @@ const PortalAnnouncementManage = ({
       };
       if (editingId) {
         await updateManagedAnnouncement(editingId, payload);
-        showToast?.('Đã cập nhật thông báo!', 'success');
+        showToast?.(`Đã cập nhật ${nounLower}!`, 'success');
         setEditingId(null);
       } else {
         await createManagedAnnouncement(payload);
-        showToast?.('Đã phát hành thông báo!', 'success');
+        showToast?.(`Đã phát hành ${nounLower}!`, 'success');
       }
       setForm({ ...EMPTY_FORM, targetRoles: getDefaultTargetRolesForPublisher(portalRole) });
       clearAnnouncementDraft(portalRole);
@@ -446,14 +448,14 @@ const PortalAnnouncementManage = ({
   const doHideAnnouncement = async () => {
     const annId = resolveAnnouncementId(targetAnnouncement);
     if (!annId) {
-      showToast?.('Không xác định được thông báo.', 'error');
+      showToast?.(`Không xác định được ${nounLower}.`, 'error');
       setConfirmAction(null);
       return;
     }
     setActionLoading(true);
     try {
       await hideManagedAnnouncement(annId);
-      showToast?.('Đã ẩn thông báo khỏi danh sách.', 'success');
+      showToast?.(`Đã ẩn ${nounLower} khỏi danh sách.`, 'success');
       await refreshAnnouncements();
     } catch (err) {
       showToast?.(err.message, 'error');
@@ -467,14 +469,14 @@ const PortalAnnouncementManage = ({
   const doDeleteAnnouncement = async () => {
     const annId = resolveAnnouncementId(targetAnnouncement);
     if (!annId) {
-      showToast?.('Không xác định được thông báo cần xóa.', 'error');
+      showToast?.(`Không xác định được ${nounLower} cần xóa.`, 'error');
       setConfirmAction(null);
       return;
     }
     setActionLoading(true);
     try {
       await deleteManagedAnnouncement(annId);
-      showToast?.('Đã xóa thông báo.', 'success');
+      showToast?.(`Đã xóa ${nounLower}.`, 'success');
       await refreshAnnouncements();
     } catch (err) {
       showToast?.(err.message, 'error');
@@ -488,7 +490,7 @@ const PortalAnnouncementManage = ({
   const startEditAnnouncement = async (announcement) => {
     const id = resolveAnnouncementId(announcement);
     if (!id) {
-      showToast?.('Không xác định được thông báo.', 'error');
+      showToast?.(`Không xác định được ${nounLower}.`, 'error');
       return;
     }
     setActionLoading(true);
@@ -507,9 +509,53 @@ const PortalAnnouncementManage = ({
       setComposeOpen(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
-      showToast?.('Không thể tải chi tiết thông báo: ' + err.message, 'error');
+      showToast?.(`Không thể tải chi tiết ${nounLower}: ` + err.message, 'error');
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const duplicateAnnouncement = async (announcement) => {
+    const id = resolveAnnouncementId(announcement);
+    if (!id) {
+      showToast?.(`Không xác định được ${nounLower}.`, 'error');
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const fullDetails = await fetchManagedAnnouncement(id);
+      setEditingId(null);
+      setForm({
+        title: fullDetails.title ? `Bản sao - ${fullDetails.title}` : '',
+        content: fullDetails.content || '',
+        eventId: fullDetails.eventId?._id || fullDetails.eventId || '',
+        image: fullDetails.image || '',
+        imageFileName: fullDetails.imageFileName || '',
+        targetRoles: normalizeTargetsForPublisher(portalRole, fullDetails.targetRoles),
+        noticeCategory: fullDetails.noticeCategory || NOTICE_CATEGORY_INFO
+      });
+      setComposeOpen(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast?.(`Đã nhân bản ${nounLower} — chỉnh sửa rồi phát hành.`, 'success');
+    } catch (err) {
+      showToast?.(`Không thể nhân bản ${nounLower}: ` + err.message, 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const copyAnnouncementLink = async (announcement) => {
+    const id = resolveAnnouncementId(announcement);
+    if (!id) {
+      showToast?.(`Không xác định được ${nounLower}.`, 'error');
+      return;
+    }
+    const link = `${window.location.origin}/announcements/${id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast?.('Đã sao chép liên kết!', 'success');
+    } catch {
+      showToast?.('Không thể sao chép liên kết.', 'error');
     }
   };
 
@@ -523,7 +569,7 @@ const PortalAnnouncementManage = ({
   const openListConfirm = (type, announcement) => {
     const id = resolveAnnouncementId(announcement);
     if (!id) {
-      showToast?.('Không xác định được thông báo.', 'error');
+      showToast?.(`Không xác định được ${nounLower}.`, 'error');
       return;
     }
     setTargetAnnouncement({ id, title: announcement.title });
@@ -620,8 +666,8 @@ const PortalAnnouncementManage = ({
     <div className="ctsv-announce-page">
       <ConfirmDialog
         open={confirmAction === 'publish'}
-        title="Phát hành thông báo?"
-        message={`Thông báo sẽ được gửi tới: ${formatTargetRolesLabel(form.targetRoles)}. Bạn có chắc muốn phát hành?`}
+        title={`Phát hành ${nounLower}?`}
+        message={`${noun} sẽ được gửi tới: ${formatTargetRolesLabel(form.targetRoles)}. Bạn có chắc muốn phát hành?`}
         confirmLabel="Phát hành"
         cancelLabel="Quay lại"
         onConfirm={doPublish}
@@ -630,7 +676,7 @@ const PortalAnnouncementManage = ({
       />
       <ConfirmDialog
         open={confirmAction === 'update'}
-        title="Lưu thay đổi thông báo?"
+        title={`Lưu thay đổi ${nounLower}?`}
         message={`Cập nhật sẽ áp dụng cho đối tượng: ${formatTargetRolesLabel(form.targetRoles)}. Bạn có chắc muốn lưu?`}
         confirmLabel="Lưu thay đổi"
         cancelLabel="Quay lại"
@@ -650,11 +696,11 @@ const PortalAnnouncementManage = ({
       />
       <ConfirmDialog
         open={confirmAction === 'hide'}
-        title="Ẩn thông báo?"
+        title={`Ẩn ${nounLower}?`}
         message={
           targetAnnouncement?.title
-            ? `"${targetAnnouncement.title}" sẽ không hiển thị trong danh sách thông báo.`
-            : 'Thông báo sẽ không hiển thị trong danh sách.'
+            ? `"${targetAnnouncement.title}" sẽ không hiển thị trong danh sách ${nounLower}.`
+            : `${noun} sẽ không hiển thị trong danh sách.`
         }
         confirmLabel="Ẩn"
         cancelLabel="Hủy"
@@ -669,11 +715,11 @@ const PortalAnnouncementManage = ({
       />
       <ConfirmDialog
         open={confirmAction === 'delete'}
-        title="Xóa thông báo vĩnh viễn?"
+        title={`Xóa ${nounLower} vĩnh viễn?`}
         message={
           targetAnnouncement?.title
             ? `Bạn có chắc muốn xóa "${targetAnnouncement.title}"? Dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục.`
-            : 'Thông báo sẽ bị xóa khỏi hệ thống và không thể khôi phục.'
+            : `${noun} sẽ bị xóa khỏi hệ thống và không thể khôi phục.`
         }
         confirmLabel="Xóa"
         cancelLabel="Hủy"
@@ -704,7 +750,7 @@ const PortalAnnouncementManage = ({
               onKeyDown={(e) => e.key === 'Enter' && handleStatsClick('all')}
             >
               <span className="ctsv-announce-hero-stat-num">{visibleHistoryCount}</span>
-              <span className="ctsv-announce-hero-stat-label">Tất cả thông báo</span>
+              <span className="ctsv-announce-hero-stat-label">Tất cả {nounLower}</span>
             </div>
             <div
               className="ctsv-announce-hero-stat clickable"
@@ -729,7 +775,7 @@ const PortalAnnouncementManage = ({
           onClick={() => setComposeOpen((open) => !open)}
         >
           <div className="ctsv-announce-compose-toggle-main">
-            <h2>{editingId ? 'Chỉnh sửa thông báo' : 'Soạn thông báo mới'}</h2>
+            <h2>{editingId ? `Chỉnh sửa ${nounLower}` : `Soạn ${nounLower} mới`}</h2>
             <p>{editingId ? 'Cập nhật nội dung và đối tượng nhận, sau đó xác nhận lưu.' : 'Điền đầy đủ tiêu đề, đối tượng nhận và nội dung trước khi gửi.'}</p>
             {draftLabel && (
               <p className="ctsv-announce-draft-status" aria-live="polite">
@@ -848,7 +894,7 @@ const PortalAnnouncementManage = ({
                 >
                   {form.image ? (
                     <>
-                      <img src={form.image} alt="Xem trước ảnh thông báo" className="ctsv-banner-preview" />
+                      <img src={form.image} alt={`Xem trước ảnh ${nounLower}`} className="ctsv-banner-preview" />
                       <div className="ctsv-banner-overlay">
                         <span>Đổi ảnh</span>
                       </div>
@@ -978,7 +1024,7 @@ const PortalAnnouncementManage = ({
                 />
               )}
               <p className="ctsv-announce-preview-title">
-                {form.title.trim() || 'Tiêu đề thông báo'}
+                {form.title.trim() || `Tiêu đề ${nounLower}`}
               </p>
               {selectedEventTitle && (
                 <span className="ctsv-announce-preview-event">{selectedEventTitle}</span>
@@ -994,8 +1040,8 @@ const PortalAnnouncementManage = ({
 
       <section ref={historyCardRef} className="ctsv-announce-history-card">
         <div className="ctsv-announce-card-head">
-          <h2>Danh sách thông báo</h2>
-          <p>Xem, tìm kiếm và quản lý thông báo đã phát hành trên toàn trường.</p>
+          <h2>Danh sách {nounLower}</h2>
+          <p>Xem, tìm kiếm và quản lý {nounLower} đã phát hành trên toàn trường.</p>
         </div>
 
         <div className="ctsv-announce-browse-toolbar">
@@ -1030,7 +1076,7 @@ const PortalAnnouncementManage = ({
         </div>
 
         <p className="ctsv-events-filter-summary" aria-live="polite">
-          Hiển thị <strong>{filteredHistory.length}</strong> / {history.length} thông báo
+          Hiển thị <strong>{filteredHistory.length}</strong> / {history.length} {nounLower}
           {categoryFilter !== 'all' && (
             <>
               {' '}
@@ -1054,8 +1100,8 @@ const PortalAnnouncementManage = ({
             </span>
             <p>
               {history.length === 0
-                ? 'Chưa có thông báo nào được phát hành.'
-                : 'Không tìm thấy thông báo phù hợp — thử đổi từ khóa hoặc danh mục.'}
+                ? `Chưa có ${nounLower} nào được phát hành.`
+                : `Không tìm thấy ${nounLower} phù hợp — thử đổi từ khóa hoặc danh mục.`}
             </p>
             {(searchQuery || categoryFilter !== 'all') && (
               <button
@@ -1150,11 +1196,20 @@ const PortalAnnouncementManage = ({
                     <Link
                       to={resolveAnnouncementDetailPath(annId)}
                       className="ctsv-announce-history-btn ctsv-announce-history-btn--detail"
-                      title="Chi tiết thông báo"
-                      aria-label="Chi tiết thông báo"
+                      title={`Chi tiết ${nounLower}`}
+                      aria-label={`Chi tiết ${nounLower}`}
                     >
                       <CtsvActionIcon type="detail" />
                     </Link>
+                    <button
+                      type="button"
+                      className="ctsv-announce-history-btn ctsv-announce-history-btn--copy"
+                      onClick={() => copyAnnouncementLink(a)}
+                      title="Sao chép liên kết"
+                      aria-label="Sao chép liên kết"
+                    >
+                      <CtsvActionIcon type="copy" />
+                    </button>
                     <div
                       className="ctsv-announce-history-more"
                       ref={openActionMenuId === annId ? actionMenuWrapRef : undefined}
@@ -1188,9 +1243,22 @@ const PortalAnnouncementManage = ({
                               disabled={actionLoading || submitting}
                             >
                               <CtsvActionIcon type="edit" size={16} />
-                              Sửa thông báo
+                              Sửa {nounLower}
                             </button>
                           )}
+                          <button
+                            type="button"
+                            className="ctsv-announce-kebab-item"
+                            role="menuitem"
+                            onClick={() => {
+                              setOpenActionMenuId(null);
+                              duplicateAnnouncement(a);
+                            }}
+                            disabled={actionLoading || submitting}
+                          >
+                            <CtsvActionIcon type="duplicate" size={16} />
+                            Nhân bản
+                          </button>
                           {!a.isHidden && (
                             <button
                               type="button"
@@ -1203,7 +1271,7 @@ const PortalAnnouncementManage = ({
                               disabled={actionLoading || submitting}
                             >
                               <CtsvActionIcon type="hide" size={16} />
-                              Ẩn thông báo
+                              Ẩn {nounLower}
                             </button>
                           )}
                           <button
@@ -1217,7 +1285,7 @@ const PortalAnnouncementManage = ({
                             disabled={actionLoading || submitting}
                           >
                             <CtsvActionIcon type="delete" size={16} />
-                            Xóa thông báo
+                            Xóa {nounLower}
                           </button>
                         </div>
                       )}

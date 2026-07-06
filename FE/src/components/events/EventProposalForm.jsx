@@ -26,6 +26,7 @@ import {
   normalizeEventPlanLink,
 } from '../../utils/eventPlanFile';
 import EventProposalFormSkeleton from './EventProposalFormSkeleton';
+import EventDocImportPanel from './EventDocImportPanel';
 import ClubTimelineQuickPick from '../club/ClubTimelineQuickPick';
 import TimelineLocationConflictNotice from '../timeline/TimelineLocationConflictNotice';
 import { checkEventVenueConflictsApi } from '../../services/schoolTimelineApi';
@@ -134,13 +135,28 @@ const EventProposalForm = ({
       const checkPromise =
         role === 'partner'
           ? checkPartnerVenueConflicts({ location: form.location, startDate, endDate })
-          : checkEventVenueConflictsApi({ location: form.location, startDate, endDate });
+          : checkEventVenueConflictsApi({
+              location: form.location,
+              startDate,
+              endDate,
+              excludeTimelineId: selectedTimelineSource?.timelineId,
+              excludeItemIndex: selectedTimelineSource?.itemIndex,
+            });
       checkPromise
         .then((res) => setVenueConflicts(res.conflicts || []))
         .catch(() => setVenueConflicts([]));
     }, 280);
     return () => clearTimeout(timer);
-  }, [form.location, form.eventStartDate, form.eventStartTime, form.eventEndDate, form.eventEndTime, role, showVenueConflictCheck]);
+  }, [
+    form.location,
+    form.eventStartDate,
+    form.eventStartTime,
+    form.eventEndDate,
+    form.eventEndTime,
+    role,
+    showVenueConflictCheck,
+    selectedTimelineSource,
+  ]);
 
   const handleTimelineQuickPick = (item, nextForm) => {
     if (isEditMode || editingId) {
@@ -154,6 +170,7 @@ const EventProposalForm = ({
     setSelectedTimelineKey(item.key);
     setSelectedTimelineSource({
       timelineId: item.timelineId,
+      itemIndex: item.itemIndex,
       itemTitle: item.title,
       semesterLabel: item.semesterLabel,
     });
@@ -233,6 +250,15 @@ const EventProposalForm = ({
       eventPlanFileSizeLabel: '',
     });
     if (planFileInputRef.current) planFileInputRef.current.value = '';
+  };
+
+  const supportsDocImport =
+    ['ctsv', 'icpdp', 'club', 'partner'].includes(role) && !isEditMode && !editingId && !disabled;
+
+  const handleDocImport = (patch) => {
+    if (!patch || typeof patch !== 'object') return;
+    setForm((prev) => ({ ...prev, ...patch }));
+    setStep(1);
   };
 
   const validateStep = () => {
@@ -376,6 +402,14 @@ const EventProposalForm = ({
       <form onSubmit={handleSubmit} className="clb-modal-form">
         {step === 1 && (
           <div className="clb-form-step">
+            {supportsDocImport && (
+              <EventDocImportPanel
+                onApply={handleDocImport}
+                onAttachFile={config.requireEventPlan ? handlePlanFile : undefined}
+                disabled={disabled}
+                showToast={showToast}
+              />
+            )}
             <div className="clb-form-row">
               <div className="clb-form-group">
                 <label>

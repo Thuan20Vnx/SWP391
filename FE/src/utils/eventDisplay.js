@@ -4,7 +4,7 @@
 
 import { API_BASE } from './api';
 
-const DEFAULT_EVENT_IMAGE =
+export const DEFAULT_EVENT_IMAGE =
   'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80';
 
 export const resolveEventCoverUrl = (eventOrId) => {

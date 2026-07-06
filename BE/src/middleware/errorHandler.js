@@ -47,7 +47,7 @@ const notFoundHandler = (req, res) => {
 
 const errorHandler = (err, req, res, next) => {
   const normalized = normalizeError(err);
-  console.error('API error:', normalized.message || err.message, err.stack);
+  console.error('API error:', req.method, req.originalUrl, '-', normalized.message || err.message, err.stack);
 
   const statusCode = normalized.statusCode || 500;
   const message = normalized.isOperational

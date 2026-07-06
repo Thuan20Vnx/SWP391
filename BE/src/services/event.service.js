@@ -176,7 +176,7 @@ const notifyClubProposalDeletedToIcpdp = async (event, { clubName = '' } = {}) =
 const CLUB_META_FIELDS = 'name slug description memberCount eventsHeld coverImage logoText logoColor';
 
 const EVENT_PUBLIC_LIST_META_FIELDS =
-  'title description category startDate endDate location capacity registeredCount ticketPrice eventState eventType source schoolOrganizerRole status clubId partnerId createdAt postponeReason coverFileExt';
+  'title description category startDate endDate location capacity registeredCount ticketPrice eventState eventType source schoolOrganizerRole status clubId partnerId createdAt postponeReason coverFileExt registrationStartDate registrationEndDate';
 
 const PUBLIC_LIST_DESC_LIMIT = 320;
 const DEFAULT_LIST_LIMIT = 24;

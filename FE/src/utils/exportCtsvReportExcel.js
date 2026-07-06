@@ -116,9 +116,31 @@ const sanitizeFileName = (value) =>
     .slice(0, 72) || 'bao-cao-ctsv';
 
 const statusLabel = (value) => {
-  if (value === 'attended') return 'Co mat';
-  if (value === 'cancelled') return 'Da huy';
-  return 'Da dang ky';
+  if (value === 'attended') return 'Có mặt';
+  if (value === 'cancelled') return 'Đã hủy';
+  return 'Đã đăng ký';
+};
+
+const sourceLabel = (value) => {
+  if (value === 'school') return 'Cấp trường';
+  if (value === 'partner') return 'Đối tác';
+  if (value === 'club') return 'CLB';
+  return value || '';
+};
+
+const zebra = (worksheet, ref) => {
+  const range = XLSX.utils.decode_range(ref);
+  for (let r = range.s.r; r <= range.e.r; r += 1) {
+    if ((r - range.s.r) % 2 === 1) {
+      for (let c = range.s.c; c <= range.e.c; c += 1) {
+        const addr = XLSX.utils.encode_cell({ r, c });
+        const cell = worksheet[addr];
+        if (cell?.s && !cell.s.fill) {
+          cell.s = { ...cell.s, fill: { patternType: 'solid', fgColor: { rgb: 'FCFCFD' } } };
+        }
+      }
+    }
+  }
 };
 
 const statusStyle = (value) => {
@@ -148,16 +170,16 @@ const exportCtsvReportExcel = async (report) => {
   const stats = report.stats || {};
 
   const summarySheet = xlsx.utils.aoa_to_sheet([
-    ['F-EVENTS | BAO CAO CTSV'],
-    [`Xuat luc ${formatDateTime(new Date())}`],
+    ['F-EVENTS | BÁO CÁO SAU SỰ KIỆN'],
+    [`Xuất lúc ${formatDateTime(new Date())}`],
     [],
-    ['THONG TIN SU KIEN', '', '', 'CHI SO TONG QUAN', '', '', ''],
-    ['Ten su kien', report.title || '', '', 'Dang ky', stats.registeredCount ?? 0, 'Suc chua', stats.totalCapacity ?? 0],
-    ['Nguon', report.source || '', '', 'Check-in', stats.attendedCount ?? 0, 'Ty le tham du', `${stats.attendanceRate ?? 0}%`],
-    ['Thoi gian', `${report.date || ''} ${report.time || ''}`.trim(), '', 'Danh gia TB', stats.reviewCount ? `${stats.averageRating}/5` : 'Chua co', 'So danh gia', stats.reviewCount ?? 0],
-    ['Dia diem', report.location || '', '', 'Ty le lap day', `${stats.fillRate ?? 0}%`, 'Huy / No-show', `${stats.cancelledCount ?? 0} / ${stats.noShowCount ?? 0}`],
+    ['THÔNG TIN SỰ KIỆN', '', '', 'CHỈ SỐ TỔNG QUAN', '', '', ''],
+    ['Tên sự kiện', report.title || '', '', 'Lượt đăng ký vé', stats.registeredCount ?? 0, 'Sức chứa', stats.totalCapacity ?? 0],
+    ['Nguồn', sourceLabel(report.source), '', 'Đã check-in', stats.attendedCount ?? 0, 'Tỷ lệ tham dự', `${stats.attendanceRate ?? 0}%`],
+    ['Thời gian', `${report.date || ''} ${report.time || ''}`.trim(), '', 'Đánh giá TB', stats.reviewCount ? `${stats.averageRating}/5` : 'Chưa có', 'Số đánh giá', stats.reviewCount ?? 0],
+    ['Địa điểm', report.location || '', '', 'Tỷ lệ lấp đầy', `${stats.fillRate ?? 0}%`, 'Hủy / No-show', `${stats.cancelledCount ?? 0} / ${stats.noShowCount ?? 0}`],
     [],
-    ['DIEM NOI BAT'],
+    ['ĐIỂM NỔI BẬT'],
     ...((report.highlights || []).map((line) => [line])),
   ]);
   summarySheet['!merges'] = [
@@ -200,11 +222,12 @@ const exportCtsvReportExcel = async (report) => {
     statusLabel(row.status),
     row.registeredAt || '',
   ]);
+  const regLastRow = Math.max(registrationRows.length + 4, 5);
   const registrationSheet = xlsx.utils.aoa_to_sheet([
-    ['DANH SACH SINH VIEN'],
+    ['F-EVENTS | DANH SÁCH SINH VIÊN'],
     [report.title || ''],
     [],
-    ['STT', 'Sinh vien', 'Email', 'Trang thai', 'Ngay dang ky'],
+    ['STT', 'Sinh viên', 'Email', 'Trạng thái', 'Ngày đăng ký'],
     ...registrationRows,
   ]);
   registrationSheet['!merges'] = [
@@ -218,17 +241,27 @@ const exportCtsvReportExcel = async (report) => {
     { wch: 16 },
     { wch: 16 },
   ];
-  setRows(registrationSheet, [28, 24, 8, 24, ...registrationRows.map(() => 22)]);
+  registrationSheet['!autofilter'] = { ref: `A4:E${regLastRow}` };
+  registrationSheet['!freeze'] = { ySplit: 4, topLeftCell: 'A5', activePane: 'bottomLeft', state: 'frozen' };
+  setRows(registrationSheet, [30, 24, 8, 24, ...registrationRows.map(() => 22)]);
   paintRange(xlsx, registrationSheet, 'A1:E1', styles.title);
   paintRange(xlsx, registrationSheet, 'A2:E2', styles.subtitle);
   paintRange(xlsx, registrationSheet, 'A4:E4', styles.tableHeader);
-  registrationRows.forEach((row, idx) => {
-    const r = idx + 5;
-    paintRange(xlsx, registrationSheet, `A${r}:A${r}`, styles.tableCenter);
-    paintRange(xlsx, registrationSheet, `B${r}:C${r}`, styles.tableCell);
-    paintRange(xlsx, registrationSheet, `D${r}:D${r}`, statusStyle(report.recentRegistrations[idx]?.status));
-    paintRange(xlsx, registrationSheet, `E${r}:E${r}`, styles.tableCenter);
-  });
+  if (registrationRows.length) {
+    registrationRows.forEach((row, idx) => {
+      const r = idx + 5;
+      paintRange(xlsx, registrationSheet, `A${r}:A${r}`, styles.tableCenter);
+      paintRange(xlsx, registrationSheet, `B${r}:C${r}`, styles.tableCell);
+      paintRange(xlsx, registrationSheet, `D${r}:D${r}`, statusStyle(report.recentRegistrations[idx]?.status));
+      paintRange(xlsx, registrationSheet, `E${r}:E${r}`, styles.tableCenter);
+    });
+    zebra(registrationSheet, `A5:C${regLastRow}`);
+    zebra(registrationSheet, `E5:E${regLastRow}`);
+  } else {
+    registrationSheet.A5 = { t: 's', v: 'Chưa có sinh viên đăng ký.' };
+    registrationSheet['!merges'].push({ s: { r: 4, c: 0 }, e: { r: 4, c: 4 } });
+    paintRange(xlsx, registrationSheet, 'A5:E5', styles.value);
+  }
   xlsx.utils.book_append_sheet(workbook, registrationSheet, 'Sinh vien');
 
   const reviewRows = (report.recentReviews || []).map((row, index) => [
@@ -238,11 +271,15 @@ const exportCtsvReportExcel = async (report) => {
     row.comment || '',
     formatDateTime(row.createdAt),
   ]);
+  const avgLine = stats.reviewCount
+    ? `Điểm trung bình: ${stats.averageRating}/5 · ${stats.reviewCount} lượt đánh giá`
+    : 'Chưa có lượt đánh giá nào cho sự kiện này.';
+  const reviewLastRow = Math.max(reviewRows.length + 4, 5);
   const reviewSheet = xlsx.utils.aoa_to_sheet([
-    ['DANH GIA GAN DAY'],
-    [report.title || ''],
+    ['F-EVENTS | ĐÁNH GIÁ SỰ KIỆN'],
+    [avgLine],
     [],
-    ['STT', 'Nguoi gui', 'Diem', 'Noi dung', 'Thoi gian'],
+    ['STT', 'Người gửi', 'Điểm', 'Nội dung', 'Thời gian'],
     ...reviewRows,
   ]);
   reviewSheet['!merges'] = [
@@ -256,21 +293,30 @@ const exportCtsvReportExcel = async (report) => {
     { wch: 56 },
     { wch: 18 },
   ];
-  setRows(reviewSheet, [28, 24, 8, 24, ...reviewRows.map(() => 34)]);
+  reviewSheet['!freeze'] = { ySplit: 4, topLeftCell: 'A5', activePane: 'bottomLeft', state: 'frozen' };
+  setRows(reviewSheet, [30, 24, 8, 24, ...reviewRows.map(() => 34)]);
   paintRange(xlsx, reviewSheet, 'A1:E1', styles.title);
   paintRange(xlsx, reviewSheet, 'A2:E2', styles.subtitle);
   paintRange(xlsx, reviewSheet, 'A4:E4', styles.tableHeader);
-  reviewRows.forEach((row, idx) => {
-    const r = idx + 5;
-    paintRange(xlsx, reviewSheet, `A${r}:A${r}`, styles.tableCenter);
-    paintRange(xlsx, reviewSheet, `B${r}:B${r}`, styles.tableCell);
-    paintRange(xlsx, reviewSheet, `C${r}:C${r}`, styles.tableCenter);
-    paintRange(xlsx, reviewSheet, `D${r}:D${r}`, styles.tableCell);
-    paintRange(xlsx, reviewSheet, `E${r}:E${r}`, styles.tableCenter);
-  });
+  if (reviewRows.length) {
+    reviewRows.forEach((row, idx) => {
+      const r = idx + 5;
+      paintRange(xlsx, reviewSheet, `A${r}:A${r}`, styles.tableCenter);
+      paintRange(xlsx, reviewSheet, `B${r}:B${r}`, styles.tableCell);
+      paintRange(xlsx, reviewSheet, `C${r}:C${r}`, styles.tableCenter);
+      paintRange(xlsx, reviewSheet, `D${r}:D${r}`, styles.tableCell);
+      paintRange(xlsx, reviewSheet, `E${r}:E${r}`, styles.tableCenter);
+    });
+    zebra(reviewSheet, `A5:B${reviewLastRow}`);
+    zebra(reviewSheet, `D5:E${reviewLastRow}`);
+  } else {
+    reviewSheet.A5 = { t: 's', v: 'Chưa có lượt đánh giá nào.' };
+    reviewSheet['!merges'].push({ s: { r: 4, c: 0 }, e: { r: 4, c: 4 } });
+    paintRange(xlsx, reviewSheet, 'A5:E5', styles.value);
+  }
   xlsx.utils.book_append_sheet(workbook, reviewSheet, 'Danh gia');
 
-  xlsx.writeFile(workbook, `${sanitizeFileName(report.title)}-bao-cao-ctsv.xlsx`);
+  xlsx.writeFile(workbook, `${sanitizeFileName(report.title)}-bao-cao-su-kien.xlsx`);
 };
 
 export default exportCtsvReportExcel;

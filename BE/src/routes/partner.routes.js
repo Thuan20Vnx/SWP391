@@ -31,7 +31,12 @@ const {
 } = require('../services/partnerEventRequest.service');
 const partnerQueryCache = require('../utils/partnerQueryCache');
 const { createAndBroadcast } = require('../services/notification.service');
+const {
+  submitPartnerReport,
+  listPartnerOwnSubmittedReports,
+} = require('../services/ctsvReportSubmission.service');
 const { checkEventVenueConflicts } = require('../services/timelineLocationConflict.service');
+const reviewService = require('../services/review.service');
 
 router.use(authMiddleware);
 router.use(requireRole(['partner']));
@@ -145,12 +150,42 @@ router.get('/events', async (req, res) => {
   }
 });
 
+router.get('/events/:id/rating-stats', async (req, res) => {
+  try {
+    await getPartnerEventById(req.authEmail, req.params.id);
+    const stats = await reviewService.getEventRatingStats(req.params.id);
+    return res.json({ success: true, stats });
+  } catch (error) {
+    return handleError(res, error, 'partner event rating-stats');
+  }
+});
+
 router.get('/events/:id', async (req, res) => {
   try {
     const event = await getPartnerEventById(req.authEmail, req.params.id);
     return res.json({ success: true, event });
   } catch (error) {
     return handleError(res, error, 'partner event detail');
+  }
+});
+
+// Đối tác tự gửi báo cáo sau sự kiện của mình → CTSV + Admin xem
+router.post('/events/:id/report-submit', async (req, res) => {
+  try {
+    const result = await submitPartnerReport(req.params.id, req.authEmail);
+    return res.json({ success: true, ...result });
+  } catch (error) {
+    return handleError(res, error, 'partner report submit');
+  }
+});
+
+// Trạng thái báo cáo do chính đối tác đã gửi (khác với /reports do CTSV gửi cho đối tác)
+router.get('/my-report-submissions', async (req, res) => {
+  try {
+    const submissions = await listPartnerOwnSubmittedReports(req.authEmail);
+    return res.json({ success: true, submissions });
+  } catch (error) {
+    return handleError(res, error, 'partner own report submissions');
   }
 });
 

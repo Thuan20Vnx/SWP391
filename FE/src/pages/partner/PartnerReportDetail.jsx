@@ -88,7 +88,10 @@ const PartnerReportDetail = () => {
       </Link>
 
       {report.ctsvDelivered ? (
-        <p className="ctsv-rd-muted" style={{ margin: '0 0 12px' }}>
+        <p className="ctsv-rd-sent-note" style={{ margin: '0 0 4px' }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
           Báo cáo do CTSV gửi
           {report.submittedByEmail ? ` (${report.submittedByEmail})` : ''}
           {report.sentToPartnerAt

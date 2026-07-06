@@ -115,6 +115,56 @@ const getEventReviews = async (userId, { tab = 'pending' } = {}) => {
   return { items: pending, counts };
 };
 
+const getEventRatingStats = async (eventId) => {
+  const event = await Event.findById(eventId).select('title averageRating reviewCount').lean();
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+
+  const eventObjectId = new mongoose.Types.ObjectId(String(eventId));
+
+  const [distributionAgg, reviews] = await Promise.all([
+    EventReview.aggregate([
+      { $match: { event: eventObjectId } },
+      { $group: { _id: '$rating', count: { $sum: 1 } } },
+    ]),
+    EventReview.find({ event: eventId })
+      .populate('user', 'fullname email studentId')
+      .sort({ createdAt: -1 })
+      .limit(500)
+      .lean(),
+  ]);
+
+  const countByStar = Object.fromEntries(distributionAgg.map((row) => [row._id, row.count]));
+  const distribution = [5, 4, 3, 2, 1].map((stars) => ({
+    stars,
+    count: countByStar[stars] || 0,
+  }));
+
+  const reviewCount = event.reviewCount ?? reviews.length;
+  const averageRating = Number(event.averageRating) || 0;
+
+  const mapReview = (r) => ({
+    id: String(r._id),
+    rating: r.rating,
+    comment: r.comment || '',
+    authorName: r.user?.fullname || r.user?.email || 'Sinh viên',
+    authorEmail: r.user?.email || '',
+    studentId: r.user?.studentId || '',
+    createdAt: r.createdAt,
+  });
+
+  return {
+    eventId: String(eventId),
+    title: event.title,
+    averageRating,
+    reviewCount,
+    distribution,
+    reviews: reviews.map(mapReview),
+    recentReviews: reviews.slice(0, 8).map(mapReview),
+  };
+};
+
 const submitReview = async (userId, eventId, { rating, comment }) => {
   const ratingNum = Number(rating);
   if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
@@ -159,6 +209,7 @@ const submitReview = async (userId, eventId, { rating, comment }) => {
 
 module.exports = {
   getEventReviews,
+  getEventRatingStats,
   submitReview,
   isEligibleForReview,
 };

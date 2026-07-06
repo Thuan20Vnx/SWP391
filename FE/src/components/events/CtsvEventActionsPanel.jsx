@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   approveCtsvEvent,
-  publishCtsvEvent,
   rejectCtsvEvent,
   revisionCtsvEvent,
   requestCtsvEventModeration,
@@ -16,7 +15,6 @@ import {
 } from '../../constants/eventModeration';
 import {
   isSchoolEventPendingAdmin,
-  canCtsvPublishSchoolEvent,
   canCtsvEditSchoolEvent,
 } from '../../constants/eventWorkflow';
 import ConfirmDialog from '../ui/ConfirmDialog';
@@ -59,7 +57,7 @@ const getModerationConfirmConfig = (action, isWeatherPostpone) => {
   return MODERATION_CONFIRM[action] || null;
 };
 
-const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated }) => {
+const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated, editBasePath = '/ctsv/events' }) => {
   const [note, setNote] = useState('');
   const [moderationReason, setModerationReason] = useState('');
   const [weatherPostpone, setWeatherPostpone] = useState(false);
@@ -74,12 +72,11 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated }) =>
   const canApprove =
     access.canManage && ['pending_ctsv', 'pending_icpdp', 'revision'].includes(event.statusKey);
   const showPartnerActions = canApprove && isCtsvOnly;
-  const showPublish = canCtsvPublishSchoolEvent(event);
   const canEditSchoolEvent = canCtsvEditSchoolEvent(event);
   const moderationPending = isModerationPending(event);
   const showSchoolModeration =
     access.canManage && event.source === 'school' && canCtsvRequestModeration(event);
-  const showCtsvActions = access.canManage && (showPartnerActions || showPublish);
+  const showCtsvActions = access.canManage && showPartnerActions;
   const showRequestEditBtn = showSchoolModeration && !canEditSchoolEvent;
   const showOpenEditFormLink =
     access.canManage && event.source === 'school' && canEditSchoolEvent && !moderationPending;
@@ -120,16 +117,6 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated }) =>
     try {
       await revisionCtsvEvent(eventId, note);
       showToast?.('Đã gửi yêu cầu chỉnh sửa.', 'info');
-      refresh();
-    } catch (e) {
-      showToast?.(e.message, 'error');
-    }
-  };
-
-  const handlePublish = async () => {
-    try {
-      await publishCtsvEvent(eventId);
-      showToast?.('Đã publish sự kiện!', 'success');
       refresh();
     } catch (e) {
       showToast?.(e.message, 'error');
@@ -187,7 +174,7 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated }) =>
         <div className="ev-rejection-reason ev-rejection-reason--info">
           <span className="ev-rejection-reason__label">Ghi chú</span>
           <p className="ev-rejection-reason__text">
-            Admin đã phê duyệt. Bạn có thể publish hoặc chỉnh sửa — nếu sửa, đơn sẽ gửi lại Admin duyệt trước khi publish.
+            Admin đã phê duyệt và sự kiện đã tự động công khai. Nếu chỉnh sửa, đơn sẽ gửi lại Admin duyệt trước khi công khai lại.
           </p>
         </div>
       )}
@@ -225,7 +212,7 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated }) =>
           {showOpenEditFormLink && (
             <div className="ctsv-moderation-edit-approved">
               <span className="ctsv-moderation-edit-approved__badge">Admin đã duyệt chỉnh sửa</span>
-              <Link to={`/ctsv/events/${eventId}/edit`} className="ev-btn-primary" style={{ display: 'inline-flex' }}>
+              <Link to={`${editBasePath}/${eventId}/edit`} className="ev-btn-primary" style={{ display: 'inline-flex' }}>
                 Mở form chỉnh sửa
               </Link>
             </div>
@@ -281,7 +268,7 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated }) =>
 
       {showCtsvActions && (
         <div className="ev-table-card">
-          <h3 style={{ margin: '0 0 8px', fontSize: '1.05rem' }}>Phê duyệt & Publish</h3>
+          <h3 style={{ margin: '0 0 8px', fontSize: '1.05rem' }}>Phê duyệt</h3>
           {showPartnerActions && (
             <textarea
               className="ctsv-textarea"
@@ -305,11 +292,6 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated }) =>
                   Yêu cầu chỉnh sửa
                 </button>
               </>
-            )}
-            {showPublish && (
-              <button type="button" className="ev-btn-primary" onClick={handlePublish}>
-                Publish sự kiện
-              </button>
             )}
           </div>
         </div>

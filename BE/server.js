@@ -92,6 +92,12 @@ const startServer = async () => {
     expireStalePayments().catch((err) => console.error('[Cron] expireStalePayments:', err.message));
   }, 5 * 60 * 1000);
 
+  // Cron: nhắc mở đăng ký (trước 5 phút) & sắp diễn ra (trước 6 tiếng) — chạy mỗi phút
+  const { runReminderJobs } = require('./src/services/eventReminder.service');
+  setInterval(() => {
+    runReminderJobs().catch((err) => console.error('[Cron] runReminderJobs:', err.message));
+  }, 60 * 1000);
+
   server = http.createServer(app);
   const HOST = process.env.HOST || '0.0.0.0';
   server.listen(PORT, HOST, () => {

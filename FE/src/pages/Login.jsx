@@ -264,7 +264,12 @@ const Login = ({ showToast }) => {
           if (role === USER_ROLES.STUDENT || role === USER_ROLES.CLUB_MANAGER) {
             resetStudentPublicSidebarOnLogin();
           }
-          navigate(getHomePathForRole(role));
+          const redirectTarget = new URLSearchParams(window.location.search).get('redirect');
+          const safeRedirect =
+            redirectTarget && redirectTarget.startsWith('/') && !redirectTarget.startsWith('//')
+              ? redirectTarget
+              : null;
+          navigate(safeRedirect || getHomePathForRole(role));
         } else {
           handleLoginError(status, data);
         }
