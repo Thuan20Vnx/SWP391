@@ -8,7 +8,9 @@ const {
   readFileIfExists,
   deleteFileIfExists,
   findStoredFile,
+  isDataUri,
 } = require('./dataUriStorage');
+const { isCloudinaryConfigured, uploadDataUri } = require('./cloudinary');
 
 const CLUB_MEDIA_ROOT = path.join(__dirname, '../../uploads/club-media');
 
@@ -46,6 +48,21 @@ const persistClubMediaOnDocument = async (doc) => {
     const src = doc[field] || '';
     if (isImageDataUri(src) || (isHttpUrl(src) === false && isDataUri(src))) {
       if (isImageDataUri(src)) {
+        if (isCloudinaryConfigured()) {
+          const uploaded = await uploadDataUri(src, {
+            folder: `fevents/club-media/${id}`,
+            publicId: kind,
+          });
+          if (uploaded?.url) {
+            if (doc[extField] || hasClubMediaFile(id, kind)) {
+              const existing = findStoredFile(clubMediaDir(id), kind, doc[extField] || '');
+              if (existing) deleteFileIfExists(existing.filePath);
+            }
+            doc[extField] = '';
+            doc[field] = uploaded.url;
+            continue;
+          }
+        }
         const ext = await writeClubMediaFromDataUri(id, kind, src);
         doc[extField] = ext;
         doc[field] = '';

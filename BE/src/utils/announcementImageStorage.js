@@ -1,6 +1,7 @@
 const path = require('path');
 const {
   isDataUri,
+  isHttpUrl,
   isImageDataUri,
   parseDataUri,
   extensionFromMime,
@@ -9,6 +10,7 @@ const {
   deleteFileIfExists,
   findStoredFile,
 } = require('./dataUriStorage');
+const { isCloudinaryConfigured, uploadDataUri } = require('./cloudinary');
 
 const IMAGES_ROOT = path.join(__dirname, '../../uploads/announcement-images');
 
@@ -40,6 +42,19 @@ const persistAnnouncementImageOnDocument = async (doc) => {
   const id = String(doc._id);
   const src = doc.image || '';
   if (isImageDataUri(src) || (isDataUri(src) && src.startsWith('data:image'))) {
+    if (isCloudinaryConfigured()) {
+      const uploaded = await uploadDataUri(src, {
+        folder: 'fevents/announcement-images',
+        publicId: id,
+      });
+      if (uploaded?.url) {
+        const existing = findStoredFile(IMAGES_ROOT, id, doc.imageFileExt || '');
+        if (existing) deleteFileIfExists(existing.filePath);
+        doc.imageFileExt = '';
+        doc.image = uploaded.url;
+        return doc;
+      }
+    }
     const ext = await writeAnnouncementImageFromDataUri(id, src);
     doc.imageFileExt = ext;
     doc.image = '';
@@ -63,6 +78,9 @@ const resolveAnnouncementImageResponse = async (doc) => {
       return { buffer, mime };
     }
   }
+  if (isHttpUrl(doc?.image)) {
+    return { buffer: null, mime: null, redirectUrl: doc.image };
+  }
   if (isDataUri(doc?.image)) {
     const { mime, buffer } = parseDataUri(doc.image);
     return { buffer, mime };
@@ -72,14 +90,16 @@ const resolveAnnouncementImageResponse = async (doc) => {
 
 const sanitizeAnnouncementImageForApi = (doc) => {
   const id = String(doc?._id || doc?.id || '');
+  const remote = isHttpUrl(doc?.image) ? doc.image : '';
   const hasImage =
+    Boolean(remote) ||
     Boolean(doc?.imageFileExt) ||
     hasAnnouncementImageFile(id, doc?.imageFileExt || '') ||
     isDataUri(doc?.image);
   return {
     hasImage,
-    imageUrl: hasImage && id ? buildAnnouncementImageUrl(id) : '',
-    image: '',
+    imageUrl: remote || (hasImage && id ? buildAnnouncementImageUrl(id) : ''),
+    image: remote,
   };
 };
 

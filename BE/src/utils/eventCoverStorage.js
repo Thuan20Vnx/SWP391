@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { isCloudinaryConfigured, uploadDataUri } = require('./cloudinary');
 
 const UPLOAD_DIR = path.join(__dirname, '../../uploads/event-covers');
 const COVER_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
@@ -92,14 +93,15 @@ const buildCoverUrl = (eventId) => {
 const sanitizeEventCoverForApi = (event) => {
   const id = String(event?._id || event?.id || '');
   const hasCover = eventHasAnyCover(event);
-  const coverUrl = hasCover && id ? buildCoverUrl(id) : '';
+  const endpointUrl = hasCover && id ? buildCoverUrl(id) : '';
   const remoteThumb = isHttpUrl(event?.thumbnail) ? event.thumbnail : isHttpUrl(event?.image) ? event.image : '';
+  const coverUrl = remoteThumb || endpointUrl;
 
   return {
     hasCover,
     coverUrl,
-    thumbnail: remoteThumb || (hasCover && id ? coverUrl : ''),
-    image: remoteThumb || (hasCover && id ? coverUrl : ''),
+    thumbnail: remoteThumb || endpointUrl,
+    image: remoteThumb || endpointUrl,
   };
 };
 
@@ -114,6 +116,23 @@ const persistEventCoverOnDocument = async (doc) => {
   const src = doc.thumbnail || doc.image || '';
 
   if (isDataUri(src)) {
+    // Ưu tiên Cloudinary (bền, chạy được trên host ephemeral như Render).
+    if (isCloudinaryConfigured()) {
+      const uploaded = await uploadDataUri(src, {
+        folder: 'fevents/event-covers',
+        publicId: eventId,
+      });
+      if (uploaded?.url) {
+        if (doc.coverFileExt || hasCoverFile(eventId)) {
+          deleteCoverFile(eventId);
+        }
+        doc.coverFileExt = '';
+        doc.thumbnail = uploaded.url;
+        doc.image = uploaded.url;
+        return doc;
+      }
+    }
+    // Fallback: ghi ra đĩa (dev local không cấu hình Cloudinary).
     const ext = await writeCoverFromDataUri(eventId, src);
     doc.coverFileExt = ext;
     doc.thumbnail = '';

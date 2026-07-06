@@ -1,6 +1,7 @@
 const path = require('path');
 const {
   isDataUri,
+  isHttpUrl,
   parseDataUri,
   extensionFromMime,
   writeBufferToFile,
@@ -8,6 +9,7 @@ const {
   deleteFileIfExists,
   findStoredFile,
 } = require('./dataUriStorage');
+const { isCloudinaryConfigured, uploadDataUri } = require('./cloudinary');
 
 const PLAN_SCOPES = {
   events: 'events',
@@ -59,7 +61,7 @@ const entityHasStoredPlan = (doc, scope) => {
 };
 
 const entityHasAnyPlanFile = (doc, scope) =>
-  entityHasStoredPlan(doc, scope) || isDataUri(doc?.eventPlanFile);
+  entityHasStoredPlan(doc, scope) || isDataUri(doc?.eventPlanFile) || isHttpUrl(doc?.eventPlanFile);
 
 const sanitizeEventPlanForApi = (doc, scope, { planUrlBuilder } = {}) => {
   const id = String(doc?._id || doc?.id || '');
@@ -67,10 +69,11 @@ const sanitizeEventPlanForApi = (doc, scope, { planUrlBuilder } = {}) => {
   const buildUrl = planUrlBuilder || ((entityId) => buildPlanUrl(scope, entityId));
   const rawName = String(doc?.eventPlanFileName || '').trim();
   const eventPlanFileName = rawName.replace(/\.+(?=\.[a-z0-9]{2,8}$)/i, '');
+  const remotePlan = isHttpUrl(doc?.eventPlanFile) ? doc.eventPlanFile : '';
   return {
     hasEventPlanFile: hasFile,
     hasEventPlan: hasFile || Boolean(String(doc?.eventPlanLink || '').trim()),
-    eventPlanUrl: hasFile && id ? buildUrl(id) : '',
+    eventPlanUrl: remotePlan || (hasFile && id ? buildUrl(id) : ''),
     eventPlanFileName,
     eventPlanFileMime: doc?.eventPlanFileMime || '',
     eventPlanLink: doc?.eventPlanLink || '',
@@ -84,6 +87,20 @@ const persistEventPlanOnDocument = async (doc, scope) => {
   const src = doc.eventPlanFile || '';
 
   if (isDataUri(src)) {
+    if (isCloudinaryConfigured()) {
+      const uploaded = await uploadDataUri(src, {
+        folder: `fevents/event-plans/${scope}`,
+        publicId: id,
+        resourceType: 'raw',
+      }).catch(() => null);
+      if (uploaded?.url) {
+        const existing = findStoredFile(planDirForScope(scope), id, doc.eventPlanFileExt || '');
+        if (existing) deleteFileIfExists(existing.filePath);
+        doc.eventPlanFileExt = '';
+        doc.eventPlanFile = uploaded.url;
+        return doc;
+      }
+    }
     const ext = await writePlanFromDataUri(
       scope,
       id,

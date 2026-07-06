@@ -10,6 +10,7 @@ const {
   deleteFileIfExists,
   findStoredFile,
 } = require('./dataUriStorage');
+const { isCloudinaryConfigured, uploadDataUri } = require('./cloudinary');
 
 const REQUESTS_ROOT = path.join(__dirname, '../../uploads/partner-requests');
 const PARTNER_LOGOS_ROOT = path.join(__dirname, '../../uploads/partner-logos');
@@ -67,8 +68,22 @@ const persistPartnerRequestMediaOnDocument = async (doc) => {
   const id = String(doc._id);
 
   if (isImageDataUri(doc.image)) {
-    doc.coverFileExt = await writeCover(id, doc.image);
-    doc.image = '';
+    let done = false;
+    if (isCloudinaryConfigured()) {
+      const uploaded = await uploadDataUri(doc.image, {
+        folder: `fevents/partner-requests/${id}`,
+        publicId: 'cover',
+      });
+      if (uploaded?.url) {
+        doc.coverFileExt = '';
+        doc.image = uploaded.url;
+        done = true;
+      }
+    }
+    if (!done) {
+      doc.coverFileExt = await writeCover(id, doc.image);
+      doc.image = '';
+    }
   } else if (isHttpUrl(doc.image)) {
     doc.coverFileExt = '';
   }
@@ -85,8 +100,22 @@ const persistPartnerRequestMediaOnDocument = async (doc) => {
       const att = doc.attachments[i];
       const url = String(att?.url || '').trim();
       if (isDataUri(url)) {
-        const ext = await writeAttachment(id, i, url, att.mimeType, att.name);
-        doc.attachments[i] = { ...att, url: '', storedExt: ext };
+        let stored = false;
+        if (isCloudinaryConfigured()) {
+          const uploaded = await uploadDataUri(url, {
+            folder: `fevents/partner-requests/${id}/attachments`,
+            publicId: String(i),
+            resourceType: 'auto',
+          }).catch(() => null);
+          if (uploaded?.url) {
+            doc.attachments[i] = { ...att, url: uploaded.url, storedExt: '' };
+            stored = true;
+          }
+        }
+        if (!stored) {
+          const ext = await writeAttachment(id, i, url, att.mimeType, att.name);
+          doc.attachments[i] = { ...att, url: '', storedExt: ext };
+        }
       } else if (!url) {
         doc.attachments[i] = { ...att, storedExt: att.storedExt || '' };
       } else {
@@ -100,8 +129,22 @@ const persistPartnerRequestMediaOnDocument = async (doc) => {
   for (let i = 0; i < speakers.length; i += 1) {
     const avatar = speakers[i]?.avatar || '';
     if (isImageDataUri(avatar)) {
-      speakerAvatarExts[i] = await writeSpeakerAvatar(id, i, avatar);
-      speakers[i] = { ...speakers[i], avatar: '' };
+      let stored = false;
+      if (isCloudinaryConfigured()) {
+        const uploaded = await uploadDataUri(avatar, {
+          folder: `fevents/partner-requests/${id}/speakers`,
+          publicId: String(i),
+        }).catch(() => null);
+        if (uploaded?.url) {
+          speakerAvatarExts[i] = '';
+          speakers[i] = { ...speakers[i], avatar: uploaded.url };
+          stored = true;
+        }
+      }
+      if (!stored) {
+        speakerAvatarExts[i] = await writeSpeakerAvatar(id, i, avatar);
+        speakers[i] = { ...speakers[i], avatar: '' };
+      }
     } else if (isHttpUrl(avatar)) {
       speakerAvatarExts[i] = '';
     }
@@ -117,8 +160,22 @@ const persistPartnerLogoOnDocument = async (doc) => {
   const id = String(doc._id);
   const logo = String(doc.logo || '').trim();
   if (isImageDataUri(logo)) {
-    doc.logoFileExt = await writePartnerLogo(id, logo);
-    doc.logo = '';
+    let stored = false;
+    if (isCloudinaryConfigured()) {
+      const uploaded = await uploadDataUri(logo, {
+        folder: 'fevents/partner-logos',
+        publicId: id,
+      }).catch(() => null);
+      if (uploaded?.url) {
+        doc.logoFileExt = '';
+        doc.logo = uploaded.url;
+        stored = true;
+      }
+    }
+    if (!stored) {
+      doc.logoFileExt = await writePartnerLogo(id, logo);
+      doc.logo = '';
+    }
   } else if (isHttpUrl(logo)) {
     if (doc.logoFileExt) {
       const existing = findStoredFile(PARTNER_LOGOS_ROOT, id, doc.logoFileExt);
@@ -169,9 +226,10 @@ const sanitizePartnerRequestForApi = (doc) => {
     };
   });
 
+  const remoteCover = isHttpUrl(doc?.image) ? doc.image : '';
   return {
-    image: '',
-    coverUrl: hasCover && id ? buildPartnerRequestCoverUrl(id) : '',
+    image: remoteCover,
+    coverUrl: remoteCover || (hasCover && id ? buildPartnerRequestCoverUrl(id) : ''),
     hasCover,
     attachments,
     speakers,

@@ -9,6 +9,7 @@ const {
   deleteFileIfExists,
   findStoredFile,
 } = require('./dataUriStorage');
+const { isCloudinaryConfigured, uploadDataUri } = require('./cloudinary');
 
 const AVATARS_ROOT = path.join(__dirname, '../../uploads/user-avatars');
 
@@ -51,6 +52,16 @@ const persistUserAvatarPayload = async (userId, picture) => {
     return { picture: src, avatar: src, avatarFileExt: '' };
   }
   if (isImageDataUri(src)) {
+    if (isCloudinaryConfigured()) {
+      const uploaded = await uploadDataUri(src, {
+        folder: 'fevents/user-avatars',
+        publicId: String(userId),
+      });
+      if (uploaded?.url) {
+        deleteUserAvatarFile(userId);
+        return { picture: uploaded.url, avatar: uploaded.url, avatarFileExt: '' };
+      }
+    }
     const ext = await writeUserAvatarFromDataUri(userId, src);
     return { picture: '', avatar: '', avatarFileExt: ext };
   }
