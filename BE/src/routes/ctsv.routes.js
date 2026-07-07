@@ -294,7 +294,7 @@ router.get('/events', async (req, res) => {
     const filter = buildEventFilter(req.query);
     const forApproval = req.query.forApproval === '1' || req.query.forApproval === 'true';
     let queryBuilder = Event.find(filter).select(
-      '-thumbnail -image -description -learningOutcomes -agenda -eventPlanFile'
+      '-description -learningOutcomes -agenda -eventPlanFile'
     );
 
     if (req.query.sort === 'newest') {
@@ -340,7 +340,7 @@ router.get('/events', async (req, res) => {
 router.get('/events/calendar', async (req, res) => {
   try {
     const events = await Event.find({})
-      .select('-thumbnail -image -description -learningOutcomes -agenda -eventPlanFile')
+      .select('-description -learningOutcomes -agenda -eventPlanFile')
       .sort({ startDate: 1 })
       .limit(500)
       .lean();
@@ -441,7 +441,7 @@ router.get('/events/approved', async (req, res) => {
 
     const [events, total] = await Promise.all([
       Event.find(filter)
-        .select('-thumbnail -image -description -learningOutcomes -agenda -eventPlanFile')
+        .select('-description -learningOutcomes -agenda -eventPlanFile')
         .sort({ updatedAt: -1, startDate: -1 })
         .skip(skip)
         .limit(lim)
@@ -534,7 +534,7 @@ router.get('/events/icpdp-managed', requireIcpdpOrCtsv, async (req, res) => {
 
     const [events, total] = await Promise.all([
       Event.find(filter)
-        .select('-thumbnail -image -description -learningOutcomes -agenda -eventPlanFile')
+        .select('-description -learningOutcomes -agenda -eventPlanFile')
         .populate('proposalId', 'clubName submittedByEmail')
         .populate('clubId', 'name')
         .sort({ updatedAt: -1, startDate: -1 })
