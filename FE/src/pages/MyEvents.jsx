@@ -99,7 +99,12 @@ const MyEvents = ({ showToast }) => {
           </div>
         ) : events.length === 0 ? (
           <div className="student-empty-state">
-            <span>📭</span>
+            <span className="student-empty-state__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+              </svg>
+            </span>
             <h3>Chưa có sự kiện nào</h3>
             <p>Hãy khám phá và đăng ký các sự kiện thú vị tại campus.</p>
           </div>
