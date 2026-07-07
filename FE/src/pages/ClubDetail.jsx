@@ -8,7 +8,20 @@ import useUserProfile from '../hooks/useUserProfile';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 import { getUserRole, isAdminRole } from '../utils/auth';
 import { mapApiClubToDetail } from '../data/clubDetailData';
+import { resolveEventDisplayImage } from '../utils/eventDisplay';
 import '../styles/admin-public-pages.css';
+
+const mapClubEventToCard = (ev) => ({
+  id: String(ev._id || ev.id || ''),
+  title: ev.title,
+  date: ev.date ? `${ev.date}${ev.time ? ` • ${ev.time}` : ''}` : 'Sắp công bố',
+  location: ev.location || 'Đang cập nhật',
+  description: ev.description || '',
+  image: resolveEventDisplayImage(ev),
+  isHot: (ev.statusKey || ev.status) === 'live',
+  primaryLabel: 'Xem chi tiết',
+  variant: 'outline',
+});
 
 const RocketIcon = () => (
   <svg viewBox="0 0 24 24" width="28" height="28" fill="#f26f21" aria-hidden="true">
@@ -32,6 +45,7 @@ const ClubDetail = ({ showToast }) => {
   const navigate = useNavigate();
   const [headerSearch, setHeaderSearch] = useState('');
   const [club, setClub] = useState(null);
+  const [clubEvents, setClubEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
   const { isLoggedIn, userProfile } = useUserProfile();
@@ -55,6 +69,28 @@ const ClubDetail = ({ showToast }) => {
       })
       .finally(() => setLoading(false));
   }, [clubId, isLoggedIn]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API_BASE}/api/events?club=${encodeURIComponent(clubId)}&limit=6`, {
+      headers: getAuthHeaders(false),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data.events) ? data.events : [];
+        const upcoming = list.filter(
+          (ev) => (ev.statusKey || ev.status) !== 'ended' && ev.eventState !== 'expired'
+        );
+        setClubEvents(upcoming.map(mapClubEventToCard));
+      })
+      .catch(() => {
+        if (!cancelled) setClubEvents([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [clubId]);
 
   if (loading) {
     return (
@@ -118,11 +154,9 @@ const ClubDetail = ({ showToast }) => {
   };
 
   const handleEventAction = (event) => {
-    if (isAdminViewer && event.id) {
+    if (event.id) {
       navigate(`/events/${event.id}`);
-      return;
     }
-    showToast?.(`${event.primaryLabel}: ${event.title}`, 'success');
   };
 
   const pageBody = (
@@ -215,64 +249,79 @@ const ClubDetail = ({ showToast }) => {
               </div>
             </section>
 
-            <section className="club-detail-page__section">
-              <h2>Ban chủ nhiệm</h2>
-              <div className="club-detail-page__board">
-                {club.board.map((member) => (
-                  <article key={member.name} className="club-detail-page__board-card">
-                    <div className="club-detail-page__board-avatar">
-                      <img src={member.avatar} alt={member.name} loading="lazy" />
-                    </div>
-                    <strong className="club-detail-page__board-name">{member.name}</strong>
-                    <span className="club-detail-page__board-role">{member.role}</span>
-                  </article>
-                ))}
-              </div>
-            </section>
+            {club.board.length > 0 && (
+              <section className="club-detail-page__section">
+                <h2>Ban chủ nhiệm</h2>
+                <div className="club-detail-page__board">
+                  {club.board.map((member) => (
+                    <article key={member.name} className="club-detail-page__board-card">
+                      <div className="club-detail-page__board-avatar">
+                        {member.avatar ? (
+                          <img src={member.avatar} alt={member.name} loading="lazy" />
+                        ) : (
+                          <span className="club-detail-page__board-initial">
+                            {member.name.trim().charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <strong className="club-detail-page__board-name">{member.name}</strong>
+                      <span className="club-detail-page__board-role">{member.role}</span>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="club-detail-page__section">
               <h2>Sự kiện sắp tới</h2>
-              <div className="club-detail-page__events">
-                {club.upcomingEvents.map((event) => (
-                  <ClubUpcomingEventCard
-                    key={event.id}
-                    event={event}
-                    onAction={handleEventAction}
-                  />
-                ))}
-              </div>
+              {clubEvents.length > 0 ? (
+                <div className="club-detail-page__events">
+                  {clubEvents.map((event) => (
+                    <ClubUpcomingEventCard
+                      key={event.id}
+                      event={event}
+                      onAction={handleEventAction}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="club-detail-page__events-empty">
+                  Câu lạc bộ chưa có sự kiện nào sắp diễn ra.
+                </p>
+              )}
             </section>
           </div>
 
           <aside className="club-detail-page__sidebar">
             <div className="club-detail-page__stats-card">
               <div>
-                <strong>{club.memberCount}+</strong>
-                <span>Thành viên</span>
+                <strong>{club.followerCount}</strong>
+                <span>Người theo dõi</span>
               </div>
-              <div>
-                <strong>{club.eventsHeld}</strong>
-                <span>Sự kiện đã tổ chức</span>
-              </div>
-              <div>
-                <strong>{club.founded}</strong>
-                <span>Thành lập</span>
-              </div>
+              {club.founded && (
+                <div>
+                  <strong>{club.founded}</strong>
+                  <span>Thành lập</span>
+                </div>
+              )}
             </div>
 
-            <div className="club-detail-page__links-card">
-              <h3>Liên kết</h3>
-              {club.links.map((link) => (
-                <button
-                  key={link.type}
-                  type="button"
-                  className="club-detail-page__link-btn"
-                  onClick={() => showToast?.(`${link.label} (đang phát triển)`, 'info')}
-                >
-                  {link.label}
-                </button>
-              ))}
-            </div>
+            {club.links.length > 0 && (
+              <div className="club-detail-page__links-card">
+                <h3>Liên kết</h3>
+                {club.links.map((link) => (
+                  <a
+                    key={link.type}
+                    href={link.url}
+                    className="club-detail-page__link-btn"
+                    target={link.type === 'email' ? undefined : '_blank'}
+                    rel="noopener noreferrer"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            )}
           </aside>
         </div>
       </main>

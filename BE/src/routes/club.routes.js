@@ -166,13 +166,13 @@ router.patch(
 router.post(
   '/:id/follow',
   authMiddleware,
-  authorize('student', 'staff', 'club_manager'),
+  authorize('student', 'staff', 'club_manager', 'guest', 'partner'),
   asyncHandler(clubController.followClub)
 );
 router.delete(
   '/:id/follow',
   authMiddleware,
-  authorize('student', 'staff', 'club_manager'),
+  authorize('student', 'staff', 'club_manager', 'guest', 'partner'),
   asyncHandler(clubController.unfollowClub)
 );
 

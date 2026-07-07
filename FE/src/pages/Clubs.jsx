@@ -142,7 +142,7 @@ const Clubs = ({ showToast }) => {
                 </svg>
               </div>
               <div>
-                <strong>50+</strong>
+                <strong>{(totalClubs || 0) > 0 ? `${totalClubs}+` : '—'}</strong>
                 <span>Câu lạc bộ đang hoạt động</span>
               </div>
             </div>
@@ -248,17 +248,6 @@ const Clubs = ({ showToast }) => {
         </section>
       </main>
 
-      <button
-        type="button"
-        className="clubs-page__fab"
-        aria-label="Bạn cần giúp gì?"
-        onClick={() => navigate('/support')}
-      >
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-          <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6z" />
-        </svg>
-        Bạn cần giúp gì?
-      </button>
     </div>
     </PublicAdminShell>
   );

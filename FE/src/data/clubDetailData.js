@@ -97,12 +97,47 @@ export const FU_DEVER_DETAIL = {
   ],
 };
 
+const cleanText = (value) => String(value || '').trim();
+
+const buildClubLinks = (club) => {
+  const links = [];
+  const website = cleanText(club.website);
+  const facebook = cleanText(club.facebook);
+  const email = cleanText(club.email);
+
+  if (website) {
+    links.push({
+      type: 'website',
+      label: 'Website',
+      url: /^https?:\/\//i.test(website) ? website : `https://${website}`,
+    });
+  }
+  if (facebook) {
+    links.push({
+      type: 'facebook',
+      label: 'Facebook',
+      url: /^https?:\/\//i.test(facebook) ? facebook : `https://${facebook}`,
+    });
+  }
+  if (email) {
+    links.push({ type: 'email', label: 'Email', url: `mailto:${email}` });
+  }
+  return links;
+};
+
+const buildClubBoard = (club) => {
+  const president = cleanText(club.president);
+  if (!president) return [];
+  return [{ name: president, role: 'Chủ nhiệm', avatar: '' }];
+};
+
 /** Tạo trang chi tiết từ dữ liệu API hoặc card danh sách */
 export const mapApiClubToDetail = (club) => buildClubDetailFromList({
   id: club.slug,
   _id: club._id,
   name: club.name,
   category: club.category,
+  activityField: club.activityField,
   logoText: club.logoText,
   logoColor: club.logoColor,
   logoImage: club.logoImage,
@@ -110,81 +145,55 @@ export const mapApiClubToDetail = (club) => buildClubDetailFromList({
   memberCount: club.memberCount,
   followerCount: club.followerCount,
   description: club.description,
-  featuredEvent: club.featuredEvent,
+  slogan: club.slogan,
   isFollowing: club.isFollowing,
   membershipStatus: club.membershipStatus || null,
-  eventsHeld: club.eventsHeld,
   founded: club.founded,
   organization: club.organization,
+  president: club.president,
+  website: club.website,
+  facebook: club.facebook,
+  email: club.email,
 });
 
 /** Tạo trang chi tiết tối thiểu từ card danh sách CLB */
-export const buildClubDetailFromList = (club) => ({
-  id: club.id || club.slug,
-  _id: club._id,
-  isFollowing: club.isFollowing === true,
-  membershipStatus: club.membershipStatus || null,
-  name: club.name.startsWith('Câu lạc bộ') ? club.name : `Câu lạc bộ ${club.name}`,
-  category: club.category,
-  logoText: club.logoText,
-  logoColor: club.logoColor,
-  bannerImage: club.coverImage,
-  logoImage: club.logoImage || null,
-  organization: club.organization || 'FPT University',
-  memberCount: club.memberCount,
-  eventsHeld: club.eventsHeld ?? Math.max(12, Math.round((club.memberCount || 0) / 4)),
-  founded: club.founded || 'Tháng 09, 2018',
-  about: [
-    club.description,
-    `${club.name} là một trong những câu lạc bộ năng động tại trường, thường xuyên tổ chức workshop, sự kiện giao lưu và hoạt động ngoại khóa dành cho sinh viên.`,
-  ],
-  highlights: [
-    {
-      icon: 'rocket',
-      title: 'Hoạt động sôi nổi',
-      description: 'Tổ chức sự kiện, workshop và các hoạt động thực hành định kỳ.',
-    },
-    {
-      icon: 'community',
-      title: 'Cộng đồng gắn kết',
-      description: 'Môi trường học hỏi, chia sẻ và phát triển cùng bạn bè cùng chí hướng.',
-    },
-  ],
-  board: [
-    {
-      name: 'Nguyễn Văn A',
-      role: 'CHỦ NHIỆM',
-      avatar:
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
-    },
-    {
-      name: 'Trần Thị B',
-      role: 'PHÓ CHỦ NHIỆM',
-      avatar:
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80',
-    },
-  ],
-  links: [
-    { type: 'website', label: 'Website' },
-    { type: 'share', label: 'Chia sẻ' },
-    { type: 'email', label: 'Email' },
-  ],
-  upcomingEvents: club.featuredEvent
-    ? [
-        {
-          id: `${club.id}-featured`,
-          title: club.featuredEvent.title,
-          date: `${club.featuredEvent.day}/${club.featuredEvent.monthShort.replace('TH', '')}/2024`,
-          location: 'Sảnh tòa Gamma',
-          description: club.description,
-          image: club.coverImage,
-          isHot: true,
-          primaryLabel: 'Đăng ký tham gia',
-          variant: 'primary',
-        },
-      ]
-    : [],
-});
+export const buildClubDetailFromList = (club) => {
+  const about = [cleanText(club.slogan), cleanText(club.description)].filter(Boolean);
+
+  return {
+    id: club.id || club.slug,
+    _id: club._id,
+    isFollowing: club.isFollowing === true,
+    membershipStatus: club.membershipStatus || null,
+    name: club.name.startsWith('Câu lạc bộ') ? club.name : `Câu lạc bộ ${club.name}`,
+    category: club.category,
+    activityField: cleanText(club.activityField),
+    logoText: club.logoText,
+    logoColor: club.logoColor,
+    bannerImage: club.coverImage,
+    logoImage: club.logoImage || null,
+    organization: club.organization || 'FPT University',
+    slogan: cleanText(club.slogan),
+    memberCount: club.memberCount ?? 0,
+    followerCount: club.followerCount ?? 0,
+    founded: cleanText(club.founded),
+    about,
+    highlights: [
+      {
+        icon: 'rocket',
+        title: 'Hoạt động sôi nổi',
+        description: 'Tổ chức sự kiện, workshop và các hoạt động thực hành định kỳ.',
+      },
+      {
+        icon: 'community',
+        title: 'Cộng đồng gắn kết',
+        description: 'Môi trường học hỏi, chia sẻ và phát triển cùng bạn bè cùng chí hướng.',
+      },
+    ],
+    board: buildClubBoard(club),
+    links: buildClubLinks(club),
+  };
+};
 
 export const getClubDetailById = (clubId, listClubs = []) => {
   if (clubId === 'fu-dever' || clubId === 'fu-devies') {
