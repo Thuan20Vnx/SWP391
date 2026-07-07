@@ -9,6 +9,29 @@ const tabs = [
   { key: 'cancelled', label: 'Đã hủy' },
 ];
 
+const STATUS_TONE = {
+  registered: 'success',
+  attended: 'success',
+  cancelled: 'danger',
+};
+
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80';
+
+const CalendarIcon = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <path d="M16 2v4M8 2v4M3 10h18" />
+  </svg>
+);
+
+const LocationIcon = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11z" />
+    <circle cx="12" cy="10" r="2.5" />
+  </svg>
+);
+
 const MyEvents = ({ showToast }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -109,36 +132,58 @@ const MyEvents = ({ showToast }) => {
             <p>Hãy khám phá và đăng ký các sự kiện thú vị tại campus.</p>
           </div>
         ) : (
-          events.map((event) => (
-            <article key={event.id} className="student-event-card">
-              <img src={event.image} alt="" />
-              <div className="student-event-card__body">
-                <span className="student-badge student-badge--primary">{event.status}</span>
-                <h3>{event.title}</h3>
-                <p>{event.date}</p>
-                <p>{event.location}</p>
-                <div className="student-event-card__actions">
-                  <button type="button" className="student-outline-btn">Xem vé QR</button>
-                  {activeTab === 'upcoming' && (
-                    <button
-                      type="button"
-                      className="student-link-btn"
-                      onClick={() => handleCancel(event)}
-                    >
-                      Hủy đăng ký
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="student-link-btn"
-                    onClick={() => navigate('/events')}
-                  >
-                    Chi tiết
-                  </button>
+          events.map((event) => {
+            const isCancelled = event.registrationStatus === 'cancelled';
+            const tone = STATUS_TONE[event.registrationStatus] || 'primary';
+            const goDetail = () => navigate(`/events/${event.eventId}`);
+            return (
+              <article
+                key={event.id}
+                className={`student-event-card${isCancelled ? ' student-event-card--cancelled' : ''}`}
+              >
+                <div className="student-event-card__media">
+                  <img
+                    src={event.image || FALLBACK_IMAGE}
+                    alt=""
+                    loading="lazy"
+                    onError={(e) => {
+                      if (e.currentTarget.src !== FALLBACK_IMAGE) e.currentTarget.src = FALLBACK_IMAGE;
+                    }}
+                  />
                 </div>
-              </div>
-            </article>
-          ))
+                <div className="student-event-card__body">
+                  <span className={`student-badge student-badge--${tone}`}>{event.status}</span>
+                  <h3>{event.title}</h3>
+                  <div className="student-event-card__meta">
+                    <span className="student-event-card__meta-item">
+                      <CalendarIcon />
+                      {event.date || 'Chưa có lịch'}
+                    </span>
+                    {event.location && (
+                      <span className="student-event-card__meta-item">
+                        <LocationIcon />
+                        {event.location}
+                      </span>
+                    )}
+                  </div>
+                  <div className="student-event-card__actions">
+                    <button type="button" className="student-outline-btn" onClick={goDetail}>
+                      Chi tiết
+                    </button>
+                    {activeTab === 'upcoming' && (
+                      <button
+                        type="button"
+                        className="student-link-btn student-link-btn--danger"
+                        onClick={() => handleCancel(event)}
+                      >
+                        Hủy đăng ký
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </article>
+            );
+          })
         )}
       </div>
     </StudentDashboardLayout>

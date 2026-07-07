@@ -443,12 +443,16 @@ const ClubProfileUpdate = ({ showToast }) => {
     setSaving(true);
     try {
       const payload = await prepareProfileForSave(form);
+      // Ảnh bìa/logo được lưu riêng qua saveProfilePatch khi upload. Lưu hồ sơ
+      // (text) KHÔNG gửi coverImage/logoImage để tránh ghi đè giá trị hiển thị
+      // (URL endpoint) lên field gốc trong DB, làm mất ảnh.
+      const { coverImage, logoImage, ...textPayload } = payload;
       const res = await fetch(`${API_BASE}/api/clubs/manage/profile`, {
         method: 'PATCH',
         headers: getAuthHeaders(true),
         body: JSON.stringify({
-          ...payload,
-          logoText: payload.shortName,
+          ...textPayload,
+          logoText: textPayload.shortName,
         }),
       });
       const { ok, data } = await parseApiResponse(res);

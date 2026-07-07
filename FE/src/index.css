@@ -7156,38 +7156,84 @@ a.club-tag {
 
 .student-event-card {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: 240px 1fr;
+  gap: 22px;
+  padding: 16px;
   border: 1px solid #e8edf3;
   border-radius: 16px;
   background: #fff;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 
-.student-event-card img {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
+.student-event-card:hover {
+  border-color: rgba(242, 111, 33, 0.35);
+  box-shadow: 0 12px 28px -18px rgba(15, 23, 42, 0.4);
+  transform: translateY(-2px);
+}
+
+.student-event-card__media {
+  position: relative;
+  overflow: hidden;
   border-radius: 12px;
+  background: #f1f5f9;
+}
+
+.student-event-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 150px;
+  object-fit: cover;
+}
+
+.student-event-card--cancelled .student-event-card__media img {
+  filter: grayscale(0.65) opacity(0.8);
+}
+
+.student-event-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 6px 6px 6px 0;
 }
 
 .student-event-card__body h3 {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-weight: 700;
   color: #1e293b;
-  margin: 8px 0;
+  margin: 10px 0 12px;
+  line-height: 1.35;
 }
 
-.student-event-card__body p {
+.student-event-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-bottom: auto;
+}
+
+.student-event-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   color: #64748b;
   font-size: 0.88rem;
-  margin-bottom: 4px;
+}
+
+.student-event-card__meta-item svg {
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 .student-event-card__actions {
   display: flex;
-  gap: 12px;
-  margin-top: 14px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.student-link-btn--danger {
+  color: #dc2626;
 }
 
 .student-empty-state {
@@ -7200,6 +7246,11 @@ a.club-tag {
 
 .student-empty-state span {
   font-size: 2rem;
+}
+
+.student-empty-state__icon {
+  display: inline-flex;
+  color: #cbd5e1;
 }
 
 .student-empty-state h3 {
@@ -9329,7 +9380,7 @@ a.event-discovery-card__btn {
 
 .clubs-page__grid {
   display: grid;
-  gap: 32px;
+  gap: 26px;
 }
 
 .clubs-page__grid--grid {
@@ -9429,11 +9480,22 @@ a.event-discovery-card__btn {
 /* Club card */
 .club-discovery-card {
   background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border: 1px solid #e8edf3;
+  border-radius: 18px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.club-discovery-card--grid:hover {
+  border-color: rgba(242, 111, 33, 0.3);
+  box-shadow: 0 18px 38px -20px rgba(37, 25, 19, 0.35);
+  transform: translateY(-4px);
+}
+
+.club-discovery-card--grid:hover .club-discovery-card__cover {
+  transform: scale(1.06);
 }
 
 .club-discovery-card--list {
@@ -9507,7 +9569,7 @@ a.event-discovery-card__btn {
 
 .club-discovery-card__cover-wrap {
   position: relative;
-  height: 192px;
+  height: 180px;
   overflow: hidden;
 }
 
@@ -9515,39 +9577,48 @@ a.event-discovery-card__btn {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.club-discovery-card__cover-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0) 45%, rgba(15, 23, 42, 0.42) 100%);
+  pointer-events: none;
 }
 
 .club-discovery-card__category {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 14px;
+  right: 14px;
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 4px 12px;
+  padding: 5px 13px;
   border-radius: 9999px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.35);
+  backdrop-filter: saturate(1.2);
 }
 
 .club-discovery-card__body {
   position: relative;
-  padding: 20px 24px 24px;
+  padding: 18px 22px 22px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 8px;
+  gap: 10px;
 }
 
 .club-discovery-card__logo {
   position: absolute;
-  bottom: 16px;
+  bottom: 14px;
   left: 16px;
   z-index: 2;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
   border: 3px solid #fff;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9565,41 +9636,57 @@ a.event-discovery-card__btn {
 
 .club-discovery-card__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
 .club-discovery-card__name {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.18rem;
+  font-weight: 800;
   color: #251913;
   margin: 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .club-discovery-card__members {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  color: var(--text-nav);
-  font-size: 0.875rem;
-  font-weight: 500;
+  gap: 5px;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
   flex-shrink: 0;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.club-discovery-card__members svg {
+  color: #ef4444;
 }
 
 .club-discovery-card__desc {
   font-size: 0.875rem;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--text-nav);
-  margin: 0 0 8px;
+  margin: 0 0 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .club-discovery-card__featured {
-  background: #ffffff;
-  border: 1px solid #f3f4f6;
-  border-radius: 12px;
-  padding: 17px;
-  margin-top: auto;
+  background: #fff8f3;
+  border: 1px solid #fde3cf;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 4px;
 }
 
 .club-discovery-card__featured-label {
@@ -9619,10 +9706,10 @@ a.event-discovery-card__btn {
 }
 
 .club-discovery-card__date-box {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #fcd9bf;
+  border-radius: 10px;
   background: #fff;
   display: flex;
   flex-direction: column;
@@ -9653,22 +9740,24 @@ a.event-discovery-card__btn {
 }
 
 .club-discovery-card__cta {
-  margin-top: 16px;
+  margin-top: auto;
   width: 100%;
-  background: #f26f21;
+  background: linear-gradient(180deg, #f9822f 0%, #f26f21 100%);
   color: #fff;
   border: none;
   border-radius: 12px;
-  padding: 10px 16px;
-  font-size: 0.875rem;
+  padding: 11px 16px;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s, transform 0.15s;
+  box-shadow: 0 10px 20px -10px rgba(242, 111, 33, 0.8);
+  transition: filter 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .club-discovery-card__cta:hover {
-  background: #e0651c;
+  filter: brightness(1.05);
   transform: translateY(-1px);
+  box-shadow: 0 14px 24px -10px rgba(242, 111, 33, 0.85);
 }
 
 .club-discovery-card__cta--manage {
@@ -9758,30 +9847,6 @@ a.event-discovery-card__btn {
   margin: 0;
 }
 
-.clubs-page__fab {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #f26f21;
-  color: #fff;
-  border: none;
-  border-radius: 9999px;
-  padding: 14px 20px;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 10px 25px rgba(242, 111, 33, 0.35);
-  z-index: 50;
-  transition: transform 0.15s;
-}
-
-.clubs-page__fab:hover {
-  transform: scale(1.03);
-}
-
 @media (max-width: 1100px) {
   .clubs-page__grid--grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -9853,13 +9918,6 @@ a.event-discovery-card__btn {
   .clubs-page__community-head {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .clubs-page__fab {
-    bottom: 20px;
-    right: 20px;
-    padding: 12px 16px;
-    font-size: 0.8125rem;
   }
 }
 
@@ -10143,6 +10201,18 @@ a.event-discovery-card__btn {
   display: block;
 }
 
+.club-detail-page__board-initial {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fb923c 0%, #f26f21 100%);
+  color: #fff;
+  font-size: 2.4rem;
+  font-weight: 800;
+}
+
 .club-detail-page__board-name {
   display: block;
   font-size: 1rem;
@@ -10223,6 +10293,7 @@ a.event-discovery-card__btn {
   font-size: 0.9375rem;
   font-weight: 600;
   color: #584238;
+  text-decoration: none;
 }
 
 .club-detail-page__links-card .club-detail-page__link-btn:last-child {

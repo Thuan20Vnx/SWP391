@@ -3,7 +3,11 @@ const Club = require('../models/Club');
 const ClubFollow = require('../models/ClubFollow');
 const ClubMembership = require('../models/ClubMembership');
 const AppError = require('../utils/AppError');
-const { sanitizeClubMediaForApi, resolveClubMediaResponse } = require('../utils/clubMediaStorage');
+const {
+  sanitizeClubMediaForApi,
+  resolveClubMediaResponse,
+  persistClubMediaOnDocument,
+} = require('../utils/clubMediaStorage');
 
 const resolveClub = async (idOrSlug) => {
   if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
@@ -309,6 +313,32 @@ const getMyClubs = async (userId, tab = 'following') => {
 
 const MANAGED_CLUB_SLUG = 'fu-dever';
 
+const MEDIA_PROFILE_FIELDS = new Set(['coverImage', 'logoImage']);
+
+/**
+ * Chỉ nhận coverImage/logoImage khi là ảnh thật mới (data URI) hoặc URL ngoài (http).
+ * Giá trị hiển thị nội bộ (vd "/api/clubs/:id/cover") hay rỗng do client gửi lại
+ * KHÔNG được phép ghi đè, tránh làm mất ảnh đang lưu.
+ */
+const isAssignableMediaValue = (value) => {
+  const v = String(value || '').trim();
+  return /^data:image\//i.test(v) || /^https?:\/\//i.test(v);
+};
+
+/** Gán các field hồ sơ; trả về true nếu có ảnh mới (data/http) được gán. */
+const applyProfileFields = (club, payload) => {
+  let mediaChanged = false;
+  ALLOWED_PROFILE_FIELDS.forEach((field) => {
+    if (payload[field] === undefined) return;
+    if (MEDIA_PROFILE_FIELDS.has(field)) {
+      if (!isAssignableMediaValue(payload[field])) return;
+      mediaChanged = true;
+    }
+    club[field] = payload[field];
+  });
+  return mediaChanged;
+};
+
 const ALLOWED_PROFILE_FIELDS = [
   'name',
   'shortName',
@@ -463,11 +493,7 @@ const updateManagedClubProfile = async (userId, payload = {}, activeClubId = nul
     throw new AppError('Bạn không có quyền cập nhật hồ sơ CLB này.', 403);
   }
 
-  ALLOWED_PROFILE_FIELDS.forEach((field) => {
-    if (payload[field] !== undefined) {
-      club[field] = payload[field];
-    }
-  });
+  const mediaChanged = applyProfileFields(club, payload);
 
   if (payload.coverPositionY !== undefined && payload.coverPositionY !== null) {
     const y = Number(payload.coverPositionY);
@@ -480,11 +506,12 @@ const updateManagedClubProfile = async (userId, payload = {}, activeClubId = nul
     club.managedBy = userId;
   }
 
+  if (mediaChanged) await persistClubMediaOnDocument(club);
   await club.save();
 
   return {
     message: 'Đã cập nhật hồ sơ câu lạc bộ thành công!',
-    club,
+    club: attachUserClubFlags(club, new Set(), new Map()),
   };
 };
 
@@ -499,17 +526,14 @@ const updateClubByIcpdp = async (clubId, payload = {}) => {
     throw new AppError('Không tìm thấy câu lạc bộ!', 404);
   }
 
-  ALLOWED_PROFILE_FIELDS.forEach((field) => {
-    if (payload[field] !== undefined) {
-      club[field] = payload[field];
-    }
-  });
+  const mediaChanged = applyProfileFields(club, payload);
 
   if (payload.coverPositionY !== undefined && payload.coverPositionY !== null) {
     const y = Number(payload.coverPositionY);
     club.coverPositionY = Number.isFinite(y) ? Math.min(100, Math.max(0, Math.round(y * 10) / 10)) : 50;
   }
 
+  if (mediaChanged) await persistClubMediaOnDocument(club);
   await club.save();
 
   return { message: 'Đã cập nhật câu lạc bộ thành công!', club };

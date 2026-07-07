@@ -1,11 +1,16 @@
 import React from 'react';
-import { formatMemberCount, getCategoryColor } from '../data/clubDiscoveryData';
+import { getCategoryColor } from '../data/clubDiscoveryData';
 
-const MembersIcon = () => (
-  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
-    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+const HeartIcon = () => (
+  <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
   </svg>
 );
+
+const formatFollowerCount = (count) => {
+  const n = Number(count) || 0;
+  return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(n);
+};
 
 const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'Khám phá ngay' }) => {
   const categoryColor = getCategoryColor(club.category);
@@ -15,15 +20,13 @@ const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'K
     <article className={`club-discovery-card club-discovery-card--${layout}`}>
       <div className="club-discovery-card__cover-wrap">
         <img src={club.coverImage} alt={club.name} className="club-discovery-card__cover" />
+        <span className="club-discovery-card__cover-shade" aria-hidden="true" />
         <span
           className="club-discovery-card__category"
           style={{ backgroundColor: categoryColor }}
         >
           {club.category}
         </span>
-      </div>
-
-      <div className="club-discovery-card__body">
         <div
           className="club-discovery-card__logo"
           style={club.logoImage ? undefined : { backgroundColor: club.logoColor }}
@@ -35,12 +38,14 @@ const ClubDiscoveryCard = ({ club, onExplore, layout = 'grid', exploreLabel = 'K
             <span>{club.logoText}</span>
           )}
         </div>
+      </div>
 
+      <div className="club-discovery-card__body">
         <div className="club-discovery-card__header">
           <h3 className="club-discovery-card__name">{club.name}</h3>
-          <div className="club-discovery-card__members">
-            <MembersIcon />
-            <span>{formatMemberCount(club.memberCount)}</span>
+          <div className="club-discovery-card__members" title="Người theo dõi / yêu thích">
+            <HeartIcon />
+            <span>{formatFollowerCount(club.followerCount)} theo dõi</span>
           </div>
         </div>
 
