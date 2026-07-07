@@ -129,10 +129,16 @@ const ChatbotFloating = ({
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
+    let prevWidth = window.innerWidth;
     const onResize = () => {
       const mobile = isMobileViewport();
       setIsMobile(mobile);
-      if (mobile) {
+      // Chỉ thu gọn chat khi thực sự chuyển từ desktop -> mobile (đổi chiều rộng).
+      // Bàn phím ảo trên điện thoại chỉ đổi CHIỀU CAO viewport -> không được đóng chat,
+      // nếu không input vừa focus sẽ bị mất focus và bàn phím tự đóng lại.
+      const widthChanged = window.innerWidth !== prevWidth;
+      prevWidth = window.innerWidth;
+      if (mobile && widthChanged) {
         setCollapsed(true);
         setChatbotOpen(false);
       }

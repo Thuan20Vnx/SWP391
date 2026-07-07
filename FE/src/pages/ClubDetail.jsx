@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import PublicAdminShell from '../layouts/PublicAdminShell';
 import ClubUpcomingEventCard from '../components/ClubUpcomingEventCard';
@@ -94,24 +93,26 @@ const ClubDetail = ({ showToast }) => {
 
   if (loading) {
     return (
-      <div className="club-detail-page home-layout">
-        <SiteHeader activeNav="clubs" searchPlaceholder="Tìm kiếm câu lạc bộ..." />
-        <main className="club-detail-page__not-found">
-          <p>Đang tải...</p>
-        </main>
-      </div>
+      <PublicAdminShell activeNav="clubs" searchPlaceholder="Tìm kiếm câu lạc bộ...">
+        <div className="club-detail-page home-layout">
+          <main className="club-detail-page__not-found">
+            <p>Đang tải...</p>
+          </main>
+        </div>
+      </PublicAdminShell>
     );
   }
 
   if (!club) {
     return (
-      <div className="club-detail-page home-layout">
-        <SiteHeader activeNav="clubs" searchPlaceholder="Tìm kiếm câu lạc bộ..." />
-        <main className="club-detail-page__not-found">
-          <h1>Không tìm thấy câu lạc bộ</h1>
-          <Link to="/clubs" className="club-detail-page__back-link">← Quay lại danh sách CLB</Link>
-        </main>
-      </div>
+      <PublicAdminShell activeNav="clubs" searchPlaceholder="Tìm kiếm câu lạc bộ...">
+        <div className="club-detail-page home-layout">
+          <main className="club-detail-page__not-found">
+            <h1>Không tìm thấy câu lạc bộ</h1>
+            <Link to="/clubs" className="club-detail-page__back-link">← Quay lại danh sách CLB</Link>
+          </main>
+        </div>
+      </PublicAdminShell>
     );
   }
 
@@ -349,15 +350,16 @@ const ClubDetail = ({ showToast }) => {
   }
 
   return (
-    <div className="club-detail-page home-layout">
-      <SiteHeader
-        activeNav="clubs"
-        searchPlaceholder="Tìm kiếm câu lạc bộ..."
-        searchValue={headerSearch}
-        onSearchChange={setHeaderSearch}
-      />
-      {pageBody}
-    </div>
+    <PublicAdminShell
+      activeNav="clubs"
+      searchPlaceholder="Tìm kiếm câu lạc bộ..."
+      searchValue={headerSearch}
+      onSearchChange={setHeaderSearch}
+    >
+      <div className="club-detail-page home-layout">
+        {pageBody}
+      </div>
+    </PublicAdminShell>
   );
 };
 
