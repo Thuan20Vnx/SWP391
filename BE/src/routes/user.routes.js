@@ -12,7 +12,7 @@ router.get('/avatar/:userId', asyncHandler(userController.getAvatar));
 router.use(authMiddleware);
 
 router.get('/profile', asyncHandler(userController.getProfile));
-router.get('/my-events', authorize('student', 'staff', 'partner'), asyncHandler(userController.getMyEvents));
+router.get('/my-events', authorize('student', 'staff', 'partner', 'guest', 'club_manager'), asyncHandler(userController.getMyEvents));
 router.get('/my-clubs', authorize('student', 'staff', 'club_manager'), asyncHandler(userController.getMyClubs));
 router.get('/event-reviews', authorize('student', 'staff', 'partner'), asyncHandler(userController.getEventReviews));
 router.put('/profile/avatar', asyncHandler(userController.updateAvatar));
