@@ -31,7 +31,10 @@ const AuthedImage = ({ src, alt = '', fallback = '', className = '', loading = '
         setResolvedSrc(objectUrl);
       })
       .catch(() => {
-        if (!cancelled) setResolvedSrc(fallback);
+        // Authed-fetch có thể fail khi endpoint 302 redirect sang CDN (Cloudinary):
+        // đọc blob cross-origin bị CORS chặn. Thẻ <img> render thẳng thì không bị
+        // chặn — để <img> tự tải src (follow redirect), lỗi thật mới về fallback.
+        if (!cancelled) setResolvedSrc(src);
       });
     return () => {
       cancelled = true;
