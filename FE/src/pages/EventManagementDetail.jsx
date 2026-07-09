@@ -30,7 +30,7 @@ import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { getUserRole, isIcpdpRole } from '../utils/auth';
 import { getCtsvEventAccess } from '../utils/ctsvEventAccess';
 import { canCtsvEditSchoolEvent, canEditSchoolEventForPortal, isSchoolEventPendingAdmin, SCHOOL_EVENT_STATUS_LABELS } from '../constants/eventWorkflow';
-import { isModerationPending, MODERATION_ACTION_LABELS } from '../constants/eventModeration';
+import { isModerationPending, MODERATION_ACTION_LABELS, MODERATION_REJECTED_TITLES } from '../constants/eventModeration';
 import { canClubEditEventProposal, canClubDeleteEventProposal, isClubEventPendingApproval, canClubImmediateDelete, canClubDirectEdit, canClubRequestDeleteModeration, needsClubEditModerationRequest, hasClubModerationPending, wasClubEventAdminApproved, isIcpdpModerationPending, isAdminModerationPending } from '../constants/clubEventModeration';
 import ClubEventModerationDialog from '../components/events/ClubEventModerationDialog';
 import ClubModerationBannerContent from '../components/events/ClubModerationBannerContent';
@@ -486,8 +486,10 @@ const EventManagementDetail = ({
   const isQrEligible = ['approved', 'live', 'ended'].includes(
     eventData?.statusKey || eventData?.status
   );
+  // Yêu cầu điều phối (sửa/xóa/hủy/hoãn/ẩn) trên sự kiện ĐÃ duyệt bị từ chối — khác
+  // với đơn tổ chức lần đầu bị từ chối (isRejected, status='rejected'). Áp dụng cho
+  // cả sự kiện cấp trường lẫn sự kiện CLB để không hiển thị mơ hồ "Đã duyệt".
   const showModerationRejectedBanner =
-    eventData?.source === 'school' &&
     !isRejected &&
     !isModerationPending(eventData) &&
     Boolean(rejectionReason) &&
@@ -1063,10 +1065,17 @@ const EventManagementDetail = ({
           )}
           {showModerationRejectedBanner && (
             <div className="ev-moderation-banner ev-moderation-banner--orange" role="status">
-              <strong>Admin đã từ chối yêu cầu sửa</strong>
+              <strong>
+                {MODERATION_REJECTED_TITLES[eventData?.lastModerationAction] || 'Yêu cầu điều phối bị từ chối'}
+              </strong>
               <p>
-                Sự kiện vẫn ở trạng thái <strong>{SCHOOL_EVENT_STATUS_LABELS[eventData?.statusKey] || 'hiện tại'}</strong>.
-                Lý do: {rejectionReason}
+                {eventData?.lastModerationRejectedBy === 'icpdp'
+                  ? 'IC-PDP đã từ chối yêu cầu này. '
+                  : eventData?.lastModerationRejectedBy === 'admin'
+                    ? 'Admin đã từ chối yêu cầu này. '
+                    : ''}
+                Sự kiện vẫn ở trạng thái <strong>{statusMeta.label}</strong> (không có gì thay đổi so với trước khi gửi yêu cầu).
+                {' '}Lý do từ chối: {rejectionReason}
               </p>
             </div>
           )}

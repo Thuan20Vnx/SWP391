@@ -150,6 +150,16 @@ const eventSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: null
     },
+    /** Hành động của yêu cầu điều phối gần nhất bị từ chối (cancel/hide/postpone/edit/delete) — để hiển thị rõ trên UI. */
+    lastModerationAction: {
+      type: String,
+      default: ''
+    },
+    /** Cấp đã từ chối yêu cầu điều phối gần nhất: 'icpdp' | 'admin' */
+    lastModerationRejectedBy: {
+      type: String,
+      default: ''
+    },
     isHidden: {
       type: Boolean,
       default: false

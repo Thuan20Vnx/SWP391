@@ -27,6 +27,15 @@ export const MODERATION_ACTION_LABELS = {
   delete: 'Xóa sự kiện',
 };
 
+/** Tiêu đề banner khi một yêu cầu điều phối (không phải đơn tổ chức lần đầu) bị từ chối. */
+export const MODERATION_REJECTED_TITLES = {
+  cancel: 'Yêu cầu hủy sự kiện bị từ chối',
+  hide: 'Yêu cầu ẩn sự kiện bị từ chối',
+  postpone: 'Yêu cầu hoãn sự kiện bị từ chối',
+  edit: 'Yêu cầu chỉnh sửa bị từ chối',
+  delete: 'Yêu cầu xóa sự kiện bị từ chối',
+};
+
 export const CTSV_MODERATABLE_STATUSES = ['pending_admin', 'approved', 'live', 'ended', 'rejected'];
 
 export const canCtsvRequestModeration = (event) =>
