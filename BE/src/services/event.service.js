@@ -20,6 +20,7 @@ const { applyEventTextSearch, normalizeSearchTerm, escapeRegex } = require('../u
 const { getCachedApprovedEvents, setCachedApprovedEvents } = require('../utils/eventCache');
 const { createAndBroadcast } = require('./notification.service');
 const { canClubImmediateDelete } = require('../constants/eventModeration');
+const { buildEditPayload, applyEditPayload } = require('../utils/eventEditPayload');
 const { assertEventScheduleDates } = require('../utils/dateValidation');
 const {
   eventHasAnyCover,
@@ -531,7 +532,7 @@ const deleteMyEvent = async (eventId, user) => {
   return { message: 'Đã xóa sự kiện thành công!' };
 };
 
-const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'approved', 'revision', 'pending_ctsv', 'pending_icpdp'];
+const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'approved', 'revision', 'pending_ctsv', 'pending_icpdp', 'live', 'ended'];
 
 const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   const event = await Event.findById(eventId);
@@ -542,16 +543,13 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   if (!EDITABLE_CLUB_STATUSES.includes(event.status)) {
     throw new AppError('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 400);
   }
-  if (
+  // Sự kiện CLB đã được duyệt: CLB điền form sửa và gửi luôn — nội dung giữ chờ
+  // (pending edit), chỉ áp dụng khi Admin duyệt (IC-PDP → Admin). Không cần xin
+  // phép chỉnh sửa trước.
+  const isClubModerationEdit =
     isClubManagedEvent(event) &&
     ['approved', 'live', 'ended'].includes(event.status) &&
-    !event.clubEditUnlocked
-  ) {
-    throw new AppError(
-      'Sự kiện đã được duyệt. Vui lòng gửi yêu cầu chỉnh sửa và chờ IC-PDP/Admin phê duyệt trước.',
-      400
-    );
-  }
+    !event.clubEditUnlocked;
 
   if (user.role === 'club_manager' && !event.clubId) {
     const managedClub = await resolveManagedClub(user._id, activeClubId);
@@ -610,36 +608,66 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     throw new AppError('Vui lòng tải file hoặc dán link bảng kế hoạch sự kiện!', 400);
   }
 
-  event.title = title;
-  event.description = description || 'Chưa có mô tả';
-  if (thumbnail) event.thumbnail = thumbnail;
-  if (bannerFileName !== undefined) event.bannerFileName = bannerFileName?.trim() || '';
-  if (eventPlanFile) {
-    event.eventPlanFile = eventPlanFile;
-    event.eventPlanFileName = eventPlanFileName?.trim() || event.eventPlanFileName || '';
-    event.eventPlanFileMime = eventPlanFileMime?.trim() || event.eventPlanFileMime || '';
+  const editFields = {
+    title,
+    description,
+    thumbnail: thumbnail || undefined,
+    bannerFileName,
+    eventPlanFile: eventPlanFile || undefined,
+    eventPlanFileName,
+    eventPlanFileMime,
+    eventPlanLink: eventPlanLink !== undefined ? incomingPlanLink : undefined,
+    category: normalizeEventCategory(category || event.category),
+    registrationStartDate,
+    registrationEndDate,
+    startDate,
+    endDate,
+    location,
+    capacity: resolvedCapacity,
+    totalTickets: resolvedTotalTickets,
+    ticketPrice: resolvedTicketPrice,
+    ticketTypes: normalizedTickets,
+    speaker,
+    agenda,
+    learningOutcomes:
+      learningOutcomes !== undefined ? normalizeLearningOutcomes(learningOutcomes) : undefined,
+    timelineSource: timelineSource || undefined,
+  };
+
+  // CLB gửi form sửa cho sự kiện đã duyệt → giữ chờ, chỉ áp dụng khi Admin duyệt.
+  if (isClubModerationEdit) {
+    event.pendingEdit = {
+      payload: buildEditPayload(editFields),
+      requestedByEmail: user.email || '',
+      requestedAt: new Date(),
+    };
+    event.statusBeforeModeration = event.status;
+    event.status = 'pending_icpdp_edit';
+    event.moderationReason = String(body.moderationReason || '').trim();
+    event.moderationReasonCategory = '';
+    event.moderationRequestedByEmail = user.email || '';
+    event.moderationRequestedAt = new Date();
+    event.clubEditUnlocked = false;
+    event.icpdpNote = '';
+    event.rejectionReason = '';
+    await event.save();
+
+    createAndBroadcast({
+      recipientRoles: ['icpdp'],
+      title: 'CLB gửi yêu cầu chỉnh sửa sự kiện',
+      body: `CLB vừa gửi nội dung chỉnh sửa cho sự kiện "${event.title}".`,
+      type: 'event_change_submit',
+      refId: String(event._id),
+      refType: 'Event',
+    }).catch(() => {});
+
+    return {
+      message: 'Đã gửi yêu cầu chỉnh sửa — chờ IC-PDP duyệt, sau đó Admin phê duyệt.',
+      event,
+    };
   }
-  if (eventPlanLink !== undefined) {
-    event.eventPlanLink = incomingPlanLink;
-  }
-  event.category = normalizeEventCategory(category || event.category);
-  event.registrationStartDate = registrationStartDate || null;
-  event.registrationEndDate = registrationEndDate || null;
-  event.startDate = startDate;
-  event.endDate = endDate;
-  event.location = location;
-  event.capacity = resolvedCapacity;
-  event.totalTickets = resolvedTotalTickets;
-  event.ticketPrice = resolvedTicketPrice;
-  if (normalizedTickets.length) event.ticketTypes = normalizedTickets;
-  if (speaker !== undefined) event.speaker = speaker;
-  if (agenda !== undefined) event.agenda = agenda;
-  if (learningOutcomes !== undefined) {
-    event.learningOutcomes = normalizeLearningOutcomes(learningOutcomes);
-  }
-  if (timelineSource) {
-    event.timelineSource = timelineSource;
-  }
+
+  applyEditPayload(event, editFields);
 
   const previousStatus = event.status;
   const wasUnlockedEdit = Boolean(event.clubEditUnlocked);

@@ -77,6 +77,7 @@ const formatEvent = (doc, opts = {}) => {
     icpdpNote: o.icpdpNote || '',
     ctsvEditUnlocked: o.ctsvEditUnlocked === true,
     clubEditUnlocked: o.clubEditUnlocked === true,
+    pendingEdit: o.pendingEdit || null,
     isHidden: o.isHidden === true,
     speaker: speakerMeta.speaker,
     speakerRole: speakerMeta.speakerRole,
