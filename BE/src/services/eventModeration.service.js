@@ -80,6 +80,8 @@ const requestModeration = async (eventId, { action, reason, isWeatherPostpone },
   event.postponeIsWeather = false;
   event.ctsvEditUnlocked = false;
   event.rejectionReason = '';
+  event.lastModerationAction = '';
+  event.lastModerationRejectedBy = '';
 
   if (action === 'postpone') {
     event.postponeReason = trimmedReason;
@@ -164,6 +166,9 @@ const requestClubModeration = async (
     }
     captureStatusBeforeModeration(event);
     event.pendingEdit = null;
+    event.rejectionReason = '';
+    event.lastModerationAction = '';
+    event.lastModerationRejectedBy = '';
     event.status = MODERATION_STATUS_BY_ACTION.hide;
     event.moderationReason = fullReason;
     event.moderationReasonCategory = reasonCategory;
@@ -192,6 +197,9 @@ const requestClubModeration = async (
     if (action !== 'edit') {
       event.pendingEdit = null;
     }
+    event.rejectionReason = '';
+    event.lastModerationAction = '';
+    event.lastModerationRejectedBy = '';
     event.status = ICPDP_MODERATION_STATUS_BY_ACTION[action];
     event.moderationReason = fullReason;
     event.moderationReasonCategory = reasonCategory;
@@ -228,6 +236,9 @@ const requestClubModeration = async (
 
   captureStatusBeforeModeration(event);
   event.pendingEdit = null;
+  event.rejectionReason = '';
+  event.lastModerationAction = '';
+  event.lastModerationRejectedBy = '';
   event.status = ICPDP_MODERATION_STATUS_BY_ACTION[action];
   event.moderationReason = fullReason;
   event.moderationReasonCategory = reasonCategory;
@@ -296,6 +307,9 @@ const rejectIcpdpModeration = async (eventId, reason, authEmail) => {
   event.moderationReasonCategory = '';
   event.moderationRequestedByEmail = '';
   event.moderationRequestedAt = null;
+  // Lưu lại yêu cầu nào vừa bị từ chối để UI hiển thị rõ (không chỉ là "Đã duyệt").
+  event.lastModerationAction = action || '';
+  event.lastModerationRejectedBy = 'icpdp';
 
   if (action === 'postpone') {
     event.postponeReason = '';
@@ -360,6 +374,8 @@ const approveModeration = async (eventId, authEmail) => {
   event.moderationRequestedByEmail = '';
   event.moderationRequestedAt = null;
   event.rejectionReason = '';
+  event.lastModerationAction = '';
+  event.lastModerationRejectedBy = '';
   event.adminApprovedByEmail = authEmail || event.adminApprovedByEmail;
   event.adminApprovedAt = new Date();
 
@@ -390,6 +406,9 @@ const rejectModeration = async (eventId, reason, authEmail) => {
   event.moderationRequestedAt = null;
   event.rejectionReason = trimmedReason;
   event.adminApprovedByEmail = authEmail || '';
+  // Lưu lại yêu cầu nào vừa bị từ chối để UI hiển thị rõ (không chỉ là "Đã duyệt").
+  event.lastModerationAction = action || '';
+  event.lastModerationRejectedBy = 'admin';
 
   if (action === 'postpone') {
     event.postponeReason = '';
@@ -430,6 +449,8 @@ const cancelClubModeration = async (eventId, userId) => {
   event.moderationRequestedAt = null;
   event.icpdpNote = '';
   event.rejectionReason = '';
+  event.lastModerationAction = '';
+  event.lastModerationRejectedBy = '';
 
   if (action === 'postpone') {
     event.postponeReason = '';

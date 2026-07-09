@@ -650,6 +650,8 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     event.clubEditUnlocked = false;
     event.icpdpNote = '';
     event.rejectionReason = '';
+    event.lastModerationAction = '';
+    event.lastModerationRejectedBy = '';
     await event.save();
 
     createAndBroadcast({

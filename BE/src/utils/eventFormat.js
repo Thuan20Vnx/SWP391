@@ -78,6 +78,8 @@ const formatEvent = (doc, opts = {}) => {
     ctsvEditUnlocked: o.ctsvEditUnlocked === true,
     clubEditUnlocked: o.clubEditUnlocked === true,
     pendingEdit: o.pendingEdit || null,
+    lastModerationAction: o.lastModerationAction || '',
+    lastModerationRejectedBy: o.lastModerationRejectedBy || '',
     isHidden: o.isHidden === true,
     speaker: speakerMeta.speaker,
     speakerRole: speakerMeta.speakerRole,
