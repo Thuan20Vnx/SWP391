@@ -532,7 +532,7 @@ const deleteMyEvent = async (eventId, user) => {
   return { message: 'Đã xóa sự kiện thành công!' };
 };
 
-const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'approved', 'revision', 'pending_ctsv', 'pending_icpdp', 'live', 'ended'];
+const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'approved', 'revision', 'pending_ctsv', 'pending_icpdp', 'pending_admin', 'live', 'ended'];
 
 const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   const event = await Event.findById(eventId);
@@ -673,7 +673,9 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   const wasUnlockedEdit = Boolean(event.clubEditUnlocked);
   const shouldResubmitClubProposal =
     isClubManagedEvent(event) &&
-    (['rejected', 'revision'].includes(previousStatus) ||
+    // Sửa khi đang chờ Admin duyệt lần đầu -> nội dung ICPDP đã duyệt không còn khớp,
+    // phải gửi lại IC-PDP xét duyệt lại trước khi tới Admin.
+    (['rejected', 'revision', 'pending_admin'].includes(previousStatus) ||
       (['approved', 'live', 'ended'].includes(previousStatus) && wasUnlockedEdit));
   if (shouldResubmitClubProposal) {
     event.status = 'pending_icpdp';

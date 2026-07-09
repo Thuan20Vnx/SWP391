@@ -30,7 +30,7 @@ const ICPDP_MODERATION_STATUS_BY_ACTION = {
 const CLUB_MODERATION_ACTIONS = ['cancel', 'postpone', 'delete', 'edit'];
 
 /** CLB hủy đề xuất ngay khi chưa được duyệt */
-const CLUB_PENDING_CANCEL_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'revision'];
+const CLUB_PENDING_CANCEL_STATUSES = ['pending', 'pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'];
 
 const CLUB_MODERATABLE_STATUSES = ['approved', 'live', 'ended'];
 
