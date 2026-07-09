@@ -294,7 +294,8 @@ const ClubManagement = () => {
       const data = await res.json();
       if (data.success) {
         showToast(
-          editingEventId ? 'Đã cập nhật và gửi lại duyệt!' : 'Đề xuất sự kiện đã được gửi duyệt!',
+          data.message ||
+            (editingEventId ? 'Đã cập nhật và gửi lại duyệt!' : 'Đề xuất sự kiện đã được gửi duyệt!'),
           'success'
         );
         const returnTo = editReturnTo;

@@ -7,7 +7,7 @@ const optionalAuth = require('../middleware/optionalAuth');
 const optionalAuthorize = require('../middleware/optionalAuthorize');
 const eventController = require('../controllers/event.controller');
 const eventChangeRequestController = require('../controllers/eventChangeRequest.controller');
-const { requestClubModeration } = require('../services/eventModeration.service');
+const { requestClubModeration, cancelClubModeration } = require('../services/eventModeration.service');
 const { formatEvent } = require('../utils/eventFormat');
 const AppError = require('../utils/AppError');
 const registrationController = require('../controllers/registration.controller');
@@ -55,6 +55,29 @@ router.patch(
         refId: String(req.params.id),
         refType: 'Event'
       }).catch(() => {});
+      res.json({
+        success: true,
+        event: formatEvent(result.event),
+        message: result.message
+      });
+    } catch (error) {
+      if (error instanceof AppError || error.statusCode) {
+        res.status(error.statusCode || 400).json({ success: false, message: error.message });
+        return;
+      }
+      throw error;
+    }
+  })
+);
+
+// PATCH /api/events/:id/moderation/cancel — CLB tự hủy yêu cầu điều phối đang chờ
+router.patch(
+  '/:id/moderation/cancel',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(async (req, res) => {
+    try {
+      const result = await cancelClubModeration(req.params.id, req.user?._id);
       res.json({
         success: true,
         event: formatEvent(result.event),

@@ -1,6 +1,7 @@
 const Event = require('../models/Event');
 const EventProposal = require('../models/EventProposal');
 const AppError = require('../utils/AppError');
+const { applyEditPayload } = require('../utils/eventEditPayload');
 const {
   MODERATION_ACTIONS,
   CLUB_MODERATION_ACTIONS,
@@ -16,6 +17,19 @@ const {
   buildClubModerationReason,
   canClubRequestDeleteModeration,
 } = require('../constants/eventModeration');
+
+/**
+ * Ghi nhận trạng thái gốc trước khi vào hàng đợi điều phối. Nếu event đã đang ở
+ * một trạng thái chờ (vd. yêu cầu sửa) và một yêu cầu khác (vd. xóa) đè lên, GIỮ
+ * NGUYÊN statusBeforeModeration cũ — nó đã đúng là trạng thái gốc thật sự, ghi đè
+ * lại sẽ làm mất trạng thái gốc (vd. 'approved' bị ghi thành 'pending_icpdp_edit').
+ */
+const captureStatusBeforeModeration = (event) => {
+  if (isModerationPendingStatus(event.status) || isIcpdpModerationPendingStatus(event.status)) {
+    return;
+  }
+  event.statusBeforeModeration = event.status;
+};
 
 const applyWeatherPostpone = (event, reason, authEmail) => {
   event.eventState = 'postponed';
@@ -57,7 +71,7 @@ const requestModeration = async (eventId, { action, reason, isWeatherPostpone },
     };
   }
 
-  event.statusBeforeModeration = event.status;
+  captureStatusBeforeModeration(event);
   event.status = MODERATION_STATUS_BY_ACTION[action];
   event.moderationReason = trimmedReason;
   event.moderationReasonCategory = '';
@@ -66,6 +80,8 @@ const requestModeration = async (eventId, { action, reason, isWeatherPostpone },
   event.postponeIsWeather = false;
   event.ctsvEditUnlocked = false;
   event.rejectionReason = '';
+  event.lastModerationAction = '';
+  event.lastModerationRejectedBy = '';
 
   if (action === 'postpone') {
     event.postponeReason = trimmedReason;
@@ -148,7 +164,11 @@ const requestClubModeration = async (
     if (!canClubRequestModeration(event)) {
       throw new AppError('Sự kiện không thể gửi yêu cầu ẩn ở trạng thái hiện tại.', 400);
     }
-    event.statusBeforeModeration = event.status;
+    captureStatusBeforeModeration(event);
+    event.pendingEdit = null;
+    event.rejectionReason = '';
+    event.lastModerationAction = '';
+    event.lastModerationRejectedBy = '';
     event.status = MODERATION_STATUS_BY_ACTION.hide;
     event.moderationReason = fullReason;
     event.moderationReasonCategory = reasonCategory;
@@ -172,7 +192,14 @@ const requestClubModeration = async (
         400
       );
     }
-    event.statusBeforeModeration = event.status;
+    captureStatusBeforeModeration(event);
+    // Yêu cầu xóa đè lên yêu cầu sửa trước đó (nếu có) -> bỏ qua nội dung sửa đang chờ.
+    if (action !== 'edit') {
+      event.pendingEdit = null;
+    }
+    event.rejectionReason = '';
+    event.lastModerationAction = '';
+    event.lastModerationRejectedBy = '';
     event.status = ICPDP_MODERATION_STATUS_BY_ACTION[action];
     event.moderationReason = fullReason;
     event.moderationReasonCategory = reasonCategory;
@@ -207,7 +234,11 @@ const requestClubModeration = async (
     };
   }
 
-  event.statusBeforeModeration = event.status;
+  captureStatusBeforeModeration(event);
+  event.pendingEdit = null;
+  event.rejectionReason = '';
+  event.lastModerationAction = '';
+  event.lastModerationRejectedBy = '';
   event.status = ICPDP_MODERATION_STATUS_BY_ACTION[action];
   event.moderationReason = fullReason;
   event.moderationReasonCategory = reasonCategory;
@@ -276,6 +307,9 @@ const rejectIcpdpModeration = async (eventId, reason, authEmail) => {
   event.moderationReasonCategory = '';
   event.moderationRequestedByEmail = '';
   event.moderationRequestedAt = null;
+  // Lưu lại yêu cầu nào vừa bị từ chối để UI hiển thị rõ (không chỉ là "Đã duyệt").
+  event.lastModerationAction = action || '';
+  event.lastModerationRejectedBy = 'icpdp';
 
   if (action === 'postpone') {
     event.postponeReason = '';
@@ -284,6 +318,7 @@ const rejectIcpdpModeration = async (eventId, reason, authEmail) => {
   if (action === 'edit') {
     event.clubEditUnlocked = false;
     event.ctsvEditUnlocked = false;
+    event.pendingEdit = null;
   }
 
   await event.save();
@@ -314,7 +349,12 @@ const approveModeration = async (eventId, authEmail) => {
     event.postponeIsWeather = false;
   } else if (action === 'edit') {
     event.status = previous;
-    if (event.source === 'club') {
+    if (event.source === 'club' && event.pendingEdit?.payload) {
+      // CLB đã gửi form sửa trước — áp dụng nội dung giữ chờ khi Admin duyệt.
+      applyEditPayload(event, event.pendingEdit.payload);
+      event.pendingEdit = null;
+      event.clubEditUnlocked = false;
+    } else if (event.source === 'club') {
       event.clubEditUnlocked = true;
     } else {
       event.ctsvEditUnlocked = true;
@@ -334,6 +374,8 @@ const approveModeration = async (eventId, authEmail) => {
   event.moderationRequestedByEmail = '';
   event.moderationRequestedAt = null;
   event.rejectionReason = '';
+  event.lastModerationAction = '';
+  event.lastModerationRejectedBy = '';
   event.adminApprovedByEmail = authEmail || event.adminApprovedByEmail;
   event.adminApprovedAt = new Date();
 
@@ -364,6 +406,9 @@ const rejectModeration = async (eventId, reason, authEmail) => {
   event.moderationRequestedAt = null;
   event.rejectionReason = trimmedReason;
   event.adminApprovedByEmail = authEmail || '';
+  // Lưu lại yêu cầu nào vừa bị từ chối để UI hiển thị rõ (không chỉ là "Đã duyệt").
+  event.lastModerationAction = action || '';
+  event.lastModerationRejectedBy = 'admin';
 
   if (action === 'postpone') {
     event.postponeReason = '';
@@ -372,15 +417,62 @@ const rejectModeration = async (eventId, reason, authEmail) => {
   if (action === 'edit') {
     event.clubEditUnlocked = false;
     event.ctsvEditUnlocked = false;
+    event.pendingEdit = null;
   }
 
   await event.save();
   return { message: 'Đã từ chối yêu cầu điều phối.', event };
 };
 
+/** CLB tự hủy yêu cầu điều phối (sửa/xóa/hủy/hoãn/ẩn) đang chờ IC-PDP hoặc Admin. */
+const cancelClubModeration = async (eventId, userId) => {
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  if (event.source !== 'club') {
+    throw new AppError('Chỉ áp dụng cho sự kiện CLB.', 400);
+  }
+  if (userId && String(event.createdBy) !== String(userId)) {
+    throw new AppError('Bạn không có quyền quản lý sự kiện này.', 403);
+  }
+  if (!isModerationPendingStatus(event.status) && !isIcpdpModerationPendingStatus(event.status)) {
+    throw new AppError('Sự kiện không có yêu cầu điều phối đang chờ.', 400);
+  }
+
+  const action = getModerationActionFromStatus(event.status);
+  event.status = event.statusBeforeModeration || 'approved';
+  event.statusBeforeModeration = '';
+  event.moderationReason = '';
+  event.moderationReasonCategory = '';
+  event.moderationRequestedByEmail = '';
+  event.moderationRequestedAt = null;
+  event.icpdpNote = '';
+  event.rejectionReason = '';
+  event.lastModerationAction = '';
+  event.lastModerationRejectedBy = '';
+
+  if (action === 'postpone') {
+    event.postponeReason = '';
+    event.eventState = 'active';
+  }
+  if (action === 'edit') {
+    event.clubEditUnlocked = false;
+    event.pendingEdit = null;
+  }
+
+  await event.save();
+  const actionLabels = { cancel: 'hủy', hide: 'ẩn', postpone: 'hoãn', edit: 'chỉnh sửa', delete: 'xóa' };
+  return {
+    message: `Đã hủy yêu cầu ${actionLabels[action] || 'điều phối'}.`,
+    event,
+  };
+};
+
 module.exports = {
   requestModeration,
   requestClubModeration,
+  cancelClubModeration,
   approveIcpdpModeration,
   rejectIcpdpModeration,
   approveModeration,

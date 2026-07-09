@@ -66,3 +66,15 @@ export const requestClubEventModeration = async (eventId, body) => {
   }
   return data;
 };
+
+export const cancelClubEventModeration = async (eventId) => {
+  const res = await fetch(`${API_BASE}/api/events/${eventId}/moderation/cancel`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+  });
+  const { ok, data } = await parseApiResponse(res);
+  if (!ok || !data.success) {
+    throw new Error(data.message || 'Hủy yêu cầu thất bại.');
+  }
+  return data;
+};

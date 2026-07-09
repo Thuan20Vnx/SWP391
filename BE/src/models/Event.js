@@ -142,6 +142,24 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    /**
+     * CLB gửi form chỉnh sửa trước — nội dung sửa giữ chờ ở đây, chỉ áp dụng khi Admin duyệt.
+     * { payload, requestedByEmail, requestedAt }
+     */
+    pendingEdit: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
+    /** Hành động của yêu cầu điều phối gần nhất bị từ chối (cancel/hide/postpone/edit/delete) — để hiển thị rõ trên UI. */
+    lastModerationAction: {
+      type: String,
+      default: ''
+    },
+    /** Cấp đã từ chối yêu cầu điều phối gần nhất: 'icpdp' | 'admin' */
+    lastModerationRejectedBy: {
+      type: String,
+      default: ''
+    },
     isHidden: {
       type: Boolean,
       default: false
