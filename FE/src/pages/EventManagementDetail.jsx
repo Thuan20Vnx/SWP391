@@ -42,6 +42,49 @@ import EventQrGeneratePanel from '../components/events/EventQrGeneratePanel';
 import CtsvEventActionsPanel from '../components/events/CtsvEventActionsPanel';
 import AdminSchoolEventActionsPanel from '../components/events/AdminSchoolEventActionsPanel';
 
+/** So sánh nội dung CLB đề xuất sửa (pendingEdit) với giá trị hiện tại của sự kiện. */
+const PENDING_EDIT_FIELDS = [
+  { key: 'title', label: 'Tên sự kiện' },
+  { key: 'location', label: 'Địa điểm' },
+  { key: 'startDate', label: 'Bắt đầu', isDate: true },
+  { key: 'endDate', label: 'Kết thúc', isDate: true },
+  { key: 'registrationStartDate', label: 'Mở đăng ký', isDate: true },
+  { key: 'registrationEndDate', label: 'Đóng đăng ký', isDate: true },
+  { key: 'capacity', label: 'Số lượng' },
+  { key: 'category', label: 'Phân loại' },
+  { key: 'description', label: 'Mô tả' },
+];
+
+const formatPendingEditValue = (value, isDate) => {
+  if (value === undefined || value === null || value === '') return '(trống)';
+  if (isDate) {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString('vi-VN');
+  }
+  const str = String(value);
+  return str.length > 80 ? `${str.slice(0, 80)}…` : str;
+};
+
+const getPendingEditChanges = (event) => {
+  const payload = event?.pendingEdit?.payload;
+  if (!payload) return [];
+  const changes = [];
+  PENDING_EDIT_FIELDS.forEach(({ key, label, isDate }) => {
+    if (payload[key] === undefined) return;
+    const next = payload[key];
+    const current = event?.[key];
+    const norm = (v) => (isDate ? new Date(v ?? 0).getTime() : String(v ?? '').trim());
+    if (norm(next) === norm(current)) return;
+    changes.push({
+      key,
+      label,
+      from: formatPendingEditValue(current, isDate),
+      to: formatPendingEditValue(next, isDate),
+    });
+  });
+  return changes;
+};
+
 const PORTAL_CONFIG = {
   club: {
     rootLabel: 'Quản lý CLB',
@@ -496,11 +539,8 @@ const EventManagementDetail = ({
       navigate(config.eventEditPath?.(id) || (isIcpdpSchoolPortal ? `/icpdp/events/${id}/edit` : `/ctsv/events/${id}/edit`));
       return;
     }
-    if (!canClubDirectEdit(eventData) && needsClubEditModerationRequest(eventData)) {
-      setModerationDialog({ open: true, action: 'edit' });
-      return;
-    }
-    if (!canClubDirectEdit(eventData)) {
+    // Sự kiện CLB đã duyệt: mở form sửa trực tiếp; khi gửi sẽ giữ chờ IC-PDP → Admin duyệt.
+    if (!canClubDirectEdit(eventData) && !needsClubEditModerationRequest(eventData)) {
       showToast?.('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 'info');
       return;
     }
@@ -955,6 +995,24 @@ const EventManagementDetail = ({
             <div className="ev-moderation-banner ev-moderation-banner--pending" role="status">
               <strong>IC-PDP đã duyệt — đang chờ Admin</strong>
               <ClubModerationBannerContent event={eventData} icpdpNote={eventData?.icpdpNote} />
+            </div>
+          )}
+          {eventData?.pendingEdit?.payload && (
+            <div className="ev-moderation-banner ev-moderation-banner--info" role="note">
+              <strong>Nội dung CLB đề xuất chỉnh sửa</strong>
+              <ul className="ev-pending-edit-list">
+                {getPendingEditChanges(eventData).map((c) => (
+                  <li key={c.key}>
+                    <span className="ev-pending-edit-field">{c.label}:</span>{' '}
+                    <span className="ev-pending-edit-old">{c.from}</span>
+                    {' → '}
+                    <span className="ev-pending-edit-new">{c.to}</span>
+                  </li>
+                ))}
+                {getPendingEditChanges(eventData).length === 0 && (
+                  <li>Cập nhật nội dung/tài liệu sự kiện.</li>
+                )}
+              </ul>
             </div>
           )}
           {eventData?.clubEditUnlocked && isClubPortal && (

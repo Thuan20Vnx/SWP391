@@ -1,6 +1,7 @@
 const Event = require('../models/Event');
 const EventProposal = require('../models/EventProposal');
 const AppError = require('../utils/AppError');
+const { applyEditPayload } = require('../utils/eventEditPayload');
 const {
   MODERATION_ACTIONS,
   CLUB_MODERATION_ACTIONS,
@@ -284,6 +285,7 @@ const rejectIcpdpModeration = async (eventId, reason, authEmail) => {
   if (action === 'edit') {
     event.clubEditUnlocked = false;
     event.ctsvEditUnlocked = false;
+    event.pendingEdit = null;
   }
 
   await event.save();
@@ -314,7 +316,12 @@ const approveModeration = async (eventId, authEmail) => {
     event.postponeIsWeather = false;
   } else if (action === 'edit') {
     event.status = previous;
-    if (event.source === 'club') {
+    if (event.source === 'club' && event.pendingEdit?.payload) {
+      // CLB đã gửi form sửa trước — áp dụng nội dung giữ chờ khi Admin duyệt.
+      applyEditPayload(event, event.pendingEdit.payload);
+      event.pendingEdit = null;
+      event.clubEditUnlocked = false;
+    } else if (event.source === 'club') {
       event.clubEditUnlocked = true;
     } else {
       event.ctsvEditUnlocked = true;
@@ -372,6 +379,7 @@ const rejectModeration = async (eventId, reason, authEmail) => {
   if (action === 'edit') {
     event.clubEditUnlocked = false;
     event.ctsvEditUnlocked = false;
+    event.pendingEdit = null;
   }
 
   await event.save();

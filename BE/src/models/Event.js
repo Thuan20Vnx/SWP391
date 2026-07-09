@@ -142,6 +142,14 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    /**
+     * CLB gửi form chỉnh sửa trước — nội dung sửa giữ chờ ở đây, chỉ áp dụng khi Admin duyệt.
+     * { payload, requestedByEmail, requestedAt }
+     */
+    pendingEdit: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
     isHidden: {
       type: Boolean,
       default: false

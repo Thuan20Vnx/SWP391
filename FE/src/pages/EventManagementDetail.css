@@ -575,6 +575,27 @@ button.ev-bento-card.ev-bento-card--interactive.ev-bento-card--active {
   line-height: 1.5;
 }
 
+.ev-pending-edit-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.ev-pending-edit-field {
+  font-weight: 600;
+}
+
+.ev-pending-edit-old {
+  color: #b91c1c;
+  text-decoration: line-through;
+}
+
+.ev-pending-edit-new {
+  color: #15803d;
+  font-weight: 600;
+}
+
 .ev-report-stats--pending .ev-report-stat--pending {
   background: #fafbfc;
   border-style: dashed;
