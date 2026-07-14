@@ -11,10 +11,15 @@ const GOOGLE_CLIENT_ID =
 // duyệt (localhost hay IP LAN), cổng 5000, để cả desktop lẫn điện thoại đều chạy được
 // mà không phụ thuộc biến môi trường cố định.
 const resolveBackendOrigin = () => {
+  // Production: BE ở host riêng (vd Render) → dùng VITE_API_BASE. Bắt buộc ưu tiên,
+  // nếu không sẽ ghép nhầm thành <host-FE>:5000 gây redirect_uri_mismatch.
+  const envBase = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '');
+  if (envBase) return envBase;
+  // Dev local/LAN: BE chạy cùng máy, cổng 5000 (theo đúng host trình duyệt đang mở).
   if (typeof window !== 'undefined' && window.location?.hostname) {
     return `${window.location.protocol}//${window.location.hostname}:5000`;
   }
-  return (import.meta.env.VITE_API_BASE || API_BASE || 'http://localhost:5000').replace(/\/$/, '');
+  return (API_BASE || 'http://localhost:5000').replace(/\/$/, '');
 };
 
 export const GOOGLE_REDIRECT_URI = `${resolveBackendOrigin()}/api/auth/google/callback`;

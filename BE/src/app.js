@@ -8,6 +8,10 @@ const { CLIENT_ORIGIN } = require('./config/env');
 
 const app = express();
 
+// Sau reverse proxy (Render/Vercel/Nginx) để req.protocol = 'https' và req.get('host')
+// đúng domain công khai — cần cho OAuth callback khớp redirect_uri đã đăng ký.
+app.set('trust proxy', 1);
+
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) {
