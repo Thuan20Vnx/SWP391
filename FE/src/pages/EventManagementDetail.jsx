@@ -44,7 +44,6 @@ import EventTabsCarousel from '../components/events/EventTabsCarousel';
 import EventOverviewPanel from '../components/events/EventOverviewPanel';
 import EventCancelRequestsPanel from '../components/events/EventCancelRequestsPanel';
 import EventPostponeCancelPanel from '../components/events/EventPostponeCancelPanel';
-import EventAttendanceMatrixPanel from '../components/events/EventAttendanceMatrixPanel';
 import TimelineSourceNotice from '../components/club/TimelineSourceNotice';
 import EventReportPanel from '../components/events/EventReportPanel';
 import EventQrGeneratePanel from '../components/events/EventQrGeneratePanel';
@@ -265,9 +264,9 @@ const EventManagementDetail = ({
   const [adminApproveOpen, setAdminApproveOpen] = useState(false);
   const [proposalReview, setProposalReview] = useState(proposalData || null);
   const [moderationDialog, setModerationDialog] = useState({ open: false, action: 'edit' });
+  const [clubModNote, setClubModNote] = useState('');
+  const [clubModRejectReason, setClubModRejectReason] = useState('');
   const [clubModBusy, setClubModBusy] = useState(false);
-  const [clubModRejectOpen, setClubModRejectOpen] = useState(false);
-  const [clubModApproveOpen, setClubModApproveOpen] = useState(false);
 
   useEffect(() => {
     setProposalReview(proposalData || null);
@@ -450,13 +449,10 @@ const EventManagementDetail = ({
     (isIcpdpSchoolPortal
       ? canEditSchoolEventForPortal(eventData, 'icpdp')
       : canCtsvEditSchoolEvent(eventData));
-  // Khi đã có sinh viên đăng ký thì khóa sửa/xóa — chỉ được hoãn (khớp guard phía BE).
-  const eventHasRegistrations = (eventData?.registeredCount || 0) > 0;
-  const canEditClub =
-    isClubPortal && !eventHasRegistrations && (canClubDirectEdit(eventData) || needsClubEditModerationRequest(eventData));
-  const canDeleteClub = isClubPortal && !eventHasRegistrations && canClubDeleteEventProposal(eventData);
-  const canImmediateDeleteClub = isClubPortal && !eventHasRegistrations && canClubImmediateDelete(eventData);
-  const canRequestDeleteClub = isClubPortal && !eventHasRegistrations && canClubRequestDeleteModeration(eventData);
+  const canEditClub = isClubPortal && (canClubDirectEdit(eventData) || needsClubEditModerationRequest(eventData));
+  const canDeleteClub = isClubPortal && canClubDeleteEventProposal(eventData);
+  const canImmediateDeleteClub = isClubPortal && canClubImmediateDelete(eventData);
+  const canRequestDeleteClub = isClubPortal && canClubRequestDeleteModeration(eventData);
   const clubModerationPending = isClubPortal && hasClubModerationPending(eventData);
   const showClubPreApprovalUi =
     isClubPortal && isClubEventPendingApproval(eventData) && !wasClubEventAdminApproved(eventData);
@@ -473,8 +469,8 @@ const EventManagementDetail = ({
     isSchoolManagePortal && !isAdminEventView && eventData?.source === 'school' && isSchoolEventPendingAdmin(eventData);
   const showAdminApprovalActions =
     isAdminEventView &&
-    (isModerationPending(eventData) ||
-      (eventData?.source === 'school' && isSchoolEventPendingAdmin(eventData)));
+    eventData?.source === 'school' &&
+    (isModerationPending(eventData) || isSchoolEventPendingAdmin(eventData));
   const adminApprovalIsModeration = showAdminApprovalActions && isModerationPending(eventData);
   const adminApprovalIsSubmit = showAdminApprovalActions && isSchoolEventPendingAdmin(eventData);
 
@@ -663,9 +659,9 @@ const EventManagementDetail = ({
     if (!id) return;
     setClubModBusy(true);
     try {
-      const data = await icpdpApproveEventModeration(id, '');
+      const data = await icpdpApproveEventModeration(id, clubModNote.trim());
       setEventData(normalizeManagementEvent(data.event));
-      setClubModApproveOpen(false);
+      setClubModNote('');
       showToast?.(data.message || 'Đã duyệt yêu cầu.', 'success');
     } catch (err) {
       showToast?.(err.message || 'Duyệt thất bại.', 'error');
@@ -674,18 +670,17 @@ const EventManagementDetail = ({
     }
   };
 
-  const handleIcpdpClubModReject = async (reason) => {
-    const trimmed = (reason || '').trim();
-    if (!trimmed) {
+  const handleIcpdpClubModReject = async () => {
+    if (!clubModRejectReason.trim()) {
       showToast?.('Vui lòng nhập lý do từ chối.', 'error');
       return;
     }
     if (!id) return;
     setClubModBusy(true);
     try {
-      const data = await icpdpRejectEventModeration(id, trimmed);
+      const data = await icpdpRejectEventModeration(id, clubModRejectReason.trim());
       setEventData(normalizeManagementEvent(data.event));
-      setClubModRejectOpen(false);
+      setClubModRejectReason('');
       showToast?.(data.message || 'Đã từ chối yêu cầu.', 'info');
     } catch (err) {
       showToast?.(err.message || 'Từ chối thất bại.', 'error');
@@ -793,18 +788,6 @@ const EventManagementDetail = ({
     scrollToTabContent();
   }, [scrollToTabContent]);
 
-  const isMultiDayEvent = useMemo(() => {
-    if (!eventData?.startDate || !eventData?.endDate) return false;
-    const s = new Date(eventData.startDate);
-    const e = new Date(eventData.endDate);
-    if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return false;
-    return (
-      s.getFullYear() !== e.getFullYear() ||
-      s.getMonth() !== e.getMonth() ||
-      s.getDate() !== e.getDate()
-    );
-  }, [eventData?.startDate, eventData?.endDate]);
-
   const managementTabs = useMemo(() => {
     if (showClubPreApprovalUi) {
       return [{ id: 'tong-quan', label: 'Tổng quan sự kiện' }];
@@ -813,9 +796,6 @@ const EventManagementDetail = ({
       { id: 'tong-quan', label: 'Tổng quan sự kiện' },
       { id: 'danh-sach', label: 'Danh sách Sinh viên' },
     ];
-    if (isMultiDayEvent) {
-      items.push({ id: 'diem-danh-ngay', label: 'Điểm danh theo ngày' });
-    }
     if (isSchoolManagePortal) {
       items.push({ id: 'dieu-phoi', label: 'Phê duyệt & Điều phối' });
     }
@@ -829,7 +809,7 @@ const EventManagementDetail = ({
       items.push({ id: 'ma-qr', label: 'Mã QR check-in/out', onClick: openQrTab });
     }
     return items;
-  }, [showClubPreApprovalUi, isSchoolManagePortal, isIcpdpPortal, isIcpdpClubPortal, isAdminEventView, isQrEligible, openQrTab, isMultiDayEvent]);
+  }, [showClubPreApprovalUi, isSchoolManagePortal, isIcpdpPortal, isIcpdpClubPortal, isAdminEventView, isQrEligible, openQrTab]);
 
   const handleIcpdpApprove = async () => {
     if (!proposalId) return;
@@ -1154,12 +1134,26 @@ const EventManagementDetail = ({
                 CLB gửi: {eventData?.moderationReason || '—'}
                 {eventData?.moderationRequestedByEmail && <> · {eventData.moderationRequestedByEmail}</>}
               </p>
+              <textarea
+                className="ev-icpdp-review-note__input"
+                placeholder="Ghi chú IC-PDP (tùy chọn khi duyệt)..."
+                value={clubModNote}
+                onChange={(e) => setClubModNote(e.target.value)}
+                rows={2}
+              />
+              <textarea
+                className="ev-icpdp-review-note__input"
+                placeholder="Lý do từ chối (bắt buộc nếu từ chối)..."
+                value={clubModRejectReason}
+                onChange={(e) => setClubModRejectReason(e.target.value)}
+                rows={2}
+              />
               <div className="ev-moderation-actions">
                 <button
                   type="button"
                   className="ev-btn-outline ev-btn-outline--danger"
                   disabled={clubModBusy}
-                  onClick={() => setClubModRejectOpen(true)}
+                  onClick={handleIcpdpClubModReject}
                 >
                   Từ chối
                 </button>
@@ -1167,7 +1161,7 @@ const EventManagementDetail = ({
                   type="button"
                   className="ev-btn-primary"
                   disabled={clubModBusy}
-                  onClick={() => setClubModApproveOpen(true)}
+                  onClick={handleIcpdpClubModApprove}
                 >
                   Duyệt — chuyển Admin
                 </button>
@@ -1481,10 +1475,6 @@ const EventManagementDetail = ({
             )
           )}
 
-          {activeTab === 'diem-danh-ngay' && (
-            <EventAttendanceMatrixPanel event={eventData} students={students} />
-          )}
-
           {activeTab === 'huy-ve' && <EventCancelRequestsPanel students={students} />}
 
           {activeTab === 'hoan-huy' && isClubPortal && id && (
@@ -1563,25 +1553,6 @@ const EventManagementDetail = ({
           loading={adminActionBusy}
         />
       )}
-
-      <PartnerActionDialog
-        open={clubModRejectOpen}
-        mode="icpdpClubModReject"
-        loading={clubModBusy}
-        onCancel={() => !clubModBusy && setClubModRejectOpen(false)}
-        onConfirm={handleIcpdpClubModReject}
-      />
-
-      <ConfirmDialog
-        open={clubModApproveOpen}
-        title="Xác nhận duyệt — chuyển Admin?"
-        message="Sau khi xác nhận, yêu cầu của CLB sẽ được IC-PDP duyệt sơ bộ và chuyển sang Admin phê duyệt."
-        confirmLabel="Xác nhận duyệt"
-        cancelLabel="Hủy"
-        onConfirm={handleIcpdpClubModApprove}
-        onCancel={() => !clubModBusy && setClubModApproveOpen(false)}
-        loading={clubModBusy}
-      />
 
     </div>,
   );
