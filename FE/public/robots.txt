@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Không cho bot index các khu vực cần đăng nhập / thao tác nội bộ
+Disallow: /admin
+Disallow: /ctsv
+Disallow: /icpdp
+Disallow: /partner
+Disallow: /dashboard
+Disallow: /scan-qr
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /unlock-account
+
+Sitemap: https://fevent.qzz.io/sitemap.xml
