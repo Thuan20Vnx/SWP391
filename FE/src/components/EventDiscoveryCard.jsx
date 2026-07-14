@@ -26,6 +26,7 @@ const EventDiscoveryCard = ({
   viewOnly = false,
   protectedImage = false,
   detailTo = null,
+  statusBadge = null,
 }) => {
   const {
     title,
@@ -102,8 +103,14 @@ const EventDiscoveryCard = ({
           {categoryLabel || category}
         </span>
 
-        {isPending && !isExpired && (
-          <span className="event-discovery-card__pending-pill">Chờ duyệt</span>
+        {statusBadge?.label ? (
+          <span className={`event-discovery-card__status-badge event-discovery-card__status-badge--${statusBadge.tone || 'muted'}`}>
+            {statusBadge.label}
+          </span>
+        ) : (
+          isPending && !isExpired && (
+            <span className="event-discovery-card__pending-pill">Chờ duyệt</span>
+          )
         )}
 
         {isRegistered && !isExpired && !isPostponed && (

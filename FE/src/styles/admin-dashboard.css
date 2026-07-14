@@ -150,6 +150,12 @@
   font-weight: 600 !important;
 }
 
+.admin-stat-card__down {
+  color: #dc2626 !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+}
+
 .admin-stat-card--clickable {
   cursor: pointer;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
@@ -814,6 +820,11 @@
   width: fit-content;
 }
 
+.admin-status-badge--down {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
 .admin-charts-grid {
   grid-column-start: 1;
   grid-column-end: -1;
@@ -868,6 +879,98 @@
   margin: 0;
   font-size: 0.8125rem;
   color: #64748b;
+}
+
+.admin-chart-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.admin-chart-nav {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  border-radius: 999px;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-chart-nav:hover:not(:disabled) {
+  color: #ea580c;
+  border-color: #fed7aa;
+}
+
+.admin-chart-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-chart-year {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.admin-chart-year__label {
+  font-weight: 600;
+}
+
+.admin-chart-year__select {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-chart-year__select:focus {
+  outline: none;
+  border-color: #fed7aa;
+}
+
+.admin-chart-range {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+
+.admin-chart-range__btn {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-chart-range__btn:hover {
+  color: #ea580c;
+}
+
+.admin-chart-range__btn--active {
+  background: #ffffff;
+  color: #ea580c;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
 }
 
 .admin-chart-kpis {
@@ -1991,10 +2094,16 @@
 
 .admin-proposal-card {
   background: #fff;
-  border: 1px solid #e0c0b2;
+  border: 1px solid #e5e7eb;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(37, 25, 19, 0.06);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px -12px rgba(15, 23, 42, 0.1);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.admin-proposal-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.05), 0 12px 28px -14px rgba(15, 23, 42, 0.16);
 }
 
 .admin-proposal-card__head {
@@ -2003,9 +2112,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 18px 22px;
   background: #ffffff;
-  border-bottom: 1px solid #f0e8e2;
+  border-bottom: 1px solid #eef2f6;
 }
 
 .admin-proposal-card__head-main {
@@ -2020,7 +2129,7 @@
   flex-shrink: 0;
   font-size: 0.75rem;
   font-weight: 800;
-  color: #8a7b72;
+  color: #94a3b8;
   letter-spacing: 0.04em;
 }
 
@@ -2028,21 +2137,21 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #251913;
+  color: #0f172a;
   line-height: 1.35;
 }
 
 .admin-proposal-card__badge {
   flex-shrink: 0;
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 9999px;
-  background: #ffffff;
-  border: 1px solid #fdba74;
-  color: #c2410c;
-  font-size: 0.75rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 0.8125rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .admin-proposal-card__body {
@@ -2050,7 +2159,7 @@
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 20px;
   padding: 20px;
-  padding-bottom: 0;
+  padding-bottom: 20px;
 }
 
 .admin-proposal-card__full {
@@ -2061,10 +2170,10 @@
 }
 
 .admin-proposal-card__thumb-wrap {
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  border: 1px solid #f0e8e2;
-  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
   aspect-ratio: 4 / 3;
 }
 
@@ -2078,15 +2187,19 @@
 .admin-proposal-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 20px;
+  gap: 12px;
   margin: 0 0 16px;
 }
 
 .admin-proposal-meta__row {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 5px;
   min-width: 0;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #eef2f6;
+  border-radius: 10px;
 }
 
 .admin-proposal-meta__row--full {
@@ -2099,28 +2212,28 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #8a7b72;
+  color: #94a3b8;
 }
 
 .admin-proposal-meta dd {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #251913;
+  color: #0f172a;
   line-height: 1.45;
   word-break: break-word;
 }
 
 .admin-proposal-meta__email {
   font-weight: 500;
-  color: #584238;
+  color: #475569;
 }
 
 .admin-proposal-card__desc {
-  padding: 14px 16px;
-  background: #ffffff;
-  border: 1px solid #f0e8e2;
-  border-radius: 10px;
+  padding: 16px 18px;
+  background: #f8fafc;
+  border: 1px solid #eef2f6;
+  border-radius: 12px;
   margin-top: 0;
 }
 
@@ -2130,7 +2243,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #8a7b72;
+  color: #94a3b8;
 }
 
 .admin-proposal-card__desc-text {
@@ -2154,31 +2267,47 @@
 }
 
 .admin-proposal-tickets__single strong {
-  color: #251913;
+  color: #0f172a;
 }
 
 .admin-proposal-tickets__table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.8125rem;
   margin-top: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .admin-proposal-tickets__table th,
 .admin-proposal-tickets__table td {
-  padding: 8px 10px;
+  padding: 10px 14px;
   text-align: left;
-  border: 1px solid #f0e8e2;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.admin-proposal-tickets__table tr:last-child td {
+  border-bottom: none;
 }
 
 .admin-proposal-tickets__table th {
-  background: #ffffff;
+  background: #f8fafc;
   font-weight: 700;
-  color: #251913;
+  color: #475569;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .admin-proposal-tickets__table td {
-  color: #334155;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.admin-proposal-tickets__table tbody tr:nth-child(even) td {
+  background: #fbfcfe;
 }
 
 .admin-proposal-card__footer {

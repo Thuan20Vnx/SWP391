@@ -11,7 +11,11 @@ export const DEFAULT_PARTNER_COMPANY = {
   email: '',
   phone: '',
   address: '',
-  logo: ''
+  logo: '',
+  bankAccountNumber: '',
+  bankCode: '',
+  bankName: '',
+  bankAccountHolder: ''
 };
 
 export const DEFAULT_PARTNER_NOTIFICATIONS = {
@@ -162,6 +166,7 @@ export const buildPartnerEventRequestPayload = ({
   benefits,
   partnerMessage,
   attachments,
+  attachmentLinks,
   bannerFileName,
   requestId
 }) => {
@@ -180,6 +185,7 @@ export const buildPartnerEventRequestPayload = ({
     benefits: benefits.filter((b) => b.trim()),
     partnerMessage,
     attachments,
+    attachmentLinks: Array.isArray(attachmentLinks) ? attachmentLinks.filter((l) => l && l.trim()) : [],
     title: core.title,
     proposedEventTitle: core.title,
     eventType: core.eventType,
@@ -231,6 +237,10 @@ export const mapPartnerToCompanyForm = (partner) => {
     phone: partner.phone || '',
     address: partner.address || '',
     logo: partner.logo || stored.logo || '',
+    bankAccountNumber: partner.bankAccountNumber || '',
+    bankCode: partner.bankCode || '',
+    bankName: partner.bankName || '',
+    bankAccountHolder: partner.bankAccountHolder || '',
     status: partner.status,
     rejectionReason: partner.rejectionReason || '',
     supplementReason: partner.supplementReason || ''
@@ -243,13 +253,22 @@ export const mapCompanyFormToPartnerPatch = (form) => {
     partnerCode: form.taxId?.trim() || '',
     representative: form.representative?.trim() || '',
     phone: form.phone?.trim() || '',
-    address: form.address?.trim() || ''
+    address: form.address?.trim() || '',
+    bankAccountNumber: form.bankAccountNumber?.trim() || '',
+    bankCode: form.bankCode?.trim() || '',
+    bankName: form.bankName?.trim() || '',
+    bankAccountHolder: form.bankAccountHolder?.trim() || ''
   };
   if (form.logo !== undefined) {
     payload.logo = form.logo || '';
   }
   return payload;
 };
+
+export const fetchPartnerSettlements = () => partnerFetch('/settlements');
+
+export const requestPartnerSettlement = (id) =>
+  partnerFetch(`/events/${id}/settlement-request`, { method: 'POST', body: '{}' });
 
 export const loadPartnerNotificationPrefs = () => {
   try {

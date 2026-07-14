@@ -4,6 +4,29 @@ import { getTicketFillPct, mapTicketTypesWithProgress } from '../../utils/ticket
 import EventPlanFilePanel from './EventPlanFilePanel';
 
 import { resolveEventDisplayImage } from '../../utils/eventDisplay';
+import { resolvePartnerAttachmentUrl } from '../../utils/partnerDisplay';
+import { isProtectedMediaUrl, openProtectedMedia } from '../../utils/mediaFile';
+
+const FileIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+  </svg>
+);
+
+const openPartnerAttachment = async (file) => {
+  const href = file.href || file.url || '';
+  if (!href || href === '#') return;
+  try {
+    if (isProtectedMediaUrl(file.url) || isProtectedMediaUrl(file.attachmentUrl) || href.startsWith('/api/')) {
+      await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
+      return;
+    }
+    window.open(href, '_blank', 'noopener,noreferrer');
+  } catch {
+    /* ignore open errors */
+  }
+};
 
 const DEFAULT_BANNER =
   'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80';
@@ -13,7 +36,7 @@ const formatDateTime = (value) => {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
   return {
-    date: d.toLocaleDateString('vi-VN'),
+    date: d.toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' }),
     time: d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
   };
 };
@@ -73,6 +96,13 @@ const EventOverviewPanel = ({ event }) => {
   const capacity = event.capacity || event.totalTickets || 0;
   const fillPct = capacity > 0 ? Math.min(100, Math.round((registered / capacity) * 100)) : 0;
   const ticketsWithProgress = mapTicketTypesWithProgress(event.ticketTypes, registered);
+
+  // Thông tin đối tác đã gửi (chỉ có ở sự kiện source='partner').
+  const partnerBenefits = (event.partnerBenefits || []).filter(Boolean);
+  const partnerAttachmentLinks = (event.partnerAttachmentLinks || []).filter(Boolean);
+  const partnerAttachments = (event.partnerAttachments || [])
+    .map((f) => ({ ...f, href: resolvePartnerAttachmentUrl(f) }))
+    .filter((f) => f.hasFile || f.href);
 
   return (
     <div className="ev-overview-panel">
@@ -218,6 +248,59 @@ const EventOverviewPanel = ({ event }) => {
             <ul className="ev-overview-list">
               {event.learningOutcomes.filter(Boolean).map((line, idx) => (
                 <li key={idx}>{line}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {partnerBenefits.length > 0 && (
+          <section className="ev-overview-section">
+            <h3 className="ev-overview-title">Quyền lợi đối tác yêu cầu</h3>
+            <ul className="ev-overview-list">
+              {partnerBenefits.map((line, idx) => (
+                <li key={idx}>{line}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {event.partnerMessage?.trim() && (
+          <section className="ev-overview-section">
+            <h3 className="ev-overview-title">Lời nhắn từ đối tác</h3>
+            <p className="ev-overview-desc ev-overview-desc--pre">{event.partnerMessage}</p>
+          </section>
+        )}
+
+        {(partnerAttachments.length > 0 || partnerAttachmentLinks.length > 0) && (
+          <section className="ev-overview-section">
+            <h3 className="ev-overview-title">Tệp & liên kết đối tác đã gửi</h3>
+            <ul className="ev-overview-files">
+              {partnerAttachments.map((f, i) => (
+                <li key={`att-${i}`}>
+                  <button
+                    type="button"
+                    className="ev-overview-file"
+                    onClick={() => openPartnerAttachment(f)}
+                    disabled={!f.href}
+                  >
+                    <span className="ev-overview-file__icon" aria-hidden><FileIcon /></span>
+                    <span className="ev-overview-file__body">
+                      <span className="ev-overview-file__name">{f.name}</span>
+                      <span className="ev-overview-file__size">{f.sizeLabel || 'Tệp đính kèm'}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+              {partnerAttachmentLinks.map((link, i) => (
+                <li key={`link-${i}`}>
+                  <a href={link} className="ev-overview-file" target="_blank" rel="noreferrer">
+                    <span className="ev-overview-file__icon" aria-hidden><FileIcon /></span>
+                    <span className="ev-overview-file__body">
+                      <span className="ev-overview-file__name">{link}</span>
+                      <span className="ev-overview-file__size">Liên kết</span>
+                    </span>
+                  </a>
+                </li>
               ))}
             </ul>
           </section>

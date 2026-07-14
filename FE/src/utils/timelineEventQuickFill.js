@@ -103,7 +103,7 @@ export const formatTimelineItemDate = (value) => {
   if (Number.isNaN(date.getTime())) return 'Chưa có ngày';
   return date.toLocaleDateString('vi-VN', {
     day: '2-digit',
-    month: '2-digit',
+    month: 'long',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',

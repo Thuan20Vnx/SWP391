@@ -1191,15 +1191,92 @@
   line-height: 1.45;
 }
 
+/* Chừa khoảng cách giữa nội dung trang duyệt CLB (admin) và footer bên dưới. */
+.admin-icpdp-club-reg-page {
+  padding-bottom: 40px;
+}
+
 .icpdp-club-reg-actions {
-  margin-top: 0;
+  margin-top: 20px;
+}
+
+.icpdp-club-reg-actions h2 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.icpdp-club-reg-actions label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.icpdp-club-reg-actions textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #1e293b;
+  resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.icpdp-club-reg-actions textarea:focus {
+  outline: none;
+  border-color: #f6b17a;
+  box-shadow: 0 0 0 3px rgba(246, 177, 122, 0.2);
+}
+
+.icpdp-club-reg-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 6px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #1e293b;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.icpdp-club-reg-input:focus {
+  outline: none;
+  border-color: #f6b17a;
+  box-shadow: 0 0 0 3px rgba(246, 177, 122, 0.2);
+}
+
+.icpdp-club-reg-hint {
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.icpdp-club-reg-reject-note {
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border-radius: 10px;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 .icpdp-club-reg-actions__btns {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .admin-fpt-notif-bell--inline {
@@ -1849,6 +1926,11 @@
   gap: 10px;
   margin-top: 24px;
   flex-wrap: wrap;
+}
+
+.admin-partner-detail__actions--top {
+  margin-top: 0;
+  margin-bottom: 20px;
 }
 
 .admin-partner-detail__btn {

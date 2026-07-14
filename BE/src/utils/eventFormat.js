@@ -77,6 +77,9 @@ const formatEvent = (doc, opts = {}) => {
     icpdpNote: o.icpdpNote || '',
     ctsvEditUnlocked: o.ctsvEditUnlocked === true,
     clubEditUnlocked: o.clubEditUnlocked === true,
+    pendingEdit: o.pendingEdit || null,
+    lastModerationAction: o.lastModerationAction || '',
+    lastModerationRejectedBy: o.lastModerationRejectedBy || '',
     isHidden: o.isHidden === true,
     speaker: speakerMeta.speaker,
     speakerRole: speakerMeta.speakerRole,
@@ -99,6 +102,14 @@ const formatEvent = (doc, opts = {}) => {
     ctsvNote: o.ctsvNote,
     rejectionReason: o.rejectionReason,
     expectedRevenue: o.expectedRevenue || 0,
+    settlement: {
+      status: o.settlement?.status || 'none',
+      requestedAt: o.settlement?.requestedAt || null,
+      paidAt: o.settlement?.paidAt || null,
+      paidAmount: o.settlement?.paidAmount || 0,
+      note: o.settlement?.note || '',
+      proofUrl: o.settlement?.proofUrl || '',
+    },
     proposalId: o.proposalId?.toString?.() || o.proposalId,
     timelineSource: o.timelineSource?.itemTitle
       ? {

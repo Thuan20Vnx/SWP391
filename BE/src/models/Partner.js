@@ -27,6 +27,10 @@ const partnerSchema = new mongoose.Schema(
       }
     ],
     representativeTitle: { type: String, default: '', trim: true },
+    bankAccountNumber: { type: String, default: '', trim: true },
+    bankCode: { type: String, default: '', trim: true },
+    bankName: { type: String, default: '', trim: true },
+    bankAccountHolder: { type: String, default: '', trim: true },
     status: {
       type: String,
       enum: PARTNER_STATUSES,

@@ -8,7 +8,7 @@ import AdminFilterDropdown from '../../../components/admin/AdminFilterDropdown';
 import PublicAdminShell from '../../../layouts/PublicAdminShell';
 import SiteFooter from '../../../components/SiteFooter';
 import { API_BASE, getAuthHeaders } from '../../../utils/api';
-import { fetchAdminAccounts, fetchAdminPartners } from '../../../services/adminApi';
+import { fetchAdminAccounts, fetchAdminPartners, fetchAdminDepartmentProfiles } from '../../../services/adminApi';
 import { mapApiClubToListItem } from '../../../data/clubDiscoveryData';
 import {
   FPT_UNIT_TYPES,
@@ -23,6 +23,7 @@ import {
   buildFptSummary,
 } from '../../../data/adminFptSystemData';
 import { getPartnerStatusLabel, partnerInitials } from '../../../utils/partnerDisplay';
+import { resolveMediaUrl } from '../../../utils/mediaUrls';
 import { useTranslation } from '../../../i18n/I18nContext';
 import { mapSelectOptions, resolveLabel } from '../../../i18n/helpers';
 import '../../../styles/admin-dashboard.css';
@@ -77,12 +78,13 @@ const AdminFptSystem = ({ showToast }) => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [clubsRes, ctsvRes, icpdpRes, partnersRes, pendingPartnersRes] = await Promise.all([
+      const [clubsRes, ctsvRes, icpdpRes, partnersRes, pendingPartnersRes, deptProfilesRes] = await Promise.all([
         fetch(`${API_BASE}/api/clubs`, { headers: getAuthHeaders(false) }).then((r) => r.json()),
         fetchAdminAccounts({ page: 1, limit: 1, role: 'ctsv', search: '' }).catch(() => ({ total: 0 })),
         fetchAdminAccounts({ page: 1, limit: 1, role: 'icpdp', search: '' }).catch(() => ({ total: 0 })),
         fetchAdminPartners('approved').catch(() => ({ partners: [] })),
         fetchAdminPartners('pending_admin').catch(() => ({ partners: [] })),
+        fetchAdminDepartmentProfiles().catch(() => ({ profiles: {} })),
       ]);
 
       const clubList =
@@ -103,7 +105,16 @@ const AdminFptSystem = ({ showToast }) => {
       );
       const ctsvStaff = ctsvRes.total ?? ctsvRes.accounts?.length ?? 0;
       const icpdpStaff = icpdpRes.total ?? icpdpRes.accounts?.length ?? 0;
-      const deptUnits = buildDepartmentUnits({ ctsvStaff, icpdpStaff });
+      const deptProfiles = deptProfilesRes.profiles || {};
+      const deptUnits = buildDepartmentUnits({ ctsvStaff, icpdpStaff }).map((unit) => {
+        const profile = deptProfiles[unit.type];
+        if (!profile) return unit;
+        return {
+          ...unit,
+          coverImage: profile.hasThumbnail ? resolveMediaUrl(profile.thumbnailUrl) : unit.coverImage,
+          descriptionOverride: profile.description || '',
+        };
+      });
       const pendingPartners = pendingPartnersRes.partners?.length ?? 0;
 
       setClubs(clubUnits);

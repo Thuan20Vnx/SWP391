@@ -25,9 +25,9 @@ const NAV_LINKS = [
     match: (path) => path.startsWith('/partner/contracts')
   },
   {
-    to: '/partner/announcements',
+    to: '/partner/news',
     label: 'Tin tức',
-    match: (path) => path.startsWith('/partner/announcements')
+    match: (path) => path.startsWith('/partner/news')
   }
 ];
 

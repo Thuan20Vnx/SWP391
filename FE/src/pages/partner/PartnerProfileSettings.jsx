@@ -12,11 +12,21 @@ import {
 } from '../../services/partnerApi';
 import { openImageFilePicker } from '../../utils/imageFilePicker';
 import { resolveUserAvatar } from '../../utils/image';
+import { BANK_OPTIONS } from '../../utils/vietqr';
 
 const Field = ({ label, value, onChange, readOnly = false, type = 'text' }) => (
   <div className="partner-field">
     <label>{label}</label>
     <input type={type} value={value || ''} onChange={onChange} readOnly={readOnly} disabled={readOnly} />
+  </div>
+);
+
+const SelectField = ({ label, value, onChange, readOnly = false, children }) => (
+  <div className="partner-field">
+    <label>{label}</label>
+    <select value={value || ''} onChange={onChange} disabled={readOnly}>
+      {children}
+    </select>
   </div>
 );
 
@@ -282,6 +292,49 @@ const PartnerProfileSettings = ({ showToast }) => {
                 value={company.address}
                 readOnly={!canEditCompany}
                 onChange={(e) => setCompany((prev) => ({ ...prev, address: e.target.value }))}
+              />
+            </div>
+
+            <h3 className="partner-profile-card__subtitle">Tài khoản nhận tất toán</h3>
+            <p className="partner-profile-card__desc">
+              Thông tin ngân hàng để Nhà trường tất toán doanh thu vé sự kiện cho đối tác. Vui lòng nhập chính xác.
+            </p>
+            <div className="partner-form-grid">
+              <SelectField
+                label="Ngân hàng"
+                value={company.bankCode}
+                readOnly={!canEditCompany}
+                onChange={(e) => {
+                  const opt = BANK_OPTIONS.find((b) => b.code === e.target.value);
+                  setCompany((prev) => ({
+                    ...prev,
+                    bankCode: opt?.code || '',
+                    bankName: opt?.name || '',
+                  }));
+                }}
+              >
+                <option value="">— Chọn ngân hàng —</option>
+                {BANK_OPTIONS.map((b) => (
+                  <option key={b.code} value={b.code}>
+                    {b.name}
+                  </option>
+                ))}
+              </SelectField>
+              <Field
+                label="Số tài khoản"
+                value={company.bankAccountNumber}
+                readOnly={!canEditCompany}
+                onChange={(e) =>
+                  setCompany((prev) => ({ ...prev, bankAccountNumber: e.target.value.replace(/[^\d]/g, '') }))
+                }
+              />
+              <Field
+                label="Tên chủ tài khoản"
+                value={company.bankAccountHolder}
+                readOnly={!canEditCompany}
+                onChange={(e) =>
+                  setCompany((prev) => ({ ...prev, bankAccountHolder: e.target.value.toUpperCase() }))
+                }
               />
             </div>
             <div className="partner-profile-actions">

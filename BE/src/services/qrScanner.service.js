@@ -3,6 +3,7 @@ const Event = require('../models/Event');
 const Club = require('../models/Club');
 const EventRegistration = require('../models/EventRegistration');
 const AppError = require('../utils/AppError');
+const emailService = require('./email.service');
 
 const QR_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_QR_DURATION_MINUTES = 7 * 24 * 60;
@@ -199,6 +200,15 @@ const generateStationQr = async (user, eventId, body = {}) => {
     event.checkinQrExpiresAt = expiresAt;
     event.checkinAttendanceCode = attendanceCode;
   }
+
+  // Đánh dấu ngày hôm nay là một ngày BTC đã mở điểm danh (dùng cho bảng điểm danh theo ngày).
+  const openDayKey = localSessionKey(new Date());
+  if (!Array.isArray(event.attendanceOpenDays)) event.attendanceOpenDays = [];
+  if (!event.attendanceOpenDays.includes(openDayKey)) {
+    event.attendanceOpenDays.push(openDayKey);
+    event.attendanceOpenDays.sort();
+    event.markModified('attendanceOpenDays');
+  }
   await event.save();
 
   const station = formatStationQr(event, action);
@@ -233,6 +243,12 @@ const validateStationCode = (event, action, code) => {
   }
 };
 
+// Khóa phiên điểm danh theo NGÀY quét (giờ địa phương) — hỗ trợ sự kiện nhiều ngày.
+const localSessionKey = (d) => {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
 const applySelfScanRegistration = async (user, event, action) => {
   const registration = await EventRegistration.findOne({ user: user._id, event: event._id }).populate('user', 'fullname email studentId');
   if (!registration) throw new AppError('Bạn chưa đăng ký sự kiện này.', 404);
@@ -240,17 +256,27 @@ const applySelfScanRegistration = async (user, event, action) => {
 
   const eventInfo = { id: String(event._id), title: event.title || '' };
   const now = new Date();
+  const sessionKey = localSessionKey(now);
+  if (!Array.isArray(registration.attendanceLog)) registration.attendanceLog = [];
+  let session = registration.attendanceLog.find((s) => s.sessionKey === sessionKey);
+
   if (action === 'checkin') {
-    if (registration.status === 'attended' && registration.checkedInAt) {
+    if (session && session.checkedInAt) {
       return {
-        message: 'Bạn đã check-in trước đó.',
+        message: 'Bạn đã check-in hôm nay rồi.',
         event: eventInfo,
         registration: formatRegistrationScan(registration),
         duplicate: true,
       };
     }
+    if (session) {
+      session.checkedInAt = now;
+    } else {
+      registration.attendanceLog.push({ sessionKey, checkedInAt: now, checkedOutAt: null });
+    }
+    registration.markModified('attendanceLog');
     registration.status = 'attended';
-    registration.checkedInAt = registration.checkedInAt || now;
+    registration.checkedInAt = registration.checkedInAt || now; // lần check-in đầu tiên (tổng hợp)
     await registration.save();
     return {
       message: 'Check-in thành công!',
@@ -259,11 +285,34 @@ const applySelfScanRegistration = async (user, event, action) => {
     };
   }
 
-  if (!registration.checkedInAt && registration.status !== 'attended') {
-    throw new AppError('Bạn chưa check-in — không thể check-out.', 400);
+  // Check-out: bắt buộc đã check-in TRONG NGÀY hôm nay.
+  if (!session || !session.checkedInAt) {
+    throw new AppError('Bạn chưa check-in hôm nay — không thể check-out.', 400);
   }
-  registration.checkedOutAt = now;
+  if (session.checkedOutAt) {
+    return {
+      message: 'Bạn đã check-out hôm nay rồi.',
+      event: eventInfo,
+      registration: formatRegistrationScan(registration),
+      duplicate: true,
+    };
+  }
+  session.checkedOutAt = now;
+  registration.markModified('attendanceLog');
+  registration.checkedOutAt = now; // lần check-out gần nhất (tổng hợp)
   await registration.save();
+  // Gửi mail cảm ơn mỗi lần check-out (không chặn phản hồi nếu email lỗi).
+  const attendeeEmail = registration.user?.email;
+  if (attendeeEmail) {
+    emailService
+      .sendEventCheckoutThankYouEmail({
+        to: attendeeEmail,
+        fullname: registration.user?.fullname || '',
+        eventTitle: event.title || '',
+        eventId: String(event._id),
+      })
+      .catch((err) => console.warn('[checkout] thank-you email failed:', err.message));
+  }
   return {
     message: 'Check-out thành công!',
     event: eventInfo,

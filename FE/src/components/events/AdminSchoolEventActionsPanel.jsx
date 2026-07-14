@@ -19,11 +19,11 @@ const formatDateTime = (value) => {
 };
 
 const AdminSchoolEventActionsPanel = ({ event, busy = false, isModerationRequest = false, onApprove, onReject }) => {
-  if (!event || event.source !== 'school') return null;
+  if (!event) return null;
 
   const organizer = getSchoolEventOrganizerMeta(event);
   const moderationPending = isModerationPending(event);
-  const submitPending = isSchoolEventPendingAdmin(event);
+  const submitPending = event.source === 'school' && isSchoolEventPendingAdmin(event);
   const canAct = moderationPending || submitPending;
 
   if (!canAct) {

@@ -8,6 +8,7 @@ const { sendPartnerTerminationEmail, sendPartnerAdminNoticeEmail } = require('..
 const { createAnnouncement } = require('../services/announcementManage.service');
 const adminController = require('../controllers/admin.controller');
 const eventChangeRequestController = require('../controllers/eventChangeRequest.controller');
+const clubChangeRequestController = require('../controllers/clubChangeRequest.controller');
 const Partner = require('../models/Partner');
 const { resolvePartnerAvatarForAdmin } = require('../utils/partnerAvatar');
 const {
@@ -45,6 +46,12 @@ const {
 const { sendTestEmail } = require('../services/email.service');
 const { listAuditLogs } = require('../services/auditLog.service');
 const { getAdminPayments, processRefund } = require('../services/payment.service');
+const {
+  listAdminPartnerSettlements,
+  getAdminPartnerSettlementDetail,
+  analyzeSettlementProof,
+  settlePartnerEvent,
+} = require('../services/settlement.service');
 const { createAndBroadcast } = require('../services/notification.service');
 const { BACKEND_PUBLIC_URL } = require('../config/env');
 
@@ -85,6 +92,12 @@ const formatProposalsForAdmin = async (proposals) => {
   const hydrated = await Promise.all(proposals.map((p) => hydrateProposalPlanFromLinkedEvent(p)));
   return hydrated.map((p) => formatProposal(p, { includePlanFile: true }));
 };
+
+router.get('/department-profiles', adminOnly, asyncHandler(async (req, res) => {
+  const { getAllDepartmentProfiles } = require('../services/departmentProfile.service');
+  const profiles = await getAllDepartmentProfiles();
+  return res.json({ success: true, profiles });
+}));
 
 router.get('/unit-events', async (req, res) => {
   try {
@@ -231,6 +244,38 @@ router.patch('/payments/:code/refund', adminOnly, asyncHandler(async (req, res) 
   const { action, note } = req.body || {};
   const result = await processRefund(req.params.code, req.user, action, note);
   res.json({ success: true, ...result, message: action === 'approved' ? 'Đã duyệt hoàn tiền.' : 'Đã từ chối hoàn tiền.' });
+}));
+
+// --- Tất toán doanh thu cho sự kiện đối tác ---
+router.get('/partner-settlements', adminOnly, asyncHandler(async (req, res) => {
+  const items = await listAdminPartnerSettlements();
+  res.json({ success: true, items });
+}));
+
+router.get('/partner-settlements/:id', adminOnly, asyncHandler(async (req, res) => {
+  const detail = await getAdminPartnerSettlementDetail(req.params.id);
+  res.json({ success: true, ...detail });
+}));
+
+router.post('/partner-settlements/:id/analyze-proof', adminOnly, asyncHandler(async (req, res) => {
+  const { proofImage } = req.body || {};
+  const analysis = await analyzeSettlementProof({ eventId: req.params.id, proofImage });
+  res.json({ success: true, analysis });
+}));
+
+router.patch('/partner-settlements/:id/settle', adminOnly, asyncHandler(async (req, res) => {
+  const { amount, note, proofImage, aiValid, aiReason, adminOverride } = req.body || {};
+  const detail = await settlePartnerEvent({
+    eventId: req.params.id,
+    amount,
+    note,
+    proofImage,
+    aiValid,
+    aiReason,
+    adminOverride,
+    adminEmail: req.authEmail,
+  });
+  res.json({ success: true, ...detail, message: 'Đã tất toán cho đối tác.' });
 }));
 
 router.get('/audit-logs', adminOnly, asyncHandler(async (req, res) => {
@@ -500,12 +545,53 @@ router.patch('/club-registrations/:id/revision', icpdpOnly, async (req, res) => 
   }
 });
 
+router.patch('/club-registrations/:id/icpdp-resubmit', icpdpOnly, async (req, res) => {
+  try {
+    const registration = await clubRegistrationService.icpdpResubmitRegistration(
+      req.params.id,
+      req.body,
+      req.authEmail
+    );
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      title: 'Đơn thành lập CLB đã được gửi lại (IC-PDP)',
+      body: `IC-PDP đã sửa và gửi lại đơn thành lập CLB "${registration.clubName}". Chờ Admin phê duyệt.`,
+      type: 'club_submit',
+      refId: String(req.params.id),
+      refType: 'club_registration'
+    }).catch(() => {});
+    return res.json({ success: true, registration, message: 'Đã gửi lại đơn — chờ Admin phê duyệt.' });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('club-registrations resubmit:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.patch('/club-registrations/:id/icpdp-cancel', icpdpOnly, async (req, res) => {
+  try {
+    const registration = await clubRegistrationService.icpdpCancelRegistration(req.params.id);
+    return res.json({ success: true, registration, message: 'Đã hủy gửi yêu cầu thành lập CLB.' });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ success: false, message: error.message });
+    }
+    console.error('club-registrations cancel:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
 router.get('/accounts', adminOnly, asyncHandler(adminController.listAccounts));
 router.post('/accounts', adminOnly, asyncHandler(adminController.createAccount));
 router.get('/accounts/:id', adminOnly, asyncHandler(adminController.getAccount));
 router.put('/accounts/:id', adminOnly, asyncHandler(adminController.updateAccount));
 router.patch('/accounts/:id/status', adminOnly, asyncHandler(adminController.updateAccountStatus));
 router.patch('/accounts/:id/lock', adminOnly, asyncHandler(adminController.lockAccount));
+router.post('/accounts/:id/reset-password', adminOnly, asyncHandler(adminController.resetAccountPassword));
+router.get('/assignable-clubs', adminOnly, asyncHandler(adminController.listAssignableClubs));
+router.get('/pending-summary', adminOnly, asyncHandler(adminController.getPendingAdminSummary));
 router.delete('/accounts/:id', adminOnly, asyncHandler(adminController.deleteAccount));
 router.get('/data/overview', adminOnly, asyncHandler(adminController.getDataOverview));
 router.get('/dashboard/stats', adminOnly, asyncHandler(adminController.getDashboardStats));
@@ -516,6 +602,11 @@ router.get('/event-requests', adminOrCtsv, asyncHandler(eventChangeRequestContro
 router.get('/event-requests/:id', adminOrCtsv, asyncHandler(eventChangeRequestController.getById));
 router.patch('/event-requests/:id/approve', adminOrCtsv, asyncHandler(eventChangeRequestController.approve));
 router.patch('/event-requests/:id/reject', adminOrCtsv, asyncHandler(eventChangeRequestController.reject));
+
+router.get('/club-requests', adminOrIcpdp, asyncHandler(clubChangeRequestController.list));
+router.get('/club-requests/:id', adminOrIcpdp, asyncHandler(clubChangeRequestController.getById));
+router.patch('/club-requests/:id/approve', adminOnly, asyncHandler(clubChangeRequestController.approve));
+router.patch('/club-requests/:id/reject', adminOnly, asyncHandler(clubChangeRequestController.reject));
 
 router.post('/partners', adminOnly, async (req, res) => {
   try {
@@ -767,13 +858,17 @@ router.get('/partners/:id', async (req, res) => {
     const eventRequest = await PartnerEventRequest.findOne({
       partnerId: partner._id,
       status: { $nin: ['draft', 'cancelled', 'deleted'] }
-    }).sort({ updatedAt: -1 });
+    }).sort({ updatedAt: -1 }).lean();
+    const { sanitizePartnerRequestForApi } = require('../utils/partnerMediaStorage');
+    const eventRequestPayload = eventRequest
+      ? { ...eventRequest, ...sanitizePartnerRequestForApi(eventRequest) }
+      : null;
     return res.json({
       success: true,
       partner: partnerPayload,
       members,
       contracts,
-      eventRequest: eventRequest || null
+      eventRequest: eventRequestPayload
     });
   } catch (error) {
     console.error('admin partner detail:', error);
@@ -960,11 +1055,11 @@ router.patch('/partners/:id/approve', async (req, res) => {
 
     const eventRequest = await PartnerEventRequest.findOne({
       partnerId: partner._id,
-      status: 'approved',
-      eventId: null
+      status: 'approved'
     }).sort({ updatedAt: -1 });
     if (eventRequest) {
-      const newEvent = await Event.create({
+      // Các trường sự kiện lấy từ đơn — dùng chung cho cả tạo mới lẫn cập nhật khi sửa.
+      const eventFields = {
         title: eventRequest.title || partner.proposedEventTitle || 'Sự kiện đối tác',
         description: eventRequest.description || '',
         category: eventRequest.category,
@@ -986,16 +1081,33 @@ router.patch('/partners/:id/approve', async (req, res) => {
         thumbnail: eventRequest.image,
         bannerFileName: eventRequest.bannerFileName,
         eventType: eventRequest.eventType,
-        duration: eventRequest.duration,
-        source: 'partner',
-        partnerId: partner._id,
-        status: 'approved',
-        createdByEmail: partner.email,
-        adminApprovedByEmail: req.authEmail,
-        adminApprovedAt: new Date()
-      });
-      eventRequest.eventId = newEvent._id;
-      await eventRequest.save();
+        duration: eventRequest.duration
+      };
+      if (eventRequest.eventId) {
+        // Đối tác "Yêu cầu sửa" một sự kiện đã duyệt → cập nhật Event hiện có,
+        // đưa về trạng thái approved và bỏ ẩn (nếu trước đó đang ẩn).
+        await Event.findByIdAndUpdate(eventRequest.eventId, {
+          $set: {
+            ...eventFields,
+            status: 'approved',
+            isHidden: false,
+            adminApprovedByEmail: req.authEmail,
+            adminApprovedAt: new Date()
+          }
+        });
+      } else {
+        const newEvent = await Event.create({
+          ...eventFields,
+          source: 'partner',
+          partnerId: partner._id,
+          status: 'approved',
+          createdByEmail: partner.email,
+          adminApprovedByEmail: req.authEmail,
+          adminApprovedAt: new Date()
+        });
+        eventRequest.eventId = newEvent._id;
+        await eventRequest.save();
+      }
     }
     // Tự động tạo tài khoản đăng nhập cho email đại diện nếu chưa có
     const primaryEmail = String(partner.email || '').trim().toLowerCase();

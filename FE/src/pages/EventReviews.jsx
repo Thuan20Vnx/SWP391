@@ -36,6 +36,11 @@ const EventReviews = ({ showToast }) => {
   const [submittingId, setSubmittingId] = useState(null);
   const [ratings, setRatings] = useState({});
   const [comments, setComments] = useState({});
+  // Sửa đánh giá đã gửi: lưu id review đang sửa + giá trị tạm.
+  const [editingId, setEditingId] = useState(null);
+  const [editRating, setEditRating] = useState(0);
+  const [editComment, setEditComment] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const loadReviews = useCallback(() => {
     setLoading(true);
@@ -109,6 +114,49 @@ const EventReviews = ({ showToast }) => {
       showToast?.('Không thể gửi đánh giá.', 'error');
     } finally {
       setSubmittingId(null);
+    }
+  };
+
+  const startEdit = (review) => {
+    setEditingId(review.id);
+    setEditRating(review.rating || 0);
+    setEditComment(review.comment || '');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditRating(0);
+    setEditComment('');
+  };
+
+  const handleUpdate = async (review) => {
+    if (!editRating) {
+      showToast?.('Vui lòng chọn số sao đánh giá.', 'error');
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/events/${review.eventId}/review`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ rating: editRating, comment: editComment || '' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast?.(data.message || 'Không thể cập nhật đánh giá.', 'error');
+        return;
+      }
+      showToast?.(data.message || 'Đã cập nhật đánh giá.', 'success');
+      setItems((prev) =>
+        prev.map((it) =>
+          it.id === review.id ? { ...it, rating: editRating, comment: editComment || '' } : it
+        )
+      );
+      cancelEdit();
+    } catch {
+      showToast?.('Không thể cập nhật đánh giá.', 'error');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -221,31 +269,135 @@ const EventReviews = ({ showToast }) => {
           <p>Những sự kiện bạn đã đánh giá sẽ được lưu lại ở đây.</p>
         </div>
       ) : (
-        <div className="student-review-done-list">
-          {items.map((review) => (
-            <article key={review.id} className="student-review-done">
-              <div className="student-review-done__top">
-                <div>
-                  <h3>{review.title}</h3>
-                  <p className="student-review-card__meta">
-                    <CalendarIcon />
-                    {review.date}
-                  </p>
+        <div className="student-review-grid">
+          {items.map((review) => {
+            const isEditing = editingId === review.id;
+            const clickable = review.eventId && !isEditing;
+            return (
+              <article
+                key={review.id}
+                className="student-review-card student-review-card--done"
+                onClick={() => clickable && navigate(`/events/${review.eventId}`)}
+                role={clickable ? 'button' : undefined}
+                tabIndex={clickable ? 0 : undefined}
+                onKeyDown={(e) => {
+                  if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    navigate(`/events/${review.eventId}`);
+                  }
+                }}
+              >
+                <div className="student-review-card__media">
+                  <img
+                    src={review.image || FALLBACK_IMAGE}
+                    alt=""
+                    onError={(e) => {
+                      e.currentTarget.src = FALLBACK_IMAGE;
+                    }}
+                  />
+                  {review.tags?.length ? (
+                    <span className="student-review-card__badge">{review.tags[0]}</span>
+                  ) : null}
+                  <span className="student-review-card__done-flag">Đã đánh giá</span>
                 </div>
-                <div className="student-review-done__score">
-                  <div className="student-stars student-stars--readonly">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span key={star} className={star <= review.rating ? 'is-on' : 'is-off'}>★</span>
-                    ))}
+                <div className="student-review-card__body">
+                  <div className="student-review-card__head">
+                    <h3>{review.title}</h3>
+                    <p className="student-review-card__meta">
+                      <CalendarIcon />
+                      {review.date}
+                    </p>
                   </div>
-                  <span className="student-review-done__value">{review.rating}/5</span>
+
+                  {isEditing ? (
+                    <div
+                      className="student-review-card__rate"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span className="student-review-card__rate-label">
+                        {RATING_LABELS[editRating] || 'Chọn mức đánh giá'}
+                      </span>
+                      <div className="student-stars">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            className={`student-star ${editRating >= star ? 'student-star--active' : ''}`}
+                            onClick={() => setEditRating(star)}
+                            aria-label={`${star} sao`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="student-review-done__scorebox">
+                      <div className="student-stars student-stars--readonly">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span key={star} className={star <= review.rating ? 'is-on' : 'is-off'}>★</span>
+                        ))}
+                      </div>
+                      <span className="student-review-done__scorebox-label">
+                        {RATING_LABELS[review.rating] || ''}
+                      </span>
+                      <span className="student-review-done__value">{review.rating}/5</span>
+                    </div>
+                  )}
+
+                  {isEditing ? (
+                    <>
+                      <textarea
+                        className="student-review-input"
+                        placeholder="Chia sẻ trải nghiệm của bạn về sự kiện này..."
+                        value={editComment}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => setEditComment(e.target.value)}
+                      />
+                      <div className="student-review-edit-actions" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className="student-review-edit-cancel"
+                          onClick={cancelEdit}
+                          disabled={savingEdit}
+                        >
+                          Hủy
+                        </button>
+                        <button
+                          type="button"
+                          className="student-review-submit"
+                          onClick={() => handleUpdate(review)}
+                          disabled={savingEdit}
+                        >
+                          {savingEdit ? 'Đang lưu...' : 'Lưu thay đổi'}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p
+                        className={`student-review-done__comment${
+                          review.comment ? '' : ' student-review-done__comment--empty'
+                        }`}
+                      >
+                        {review.comment || 'Không có nhận xét thêm.'}
+                      </p>
+                      <button
+                        type="button"
+                        className="student-review-edit-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEdit(review);
+                        }}
+                      >
+                        Sửa đánh giá
+                      </button>
+                    </>
+                  )}
                 </div>
-              </div>
-              {review.comment ? (
-                <p className="student-review-done__comment">{review.comment}</p>
-              ) : null}
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
     </StudentDashboardLayout>

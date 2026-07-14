@@ -67,3 +67,12 @@ export const updateIcpdpClub = (id, body) =>
 
 export const deleteIcpdpClub = (id) =>
   clubFetch(`/manage/all/${id}`, { method: 'DELETE' });
+
+export const fetchClubChangeRequests = (clubId) =>
+  clubFetch(`/${clubId}/change-requests?status=all`);
+
+export const createClubChangeRequest = (clubId, body) =>
+  clubFetch(`/${clubId}/change-requests`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });

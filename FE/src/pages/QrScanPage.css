@@ -336,6 +336,19 @@
   font-size: 0.92rem;
 }
 
+.qr-scan-event-link {
+  color: #ea580c;
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(234, 88, 12, 0.35);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.qr-scan-event-link:hover {
+  color: #c2410c;
+  border-bottom-color: #c2410c;
+}
+
 .qr-scan-error {
   color: #dc2626;
 }

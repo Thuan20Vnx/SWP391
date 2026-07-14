@@ -83,9 +83,30 @@ const assertOnOrAfterToday = (value, fieldLabel) => {
   }
 };
 
+// So sánh theo đúng mốc thời gian (kể cả giờ/phút), tránh reinterpret local của parseStrictInstant.
+const parseInstant = (value) => {
+  if (!value) return null;
+  const dt = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+};
+
+// Chặn thời điểm trong quá khứ; chừa 2 phút để bù lệch đồng hồ / độ trễ mạng.
+const PAST_GRACE_MS = 2 * 60 * 1000;
+
+const assertNotPastInstant = (value, fieldLabel) => {
+  if (!value) return;
+  const dt = parseInstant(value);
+  if (!dt) {
+    throw new AppError(`${fieldLabel} không hợp lệ. ${formatInvalidDateHint(value)}`, 400);
+  }
+  if (dt.getTime() < Date.now() - PAST_GRACE_MS) {
+    throw new AppError(`${fieldLabel} không được ở trong quá khứ.`, 400);
+  }
+};
+
 const assertEventScheduleDates = ({ registrationStartDate, startDate }) => {
-  assertOnOrAfterToday(registrationStartDate, 'Ngày bắt đầu đăng ký');
-  assertOnOrAfterToday(startDate, 'Ngày bắt đầu sự kiện');
+  assertNotPastInstant(registrationStartDate, 'Thời gian bắt đầu đăng ký');
+  assertNotPastInstant(startDate, 'Thời gian bắt đầu sự kiện');
 };
 
 module.exports = {
@@ -94,5 +115,6 @@ module.exports = {
   parseStrictInstant,
   formatInvalidDateHint,
   assertOnOrAfterToday,
+  assertNotPastInstant,
   assertEventScheduleDates,
 };

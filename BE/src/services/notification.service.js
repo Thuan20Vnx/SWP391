@@ -1,7 +1,57 @@
 const Notification = require('../models/Notification');
+const { APP_URL } = require('../config/env');
 
 // Map<clientId, { res, role, email }>
 const clients = new Map();
+
+// Nhóm nav (chấm đỏ) theo refType của thông báo.
+const CATEGORY_BY_REFTYPE = {
+  event_proposal: 'events',
+  event_change_request: 'events',
+  Event: 'events',
+  semester_timeline: 'timeline',
+};
+
+const categoryOfRefType = (refType) => CATEGORY_BY_REFTYPE[refType] || null;
+const refTypesForCategory = (category) =>
+  Object.keys(CATEGORY_BY_REFTYPE).filter((rt) => CATEGORY_BY_REFTYPE[rt] === category);
+
+// Chỉ gửi email cho các thay đổi trạng thái đơn / timeline quan trọng.
+const KEY_EMAIL_REFTYPES = new Set([
+  'event_proposal',
+  'semester_timeline',
+  'event_change_request',
+  'club_registration',
+]);
+const MAX_EMAIL_RECIPIENTS = 60;
+
+const dispatchStatusEmails = async ({ recipientRoles, recipientEmails, title, body }) => {
+  try {
+    const User = require('../models/User');
+    const { sendStatusUpdateEmail } = require('./email.service');
+    const set = new Set(normalizeEmails(recipientEmails));
+    const roles = (recipientRoles || []).filter(Boolean);
+    if (roles.length) {
+      const users = await User.find({ role: { $in: roles }, isActive: { $ne: false } })
+        .select('email')
+        .lean();
+      users.forEach((u) => {
+        const e = String(u.email || '').trim().toLowerCase();
+        if (e) set.add(e);
+      });
+    }
+    const recipients = [...set].slice(0, MAX_EMAIL_RECIPIENTS);
+    await Promise.all(
+      recipients.map((to) =>
+        sendStatusUpdateEmail({ to, title, body, ctaUrl: APP_URL, ctaLabel: 'Mở F-Events' }).catch(
+          (err) => console.error(`[Notification email] ${to}:`, err.message),
+        ),
+      ),
+    );
+  } catch (err) {
+    console.error('[Notification] dispatchStatusEmails error:', err.message);
+  }
+};
 
 const normalizeEmails = (emails = []) =>
   [...new Set((Array.isArray(emails) ? emails : [emails])
@@ -46,6 +96,9 @@ const createNotification = async ({ recipientRoles = [], recipientEmails = [], t
 const createAndBroadcast = async ({ recipientRoles = [], recipientEmails = [], title, body, type, refId, refType }) => {
   try {
     const notification = await createNotification({ recipientRoles, recipientEmails, title, body, type, refId, refType });
+    if (KEY_EMAIL_REFTYPES.has(refType)) {
+      dispatchStatusEmails({ recipientRoles, recipientEmails, title, body });
+    }
     broadcastToRecipients(recipientRoles, recipientEmails, {
       _id: notification._id,
       id: notification._id,
@@ -71,5 +124,8 @@ module.exports = {
   broadcastToRoles: (roles, notification) => broadcastToRecipients(roles, [], notification),
   broadcastToRecipients,
   createNotification,
-  createAndBroadcast
+  createAndBroadcast,
+  categoryOfRefType,
+  refTypesForCategory,
+  CATEGORY_BY_REFTYPE
 };

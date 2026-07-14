@@ -159,7 +159,14 @@ const QrScanPage = ({ showToast }) => {
         <p className="qr-scan-success">{data.message}</p>
         {data.event?.title && (
           <p className="qr-scan-event-name">
-            Sự kiện: <strong>{data.event.title}</strong>
+            Sự kiện:{' '}
+            {data.event?.id ? (
+              <Link to={`/events/${data.event.id}`} className="qr-scan-event-link">
+                {data.event.title}
+              </Link>
+            ) : (
+              <strong>{data.event.title}</strong>
+            )}
           </p>
         )}
         {data.registration?.student && (

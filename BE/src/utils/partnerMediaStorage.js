@@ -89,15 +89,16 @@ const persistPartnerRequestMediaOnDocument = async (doc) => {
   }
 
   if (Array.isArray(doc.attachments)) {
-    doc.attachments = doc.attachments.map((att, index) => {
-      const url = String(att?.url || '').trim();
-      if (isDataUri(url)) {
-        return { ...att, storedExt: att.storedExt || '', url };
-      }
-      return att;
-    });
-    for (let i = 0; i < doc.attachments.length; i += 1) {
-      const att = doc.attachments[i];
+    // Làm việc trên mảng PLAIN OBJECT cục bộ rồi gán 1 lần ở cuối. Lý do: spread
+    // {...subdoc} không copy field dữ liệu (name/sizeLabel/mimeType) và gán vào
+    // doc.attachments sẽ recast thành subdocument → mất tên tệp nếu xử lý tại chỗ.
+    const toPlain = (a) => (a && typeof a.toObject === 'function' ? a.toObject() : { ...a });
+    const atts = doc.attachments
+      .map(toPlain)
+      // Loại bỏ đính kèm rỗng (chỉ giữ khi có url hoặc file đã lưu; tên suông không tính).
+      .filter((att) => att && (String(att.url || '').trim() || String(att.storedExt || '').trim()));
+    for (let i = 0; i < atts.length; i += 1) {
+      const att = atts[i];
       const url = String(att?.url || '').trim();
       if (isDataUri(url)) {
         let stored = false;
@@ -108,23 +109,27 @@ const persistPartnerRequestMediaOnDocument = async (doc) => {
             resourceType: 'auto',
           }).catch(() => null);
           if (uploaded?.url) {
-            doc.attachments[i] = { ...att, url: uploaded.url, storedExt: '' };
+            atts[i] = { ...att, url: uploaded.url, storedExt: '' };
             stored = true;
           }
         }
         if (!stored) {
           const ext = await writeAttachment(id, i, url, att.mimeType, att.name);
-          doc.attachments[i] = { ...att, url: '', storedExt: ext };
+          atts[i] = { ...att, url: '', storedExt: ext };
         }
       } else if (!url) {
-        doc.attachments[i] = { ...att, storedExt: att.storedExt || '' };
+        atts[i] = { ...att, storedExt: att.storedExt || '' };
       } else {
-        doc.attachments[i] = { ...att, storedExt: '' };
+        atts[i] = { ...att, storedExt: '' };
       }
     }
+    doc.attachments = atts;
   }
 
-  const speakers = Array.isArray(doc.speakers) ? [...doc.speakers] : [];
+  // toObject() để spread {...speaker} không mất name/role (xem lý do ở phần attachments).
+  const speakers = Array.isArray(doc.speakers)
+    ? doc.speakers.map((s) => (s && typeof s.toObject === 'function' ? s.toObject() : { ...s }))
+    : [];
   const speakerAvatarExts = Array.isArray(doc.speakerAvatarExts) ? [...doc.speakerAvatarExts] : [];
   for (let i = 0; i < speakers.length; i += 1) {
     const avatar = speakers[i]?.avatar || '';
@@ -199,17 +204,29 @@ const sanitizePartnerRequestForApi = (doc) => {
     isImageDataUri(doc?.image) ||
     isHttpUrl(doc?.image);
 
-  const attachments = (doc?.attachments || []).map((att, index) => {
-    const hasFile = Boolean(att?.storedExt) || attachmentHasFile(id, index, att?.storedExt || '');
-    return {
-      name: att?.name || 'Tệp đính kèm',
-      sizeLabel: att?.sizeLabel || '',
-      mimeType: att?.mimeType || '',
-      url: hasFile && id ? buildPartnerRequestAttachmentUrl(id, index) : att?.url || '',
-      attachmentUrl: hasFile && id ? buildPartnerRequestAttachmentUrl(id, index) : '',
-      hasFile,
-    };
-  });
+  const attachments = (doc?.attachments || [])
+    .map((att, index) => {
+      const rawUrl = String(att?.url || '').trim();
+      // Có file thật khi: đã lưu ext / có file trên đĩa / URL Cloudinary / data URI.
+      const hasFile =
+        Boolean(att?.storedExt) ||
+        attachmentHasFile(id, index, att?.storedExt || '') ||
+        isHttpUrl(rawUrl) ||
+        isDataUri(rawUrl);
+      // Luôn route qua endpoint media của BE → tải kèm tên tệp gốc, xử lý đồng nhất
+      // cho cả Cloudinary/đĩa/data URI (tránh tải ra file tên "0" không đuôi).
+      const mediaUrl = hasFile && id ? buildPartnerRequestAttachmentUrl(id, index) : '';
+      return {
+        name: att?.name || 'Tệp đính kèm',
+        sizeLabel: att?.sizeLabel || '',
+        mimeType: att?.mimeType || '',
+        url: mediaUrl,
+        attachmentUrl: mediaUrl,
+        hasFile,
+      };
+    })
+    // Bỏ các đính kèm rỗng (không có file lưu và không có link hợp lệ) để không hiện thẻ hỏng.
+    .filter((a) => a.hasFile);
 
   const speakerAvatarExts = Array.isArray(doc?.speakerAvatarExts) ? doc.speakerAvatarExts : [];
   const speakers = (doc?.speakers || []).map((speaker, index) => {
@@ -283,6 +300,20 @@ const resolveAttachmentResponse = async (doc, index) => {
   if (isDataUri(att?.url)) {
     const { mime, buffer } = parseDataUri(att.url);
     return { buffer, mime, fileName: att.name || `attachment-${index}` };
+  }
+  // File lưu trên Cloudinary (URL http) → tải về buffer để phục vụ kèm tên tệp gốc.
+  if (isHttpUrl(att?.url)) {
+    try {
+      const resp = await fetch(att.url);
+      if (resp.ok) {
+        const buffer = Buffer.from(await resp.arrayBuffer());
+        const mime =
+          att.mimeType || resp.headers.get('content-type') || 'application/octet-stream';
+        return { buffer, mime, fileName: att.name || `attachment-${index}` };
+      }
+    } catch {
+      /* fallback: không tải được thì trả null */
+    }
   }
   return null;
 };

@@ -102,6 +102,28 @@ export const formatPartnerDate = (value) => {
   }
 };
 
+export const formatPartnerDateTime = (value) => {
+  if (!value) return '—';
+  try {
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(value));
+  } catch {
+    return '—';
+  }
+};
+
+export const formatPartnerDateTimeRange = (start, end) => {
+  const s = start ? formatPartnerDateTime(start) : '';
+  const e = end ? formatPartnerDateTime(end) : '';
+  if (s && e) return `${s} — ${e}`;
+  return s || e || '—';
+};
+
 export const formatVnd = (amount) => {
   const n = Number(amount);
   if (!Number.isFinite(n) || n <= 0) return '—';

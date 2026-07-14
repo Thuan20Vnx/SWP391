@@ -20,6 +20,16 @@ const icpdpFetch = (path, options = {}) =>
     headers: { ...getAuthHeaders(), ...options.headers }
   }).then(parseJson);
 
+/* ── Hồ sơ đơn vị (thumbnail + mô tả hiển thị bên Admin) ── */
+export const fetchIcpdpDepartmentProfile = () => icpdpFetch('/department-profile/icpdp');
+
+export const updateIcpdpDepartmentProfile = (data) =>
+  icpdpFetch('/department-profile/icpdp', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
 /* ── Stats ── */
 export const fetchIcpdpStats = () => icpdpFetch('/stats');
 

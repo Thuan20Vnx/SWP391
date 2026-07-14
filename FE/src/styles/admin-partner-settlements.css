@@ -1,0 +1,565 @@
+/* Admin — Thanh toán sự kiện đối tác */
+.aps-page {
+  padding: 28px 32px;
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.aps-head {
+  margin-bottom: 22px;
+}
+
+.aps-head h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.aps-head p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.aps-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #64748b;
+  text-decoration: none;
+  margin-bottom: 14px;
+}
+
+.aps-back:hover {
+  color: #f26f21;
+}
+
+/* ---- Bảng danh sách ---- */
+.aps-card {
+  background: #fff;
+  border: 1px solid #e8ddd6;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.aps-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.aps-table thead th {
+  text-align: left;
+  padding: 14px 18px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #94a3b8;
+  background: #faf8f6;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.aps-table tbody td {
+  padding: 15px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #334155;
+}
+
+.aps-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.aps-table tbody tr {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.aps-table tbody tr:hover {
+  background: #fff7ed;
+}
+
+.aps-row-title {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.aps-row-sub {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.aps-num {
+  text-align: right;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.aps-center {
+  text-align: center;
+}
+
+.aps-link {
+  color: #f26f21;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.aps-empty {
+  padding: 48px 20px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+/* ---- Pill trạng thái ---- */
+.aps-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.aps-pill--none {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.aps-pill--requested {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.aps-pill--paid {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+/* ---- Chi tiết ---- */
+.aps-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.aps-title-row h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.aps-title-row .aps-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.aps-grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.aps-panel {
+  background: #fff;
+  border: 1px solid #e8ddd6;
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+
+.aps-panel h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.aps-defrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  font-size: 14px;
+  border-bottom: 1px dashed #f1f5f9;
+}
+
+.aps-defrow:last-child {
+  border-bottom: none;
+}
+
+.aps-defrow dt {
+  color: #64748b;
+}
+
+.aps-defrow dd {
+  margin: 0;
+  color: #1e293b;
+  font-weight: 600;
+  text-align: right;
+}
+
+.aps-defrow dd.mono {
+  font-family: Consolas, 'Courier New', monospace;
+}
+
+.aps-warn {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+/* ---- Khối tất toán ---- */
+.aps-settle {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 26px;
+}
+
+@media (max-width: 720px) {
+  .aps-settle {
+    grid-template-columns: 1fr;
+  }
+  .aps-page {
+    padding: 20px 16px;
+  }
+}
+
+.aps-field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.aps-field > span {
+  display: block;
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.aps-input,
+.aps-textarea {
+  width: 100%;
+  border: 1px solid #d8dee6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  background: #fff;
+}
+
+.aps-input:focus,
+.aps-textarea:focus {
+  border-color: #f26f21;
+  box-shadow: 0 0 0 3px rgba(242, 111, 33, 0.12);
+}
+
+.aps-input:disabled,
+.aps-textarea:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.aps-textarea {
+  resize: vertical;
+}
+
+.aps-hint {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 5px;
+}
+
+.aps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: #f26f21;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.aps-btn:hover:not(:disabled) {
+  background: #e05f14;
+}
+
+.aps-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- QR ---- */
+.aps-qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+}
+
+.aps-qr-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.aps-qr-img {
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  object-fit: contain;
+  padding: 6px;
+}
+
+.aps-qr-sub {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 8px;
+}
+
+/* ---- Upload biên lai ---- */
+.aps-upload {
+  border: 1.5px dashed #d8dee6;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  background: #faf8f6;
+}
+
+.aps-upload:hover {
+  border-color: #f26f21;
+  background: #fff7ed;
+}
+
+.aps-upload--filled {
+  padding: 10px;
+  background: #fff;
+}
+
+.aps-upload__icon {
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.aps-upload__text {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.aps-upload__hint {
+  font-size: 11.5px;
+  color: #a8b0bb;
+  margin-top: 3px;
+}
+
+.aps-proof-preview {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 8px;
+  display: block;
+}
+
+.aps-proof-change {
+  font-size: 12px;
+  color: #f26f21;
+  margin-top: 8px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+/* ---- Kết quả AI kiểm tra biên lai ---- */
+.aps-ai {
+  margin-bottom: 14px;
+}
+
+.aps-ai__loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748b;
+  padding: 10px 0;
+}
+
+.aps-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #f26f21;
+  border-radius: 50%;
+  animation: aps-spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes aps-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.aps-ai__box {
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+}
+
+.aps-ai__box--ok {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.aps-ai__box--bad {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.aps-ai__box--warn {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.aps-ai__title {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.aps-ai__box--ok .aps-ai__title {
+  color: #047857;
+}
+
+.aps-ai__box--bad .aps-ai__title {
+  color: #b91c1c;
+}
+
+.aps-ai__box--warn .aps-ai__title {
+  color: #b45309;
+}
+
+.aps-ai__reason {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.aps-ai__checks {
+  margin: 8px 0 0;
+  padding-left: 2px;
+  list-style: none;
+  font-size: 12.5px;
+  color: #475569;
+}
+
+.aps-ai__checks li {
+  padding: 2px 0;
+}
+
+.aps-ai__retry {
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: #b45309;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.aps-ai__override {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #9a3412;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.aps-ai__override input {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: #f26f21;
+  flex: 0 0 auto;
+}
+
+/* ---- Trạng thái đã tất toán ---- */
+.aps-paid {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.aps-paid__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #047857;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.aps-paid__meta {
+  font-size: 13px;
+  color: #065f46;
+  line-height: 1.6;
+}
+
+.aps-paid__proof {
+  margin-top: 14px;
+}
+
+.aps-paid__proof-label {
+  font-size: 12px;
+  color: #047857;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.aps-proof-thumb {
+  max-width: 320px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #a7f3d0;
+  display: block;
+  cursor: zoom-in;
+}

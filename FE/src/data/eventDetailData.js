@@ -279,6 +279,7 @@ export const mapApiEventToDetail = (event, { viewerRole = 'guest' } = {}) => {
     registeredCount,
     fillPercent,
     isRegistered,
+    myRegistration: event.myRegistration || null,
     eventState,
     postponeReason: event.postponeReason || '',
     averageRating: event.averageRating ?? 0,

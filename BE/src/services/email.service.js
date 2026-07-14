@@ -809,8 +809,126 @@ const sendEventStartingSoonEmail = async ({
   return sendMail({ to, subject: `Sắp diễn ra: ${eventTitle}`, html: htmlContent });
 };
 
+// Email chung cho các thay đổi trạng thái đơn / timeline (đơn cần duyệt, được duyệt,
+// bị từ chối, yêu cầu chỉnh sửa...). Dùng lại khung thương hiệu F-Events.
+const sendStatusUpdateEmail = async ({ to, title, body, ctaUrl, ctaLabel }) => {
+  const htmlContent = buildEmailShell({
+    title: `${title} — F-Events`,
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#f26f21;font-weight:600;">Cập nhật trạng thái</p>
+      <h1 style="margin:0 0 18px;font-size:21px;font-weight:700;color:#1e293b;line-height:1.35;">${title}</h1>
+      <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#334155;">${body || ''}</p>
+      ${ctaUrl ? ctaButton(ctaUrl, ctaLabel || 'Xem chi tiết') : ''}
+      <p style="margin:16px 0 0;font-size:13px;line-height:20px;color:#8a7b72;border-top:1px solid #f0e8e2;padding-top:18px;">Bạn nhận được email này vì có liên quan tới đơn/timeline trên F-Events.</p>
+    `,
+  });
+  return sendMail({ to, subject: title, html: htmlContent });
+};
+
+const sendEventCheckoutThankYouEmail = async ({ to, fullname, eventTitle, eventId }) => {
+  if (!to) return null;
+  const eventUrl = eventId ? `${APP_URL}/events/${eventId}` : '';
+  const htmlContent = buildEmailShell({
+    title: `Cảm ơn bạn đã tham gia: ${eventTitle} — F-Events`,
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#f26f21;font-weight:600;">Cảm ơn bạn đã tham gia</p>
+      <h1 style="margin:0 0 18px;font-size:21px;font-weight:700;color:#1e293b;line-height:1.35;">${eventTitle}</h1>
+      <p style="margin:0 0 16px;font-size:15px;line-height:24px;color:#334155;">Chào ${fullname || 'bạn'},</p>
+      <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#334155;">Bạn đã check-out khỏi sự kiện <strong>"${eventTitle}"</strong>. Cảm ơn bạn đã dành thời gian tham gia! Ban tổ chức rất mong nhận được đánh giá của bạn để cải thiện những sự kiện sau.</p>
+      ${eventUrl ? ctaButton(eventUrl, 'Đánh giá sự kiện') : ''}
+      <p style="margin:16px 0 0;font-size:13px;line-height:20px;color:#8a7b72;border-top:1px solid #f0e8e2;padding-top:18px;">Hẹn gặp lại bạn ở những sự kiện tiếp theo trên F-Events.</p>
+    `,
+  });
+  return sendMail({ to, subject: `Cảm ơn bạn đã tham gia: ${eventTitle}`, html: htmlContent });
+};
+
+const formatVndCurrency = (amount) => `${Number(amount || 0).toLocaleString('vi-VN')} ₫`;
+
+// Đối tác gửi yêu cầu Trường tất toán doanh thu → gửi tới Admin.
+const sendPartnerSettlementRequestEmail = async ({ to, partnerName, eventTitle, amount, requestNo }) => {
+  const htmlContent = buildEmailShell({
+    title: 'Yêu cầu tất toán từ đối tác — F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Yêu cầu tất toán${requestNo ? ` · lần ${requestNo}/ngày` : ''}</p>
+      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Đối tác yêu cầu Trường tất toán doanh thu</h1>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;">Đối tác <strong style="color:#1e293b;">${partnerName || 'Đối tác'}</strong> đề nghị Nhà trường tất toán doanh thu cho sự kiện <strong style="color:#1e293b;">${eventTitle || ''}</strong>.</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color:#faf8f6;border:1px solid #e8ddd6;border-radius:8px;margin-bottom:24px;">
+        <tr><td style="padding:16px 20px;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="font-size:13px;color:#8a7b72;padding-bottom:8px;">Doanh thu vé (tạm tính)</td>
+              <td align="right" style="font-size:14px;font-weight:700;color:#f26f21;padding-bottom:8px;">${formatVndCurrency(amount)}</td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin-bottom:16px;">
+        <tr><td align="center">
+          <a href="${APP_URL}/admin/partner-settlements" style="display:inline-block;background-color:#f26f21;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 28px;border-radius:8px;">Mở trang tất toán</a>
+        </td></tr>
+      </table>
+      <p style="margin:0;font-size:13px;line-height:20px;color:#8a7b72;">Vào mục "Thanh toán sự kiện đối tác" trên trang Admin để xem chi tiết và tất toán.</p>
+    `,
+  });
+
+  return sendMail({
+    to,
+    subject: `[F-Events] Yêu cầu tất toán — ${eventTitle || 'Sự kiện đối tác'}`,
+    html: htmlContent,
+  });
+};
+
+// Admin đã tất toán → báo cho đối tác.
+const sendPartnerSettlementPaidEmail = async ({ to, partnerName, eventTitle, amount, note, supportEmail }) => {
+  const supportTo = supportEmail || process.env.SUPPORT_EMAIL || 'ctsv@fpt.edu.vn';
+  const supportSubject = encodeURIComponent(`[Hỗ trợ tất toán] ${eventTitle || 'Sự kiện đối tác'}`);
+  const supportBody = encodeURIComponent(
+    `Xin chào,\n\nTôi cần hỗ trợ về khoản tất toán cho sự kiện "${eventTitle || ''}" (số tiền ${formatVndCurrency(amount)}).\n\nNội dung cần hỗ trợ:\n`
+  );
+  const supportMailto = `mailto:${supportTo}?subject=${supportSubject}&body=${supportBody}`;
+  const htmlContent = buildEmailShell({
+    title: 'Trường đã tất toán doanh thu — F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Tất toán thành công</p>
+      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Nhà trường đã tất toán doanh thu</h1>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;">Xin chào ${partnerName || 'Quý đối tác'},</p>
+      <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#334155;">Nhà trường đã tất toán doanh thu cho sự kiện <strong style="color:#1e293b;">${eventTitle || ''}</strong>.</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color:#faf8f6;border:1px solid #e8ddd6;border-radius:8px;margin-bottom:24px;">
+        <tr><td style="padding:16px 20px;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="font-size:13px;color:#8a7b72;padding-bottom:8px;">Số tiền tất toán</td>
+              <td align="right" style="font-size:14px;font-weight:700;color:#f26f21;padding-bottom:8px;">${formatVndCurrency(amount)}</td>
+            </tr>
+            ${note ? `<tr>
+              <td style="font-size:13px;color:#8a7b72;">Ghi chú</td>
+              <td align="right" style="font-size:13px;color:#334155;">${note}</td>
+            </tr>` : ''}
+          </table>
+        </td></tr>
+      </table>
+      <p style="margin:0 0 20px;font-size:13px;line-height:20px;color:#8a7b72;">Vui lòng kiểm tra tài khoản ngân hàng đã đăng ký trong hồ sơ đối tác. Nếu chưa nhận được tiền hoặc có sai sót, hãy yêu cầu hỗ trợ.</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
+        <tr>
+          <td align="center">
+            <a href="${supportMailto}" style="display:inline-block;background-color:#ffffff;color:#f26f21;text-decoration:none;font-size:14px;font-weight:600;padding:11px 26px;border:1px solid #f26f21;border-radius:8px;">Yêu cầu hỗ trợ</a>
+          </td>
+        </tr>
+      </table>
+    `,
+  });
+
+  return sendMail({
+    to,
+    subject: `[F-Events] Đã tất toán doanh thu — ${eventTitle || 'Sự kiện đối tác'}`,
+    html: htmlContent,
+  });
+};
+
 module.exports = {
   sendOtpEmail,
+  sendStatusUpdateEmail,
+  sendEventCheckoutThankYouEmail,
   sendReminderSignupEmail,
   sendRegistrationOpeningSoonEmail,
   sendEventStartingSoonEmail,
@@ -825,4 +943,6 @@ module.exports = {
   sendPartnerAdminNoticeEmail,
   sendPartnerCtsvReportEmail,
   sendPaymentConfirmationEmail,
+  sendPartnerSettlementRequestEmail,
+  sendPartnerSettlementPaidEmail,
 };

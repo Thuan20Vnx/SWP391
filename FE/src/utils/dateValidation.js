@@ -110,6 +110,14 @@ export const isOnOrAfterToday = (value) => {
   return dt >= startOfLocalDay();
 };
 
+/** True when the datetime is at or after the current moment (blocks past time today). */
+export const isOnOrAfterNow = (value, ref = new Date()) => {
+  if (!value) return false;
+  const dt = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(dt.getTime())) return false;
+  return dt >= ref;
+};
+
 export const toLocalDateInputMin = (ref = new Date()) => {
   const d = startOfLocalDay(ref);
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;

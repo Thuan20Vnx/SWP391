@@ -82,7 +82,7 @@ export const localizeDepartmentUnit = (unit, t) => {
     ...unit,
     name: unit.nameKey ? t(unit.nameKey) : unit.name,
     subtitle: unit.subtitleKey ? t(unit.subtitleKey) : unit.subtitle,
-    description: unit.descriptionKey ? t(unit.descriptionKey) : unit.description,
+    description: unit.descriptionOverride || (unit.descriptionKey ? t(unit.descriptionKey) : unit.description),
     manageLabel: unit.manageLabelKey ? t(unit.manageLabelKey) : unit.manageLabel,
     roleLabel: unit.roleLabelKey ? t(unit.roleLabelKey) : unit.roleLabel,
   };

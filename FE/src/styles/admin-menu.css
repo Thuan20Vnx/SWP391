@@ -341,6 +341,12 @@
   overflow: hidden;
 }
 
+/* Sidebar mở — ẩn menu ngang trong header vì đã trùng menu trong sidebar; menu vẫn còn
+   khi sidebar đóng nên không co giãn được, gây tràn header ở bên phải (avatar/thông báo). */
+.site-header--with-shell.site-header--sidebar-open .site-header__nav {
+  display: none;
+}
+
 /* Sidebar mß╗ƒ: thu ├┤ t├¼m kiß║┐m th├ánh n├║t k├¡nh l├║p */
 .site-header__search--collapsed {
   flex: 0 0 auto;

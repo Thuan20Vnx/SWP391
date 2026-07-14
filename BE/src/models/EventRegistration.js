@@ -24,6 +24,7 @@ const eventRegistrationSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  // Mốc check-in/out tổng hợp: lần check-in ĐẦU và lần check-out CUỐI (giữ tương thích ngược).
   checkedInAt: {
     type: Date,
     default: null,
@@ -31,6 +32,20 @@ const eventRegistrationSchema = new mongoose.Schema({
   checkedOutAt: {
     type: Date,
     default: null,
+  },
+  // Điểm danh theo từng ngày cho sự kiện nhiều ngày. sessionKey = 'YYYY-MM-DD' (theo ngày quét).
+  attendanceLog: {
+    type: [
+      new mongoose.Schema(
+        {
+          sessionKey: { type: String, required: true },
+          checkedInAt: { type: Date, default: null },
+          checkedOutAt: { type: Date, default: null },
+        },
+        { _id: false },
+      ),
+    ],
+    default: [],
   },
   scannedBy: {
     type: mongoose.Schema.Types.ObjectId,

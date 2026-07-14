@@ -48,13 +48,32 @@ const deleteAccount = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const resetAccountPassword = async (req, res) => {
+  const result = await adminService.resetAccountPassword(req.params.id);
+  res.status(200).json({ success: true, ...result });
+};
+
+const listAssignableClubs = async (req, res) => {
+  const result = await adminService.listAssignableClubs();
+  res.status(200).json({ success: true, ...result });
+};
+
+const getPendingAdminSummary = async (req, res) => {
+  const result = await adminService.getPendingAdminSummary();
+  res.status(200).json({ success: true, ...result });
+};
+
 const getDataOverview = async (req, res) => {
   const result = await adminDataService.getDataOverview();
   res.status(200).json({ success: true, ...result });
 };
 
 const getDashboardStats = async (req, res) => {
-  const stats = await adminDashboardService.getDashboardStats();
+  const stats = await adminDashboardService.getDashboardStats({
+    months: req.query.months,
+    endYear: req.query.endYear,
+    endMonth: req.query.endMonth,
+  });
   res.status(200).json({ success: true, stats });
 };
 
@@ -77,6 +96,9 @@ module.exports = {
   updateAccountStatus,
   lockAccount,
   deleteAccount,
+  resetAccountPassword,
+  listAssignableClubs,
+  getPendingAdminSummary,
   getDataOverview,
   getDashboardStats,
   getSystemHealth,

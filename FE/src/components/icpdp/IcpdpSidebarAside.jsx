@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 import { getRoleDisplayLabel, getUserRole } from '../../utils/auth';
+import useNavBadges from '../../hooks/useNavBadges';
 import CtsvNavIcon from '../ctsv/CtsvNavIcon';
 import {
   ICPDP_NAV_ITEMS,
@@ -16,6 +17,13 @@ const IcpdpSidebarAside = ({
   onLogout,
   pathname
 }) => {
+  const { badges, markRead } = useNavBadges();
+
+  useEffect(() => {
+    const active = ICPDP_NAV_ITEMS.find((it) => it.badgeKey && isIcpdpNavActive(it.path, pathname));
+    if (active && badges[active.badgeKey]) markRead(active.badgeKey);
+  }, [pathname, badges, markRead]);
+
   const renderNavItems = () => {
     const out = [];
     let lastSection = null;
@@ -31,12 +39,14 @@ const IcpdpSidebarAside = ({
       const linkClass = isIcpdpNavActive(item.path, pathname)
         ? 'ctsv-nav-link icpdp-nav-link active'
         : 'ctsv-nav-link icpdp-nav-link';
+      const showDot = item.badgeKey && badges[item.badgeKey] > 0;
       out.push(
         <Link
-          key={item.path}
+          key={`${item.path}-${item.label}`}
           to={item.path}
           className={linkClass}
           onClick={() => {
+            if (item.badgeKey) markRead(item.badgeKey);
             if (!isIcpdpDesktop()) onClose?.();
           }}
         >
@@ -44,6 +54,7 @@ const IcpdpSidebarAside = ({
             <CtsvNavIcon type={item.icon} />
           </span>
           <span className="ctsv-nav-label">{item.label}</span>
+          {showDot && <span className="ctsv-nav-dot" aria-label="Có cập nhật mới" />}
         </Link>
       );
     });

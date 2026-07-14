@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import AdminActivityLogModal from '../components/admin/AdminActivityLogModal';
 import AdminMetricDetailModal from '../components/admin/AdminMetricDetailModal';
 import { ADMIN_ACTIVITY_PREVIEW_COUNT } from '../data/adminDashboardData';
 import useAdminDashboardStats from '../hooks/useAdminDashboardStats';
+import { fetchSystemHealth } from '../services/adminApi';
 import { getUserRole, isAdminRole } from '../utils/auth';
 import { formatAdminDateTime } from '../utils/adminLiveTime';
 import { useTranslation } from '../i18n/I18nContext';
@@ -29,6 +30,40 @@ const StatIconSystem = () => (
   </svg>
 );
 
+// Thẻ "Hệ thống" — nhận trạng thái đã chuẩn hóa, hiển thị được cả khi DB rớt.
+const SystemStatusCard = ({ card, t }) => (
+  <article className="admin-stat-card admin-stat-card--system admin-stat-card--compact">
+    <div className="admin-stat-card__head">
+      <p className="admin-stat-card__label">{t('admin.monitor.system')}</p>
+      <StatIconSystem />
+    </div>
+    <div className="admin-stat-card__system">
+      <span className={`admin-status-badge${card.status === 'degraded' ? ' admin-status-badge--down' : ''}`}>
+        {card.label}
+      </span>
+      <p className="admin-stat-card__sub">
+        {t('admin.monitor.systemUpdated', { time: card.lastCheck })}
+        {card.uptime ? ` · ${t('admin.monitor.uptime', { value: card.uptime })}` : ''}
+      </p>
+    </div>
+    <ul className="admin-stat-card__quick admin-stat-card__quick--system">
+      <li>
+        <span>{card.database}</span>
+        <strong className={card.databaseConnected ? 'admin-stat-card__ok' : 'admin-stat-card__down'}>
+          {card.databaseConnected ? t('admin.monitor.connected') : t('admin.monitor.disconnected')}
+          {card.databaseConnected && card.dbLatencyMs != null ? ` · ${card.dbLatencyMs}ms` : ''}
+        </strong>
+      </li>
+      <li>
+        <span>API Server</span>
+        <strong className={card.apiActive ? 'admin-stat-card__ok' : 'admin-stat-card__down'}>
+          {card.apiActive ? t('admin.monitor.apiActive') : t('admin.monitor.apiDown')}
+        </strong>
+      </li>
+    </ul>
+  </article>
+);
+
 const AdminMonitoringDashboard = () => {
   const navigate = useNavigate();
   const { t, language } = useTranslation();
@@ -36,7 +71,53 @@ const AdminMonitoringDashboard = () => {
   const role = getUserRole();
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [detailModal, setDetailModal] = useState(null);
-  const { stats, loading, error, reload } = useAdminDashboardStats();
+  const [chartMonths, setChartMonths] = useState(6);
+  // Mốc tháng cuối (bên phải) của biểu đồ; mặc định tháng hiện tại.
+  const [chartAnchor, setChartAnchor] = useState(() => {
+    const d = new Date();
+    return { year: d.getFullYear(), month: d.getMonth() + 1 };
+  });
+  const { stats, loading, error, reload } = useAdminDashboardStats({
+    months: chartMonths,
+    endYear: chartAnchor.year,
+    endMonth: chartAnchor.month,
+  });
+
+  // Sức khỏe hệ thống lấy riêng từ /system-health (ping DB thật, uptime, latency) — độc lập với stats
+  // để thẻ "Hệ thống" vẫn hiện được kể cả khi DB rớt và endpoint stats lỗi.
+  const [health, setHealth] = useState(null);
+  const [healthLoaded, setHealthLoaded] = useState(false);
+  const reloadHealth = useCallback(async () => {
+    try {
+      const res = await fetchSystemHealth();
+      setHealth(res.health || res || null);
+    } catch {
+      setHealth(null);
+    } finally {
+      setHealthLoaded(true);
+    }
+  }, []);
+  useEffect(() => {
+    reloadHealth();
+  }, [reloadHealth]);
+
+  // Dịch mốc anchor đi delta tháng, không cho vượt quá tháng hiện tại.
+  const shiftChartAnchor = (delta) => {
+    setChartAnchor((prev) => {
+      const shifted = new Date(prev.year, prev.month - 1 + delta, 1);
+      const now = new Date();
+      const nowFirst = new Date(now.getFullYear(), now.getMonth(), 1);
+      const capped = shifted > nowFirst ? nowFirst : shifted;
+      return { year: capped.getFullYear(), month: capped.getMonth() + 1 };
+    });
+  };
+
+  // Nhảy tới một năm: hiện tháng 12 của năm đó (hoặc tháng hiện tại nếu là năm nay).
+  const jumpChartToYear = (year) => {
+    const now = new Date();
+    const month = year >= now.getFullYear() ? now.getMonth() + 1 : 12;
+    setChartAnchor({ year: Math.min(year, now.getFullYear()), month });
+  };
 
   const dashboardView = useMemo(() => {
     if (!stats) return null;
@@ -73,6 +154,9 @@ const AdminMonitoringDashboard = () => {
       status: stats.system?.status || 'stable',
       label: stats.system?.label || t('admin.monitor.stable'),
       database: stats.system?.database || 'MongoDB',
+      // Nếu BE cũ chưa trả cờ mới thì suy từ status để không vỡ giao diện.
+      databaseConnected: stats.system?.databaseConnected ?? (stats.system?.status !== 'degraded'),
+      apiActive: stats.system?.apiActive ?? true,
       lastCheck: formatAdminDateTime(new Date(stats.checkedAt), language),
     };
 
@@ -167,6 +251,7 @@ const AdminMonitoringDashboard = () => {
       systemOverall,
       monthlyPerformance,
       chartSummary: stats.chartSummary,
+      chartRange: stats.chartRange || null,
       peakMonthIndex: stats.peakMonthIndex ?? 0,
       metricDetailMap,
       maxBar,
@@ -185,6 +270,49 @@ const AdminMonitoringDashboard = () => {
       openDetail(variant);
     }
   };
+
+  // Trạng thái thẻ "Hệ thống": ưu tiên /system-health (ping thật), lùi về stats.system, cuối cùng là "mất kết nối".
+  const systemCard = (() => {
+    if (health) {
+      const db = health.services?.db || {};
+      const api = health.services?.api || {};
+      const overall = health.overall?.status || 'stable';
+      const label =
+        overall === 'stable'
+          ? t('admin.monitor.stable')
+          : overall === 'offline'
+            ? t('admin.monitor.offline')
+            : t('admin.monitor.warning');
+      return {
+        status: overall === 'stable' ? 'stable' : 'degraded',
+        label,
+        database: db.name || 'FEVENTSDB',
+        databaseConnected: db.status === 'online',
+        dbLatencyMs: Number.isFinite(db.latencyMs) ? db.latencyMs : null,
+        apiActive: api.status === 'online',
+        uptime: health.overall?.uptimeFormatted || null,
+        lastCheck: health.checkedAt ? formatAdminDateTime(new Date(health.checkedAt), language) : '—',
+      };
+    }
+    // Chưa/không lấy được health nhưng stats còn sống → dùng tạm cờ từ dashboard stats.
+    if (dashboardView?.systemOverall) {
+      return { ...dashboardView.systemOverall, dbLatencyMs: null, uptime: null };
+    }
+    // Cả health lẫn stats đều hỏng → coi như hệ thống không phản hồi.
+    if (healthLoaded) {
+      return {
+        status: 'degraded',
+        label: t('admin.monitor.offline'),
+        database: 'FEVENTSDB',
+        databaseConnected: false,
+        dbLatencyMs: null,
+        apiActive: false,
+        uptime: null,
+        lastCheck: '—',
+      };
+    }
+    return null;
+  })();
 
   useEffect(() => {
     if (!isAdminRole(role)) {
@@ -212,10 +340,29 @@ const AdminMonitoringDashboard = () => {
   if (!dashboardView) {
     return (
       <main className="admin-main">
-        <p className="admin-page-header__clock">{t('admin.monitor.noData')}</p>
-        <button type="button" className="admin-panel__link" onClick={reload}>
-          {t('common.retry')}
-        </button>
+        <div className="admin-dashboard-grid">
+          <header className="admin-page-header">
+            <div>
+              <h1 className="admin-main__title">{t('admin.monitor.title')}</h1>
+              <p className="admin-page-header__clock">{t('admin.monitor.noData')}</p>
+            </div>
+            <button
+              type="button"
+              className="admin-panel__link"
+              onClick={() => {
+                reload();
+                reloadHealth();
+              }}
+            >
+              {t('common.retry')}
+            </button>
+          </header>
+          {systemCard && (
+            <section className="admin-stats-grid" aria-label={t('admin.monitor.stats')}>
+              <SystemStatusCard card={systemCard} t={t} />
+            </section>
+          )}
+        </div>
       </main>
     );
   }
@@ -223,14 +370,24 @@ const AdminMonitoringDashboard = () => {
   const {
     trafficOverview,
     dataOverview,
-    systemOverall,
     monthlyPerformance,
     chartSummary,
+    chartRange,
     peakMonthIndex,
     metricDetailMap,
     activityLogs,
     maxBar,
   } = dashboardView;
+
+  const nowYear = new Date().getFullYear();
+  const earliestYear = chartRange?.earliestYear ?? nowYear;
+  // Luôn cho chọn tối thiểu 5 năm gần nhất, và mở rộng thêm nếu có dữ liệu cũ hơn.
+  const minYearOption = Math.min(earliestYear, nowYear - 4);
+  const yearOptions = [];
+  for (let y = nowYear; y >= minYearOption; y -= 1) {
+    yearOptions.push(y);
+  }
+  const canGoNext = chartRange?.canGoNext ?? false;
 
   return (
     <main className="admin-main">
@@ -319,28 +476,7 @@ const AdminMonitoringDashboard = () => {
             </ul>
           </article>
 
-          <article className="admin-stat-card admin-stat-card--system admin-stat-card--compact">
-            <div className="admin-stat-card__head">
-              <p className="admin-stat-card__label">{t('admin.monitor.system')}</p>
-              <StatIconSystem />
-            </div>
-            <div className="admin-stat-card__system">
-              <span className="admin-status-badge">{systemOverall.label}</span>
-              <p className="admin-stat-card__sub">
-                {t('admin.monitor.systemUpdated', { time: systemOverall.lastCheck })}
-              </p>
-            </div>
-            <ul className="admin-stat-card__quick admin-stat-card__quick--system">
-              <li>
-                <span>{systemOverall.database}</span>
-                <strong className="admin-stat-card__ok">{t('admin.monitor.connected')}</strong>
-              </li>
-              <li>
-                <span>API Server</span>
-                <strong className="admin-stat-card__ok">{t('admin.monitor.apiActive')}</strong>
-              </li>
-            </ul>
-          </article>
+          {systemCard && <SystemStatusCard card={systemCard} t={t} />}
         </section>
 
         <section className="admin-charts-grid">
@@ -359,6 +495,66 @@ const AdminMonitoringDashboard = () => {
                 <p className="admin-chart-header__sub">
                   {t('admin.monitor.chartSub', { period: chartSummary.period, time: clockLabel })}
                 </p>
+                <div className="admin-chart-controls" role="group" aria-label={t('admin.monitor.rangeLabel')}>
+                  <button
+                    type="button"
+                    className="admin-chart-nav"
+                    aria-label={t('admin.monitor.rangePrev')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      shiftChartAnchor(-chartMonths);
+                    }}
+                  >
+                    &lsaquo;
+                  </button>
+
+                  <div className="admin-chart-range">
+                    {[6, 12].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        className={`admin-chart-range__btn${chartMonths === m ? ' admin-chart-range__btn--active' : ''}`}
+                        aria-pressed={chartMonths === m}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setChartMonths(m);
+                        }}
+                      >
+                        {t('admin.monitor.rangeMonths', { count: m })}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="admin-chart-year">
+                    <span className="admin-chart-year__label">{t('admin.monitor.rangeYear')}</span>
+                    <select
+                      className="admin-chart-year__select"
+                      value={chartAnchor.year}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        jumpChartToYear(Number(e.target.value));
+                      }}
+                    >
+                      {yearOptions.map((y) => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <button
+                    type="button"
+                    className="admin-chart-nav"
+                    aria-label={t('admin.monitor.rangeNext')}
+                    disabled={!canGoNext}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      shiftChartAnchor(chartMonths);
+                    }}
+                  >
+                    &rsaquo;
+                  </button>
+                </div>
               </div>
               <div className="admin-chart-kpis" aria-label={t('admin.monitor.chartSummaryAria')}>
                 <div className="admin-chart-kpis__item">

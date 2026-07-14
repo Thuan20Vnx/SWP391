@@ -50,24 +50,31 @@ const formatPendingRequestAsEvent = (doc) => {
     benefits: doc.benefits || [],
     partnerMessage: doc.partnerMessage || '',
     attachments: media.attachments || [],
+    attachmentLinks: (doc.attachmentLinks || []).filter(Boolean),
+    expectedSponsorAmount: doc.expectedSponsorAmount || 0,
     rejectionReason: doc.rejectionReason || '',
     supplementReason: doc.supplementReason || '',
     source: 'partner',
     isRequest: true
   };
 };
-const { appendDemoToReportList } = require('./ctsvReport.service');
 const {
   listPartnerSubmittedReports,
   getPartnerSubmittedReportDetail,
 } = require('./ctsvReportSubmission.service');
 const AppError = require('../utils/AppError');
 const partnerQueryCache = require('../utils/partnerQueryCache');
+const {
+  computeEventPaidRevenue,
+  computePaidRevenueMap,
+  evaluateRequestAllowance,
+  isEventEnded,
+} = require('./settlement.service');
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
 const PARTNER_SUMMARY_FIELDS =
-  'name email phone representative address description partnerCode category proposedEventTitle expectedSponsorAmount benefits representativeTitle status rejectionReason supplementReason createdAt updatedAt';
+  'name email phone representative address description partnerCode category proposedEventTitle expectedSponsorAmount benefits representativeTitle bankAccountNumber bankCode bankName bankAccountHolder status rejectionReason supplementReason createdAt updatedAt';
 
 const PARTNER_LOGO_FIELDS = `${PARTNER_SUMMARY_FIELDS} logo attachments`;
 
@@ -298,7 +305,8 @@ const getPartnerEvents = async (email, query = {}) => {
     filter.category = category;
   }
 
-  const events = await Event.find(filter)
+  // Không hiển thị sự kiện đã bị xóa mềm trong danh sách của đối tác.
+  const events = await Event.find({ ...filter, isDeleted: { $ne: true } })
     .select(EVENT_LIST_FIELDS)
     .sort({ startDate: -1 })
     .limit(100)
@@ -334,7 +342,7 @@ const getPartnerEventById = async (email, eventId) => {
   }
 
   const event = await Event.findById(eventId).lean();
-  if (!event) {
+  if (!event || event.isDeleted) {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
 
@@ -343,7 +351,202 @@ const getPartnerEventById = async (email, eventId) => {
     throw new AppError('Bạn không có quyền xem sự kiện này!', 403);
   }
 
-  return formatEvent(event);
+  const formatted = formatEvent(event);
+  const revenue = await computeEventPaidRevenue(event._id);
+  const allowance = evaluateRequestAllowance(event.settlement?.requestLog || []);
+  const ended = isEventEnded(event);
+  // Cho phép gửi lại khi sự kiện ĐÃ kết thúc, kể cả đã tất toán trước đó (mở chu kỳ mới).
+  const paidBlocks = formatted.settlement.status === 'paid' && !ended;
+  formatted.revenue = revenue;
+  formatted.settlement = {
+    ...formatted.settlement,
+    ended,
+    canRequest: !paidBlocks && allowance.allowed,
+    remainingToday: allowance.remainingToday,
+    nextAllowedAt: allowance.nextAllowedAt,
+    blockReason: allowance.reason,
+  };
+
+  // Gắn đơn (PartnerEventRequest) đã duyệt/ẩn liên kết với sự kiện để FE cho phép
+  // "Yêu cầu sửa" (gửi lại CTSV duyệt) và "Ẩn sự kiện" ngay trên trang chi tiết.
+  const linkedRequest = await PartnerEventRequest.findOne({
+    eventId: event._id,
+    status: { $in: ['approved', 'hidden'] },
+  })
+    .sort({ updatedAt: -1 })
+    .lean();
+  formatted.requestId = linkedRequest ? String(linkedRequest._id) : null;
+  formatted.requestStatus = linkedRequest ? linkedRequest.status : null;
+  // Bổ sung thông tin đối tác đã nộp (nằm ở đơn, không có trên Event) để trang chi tiết đầy đủ.
+  if (linkedRequest) {
+    const media = sanitizePartnerRequestForApi(linkedRequest);
+    formatted.benefits = linkedRequest.benefits || [];
+    formatted.partnerMessage = linkedRequest.partnerMessage || '';
+    formatted.learningOutcomes = formatted.learningOutcomes?.length
+      ? formatted.learningOutcomes
+      : linkedRequest.learningOutcomes || [];
+    formatted.agenda = formatted.agenda || linkedRequest.agenda || '';
+    formatted.attachments = media.attachments || [];
+    formatted.attachmentLinks = (linkedRequest.attachmentLinks || []).filter(Boolean);
+    formatted.expectedSponsorAmount = linkedRequest.expectedSponsorAmount || 0;
+  }
+  // Khóa sửa nếu đã có người đăng ký hoặc đã tất toán.
+  formatted.editLock =
+    (event.registeredCount || 0) > 0
+      ? 'registered'
+      : formatted.settlement.status === 'paid'
+        ? 'settled'
+        : '';
+  return formatted;
+};
+
+// Danh sách sự kiện đối tác kèm doanh thu + trạng thái tất toán (trang "Yêu cầu thanh toán").
+const getPartnerSettlements = async (email) => {
+  const partnerIds = await getPartnerIdsByEmail(email);
+  if (!partnerIds.length) return [];
+
+  const events = await Event.find({ partnerId: { $in: partnerIds }, isDeleted: { $ne: true } })
+    .select('title startDate endDate status ticketPrice registeredCount settlement partnerId')
+    .sort({ startDate: -1 })
+    .limit(200)
+    .lean();
+
+  const revenueMap = await computePaidRevenueMap(events.map((e) => e._id));
+  return events.map((e) => {
+    const revenue = revenueMap[String(e._id)] || { paidRevenue: 0, paidCount: 0 };
+    const allowance = evaluateRequestAllowance(e.settlement?.requestLog || []);
+    const status = e.settlement?.status || 'none';
+    const ended = isEventEnded(e);
+    const paidBlocks = status === 'paid' && !ended;
+    return {
+      id: String(e._id),
+      title: e.title,
+      startDate: e.startDate,
+      endDate: e.endDate,
+      statusKey: e.status,
+      ticketPrice: e.ticketPrice || 0,
+      registeredCount: e.registeredCount || 0,
+      paidRevenue: revenue.paidRevenue,
+      paidCount: revenue.paidCount,
+      settlementStatus: status,
+      settlementRequestedAt: e.settlement?.requestedAt || null,
+      settlementPaidAt: e.settlement?.paidAt || null,
+      settlementPaidAmount: e.settlement?.paidAmount || 0,
+      settlementProofUrl: e.settlement?.proofUrl || '',
+      ended,
+      canRequest: !paidBlocks && allowance.allowed,
+      remainingToday: allowance.remainingToday,
+      nextAllowedAt: allowance.nextAllowedAt,
+      blockReason: allowance.reason,
+    };
+  });
+};
+
+// Đối tác gửi yêu cầu Trường tất toán doanh thu cho một sự kiện (giới hạn tần suất).
+const requestPartnerSettlement = async (email, eventId) => {
+  const partnerIds = await getPartnerIdsByEmail(email);
+  if (!partnerIds.length) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new AppError('Không tìm thấy sự kiện!', 404);
+  }
+  const owns = partnerIds.some((id) => String(event.partnerId) === String(id));
+  if (!owns) {
+    throw new AppError('Bạn không có quyền với sự kiện này!', 403);
+  }
+  const ended = isEventEnded(event);
+  // Đã tất toán mà sự kiện CHƯA kết thúc thì không cho gửi lại; nếu ĐÃ kết thúc thì mở chu kỳ mới.
+  if (event.settlement?.status === 'paid' && !ended) {
+    throw new AppError('Sự kiện này đã được tất toán.', 400);
+  }
+
+  const allowance = evaluateRequestAllowance(event.settlement?.requestLog || []);
+  if (!allowance.allowed) {
+    const msg =
+      allowance.reason === 'daily_limit'
+        ? 'Bạn đã gửi tối đa 3 yêu cầu trong hôm nay. Vui lòng thử lại vào ngày mai.'
+        : 'Vui lòng chờ ít nhất 1 giờ giữa các lần gửi yêu cầu.';
+    throw new AppError(msg, 429);
+  }
+
+  const now = new Date();
+  const wasPaid = event.settlement?.status === 'paid';
+  const prev = event.settlement ? event.settlement.toObject?.() || event.settlement : {};
+  event.settlement = {
+    ...prev,
+    status: 'requested',
+    requestedAt: now,
+    requestLog: [...(event.settlement?.requestLog || []), now],
+    // Mở chu kỳ tất toán mới sau khi sự kiện kết thúc: xóa dấu vết lần tất toán trước
+    // để Admin thấy đây là một yêu cầu mới cần xử lý lại.
+    ...(wasPaid && ended
+      ? {
+          paidAt: null,
+          paidByEmail: '',
+          paidAmount: 0,
+          note: '',
+          proofUrl: '',
+          proofPublicId: '',
+          proofAiChecked: false,
+          proofAiValid: false,
+          proofAiReason: '',
+          proofAdminOverride: false,
+        }
+      : {}),
+  };
+  await event.save();
+
+  const requestNo = allowance.usedToday + 1;
+  const revenue = await computeEventPaidRevenue(event._id);
+  const partner = event.partnerId
+    ? await Partner.findById(event.partnerId).select('name').lean()
+    : null;
+
+  // Thông báo cho admin (in-app).
+  try {
+    const { createAndBroadcast } = require('./notification.service');
+    createAndBroadcast({
+      recipientRoles: ['admin'],
+      recipientEmails: [],
+      title: 'Yêu cầu tất toán từ đối tác',
+      body: `${partner?.name || 'Đối tác'} đề nghị Trường tất toán doanh thu cho sự kiện "${event.title}".`,
+      type: 'partner_settlement',
+      refId: String(event._id),
+      refType: 'partner_settlement',
+    });
+  } catch (err) {
+    console.error('[Settlement] notify admin error:', err.message);
+  }
+
+  // Email cho admin (nền, có giới hạn tần suất qua requestLog).
+  try {
+    const User = require('../models/User');
+    const { sendPartnerSettlementRequestEmail } = require('./email.service');
+    const admins = await User.find({ role: 'admin', isActive: { $ne: false } }).select('email').lean();
+    admins.forEach((a) => {
+      if (!a.email) return;
+      sendPartnerSettlementRequestEmail({
+        to: a.email,
+        partnerName: partner?.name || 'Đối tác',
+        eventTitle: event.title,
+        amount: revenue.paidRevenue,
+        requestNo,
+      }).catch((err) => console.error(`[Settlement] admin email ${a.email}:`, err.message));
+    });
+  } catch (err) {
+    console.error('[Settlement] admin email error:', err.message);
+  }
+
+  const nextAllowance = evaluateRequestAllowance(event.settlement.requestLog);
+  return {
+    ok: true,
+    requestNo,
+    settlementStatus: event.settlement.status,
+    remainingToday: nextAllowance.remainingToday,
+    nextAllowedAt: nextAllowance.nextAllowedAt,
+  };
 };
 
 const getPartnerContracts = async (email) => {
@@ -372,8 +575,9 @@ const getPartnerContracts = async (email) => {
 };
 
 const getPartnerReports = async (email) => {
-  const reports = await listPartnerSubmittedReports(email);
-  return appendDemoToReportList(reports);
+  // Trả về báo cáo CTSV đã phát hành cho đối tác. (Trước đây gọi appendDemoToReportList —
+  // hàm này không tồn tại nên làm endpoint /reports lỗi 500; đã bỏ.)
+  return listPartnerSubmittedReports(email);
 };
 
 const getPartnerReportDetail = async (email, eventId) => {
@@ -414,6 +618,8 @@ module.exports = {
   buildPartnerStatsBundle,
   getPartnerEvents,
   getPartnerEventById,
+  getPartnerSettlements,
+  requestPartnerSettlement,
   getPartnerContracts,
   getPartnerReports,
   getPartnerReportDetail,

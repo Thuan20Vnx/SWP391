@@ -112,11 +112,20 @@ const EventPostponeCancelPanel = ({ event, eventId, showToast, onEventUpdated })
   const [postponeOpen, setPostponeOpen] = useState(false);
   const [hideOpen, setHideOpen] = useState(false);
 
+  // Đã có sinh viên đăng ký thì chỉ được hoãn, không cho hủy (khớp guard phía BE).
+  const hasRegistrations = (event?.registeredCount || 0) > 0;
+
   useEffect(() => {
     if (action === 'cancel' && reasonCategory === 'weather') {
       setReasonCategory('');
     }
   }, [action, reasonCategory]);
+
+  useEffect(() => {
+    if (hasRegistrations && action === 'cancel') {
+      setAction('postpone');
+    }
+  }, [hasRegistrations, action]);
 
   const selectedReason = useMemo(
     () => CLUB_MODERATION_REASONS.find((r) => r.value === reasonCategory),
@@ -361,21 +370,28 @@ const EventPostponeCancelPanel = ({ event, eventId, showToast, onEventUpdated })
                   />
                   Hoãn sự kiện
                 </label>
-                <label
-                  className={`ev-moderation-radio ev-moderation-radio--danger${
-                    action === 'cancel' ? ' is-active' : ''
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="moderation-action"
-                    value="cancel"
-                    checked={action === 'cancel'}
-                    onChange={() => setAction('cancel')}
-                  />
-                  Hủy sự kiện
-                </label>
+                {!hasRegistrations && (
+                  <label
+                    className={`ev-moderation-radio ev-moderation-radio--danger${
+                      action === 'cancel' ? ' is-active' : ''
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="moderation-action"
+                      value="cancel"
+                      checked={action === 'cancel'}
+                      onChange={() => setAction('cancel')}
+                    />
+                    Hủy sự kiện
+                  </label>
+                )}
               </div>
+              {hasRegistrations && (
+                <p className="ev-moderation-note">
+                  Sự kiện đã có sinh viên đăng ký nên chỉ có thể hoãn, không thể hủy hoặc chỉnh sửa.
+                </p>
+              )}
             </fieldset>
 
             <ReasonFieldset

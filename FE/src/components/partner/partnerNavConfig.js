@@ -3,11 +3,12 @@ export const PARTNER_SIDEBAR_KEY = 'partnerSidebarOpen';
 export const PARTNER_NAV_ITEMS = [
   { path: '/partner/dashboard', label: 'Bảng điều khiển', icon: 'dashboard' },
   { path: '/partner/profile', label: 'Hồ sơ & Cài đặt', icon: 'profile' },
-  { path: '/partner/events', label: 'Quản lý sự kiện', section: 'SỰ KIỆN', icon: 'publish' },
+  { path: '/partner/events', label: 'Quản lý sự kiện', section: 'SỰ KIỆN', icon: 'publish', badgeKey: 'events' },
   { path: '/partner/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
   { path: '/partner/announcements', label: 'Thông báo', icon: 'reports' },
   { path: '/partner/proposals/create', label: 'Tạo sự kiện mới', icon: 'create' },
   { path: '/partner/contracts', label: 'Hợp đồng', section: 'TÀI CHÍNH', icon: 'partners' },
+  { path: '/partner/settlements', label: 'Yêu cầu thanh toán', icon: 'partners' },
   { path: '/partner/analytics', label: 'Phân tích báo cáo', icon: 'reports' }
 ];
 
@@ -50,6 +51,9 @@ export const isPartnerNavActive = (path, pathname) => {
   }
   if (path === '/partner/proposals/create') {
     return pathname.startsWith('/partner/proposals');
+  }
+  if (path === '/partner/settlements') {
+    return pathname === '/partner/settlements' || pathname.startsWith('/partner/settlements/');
   }
   if (path === '/partner/analytics') {
     return pathname === '/partner/analytics' || pathname.startsWith('/partner/analytics/');

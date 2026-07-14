@@ -3,6 +3,7 @@ export const SIDEBAR_KEY = 'ctsvSidebarOpen';
 export const CTSV_NAV_ITEMS = [
   { path: '/ctsv/dashboard', label: 'Bảng điều khiển', icon: 'dashboard' },
   { path: '/ctsv/profile', label: 'Hồ sơ', icon: 'profile' },
+  { path: '/ctsv/department-profile', label: 'Quản lý hồ sơ CTSV', icon: 'profile' },
   { path: '/ctsv/partners', label: 'Duyệt đơn đối tác', mobileLabel: 'Duyệt đối tác', icon: 'partners' },
   {
     path: '/ctsv/events/create',
@@ -11,8 +12,8 @@ export const CTSV_NAV_ITEMS = [
     section: 'SỰ KIỆN',
     icon: 'create',
   },
-  { path: '/ctsv/events', label: 'Quản lý sự kiện', icon: 'calendar' },
-  { path: '/ctsv/semester-timelines', label: 'Timeline kỳ học', icon: 'calendar' },
+  { path: '/ctsv/events', label: 'Quản lý sự kiện', icon: 'calendar', badgeKey: 'events' },
+  { path: '/ctsv/semester-timelines', label: 'Timeline kỳ học', icon: 'calendar', badgeKey: 'timeline' },
   { path: '/ctsv/notifications', label: 'Thông báo', icon: 'announce' },
   { path: '/ctsv/calendar', label: 'Lịch toàn trường', icon: 'calendar' },
   { path: '/ctsv/reports', label: 'Báo cáo sau SK', icon: 'reports' }
@@ -48,6 +49,9 @@ export const isCtsvNavActive = (path, pathname) => {
   if (path === '/ctsv/dashboard') return pathname === path;
   if (path === '/ctsv/profile') {
     return pathname === '/ctsv/profile' || pathname === '/profile';
+  }
+  if (path === '/ctsv/department-profile') {
+    return pathname === '/ctsv/department-profile';
   }
   if (path === '/ctsv/events') {
     return (

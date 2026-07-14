@@ -5,6 +5,7 @@ const authorize = require('../middleware/authorize');
 const optionalAuth = require('../middleware/optionalAuth');
 const optionalAuthorize = require('../middleware/optionalAuthorize');
 const clubController = require('../controllers/club.controller');
+const clubChangeRequestController = require('../controllers/clubChangeRequest.controller');
 
 const router = express.Router();
 
@@ -138,6 +139,19 @@ router.delete(
   authMiddleware,
   authorize('icpdp', 'admin'),
   asyncHandler(clubController.icpdpDeleteClub)
+);
+
+router.get(
+  '/:id/change-requests',
+  authMiddleware,
+  authorize('icpdp', 'admin'),
+  asyncHandler(clubChangeRequestController.listForClub)
+);
+router.post(
+  '/:id/change-requests',
+  authMiddleware,
+  authorize('icpdp', 'admin'),
+  asyncHandler(clubChangeRequestController.create)
 );
 
 router.get('/:id/cover', asyncHandler(clubController.getClubCover));

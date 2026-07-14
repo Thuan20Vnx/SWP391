@@ -18,10 +18,12 @@ import { formatTimeRangeLabel } from '../../utils/timelineTimeRange';
 import { TIMELINE_LIVE_EVENT } from '../../utils/timelineLiveEvents';
 import { getTimelineOwnerCopy, getChangeRequestTypeLabel } from '../../utils/timelineReviewFeedback';
 
+const DATE_LABEL_OPTIONS = { day: '2-digit', month: 'long', year: 'numeric' };
+
 const fmt = (v) => {
   if (!v) return '—';
   const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('vi-VN');
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('vi-VN', DATE_LABEL_OPTIONS);
 };
 
 const fmtSchedule = (start, end) => {
@@ -29,7 +31,9 @@ const fmtSchedule = (start, end) => {
   const d = new Date(start);
   if (Number.isNaN(d.getTime())) return '—';
   const range = formatTimeRangeLabel(start, end);
-  return range ? `${d.toLocaleDateString('vi-VN')} · ${range}` : d.toLocaleString('vi-VN');
+  return range
+    ? `${d.toLocaleDateString('vi-VN', DATE_LABEL_OPTIONS)} · ${range}`
+    : `${d.toLocaleDateString('vi-VN', DATE_LABEL_OPTIONS)} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
 };
 
 const STATUS_META = {

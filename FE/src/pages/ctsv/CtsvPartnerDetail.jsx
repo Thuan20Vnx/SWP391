@@ -7,12 +7,14 @@ import {
   fetchCtsvPartner,
   rejectCtsvPartner
 } from '../../services/ctsvApi';
+import { approveAdminPartner, rejectAdminPartner } from '../../services/adminApi';
 import { getUserRole } from '../../utils/auth';
 import {
   PARTNER_STATUS_LABEL,
   PARTNER_STATUS_LABEL_DETAIL,
   PARTNER_STATUS_TONE,
   formatPartnerDate,
+  formatPartnerDateTimeRange,
   formatVnd,
   resolvePartnerAttachmentUrl,
 } from '../../utils/partnerDisplay';
@@ -39,7 +41,9 @@ const CtsvPartnerDetail = () => {
   const [dialogMode, setDialogMode] = useState(null);
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const isCtsv = getUserRole() === 'ctsv';
+  const role = getUserRole();
+  const isCtsv = role === 'ctsv';
+  const isAdmin = role === 'admin';
 
   const load = () =>
     fetchCtsvPartner(id).then((d) => {
@@ -82,16 +86,21 @@ const CtsvPartnerDetail = () => {
   const amount = eventRequest?.expectedSponsorAmount ?? partner.expectedSponsorAmount ?? mainContract?.amount;
   const eventBenefits = eventRequest?.benefits?.length ? eventRequest.benefits : partner.benefits;
   const canAct = CTSV_CAN_ACT.includes(partner.status) && isCtsv;
+  // Admin phê duyệt lần cuối khi CTSV đã duyệt (pending_admin).
+  const canAdminAct = isAdmin && partner.status === 'pending_admin';
   const repRole = partner.representativeTitle
     ? `Đại diện liên hệ (${partner.representativeTitle})`
     : 'Đại diện liên hệ';
   const contactLine = [partner.email, partner.phone].filter(Boolean).join(' • ');
 
-  const attachmentItems = (eventRequest?.attachments || []).map((f, i) => ({
-    key: `req-att-${i}`,
-    ...f,
-    href: resolvePartnerAttachmentUrl(f),
-  }));
+  const attachmentItems = (eventRequest?.attachments || [])
+    .map((f, i) => ({
+      key: `req-att-${i}`,
+      ...f,
+      href: resolvePartnerAttachmentUrl(f),
+    }))
+    // Chỉ hiện đính kèm có file thật / link hợp lệ (tránh thẻ rỗng "Tệp đính kèm — ").
+    .filter((f) => f.hasFile || f.href);
 
   const openAttachment = async (file) => {
     const href = file.href || file.url || '';
@@ -207,12 +216,28 @@ const CtsvPartnerDetail = () => {
                   </dd>
                 </div>
                 <div className="admin-proposal-meta__row">
-                  <dt>Thời gian dự kiến</dt>
-                  <dd>{eventRequest?.startDate ? formatPartnerDate(eventRequest.startDate) : '—'}</dd>
+                  <dt>Thời gian diễn ra</dt>
+                  <dd>{formatPartnerDateTimeRange(eventRequest?.startDate, eventRequest?.endDate)}</dd>
+                </div>
+                <div className="admin-proposal-meta__row">
+                  <dt>Thời gian đăng ký</dt>
+                  <dd>{formatPartnerDateTimeRange(eventRequest?.registrationStartDate, eventRequest?.registrationEndDate)}</dd>
+                </div>
+                <div className="admin-proposal-meta__row">
+                  <dt>Loại sự kiện</dt>
+                  <dd>{eventRequest?.eventType || '—'}</dd>
                 </div>
                 <div className="admin-proposal-meta__row">
                   <dt>Tổng vé</dt>
                   <dd>{eventRequest?.totalTickets != null ? eventRequest.totalTickets : '—'}</dd>
+                </div>
+                <div className="admin-proposal-meta__row">
+                  <dt>Số người dự kiến</dt>
+                  <dd>{eventRequest?.expectedAttendees ? eventRequest.expectedAttendees : '—'}</dd>
+                </div>
+                <div className="admin-proposal-meta__row">
+                  <dt>Thời lượng</dt>
+                  <dd>{eventRequest?.duration || '—'}</dd>
                 </div>
                 <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
                   <dt>Tin nhắn gửi CTSV</dt>
@@ -232,6 +257,36 @@ const CtsvPartnerDetail = () => {
                     )}
                   </dd>
                 </div>
+                {(eventRequest?.learningOutcomes || []).filter(Boolean).length > 0 && (
+                  <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
+                    <dt>Nội dung / kết quả đạt được</dt>
+                    <dd>
+                      <ul className="ctsv-pd-benefits">
+                        {(eventRequest.learningOutcomes || []).filter(Boolean).map((o, i) => (
+                          <li key={i}>{o}</li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                )}
+                {eventRequest?.agenda && (
+                  <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
+                    <dt>Lịch trình / chương trình</dt>
+                    <dd style={{ whiteSpace: 'pre-wrap' }}>{eventRequest.agenda}</dd>
+                  </div>
+                )}
+                {(eventRequest?.speakers || []).filter((s) => s?.name).length > 0 && (
+                  <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
+                    <dt>Diễn giả</dt>
+                    <dd>
+                      <ul className="ctsv-pd-benefits">
+                        {(eventRequest.speakers || []).filter((s) => s?.name).map((s, i) => (
+                          <li key={i}>{s.name}{s.role ? ` — ${s.role}` : ''}</li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                )}
               </dl>
 
               <ProposalTicketsTable ticketTypes={eventRequest?.ticketTypes} ticketPrice={0} />
@@ -282,14 +337,34 @@ const CtsvPartnerDetail = () => {
             ) : (
               <p className="ctsv-muted">Chưa có tệp đính kèm.</p>
             )}
+            {(eventRequest?.attachmentLinks || []).filter(Boolean).length > 0 && (
+              <>
+                <p className="admin-proposal-card__desc-label" style={{ margin: '14px 0 8px' }}>Link đính kèm</p>
+                <ul className="ctsv-pd-files">
+                  {(eventRequest.attachmentLinks || []).filter(Boolean).map((link, i) => (
+                    <li key={`att-link-${i}`}>
+                      <a href={link} className="ctsv-pd-file" target="_blank" rel="noreferrer">
+                        <span className="ctsv-pd-file-icon"><FileIcon /></span>
+                        <span className="ctsv-pd-file-body">
+                          <span className="ctsv-pd-file-name">{link}</span>
+                          <span className="ctsv-pd-file-size">Liên kết</span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         </li>
       </ul>
 
-      {canAct && (
+      {(canAct || canAdminAct) && (
         <div className="admin-proposal-card__actions-bar">
           <p className="admin-proposal-card__actions-note">
-            Hành động của bạn sẽ được ghi nhận vào lịch sử hệ thống.
+            {canAdminAct
+              ? 'Đơn đã được CTSV duyệt. Admin phê duyệt lần cuối để chính thức tạo sự kiện đối tác.'
+              : 'Hành động của bạn sẽ được ghi nhận vào lịch sử hệ thống.'}
           </p>
           <div className="admin-proposal-card__actions">
             <button
@@ -308,7 +383,7 @@ const CtsvPartnerDetail = () => {
               onClick={() => setConfirmApprove(true)}
             >
               <span className="admin-proposal-btn__icon" aria-hidden="true">✓</span>
-              {actionLoading ? 'Đang xử lý...' : 'Phê duyệt đối tác'}
+              {actionLoading ? 'Đang xử lý...' : canAdminAct ? 'Phê duyệt lần cuối' : 'Phê duyệt đối tác'}
             </button>
           </div>
         </div>
@@ -322,7 +397,11 @@ const CtsvPartnerDetail = () => {
         onConfirm={(reason) => {
           if (dialogMode === 'reject') {
             runAction(async () => {
-              await rejectCtsvPartner(id, reason);
+              if (canAdminAct) {
+                await rejectAdminPartner(id, reason);
+              } else {
+                await rejectCtsvPartner(id, reason);
+              }
               showToast?.('Đã từ chối đơn đăng ký.', 'info');
             });
           }
@@ -331,16 +410,25 @@ const CtsvPartnerDetail = () => {
 
       <ConfirmDialog
         open={confirmApprove}
-        title="Phê duyệt đối tác"
-        message="Đơn sẽ chuyển sang Admin để phê duyệt lần cuối. Chỉ khi Admin xác nhận, đối tác mới được coi là đã duyệt thành công."
-        confirmLabel="Gửi lên Admin"
+        title={canAdminAct ? 'Phê duyệt lần cuối' : 'Phê duyệt đối tác'}
+        message={
+          canAdminAct
+            ? 'Admin phê duyệt sẽ chính thức duyệt đối tác và tạo/cập nhật sự kiện công khai.'
+            : 'Đơn sẽ chuyển sang Admin để phê duyệt lần cuối. Chỉ khi Admin xác nhận, đối tác mới được coi là đã duyệt thành công.'
+        }
+        confirmLabel={canAdminAct ? 'Phê duyệt' : 'Gửi lên Admin'}
         cancelLabel="Hủy"
         loading={actionLoading}
         onCancel={() => !actionLoading && setConfirmApprove(false)}
         onConfirm={() =>
           runAction(async () => {
-            const res = await approveCtsvPartner(id);
-            showToast?.(res.message || 'Đã phê duyệt — chờ Admin xác nhận.', 'success');
+            if (canAdminAct) {
+              const res = await approveAdminPartner(id);
+              showToast?.(res.message || 'Đã phê duyệt đối tác.', 'success');
+            } else {
+              const res = await approveCtsvPartner(id);
+              showToast?.(res.message || 'Đã phê duyệt — chờ Admin xác nhận.', 'success');
+            }
           })
         }
       />

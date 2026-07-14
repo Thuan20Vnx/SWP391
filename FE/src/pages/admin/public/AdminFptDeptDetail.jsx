@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import AdminFptNotifBell from '../../../components/admin/AdminFptNotifBell';
 import PublicAdminShell from '../../../layouts/PublicAdminShell';
 import SiteFooter from '../../../components/SiteFooter';
-import { fetchAdminAccounts, fetchClubRegistrations } from '../../../services/adminApi';
+import { fetchAdminAccounts, fetchClubRegistrations, fetchAdminDepartmentProfiles } from '../../../services/adminApi';
 import {
   buildDepartmentUnits,
   localizeDepartmentUnit,
@@ -11,6 +11,7 @@ import {
 } from '../../../data/adminFptSystemData';
 import { getAccountInitials } from '../../../data/adminAccountsData';
 import { useTranslation } from '../../../i18n/I18nContext';
+import { resolveMediaUrl } from '../../../utils/mediaUrls';
 import '../../../styles/admin-public-pages.css';
 
 const AdminFptDeptDetail = ({ showToast }) => {
@@ -18,10 +19,18 @@ const AdminFptDeptDetail = ({ showToast }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const rawUnit = buildDepartmentUnits().find((d) => d.type === deptType);
-  const unit = useMemo(
-    () => (rawUnit ? localizeDepartmentUnit(rawUnit, t) : null),
-    [rawUnit, t],
-  );
+  const [deptProfile, setDeptProfile] = useState(null);
+  const unit = useMemo(() => {
+    if (!rawUnit) return null;
+    const withProfile = deptProfile
+      ? {
+          ...rawUnit,
+          coverImage: deptProfile.hasThumbnail ? resolveMediaUrl(deptProfile.thumbnailUrl) : rawUnit.coverImage,
+          descriptionOverride: deptProfile.description || '',
+        }
+      : rawUnit;
+    return localizeDepartmentUnit(withProfile, t);
+  }, [rawUnit, deptProfile, t]);
   const typeLabel = resolveFptTypeLabel(deptType, t);
 
   const [accounts, setAccounts] = useState([]);
@@ -31,6 +40,13 @@ const AdminFptDeptDetail = ({ showToast }) => {
   const [clubRegsLoading, setClubRegsLoading] = useState(false);
   const isIcpdpDept = deptType === 'icpdp';
   const clubRegListPath = unit?.clubRegistrationLink || '/admin/icpdp/club-registrations';
+
+  useEffect(() => {
+    if (!deptType) return;
+    fetchAdminDepartmentProfiles()
+      .then((res) => setDeptProfile(res.profiles?.[deptType] || null))
+      .catch(() => setDeptProfile(null));
+  }, [deptType]);
 
   useEffect(() => {
     if (!unit?.accountsRole) {
@@ -97,15 +113,6 @@ const AdminFptDeptDetail = ({ showToast }) => {
                 >
                   {managePrimaryLabel}
                 </button>
-                {isIcpdpDept && (
-                  <button
-                    type="button"
-                    className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--ghost"
-                    onClick={() => navigate('/admin/event-requests')}
-                  >
-                    {t('admin.fpt.dept.eventRequests')}
-                  </button>
-                )}
                 <button
                   type="button"
                   className="admin-fpt-dept-card__btn admin-fpt-dept-card__btn--ghost"

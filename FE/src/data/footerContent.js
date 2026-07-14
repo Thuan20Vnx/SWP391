@@ -57,3 +57,10 @@ export const FOOTER_STUDENT_ACCOUNT_LINKS = [
   { to: '/my-events', label: 'Sự kiện của tôi' },
   { to: '/settings', label: 'Cài đặt tài khoản' },
 ];
+
+export const FOOTER_CLUB_ACCOUNT_LINKS = [
+  { to: '/quan-ly-clb/su-kien', label: 'Sự kiện CLB quản lý' },
+  { to: '/quan-ly-clb/announcements', label: 'Đăng thông báo CLB' },
+  { to: '/quan-ly-clb', label: 'Cổng quản lý CLB' },
+  { to: '/profile', label: 'Hồ sơ cá nhân' },
+];

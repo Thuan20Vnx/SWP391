@@ -25,6 +25,7 @@ import CtsvReports from './pages/ctsv/CtsvReports';
 import CtsvReportDetail from './pages/ctsv/CtsvReportDetail';
 import CtsvSemesterTimelines from './pages/ctsv/CtsvSemesterTimelines';
 import CtsvProfile from './pages/ctsv/CtsvProfile';
+import CtsvDepartmentProfile from './pages/ctsv/CtsvDepartmentProfile';
 import IcpdpLayout from './layouts/IcpdpLayout';
 import IcpdpHome from './pages/IcpdpHome';
 import IcpdpDashboard from './pages/icpdp/IcpdpDashboard';
@@ -38,6 +39,7 @@ import IcpdpCalendar from './pages/icpdp/IcpdpCalendar';
 import IcpdpReports from './pages/icpdp/IcpdpReports';
 import IcpdpReportDetail from './pages/icpdp/IcpdpReportDetail';
 import IcpdpProfileSettings from './pages/icpdp/IcpdpProfileSettings';
+import IcpdpDepartmentProfile from './pages/icpdp/IcpdpDepartmentProfile';
 import IcpdpSemesterTimelineList from './pages/icpdp/IcpdpSemesterTimelineList';
 import IcpdpMySemesterTimelines from './pages/icpdp/IcpdpMySemesterTimelines';
 import IcpdpSemesterTimelineDetail from './pages/icpdp/IcpdpSemesterTimelineDetail';
@@ -66,12 +68,15 @@ import AdminPartners from './pages/admin/AdminPartners';
 import AdminAccountsControl from './pages/admin/AdminAccountsControl';
 import AdminSchoolEventApprovals from './pages/admin/AdminSchoolEventApprovals';
 import AdminEventRequests from './pages/admin/AdminEventRequests';
+import AdminClubRequests from './pages/admin/AdminClubRequests';
 import AdminSubmittedReports from './pages/admin/AdminSubmittedReports';
 import AdminSubmittedReportDetail from './pages/admin/AdminSubmittedReportDetail';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
 import MyPayments from './pages/MyPayments';
 import AdminPayments from './pages/admin/AdminPayments';
+import AdminPartnerSettlements from './pages/admin/AdminPartnerSettlements';
+import AdminPartnerSettlementDetail from './pages/admin/AdminPartnerSettlementDetail';
 import AdminAllEvents from './pages/admin/AdminAllEvents';
 import Schedule from './pages/Schedule';
 import EventReviews from './pages/EventReviews';
@@ -97,6 +102,8 @@ import PartnerAnalytics from './pages/partner/PartnerAnalytics';
 import PartnerCalendar from './pages/partner/PartnerCalendar';
 import PartnerReportDetail from './pages/partner/PartnerReportDetail';
 import PartnerProposalCreate from './pages/partner/PartnerProposalCreate';
+import PartnerNews from './pages/partner/PartnerNews';
+import PartnerSettlements from './pages/partner/PartnerSettlements';
 import {
   getHomePathForRole,
   getUserRole,
@@ -294,6 +301,7 @@ function App() {
               <Route path="reports" element={<CtsvReports />} />
               <Route path="reports/:id" element={<CtsvReportDetail />} />
               <Route path="profile" element={<CtsvProfile showToast={showToast} />} />
+              <Route path="department-profile" element={<CtsvDepartmentProfile showToast={showToast} />} />
               <Route path="settings" element={<PortalSettingsView showToast={showToast} role="ctsv" />} />
             </Route>
           </Route>
@@ -317,6 +325,7 @@ function App() {
               <Route path="reports" element={<IcpdpReports />} />
               <Route path="reports/:id" element={<IcpdpReportDetail />} />
               <Route path="profile" element={<IcpdpProfileSettings showToast={showToast} />} />
+              <Route path="department-profile" element={<IcpdpDepartmentProfile showToast={showToast} />} />
               <Route path="settings" element={<PortalSettingsView showToast={showToast} role="icpdp" />} />
               <Route path="announcements" element={<IcpdpAnnouncementManage />} />
               <Route
@@ -350,7 +359,20 @@ function App() {
                   <EventDetail showToast={showToast} embedded backPath="/partner/announcements" />
                 }
               />
+              <Route path="news" element={<PartnerNews />} />
+              <Route
+                path="news/:id"
+                element={
+                  <AnnouncementDetail
+                    showToast={showToast}
+                    embedded
+                    listPath="/partner/news"
+                    eventBasePath="/partner/join/events"
+                  />
+                }
+              />
               <Route path="contracts" element={<PartnerContractList />} />
+              <Route path="settlements" element={<PartnerSettlements />} />
               <Route path="analytics" element={<PartnerAnalytics />} />
               <Route path="analytics/:id" element={<PartnerReportDetail />} />
               <Route path="proposals/create" element={<PartnerProposalCreate />} />
@@ -496,6 +518,7 @@ function App() {
               <Route path="events" element={<AdminDashboard showToast={showToast} />} />
               <Route path="events/school-approvals" element={<AdminSchoolEventApprovals showToast={showToast} />} />
               <Route path="event-requests" element={<AdminEventRequests showToast={showToast} />} />
+              <Route path="club-requests" element={<AdminClubRequests showToast={showToast} />} />
               <Route path="ctsv-reports" element={<AdminSubmittedReports />} />
               <Route path="ctsv-reports/:id" element={<AdminSubmittedReportDetail />} />
               <Route path="accounts" element={<AdminAccountsControl />} />
@@ -509,6 +532,8 @@ function App() {
               <Route path="ctsv/partners/:id" element={<CtsvPartnerDetail showToast={showToast} />} />
               <Route path="partners" element={<AdminPartners />} />
               <Route path="partners/approvals" element={<AdminPartnerApprovals showToast={showToast} />} />
+              <Route path="partner-settlements" element={<AdminPartnerSettlements showToast={showToast} />} />
+              <Route path="partner-settlements/:id" element={<AdminPartnerSettlementDetail showToast={showToast} />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="payments" element={<AdminPayments showToast={showToast} />} />
               <Route path="events/approved" element={<AdminAllEvents showToast={showToast} />} />

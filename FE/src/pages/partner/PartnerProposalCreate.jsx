@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import EventProposalForm from '../../components/events/EventProposalForm';
 import {
@@ -32,6 +32,10 @@ import {
 } from './partnerEventFormUtils';
 
 const ACTIVE_STATUSES = new Set(['pending', 'info_requested', 'approved', 'hidden', 'rejected']);
+// Đơn còn trong luồng duyệt → nạp lên trang để chỉnh sửa/gửi lại.
+// Đơn 'approved'/'hidden' là sự kiện ĐÃ duyệt (đã thành sự kiện thật) → "Tạo sự kiện mới" bắt đầu form trống,
+// tạo một ĐƠN MỚI trạng thái chờ duyệt thay vì sửa lại đơn đã duyệt.
+const EDITABLE_STATUSES = new Set(['pending', 'info_requested', 'rejected']);
 
 const formatFileSize = (bytes) => {
   if (!Number.isFinite(bytes) || bytes < 0) return '—';
@@ -96,6 +100,8 @@ const Field = ({ label, required, hint, children }) => (
 
 const PartnerProposalCreate = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editRequestId = searchParams.get('edit') || '';
   const { showToast, userProfile } = useOutletContext() || {};
 
   const [loading, setLoading] = useState(true);
@@ -110,6 +116,7 @@ const PartnerProposalCreate = () => {
   const [benefits, setBenefits] = useState(['']);
   const [partnerMessage, setPartnerMessage] = useState('');
   const [attachments, setAttachments] = useState([]);
+  const [attachmentLinks, setAttachmentLinks] = useState([]);
   const [bannerFileName, setBannerFileName] = useState('');
 
   const attachmentInputRef = useRef(null);
@@ -123,7 +130,13 @@ const PartnerProposalCreate = () => {
   const isHidden = requestStatus === 'hidden';
   const isRejected = requestStatus === 'rejected';
   const isApprovedOrHidden = isApproved || isHidden;
-  const isReadOnly = false;
+  // Chế độ "Yêu cầu sửa" một sự kiện đã duyệt (mở từ trang chi tiết): sửa rồi gửi lại CTSV duyệt.
+  const isResubmitEdit =
+    Boolean(editRequestId) && isApprovedOrHidden && String(activeRequest?._id) === String(editRequestId);
+  // Đơn đã gắn với sự kiện thật đã có người đăng ký / đã tất toán → khóa chỉnh sửa.
+  const editLock = activeRequest?.editLock || '';
+  const editLockReason = activeRequest?.editLockReason || '';
+  const isReadOnly = Boolean(editLock);
   const canApiDraft = !activeRequest || requestStatus === 'draft';
 
   const applyState = useCallback((state) => {
@@ -132,6 +145,7 @@ const PartnerProposalCreate = () => {
     if (state.benefits?.length) setBenefits(state.benefits);
     if (state.partnerMessage != null) setPartnerMessage(state.partnerMessage);
     if (state.attachments) setAttachments(state.attachments);
+    if (state.attachmentLinks) setAttachmentLinks(state.attachmentLinks);
     if (state.bannerFileName) setBannerFileName(state.bannerFileName);
   }, []);
 
@@ -172,10 +186,18 @@ const PartnerProposalCreate = () => {
         if (cancelled) return;
 
         request = activeRes.request;
-        setActiveRequest(request || null);
+        // Đơn đã duyệt/ẩn coi như sự kiện đã hoàn tất — không nạp vào trang tạo mới,
+        // TRỪ khi đối tác mở "Yêu cầu sửa" đúng đơn đó (?edit=<id>) để chỉnh & gửi lại.
+        const isEditTarget =
+          editRequestId &&
+          request &&
+          String(request._id) === String(editRequestId) &&
+          ['approved', 'hidden'].includes(request.status);
+        const editable = request && (EDITABLE_STATUSES.has(request.status) || isEditTarget);
+        setActiveRequest(editable ? request : null);
         setCancelledRequests(activeRes.cancelled || []);
 
-        if (request && ACTIVE_STATUSES.has(request.status)) {
+        if (editable) {
           applyState(mapRequestToState(request));
         } else {
           const draft = loadPartnerEventDraft();
@@ -195,6 +217,7 @@ const PartnerProposalCreate = () => {
               benefits: draft.benefits?.length ? draft.benefits : [''],
               partnerMessage: draft.partnerMessage || '',
               attachments: draft.attachments || [],
+              attachmentLinks: draft.attachmentLinks || [],
               bannerFileName: draft.bannerFileName || ''
             });
             if (draft.savedAt) setDraftSavedAt(draft.savedAt);
@@ -221,7 +244,7 @@ const PartnerProposalCreate = () => {
       try {
         const partnerRes = await fetchPartnerMe().catch(() => ({ partner: null }));
         if (cancelled) return;
-        if (!(request && ACTIVE_STATUSES.has(request?.status))) {
+        if (!(request && EDITABLE_STATUSES.has(request?.status))) {
           applyPartnerCompanyDefaults(partnerRes.partner, representativeFallback);
         }
       } catch {
@@ -233,7 +256,7 @@ const PartnerProposalCreate = () => {
     return () => {
       cancelled = true;
     };
-  }, [applyPartnerCompanyDefaults, applyState, showToast, userProfile?.fullname]);
+  }, [applyPartnerCompanyDefaults, applyState, showToast, userProfile?.fullname, editRequestId]);
 
   const validateForm = () => {
     if (!company.companyName.trim()) {
@@ -275,6 +298,21 @@ const PartnerProposalCreate = () => {
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const addAttachmentLink = () => {
+    if (isReadOnly) return;
+    setAttachmentLinks((prev) => [...prev, '']);
+  };
+
+  const handleAttachmentLinkChange = (index, value) => {
+    if (isReadOnly) return;
+    setAttachmentLinks((prev) => prev.map((l, i) => (i === index ? value : l)));
+  };
+
+  const removeAttachmentLink = (index) => {
+    if (isReadOnly) return;
+    setAttachmentLinks((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleBenefitChange = (index, value) => {
     if (isReadOnly) return;
     setBenefits((prev) => {
@@ -296,6 +334,7 @@ const PartnerProposalCreate = () => {
       benefits,
       partnerMessage,
       attachments,
+      attachmentLinks,
       bannerFileName,
       requestId: activeRequest?._id
     });
@@ -306,6 +345,7 @@ const PartnerProposalCreate = () => {
       form,
       benefits,
       attachments,
+      attachmentLinks,
       partnerMessage,
       bannerFileName
     });
@@ -318,6 +358,7 @@ const PartnerProposalCreate = () => {
     }
   }, [
     attachments,
+    attachmentLinks,
     bannerFileName,
     benefits,
     canApiDraft,
@@ -333,6 +374,7 @@ const PartnerProposalCreate = () => {
       form,
       benefits,
       attachments,
+      attachmentLinks,
       partnerMessage,
       bannerFileName
     });
@@ -362,12 +404,18 @@ const PartnerProposalCreate = () => {
     benefits,
     partnerMessage,
     attachments,
+    attachmentLinks,
     bannerFileName,
     persistDraftSilent
   ]);
 
   const handlePartnerEventSubmit = async () => {
     if (!validateForm()) return;
+    if (isResubmitEdit) {
+      // Sửa sự kiện đã duyệt → gửi lại CTSV duyệt (dùng chung luồng submit).
+      setConfirmAction('submit');
+      return;
+    }
     if (isApprovedOrHidden) {
       setConfirmAction('update');
       return;
@@ -542,13 +590,21 @@ const PartnerProposalCreate = () => {
       />
       <ConfirmDialog
         open={confirmAction === 'submit'}
-        title={isInfoRequested ? 'Gửi bổ sung hồ sơ?' : 'Gửi yêu cầu tạo sự kiện?'}
-        message={
-          isInfoRequested
-            ? 'Thông tin bổ sung sẽ được gửi lại CTSV để xem xét tiếp.'
-            : 'Yêu cầu sẽ được gửi lên CTSV để phê duyệt trong 3–5 ngày làm việc.'
+        title={
+          isResubmitEdit
+            ? 'Gửi lại yêu cầu chỉnh sửa?'
+            : isInfoRequested
+              ? 'Gửi bổ sung hồ sơ?'
+              : 'Gửi yêu cầu tạo sự kiện?'
         }
-        confirmLabel={isInfoRequested ? 'Gửi bổ sung' : 'Gửi yêu cầu'}
+        message={
+          isResubmitEdit
+            ? 'Sự kiện sẽ chuyển về trạng thái chờ duyệt và cần CTSV/Admin duyệt lại thì thay đổi mới có hiệu lực.'
+            : isInfoRequested
+              ? 'Thông tin bổ sung sẽ được gửi lại CTSV để xem xét tiếp.'
+              : 'Yêu cầu sẽ được gửi lên CTSV để phê duyệt trong 3–5 ngày làm việc.'
+        }
+        confirmLabel={isResubmitEdit ? 'Gửi lại duyệt' : isInfoRequested ? 'Gửi bổ sung' : 'Gửi yêu cầu'}
         cancelLabel="Quay lại"
         onConfirm={doSubmit}
         onCancel={() => !submitting && setConfirmAction(null)}
@@ -626,7 +682,22 @@ const PartnerProposalCreate = () => {
         )}
       </header>
 
-      {isPending && (
+      {isResubmitEdit && !editLock && (
+        <div className="ctsv-pd-banner ctsv-pd-banner--info" style={{ marginBottom: 24 }}>
+          <strong>Chỉnh sửa sự kiện đã duyệt.</strong> Sau khi lưu và gửi, sự kiện sẽ chờ CTSV/Admin
+          duyệt lại thì thay đổi mới hiển thị công khai.
+        </div>
+      )}
+
+      {editLock && (
+        <div className="ctsv-pd-banner ctsv-pd-banner--danger" style={{ marginBottom: 24 }}>
+          <strong>Không thể chỉnh sửa.</strong>{' '}
+          {editLockReason ||
+            'Sự kiện đã phát sinh người đăng ký hoặc đã tất toán nên không thể gửi lại yêu cầu chỉnh sửa.'}
+        </div>
+      )}
+
+      {isPending && !editLock && (
         <div className="ctsv-pd-banner ctsv-pd-banner--warn" style={{ marginBottom: 24 }}>
           <strong>Yêu cầu đang chờ duyệt.</strong> Bạn có thể chỉnh sửa tên và nội dung đơn trước khi CTSV duyệt.
           {statusLabel && (
@@ -723,6 +794,12 @@ const PartnerProposalCreate = () => {
 
         <CollapsibleFormSection title="Quyền lợi & Đính kèm" sectionId="partner-benefits">
           <div className="partner-benefits-section">
+              <p className="partner-revenue-note">
+                Lưu ý về vé có phí: bạn có thể đặt giá vé (không bắt buộc miễn phí) ở mục Vé. Tiền vé được thu
+                về tài khoản chung của Nhà trường (CTSV). Sau sự kiện, bạn gửi "Yêu cầu thanh toán" để Nhà
+                trường tất toán phần doanh thu về tài khoản ngân hàng đã đăng ký trong hồ sơ đối tác. Vui lòng
+                cập nhật thông tin ngân hàng trong Hồ sơ & Cài đặt để nhận tất toán.
+              </p>
               <Field label="Quyền lợi đối tác yêu cầu">
                 <div className="partner-benefits-list">
                   {benefits.map((b, i) => (
@@ -816,42 +893,85 @@ const PartnerProposalCreate = () => {
                 </p>
               )}
             </Field>
-        </CollapsibleFormSection>
 
-        <footer className="ctsv-form-actions">
-          <button
-            type="button"
-            className="ctsv-btn-secondary"
-            disabled={submitting}
-            onClick={() => setConfirmAction('cancel')}
-          >
-            Hủy bỏ
-          </button>
-
-          {(isApprovedOrHidden || isRejected) && (
-            <>
-              {isApproved && (
+            <Field label="Link đính kèm" hint="Dán liên kết Google Drive, tài liệu online… (bắt đầu bằng http/https).">
+              {attachmentLinks.length > 0 && (
+                <div className="partner-benefits-list" style={{ marginBottom: 10 }}>
+                  {attachmentLinks.map((link, index) => (
+                    <div key={index} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input
+                        type="url"
+                        value={link}
+                        onChange={(e) => handleAttachmentLinkChange(index, e.target.value)}
+                        className="ctsv-input"
+                        placeholder="https://..."
+                        disabled={isReadOnly}
+                      />
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          className="ctsv-ticket-remove"
+                          onClick={() => removeAttachmentLink(index)}
+                          aria-label={`Xóa link ${index + 1}`}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!isReadOnly && (
                 <button
                   type="button"
-                  className="ctsv-btn-secondary"
-                  disabled={submitting}
-                  onClick={() => setConfirmAction('hide')}
+                  className="ctsv-btn-add-ticket partner-benefits-add"
+                  onClick={addAttachmentLink}
                 >
-                  Ẩn sự kiện
+                  + Thêm link
                 </button>
               )}
+            </Field>
+        </CollapsibleFormSection>
+
+        {/* Chỉ hiện khi đang thao tác trên một ĐƠN THẬT (đã gửi / đã duyệt / bị từ chối),
+            không hiện trên trang tạo sự kiện mới (nháp). */}
+        {!isResubmitEdit && (isPending || isInfoRequested || isApprovedOrHidden || isRejected) && (
+          <footer className="ctsv-form-actions">
+            {(isPending || isInfoRequested) && (
               <button
                 type="button"
                 className="ctsv-btn-secondary"
                 disabled={submitting}
-                onClick={() => setConfirmAction('delete')}
+                onClick={() => setConfirmAction('cancel')}
               >
-                Xóa yêu cầu
+                Hủy yêu cầu
               </button>
-            </>
-          )}
+            )}
 
-        </footer>
+            {(isApprovedOrHidden || isRejected) && (
+              <>
+                {isApproved && (
+                  <button
+                    type="button"
+                    className="ctsv-btn-secondary"
+                    disabled={submitting}
+                    onClick={() => setConfirmAction('hide')}
+                  >
+                    Ẩn sự kiện
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="ctsv-btn-secondary"
+                  disabled={submitting}
+                  onClick={() => setConfirmAction('delete')}
+                >
+                  Xóa yêu cầu
+                </button>
+              </>
+            )}
+          </footer>
+        )}
       </div>
     </div>
   );

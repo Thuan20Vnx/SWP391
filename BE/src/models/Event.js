@@ -142,6 +142,24 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    /**
+     * CLB gửi form chỉnh sửa trước — nội dung sửa giữ chờ ở đây, chỉ áp dụng khi Admin duyệt.
+     * { payload, requestedByEmail, requestedAt }
+     */
+    pendingEdit: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
+    /** Hành động của yêu cầu điều phối gần nhất bị từ chối (cancel/hide/postpone/edit/delete) — để hiển thị rõ trên UI. */
+    lastModerationAction: {
+      type: String,
+      default: ''
+    },
+    /** Cấp đã từ chối yêu cầu điều phối gần nhất: 'icpdp' | 'admin' */
+    lastModerationRejectedBy: {
+      type: String,
+      default: ''
+    },
     isHidden: {
       type: Boolean,
       default: false
@@ -223,6 +241,25 @@ const eventSchema = new mongoose.Schema(
       semesterLabel: { type: String, default: '', trim: true, maxlength: 80 },
     },
     expectedRevenue: { type: Number, default: 0 },
+    // Tất toán doanh thu cho đối tác (chỉ dùng khi source === 'partner').
+    settlement: {
+      status: { type: String, enum: ['none', 'requested', 'paid'], default: 'none' },
+      requestedAt: { type: Date, default: null },
+      // Mốc thời gian mỗi lần đối tác bấm "Yêu cầu thanh toán" — dùng để giới hạn tần suất.
+      requestLog: { type: [Date], default: [] },
+      paidAt: { type: Date, default: null },
+      paidByEmail: { type: String, default: '' },
+      paidAmount: { type: Number, default: 0 },
+      note: { type: String, default: '' },
+      // Ảnh biên lai chuyển khoản (bill) admin đính kèm khi tất toán — lưu Cloudinary.
+      proofUrl: { type: String, default: '' },
+      proofPublicId: { type: String, default: '' },
+      // Kết quả AI kiểm tra biên lai (tư vấn, admin có thể ghi đè).
+      proofAiChecked: { type: Boolean, default: false },
+      proofAiValid: { type: Boolean, default: false },
+      proofAiReason: { type: String, default: '' },
+      proofAdminOverride: { type: Boolean, default: false },
+    },
     isHidden: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
     checkinQrToken: { type: String, default: '' },
@@ -231,6 +268,8 @@ const eventSchema = new mongoose.Schema(
     checkoutQrToken: { type: String, default: '' },
     checkoutQrExpiresAt: { type: Date, default: null },
     checkoutAttendanceCode: { type: String, default: '' },
+    // Các ngày (YYYY-MM-DD giờ địa phương) mà BTC thực sự mở check-in/out — dùng cho bảng điểm danh theo ngày.
+    attendanceOpenDays: { type: [String], default: [] },
   },
   { timestamps: true }
 );

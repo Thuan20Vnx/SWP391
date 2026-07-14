@@ -24,6 +24,18 @@ const cardStateFromEv = (ev) => {
   return 'active';
 };
 
+// Trạng thái đơn/sự kiện đối tác hiển thị trên card.
+const resolvePartnerStatusBadge = (ev) => {
+  if (ev.isHidden) return { label: 'Đã ẩn', tone: 'muted' };
+  const s = String(ev.statusKey || ev.status || '').toLowerCase();
+  if (s === 'ended') return { label: 'Đã kết thúc', tone: 'muted' };
+  if (s === 'rejected') return { label: 'Từ chối', tone: 'alert' };
+  if (s === 'info_requested' || s === 'revision') return { label: 'Cần bổ sung', tone: 'warning' };
+  if (s.startsWith('pending')) return { label: 'Đang duyệt', tone: 'warning' };
+  if (s === 'approved' || s === 'live') return { label: 'Đã duyệt', tone: 'success' };
+  return null;
+};
+
 const toDiscoveryCard = (ev) => ({
   id: String(ev.id || ev._id || ''),
   title: ev.title,
@@ -228,6 +240,7 @@ const PartnerEventList = () => {
               event={toDiscoveryCard(ev)}
               protectedImage
               viewOnly
+              statusBadge={resolvePartnerStatusBadge(ev)}
               detailTo={`/partner/events/${ev.id}`}
               onPrimaryAction={() => navigate(`/partner/events/${ev.id}`)}
             />

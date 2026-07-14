@@ -7,7 +7,7 @@ import {
   totalTicketQty,
   validateTicketTypesStep,
 } from './eventTicketTypes';
-import { formatInvalidDateMessage, isOnOrAfterToday, parseDateInput } from './dateValidation';
+import { formatInvalidDateMessage, isOnOrAfterNow, parseDateInput } from './dateValidation';
 
 export { validateTicketTypesStep };
 
@@ -140,11 +140,11 @@ export const validateScheduleStep = (form) => {
   if (!eventStartDt) {
     return 'Giờ bắt đầu sự kiện không hợp lệ.';
   }
-  if (!isOnOrAfterToday(regStartDt)) {
-    return 'Ngày bắt đầu đăng ký phải từ hôm nay trở đi.';
+  if (!isOnOrAfterNow(regStartDt)) {
+    return 'Thời gian bắt đầu đăng ký không được ở trong quá khứ.';
   }
-  if (!isOnOrAfterToday(eventStartDt)) {
-    return 'Ngày bắt đầu sự kiện phải từ hôm nay trở đi.';
+  if (!isOnOrAfterNow(eventStartDt)) {
+    return 'Thời gian bắt đầu sự kiện không được ở trong quá khứ.';
   }
   if (regEndDt && regEndDt <= regStartDt) {
     return 'Ngày kết thúc đăng ký phải sau ngày bắt đầu đăng ký.';

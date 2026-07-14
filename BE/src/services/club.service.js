@@ -420,8 +420,8 @@ const transferClubChairman = async (currentUserId, payload = {}, activeClubId = 
   if (String(targetUser._id) === String(currentUserId)) {
     throw new AppError('Không thể chuyển nhượng cho chính bạn.', 400);
   }
-  if (!['student', 'staff'].includes(targetUser.role)) {
-    throw new AppError('Người nhận phải là sinh viên hoặc cán bộ trường.', 400);
+  if (targetUser.role !== 'student') {
+    throw new AppError('Chỉ có thể chuyển nhượng Chủ nhiệm CLB cho sinh viên.', 400);
   }
   const previousManagerId = club.managedBy || currentUserId;
   const previousUser = await User.findById(previousManagerId);

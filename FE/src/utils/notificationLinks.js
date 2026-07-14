@@ -70,6 +70,7 @@ export const refToLink = (refType, refId, role) => {
     return '/partner';
   }
   if (refType === 'event_change_request') return '/admin/event-requests';
+  if (refType === 'club_change_request') return '/admin/club-requests';
   return null;
 };
 

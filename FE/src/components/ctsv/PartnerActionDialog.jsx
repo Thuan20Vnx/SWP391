@@ -40,6 +40,14 @@ const COPY = {
     placeholder: 'Nhập lý do từ chối yêu cầu…',
     confirm: 'Xác nhận từ chối yêu cầu',
     danger: true
+  },
+  icpdpClubModReject: {
+    title: 'Từ chối yêu cầu của CLB',
+    subtitle: 'Nhập lý do để CLB nắm được và chỉnh sửa trước khi gửi lại yêu cầu.',
+    label: 'Lý do từ chối',
+    placeholder: 'Nhập lý do từ chối yêu cầu…',
+    confirm: 'Xác nhận từ chối',
+    danger: true
   }
 };
 

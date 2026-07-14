@@ -30,6 +30,9 @@ const DB_ROLE_TO_FE = {
 /** Chỉ guest (khách tham dự) và partner — không xóa SV, CTSV, ICPDP, CLB, admin... */
 const ADMIN_DELETABLE_DB_ROLES = ['guest', 'partner'];
 
+const isGoogleAccount = (user) =>
+  Boolean(user.googleId) || String(user.authProvider || '').toLowerCase() === 'google';
+
 const mapUserToAccount = (user) => ({
   id: String(user._id),
   name: user.fullname,
@@ -42,6 +45,7 @@ const mapUserToAccount = (user) => ({
   unitInfo: user.orientation || '',
   course: user.course || '',
   campus: user.campus || 'FPT University Da Nang',
+  isGoogle: isGoogleAccount(user),
   lockUntil:
     user.lockUntil && user.lockUntil.getTime() > Date.now()
       ? user.lockUntil.toISOString()
@@ -229,10 +233,97 @@ const unlockAccount = async (userId) => {
   };
 };
 
+// Khi một tài khoản club_manager không còn quản lý CLB nào nữa thì đưa về sinh viên
+// (không đưa về khách/guest).
+const demoteFormerManagerToStudent = async (managerId) => {
+  const Club = require('../models/Club');
+  const former = await User.findById(managerId);
+  if (!former || former.role !== 'club_manager') return;
+  const remaining = await Club.countDocuments({ managedBy: former._id });
+  if (remaining > 0) return;
+  former.role = 'student';
+  await former.save();
+  const SchoolMember = require('../models/SchoolMember');
+  await SchoolMember.updateOne({ email: former.email }, { $set: { role: 'student' } });
+};
+
+const enrichWithManagedClub = async (account, user) => {
+  if (user.role !== 'club_manager') return account;
+  const Club = require('../models/Club');
+  const club = await Club.findOne({ managedBy: user._id }).select('name slug').lean();
+  return {
+    ...account,
+    managedClubId: club ? String(club._id) : '',
+    managedClubName: club ? club.name : '',
+  };
+};
+
 const getAccount = async (userId) => {
   const user = await User.findById(userId);
   if (!user) throw new AppError('Không tìm thấy tài khoản!', 404);
-  return { account: mapUserToAccount(user) };
+  const account = await enrichWithManagedClub(mapUserToAccount(user), user);
+  return { account };
+};
+
+const listAssignableClubs = async () => {
+  const Club = require('../models/Club');
+  const clubs = await Club.find({}).select('name slug managedBy').sort({ name: 1 }).lean();
+  return {
+    clubs: clubs.map((c) => ({
+      id: String(c._id),
+      name: c.name,
+      slug: c.slug || '',
+      hasManager: Boolean(c.managedBy),
+    })),
+  };
+};
+
+// Chấm đỏ cho Admin: chỉ tính các đơn ĐÃ qua duyệt cấp 1 và đang chờ Admin
+// (club event: pending_admin sau khi IC-PDP duyệt; partner: pending_admin sau khi CTSV duyệt;
+// timeline CLB: pending_admin). Không tính lúc mới nộp (pending_icpdp / pending_ctsv).
+const getPendingAdminSummary = async () => {
+  const Event = require('../models/Event');
+  const Partner = require('../models/Partner');
+  const ClubSemesterTimeline = require('../models/ClubSemesterTimeline');
+  const ClubRegistration = require('../models/ClubRegistration');
+  const [eventPending, partnerPending, timelinePending, clubRegPending, settlementRequested] =
+    await Promise.all([
+      Event.countDocuments({ status: 'pending_admin', isHidden: { $ne: true } }),
+      Partner.countDocuments({ status: 'pending_admin' }),
+      ClubSemesterTimeline.countDocuments({
+        $or: [{ status: 'pending_admin' }, { 'changeRequest.status': 'pending_admin' }],
+      }),
+      ClubRegistration.countDocuments({ status: 'pending_admin' }),
+      Event.countDocuments({
+        source: 'partner',
+        'settlement.status': 'requested',
+        isDeleted: { $ne: true },
+      }),
+    ]);
+  return {
+    byCategory: {
+      events: eventPending + partnerPending,
+      timeline: timelinePending,
+      clubRegistrations: clubRegPending,
+      partnerSettlements: settlementRequested,
+    },
+  };
+};
+
+const resetAccountPassword = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError('Không tìm thấy tài khoản!', 404);
+  if (user.role === 'admin') {
+    throw new AppError('Không thể đặt lại mật khẩu tài khoản quản trị hệ thống!', 403);
+  }
+  user.passwordHash = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, 10);
+  user.isActive = true;
+  await user.save();
+  queueActivationEmail(user.email, user.fullname, DEFAULT_ADMIN_PASSWORD);
+  return {
+    message: `Đã đặt lại mật khẩu về mặc định và gửi email cho ${user.email}.`,
+    account: mapUserToAccount(user),
+  };
 };
 
 const updateAccount = async (userId, payload) => {
@@ -250,6 +341,7 @@ const updateAccount = async (userId, payload) => {
     campus,
     role: feRole,
     isActive,
+    managedClubId,
   } = payload;
 
   if (!fullname?.trim()) throw new AppError('Họ tên / tên đơn vị không được để trống!', 400);
@@ -333,9 +425,40 @@ const updateAccount = async (userId, payload) => {
 
   await user.save();
 
+  // Gán / gỡ CLB cho tài khoản Ban tổ chức CLB (club_manager).
+  if (user.role === 'club_manager') {
+    const Club = require('../models/Club');
+    const wantClubId = managedClubId !== undefined ? String(managedClubId || '').trim() : undefined;
+    if (wantClubId !== undefined) {
+      // Gỡ user khỏi mọi CLB khác đang do user này quản lý (mỗi tài khoản quản 1 CLB).
+      await Club.updateMany(
+        { managedBy: user._id, ...(wantClubId ? { _id: { $ne: wantClubId } } : {}) },
+        { $set: { managedBy: null } },
+      );
+      if (wantClubId) {
+        const club = await Club.findById(wantClubId);
+        if (!club) throw new AppError('Không tìm thấy CLB được chọn!', 404);
+        const prevManagerId = club.managedBy;
+        club.managedBy = user._id;
+        if (!String(club.president || '').trim()) club.president = user.fullname;
+        await club.save();
+        // Người quản lý cũ bị thay: nếu không còn quản CLB nào thì trả về sinh viên
+        // (không phải khách), theo đúng quy tắc chuyển nhượng CLB.
+        if (prevManagerId && String(prevManagerId) !== String(user._id)) {
+          await demoteFormerManagerToStudent(prevManagerId);
+        }
+      }
+    }
+  } else {
+    // Rời vai trò club_manager → gỡ quyền quản lý các CLB (nếu có).
+    const Club = require('../models/Club');
+    await Club.updateMany({ managedBy: user._id }, { $set: { managedBy: null } });
+  }
+
+  const account = await enrichWithManagedClub(mapUserToAccount(user), user);
   return {
     message: 'Đã cập nhật thông tin tài khoản!',
-    account: mapUserToAccount(user),
+    account,
   };
 };
 
@@ -371,5 +494,8 @@ module.exports = {
   lockAccountTemporarily,
   unlockAccount,
   deleteAccount,
+  resetAccountPassword,
+  listAssignableClubs,
+  getPendingAdminSummary,
   DEFAULT_ADMIN_PASSWORD,
 };

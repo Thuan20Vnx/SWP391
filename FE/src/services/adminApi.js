@@ -16,6 +16,8 @@ const adminFetch = (path, options = {}) =>
 
 export const fetchAdminCalendar = () => adminFetch('/events/calendar');
 
+export const fetchAdminDepartmentProfiles = () => adminFetch('/department-profiles');
+
 export const fetchAdminSubmittedCtsvReports = () => adminFetch('/ctsv-report-submissions');
 
 export const fetchAdminSubmittedCtsvReportDetail = (reportId) =>
@@ -85,6 +87,23 @@ export const processAdminRefund = (code, action, note = '') =>
     body: JSON.stringify({ action, note }),
   });
 
+export const fetchAdminPartnerSettlements = () => adminFetch('/partner-settlements');
+
+export const fetchAdminPartnerSettlementDetail = (id) =>
+  adminFetch(`/partner-settlements/${encodeURIComponent(id)}`);
+
+export const analyzeAdminSettlementProof = (id, { proofImage }) =>
+  adminFetch(`/partner-settlements/${encodeURIComponent(id)}/analyze-proof`, {
+    method: 'POST',
+    body: JSON.stringify({ proofImage }),
+  });
+
+export const settleAdminPartnerEvent = (id, { amount, note = '', proofImage = '', aiValid = null, aiReason = '', adminOverride = false }) =>
+  adminFetch(`/partner-settlements/${encodeURIComponent(id)}/settle`, {
+    method: 'PATCH',
+    body: JSON.stringify({ amount, note, proofImage, aiValid, aiReason, adminOverride }),
+  });
+
 export const fetchAdminAccounts = async ({ page = 1, limit = 10, role = 'all', search = '' }) => {
   const params = new URLSearchParams({
     page: String(page),
@@ -141,6 +160,21 @@ export const updateAdminAccount = async (id, payload) => {
   return parseJson(res);
 };
 
+export const resetAdminAccountPassword = async (id) => {
+  const res = await fetch(`${API_BASE}/api/admin/accounts/${id}/reset-password`, {
+    method: 'POST',
+    headers: getAuthHeaders()
+  });
+  return parseJson(res);
+};
+
+export const fetchAdminAssignableClubs = async () => {
+  const res = await fetch(`${API_BASE}/api/admin/assignable-clubs`, {
+    headers: getAuthHeaders(false)
+  });
+  return parseJson(res);
+};
+
 export const fetchAdminDataOverview = async () => {
   const res = await fetch(`${API_BASE}/api/admin/data/overview`, {
     headers: getAuthHeaders(false)
@@ -148,7 +182,14 @@ export const fetchAdminDataOverview = async () => {
   return parseJson(res);
 };
 
-export const fetchAdminDashboardStats = () => adminFetch('/dashboard/stats');
+export const fetchAdminDashboardStats = ({ months, endYear, endMonth } = {}) => {
+  const params = new URLSearchParams();
+  if (months) params.set('months', months);
+  if (endYear) params.set('endYear', endYear);
+  if (endMonth) params.set('endMonth', endMonth);
+  const qs = params.toString();
+  return adminFetch(`/dashboard/stats${qs ? `?${qs}` : ''}`);
+};
 
 export const fetchAdminAnalytics = (period = 'month') =>
   adminFetch(`/analytics?period=${encodeURIComponent(period)}`);
@@ -218,6 +259,32 @@ export const approveAdminEventRequest = async (id, adminNote = '') => {
 
 export const rejectAdminEventRequest = async (id, adminNote = '') => {
   const res = await fetch(`${API_BASE}/api/admin/event-requests/${id}/reject`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ adminNote }),
+  });
+  return parseJson(res);
+};
+
+export const fetchAdminClubRequests = async ({ status = 'pending', type = 'all' } = {}) => {
+  const params = new URLSearchParams({ status, type });
+  const res = await fetch(`${API_BASE}/api/admin/club-requests?${params}`, {
+    headers: getAuthHeaders(false),
+  });
+  return parseJson(res);
+};
+
+export const approveAdminClubRequest = async (id, adminNote = '') => {
+  const res = await fetch(`${API_BASE}/api/admin/club-requests/${id}/approve`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ adminNote }),
+  });
+  return parseJson(res);
+};
+
+export const rejectAdminClubRequest = async (id, adminNote = '') => {
+  const res = await fetch(`${API_BASE}/api/admin/club-requests/${id}/reject`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
     body: JSON.stringify({ adminNote }),
@@ -304,4 +371,15 @@ export const requestClubRegistrationRevision = (id, note = '') =>
   adminFetch(`/club-registrations/${id}/revision`, {
     method: 'PATCH',
     body: JSON.stringify({ note }),
+  });
+
+export const resubmitClubRegistration = (id, body) =>
+  adminFetch(`/club-registrations/${id}/icpdp-resubmit`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+
+export const cancelClubRegistration = (id) =>
+  adminFetch(`/club-registrations/${id}/icpdp-cancel`, {
+    method: 'PATCH',
   });

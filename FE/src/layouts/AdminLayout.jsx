@@ -3,6 +3,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import AdminTopHeader from '../components/admin/AdminTopHeader';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import SiteFooter from '../components/SiteFooter';
+import AdminPortalFooter from '../components/admin/AdminPortalFooter';
+import { getUserRole } from '../utils/auth';
 import ChatbotFloating from '../components/ChatbotFloating';
 import TimelineLiveBanner from '../components/timeline/TimelineLiveBanner';
 import PortalEventsLiveBanner from '../components/approval/PortalEventsLiveBanner';
@@ -30,7 +32,7 @@ const AdminLayout = ({ showToast }) => {
     if (pathname.startsWith('/admin/accounts')) {
       return 'Tìm kiếm tài khoản, email, MSSV...';
     }
-    if (pathname.startsWith('/admin/event-requests')) {
+    if (pathname.startsWith('/admin/event-requests') || pathname.startsWith('/admin/club-requests')) {
       return 'Tìm CLB, tên sự kiện, loại yêu cầu...';
     }
     return 'Tìm kiếm tài khoản, mã lệnh, log hệ thống...';
@@ -93,7 +95,7 @@ const AdminLayout = ({ showToast }) => {
             setHeaderSearch: setAdminSearch,
             registerHeaderSearchSubmit: (fn) => { headerSearchSubmitRef.current = fn; },
           }} />
-          <SiteFooter />
+          {getUserRole() === 'admin' ? <AdminPortalFooter /> : <SiteFooter />}
         </div>
         <ChatbotFloating context="admin" />
       </div>

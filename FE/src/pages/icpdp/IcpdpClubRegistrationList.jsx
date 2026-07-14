@@ -56,7 +56,7 @@ const IcpdpClubRegistrationList = () => {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const [clubs, setClubs] = useState([]);
   const [clubsLoading, setClubsLoading] = useState(true);
@@ -328,17 +328,20 @@ const IcpdpClubRegistrationList = () => {
                 aria-label="Tìm đơn CLB"
               />
             </div>
-            <div className="icpdp-status-filters" role="group" aria-label="Lọc trạng thái">
-              {STATUS_FILTERS.map((f) => (
-                <button
-                  key={f.id || 'default'}
-                  type="button"
-                  className={`icpdp-status-chip ${statusFilter === f.id ? 'is-active' : ''}`}
-                  onClick={() => handleStatusChange(f.id)}
-                >
-                  {f.label}
-                </button>
-              ))}
+            <div className="icpdp-proposals-status-select">
+              <label htmlFor="club-reg-status">Trạng thái</label>
+              <select
+                id="club-reg-status"
+                value={statusFilter}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                aria-label="Lọc trạng thái"
+              >
+                {STATUS_FILTERS.map((f) => (
+                  <option key={f.id || 'default'} value={f.id}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </section>
 

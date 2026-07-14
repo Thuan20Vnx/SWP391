@@ -64,6 +64,7 @@ const partnerEventRequestSchema = new mongoose.Schema(
     benefits: { type: [String], default: [] },
     partnerMessage: { type: String, default: '' },
     attachments: { type: [attachmentSchema], default: [] },
+    attachmentLinks: { type: [String], default: [] },
     title: { type: String, default: '', trim: true },
     eventType: { type: String, default: 'Hội thảo & Workshop' },
     description: { type: String, default: '' },

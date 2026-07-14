@@ -130,19 +130,29 @@ const getSystemHealth = async () => {
   const checkedAt = new Date();
   const uptimeSeconds = process.uptime();
 
+  // Đếm số liệu không được làm sập endpoint: nếu DB rớt, các count vẫn trả null thay vì reject.
+  const safeCount = (query) => Promise.resolve(query).then((n) => n).catch(() => null);
   const [dbHealth, smtpHealth, accounts, pendingEvents, liveEvents, clubs] = await Promise.all([
     pingDatabase(),
-    verifySmtpConnection(),
-    User.countDocuments(),
-    Event.countDocuments({
-      status: { $in: ['pending', 'pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'] },
-      isHidden: { $ne: true },
-    }),
-    Event.countDocuments({ status: 'live', isHidden: { $ne: true } }),
-    Club.countDocuments(),
+    verifySmtpConnection().catch(() => ({ status: 'offline', latencyMs: null, detail: 'SMTP check failed' })),
+    safeCount(User.countDocuments()),
+    safeCount(
+      Event.countDocuments({
+        status: { $in: ['pending', 'pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'] },
+        isHidden: { $ne: true },
+      }),
+    ),
+    safeCount(Event.countDocuments({ status: 'live', isHidden: { $ne: true } })),
+    safeCount(Club.countDocuments()),
   ]);
 
-  const payment = await getPaymentStatus();
+  const payment = await getPaymentStatus().catch(() => ({
+    status: 'degraded',
+    mode: 'unknown',
+    configured: false,
+    errors24h: null,
+    detail: 'Không đọc được cấu hình thanh toán (DB?)',
+  }));
   const apiLatencyMs = 0;
 
   const serviceStatuses = [dbHealth.status, smtpHealth.status];

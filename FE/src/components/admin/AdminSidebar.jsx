@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FE_LOGO, FE_LOGO_ALT } from '../../assets/brand';
 import defaultAvatar from '../../constants/defaultAvatar';
 import { ADMIN_NAV_ITEMS, ICPDP_ADMIN_NAV_ITEMS } from '../../data/adminNavItems';
 import { getRoleDisplayLabel, getUserRole, isIcpdpRole } from '../../utils/auth';
+import { API_BASE, getAuthHeaders } from '../../utils/api';
+import useNavBadges from '../../hooks/useNavBadges';
 import { useTranslation } from '../../i18n/I18nContext';
 import { AdminMenuIcon } from './AdminMenuIcons';
 
@@ -14,6 +16,36 @@ const AdminSidebar = ({
   overlay = false,
 }) => {
   const { t } = useTranslation();
+  const isIcpdpView = isIcpdpRole();
+  const { badges: notifBadges, markRead } = useNavBadges();
+
+  // Admin thật: chấm đỏ theo hàng đợi đơn ĐANG CHỜ ADMIN (đã qua duyệt cấp 1),
+  // không tính lúc mới nộp cho IC-PDP / CTSV. IC-PDP xem /admin thì dùng thông báo.
+  const [adminQueue, setAdminQueue] = useState({});
+  const refreshAdminQueue = useCallback(async () => {
+    if (isIcpdpView) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/pending-summary`, { headers: getAuthHeaders(false) });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success) setAdminQueue(data.byCategory || {});
+    } catch {
+      /* im lặng */
+    }
+  }, [isIcpdpView]);
+
+  useEffect(() => {
+    refreshAdminQueue();
+    const id = setInterval(refreshAdminQueue, 30000);
+    const onFocus = () => refreshAdminQueue();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [refreshAdminQueue, pathname]);
+
+  const badges = isIcpdpView ? notifBadges : adminQueue;
 
   const isActive = (item) => {
     if (item.end) return pathname === item.path;
@@ -22,7 +54,14 @@ const AdminSidebar = ({
     return pathname === item.path || pathname.startsWith(`${item.path}/`);
   };
 
-  const navItems = isIcpdpRole() ? ICPDP_ADMIN_NAV_ITEMS : ADMIN_NAV_ITEMS;
+  const navItems = isIcpdpView ? ICPDP_ADMIN_NAV_ITEMS : ADMIN_NAV_ITEMS;
+
+  useEffect(() => {
+    // Chỉ đánh dấu đã đọc cho thông báo (IC-PDP view). Admin dùng hàng đợi thật nên không markRead.
+    if (!isIcpdpView) return;
+    const active = navItems.find((it) => it.badgeKey && it.path && isActive(it));
+    if (active && notifBadges[active.badgeKey]) markRead(active.badgeKey);
+  }, [pathname, notifBadges, markRead, navItems, isIcpdpView]);
 
   const renderNavItems = () => {
     const out = [];
@@ -39,16 +78,21 @@ const AdminSidebar = ({
       }
       if (!item.path) return;
       const active = isActive(item);
+      const showDot = item.badgeKey && badges[item.badgeKey] > 0;
       out.push(
         <Link
           key={item.path}
           to={item.path}
           className={active ? 'ctsv-nav-link active' : 'ctsv-nav-link'}
+          onClick={() => {
+            if (isIcpdpView && item.badgeKey) markRead(item.badgeKey);
+          }}
         >
           <span className="ctsv-nav-icon">
             <AdminMenuIcon type={item.icon} />
           </span>
           <span className="ctsv-nav-label">{t(item.labelKey)}</span>
+          {showDot && <span className="ctsv-nav-dot" aria-label="Có cập nhật mới" />}
         </Link>
       );
     });

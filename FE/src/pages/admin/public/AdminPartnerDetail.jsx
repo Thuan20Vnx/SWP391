@@ -17,9 +17,12 @@ import {
 import {
   PARTNER_STATUS_TONE,
   formatPartnerDate,
+  formatPartnerDateTimeRange,
   formatVnd,
   getPartnerStatusDetailLabel,
+  resolvePartnerAttachmentUrl,
 } from '../../../utils/partnerDisplay';
+import { isProtectedMediaUrl, openProtectedMedia } from '../../../utils/mediaFile';
 import { useTranslation } from '../../../i18n/I18nContext';
 import '../../../styles/admin-dashboard.css';
 
@@ -238,7 +241,29 @@ const AdminPartnerDetail = ({ showToast }) => {
     const registrantEmail = primaryMember?.email || partner.email || empty;
     const registrantPhone = primaryMember?.phone || partner.phone || empty;
     const eventBenefits = eventRequest?.benefits?.length ? eventRequest.benefits : partner.benefits;
-    const attachmentItems = (eventRequest?.attachments || []).map((f, i) => ({ key: `req-att-${i}`, ...f }));
+    const attachmentItems = (eventRequest?.attachments || [])
+      .map((f, i) => ({
+        key: `req-att-${i}`,
+        ...f,
+        href: resolvePartnerAttachmentUrl(f),
+      }))
+      // Chỉ hiện đính kèm có file thật / link hợp lệ (tránh thẻ rỗng).
+      .filter((f) => f.hasFile || f.href);
+    const attachmentLinks = (eventRequest?.attachmentLinks || []).filter(Boolean);
+
+    const openAttachment = async (file) => {
+      const href = file.href || file.url || '';
+      if (!href || href === '#') return;
+      try {
+        if (isProtectedMediaUrl(file.url) || isProtectedMediaUrl(file.attachmentUrl) || href.startsWith('/api/')) {
+          await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
+          return;
+        }
+        window.open(href, '_blank', 'noopener,noreferrer');
+      } catch (e) {
+        showToast?.(e.message || 'Không mở được tệp.', 'error');
+      }
+    };
 
     return (
       <div className="admin-partner-detail">
@@ -276,6 +301,27 @@ const AdminPartnerDetail = ({ showToast }) => {
                 ? t('admin.partnerDetail.banner.ctsvEmail', { email: partner.ctsvApprovedByEmail })
                 : '',
             })}
+          </div>
+        )}
+
+        {canAdminAct && (
+          <div className="admin-partner-detail__actions admin-partner-detail__actions--top">
+            <button
+              type="button"
+              className="admin-partner-detail__btn admin-partner-detail__btn--ghost"
+              disabled={busy}
+              onClick={() => setRejectOpen(true)}
+            >
+              {t('admin.common.reject')}
+            </button>
+            <button
+              type="button"
+              className="admin-partner-detail__btn admin-partner-detail__btn--primary"
+              disabled={busy}
+              onClick={() => setConfirmApprove(true)}
+            >
+              {t('admin.partnerDetail.approvePartner')}
+            </button>
           </div>
         )}
 
@@ -501,8 +547,32 @@ const AdminPartnerDetail = ({ showToast }) => {
                         </dd>
                       </div>
                       <div className="admin-proposal-meta__row">
+                        <dt>Thời gian diễn ra</dt>
+                        <dd>{formatPartnerDateTimeRange(eventRequest?.startDate, eventRequest?.endDate)}</dd>
+                      </div>
+                      <div className="admin-proposal-meta__row">
+                        <dt>Thời gian đăng ký</dt>
+                        <dd>{formatPartnerDateTimeRange(eventRequest?.registrationStartDate, eventRequest?.registrationEndDate)}</dd>
+                      </div>
+                      <div className="admin-proposal-meta__row">
+                        <dt>Loại sự kiện</dt>
+                        <dd>{eventRequest?.eventType || empty}</dd>
+                      </div>
+                      <div className="admin-proposal-meta__row">
                         <dt>Tổng vé</dt>
                         <dd>{eventRequest?.totalTickets != null ? eventRequest.totalTickets : empty}</dd>
+                      </div>
+                      <div className="admin-proposal-meta__row">
+                        <dt>Số người dự kiến</dt>
+                        <dd>{eventRequest?.expectedAttendees ? eventRequest.expectedAttendees : empty}</dd>
+                      </div>
+                      <div className="admin-proposal-meta__row">
+                        <dt>Thời lượng</dt>
+                        <dd>{eventRequest?.duration || empty}</dd>
+                      </div>
+                      <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
+                        <dt>Tin nhắn gửi CTSV</dt>
+                        <dd>{eventRequest?.partnerMessage || empty}</dd>
                       </div>
                       <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
                         <dt>Quyền lợi đối tác yêu cầu</dt>
@@ -518,6 +588,36 @@ const AdminPartnerDetail = ({ showToast }) => {
                           )}
                         </dd>
                       </div>
+                      {(eventRequest?.learningOutcomes || []).filter(Boolean).length > 0 && (
+                        <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
+                          <dt>Nội dung / kết quả đạt được</dt>
+                          <dd>
+                            <ul className="ctsv-pd-benefits">
+                              {(eventRequest.learningOutcomes || []).filter(Boolean).map((o, i) => (
+                                <li key={i}>{o}</li>
+                              ))}
+                            </ul>
+                          </dd>
+                        </div>
+                      )}
+                      {eventRequest?.agenda && (
+                        <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
+                          <dt>Lịch trình / chương trình</dt>
+                          <dd style={{ whiteSpace: 'pre-wrap' }}>{eventRequest.agenda}</dd>
+                        </div>
+                      )}
+                      {(eventRequest?.speakers || []).filter((s) => s?.name).length > 0 && (
+                        <div className="admin-proposal-meta__row admin-proposal-meta__row--full">
+                          <dt>Diễn giả</dt>
+                          <dd>
+                            <ul className="ctsv-pd-benefits">
+                              {(eventRequest.speakers || []).filter((s) => s?.name).map((s, i) => (
+                                <li key={i}>{s.name}{s.role ? ` — ${s.role}` : ''}</li>
+                              ))}
+                            </ul>
+                          </dd>
+                        </div>
+                      )}
                     </dl>
 
                     <ProposalTicketsTable ticketTypes={eventRequest?.ticketTypes} ticketPrice={0} />
@@ -539,17 +639,34 @@ const AdminPartnerDetail = ({ showToast }) => {
                   <p className="admin-proposal-card__desc-label" style={{ marginBottom: 8 }}>
                     Tệp đính kèm
                   </p>
-                  {attachmentItems.length ? (
+                  {attachmentItems.length || attachmentLinks.length ? (
                     <ul className="ctsv-pd-files">
                       {attachmentItems.map((f) => (
                         <li key={f.key}>
-                          <a href={f.url || '#'} className="ctsv-pd-file" target="_blank" rel="noreferrer">
+                          <button
+                            type="button"
+                            className="ctsv-pd-file"
+                            onClick={() => openAttachment(f)}
+                          >
                             <span className="ctsv-pd-file-icon">
                               <FileIcon />
                             </span>
                             <span className="ctsv-pd-file-body">
                               <span className="ctsv-pd-file-name">{f.name}</span>
                               <span className="ctsv-pd-file-size">{f.sizeLabel || '—'}</span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                      {attachmentLinks.map((link, i) => (
+                        <li key={`req-link-${i}`}>
+                          <a href={link} className="ctsv-pd-file" target="_blank" rel="noreferrer">
+                            <span className="ctsv-pd-file-icon">
+                              <FileIcon />
+                            </span>
+                            <span className="ctsv-pd-file-body">
+                              <span className="ctsv-pd-file-name">{link}</span>
+                              <span className="ctsv-pd-file-size">Liên kết</span>
                             </span>
                           </a>
                         </li>

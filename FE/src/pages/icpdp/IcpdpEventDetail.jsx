@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { fetchIcpdpEvent } from '../../services/icpdpApi';
 import EventManagementDetail from '../EventManagementDetail';
-import IcpdpClubEventDetail from './IcpdpClubEventDetail';
 
 const isIcpdpSchoolEvent = (event) =>
   event?.source === 'school' && event?.schoolOrganizerRole === 'icpdp';
@@ -50,5 +49,5 @@ export default function IcpdpEventDetail() {
     return <EventManagementDetail portal="icpdp_school" listPath="/icpdp/events" />;
   }
 
-  return <IcpdpClubEventDetail />;
+  return <EventManagementDetail portal="icpdp_club" listPath="/icpdp/events" />;
 }

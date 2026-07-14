@@ -207,9 +207,35 @@ const submitReview = async (userId, eventId, { rating, comment }) => {
   };
 };
 
+const updateReview = async (userId, eventId, { rating, comment }) => {
+  const ratingNum = Number(rating);
+  if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+    throw new AppError('Đánh giá phải từ 1 đến 5 sao.', 400);
+  }
+
+  const review = await EventReview.findOne({ user: userId, event: eventId });
+  if (!review) {
+    throw new AppError('Bạn chưa đánh giá sự kiện này.', 404);
+  }
+
+  review.rating = ratingNum;
+  review.comment = (comment || '').trim();
+  await review.save();
+
+  await updateEventRatingStats(eventId);
+
+  const populated = await EventReview.findById(review._id).populate('event');
+
+  return {
+    message: 'Đã cập nhật đánh giá của bạn.',
+    review: formatCompletedItem(populated),
+  };
+};
+
 module.exports = {
   getEventReviews,
   getEventRatingStats,
   submitReview,
+  updateReview,
   isEligibleForReview,
 };

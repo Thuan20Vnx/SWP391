@@ -144,6 +144,7 @@ export const accountToEditForm = (acc) => ({
   course: acc.course || 'K18',
   campus: acc.campus || 'FPT University Da Nang',
   isActive: acc.active !== false,
+  managedClubId: acc.managedClubId || '',
 });
 
 export const getAccountInitials = (name) => {

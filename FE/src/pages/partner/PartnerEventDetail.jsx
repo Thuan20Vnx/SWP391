@@ -4,12 +4,16 @@ import { PORTAL_EVENTS_LIVE_EVENT } from '../../utils/adminEventsLiveEvents';
 import {
   fetchPartnerEvent,
   deletePartnerEventRequest,
+  hidePartnerEventRequest,
   fetchPartnerOwnReportSubmissions,
   submitPartnerEventReport,
+  requestPartnerSettlement,
 } from '../../services/partnerApi';
 import { statusClass } from '../../utils/eventStatus';
 import { resolveEventSpeakers } from '../../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
+import { resolvePartnerAttachmentUrl } from '../../utils/partnerDisplay';
+import { isProtectedMediaUrl, openProtectedMedia } from '../../utils/mediaFile';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import EventBentoStatsGrid from '../../components/events/EventBentoStatsGrid';
 import EventRatingDetailPanel from '../../components/events/EventRatingDetailPanel';
@@ -41,6 +45,21 @@ const IconPin = () => (
   </svg>
 );
 
+const formatVnd = (amount) => `${Number(amount || 0).toLocaleString('vi-VN')} đ`;
+
+const formatDateTime = (value) => {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  return `${d.toLocaleDateString('vi-VN')} · ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+};
+
+const SETTLEMENT_STATUS_LABEL = {
+  none: 'Chưa yêu cầu',
+  requested: 'Đã gửi yêu cầu — chờ Trường tất toán',
+  paid: 'Đã tất toán',
+};
+
 const PartnerEventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -49,9 +68,13 @@ const PartnerEventDetail = () => {
   const [activeTab, setActiveTab] = useState('info');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmHide, setConfirmHide] = useState(false);
+  const [hiding, setHiding] = useState(false);
   const [activeBentoCard, setActiveBentoCard] = useState('');
   const [reportSubmittedAt, setReportSubmittedAt] = useState(null);
   const [submittingReport, setSubmittingReport] = useState(false);
+  const [requestingSettlement, setRequestingSettlement] = useState(false);
+  const [confirmSettlementOpen, setConfirmSettlementOpen] = useState(false);
   const [nowTs] = useState(() => Date.now());
   const tabContentRef = useRef(null);
 
@@ -130,7 +153,9 @@ const PartnerEventDetail = () => {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await deletePartnerEventRequest(String(event.id).replace(/^req-/, ''));
+      // Sự kiện đã duyệt: xóa theo requestId liên kết; đơn (req-...) thì xóa theo id đơn.
+      const deleteId = event.requestId || String(event.id).replace(/^req-/, '');
+      await deletePartnerEventRequest(deleteId);
       showToast?.('Đã xóa yêu cầu sự kiện.', 'success');
       navigate('/partner/events');
     } catch (err) {
@@ -138,6 +163,26 @@ const PartnerEventDetail = () => {
     } finally {
       setDeleting(false);
       setConfirmDelete(false);
+    }
+  };
+
+  const handleToggleHide = async () => {
+    if (!event?.requestId) return;
+    setHiding(true);
+    try {
+      await hidePartnerEventRequest(event.requestId);
+      showToast?.(
+        event.requestStatus === 'hidden'
+          ? 'Đã hiển thị lại sự kiện.'
+          : 'Đã ẩn sự kiện khỏi danh sách công khai.',
+        'success'
+      );
+      loadEvent({ silent: true });
+    } catch (err) {
+      showToast?.(err.message || 'Thao tác thất bại.', 'error');
+    } finally {
+      setHiding(false);
+      setConfirmHide(false);
     }
   };
 
@@ -165,10 +210,57 @@ const PartnerEventDetail = () => {
     }
   };
 
+  const doRequestSettlement = async () => {
+    if (requestingSettlement) return;
+    setConfirmSettlementOpen(false);
+    setRequestingSettlement(true);
+    try {
+      const data = await requestPartnerSettlement(id);
+      showToast?.(data.message || 'Đã gửi yêu cầu tất toán.', 'success');
+      loadEvent({ silent: true });
+    } catch (err) {
+      showToast?.(err.message || 'Không gửi được yêu cầu tất toán.', 'error');
+    } finally {
+      setRequestingSettlement(false);
+    }
+  };
+
+  const handleRequestSettlement = () => {
+    if (requestingSettlement) return;
+    // Sự kiện chưa kết thúc → hỏi xác nhận trước khi gửi.
+    if (!isEndedPhase) {
+      setConfirmSettlementOpen(true);
+      return;
+    }
+    doRequestSettlement();
+  };
+
   const eventSpeakers = resolveEventSpeakers(event);
   const ticketTypes = event.ticketTypes?.length
     ? event.ticketTypes
     : [{ name: 'Vé chung', qty: stats.total }];
+
+  // Thông tin đối tác đã nộp (đơn/sự kiện) để hiển thị đầy đủ trên trang chi tiết.
+  const benefits = (event.benefits || []).filter(Boolean);
+  const learningOutcomes = (event.learningOutcomes || []).filter(Boolean);
+  const attachmentLinks = (event.attachmentLinks || []).filter(Boolean);
+  const attachmentItems = (event.attachments || [])
+    .map((f, i) => ({ key: `att-${i}`, ...f, href: resolvePartnerAttachmentUrl(f) }))
+    .filter((f) => f.hasFile || f.href);
+
+  const openAttachment = async (file) => {
+    const href = file.href || file.url || '';
+    if (!href || href === '#') return;
+    try {
+      if (isProtectedMediaUrl(file.url) || isProtectedMediaUrl(file.attachmentUrl) || href.startsWith('/api/')) {
+        await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
+        return;
+      }
+      window.open(href, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      showToast?.(err.message || 'Không mở được tệp.', 'error');
+    }
+  };
 
   const registrationProgress = getRegistrationProgress(event.registeredCount, event.capacity || stats.total);
   const checkinProgress = getCheckinProgress(event.checkinCount, event.registeredCount);
@@ -269,6 +361,91 @@ const PartnerEventDetail = () => {
         />
       )}
 
+      {!event.isRequest && (() => {
+        const settlement = event.settlement || {};
+        const revenue = event.revenue || {};
+        const isPaid = settlement.status === 'paid';
+        let blockNote = '';
+        if (!isPaid && !settlement.canRequest) {
+          if (settlement.blockReason === 'daily_limit') {
+            blockNote = 'Đã hết lượt yêu cầu trong hôm nay (tối đa 3 lần/ngày).';
+          } else if (settlement.blockReason === 'cooldown' && settlement.nextAllowedAt) {
+            const t = new Date(settlement.nextAllowedAt);
+            blockNote = `Có thể gửi lại sau ${t.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}.`;
+          }
+        }
+        return (
+          <section className="partner-revenue-panel">
+            <div className="partner-revenue-panel__head">
+              <h2>Doanh thu của bạn</h2>
+              <span className={`partner-revenue-status partner-revenue-status--${settlement.status || 'none'}`}>
+                {SETTLEMENT_STATUS_LABEL[settlement.status] || SETTLEMENT_STATUS_LABEL.none}
+              </span>
+            </div>
+            <div className="partner-revenue-grid">
+              <div className="partner-revenue-cell">
+                <span className="partner-revenue-cell__label">Doanh thu vé đã thu</span>
+                <strong className="partner-revenue-cell__value">{formatVnd(revenue.paidRevenue)}</strong>
+                <span className="partner-revenue-cell__sub">{revenue.paidCount || 0} vé đã thanh toán</span>
+              </div>
+              <div className="partner-revenue-cell">
+                <span className="partner-revenue-cell__label">Giá vé niêm yết</span>
+                <strong className="partner-revenue-cell__value">
+                  {event.ticketPrice > 0 ? formatVnd(event.ticketPrice) : 'Miễn phí'}
+                </strong>
+                <span className="partner-revenue-cell__sub">{stats.registered} lượt đăng ký</span>
+              </div>
+              {isPaid && (
+                <div className="partner-revenue-cell">
+                  <span className="partner-revenue-cell__label">Đã tất toán</span>
+                  <strong className="partner-revenue-cell__value">{formatVnd(settlement.paidAmount)}</strong>
+                  <span className="partner-revenue-cell__sub">
+                    {settlement.paidAt ? new Date(settlement.paidAt).toLocaleDateString('vi-VN') : ''}
+                  </span>
+                </div>
+              )}
+            </div>
+            {isPaid && settlement.proofUrl && (
+              <div className="partner-revenue-proof">
+                <span className="partner-revenue-proof__label">Ảnh biên lai chuyển khoản từ Nhà trường</span>
+                <a href={settlement.proofUrl} target="_blank" rel="noopener noreferrer">
+                  <img src={settlement.proofUrl} alt="Biên lai chuyển khoản" className="partner-revenue-proof__img" />
+                </a>
+              </div>
+            )}
+            <p className="partner-revenue-panel__note">
+              Tiền vé được thu về tài khoản chung của Nhà trường (CTSV). Bấm "Yêu cầu thanh toán" để đề nghị Trường tất toán
+              phần doanh thu của bạn về tài khoản ngân hàng đã đăng ký trong hồ sơ đối tác.
+            </p>
+            {(!isPaid || settlement.canRequest) && (
+              <div className="partner-revenue-panel__actions">
+                <button
+                  type="button"
+                  className="ctsv-dash-btn"
+                  onClick={handleRequestSettlement}
+                  disabled={requestingSettlement || !settlement.canRequest}
+                >
+                  {requestingSettlement
+                    ? 'Đang gửi...'
+                    : isPaid
+                      ? 'Yêu cầu tất toán lại'
+                      : 'Yêu cầu Trường thanh toán'}
+                </button>
+                {settlement.canRequest ? (
+                  <span className="partner-revenue-panel__hint">
+                    {isPaid
+                      ? 'Sự kiện đã kết thúc — bạn có thể mở một yêu cầu tất toán mới.'
+                      : `Còn ${settlement.remainingToday} lượt trong hôm nay.`}
+                  </span>
+                ) : (
+                  <span className="partner-revenue-panel__hint">{blockNote}</span>
+                )}
+              </div>
+            )}
+          </section>
+        );
+      })()}
+
       <div className="ctsv-ed-tabs" role="tablist" aria-label="Chi tiết sự kiện">
         {visibleTabs.map((tab) => (
           <button
@@ -312,6 +489,53 @@ const PartnerEventDetail = () => {
             )}
           </div>
         </div>
+      ) : event.requestId ? (
+        <div className="ctsv-ed-banner" role="status" style={{ flexWrap: 'wrap', gap: 12 }}>
+          <span className="ctsv-ed-banner-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12" y2="16" />
+            </svg>
+          </span>
+          <p style={{ flex: '1 1 240px' }}>
+            {event.editLock
+              ? event.editLock === 'settled'
+                ? 'Sự kiện đã tất toán nên không thể gửi yêu cầu chỉnh sửa.'
+                : 'Sự kiện đã có người đăng ký nên không thể gửi yêu cầu chỉnh sửa.'
+              : event.requestStatus === 'hidden'
+                ? 'Sự kiện đang được ẩn khỏi danh sách công khai.'
+                : 'Bạn có thể gửi yêu cầu chỉnh sửa (cần CTSV duyệt lại) hoặc ẩn khỏi trang công khai.'}
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {!event.editLock && (
+              <Link
+                to={`/partner/proposals/create?edit=${event.requestId}`}
+                className="ctsv-dash-btn ctsv-dash-btn--ghost"
+              >
+                Yêu cầu sửa
+              </Link>
+            )}
+            <button
+              type="button"
+              className="ctsv-dash-btn ctsv-dash-btn--ghost"
+              onClick={() => setConfirmHide(true)}
+              disabled={hiding}
+            >
+              {event.requestStatus === 'hidden' ? 'Bỏ ẩn sự kiện' : 'Ẩn sự kiện'}
+            </button>
+            {event.requestStatus === 'hidden' && !event.editLock && (
+              <button
+                type="button"
+                className="ctsv-dash-btn ctsv-dash-btn--ghost"
+                onClick={() => setConfirmDelete(true)}
+                disabled={deleting}
+              >
+                Xóa hoàn toàn
+              </button>
+            )}
+          </div>
+        </div>
       ) : (
         <div className="ctsv-ed-banner" role="status">
           <span className="ctsv-ed-banner-icon" aria-hidden>
@@ -344,8 +568,31 @@ const PartnerEventDetail = () => {
                 <dt>Campus</dt>
                 <dd>{event.campus || '—'}</dd>
               </div>
-              {event.agenda && (
+              {(event.startDate || event.endDate) && (
                 <div>
+                  <dt>Thời gian diễn ra</dt>
+                  <dd>
+                    {event.startDate ? formatDateTime(event.startDate) : '—'}
+                    {event.endDate ? ` – ${formatDateTime(event.endDate)}` : ''}
+                  </dd>
+                </div>
+              )}
+              {(event.registrationStartDate || event.registrationEndDate) && (
+                <div>
+                  <dt>Thời gian đăng ký</dt>
+                  <dd>
+                    {event.registrationStartDate
+                      ? new Date(event.registrationStartDate).toLocaleDateString('vi-VN')
+                      : '—'}
+                    {' – '}
+                    {event.registrationEndDate
+                      ? new Date(event.registrationEndDate).toLocaleDateString('vi-VN')
+                      : '—'}
+                  </dd>
+                </div>
+              )}
+              {event.agenda && (
+                <div className="ctsv-ed-dl-full">
                   <dt>Chương trình</dt>
                   <dd>{event.agenda}</dd>
                 </div>
@@ -368,6 +615,80 @@ const PartnerEventDetail = () => {
                       <strong>{sp.name}</strong>
                       {sp.role && <span>{sp.role}</span>}
                     </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {learningOutcomes.length > 0 && (
+            <section className="ctsv-ed-panel">
+              <h2>Bạn sẽ học được gì</h2>
+              <ul className="ctsv-ed-bullet-list">
+                {learningOutcomes.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {benefits.length > 0 && (
+            <section className="ctsv-ed-panel">
+              <h2>Quyền lợi đối tác yêu cầu</h2>
+              <ul className="ctsv-ed-bullet-list">
+                {benefits.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {event.partnerMessage && (
+            <section className="ctsv-ed-panel">
+              <h2>Lời nhắn gửi CTSV</h2>
+              <p className="ctsv-ed-desc">{event.partnerMessage}</p>
+            </section>
+          )}
+
+          {(attachmentItems.length > 0 || attachmentLinks.length > 0) && (
+            <section className="ctsv-ed-panel">
+              <h2>Tệp & liên kết đính kèm</h2>
+              <ul className="ctsv-ed-file-list">
+                {attachmentItems.map((f) => (
+                  <li key={f.key}>
+                    <button
+                      type="button"
+                      className="ctsv-ed-file"
+                      onClick={() => openAttachment(f)}
+                      disabled={!f.href}
+                    >
+                      <span className="ctsv-ed-file-icon" aria-hidden>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                      </span>
+                      <span className="ctsv-ed-file-body">
+                        <span className="ctsv-ed-file-name">{f.name}</span>
+                        <span className="ctsv-ed-file-size">{f.sizeLabel || 'Tệp đính kèm'}</span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+                {attachmentLinks.map((link, i) => (
+                  <li key={`link-${i}`}>
+                    <a href={link} className="ctsv-ed-file" target="_blank" rel="noreferrer">
+                      <span className="ctsv-ed-file-icon" aria-hidden>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                          <path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" />
+                          <path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" />
+                        </svg>
+                      </span>
+                      <span className="ctsv-ed-file-body">
+                        <span className="ctsv-ed-file-name">{link}</span>
+                        <span className="ctsv-ed-file-size">Liên kết</span>
+                      </span>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -469,6 +790,32 @@ const PartnerEventDetail = () => {
         onCancel={() => !deleting && setConfirmDelete(false)}
         loading={deleting}
         danger
+      />
+
+      <ConfirmDialog
+        open={confirmSettlementOpen}
+        title="Sự kiện chưa kết thúc"
+        message="Sự kiện hiện chưa kết thúc. Bạn vẫn muốn gửi yêu cầu Nhà trường tất toán doanh thu ngay bây giờ chứ?"
+        confirmLabel="Vẫn gửi yêu cầu"
+        cancelLabel="Để sau"
+        onConfirm={doRequestSettlement}
+        onCancel={() => !requestingSettlement && setConfirmSettlementOpen(false)}
+        loading={requestingSettlement}
+      />
+
+      <ConfirmDialog
+        open={confirmHide}
+        title={event.requestStatus === 'hidden' ? 'Hiển thị lại sự kiện?' : 'Ẩn sự kiện?'}
+        message={
+          event.requestStatus === 'hidden'
+            ? 'Sự kiện sẽ hiển thị trở lại trên trang công khai để sinh viên xem và đăng ký.'
+            : 'Sự kiện sẽ bị ẩn khỏi trang công khai. Sinh viên sẽ không thấy để đăng ký. Bạn có thể bỏ ẩn lại sau.'
+        }
+        confirmLabel={event.requestStatus === 'hidden' ? 'Hiển thị lại' : 'Ẩn sự kiện'}
+        cancelLabel="Quay lại"
+        onConfirm={handleToggleHide}
+        onCancel={() => !hiding && setConfirmHide(false)}
+        loading={hiding}
       />
     </div>
   );

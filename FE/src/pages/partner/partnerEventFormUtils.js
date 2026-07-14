@@ -33,5 +33,6 @@ export const mapRequestToState = (req) => ({
   benefits: req.benefits?.length ? req.benefits : [''],
   partnerMessage: req.partnerMessage || '',
   attachments: req.attachments || [],
+  attachmentLinks: req.attachmentLinks || [],
   bannerFileName: req.bannerFileName || ''
 });

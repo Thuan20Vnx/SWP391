@@ -1,30 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import ApprovalListPagination from '../../components/approval/ApprovalListPagination';
+import { fetchAdminPartners } from '../../services/adminApi';
 import {
-  approveAdminPartner,
-  fetchAdminPartners,
-  rejectAdminPartner
-} from '../../services/adminApi';
-import { formatPartnerDate, formatVnd, getPartnerStatusLabel } from '../../utils/partnerDisplay';
+  PARTNER_STATUS_LABEL,
+  PARTNER_STATUS_TONE,
+  formatPartnerDate,
+  partnerInitials,
+} from '../../utils/partnerDisplay';
 import { useTranslation } from '../../i18n/I18nContext';
+import '../../styles/admin-dashboard.css';
+
+const PAGE_SIZE = 6;
+
+const AVATAR_COLORS = [
+  ['#ea580c', '#f97316'],
+  ['#1e293b', '#334155'],
+  ['#0369a1', '#0ea5e9'],
+  ['#0f766e', '#14b8a6'],
+  ['#b45309', '#d97706'],
+  ['#3730a3', '#6366f1'],
+];
+
+const avatarGradient = (name = '') => {
+  const idx = (name.charCodeAt(0) || 0) % AVATAR_COLORS.length;
+  const [from, to] = AVATAR_COLORS[idx];
+  return `linear-gradient(145deg, ${from}, ${to})`;
+};
+
+const StatCard = ({ label, value, tone }) => (
+  <div className={`cplist-stat cplist-stat--${tone}`}>
+    <span className="cplist-stat__value">{value}</span>
+    <span className="cplist-stat__label">{label}</span>
+  </div>
+);
 
 const AdminPartnerApprovals = ({ showToast }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [rejectId, setRejectId] = useState(null);
-  const [rejectReason, setRejectReason] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [page, setPage] = useState(1);
   const userRole = localStorage.getItem('userRole');
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     return fetchAdminPartners('pending_admin')
       .then((d) => setPartners(d.partners || []))
       .catch((e) => showToast?.(e.message, 'error'))
       .finally(() => setLoading(false));
-  };
+  }, [showToast]);
 
   useEffect(() => {
     if (userRole !== 'admin') {
@@ -33,153 +58,120 @@ const AdminPartnerApprovals = ({ showToast }) => {
       return;
     }
     load();
-  }, [userRole, navigate, showToast, t]);
+  }, [userRole, navigate, showToast, t, load]);
 
-  const handleApprove = async (id) => {
-    setBusy(true);
-    try {
-      const res = await approveAdminPartner(id);
-      if (res.accountCreated) {
-        showToast?.(t('admin.partnerApprovals.toast.approvedWithAccount'), 'success');
-      } else {
-        showToast?.(t('admin.partnerApprovals.toast.approved'), 'success');
-      }
-      setPartners((prev) => prev.filter((p) => p._id !== id));
-    } catch (e) {
-      showToast?.(e.message, 'error');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!rejectId || !rejectReason.trim()) return;
-    setBusy(true);
-    try {
-      await rejectAdminPartner(rejectId, rejectReason.trim());
-      showToast?.(t('admin.partnerApprovals.toast.rejected'), 'info');
-      setPartners((prev) => prev.filter((p) => p._id !== rejectId));
-      setRejectId(null);
-      setRejectReason('');
-    } catch (e) {
-      showToast?.(e.message, 'error');
-    } finally {
-      setBusy(false);
-    }
-  };
+  const totalPages = Math.max(1, Math.ceil(partners.length / PAGE_SIZE));
+  const pageSafe = Math.min(page, totalPages);
+  const slice = useMemo(() => {
+    const start = (pageSafe - 1) * PAGE_SIZE;
+    return partners.slice(start, start + PAGE_SIZE);
+  }, [partners, pageSafe]);
 
   return (
-    <div className="profile-container" style={{ minHeight: '100vh', background: 'var(--bg-default)' }}>
-      <main className="profile-main" style={{ marginTop: '40px', padding: '24px 5%', maxWidth: 960, margin: '40px auto' }}>
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>{t('admin.partnerApprovals.title')}</h1>
-          <p style={{ color: 'var(--text-muted)' }}>{t('admin.partnerApprovals.subtitle')}</p>
-        </header>
-
-        {loading ? (
-          <p>{t('common.loading')}</p>
-        ) : partners.length === 0 ? (
-          <p style={{ padding: 32, textAlign: 'center', background: '#fff', borderRadius: 12 }}>
-            {t('admin.partnerApprovals.empty')}
-          </p>
-        ) : (
-          <ul style={{ display: 'flex', flexDirection: 'column', gap: 16, listStyle: 'none', padding: 0 }}>
-            {partners.map((p) => (
-              <li
-                key={p._id}
-                style={{
-                  background: '#fff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: 12,
-                  padding: 20
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                  <div>
-                    <h3 style={{ margin: '0 0 8px', fontSize: '1.125rem' }}>{p.name}</h3>
-                    <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>
-                      {p.proposedEventTitle || t('admin.common.empty')} • {formatVnd(p.expectedSponsorAmount)}
-                    </p>
-                    <p style={{ margin: '8px 0 0', fontSize: '0.8125rem', color: '#94a3b8' }}>
-                      {t('admin.partnerApprovals.submitted', { date: formatPartnerDate(p.createdAt) })} •{' '}
-                      {t('admin.partnerApprovals.ctsv', { email: p.ctsvApprovedByEmail || t('admin.common.empty') })} •{' '}
-                      {getPartnerStatusLabel(p.status, t)}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      className="primary-button"
-                      style={{ background: '#fff', color: 'var(--primary)', border: '1px solid var(--primary)' }}
-                      onClick={() => navigate(`/partners/${p._id}`)}
-                    >
-                      {t('admin.partnerApprovals.detail')}
-                    </button>
-                    <button
-                      type="button"
-                      className="primary-button"
-                      style={{ background: '#16a34a', border: 'none' }}
-                      disabled={busy}
-                      onClick={() => handleApprove(p._id)}
-                    >
-                      {t('admin.common.approve')}
-                    </button>
-                    <button
-                      type="button"
-                      className="primary-button"
-                      style={{ background: '#dc2626', border: 'none' }}
-                      disabled={busy}
-                      onClick={() => {
-                        setRejectId(p._id);
-                        setRejectReason('');
-                      }}
-                    >
-                      {t('admin.common.reject')}
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {rejectId && (
-          <div
-            className="ctsv-partner-dialog-backdrop"
-            style={{ position: 'fixed', inset: 0, zIndex: 200 }}
-            role="presentation"
-            onClick={() => !busy && setRejectId(null)}
-          >
-            <div className="ctsv-partner-dialog" onClick={(e) => e.stopPropagation()}>
-              <h2 className="ctsv-partner-dialog-title">{t('admin.partnerApprovals.rejectTitle')}</h2>
-              <label className="ctsv-partner-dialog-field">
-                <span>
-                  {t('admin.partnerApprovals.rejectReason')} <em>*</em>
-                </span>
-                <textarea
-                  className="ctsv-textarea ctsv-partner-dialog-textarea"
-                  rows={4}
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                />
-              </label>
-              <div className="ctsv-partner-dialog-actions">
-                <button type="button" className="ctsv-partner-dialog-cancel" onClick={() => setRejectId(null)}>
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className="ctsv-partner-dialog-submit ctsv-partner-dialog-submit--danger"
-                  disabled={busy || !rejectReason.trim()}
-                  onClick={handleReject}
-                >
-                  {t('admin.common.confirm')}
-                </button>
-              </div>
-            </div>
+    <div className="cplist-page">
+      <header className="cplist-hero">
+        <div className="cplist-hero__text">
+          <span className="cplist-hero__eyebrow">{t('admin.partnerApprovals.title')}</span>
+          <h1 className="cplist-hero__title">{t('admin.partnerApprovals.title')}</h1>
+          <p className="cplist-hero__desc">{t('admin.partnerApprovals.subtitle')}</p>
+        </div>
+        <div className="cplist-hero__aside">
+          <div className="cplist-hero__stat" aria-live="polite">
+            <span className="cplist-hero__stat-num">{loading ? '—' : partners.length}</span>
+            <span className="cplist-hero__stat-label">Đơn chờ Admin</span>
           </div>
-        )}
-      </main>
+        </div>
+      </header>
+
+      {!loading && (
+        <div className="cplist-stats-row">
+          <StatCard label="Chờ Admin duyệt" value={partners.length} tone="pending" />
+        </div>
+      )}
+
+      <section className="cplist-card" aria-busy={loading}>
+        <div className="cplist-table-wrap">
+          <table className="cplist-table">
+            <thead>
+              <tr>
+                <th>Đơn vị gửi</th>
+                <th>Nội dung đề xuất</th>
+                <th className="col-center">Ngày gửi</th>
+                <th className="col-center">Trạng thái</th>
+                <th className="col-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading &&
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i} className="cplist-row--skeleton">
+                    <td><div className="cplist-skeleton cplist-skeleton--row" /></td>
+                    <td><div className="cplist-skeleton" /></td>
+                    <td><div className="cplist-skeleton cplist-skeleton--sm" /></td>
+                    <td><div className="cplist-skeleton cplist-skeleton--sm" /></td>
+                    <td><div className="cplist-skeleton cplist-skeleton--sm" /></td>
+                  </tr>
+                ))}
+              {!loading && slice.length === 0 && (
+                <tr>
+                  <td colSpan={5}>
+                    <div className="cplist-empty">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" aria-hidden>
+                        <rect x="2" y="7" width="20" height="15" rx="2" />
+                        <path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 1 4 0" />
+                        <path d="M12 12v4M10 14h4" />
+                      </svg>
+                      <p>{t('admin.partnerApprovals.empty')}</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+              {!loading &&
+                slice.map((p) => {
+                  const tone = PARTNER_STATUS_TONE[p.status] || 'slate';
+                  const program = p.proposedProgram || p.proposedEventTitle || '—';
+                  const code = p.partnerCode || p.email?.split('@')[0] || '—';
+                  return (
+                    <tr key={p._id} className="cplist-row">
+                      <td data-label="Đơn vị gửi">
+                        <div className="cplist-partner-cell">
+                          <span className="cplist-avatar" style={{ background: avatarGradient(p.name) }} aria-hidden>
+                            {partnerInitials(p.name)}
+                          </span>
+                          <span className="cplist-partner-info">
+                            <span className="cplist-partner-name">{p.name}</span>
+                            <span className="cplist-partner-code">{code}</span>
+                          </span>
+                        </div>
+                      </td>
+                      <td className="cplist-program" data-label="Nội dung đề xuất">{program}</td>
+                      <td className="col-center cplist-date" data-label="Ngày gửi">{formatPartnerDate(p.createdAt)}</td>
+                      <td className="col-center" data-label="Trạng thái">
+                        <span className={`cplist-badge cplist-badge--${tone}`}>
+                          {PARTNER_STATUS_LABEL[p.status] || p.status}
+                        </span>
+                      </td>
+                      <td className="col-center" data-label="Thao tác">
+                        <Link to={`/partners/${p._id}`} className="cplist-action-btn cplist-action-btn--primary">
+                          Xét duyệt
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="cplist-footer">
+          <ApprovalListPagination
+            page={pageSafe}
+            totalItems={partners.length}
+            pageSize={PAGE_SIZE}
+            onChange={setPage}
+          />
+        </div>
+      </section>
     </div>
   );
 };

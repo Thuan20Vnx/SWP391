@@ -3,12 +3,14 @@ export const ICPDP_SIDEBAR_KEY = 'icpdpSidebarOpen';
 export const ICPDP_NAV_ITEMS = [
   { path: '/icpdp/dashboard', label: 'Bảng điều khiển', icon: 'dashboard' },
   { path: '/icpdp/profile', label: 'Hồ sơ', icon: 'profile' },
-  { path: '/icpdp/proposals', label: 'Duyệt đề xuất sự kiện', section: 'QUẢN LÝ CLB', icon: 'publish' },
+  { path: '/icpdp/department-profile', label: 'Quản lý hồ sơ IC-PDP', icon: 'profile' },
+  { path: '/icpdp/proposals', label: 'Duyệt đề xuất sự kiện', section: 'QUẢN LÝ CLB', icon: 'publish', badgeKey: 'events' },
   { path: '/icpdp/club-registrations', label: 'Quản lý CLB', icon: 'accounts' },
   {
     path: '/icpdp/semester-timelines',
     label: 'Duyệt timeline CLB',
     icon: 'calendar',
+    badgeKey: 'timeline',
   },
   { path: '/icpdp/events', label: 'Xem sự kiện', icon: 'events' },
   {
@@ -49,6 +51,9 @@ export const isIcpdpNavActive = (path, pathname) => {
   if (path === '/icpdp/dashboard') return pathname === path;
   if (path === '/icpdp/profile') {
     return pathname === '/icpdp/profile' || pathname === '/profile';
+  }
+  if (path === '/icpdp/department-profile') {
+    return pathname === '/icpdp/department-profile';
   }
   if (path === '/icpdp/events/create') {
     return (

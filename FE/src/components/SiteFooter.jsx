@@ -4,6 +4,7 @@ import fptLogo from '../assets/fpt_logo.png';
 import useUserProfile from '../hooks/useUserProfile';
 import { getHomePathForRole, getUserRole, isAdminRole } from '../utils/auth';
 import {
+  FOOTER_CLUB_ACCOUNT_LINKS,
   FOOTER_CONTACT,
   FOOTER_EXPLORE_LINKS,
   FOOTER_GUEST_ACCOUNT_LINKS,
@@ -23,14 +24,22 @@ const SiteFooter = ({ embedded = false }) => {
   const isGuest = !isLoggedIn;
   const staffPortalRoles = ['ctsv', 'icpdp', 'partner', 'club_manager'];
   const isStudentLike = isLoggedIn && !isAdminRole(role) && !staffPortalRoles.includes(role);
+  const isClubManager = isLoggedIn && role === 'club_manager';
   const portalHome = getHomePathForRole(role);
   const accountLinks = isGuest
     ? FOOTER_GUEST_ACCOUNT_LINKS
     : isStudentLike
       ? FOOTER_STUDENT_ACCOUNT_LINKS
-      : isLoggedIn
-        ? [{ to: portalHome, label: 'Vào cổng làm việc' }]
-        : [];
+      : isClubManager
+        ? FOOTER_CLUB_ACCOUNT_LINKS
+        : isLoggedIn
+          ? [{ to: portalHome, label: 'Vào cổng làm việc' }]
+          : [];
+  const accountHeading = isGuest
+    ? 'Dành cho bạn'
+    : isClubManager
+      ? 'Quản lý CLB'
+      : 'Tài khoản';
 
   return (
     <footer className={`home-footer${embedded ? ' home-footer--embedded' : ''}`}>
@@ -82,7 +91,7 @@ const SiteFooter = ({ embedded = false }) => {
         </div>
 
         <div className="footer-links-col footer-account-col">
-          <h4>{isGuest ? 'Dành cho bạn' : 'Tài khoản'}</h4>
+          <h4>{accountHeading}</h4>
           <ul className="footer-links-list">
             {accountLinks.map((item) => (
               <li key={item.to}>

@@ -467,6 +467,99 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
 
   const statusClass = `event-detail-page__status event-detail-page__status--${event.registrationStatus.tone}`;
 
+  const formatTicketTime = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+  };
+
+  const formatSessionDay = (sessionKey) => {
+    if (!sessionKey) return '';
+    const d = new Date(`${sessionKey}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return sessionKey;
+    return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  const formatTimeOnly = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Vé của người tham gia đã đăng ký: hiển thị trạng thái check-in/check-out thay vì nút đăng ký.
+  const renderMyTicketStatus = (reg) => {
+    const checkedIn = Boolean(reg.checkedInAt) || reg.status === 'attended';
+    const checkedOut = Boolean(reg.checkedOutAt);
+    const sessions = Array.isArray(reg.attendanceLog) ? reg.attendanceLog : [];
+    const isMultiDay = sessions.length > 1;
+
+    return (
+      <div className="event-detail-page__ticket-status">
+        {isMultiDay ? (
+          <>
+            <p className="event-detail-page__ticket-heading">Điểm danh theo ngày</p>
+            {sessions.map((s) => {
+              const dayIn = Boolean(s.checkedInAt);
+              const dayOut = Boolean(s.checkedOutAt);
+              return (
+                <div
+                  key={s.sessionKey}
+                  className={`event-detail-page__ticket-row${dayIn ? ' is-done' : ''}`}
+                >
+                  <span className="event-detail-page__ticket-dot" aria-hidden />
+                  <div className="event-detail-page__ticket-text">
+                    <strong>{formatSessionDay(s.sessionKey)}</strong>
+                    <span>
+                      {dayIn ? `Vào ${formatTimeOnly(s.checkedInAt)}` : 'Chưa check-in'}
+                      {dayOut ? ` · Ra ${formatTimeOnly(s.checkedOutAt)}` : dayIn ? ' · Chưa check-out' : ''}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        ) : (
+          <>
+            <div className={`event-detail-page__ticket-row${checkedIn ? ' is-done' : ''}`}>
+              <span className="event-detail-page__ticket-dot" aria-hidden />
+              <div className="event-detail-page__ticket-text">
+                <strong>Check-in</strong>
+                <span>{checkedIn ? `Đã check-in · ${formatTicketTime(reg.checkedInAt)}` : 'Chưa check-in'}</span>
+              </div>
+            </div>
+            <div className={`event-detail-page__ticket-row${checkedOut ? ' is-done' : ''}`}>
+              <span className="event-detail-page__ticket-dot" aria-hidden />
+              <div className="event-detail-page__ticket-text">
+                <strong>Check-out</strong>
+                <span>{checkedOut ? `Đã check-out · ${formatTicketTime(reg.checkedOutAt)}` : 'Chưa check-out'}</span>
+              </div>
+            </div>
+          </>
+        )}
+        {!checkedIn && (
+          <p className="event-detail-page__ticket-hint">
+            Dùng điện thoại quét mã QR do ban tổ chức cung cấp tại sự kiện để check-in.
+          </p>
+        )}
+        {checkedOut && (
+          reg.hasReviewed ? (
+            <p className="event-detail-page__ticket-reviewed">Bạn đã đánh giá sự kiện này. Cảm ơn bạn!</p>
+          ) : (
+            <button
+              type="button"
+              className="event-detail-page__review-btn"
+              onClick={() => navigate('/event-reviews')}
+            >
+              Đánh giá sự kiện
+            </button>
+          )
+        )}
+      </div>
+    );
+  };
+
   const detailMain = (
     <main className="event-detail-page__main">
         <div className="event-detail-page__grid">
@@ -752,7 +845,9 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
             ) : (
             <div className="event-detail-page__register-card">
               <div className="event-detail-page__register-head">
-                <span className={statusClass}>{event.registrationStatus.label}</span>
+                <span className={event.myRegistration ? 'event-detail-page__status event-detail-page__status--open' : statusClass}>
+                  {event.myRegistration ? 'Đã đăng ký' : event.registrationStatus.label}
+                </span>
                 <span className="event-detail-page__slots">
                   {event.registeredCount}/{event.capacity} slot
                 </span>
@@ -805,7 +900,9 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                   </div>
                 )}
               </div>
-              {event.registrationNotOpen ? (
+              {event.myRegistration ? (
+                renderMyTicketStatus(event.myRegistration)
+              ) : event.registrationNotOpen ? (
                 remindDone ? (
                   <div className="event-detail-page__remind">
                     <div className="event-detail-page__remind-done">
@@ -913,7 +1010,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                   {registerLoading ? 'Đang xử lý...' : event.primaryActionLabel}
                 </button>
               )}
-              {event.isRegistered && event.eventState !== 'expired' && buildGoogleCalendarUrl({
+              {(event.isRegistered || event.myRegistration) && event.eventState !== 'expired' && buildGoogleCalendarUrl({
                 title: event.title,
                 start: event.startISO,
                 end: event.endISO,
@@ -937,7 +1034,9 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                   Thêm vào Google Calendar
                 </a>
               )}
-              {event.isRegistered && event.eventState !== 'expired' && (
+              {(event.isRegistered || event.myRegistration) &&
+                event.eventState !== 'expired' &&
+                !(event.myRegistration?.checkedInAt || event.myRegistration?.status === 'attended') && (
                 <button
                   type="button"
                   className="event-detail-page__cancel-btn"

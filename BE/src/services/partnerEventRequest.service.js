@@ -48,6 +48,15 @@ const sanitizeAttachments = (attachments = []) => {
     });
 };
 
+// Chuẩn hóa danh sách link đính kèm (URL http/https), tối đa 10 link.
+const sanitizeAttachmentLinks = (links = []) => {
+  if (!Array.isArray(links)) return [];
+  return links
+    .map((l) => String(l || '').trim())
+    .filter((l) => /^https?:\/\/\S+$/i.test(l))
+    .slice(0, 10);
+};
+
 const buildPayload = (body = {}) => {
   const ticketTypes = Array.isArray(body.ticketTypes)
     ? body.ticketTypes.map((t) => ({
@@ -83,6 +92,7 @@ const buildPayload = (body = {}) => {
     benefits: Array.isArray(body.benefits) ? body.benefits.filter(Boolean) : [],
     partnerMessage: body.partnerMessage?.trim() || body.message?.trim() || '',
     attachments: sanitizeAttachments(body.attachments),
+    attachmentLinks: sanitizeAttachmentLinks(body.attachmentLinks),
     title: body.title?.trim() || body.proposedEventTitle?.trim() || '',
     eventType: body.eventType?.trim() || 'Hội thảo & Workshop',
     description: body.description?.trim() || '',
@@ -115,14 +125,13 @@ const getActiveRequestForEmail = async (email) => {
     .lean();
 };
 
+// Trả về Mongoose document (KHÔNG .lean()) vì saveDraft/submitRequest cần .save().
 const getDraftForEmail = async (email) => {
   const normalized = normalizeEmail(email);
   return PartnerEventRequest.findOne({
     partnerEmail: normalized,
     status: 'draft'
-  })
-    .sort({ updatedAt: -1 })
-    .lean();
+  }).sort({ updatedAt: -1 });
 };
 
 const getActiveEventRequestBundle = async (email) => {
@@ -151,8 +160,27 @@ const getActiveEventRequestBundle = async (email) => {
     draft = await getDraftForEmail(normalized);
   }
 
+  const activeRequest = request || draft || null;
+  // Cờ khóa chỉnh sửa: nếu đơn đã gắn với sự kiện thật đã có người đăng ký / đã tất toán
+  // thì đối tác không được gửi lại yêu cầu sửa. FE dùng cờ này để vô hiệu hóa nút.
+  if (activeRequest?.eventId) {
+    const Event = require('../models/Event');
+    const ev = await Event.findById(activeRequest.eventId)
+      .select('registeredCount settlement')
+      .lean();
+    if (ev) {
+      if ((ev.registeredCount || 0) > 0) {
+        activeRequest.editLock = 'registered';
+        activeRequest.editLockReason = 'Sự kiện đã có người đăng ký nên không thể chỉnh sửa hay gửi lại yêu cầu.';
+      } else if (ev.settlement?.status === 'paid') {
+        activeRequest.editLock = 'settled';
+        activeRequest.editLockReason = 'Sự kiện đã được tất toán nên không thể chỉnh sửa hay gửi lại yêu cầu.';
+      }
+    }
+  }
+
   return {
-    request: request || draft || null,
+    request: activeRequest,
     draft,
     cancelled
   };
@@ -163,12 +191,14 @@ const saveDraft = async (email, body) => {
   const payload = buildPayload(body);
   let doc = await getDraftForEmail(normalized);
   if (!doc) {
+    // Chỉ chặn khi còn đơn ĐANG trong luồng duyệt; đơn đã duyệt/ẩn là sự kiện đã hoàn tất
+    // nên đối tác vẫn được tạo đơn (sự kiện) mới.
     const blocking = await PartnerEventRequest.findOne({
       partnerEmail: normalized,
-      status: { $in: ['pending', 'info_requested', 'approved', 'hidden'] }
+      status: { $in: ['pending', 'info_requested'] }
     });
     if (blocking && blocking.status !== 'draft') {
-      throw new AppError('Đã có yêu cầu sự kiện đang xử lý. Không thể tạo nháp mới.', 400);
+      throw new AppError('Đã có yêu cầu sự kiện đang chờ duyệt. Vui lòng chờ CTSV xử lý trước khi tạo đơn mới.', 400);
     }
     doc = new PartnerEventRequest({ partnerEmail: normalized, status: 'draft' });
   }
@@ -228,6 +258,8 @@ const syncPartnerRecord = async (email, payload, status = 'pending') => {
   return partner;
 };
 
+const { assertNoVenueTimeConflict } = require('../utils/venueTimeConflict');
+
 const submitRequest = async (email, body) => {
   const normalized = normalizeEmail(email);
   const payload = buildPayload(body);
@@ -244,17 +276,44 @@ const submitRequest = async (email, body) => {
     startDate: payload.startDate,
   });
 
+  // requestId tường minh = đối tác chủ động "Yêu cầu sửa" một đơn cụ thể → tái dùng
+  // đơn đó (kể cả đã duyệt/ẩn) và gửi lại chờ CTSV duyệt, không tạo đơn trùng.
+  const explicitDoc = body.requestId
+    ? await PartnerEventRequest.findById(body.requestId)
+    : null;
+  if (body.requestId && (!explicitDoc || explicitDoc.partnerEmail !== normalized)) {
+    throw new AppError('Không tìm thấy yêu cầu cần chỉnh sửa!', 404);
+  }
+
+  // Luồng ngầm (không có requestId): tái dùng nháp/bổ sung/bị từ chối; KHÔNG tái dùng
+  // đơn đã duyệt/ẩn — tạo đơn MỚI chờ duyệt (tránh lỗi "đơn mới bị auto duyệt").
   let doc =
-    (body.requestId && (await PartnerEventRequest.findById(body.requestId))) ||
+    explicitDoc ||
     (await getDraftForEmail(normalized)) ||
     (await PartnerEventRequest.findOne({
       partnerEmail: normalized,
-      status: { $in: ['info_requested', 'approved', 'hidden'] }
+      status: { $in: ['info_requested', 'rejected'] }
     }));
 
-  if (doc && !['draft', 'info_requested', 'approved', 'hidden', 'rejected'].includes(doc.status)) {
+  if (doc && !body.requestId && ['approved', 'hidden'].includes(doc.status)) {
+    doc = null;
+  }
+
+  const allowedStatuses = ['draft', 'info_requested', 'rejected', 'approved', 'hidden'];
+  if (doc && !allowedStatuses.includes(doc.status)) {
     throw new AppError('Yêu cầu không thể gửi ở trạng thái hiện tại.', 400);
   }
+
+  if (doc) await assertRequestEditable(doc);
+
+  // Chặn trùng địa điểm + khung giờ (bỏ qua chính sự kiện/đơn đang sửa).
+  await assertNoVenueTimeConflict({
+    location: payload.location,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    excludeEventId: doc?.eventId,
+    excludeRequestId: doc?._id,
+  });
 
   if (!doc) {
     doc = new PartnerEventRequest({ partnerEmail: normalized });
@@ -305,6 +364,20 @@ const cancelRequest = async (email, requestId) => {
   return toRequestApi(doc);
 };
 
+// Sự kiện đã có người đăng ký hoặc đã tất toán thì không cho chỉnh sửa/gửi lại lên CTSV.
+const assertRequestEditable = async (doc) => {
+  if (!doc?.eventId) return;
+  const Event = require('../models/Event');
+  const ev = await Event.findById(doc.eventId).select('registeredCount settlement').lean();
+  if (!ev) return;
+  if ((ev.registeredCount || 0) > 0) {
+    throw new AppError('Sự kiện đã có người đăng ký nên không thể chỉnh sửa hay gửi lại yêu cầu.', 400);
+  }
+  if (ev.settlement?.status === 'paid') {
+    throw new AppError('Sự kiện đã được tất toán nên không thể chỉnh sửa hay gửi lại yêu cầu.', 400);
+  }
+};
+
 const updatePendingRequest = async (email, requestId, body) => {
   const doc = await PartnerEventRequest.findById(requestId);
   if (!doc || doc.partnerEmail !== normalizeEmail(email)) {
@@ -313,9 +386,17 @@ const updatePendingRequest = async (email, requestId, body) => {
   if (doc.status !== 'pending') {
     throw new AppError('Chỉ chỉnh sửa yêu cầu đang chờ duyệt.', 400);
   }
+  await assertRequestEditable(doc);
   const payload = buildPayload(body);
   if (!payload.companyName) throw new AppError('Tên doanh nghiệp là bắt buộc!', 400);
   if (!payload.title) throw new AppError('Tên sự kiện là bắt buộc!', 400);
+  await assertNoVenueTimeConflict({
+    location: payload.location,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    excludeEventId: doc.eventId,
+    excludeRequestId: doc._id,
+  });
   Object.assign(doc, payload);
   await doc.save();
   const partner = await syncPartnerRecord(email, payload, 'pending');
@@ -333,7 +414,15 @@ const updateApprovedRequest = async (email, requestId, body) => {
   if (!['approved', 'hidden'].includes(doc.status)) {
     throw new AppError('Chỉ chỉnh sửa yêu cầu đã được duyệt.', 400);
   }
+  await assertRequestEditable(doc);
   const payload = buildPayload(body);
+  await assertNoVenueTimeConflict({
+    location: payload.location,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    excludeEventId: doc.eventId,
+    excludeRequestId: doc._id,
+  });
   Object.assign(doc, payload, { status: 'approved', hiddenAt: null });
   await doc.save();
   if (doc.partnerId) await syncPartnerRecord(email, payload, 'approved');
@@ -341,17 +430,23 @@ const updateApprovedRequest = async (email, requestId, body) => {
   return toRequestApi(doc);
 };
 
+// Toggle ẩn/bỏ ẩn sự kiện đã duyệt khỏi trang công khai (đồng bộ Event.isHidden).
 const hideRequest = async (email, requestId) => {
   const doc = await PartnerEventRequest.findById(requestId);
   if (!doc || doc.partnerEmail !== normalizeEmail(email)) {
     throw new AppError('Không tìm thấy yêu cầu!', 404);
   }
-  if (doc.status !== 'approved') {
-    throw new AppError('Chỉ ẩn yêu cầu đã được duyệt.', 400);
+  if (!['approved', 'hidden'].includes(doc.status)) {
+    throw new AppError('Chỉ ẩn/bỏ ẩn sự kiện đã được duyệt.', 400);
   }
-  doc.status = 'hidden';
-  doc.hiddenAt = new Date();
+  const Event = require('../models/Event');
+  const willHide = doc.status === 'approved';
+  doc.status = willHide ? 'hidden' : 'approved';
+  doc.hiddenAt = willHide ? new Date() : null;
   await doc.save();
+  if (doc.eventId) {
+    await Event.findByIdAndUpdate(doc.eventId, { $set: { isHidden: willHide } });
+  }
   bumpPartnerCache(doc.partnerEmail);
   return toRequestApi(doc);
 };
@@ -364,6 +459,8 @@ const deleteRequest = async (email, requestId) => {
   if (!['approved', 'hidden', 'cancelled', 'rejected'].includes(doc.status)) {
     throw new AppError('Chỉ xóa yêu cầu đã duyệt, đang ẩn, đã hủy hoặc bị từ chối.', 400);
   }
+  // Không cho xóa nếu sự kiện đã có người đăng ký / đã tất toán.
+  await assertRequestEditable(doc);
   const wasCancelled = doc.status === 'cancelled';
   const partnerId = doc.partnerId;
   const partnerEmail = doc.partnerEmail;
@@ -371,6 +468,14 @@ const deleteRequest = async (email, requestId) => {
   doc.status = 'deleted';
   doc.deletedAt = new Date();
   await doc.save();
+
+  // Xóa mềm luôn sự kiện thật để biến mất khỏi danh sách đối tác và trang công khai.
+  if (doc.eventId) {
+    const Event = require('../models/Event');
+    await Event.findByIdAndUpdate(doc.eventId, {
+      $set: { isDeleted: true, isHidden: true },
+    });
+  }
 
   if (wasCancelled && partnerId) {
     const otherActive = await PartnerEventRequest.countDocuments({

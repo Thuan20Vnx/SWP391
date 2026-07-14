@@ -15,6 +15,8 @@
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+// Model đa phương thức (vision) của Groq — dùng làm dự phòng khi Gemini hết quota.
+const GROQ_VISION_MODEL = process.env.GROQ_VISION_MODEL || 'meta-llama/llama-4-scout-17b-16e-instruct';
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -102,6 +104,131 @@ const callGeminiRaw = async (systemPrompt, messages, { temperature, responseSche
   return data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('').trim();
 };
 
+const DATA_URI_RE = /^data:([^;]+);base64,(.+)$/i;
+
+/** Gemini vision — trả raw text. */
+const callGeminiVision = async ({ systemPrompt, userPrompt, mimeType, base64, temperature, responseSchema }) => {
+  const body = {
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { text: userPrompt },
+          { inline_data: { mime_type: mimeType, data: base64 } },
+        ],
+      },
+    ],
+    generationConfig: {
+      ...(temperature != null ? { temperature } : {}),
+      responseMimeType: 'application/json',
+      ...(responseSchema ? { responseSchema } : {}),
+    },
+  };
+  const response = await fetch(`${GEMINI_URL}?key=${process.env.GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(`Gemini Vision lỗi (${response.status}): ${await response.text()}`);
+  }
+  const data = await response.json();
+  return data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('').trim();
+};
+
+/** Vision qua endpoint kiểu OpenAI (Groq, Mimo) — ảnh gửi dưới dạng data URI trong image_url. */
+const callOpenAiVision = async ({ url, authHeaders, model, systemPrompt, userPrompt, dataUri, temperature }) => {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders },
+    body: JSON.stringify({
+      model,
+      temperature,
+      messages: [
+        { role: 'system', content: `${systemPrompt}${JSON_SUFFIX}` },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: userPrompt },
+            { type: 'image_url', image_url: { url: dataUri } },
+          ],
+        },
+      ],
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`Vision API lỗi (${response.status}): ${await response.text()}`);
+  }
+  const data = await response.json();
+  return data?.choices?.[0]?.message?.content;
+};
+
+// Chuỗi fallback riêng cho phân tích ảnh: Gemini → Groq (vision).
+// (Mimo không hỗ trợ ảnh nên không đưa vào chuỗi này.)
+const VISION_PROVIDERS = [
+  {
+    name: 'Gemini',
+    isConfigured: isGeminiConfigured,
+    call: (args) => callGeminiVision(args),
+  },
+  {
+    name: 'Groq',
+    isConfigured: isGroqConfigured,
+    call: ({ systemPrompt, userPrompt, dataUri, temperature }) =>
+      callOpenAiVision({
+        url: GROQ_URL,
+        authHeaders: { Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
+        model: GROQ_VISION_MODEL,
+        systemPrompt,
+        userPrompt,
+        dataUri,
+        temperature,
+      }),
+  },
+];
+
+/**
+ * Phân tích một ảnh + prompt, trả JSON. Chạy chuỗi fallback vision (Gemini → Groq → Mimo)
+ * để né giới hạn quota của một provider.
+ * @returns {Promise<object>} object JSON đã parse.
+ */
+const analyzeImageJson = async ({ systemPrompt, userPrompt, imageDataUri, temperature = 0.1, responseSchema } = {}) => {
+  const match = DATA_URI_RE.exec(String(imageDataUri || ''));
+  if (!match) throw new Error('Ảnh không hợp lệ để phân tích.');
+  const mimeType = match[1];
+  const base64 = match[2];
+  const dataUri = String(imageDataUri);
+
+  const active = VISION_PROVIDERS.filter((p) => p.isConfigured());
+  if (active.length === 0) {
+    throw new Error('Chưa cấu hình provider AI nào hỗ trợ phân tích ảnh (GEMINI_API_KEY / GROQ_API_KEY / MIMO_API_KEY).');
+  }
+
+  let lastError;
+  for (let i = 0; i < active.length; i += 1) {
+    const provider = active[i];
+    try {
+      const raw = await provider.call({
+        systemPrompt,
+        userPrompt,
+        mimeType,
+        base64,
+        dataUri,
+        temperature,
+        responseSchema,
+      });
+      if (raw && String(raw).trim()) return parseJsonLoose(raw);
+      throw new Error(`${provider.name} trả về nội dung rỗng.`);
+    } catch (err) {
+      lastError = err;
+      const next = active[i + 1];
+      console.warn(`[aiProvider] Vision ${provider.name} lỗi${next ? `, fallback ${next.name}` : ''}:`, err.message);
+    }
+  }
+  throw lastError || new Error('Tất cả provider AI phân tích ảnh đều lỗi.');
+};
+
 const PROVIDERS = [
   {
     name: 'Groq',
@@ -185,4 +312,4 @@ const chatJson = async ({ systemPrompt, messages, temperature = 0.4, responseSch
   return parseJsonLoose(raw);
 };
 
-module.exports = { extractJson, chatJson, isGroqConfigured, isGeminiConfigured, isMimoConfigured };
+module.exports = { extractJson, chatJson, analyzeImageJson, isGroqConfigured, isGeminiConfigured, isMimoConfigured };

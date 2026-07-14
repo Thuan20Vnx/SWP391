@@ -960,6 +960,17 @@ html:has(.ctsv-app-shell) body {
   font-size: 0.9rem;
 }
 
+/* Chấm đỏ báo có cập nhật trạng thái đơn/timeline chưa xem */
+.ctsv-nav-dot {
+  width: 9px;
+  height: 9px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16);
+}
+
 .ctsv-nav-icon {
   display: flex;
   align-items: center;
@@ -2007,6 +2018,97 @@ html:has(.ctsv-app-shell) body {
   font-size: 0.875rem;
   font-weight: 600;
   color: #1e293b;
+}
+
+.ctsv-ed-dl-full {
+  grid-column: 1 / -1;
+}
+
+.ctsv-ed-bullet-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.ctsv-ed-bullet-list li {
+  padding-left: 2px;
+}
+
+.ctsv-ed-file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.ctsv-ed-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+}
+
+.ctsv-ed-file:hover:not(:disabled) {
+  border-color: #fdba74;
+  background: #fffbf6;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
+}
+
+.ctsv-ed-file:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.ctsv-ed-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.ctsv-ed-file-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctsv-ed-file-name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctsv-ed-file-size {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: #94a3b8;
 }
 
 .ctsv-ed-speakers {
@@ -6092,18 +6194,28 @@ html:has(.ctsv-app-shell) body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 13px;
+  width: 100%;
+  padding: 12px 14px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   text-decoration: none;
+  text-align: left;
   color: inherit;
+  font: inherit;
   background: #fff;
-  transition: border-color 0.12s, box-shadow 0.12s;
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s, background 0.12s;
 }
 
-.ctsv-pd-file:hover {
+.ctsv-pd-file:hover:not(:disabled) {
   border-color: #fdba74;
+  background: #fffbf6;
   box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
+}
+
+.ctsv-pd-file:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 .ctsv-pd-file-icon {
@@ -6113,7 +6225,7 @@ html:has(.ctsv-app-shell) body {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: #ffffff;
+  background: #fff7ed;
   color: #ea580c;
   flex-shrink: 0;
 }

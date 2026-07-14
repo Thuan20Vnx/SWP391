@@ -15,8 +15,23 @@ const formatVnd = (amount) => {
   return n.toLocaleString('vi-VN');
 };
 
-const getDashboardStats = async () => {
+const getDashboardStats = async ({ months, endYear, endMonth } = {}) => {
+  // Số tháng hiển thị trên biểu đồ "Sự kiện tạo mới theo tháng": chỉ cho phép 6 hoặc 12.
+  const chartMonths = Number(months) === 12 ? 12 : 6;
   const now = new Date();
+  // Mốc tháng cuối (bên phải) của biểu đồ; mặc định là tháng hiện tại, không cho vượt quá hiện tại.
+  const nowAnchor = new Date(now.getFullYear(), now.getMonth(), 1);
+  let chartAnchor = nowAnchor;
+  const reqYear = Number(endYear);
+  const reqMonth = Number(endMonth);
+  if (
+    Number.isInteger(reqYear) && reqYear >= 2000 && reqYear <= 2100 &&
+    Number.isInteger(reqMonth) && reqMonth >= 1 && reqMonth <= 12
+  ) {
+    const requested = new Date(reqYear, reqMonth - 1, 1);
+    chartAnchor = requested > nowAnchor ? nowAnchor : requested;
+  }
+  const isCurrentAnchor = chartAnchor.getTime() === nowAnchor.getTime();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
@@ -147,9 +162,9 @@ const getDashboardStats = async () => {
         ? '+100%'
         : '0%';
 
-  const monthRanges = Array.from({ length: 6 }, (_, idx) => {
-    const offset = 5 - idx;
-    const d = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+  const monthRanges = Array.from({ length: chartMonths }, (_, idx) => {
+    const offset = chartMonths - 1 - idx;
+    const d = new Date(chartAnchor.getFullYear(), chartAnchor.getMonth() - offset, 1);
     const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
     return { d, next };
   });
@@ -163,9 +178,24 @@ const getDashboardStats = async () => {
   );
   const monthlyBuckets = monthRanges.map(({ d }, index) => ({
     label: `T${d.getMonth() + 1}`,
-    month: `Tháng ${d.getMonth() + 1}`,
+    month: `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`,
     value: monthCounts[index],
   }));
+
+  // Năm sớm nhất có sự kiện — dùng cho ô chọn Năm ở FE.
+  const earliestEvent = await Event.findOne({ isHidden: { $ne: true } })
+    .sort({ createdAt: 1 })
+    .select('createdAt')
+    .lean();
+  const earliestYear = earliestEvent?.createdAt
+    ? new Date(earliestEvent.createdAt).getFullYear()
+    : now.getFullYear();
+
+  const firstBucketDate = monthRanges[0].d;
+  const lastBucketDate = monthRanges[monthRanges.length - 1].d;
+  const chartPeriod = isCurrentAnchor
+    ? `${chartMonths} tháng gần nhất`
+    : `Tháng ${firstBucketDate.getMonth() + 1}/${firstBucketDate.getFullYear()} – Tháng ${lastBucketDate.getMonth() + 1}/${lastBucketDate.getFullYear()}`;
 
   const peakMonth = monthlyBuckets.reduce(
     (best, item) => (item.value > best.value ? item : best),
@@ -261,10 +291,15 @@ const getDashboardStats = async () => {
       label: conn.readyState === 1 ? 'ỔN ĐỊNH' : 'CẢNH BÁO',
       database: conn.name || 'FEventsDB',
       host: conn.host || '—',
+      // Trạng thái thật để 2 dòng chi tiết ở FE đổi màu/chữ theo tình hình.
+      databaseConnected: conn.readyState === 1,
+      // Request này chạy được nghĩa là API đang phục vụ; nếu DB rớt thì coi như gián đoạn một phần.
+      apiActive: conn.readyState === 1,
     },
     monthlyPerformance: monthlyBuckets,
     chartSummary: {
-      period: '6 tháng gần nhất',
+      period: chartPeriod,
+      months: chartMonths,
       avg:
         monthlyBuckets.length > 0
           ? Math.round(
@@ -285,6 +320,15 @@ const getDashboardStats = async () => {
       growthCaption: 'So với tháng trước',
     },
     peakMonthIndex: monthlyBuckets.findIndex((m) => m.label === peakMonth.label),
+    chartRange: {
+      months: chartMonths,
+      endYear: chartAnchor.getFullYear(),
+      endMonth: chartAnchor.getMonth() + 1,
+      canGoNext: !isCurrentAnchor,
+      earliestYear,
+      currentYear: now.getFullYear(),
+      currentMonth: now.getMonth() + 1,
+    },
     activityLogs,
   };
 };

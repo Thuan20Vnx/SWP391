@@ -94,9 +94,15 @@ const EventProposalForm = ({
   const form = isControlled ? controlledForm : internalForm;
   const bannerFileName = controlledBannerFileName ?? internalBannerFileName;
 
+  // Giữ giá trị form mới nhất để updater dạng hàm (kể cả async như đọc file) không dựa vào
+  // controlledForm cũ của lần render trước — tránh ghi đè mất dữ liệu vừa điền (vd: patch từ AI).
+  const formRef = useRef(form);
+  formRef.current = form;
+
   const setForm = (updater) => {
     if (isControlled) {
-      const next = typeof updater === 'function' ? updater(controlledForm) : updater;
+      const next = typeof updater === 'function' ? updater(formRef.current) : updater;
+      formRef.current = next;
       onFormChange(next);
     } else {
       setInternalForm(updater);

@@ -14,7 +14,7 @@ router.use(authMiddleware);
 router.get('/profile', asyncHandler(userController.getProfile));
 router.get('/my-events', authorize('student', 'staff', 'partner', 'guest', 'club_manager'), asyncHandler(userController.getMyEvents));
 router.get('/my-clubs', authorize('student', 'staff', 'club_manager'), asyncHandler(userController.getMyClubs));
-router.get('/event-reviews', authorize('student', 'staff', 'partner'), asyncHandler(userController.getEventReviews));
+router.get('/event-reviews', authorize('student', 'staff', 'partner', 'guest'), asyncHandler(userController.getEventReviews));
 router.put('/profile/avatar', asyncHandler(userController.updateAvatar));
 router.patch('/profile/avatar', asyncHandler(userController.updateAvatar));
 router.put('/profile', asyncHandler(userController.updateProfile));

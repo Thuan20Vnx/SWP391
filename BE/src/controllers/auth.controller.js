@@ -29,12 +29,20 @@ const googleLogin = async (req, res) => {
 };
 
 const googleCallback = async (req, res) => {
+  // redirect_uri phải khớp đúng URL mà trình duyệt đã dùng để tới đây (host-aware),
+  // nếu không token exchange với Google sẽ báo redirect_uri_mismatch.
+  const callbackUrl = `${req.protocol}://${req.get('host')}/api/auth/google/callback`;
+  // Origin FE để chuyển hướng về (do FE gửi qua state), có kiểm tra hợp lệ ở service.
+  const feOrigin = authService.resolveSafeFrontendOrigin(req.query.state);
   try {
-    const { redirectUrl } = await authService.googleCallback(req.query.code);
+    const { redirectUrl } = await authService.googleCallback(req.query.code, {
+      redirectUri: callbackUrl,
+      frontendOrigin: feOrigin,
+    });
     res.redirect(redirectUrl);
   } catch (error) {
     const message = encodeURIComponent(error.message || 'Xác thực tài khoản Google thất bại. Vui lòng thử lại!');
-    res.redirect(`${CLIENT_ORIGIN}/login?auth_status=error&message=${message}`);
+    res.redirect(`${feOrigin || CLIENT_ORIGIN}/login?auth_status=error&message=${message}`);
   }
 };
 

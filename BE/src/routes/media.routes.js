@@ -41,4 +41,20 @@ router.get(
   })
 );
 
+router.get(
+  '/department-profiles/:type/thumbnail',
+  asyncHandler(async (req, res) => {
+    const DepartmentProfile = require('../models/DepartmentProfile');
+    const { resolveDepartmentThumbnailResponse } = require('../utils/departmentProfileStorage');
+    const doc = await DepartmentProfile.findOne({ type: req.params.type }).lean();
+    if (!doc) return res.status(404).send('Not found');
+    const resolved = await resolveDepartmentThumbnailResponse(doc);
+    if (!resolved) return res.status(404).send('No thumbnail');
+    if (resolved.redirectUrl) return res.redirect(resolved.redirectUrl);
+    res.set('Content-Type', resolved.mime);
+    res.set('Cache-Control', 'public, max-age=86400');
+    return res.send(resolved.buffer);
+  })
+);
+
 module.exports = router;

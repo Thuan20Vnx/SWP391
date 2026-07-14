@@ -1,0 +1,59 @@
+# Render Blueprint — deploy backend Node/Express.
+# Trên Render: New + → Blueprint → chọn repo này. Render đọc file này để tạo service.
+# Các biến "sync: false" bạn phải tự nhập giá trị trong dashboard (bí mật, không commit).
+services:
+  - type: web
+    name: swp391-be
+    runtime: node
+    rootDir: BE
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # CLIENT_ORIGIN = URL Vercel của FE (điền sau khi có, để CORS cho phép).
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: EMAIL_FROM_NAME
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        sync: false
+      - key: AI_DAILY_LIMIT_PER_USER
+        sync: false
+      - key: OPENWEATHER_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: MIMO_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      # GOOGLE_CALLBACK_URL = https://<tên-be>.onrender.com/api/auth/google/callback
+      - key: GOOGLE_CALLBACK_URL
+        sync: false
+      - key: ADMIN_DEFAULT_USER_PASSWORD
+        sync: false

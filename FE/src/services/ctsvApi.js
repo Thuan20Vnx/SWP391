@@ -18,6 +18,15 @@ const ctsvFetch = (path, options = {}) =>
     headers: { ...getAuthHeaders(), ...options.headers }
   }).then(parseJson);
 
+export const fetchCtsvDepartmentProfile = () => ctsvFetch('/department-profile/ctsv');
+
+export const updateCtsvDepartmentProfile = (data) =>
+  ctsvFetch('/department-profile/ctsv', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
 export const fetchCtsvStats = () =>
   cachedFetchDedup('ctsv:stats', () => ctsvFetch('/stats'), { ttl: 60000 });
 

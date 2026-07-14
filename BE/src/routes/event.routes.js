@@ -7,7 +7,7 @@ const optionalAuth = require('../middleware/optionalAuth');
 const optionalAuthorize = require('../middleware/optionalAuthorize');
 const eventController = require('../controllers/event.controller');
 const eventChangeRequestController = require('../controllers/eventChangeRequest.controller');
-const { requestClubModeration } = require('../services/eventModeration.service');
+const { requestClubModeration, cancelClubModeration } = require('../services/eventModeration.service');
 const { formatEvent } = require('../utils/eventFormat');
 const AppError = require('../utils/AppError');
 const registrationController = require('../controllers/registration.controller');
@@ -70,6 +70,29 @@ router.patch(
   })
 );
 
+// PATCH /api/events/:id/moderation/cancel — CLB tự hủy yêu cầu điều phối đang chờ
+router.patch(
+  '/:id/moderation/cancel',
+  authMiddleware,
+  authorize('club_manager'),
+  asyncHandler(async (req, res) => {
+    try {
+      const result = await cancelClubModeration(req.params.id, req.user?._id);
+      res.json({
+        success: true,
+        event: formatEvent(result.event),
+        message: result.message
+      });
+    } catch (error) {
+      if (error instanceof AppError || error.statusCode) {
+        res.status(error.statusCode || 400).json({ success: false, message: error.message });
+        return;
+      }
+      throw error;
+    }
+  })
+);
+
 router.post(
   '/:id/register',
   authMiddleware,
@@ -85,14 +108,20 @@ router.delete(
 router.post(
   '/:id/review',
   authMiddleware,
-  authorize('student', 'staff'),
+  authorize('student', 'staff', 'guest'),
   asyncHandler(reviewController.submitReview)
+);
+router.put(
+  '/:id/review',
+  authMiddleware,
+  authorize('student', 'staff', 'guest'),
+  asyncHandler(reviewController.updateReview)
 );
 
 router.post(
   '/attendance-code/scan',
   authMiddleware,
-  authorize('student', 'staff'),
+  authorize('student', 'staff', 'guest'),
   asyncHandler(qrScannerController.selfScanByCode)
 );
 
@@ -117,7 +146,7 @@ router.post(
 router.post(
   '/:id/self-scan',
   authMiddleware,
-  authorize('student', 'staff'),
+  authorize('student', 'staff', 'guest'),
   asyncHandler(qrScannerController.selfScan)
 );
 

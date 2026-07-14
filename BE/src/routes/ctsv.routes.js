@@ -64,6 +64,7 @@ const { buildEventTextSearchOr } = require('../utils/eventSearch');
 const { createAndBroadcast } = require('../services/notification.service');
 const AppError = require('../utils/AppError');
 const { assertEventScheduleDates } = require('../utils/dateValidation');
+const { assertNoVenueTimeConflict } = require('../utils/venueTimeConflict');
 
 const MAX_IMAGE_DATA_LEN = 4_500_000;
 
@@ -606,6 +607,25 @@ router.get('/events/:id', async (req, res) => {
       const { attachInlineEventCover } = require('../utils/eventCoverStorage');
       formatted = await attachInlineEventCover(formatted, event);
     }
+    // Sự kiện đối tác: gắn yêu cầu + tệp đối tác đã gửi (nằm ở đơn) để CTSV xem trong Tổng quan.
+    if (event.source === 'partner') {
+      const PartnerEventRequest = require('../models/PartnerEventRequest');
+      const { sanitizePartnerRequestForApi } = require('../utils/partnerMediaStorage');
+      const linked = await PartnerEventRequest.findOne({
+        eventId: event._id,
+        status: { $in: ['approved', 'hidden'] },
+      })
+        .sort({ updatedAt: -1 })
+        .lean();
+      if (linked) {
+        const media = sanitizePartnerRequestForApi(linked);
+        formatted.partnerBenefits = (linked.benefits || []).filter(Boolean);
+        formatted.partnerMessage = linked.partnerMessage || '';
+        formatted.partnerAttachments = media.attachments || [];
+        formatted.partnerAttachmentLinks = (linked.attachmentLinks || []).filter(Boolean);
+        formatted.partnerRequestId = String(linked._id);
+      }
+    }
     return res.json({ success: true, event: formatted, students });
   } catch (error) {
     console.error('ctsv event detail:', error);
@@ -628,6 +648,13 @@ router.post('/events', requireSchoolEventSubmit, async (req, res) => {
     assertEventScheduleDates({
       registrationStartDate: new Date(data.registrationStartDate),
       startDate: new Date(data.startDate),
+    });
+
+    // Chặn trùng địa điểm + khung giờ với sự kiện khác hoặc đơn đối tác chờ duyệt.
+    await assertNoVenueTimeConflict({
+      location: data.location,
+      startDate: data.startDate,
+      endDate: data.endDate,
     });
 
     const schoolOrganizerRole = resolveSchoolOrganizerRole(req.userRole);
@@ -712,6 +739,14 @@ router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
     assertEventScheduleDates({
       registrationStartDate: new Date(data.registrationStartDate),
       startDate: new Date(data.startDate),
+    });
+
+    // Chặn trùng địa điểm + khung giờ (bỏ qua chính sự kiện đang sửa).
+    await assertNoVenueTimeConflict({
+      location: data.location,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      excludeEventId: event._id,
     });
 
     if (event.source !== 'school') {
@@ -1138,8 +1173,13 @@ router.post('/reports/:id/submit-admin', async (req, res) => {
 router.get('/proposals', async (req, res) => {
   try {
     const filter = {};
-    if (req.query.status) filter.status = req.query.status;
-    else filter.status = { $in: ['pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'] };
+    if (req.query.status === 'all') {
+      // Không lọc theo trạng thái — trả về mọi hồ sơ (kể cả đã duyệt/từ chối).
+    } else if (req.query.status) {
+      filter.status = req.query.status;
+    } else {
+      filter.status = { $in: ['pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'] };
+    }
     if (req.query.q) {
       const re = new RegExp(req.query.q.trim(), 'i');
       filter.$or = [{ title: re }, { clubName: re }];
@@ -1148,8 +1188,26 @@ router.get('/proposals', async (req, res) => {
     const forApproval = req.query.forApproval === '1' || req.query.forApproval === 'true';
     const pendingPlanStatuses = ['pending_ctsv', 'pending_icpdp', 'pending_admin', 'revision'];
     const hydrated = await Promise.all(proposals.map((p) => hydrateProposalPlanFromLinkedEvent(p)));
+
+    // Đếm theo TẤT CẢ trạng thái (chỉ áp dụng cùng bộ lọc tìm kiếm q, KHÔNG lọc status) để
+    // các tab đếm số chính xác thay vì chỉ đếm trong tập đang lọc.
+    const countMatch = {};
+    if (req.query.q) {
+      const re = new RegExp(req.query.q.trim(), 'i');
+      countMatch.$or = [{ title: re }, { clubName: re }];
+    }
+    const countAgg = await EventProposal.aggregate([
+      { $match: countMatch },
+      { $group: { _id: '$status', n: { $sum: 1 } } },
+    ]);
+    const counts = {};
+    countAgg.forEach((c) => {
+      if (c._id) counts[c._id] = c.n;
+    });
+
     return res.json({
       success: true,
+      counts,
       proposals: hydrated.map((p) =>
         formatProposal(p, {
           includePlanFile: forApproval && pendingPlanStatuses.includes(p.status),
@@ -1357,6 +1415,13 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
       proposal.totalTickets > 0
         ? proposal.totalTickets
         : totalQtyFromTypes(ticketTypes) || 100;
+
+    // Chặn trùng địa điểm + khung giờ khi hiện thực hóa đề xuất thành sự kiện.
+    await assertNoVenueTimeConflict({
+      location: proposal.location,
+      startDate: proposal.startDate,
+      endDate: proposal.endDate,
+    });
 
     const event = await Event.create({
       title: proposal.title,
@@ -2362,6 +2427,40 @@ router.post('/events/check-venue-conflicts', requireCtsvPortal, async (req, res)
       excludeItemIndex,
     });
     return res.json({ success: true, ...result });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// --- Hồ sơ đơn vị (CTSV / IC-PDP) — thumbnail + mô tả hiển thị bên Admin ---
+const departmentProfileService = require('../services/departmentProfile.service');
+
+router.get('/department-profile/:type', async (req, res) => {
+  try {
+    const profile = await departmentProfileService.getDepartmentProfile(req.params.type);
+    return res.json({ success: true, profile });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+router.put('/department-profile/:type', async (req, res) => {
+  try {
+    const { type } = req.params;
+    if (req.userRole !== 'admin' && req.userRole !== type) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn chỉ được cập nhật hồ sơ của đơn vị mình!',
+      });
+    }
+    const profile = await departmentProfileService.updateDepartmentProfile(
+      type,
+      { thumbnail: req.body?.thumbnail, description: req.body?.description },
+      req.authEmail
+    );
+    return res.json({ success: true, profile, message: 'Đã cập nhật hồ sơ đơn vị.' });
   } catch (error) {
     const status = error.statusCode || 500;
     return res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });

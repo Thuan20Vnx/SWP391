@@ -14,7 +14,7 @@ import '../ClubManagement.css';
 
 const PAGE_SIZE = 10;
 
-const showsModerationQueue = (status) => !status || status === 'pending_icpdp';
+const showsModerationQueue = (status) => !status || status === 'pending_icpdp' || status === 'all';
 
 const getItemSubmittedAtMs = (item) => {
   if (item.kind === 'moderation') {
@@ -50,6 +50,7 @@ const IcpdpProposalList = () => {
   const { showToast, headerSearch = '', registerHeaderSearchSubmit } = outlet;
   const [proposals, setProposals] = useState([]);
   const [moderations, setModerations] = useState([]);
+  const [statusCounts, setStatusCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [localSearch, setLocalSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('pending_icpdp');
@@ -72,6 +73,7 @@ const IcpdpProposalList = () => {
 
       let nextProposals = [];
       let nextModerations = [];
+      let nextCounts = {};
       let hadError = false;
 
       try {
@@ -82,6 +84,7 @@ const IcpdpProposalList = () => {
         });
         if (seq !== loadSeqRef.current) return;
         nextProposals = proposalResult.proposals || [];
+        nextCounts = proposalResult.counts || {};
 
         if (showsModerationQueue(status)) {
           const moderationResult = await fetchIcpdpPendingModerations().catch((err) => {
@@ -95,6 +98,7 @@ const IcpdpProposalList = () => {
 
         setProposals(nextProposals);
         setModerations(nextModerations);
+        setStatusCounts(nextCounts);
         if (hadError) {
           showToastRef.current?.('Một phần dữ liệu không tải được. Hiển thị kết quả khả dụng.', 'error');
         }
@@ -165,16 +169,19 @@ const IcpdpProposalList = () => {
   }, [mergedItems, searchQuery]);
 
   const filterTabs = useMemo(() => {
-    const pending = proposals.filter((p) => p.statusKey === 'pending_icpdp').length + moderations.length;
+    // Số đếm lấy từ BE (tính trên TẤT CẢ trạng thái), không phụ thuộc tab đang chọn.
+    const c = statusCounts;
+    const modCount = moderations.length;
+    const totalAll = Object.values(c).reduce((sum, n) => sum + (n || 0), 0) + modCount;
     return [
-      { key: 'pending_icpdp', label: 'Chờ IC-PDP', count: pending },
-      { key: '', label: 'Tất cả', count: mergedItems.length },
-      { key: 'pending_admin', label: 'Chờ Admin', count: proposals.filter((p) => p.statusKey === 'pending_admin').length },
-      { key: 'approved', label: 'Đã duyệt', count: proposals.filter((p) => p.statusKey === 'approved').length },
-      { key: 'revision', label: 'Cần chỉnh sửa', count: proposals.filter((p) => p.statusKey === 'revision').length },
-      { key: 'rejected', label: 'Từ chối', count: proposals.filter((p) => p.statusKey === 'rejected').length },
+      { key: 'pending_icpdp', label: 'Chờ IC-PDP', count: (c.pending_icpdp || 0) + modCount },
+      { key: 'all', label: 'Tất cả', count: totalAll },
+      { key: 'pending_admin', label: 'Chờ Admin', count: c.pending_admin || 0 },
+      { key: 'approved', label: 'Đã duyệt', count: c.approved || 0 },
+      { key: 'revision', label: 'Cần chỉnh sửa', count: c.revision || 0 },
+      { key: 'rejected', label: 'Từ chối', count: c.rejected || 0 },
     ];
-  }, [proposals, moderations.length, mergedItems.length]);
+  }, [statusCounts, moderations.length]);
 
   useEffect(() => {
     setPage(1);

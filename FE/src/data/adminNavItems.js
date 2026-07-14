@@ -3,7 +3,7 @@ export const ICPDP_ADMIN_NAV_ITEMS = [
   { path: '/icpdp', labelKey: 'admin.nav.icpdpHome', icon: 'dashboard' },
   { sectionKey: 'admin.section.clubs' },
   { path: '/icpdp/club-registrations', labelKey: 'admin.nav.clubRegistrations', icon: 'accounts' },
-  { path: '/icpdp/proposals', labelKey: 'admin.nav.eventApprovals', icon: 'events' },
+  { path: '/icpdp/proposals', labelKey: 'admin.nav.eventApprovals', icon: 'events', badgeKey: 'events' },
   { sectionKey: 'admin.section.system' },
   { path: '/admin/system', labelKey: 'admin.nav.maintenance', icon: 'system' },
 ];
@@ -19,9 +19,10 @@ export const ADMIN_NAV_ITEMS = [
   { path: '/admin/accounts', labelKey: 'admin.nav.accounts', icon: 'accounts' },
   { path: '/admin/system', labelKey: 'admin.nav.system', icon: 'system' },
   { path: '/admin/partners', labelKey: 'admin.nav.partners', icon: 'partners' },
+  { path: '/admin/partner-settlements', labelKey: 'admin.nav.partnerSettlements', icon: 'partners', badgeKey: 'partnerSettlements' },
   { path: '/admin/analytics', labelKey: 'admin.nav.analytics', icon: 'analytics' },
   { sectionKey: 'admin.section.events' },
-  { path: '/admin/icpdp/club-registrations', labelKey: 'admin.nav.clubRegistrations', icon: 'accounts' },
-  { path: '/admin/semester-timelines', labelKey: 'admin.nav.semesterTimelines', icon: 'calendar' },
-  { path: '/admin/events', labelKey: 'admin.nav.eventApprovals', icon: 'events' },
+  { path: '/admin/icpdp/club-registrations', labelKey: 'admin.nav.clubRegistrations', icon: 'accounts', badgeKey: 'clubRegistrations' },
+  { path: '/admin/semester-timelines', labelKey: 'admin.nav.semesterTimelines', icon: 'calendar', badgeKey: 'timeline' },
+  { path: '/admin/events', labelKey: 'admin.nav.eventApprovals', icon: 'events', badgeKey: 'events' },
 ];

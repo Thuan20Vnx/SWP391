@@ -4,6 +4,7 @@ const STATUS_LABELS = {
   approved: 'Đã phê duyệt',
   rejected: 'Từ chối',
   revision: 'Cần chỉnh sửa',
+  cancelled: 'Đã hủy',
 };
 
 const formatClubRegistration = (doc) => {

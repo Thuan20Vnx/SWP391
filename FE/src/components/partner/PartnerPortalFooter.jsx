@@ -20,8 +20,8 @@ const PartnerPortalFooter = () => {
           <h4>Khám phá</h4>
           <ul className="footer-links-list">
             <li>
-              <a href="/events" onClick={(e) => { e.preventDefault(); navigate('/events'); }}>
-                Sự kiện sắp tới
+              <a href="/partner/calendar" onClick={(e) => { e.preventDefault(); navigate('/partner/calendar'); }}>
+                Lịch sự kiện toàn trường
               </a>
             </li>
             <li>
@@ -32,6 +32,11 @@ const PartnerPortalFooter = () => {
             <li>
               <a href="/partner/contracts" onClick={(e) => { e.preventDefault(); navigate('/partner/contracts'); }}>
                 Hợp đồng &amp; Thanh toán
+              </a>
+            </li>
+            <li>
+              <a href="/partner/settlements" onClick={(e) => { e.preventDefault(); navigate('/partner/settlements'); }}>
+                Yêu cầu tất toán
               </a>
             </li>
           </ul>

@@ -14,6 +14,8 @@ const {
   buildPartnerStatsBundle,
   getPartnerEvents,
   getPartnerEventById,
+  getPartnerSettlements,
+  requestPartnerSettlement,
   getPartnerContracts,
   getPartnerReports,
   getPartnerReportDetail
@@ -110,7 +112,11 @@ router.patch('/me', async (req, res) => {
       'description',
       'representativeTitle',
       'category',
-      'partnerCode'
+      'partnerCode',
+      'bankAccountNumber',
+      'bankCode',
+      'bankName',
+      'bankAccountHolder'
     ];
     allowed.forEach((key) => {
       if (req.body[key] !== undefined) {
@@ -147,6 +153,40 @@ router.get('/events', async (req, res) => {
     return res.json({ success: true, events });
   } catch (error) {
     return handleError(res, error, 'partner events');
+  }
+});
+
+// GET /api/partner/events/calendar — lịch sự kiện toàn trường cho đối tác.
+// PHẢI đặt trước '/events/:id' nếu không "calendar" sẽ bị khớp thành :id.
+router.get('/events/calendar', async (req, res) => {
+  try {
+    const events = await Event.find({ status: { $in: ['approved', 'live', 'ended'] } })
+      .sort({ startDate: 1 })
+      .limit(500);
+    return res.json({ success: true, events: events.map(formatEvent) });
+  } catch (error) {
+    console.error('partner calendar:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// GET /api/partner/settlements — danh sách sự kiện đối tác kèm doanh thu + trạng thái tất toán.
+router.get('/settlements', async (req, res) => {
+  try {
+    const items = await getPartnerSettlements(req.authEmail);
+    return res.json({ success: true, items });
+  } catch (error) {
+    return handleError(res, error, 'partner settlements');
+  }
+});
+
+// POST /api/partner/events/:id/settlement-request — đối tác yêu cầu Trường tất toán.
+router.post('/events/:id/settlement-request', async (req, res) => {
+  try {
+    const result = await requestPartnerSettlement(req.authEmail, req.params.id);
+    return res.json({ success: true, ...result, message: 'Đã gửi yêu cầu tất toán tới Nhà trường.' });
+  } catch (error) {
+    return handleError(res, error, 'partner settlement request');
   }
 });
 
@@ -414,19 +454,6 @@ router.delete('/event-requests/:id', async (req, res) => {
     return res.json({ success: true, request, message: 'Đã xóa yêu cầu sự kiện.' });
   } catch (error) {
     return handleError(res, error, 'partner event delete');
-  }
-});
-
-// GET /api/partner/events/calendar — lịch sự kiện toàn trường cho đối tác
-router.get('/events/calendar', async (req, res) => {
-  try {
-    const events = await Event.find({ status: { $in: ['approved', 'live', 'ended'] } })
-      .sort({ startDate: 1 })
-      .limit(500);
-    return res.json({ success: true, events: events.map(formatEvent) });
-  } catch (error) {
-    console.error('partner calendar:', error);
-    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });
 

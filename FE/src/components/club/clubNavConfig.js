@@ -16,6 +16,7 @@ export const CLUB_NAV_ITEMS = [
     mobileLabel: 'Timeline mỗi kỳ',
     section: 'KẾ HOẠCH KỲ',
     icon: 'calendar',
+    badgeKey: 'timeline',
   },
   {
     key: 'create',
@@ -27,7 +28,7 @@ export const CLUB_NAV_ITEMS = [
   { key: 'list', label: 'Danh sách Sự kiện quản lý', mobileLabel: 'DS sự kiện', icon: 'publish' },
   { key: 'participants', label: 'Xem danh sách người tham gia', mobileLabel: 'Danh sách tham gia', icon: 'participants' },
   { key: 'report', label: 'Báo cáo sau sự kiện', mobileLabel: 'Báo cáo SK', section: 'THEO DÕI', icon: 'reports' },
-  { key: 'notifications', label: 'Thông báo xét duyệt', mobileLabel: 'Xét duyệt', icon: 'approval' },
+  { key: 'notifications', label: 'Thông báo xét duyệt', mobileLabel: 'Xét duyệt', icon: 'approval', badgeKey: 'events' },
   { key: 'announcements', label: 'Đăng thông báo CLB', mobileLabel: 'Thông báo CLB', icon: 'broadcast' },
   { key: 'dashboard', label: 'Dashboard Thống kê số liệu', mobileLabel: 'Dashboard', icon: 'dashboard' },
 ];

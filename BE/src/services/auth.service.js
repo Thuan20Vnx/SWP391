@@ -497,10 +497,35 @@ const googleLogin = async ({ token, email, name, isMock, picture }) => {
   };
 };
 
-const googleCallback = async (code) => {
+// Chỉ cho phép chuyển hướng về các origin an toàn: localhost/127.0.0.1 hoặc IP
+// mạng nội bộ (10.x, 192.168.x, 172.16–31.x) — tránh open-redirect.
+const isSafeFrontendOrigin = (origin) => {
+  try {
+    const url = new URL(origin);
+    if (!/^https?:$/.test(url.protocol)) return false;
+    const host = url.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return true;
+    if (/^10\.\d+\.\d+\.\d+$/.test(host)) return true;
+    if (/^192\.168\.\d+\.\d+$/.test(host)) return true;
+    if (/^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(host)) return true;
+    return false;
+  } catch {
+    return false;
+  }
+};
+
+const resolveSafeFrontendOrigin = (state) => {
+  const origin = String(state || '').trim();
+  if (origin && isSafeFrontendOrigin(origin)) return origin.replace(/\/$/, '');
+  return '';
+};
+
+const googleCallback = async (code, options = {}) => {
   if (!code) {
     throw new AppError('Không nhận được mã code từ Google.', 400);
   }
+  const { redirectUri, frontendOrigin } = options;
+  const feOrigin = frontendOrigin || CLIENT_ORIGIN;
 
   let email = '';
   let name = '';
@@ -517,7 +542,7 @@ const googleCallback = async (code) => {
     const oauth2Client = new OAuth2Client(
       GOOGLE_CLIENT_ID,
       GOOGLE_CLIENT_SECRET,
-      GOOGLE_CALLBACK_URL
+      redirectUri || GOOGLE_CALLBACK_URL
     );
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
@@ -551,7 +576,7 @@ const googleCallback = async (code) => {
   }
 
   const authToken = signToken(user);
-  const redirectUrl = `${CLIENT_ORIGIN}/auth/google/callback?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`;
+  const redirectUrl = `${feOrigin}/auth/google/callback?auth_status=success&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&token=${encodeURIComponent(authToken)}`;
 
   return { redirectUrl };
 };
@@ -635,6 +660,7 @@ module.exports = {
   resetPassword,
   googleLogin,
   googleCallback,
+  resolveSafeFrontendOrigin,
   getGoogleCalendarAuthUrl,
   googleCalendarCallback,
   unlockAccount,

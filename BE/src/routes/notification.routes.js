@@ -4,7 +4,12 @@ const { verifyToken } = require('../utils/jwt');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { normalizeRole } = require('../utils/role');
-const { addClient, removeClient } = require('../services/notification.service');
+const {
+  addClient,
+  removeClient,
+  categoryOfRefType,
+  refTypesForCategory,
+} = require('../services/notification.service');
 
 const getAuthenticatedUser = async (req) => {
   const headerToken = req.headers.authorization?.startsWith('Bearer ')
@@ -135,6 +140,67 @@ router.patch('/read-all', async (req, res) => {
     return res.json({ success: true, message: 'Đã đánh dấu tất cả đã đọc.' });
   } catch (err) {
     console.error('PATCH /notifications/read-all:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// GET /api/notifications/unread-summary — số thông báo CHƯA đọc theo nhóm nav (events, timeline)
+router.get('/unread-summary', async (req, res) => {
+  let user;
+  try {
+    user = await getAuthenticatedUser(req);
+  } catch {
+    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
+  }
+  if (!user) return res.status(401).json({ success: false, message: 'Người dùng không tồn tại!' });
+
+  try {
+    const email = String(user.email || '').trim().toLowerCase();
+    const unread = await Notification.find({
+      $and: [visibleFilter(user), { readByEmails: { $ne: email } }],
+    })
+      .select('refType')
+      .lean();
+
+    const byCategory = {};
+    let total = 0;
+    for (const n of unread) {
+      const cat = categoryOfRefType(n.refType);
+      if (!cat) continue;
+      byCategory[cat] = (byCategory[cat] || 0) + 1;
+      total += 1;
+    }
+    return res.json({ success: true, byCategory, total });
+  } catch (err) {
+    console.error('GET /notifications/unread-summary:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
+  }
+});
+
+// PATCH /api/notifications/read-category — đánh dấu đã đọc theo nhóm nav (khi mở trang tương ứng)
+router.patch('/read-category', async (req, res) => {
+  let user;
+  try {
+    user = await getAuthenticatedUser(req);
+  } catch {
+    return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn!' });
+  }
+  if (!user) return res.status(401).json({ success: false, message: 'Người dùng không tồn tại!' });
+
+  const category = String(req.body?.category || '').trim();
+  const refTypes = refTypesForCategory(category);
+  if (!refTypes.length) {
+    return res.status(400).json({ success: false, message: 'Nhóm thông báo không hợp lệ!' });
+  }
+
+  try {
+    await Notification.updateMany(
+      { $and: [recipientFilter(user), { refType: { $in: refTypes } }] },
+      { $addToSet: { readByEmails: String(user.email).trim().toLowerCase() } },
+    );
+    return res.json({ success: true, message: 'Đã đánh dấu đã đọc.' });
+  } catch (err) {
+    console.error('PATCH /notifications/read-category:', err);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });
   }
 });

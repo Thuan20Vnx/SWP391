@@ -468,6 +468,264 @@
   margin-top: 16px;
 }
 
+.partner-news-search {
+  flex: 1 1 260px;
+  max-width: 360px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+}
+
+.partner-news-search:focus {
+  border-color: #fed7aa;
+}
+
+.partner-revenue-note {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  color: #9a3412;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* --- Hồ sơ ngân hàng --- */
+.partner-profile-card__subtitle {
+  margin: 22px 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* --- Doanh thu & tất toán (chi tiết sự kiện đối tác) --- */
+.partner-revenue-panel {
+  margin: 0 0 20px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid #e8ddd6;
+  border-radius: 14px;
+}
+
+.partner-revenue-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.partner-revenue-panel__head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.partner-revenue-status {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.partner-revenue-status--none {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.partner-revenue-status--requested {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.partner-revenue-status--paid {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.partner-revenue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.partner-revenue-cell {
+  padding: 14px 16px;
+  background: #faf8f6;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.partner-revenue-cell__label {
+  font-size: 12px;
+  color: #8a7b72;
+}
+
+.partner-revenue-cell__value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.partner-revenue-cell__sub {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.partner-revenue-panel__note {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.partner-revenue-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.partner-revenue-panel__hint {
+  font-size: 12.5px;
+  color: #94a3b8;
+}
+
+.partner-revenue-proof {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f0e8e2;
+}
+
+.partner-revenue-proof__label {
+  display: block;
+  font-size: 12.5px;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.partner-revenue-proof__img {
+  max-width: 320px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #e8ddd6;
+  display: block;
+  cursor: zoom-in;
+}
+
+.partner-settlement-prooflink {
+  color: #f26f21;
+  text-decoration: none;
+}
+
+.partner-settlement-prooflink:hover {
+  text-decoration: underline;
+}
+
+/* --- Trang "Yêu cầu thanh toán" --- */
+.partner-settlements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.partner-settlement-card {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #e8ddd6;
+  border-radius: 14px;
+}
+
+.partner-settlement-card__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  text-decoration: none;
+}
+
+.partner-settlement-card__title:hover {
+  color: #f26f21;
+}
+
+.partner-settlement-card__meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: #94a3b8;
+}
+
+.partner-settlement-card__figures {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.partner-settlement-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.partner-settlement-figure__label {
+  font-size: 12px;
+  color: #8a7b72;
+}
+
+.partner-settlement-figure strong {
+  font-size: 16px;
+  color: #1e293b;
+}
+
+.partner-settlement-card__action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.partner-settlement-hint,
+.partner-settlement-paid {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.partner-settlements-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #94a3b8;
+  background: #fff;
+  border: 1px dashed #e2e8f0;
+  border-radius: 14px;
+}
+
+@media (max-width: 720px) {
+  .partner-settlement-card {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+  .partner-settlement-card__action {
+    align-items: flex-start;
+  }
+}
+
 .partner-benefits-section h3 {
   font-size: 15px;
   margin-bottom: 12px;

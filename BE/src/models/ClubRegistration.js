@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const CLUB_REGISTRATION_STATUSES = ['pending_icpdp', 'pending_admin', 'approved', 'rejected', 'revision'];
+const CLUB_REGISTRATION_STATUSES = ['pending_icpdp', 'pending_admin', 'approved', 'rejected', 'revision', 'cancelled'];
 
 const clubRegistrationSchema = new mongoose.Schema(
   {

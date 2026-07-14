@@ -8111,50 +8111,39 @@ a.club-tag {
   box-shadow: none;
 }
 
-.student-review-done-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+.student-review-card--done {
+  cursor: pointer;
 }
 
-.student-review-done {
-  padding: 18px 20px;
-  border: 1px solid #e8edf3;
-  border-radius: 16px;
-  background: #fff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.student-review-done:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
-}
-
-.student-review-done__top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.student-review-done__top h3 {
-  margin: 0 0 6px;
-  font-size: 1rem;
+.student-review-card__done-flag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(22, 163, 74, 0.92);
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: #0f172a;
+  backdrop-filter: blur(4px);
 }
 
-.student-review-done__score {
+.student-review-done__scorebox {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #fff8f1;
+  border: 1px solid #fde4cf;
+  border-radius: 12px;
 }
 
 .student-stars--readonly {
-  font-size: 1rem;
-  gap: 2px;
+  font-size: 1.15rem;
+  gap: 3px;
 }
 
 .student-stars--readonly .is-on {
@@ -8165,21 +8154,85 @@ a.club-tag {
   color: #e2e8f0;
 }
 
+.student-review-done__scorebox-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #b45309;
+}
+
 .student-review-done__value {
-  font-size: 0.78rem;
+  margin-left: auto;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #64748b;
 }
 
 .student-review-done__comment {
-  margin: 12px 0 0;
+  margin: 0;
   padding: 12px 14px;
   background: #f8fafc;
   border-radius: 10px;
-  border-left: 3px solid #f6b17a;
   color: #334155;
   font-size: 0.9rem;
   line-height: 1.55;
+}
+
+.student-review-done__comment--empty {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.student-review-edit-btn {
+  margin-top: auto;
+  align-self: flex-start;
+  border: 1px solid #dbe3ee;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.student-review-edit-btn:hover {
+  border-color: #f6b17a;
+  color: #ea580c;
+  background: #fff8f1;
+}
+
+.student-review-edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.student-review-edit-actions .student-review-submit {
+  margin-top: 0;
+  flex: 1;
+}
+
+.student-review-edit-cancel {
+  border: 1px solid #dbe3ee;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.student-review-edit-cancel:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.student-review-edit-cancel:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .student-review-empty {
@@ -8783,6 +8836,33 @@ a.club-tag {
   border-radius: 50%;
   background: #ffffff;
 }
+
+.event-discovery-card__status-badge {
+  position: absolute;
+  top: 11px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4.5px 13px;
+  border-radius: 9999px;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+}
+.event-discovery-card__status-badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.9;
+}
+.event-discovery-card__status-badge--success { background: #16a34a; }
+.event-discovery-card__status-badge--warning { background: #f59e0b; }
+.event-discovery-card__status-badge--alert { background: #dc2626; }
+.event-discovery-card__status-badge--muted { background: #64748b; }
 
 .event-discovery-card__overlay {
   position: absolute;
@@ -22102,6 +22182,108 @@ button.stl-action-btn {
 .event-detail-page__cancel-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Trạng thái vé của người đã đăng ký (check-in / check-out) */
+.event-detail-page__ticket-status {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-detail-page__ticket-heading {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.event-detail-page__ticket-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.event-detail-page__ticket-row.is-done {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.event-detail-page__ticket-dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  flex-shrink: 0;
+}
+
+.event-detail-page__ticket-row.is-done .event-detail-page__ticket-dot {
+  background: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.15);
+}
+
+.event-detail-page__ticket-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.event-detail-page__ticket-text strong {
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.event-detail-page__ticket-text span {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.event-detail-page__ticket-row.is-done .event-detail-page__ticket-text span {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.event-detail-page__ticket-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.event-detail-page__ticket-reviewed {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.event-detail-page__review-btn {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.event-detail-page__review-btn:hover {
+  filter: brightness(1.05);
 }
 
 

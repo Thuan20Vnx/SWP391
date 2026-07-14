@@ -575,6 +575,27 @@ button.ev-bento-card.ev-bento-card--interactive.ev-bento-card--active {
   line-height: 1.5;
 }
 
+.ev-pending-edit-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.ev-pending-edit-field {
+  font-weight: 600;
+}
+
+.ev-pending-edit-old {
+  color: #b91c1c;
+  text-decoration: line-through;
+}
+
+.ev-pending-edit-new {
+  color: #15803d;
+  font-weight: 600;
+}
+
 .ev-report-stats--pending .ev-report-stat--pending {
   background: #fafbfc;
   border-style: dashed;
@@ -778,6 +799,133 @@ button.ev-bento-card.ev-bento-card--interactive.ev-bento-card--active {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
+}
+
+/* Bảng điểm danh theo ngày (ma trận sinh viên × ngày) */
+.ev-attendance-toolbar {
+  align-items: flex-start;
+}
+
+.ev-attendance-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ev-attendance-sub {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.ev-attendance-wrapper {
+  overflow-x: auto;
+}
+
+.ev-attendance-table {
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.ev-attendance-table th,
+.ev-attendance-table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.ev-attendance-table thead th {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f8fafc;
+}
+
+.ev-attendance-name-col {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #ffffff;
+  min-width: 190px;
+}
+
+.ev-attendance-table thead .ev-attendance-name-col {
+  background: #f8fafc;
+}
+
+.ev-attendance-day-col,
+.ev-attendance-total-col {
+  text-align: center;
+}
+
+.ev-attendance-name {
+  display: block;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.9rem;
+}
+
+.ev-attendance-mssv {
+  display: block;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.ev-attendance-cell {
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.ev-attendance-cell--absent {
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.ev-attendance-cell--present {
+  color: #15803d;
+}
+
+.ev-attendance-in {
+  display: block;
+  font-weight: 600;
+}
+
+.ev-attendance-out {
+  display: block;
+  font-size: 0.76rem;
+  color: #64748b;
+}
+
+.ev-attendance-total-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ev-attendance-table tfoot td {
+  background: #f8fafc;
+  font-weight: 700;
+  color: #475569;
+  font-size: 0.8rem;
+}
+
+.ev-attendance-foot-label {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.74rem;
+}
+
+.ev-attendance-foot-count {
+  text-align: center;
 }
 
 .ev-table-toolbar {
@@ -1988,6 +2136,78 @@ button.ev-bento-card.ev-bento-card--interactive.ev-bento-card--active {
   color: #16a34a;
   font-weight: 700;
   font-size: 0.85rem;
+}
+
+.ev-overview-files {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.ev-overview-files > li {
+  min-width: 0;
+}
+
+.ev-overview-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  color: #1e293b;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ev-overview-file:hover {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.ev-overview-file:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.ev-overview-file__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #eef2f7;
+  color: #475569;
+}
+
+.ev-overview-file__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ev-overview-file__name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-overview-file__size {
+  font-size: 0.78rem;
+  color: #64748b;
 }
 
 .ev-cancel-hint {

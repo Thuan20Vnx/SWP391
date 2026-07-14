@@ -79,10 +79,12 @@ const toDateTimeInput = (value) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+const DATE_LABEL_OPTIONS = { day: '2-digit', month: 'long', year: 'numeric' };
+
 const formatDate = (value) => {
   if (!value) return '—';
   const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('vi-VN');
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('vi-VN', DATE_LABEL_OPTIONS);
 };
 
 const formatDateTime = (value) => {
@@ -90,7 +92,7 @@ const formatDateTime = (value) => {
   const d = new Date(value);
   return Number.isNaN(d.getTime())
     ? '—'
-    : `${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+    : `${d.toLocaleDateString('vi-VN', DATE_LABEL_OPTIONS)} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
 };
 
 const formatDateTimeRange = (start, end) => {
@@ -98,7 +100,7 @@ const formatDateTimeRange = (start, end) => {
   const label = formatTimeRangeLabel(start, end);
   const d = new Date(start);
   if (Number.isNaN(d.getTime())) return '—';
-  const date = d.toLocaleDateString('vi-VN');
+  const date = d.toLocaleDateString('vi-VN', DATE_LABEL_OPTIONS);
   return label ? `${date} · ${label}` : formatDateTime(start);
 };
 

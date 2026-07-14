@@ -20,7 +20,9 @@ const { applyEventTextSearch, normalizeSearchTerm, escapeRegex } = require('../u
 const { getCachedApprovedEvents, setCachedApprovedEvents } = require('../utils/eventCache');
 const { createAndBroadcast } = require('./notification.service');
 const { canClubImmediateDelete } = require('../constants/eventModeration');
+const { buildEditPayload, applyEditPayload } = require('../utils/eventEditPayload');
 const { assertEventScheduleDates } = require('../utils/dateValidation');
+const { assertNoVenueTimeConflict } = require('../utils/venueTimeConflict');
 const {
   eventHasAnyCover,
   sanitizeEventCoverForApi,
@@ -149,6 +151,41 @@ const notifyClubProposalToIcpdp = async (event, { isResubmit = false, clubName =
     refId: proposalRef,
     refType: 'event_proposal',
   }).catch(() => {});
+};
+
+// Báo cho CLB khi đề xuất sự kiện của họ được duyệt / bị từ chối (chấm đỏ + email).
+const notifyClubEventDecision = async (event, status, rejectionReason = '') => {
+  try {
+    if (!isClubManagedEvent(event)) return;
+    let managerEmail = '';
+    let clubName = event.clubName || 'CLB';
+    if (event.clubId) {
+      const club = await Club.findById(event.clubId).select('name managedBy').lean();
+      if (club) {
+        clubName = club.name || clubName;
+        if (club.managedBy) {
+          const User = require('../models/User');
+          const manager = await User.findById(club.managedBy).select('email').lean();
+          managerEmail = manager?.email || '';
+        }
+      }
+    }
+    const eventTitle = event.title || 'sự kiện';
+    const approved = status === 'approved';
+    createAndBroadcast({
+      recipientRoles: managerEmail ? [] : ['club_manager'],
+      recipientEmails: managerEmail ? [managerEmail] : [],
+      title: approved ? 'Đề xuất sự kiện đã được duyệt' : 'Đề xuất sự kiện bị từ chối',
+      body: approved
+        ? `Sự kiện "${eventTitle}" của ${clubName} đã được phê duyệt.`
+        : `Sự kiện "${eventTitle}" của ${clubName} đã bị từ chối${rejectionReason ? `: ${rejectionReason}` : '.'}`,
+      type: approved ? 'event_approved' : 'event_rejected',
+      refId: event.proposalId ? String(event.proposalId) : String(event._id),
+      refType: 'event_proposal',
+    }).catch(() => {});
+  } catch (err) {
+    console.error('[notifyClubEventDecision]', err.message);
+  }
 };
 
 const notifyClubProposalDeletedToIcpdp = async (event, { clubName = '' } = {}) => {
@@ -389,6 +426,9 @@ const createEvent = async (user, body, activeClubId = null) => {
     );
   }
 
+  // Chặn trùng địa điểm + khung giờ với sự kiện khác (mọi nguồn) hoặc đơn đối tác chờ duyệt.
+  await assertNoVenueTimeConflict({ location, startDate, endDate });
+
   if (isClubManager) {
     if (!managedClub?._id) {
       throw new AppError('Không tìm thấy CLB bạn đang quản lý.', 400);
@@ -457,7 +497,7 @@ const createEvent = async (user, body, activeClubId = null) => {
 };
 
 const MY_EVENTS_LIST_FIELDS =
-  'title category startDate endDate location capacity registeredCount status eventState rejectionReason moderationReason ticketPrice speaker createdAt updatedAt createdBy';
+  'title category startDate endDate location capacity registeredCount status eventState rejectionReason moderationReason ticketPrice speaker createdAt updatedAt createdBy thumbnail image coverFileExt';
 
 const getMyEvents = async (user, activeClubId = null) => {
   const query = { createdBy: user._id };
@@ -486,7 +526,7 @@ const getMyEvents = async (user, activeClubId = null) => {
     .select(MY_EVENTS_LIST_FIELDS)
     .sort({ createdAt: -1 })
     .lean();
-  return { events };
+  return { events: events.map(slimEventForPublicList) };
 };
 
 const DELETABLE_CLUB_STATUSES = ['pending', 'pending_icpdp', 'pending_ctsv', 'pending_admin', 'revision', 'rejected'];
@@ -531,7 +571,7 @@ const deleteMyEvent = async (eventId, user) => {
   return { message: 'Đã xóa sự kiện thành công!' };
 };
 
-const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'approved', 'revision', 'pending_ctsv', 'pending_icpdp'];
+const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'approved', 'revision', 'pending_ctsv', 'pending_icpdp', 'pending_admin', 'live', 'ended'];
 
 const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   const event = await Event.findById(eventId);
@@ -542,16 +582,13 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   if (!EDITABLE_CLUB_STATUSES.includes(event.status)) {
     throw new AppError('Sự kiện không thể chỉnh sửa ở trạng thái hiện tại.', 400);
   }
-  if (
+  // Sự kiện CLB đã được duyệt: CLB điền form sửa và gửi luôn — nội dung giữ chờ
+  // (pending edit), chỉ áp dụng khi Admin duyệt (IC-PDP → Admin). Không cần xin
+  // phép chỉnh sửa trước.
+  const isClubModerationEdit =
     isClubManagedEvent(event) &&
     ['approved', 'live', 'ended'].includes(event.status) &&
-    !event.clubEditUnlocked
-  ) {
-    throw new AppError(
-      'Sự kiện đã được duyệt. Vui lòng gửi yêu cầu chỉnh sửa và chờ IC-PDP/Admin phê duyệt trước.',
-      400
-    );
-  }
+    !event.clubEditUnlocked;
 
   if (user.role === 'club_manager' && !event.clubId) {
     const managedClub = await resolveManagedClub(user._id, activeClubId);
@@ -599,6 +636,9 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     startDate: new Date(startDate),
   });
 
+  // Chặn trùng địa điểm + khung giờ (bỏ qua chính sự kiện đang sửa).
+  await assertNoVenueTimeConflict({ location, startDate, endDate, excludeEventId: event._id });
+
   const existingPlanLink = String(event.eventPlanLink || '').trim();
   const incomingPlanLink = String(eventPlanLink ?? event.eventPlanLink ?? '').trim();
   const hasIncomingPlanFile = Boolean(eventPlanFile?.trim());
@@ -610,42 +650,76 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
     throw new AppError('Vui lòng tải file hoặc dán link bảng kế hoạch sự kiện!', 400);
   }
 
-  event.title = title;
-  event.description = description || 'Chưa có mô tả';
-  if (thumbnail) event.thumbnail = thumbnail;
-  if (bannerFileName !== undefined) event.bannerFileName = bannerFileName?.trim() || '';
-  if (eventPlanFile) {
-    event.eventPlanFile = eventPlanFile;
-    event.eventPlanFileName = eventPlanFileName?.trim() || event.eventPlanFileName || '';
-    event.eventPlanFileMime = eventPlanFileMime?.trim() || event.eventPlanFileMime || '';
+  const editFields = {
+    title,
+    description,
+    thumbnail: thumbnail || undefined,
+    bannerFileName,
+    eventPlanFile: eventPlanFile || undefined,
+    eventPlanFileName,
+    eventPlanFileMime,
+    eventPlanLink: eventPlanLink !== undefined ? incomingPlanLink : undefined,
+    category: normalizeEventCategory(category || event.category),
+    registrationStartDate,
+    registrationEndDate,
+    startDate,
+    endDate,
+    location,
+    capacity: resolvedCapacity,
+    totalTickets: resolvedTotalTickets,
+    ticketPrice: resolvedTicketPrice,
+    ticketTypes: normalizedTickets,
+    speaker,
+    agenda,
+    learningOutcomes:
+      learningOutcomes !== undefined ? normalizeLearningOutcomes(learningOutcomes) : undefined,
+    timelineSource: timelineSource || undefined,
+  };
+
+  // CLB gửi form sửa cho sự kiện đã duyệt → giữ chờ, chỉ áp dụng khi Admin duyệt.
+  if (isClubModerationEdit) {
+    event.pendingEdit = {
+      payload: buildEditPayload(editFields),
+      requestedByEmail: user.email || '',
+      requestedAt: new Date(),
+    };
+    event.statusBeforeModeration = event.status;
+    event.status = 'pending_icpdp_edit';
+    event.moderationReason = String(body.moderationReason || '').trim();
+    event.moderationReasonCategory = '';
+    event.moderationRequestedByEmail = user.email || '';
+    event.moderationRequestedAt = new Date();
+    event.clubEditUnlocked = false;
+    event.icpdpNote = '';
+    event.rejectionReason = '';
+    event.lastModerationAction = '';
+    event.lastModerationRejectedBy = '';
+    await event.save();
+
+    createAndBroadcast({
+      recipientRoles: ['icpdp'],
+      title: 'CLB gửi yêu cầu chỉnh sửa sự kiện',
+      body: `CLB vừa gửi nội dung chỉnh sửa cho sự kiện "${event.title}".`,
+      type: 'event_change_submit',
+      refId: String(event._id),
+      refType: 'Event',
+    }).catch(() => {});
+
+    return {
+      message: 'Đã gửi yêu cầu chỉnh sửa — chờ IC-PDP duyệt, sau đó Admin phê duyệt.',
+      event,
+    };
   }
-  if (eventPlanLink !== undefined) {
-    event.eventPlanLink = incomingPlanLink;
-  }
-  event.category = normalizeEventCategory(category || event.category);
-  event.registrationStartDate = registrationStartDate || null;
-  event.registrationEndDate = registrationEndDate || null;
-  event.startDate = startDate;
-  event.endDate = endDate;
-  event.location = location;
-  event.capacity = resolvedCapacity;
-  event.totalTickets = resolvedTotalTickets;
-  event.ticketPrice = resolvedTicketPrice;
-  if (normalizedTickets.length) event.ticketTypes = normalizedTickets;
-  if (speaker !== undefined) event.speaker = speaker;
-  if (agenda !== undefined) event.agenda = agenda;
-  if (learningOutcomes !== undefined) {
-    event.learningOutcomes = normalizeLearningOutcomes(learningOutcomes);
-  }
-  if (timelineSource) {
-    event.timelineSource = timelineSource;
-  }
+
+  applyEditPayload(event, editFields);
 
   const previousStatus = event.status;
   const wasUnlockedEdit = Boolean(event.clubEditUnlocked);
   const shouldResubmitClubProposal =
     isClubManagedEvent(event) &&
-    (['rejected', 'revision'].includes(previousStatus) ||
+    // Sửa khi đang chờ Admin duyệt lần đầu -> nội dung ICPDP đã duyệt không còn khớp,
+    // phải gửi lại IC-PDP xét duyệt lại trước khi tới Admin.
+    (['rejected', 'revision', 'pending_admin'].includes(previousStatus) ||
       (['approved', 'live', 'ended'].includes(previousStatus) && wasUnlockedEdit));
   if (shouldResubmitClubProposal) {
     event.status = 'pending_icpdp';
@@ -762,6 +836,10 @@ const updateEventStatus = async (eventId, { status, rejectionReason, authEmail }
       proposalUpdate.eventId = event._id;
     }
     await EventProposal.findByIdAndUpdate(event.proposalId, proposalUpdate);
+  }
+
+  if (isClubManagedEvent(event)) {
+    notifyClubEventDecision(event, status, rejectionReason).catch(() => {});
   }
 
   return {
@@ -1098,19 +1176,27 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
         .lean()
     : Promise.resolve([]);
 
-  const [liveRegisteredCount, checkinCount, registrations, registeredIds, clubMeta] = await Promise.all([
-    isOwner
-      ? EventRegistration.countDocuments({ event: eventId, status: { $ne: 'cancelled' } })
-      : Promise.resolve(null),
-    isOwner
-      ? EventRegistration.countDocuments({ event: eventId, status: 'attended' })
-      : Promise.resolve(null),
-    ownerRegistrationPromise,
-    user?._id ? getRegisteredEventIds(user._id) : Promise.resolve([]),
-    isValidClubId(clubId) && !pickClubMetaFromDoc(cachedListEvent)
-      ? Club.findById(clubId).select(CLUB_META_FIELDS).lean()
-      : Promise.resolve(null),
-  ]);
+  const EventReview = require('../models/EventReview');
+  const [liveRegisteredCount, checkinCount, registrations, registeredIds, clubMeta, myRegistration, myReview] =
+    await Promise.all([
+      isOwner
+        ? EventRegistration.countDocuments({ event: eventId, status: { $ne: 'cancelled' } })
+        : Promise.resolve(null),
+      isOwner
+        ? EventRegistration.countDocuments({ event: eventId, status: 'attended' })
+        : Promise.resolve(null),
+      ownerRegistrationPromise,
+      user?._id ? getRegisteredEventIds(user._id) : Promise.resolve([]),
+      isValidClubId(clubId) && !pickClubMetaFromDoc(cachedListEvent)
+        ? Club.findById(clubId).select(CLUB_META_FIELDS).lean()
+        : Promise.resolve(null),
+      user?._id
+        ? EventRegistration.findOne({ event: eventId, user: user._id }).lean()
+        : Promise.resolve(null),
+      user?._id
+        ? EventReview.findOne({ event: eventId, user: user._id }).select('_id').lean()
+        : Promise.resolve(null),
+    ]);
 
   const doc = { ...event };
   doc.registeredCount =
@@ -1126,6 +1212,24 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
   doc.averageRating = doc.averageRating ?? 0;
   doc.reviewCount = doc.reviewCount ?? 0;
   doc.isRegistered = registeredIds.includes(String(event._id));
+  if (myRegistration && myRegistration.status !== 'cancelled') {
+    const sessions = Array.isArray(myRegistration.attendanceLog)
+      ? myRegistration.attendanceLog
+          .map((s) => ({
+            sessionKey: s.sessionKey,
+            checkedInAt: s.checkedInAt || null,
+            checkedOutAt: s.checkedOutAt || null,
+          }))
+          .sort((a, b) => String(a.sessionKey).localeCompare(String(b.sessionKey)))
+      : [];
+    doc.myRegistration = {
+      status: myRegistration.status,
+      checkedInAt: myRegistration.checkedInAt || null,
+      checkedOutAt: myRegistration.checkedOutAt || null,
+      attendanceLog: sessions,
+      hasReviewed: Boolean(myReview),
+    };
+  }
 
   const cachedClubMeta = pickClubMetaFromDoc(cachedListEvent);
   if (cachedClubMeta) {
@@ -1152,12 +1256,24 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
     cancelledAt: r.cancelledAt || null,
     checkedInAt: r.checkedInAt || null,
     checkedOutAt: r.checkedOutAt || null,
+    attendanceLog: Array.isArray(r.attendanceLog)
+      ? r.attendanceLog.map((s) => ({
+          sessionKey: s.sessionKey,
+          checkedInAt: s.checkedInAt || null,
+          checkedOutAt: s.checkedOutAt || null,
+        }))
+      : [],
     student: r.user,
   }));
 
   let eventPayload = enrichEventWithPricing(attachEventMediaForApi(doc), user);
   if (!isPublic) {
     eventPayload = await attachInlineEventCover(eventPayload, doc);
+  }
+  if (isOwner) {
+    eventPayload.attendanceOpenDays = Array.isArray(event.attendanceOpenDays)
+      ? event.attendanceOpenDays
+      : [];
   }
 
   return {
