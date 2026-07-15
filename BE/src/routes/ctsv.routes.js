@@ -584,8 +584,11 @@ router.get('/events/:id', async (req, res) => {
     if (!event) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
     }
+    // Admin xem chi tiết mọi sự kiện (kể cả CLB) nên luôn được xem roster + cover.
+    const canViewRoster =
+      canRoleManageSchoolEvent(event, req.userRole) || req.userRole === 'admin';
     let students;
-    if (canRoleManageSchoolEvent(event, req.userRole)) {
+    if (canViewRoster) {
       const registrations = await EventRegistration.find({ event: event._id })
         .populate('user', 'fullname studentId email role')
         .sort({ registeredAt: -1 })
@@ -603,7 +606,7 @@ router.get('/events/:id', async (req, res) => {
       }));
     }
     let formatted = formatEvent(event, { includePlanFile: true });
-    if (canRoleManageSchoolEvent(event, req.userRole)) {
+    if (canViewRoster) {
       const { attachInlineEventCover } = require('../utils/eventCoverStorage');
       formatted = await attachInlineEventCover(formatted, event);
     }

@@ -103,6 +103,7 @@ import PartnerCalendar from './pages/partner/PartnerCalendar';
 import PartnerReportDetail from './pages/partner/PartnerReportDetail';
 import PartnerProposalCreate from './pages/partner/PartnerProposalCreate';
 import PartnerNews from './pages/partner/PartnerNews';
+import PartnerNotifications from './pages/partner/PartnerNotifications';
 import PartnerSettlements from './pages/partner/PartnerSettlements';
 import {
   getHomePathForRole,
@@ -114,6 +115,7 @@ import {
   isPartnerRole,
 } from './utils/auth';
 import SystemMaintenanceGate from './components/SystemMaintenanceGate';
+import { isPartnerParticipateMode } from './components/partner/partnerNavConfig';
 import SystemMaintenanceBanner from './components/SystemMaintenanceBanner';
 import { initThemeFromStorage } from './hooks/useSettingsPreferences';
 import AdminFptSystem from './pages/admin/public/AdminFptSystem';
@@ -122,6 +124,7 @@ import AdminFptDeptDetail from './pages/admin/public/AdminFptDeptDetail';
 import AdminFptUnitNotify from './pages/admin/public/AdminFptUnitNotify';
 import AdminFptUnitEvents from './pages/admin/AdminFptUnitEvents';
 import AdminPublicAnnouncements from './pages/admin/public/AdminPublicAnnouncements';
+import AdminNotifications from './pages/admin/AdminNotifications';
 import PublicAdminShell from './layouts/PublicAdminShell';
 import SiteFooter from './components/SiteFooter';
 import './styles/admin-public-pages.css';
@@ -167,7 +170,9 @@ const PublicHomeRoute = ({ showToast }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   if (isLoggedIn) {
     if (getUserRole() === 'icpdp') return <Navigate to="/icpdp" replace />;
-    if (isPartnerRole()) return <Navigate to="/partner" replace />;
+    // Partner kế thừa Guest: khi họ chọn "Tham gia sự kiện" (participate mode) thì
+    // cho ở lại trang chủ như khách, không đẩy về cổng đối tác.
+    if (isPartnerRole() && !isPartnerParticipateMode()) return <Navigate to="/partner" replace />;
     if (isAdminRole()) return <AdminFptSystem showToast={showToast} />;
   }
   return <Home showToast={showToast} />;
@@ -376,6 +381,7 @@ function App() {
               <Route path="analytics" element={<PartnerAnalytics />} />
               <Route path="analytics/:id" element={<PartnerReportDetail />} />
               <Route path="proposals/create" element={<PartnerProposalCreate />} />
+              <Route path="notifications" element={<PartnerNotifications />} />
               <Route path="announcements" element={<PartnerAnnouncementManage />} />
               <Route
                 path="announcements/:id"
@@ -537,6 +543,8 @@ function App() {
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="payments" element={<AdminPayments showToast={showToast} />} />
               <Route path="events/approved" element={<AdminAllEvents showToast={showToast} />} />
+              <Route path="events/:id" element={<EventManagementDetail portal="admin" showToast={showToast} />} />
+              <Route path="notifications" element={<AdminNotifications />} />
               <Route path="announcements" element={<AdminAnnouncementManage />} />
               <Route path="unit-events/:unitType/:unitId" element={<AdminFptUnitEvents />} />
               <Route path="unit-notify/:unitType/:unitId" element={<AdminFptUnitNotify />} />

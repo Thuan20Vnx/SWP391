@@ -129,6 +129,18 @@ const assertApprovedTimelineForClub = async (clubId) => {
 
 const isClubManagedEvent = (event) => event.source === 'club' || Boolean(event.clubId);
 
+// Quyền thao tác sự kiện: chính người tạo, hoặc club_manager của CLB sở hữu sự
+// kiện đó (dựa trên clubId), để chuyển chủ nhiệm hay nhiều quản lý cùng CLB đều
+// truy cập được sự kiện của CLB thay vì chỉ người đã tạo.
+const userCanManageEvent = async (user, event) => {
+  if (String(event.createdBy) === String(user._id)) return true;
+  if (user.role === 'club_manager' && event.clubId) {
+    const managedClubs = await findManagedClubs(user._id);
+    return managedClubs.some((c) => String(c._id) === String(event.clubId));
+  }
+  return false;
+};
+
 const notifyClubProposalToIcpdp = async (event, { isResubmit = false, clubName = '' } = {}) => {
   if (!isClubManagedEvent(event) && event.source !== 'club') return;
 
@@ -500,26 +512,20 @@ const MY_EVENTS_LIST_FIELDS =
   'title category startDate endDate location capacity registeredCount status eventState rejectionReason moderationReason ticketPrice speaker createdAt updatedAt createdBy thumbnail image coverFileExt';
 
 const getMyEvents = async (user, activeClubId = null) => {
-  const query = { createdBy: user._id };
+  let query = { createdBy: user._id };
 
   if (user.role === 'club_manager') {
     const managedClubs = await findManagedClubs(user._id);
-
+    const managedClubIds = managedClubs.map((c) => c._id);
+    // Chủ nhiệm thấy: sự kiện do mình tạo HOẶC sự kiện thuộc CLB mình quản lý
+    // (không phụ thuộc người tạo — quan trọng sau khi chuyển chủ nhiệm).
+    const or = [{ createdBy: user._id }];
     if (activeClubId) {
-      query.$or = [
-        { clubId: activeClubId },
-        { clubId: null },
-        { clubId: { $exists: false } },
-      ];
-    } else if (managedClubs.length === 1) {
-      const onlyId = String(managedClubs[0]._id);
-      query.$or = [
-        { clubId: onlyId },
-        { clubId: null },
-        { clubId: { $exists: false } },
-      ];
+      or.push({ clubId: activeClubId });
+    } else if (managedClubIds.length) {
+      or.push({ clubId: { $in: managedClubIds } });
     }
-    // Nhiều CLB mà chưa chọn: trả về tất cả sự kiện của user
+    query = { $or: or };
   }
 
   const events = await Event.find(query)
@@ -536,7 +542,7 @@ const deleteMyEvent = async (eventId, user) => {
   if (!event) {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
-  if (String(event.createdBy) !== String(user._id)) {
+  if (!(await userCanManageEvent(user, event))) {
     throw new AppError('Bạn không có quyền xóa sự kiện này!', 403);
   }
 
@@ -576,7 +582,7 @@ const EDITABLE_CLUB_STATUSES = ['pending', 'rejected', 'approved', 'revision', '
 const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   const event = await Event.findById(eventId);
   if (!event) throw new AppError('Không tìm thấy sự kiện!', 404);
-  if (String(event.createdBy) !== String(user._id)) {
+  if (!(await userCanManageEvent(user, event))) {
     throw new AppError('Bạn không có quyền chỉnh sửa sự kiện này!', 403);
   }
   if (!EDITABLE_CLUB_STATUSES.includes(event.status)) {

@@ -167,8 +167,18 @@ userSchema.statics.syncCourseFromStudentId = function (user) {
 };
 
 userSchema.statics.hasCustomAvatar = function (user) {
-  const isCustom = (value) => typeof value === 'string' && value.startsWith('data:image/');
-  return isCustom(user?.picture) || isCustom(user?.avatar);
+  if (!user) return false;
+  // Ảnh upload lưu file local (BE/uploads) → đánh dấu bằng avatarFileExt.
+  if (user.avatarFileExt) return true;
+  const isCustom = (value) => {
+    if (typeof value !== 'string' || !value) return false;
+    if (value.startsWith('data:image/')) return true;
+    // URL http là ảnh tùy chỉnh (vd Cloudinary) trừ khi đó là ảnh mặc định của
+    // Google — dùng để không ghi đè avatar người dùng đã tự đổi mỗi lần login lại.
+    if (/^https?:\/\//i.test(value)) return !/googleusercontent\.com/i.test(value);
+    return false;
+  };
+  return isCustom(user.picture) || isCustom(user.avatar);
 };
 
 userSchema.statics.isGoogleOnlyAccount = function (user) {

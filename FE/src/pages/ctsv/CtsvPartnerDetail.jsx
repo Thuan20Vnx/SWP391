@@ -18,7 +18,7 @@ import {
   formatVnd,
   resolvePartnerAttachmentUrl,
 } from '../../utils/partnerDisplay';
-import { isProtectedMediaUrl, openProtectedMedia } from '../../utils/mediaFile';
+import { openProtectedMedia } from '../../utils/mediaFile';
 import PartnerAvatar from '../../components/partner/PartnerAvatar';
 import ProposalTicketsTable from '../../components/admin/ProposalTicketsTable';
 import '../../styles/admin-dashboard.css';
@@ -106,11 +106,7 @@ const CtsvPartnerDetail = () => {
     const href = file.href || file.url || '';
     if (!href || href === '#') return;
     try {
-      if (isProtectedMediaUrl(file.url) || isProtectedMediaUrl(file.attachmentUrl) || href.startsWith('/api/')) {
-        await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
-        return;
-      }
-      window.open(href, '_blank', 'noopener,noreferrer');
+      await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
     } catch (e) {
       showToast?.(e.message || 'Không mở được tệp.', 'error');
     }

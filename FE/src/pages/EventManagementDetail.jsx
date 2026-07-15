@@ -276,7 +276,7 @@ const EventManagementDetail = ({
     const tab = new URLSearchParams(window.location.search).get('tab');
     if (tab === 'bao-cao') return 'bao-cao';
     if (tab === 'danh-gia') return 'danh-gia';
-    if (tab === 'dieu-phoi' && isSchoolManagePortal) return 'dieu-phoi';
+    if (tab === 'dieu-phoi' && isSchoolManagePortal && !isAdminEventView) return 'dieu-phoi';
     return 'tong-quan';
   });
   const [searchQuery, setSearchQuery] = useState('');
@@ -395,15 +395,11 @@ const EventManagementDetail = ({
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'bao-cao') setActiveTab('bao-cao');
-    if (tab === 'dieu-phoi' && isSchoolManagePortal) setActiveTab('dieu-phoi');
+    if (tab === 'dieu-phoi' && isSchoolManagePortal && !isAdminEventView) setActiveTab('dieu-phoi');
   }, [searchParams, isSchoolManagePortal]);
 
-  useEffect(() => {
-    if (!isAdminEventView || !eventData) return;
-    if (isModerationPending(eventData) || isSchoolEventPendingAdmin(eventData)) {
-      setActiveTab('dieu-phoi');
-    }
-  }, [isAdminEventView, eventData?.statusKey, eventData?.source]);
+  // Admin xem chi tiết ở chế độ chỉ đọc (5 tab): không có tab "Phê duyệt & Điều
+  // phối" và không auto nhảy sang đó.
 
   useEffect(() => {
     loadEventData();
@@ -796,7 +792,7 @@ const EventManagementDetail = ({
       { id: 'tong-quan', label: 'Tổng quan sự kiện' },
       { id: 'danh-sach', label: 'Danh sách Sinh viên' },
     ];
-    if (isSchoolManagePortal) {
+    if (isSchoolManagePortal && !isAdminEventView) {
       items.push({ id: 'dieu-phoi', label: 'Phê duyệt & Điều phối' });
     }
     items.push({ id: 'huy-ve', label: 'Yêu cầu hủy vé' });
@@ -1455,7 +1451,7 @@ const EventManagementDetail = ({
 
           {activeTab === 'tong-quan' && <EventOverviewPanel event={eventData} />}
 
-          {activeTab === 'dieu-phoi' && isSchoolManagePortal && id && (
+          {activeTab === 'dieu-phoi' && isSchoolManagePortal && !isAdminEventView && id && (
             isAdminEventView ? (
               <AdminSchoolEventActionsPanel
                 event={eventData}

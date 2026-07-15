@@ -1645,3 +1645,24 @@
     display: none;
   }
 }
+
+/* Mode-switch trên sidebar Partner (nền sáng): dùng màu accent cam của partner
+   vì --club-accent không tồn tại ở cổng này (nếu không, nút active sẽ trắng trên
+   trắng và biến mất). */
+.partner-sidebar-mode-switch {
+  border-bottom-color: rgba(242, 111, 33, 0.18);
+}
+.partner-sidebar-mode-switch .club-sidebar-mode-btn {
+  border-color: rgba(242, 111, 33, 0.22);
+  color: var(--partner-accent-dark);
+}
+.partner-sidebar-mode-switch .club-sidebar-mode-btn:hover {
+  background: var(--partner-accent-bg);
+  color: var(--partner-accent);
+  border-color: var(--partner-accent-light);
+}
+.partner-sidebar-mode-switch .club-sidebar-mode-btn--active {
+  background: var(--partner-accent) !important;
+  border-color: var(--partner-accent) !important;
+  color: #fff !important;
+}

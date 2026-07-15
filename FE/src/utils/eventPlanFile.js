@@ -50,8 +50,15 @@ export const resolveEventPlanFileUrl = (source) => {
 export const fetchPlanFileBlobUrl = async (source) => {
   const resolved = resolveEventPlanFileUrl(source);
   if (!resolved) return '';
-  if (resolved.startsWith('data:') || /^https?:\/\//i.test(resolved)) return resolved;
-  const res = await fetch(resolved, { headers: getAuthHeaders(false) });
+  // data: URL đã nhúng sẵn nội dung — dùng trực tiếp, download attr vẫn giữ tên.
+  if (resolved.startsWith('data:')) return resolved;
+  // http(s) (Cloudinary) hoặc /api: tải về Blob rồi tạo blob: URL cùng origin.
+  // Bắt buộc với URL khác origin: thuộc tính `download` của thẻ <a> bị bỏ qua khi
+  // tải chéo origin, trình duyệt lấy tên từ Content-Disposition của Cloudinary
+  // (= public_id, không đuôi) → file tải về mất tên/đuôi. Blob same-origin thì
+  // `download="tên.docx"` mới có hiệu lực.
+  const isRemote = /^https?:\/\//i.test(resolved);
+  const res = await fetch(resolved, isRemote ? {} : { headers: getAuthHeaders(false) });
   if (!res.ok) throw new Error('Không tải được file kế hoạch.');
   const blob = await res.blob();
   return URL.createObjectURL(blob);

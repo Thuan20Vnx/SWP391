@@ -211,6 +211,7 @@ export const EVENT_FORM_ROLE_CONFIG = {
   },
   ctsv: {
     titleCreate: 'TẠO ĐỀ XUẤT SỰ KIỆN CẤP TRƯỜNG',
+    requireEventPlan: true,
     titleEdit: 'CHỈNH SỬA SỰ KIỆN CẤP TRƯỜNG',
     subtitleCreate: 'Gửi đơn tổ chức sự kiện tới Admin phê duyệt.',
     subtitleEdit: 'Cập nhật và gửi lại Admin phê duyệt.',
@@ -222,6 +223,7 @@ export const EVENT_FORM_ROLE_CONFIG = {
   },
   icpdp: {
     titleCreate: 'TẠO ĐỀ XUẤT SỰ KIỆN IC-PDP',
+    requireEventPlan: true,
     titleEdit: 'CHỈNH SỬA SỰ KIỆN IC-PDP',
     subtitleCreate: 'Gửi đơn tổ chức sự kiện tới Admin phê duyệt.',
     subtitleEdit: 'Cập nhật và gửi lại Admin phê duyệt.',

@@ -1,5 +1,18 @@
 export const PARTNER_SIDEBAR_KEY = 'partnerSidebarOpen';
 
+// Chế độ sidebar Partner: 'partner' (cổng đối tác) hoặc 'participate' (trải nghiệm
+// khách ở trang công khai). Dùng để trang chủ `/` không đẩy partner về `/partner`
+// khi họ chủ động chọn "Tham gia sự kiện".
+export const PARTNER_SIDEBAR_MODE_KEY = 'partnerSidebarMode';
+
+export const persistPartnerSidebarMode = (mode) => {
+  try { sessionStorage.setItem(PARTNER_SIDEBAR_MODE_KEY, mode); } catch { /* ignore */ }
+};
+
+export const isPartnerParticipateMode = () => {
+  try { return sessionStorage.getItem(PARTNER_SIDEBAR_MODE_KEY) === 'participate'; } catch { return false; }
+};
+
 export const PARTNER_NAV_ITEMS = [
   { path: '/partner/dashboard', label: 'Bảng điều khiển', icon: 'dashboard' },
   { path: '/partner/profile', label: 'Hồ sơ & Cài đặt', icon: 'profile' },

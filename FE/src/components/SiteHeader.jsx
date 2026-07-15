@@ -18,6 +18,7 @@ import {
   isAdminRole,
   normalizeRole,
   isClubManagerRole,
+  isPartnerRole,
   clearSession,
   USER_ROLES,
 } from '../utils/auth';
@@ -58,6 +59,13 @@ const CTSV_NAV_ITEM = {
   linkClass: 'nav-link-ctsv-pill',
 };
 
+const PARTNER_PORTAL_NAV_ITEM = {
+  key: 'partner-portal',
+  label: 'Cổng đối tác',
+  to: '/partner',
+  linkClass: 'nav-link-manager',
+};
+
 const CTSV_BASE_NAV_ITEMS = BASE_NAV_ITEMS.map((item) =>
   item.key === 'clubs'
     ? { key: 'partners', label: 'Đối tác', to: '/ctsv/partners' }
@@ -95,6 +103,8 @@ const SiteHeader = ({
   const showAdminMenu = isLoggedIn && isAdminRole(role);
   const showClubManagerNav = isLoggedIn && isClubManagerRole(role);
   const showCtsvNav = isLoggedIn && role === USER_ROLES.CTSV && !showAdminMenu;
+  // Partner đang ở trang công khai (participate mode): cho nút "Cổng đối tác" quay lại.
+  const showPartnerNav = isLoggedIn && isPartnerRole(role) && !pathname.startsWith('/partner');
   const {
     clubs: managedClubs,
     activeClub,
@@ -116,7 +126,9 @@ const SiteHeader = ({
       ? [...BASE_NAV_ITEMS, CLUB_MANAGER_NAV_ITEM]
       : showCtsvNav
         ? [...CTSV_BASE_NAV_ITEMS, CTSV_NAV_ITEM]
-        : BASE_NAV_ITEMS;
+        : showPartnerNav
+          ? [...BASE_NAV_ITEMS, PARTNER_PORTAL_NAV_ITEM]
+          : BASE_NAV_ITEMS;
 
   const isNavItemActive = (item) => {
     if (showAdminMenu) return isAdminPublicNavActive(item.key, pathname);

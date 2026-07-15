@@ -5,7 +5,7 @@ import EventPlanFilePanel from './EventPlanFilePanel';
 
 import { resolveEventDisplayImage } from '../../utils/eventDisplay';
 import { resolvePartnerAttachmentUrl } from '../../utils/partnerDisplay';
-import { isProtectedMediaUrl, openProtectedMedia } from '../../utils/mediaFile';
+import { openProtectedMedia } from '../../utils/mediaFile';
 
 const FileIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
@@ -18,11 +18,9 @@ const openPartnerAttachment = async (file) => {
   const href = file.href || file.url || '';
   if (!href || href === '#') return;
   try {
-    if (isProtectedMediaUrl(file.url) || isProtectedMediaUrl(file.attachmentUrl) || href.startsWith('/api/')) {
-      await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
-      return;
-    }
-    window.open(href, '_blank', 'noopener,noreferrer');
+    // Mọi URL (kể cả Cloudinary http) đều đi qua openProtectedMedia để tải/xem
+    // với đúng tên+đuôi file (tránh mất đuôi khi tải chéo origin từ Cloudinary).
+    await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
   } catch {
     /* ignore open errors */
   }

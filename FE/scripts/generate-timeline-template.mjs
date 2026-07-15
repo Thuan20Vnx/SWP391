@@ -1,5 +1,7 @@
 /**
- * Sinh file Word mẫu "mau-timeline-ky-hoc.docx" vào FE/public.
+ * Sinh 2 file Word mẫu vào FE/public:
+ *  - mau-timeline-ky-hoc.docx        → mẫu TRỐNG (chỉ nhãn, để tự điền)
+ *  - mau-timeline-ky-hoc-vi-du.docx  → mẫu ĐIỀN SẴN ví dụ minh hoạ
  * Chạy: node scripts/generate-timeline-template.mjs
  *
  * File điền theo dạng "Nhãn: giá trị", mỗi hoạt động bắt đầu bằng dòng
@@ -29,7 +31,7 @@ const field = (label, value) =>
     spacing: { after: 140 },
     children: [
       new TextRun({ text: `${label}: `, bold: true, color: DARK, size: 24 }),
-      new TextRun({ text: value, color: '374151', size: 24 }),
+      new TextRun({ text: value || '', color: '374151', size: 24 }),
     ],
   });
 
@@ -90,66 +92,82 @@ const ACTIVITIES = [
   },
 ];
 
-const activityParagraphs = ACTIVITIES.flatMap((act, i) => [
-  activityHeading(i + 1),
-  ...Object.entries(act).map(([label, value]) => field(label, value)),
-]);
+const SEASON_FIELDS = [
+  ['Kỳ học', 'Summer'],
+  ['Năm', '2026'],
+  ['Tóm tắt kế hoạch kỳ', 'Tập trung nâng cao kỹ năng lập trình và tăng cường kết nối thành viên trong CLB.'],
+  ['Mục tiêu kỳ học', 'Tăng 20% thành viên tích cực; tổ chức tối thiểu 3 workshop kỹ thuật; 1 cuộc thi lớn.'],
+];
 
-const doc = new Document({
-  styles: { default: { document: { run: { font: 'Calibri' } } } },
-  sections: [
-    {
-      properties: { page: { margin: { top: 1000, bottom: 1000, left: 1000, right: 1000 } } },
-      children: [
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 60 },
-          children: [new TextRun({ text: 'FPT STUDENTS COMMUNITY', bold: true, color: GRAY, size: 20, allCaps: true })],
-        }),
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          heading: HeadingLevel.TITLE,
-          spacing: { after: 80 },
-          children: [new TextRun({ text: 'KẾ HOẠCH HOẠT ĐỘNG THEO KỲ HỌC', bold: true, color: ORANGE, size: 38 })],
-        }),
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 200 },
-          children: [new TextRun({ text: 'Điền thông tin vào file rồi tải lên để AI tự tạo timeline', color: GRAY, size: 22 })],
-        }),
-        noteBox(
-          'Hướng dẫn: Giữ nguyên phần chữ trước dấu hai chấm (:) — đó là nhãn để hệ thống nhận diện. ' +
-            'Chỉ thay phần giá trị phía sau. Mỗi hoạt động bắt đầu bằng dòng "Hoạt động N". ' +
-            'Ghi ngày theo dạng NGÀY/THÁNG/NĂM GIỜ:PHÚT (vd 20/06/2026 08:00). ' +
-            'Khi tải lên, hệ thống tự điền vào form — bạn vẫn có thể chỉnh lại trước khi gửi.'
-        ),
+const buildDoc = (filled) => {
+  const activityParagraphs = ACTIVITIES.flatMap((act, i) => [
+    activityHeading(i + 1),
+    ...Object.entries(act).map(([label, value]) => field(label, filled ? value : '')),
+  ]);
+  const subtitle = filled
+    ? 'BẢN VÍ DỤ — đã điền sẵn để tham khảo cách trình bày'
+    : 'Điền thông tin vào file rồi tải lên để AI tự tạo timeline';
 
-        sectionHeading('1. Thông tin kỳ'),
-        field('Kỳ học', 'Summer'),
-        field('Năm', '2026'),
-        field('Tóm tắt kế hoạch kỳ', 'Tập trung nâng cao kỹ năng lập trình và tăng cường kết nối thành viên trong CLB.'),
-        field('Mục tiêu kỳ học', 'Tăng 20% thành viên tích cực; tổ chức tối thiểu 3 workshop kỹ thuật; 1 cuộc thi lớn.'),
+  return new Document({
+    styles: { default: { document: { run: { font: 'Calibri' } } } },
+    sections: [
+      {
+        properties: { page: { margin: { top: 1000, bottom: 1000, left: 1000, right: 1000 } } },
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 60 },
+            children: [new TextRun({ text: 'FPT STUDENTS COMMUNITY', bold: true, color: GRAY, size: 20, allCaps: true })],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            heading: HeadingLevel.TITLE,
+            spacing: { after: 80 },
+            children: [new TextRun({ text: 'KẾ HOẠCH HOẠT ĐỘNG THEO KỲ HỌC', bold: true, color: ORANGE, size: 38 })],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+            children: [new TextRun({ text: subtitle, color: GRAY, size: 22 })],
+          }),
+          noteBox(
+            'Hướng dẫn: Giữ nguyên phần chữ trước dấu hai chấm (:) — đó là nhãn để hệ thống nhận diện. ' +
+              'Chỉ thay phần giá trị phía sau. Mỗi hoạt động bắt đầu bằng dòng "Hoạt động N". ' +
+              'Ghi ngày theo dạng NGÀY/THÁNG/NĂM GIỜ:PHÚT (vd 20/06/2026 08:00). ' +
+              'Khi tải lên, hệ thống tự điền vào form — bạn vẫn có thể chỉnh lại trước khi gửi.'
+          ),
 
-        sectionHeading('2. Danh sách hoạt động / sự kiện dự kiến'),
-        ...activityParagraphs,
-        new Paragraph({
-          spacing: { before: 220 },
-          children: [
-            new TextRun({
-              text: 'Gợi ý: có thể thêm/bớt số hoạt động (Hoạt động 4, 5...). Thể loại nên thuộc: Công nghệ (IT), Âm nhạc, Workshop, Kết nối, Thể thao, Cuộc thi, Tình nguyện, Seminar, Khác.',
-              italics: true,
-              color: GRAY,
-              size: 20,
-            }),
-          ],
-        }),
-      ],
-    },
-  ],
-});
+          sectionHeading('1. Thông tin kỳ'),
+          ...SEASON_FIELDS.map(([label, value]) => field(label, filled ? value : '')),
 
-const outPath = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'mau-timeline-ky-hoc.docx');
-await mkdir(dirname(outPath), { recursive: true });
-const buffer = await Packer.toBuffer(doc);
-await writeFile(outPath, buffer);
-console.log('Đã tạo file mẫu:', outPath, `(${buffer.length} bytes)`);
+          sectionHeading('2. Danh sách hoạt động / sự kiện dự kiến'),
+          ...activityParagraphs,
+          new Paragraph({
+            spacing: { before: 220 },
+            children: [
+              new TextRun({
+                text: 'Gợi ý: có thể thêm/bớt số hoạt động (Hoạt động 4, 5...). Thể loại nên thuộc: Công nghệ (IT), Âm nhạc, Workshop, Kết nối, Thể thao, Cuộc thi, Tình nguyện, Seminar, Khác.',
+                italics: true,
+                color: GRAY,
+                size: 20,
+              }),
+            ],
+          }),
+        ],
+      },
+    ],
+  });
+};
+
+const publicDir = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'public');
+await mkdir(publicDir, { recursive: true });
+
+for (const [filled, name] of [
+  [false, 'mau-timeline-ky-hoc.docx'],
+  [true, 'mau-timeline-ky-hoc-vi-du.docx'],
+]) {
+  const buffer = await Packer.toBuffer(buildDoc(filled));
+  const outPath = resolve(publicDir, name);
+  await writeFile(outPath, buffer);
+  console.log('Đã tạo file mẫu:', outPath, `(${buffer.length} bytes)`);
+}

@@ -7,6 +7,11 @@ import {
   persistSidebarOpen as persistCtsvSidebarOpen,
   readSidebarPref as readCtsvSidebarPref,
 } from '../components/ctsv/ctsvNavConfig';
+import PartnerSidebarAside from '../components/partner/PartnerSidebarAside';
+import {
+  persistPartnerSidebarOpen,
+  readPartnerSidebarPref,
+} from '../components/partner/partnerNavConfig';
 import StudentPortalShell from '../layouts/StudentPortalShell';
 import ClubParticipatePortalShell from '../layouts/ClubParticipatePortalShell';
 import SiteHeader from '../components/SiteHeader';
@@ -14,11 +19,12 @@ import SiteFooter from '../components/SiteFooter';
 import ChatbotFloating from '../components/ChatbotFloating';
 import useUserProfile from '../hooks/useUserProfile';
 import { useClubParticipateLayout } from '../context/ClubParticipateLayoutContext';
-import { getUserRole, isAdminRole, isClubManagerRole, normalizeRole, USER_ROLES } from '../utils/auth';
+import { getUserRole, isAdminRole, isClubManagerRole, isPartnerRole, normalizeRole, USER_ROLES } from '../utils/auth';
 import { readSidebarPref, writeSidebarPref } from '../utils/adminSidebarStorage';
 import { resolvePublicShellSearchPlaceholder } from '../utils/publicShellSearch';
 import '../styles/admin-menu.css';
 import '../styles/club-portal.css';
+import '../styles/partner-portal.css';
 
 const PublicAdminShell = ({ children, ...headerProps }) => {
   const shellHeaderProps = {
@@ -35,24 +41,31 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
   const showAdminMenu = isLoggedIn && isAdminRole(role);
   const showClubShell = isLoggedIn && isClubManagerRole(role) && !showAdminMenu;
   const showCtsvShell = isLoggedIn && role === USER_ROLES.CTSV && !showAdminMenu;
+  // Partner kế thừa Guest: ở trang công khai vẫn giữ sidebar đối tác để có nút
+  // chuyển chế độ "Đối tác" / "Tham gia sự kiện".
+  const showPartnerShell = isLoggedIn && isPartnerRole(role) && !showAdminMenu;
 
   const showStudentShell =
     isLoggedIn &&
     (role === USER_ROLES.STUDENT || role === USER_ROLES.GUEST) &&
     !showAdminMenu &&
     !showClubShell &&
-    !showCtsvShell;
+    !showCtsvShell &&
+    !showPartnerShell;
 
   const [adminSidebarOpen, setAdminSidebarOpen] = useState(readSidebarPref);
   const [ctsvSidebarOpen, setCtsvSidebarOpen] = useState(readCtsvSidebarPref);
+  const [partnerSidebarOpen, setPartnerSidebarOpen] = useState(readPartnerSidebarPref);
 
   useEffect(() => {
     const collapseShellOnMobile = () => {
       if (window.innerWidth > 900) return;
       setAdminSidebarOpen(false);
       setCtsvSidebarOpen(false);
+      setPartnerSidebarOpen(false);
       writeSidebarPref(false);
       persistCtsvSidebarOpen(false);
+      persistPartnerSidebarOpen(false);
     };
 
     collapseShellOnMobile();
@@ -82,6 +95,17 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
     setCtsvSidebarOpen(false);
     persistCtsvSidebarOpen(false);
   }, []);
+  const togglePartnerSidebar = useCallback(() => {
+    setPartnerSidebarOpen((prev) => {
+      const next = !prev;
+      persistPartnerSidebarOpen(next);
+      return next;
+    });
+  }, []);
+  const closePartnerSidebar = useCallback(() => {
+    setPartnerSidebarOpen(false);
+    persistPartnerSidebarOpen(false);
+  }, []);
 
   if (showClubShell && inClubParticipateLayout) {
     return children;
@@ -96,6 +120,40 @@ const PublicAdminShell = ({ children, ...headerProps }) => {
       >
         {children}
       </StudentPortalShell>
+    );
+  }
+
+  if (showPartnerShell) {
+    const shellClass = `ctsv-app-shell partner-app-shell partner-public-shell${
+      partnerSidebarOpen ? ' sidebar-open' : ' sidebar-closed'
+    }`;
+    return (
+      <div className={shellClass}>
+        {partnerSidebarOpen && (
+          <button
+            type="button"
+            className="ctsv-drawer-backdrop"
+            onClick={closePartnerSidebar}
+            aria-label="Đóng menu"
+          />
+        )}
+        <PartnerSidebarAside
+          sidebarOpen={partnerSidebarOpen}
+          onClose={closePartnerSidebar}
+          userProfile={userProfile}
+          pathname={pathname}
+        />
+        <div className="ctsv-shell-main">
+          <SiteHeader
+            {...shellHeaderProps}
+            onTogglePortalSidebar={togglePartnerSidebar}
+            portalSidebarOpen={partnerSidebarOpen}
+          />
+          {children}
+          <SiteFooter embedded />
+          <ChatbotFloating context="home" showQrFab />
+        </div>
+      </div>
     );
   }
 

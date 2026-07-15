@@ -431,6 +431,26 @@ const transferClubChairman = async (currentUserId, payload = {}, activeClubId = 
   targetUser.role = 'club_manager';
   await targetUser.save();
   await SchoolMember.updateOne({ email: targetUser.email }, { $set: { role: 'club_manager' } }, { upsert: true });
+
+  // App gắn sự kiện theo người tạo (createdBy). Khi đổi chủ nhiệm, chuyển luôn
+  // quyền sở hữu toàn bộ sự kiện + đề xuất của CLB sang chủ mới, nếu không chủ
+  // mới sẽ không thấy và không sửa/xóa được các sự kiện cũ của CLB.
+  const Event = require('../models/Event');
+  const EventProposal = require('../models/EventProposal');
+  const clubEvents = await Event.find({ clubId: club._id }).select('_id proposalId').lean();
+  if (clubEvents.length) {
+    await Event.updateMany(
+      { clubId: club._id },
+      { $set: { createdBy: targetUser._id, createdByEmail: targetUser.email } }
+    );
+    const proposalIds = clubEvents.map((e) => e.proposalId).filter(Boolean);
+    if (proposalIds.length) {
+      await EventProposal.updateMany(
+        { _id: { $in: proposalIds } },
+        { $set: { submittedByEmail: targetUser.email } }
+      );
+    }
+  }
   if (previousUser && String(previousUser._id) !== String(targetUser._id)) {
     const otherClubs = await Club.countDocuments({ managedBy: previousUser._id, _id: { $ne: club._id } });
     if (otherClubs === 0 && previousUser.role === 'club_manager') {

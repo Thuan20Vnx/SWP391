@@ -73,6 +73,9 @@ const EventProposalForm = ({
   onClearEditMode,
 }) => {
   const config = EVENT_FORM_ROLE_CONFIG[role] || EVENT_FORM_ROLE_CONFIG.club;
+  // Hiện ô "Bảng kế hoạch sự kiện" cho cả role được đánh dấu showEventPlan (ctsv,
+  // icpdp) — nhưng chỉ BẮT BUỘC khi requireEventPlan (club).
+  const showEventPlan = config.showEventPlan || config.requireEventPlan;
   const isControlled = controlledForm != null && typeof onFormChange === 'function';
 
   const [internalForm, setInternalForm] = useState(() => ({
@@ -415,7 +418,7 @@ const EventProposalForm = ({
             {supportsDocImport && (
               <EventDocImportPanel
                 onApply={handleDocImport}
-                onAttachFile={config.requireEventPlan ? handlePlanFile : undefined}
+                onAttachFile={showEventPlan ? handlePlanFile : undefined}
                 disabled={disabled}
                 showToast={showToast}
               />
@@ -551,10 +554,10 @@ const EventProposalForm = ({
                 </div>
               </div>
             </div>
-            {config.requireEventPlan && (
+            {showEventPlan && (
               <div className="clb-form-group clb-form-group--plan">
                 <label>
-                  Bảng kế hoạch sự kiện <span className="clb-required">*</span>
+                  Bảng kế hoạch sự kiện{config.requireEventPlan && <span className="clb-required"> *</span>}
                 </label>
                 <p className="clb-banner-hint">PDF, DOC, DOCX, XLS, XLSX, ZIP — tối đa 10MB</p>
                 <input
@@ -897,7 +900,7 @@ const EventProposalForm = ({
                         {form.speaker}
                       </p>
                     )}
-                    {config.requireEventPlan && (
+                    {showEventPlan && (
                       <p className="clb-confirm-speaker">
                         <span className="clb-confirm-speaker__label">Kế hoạch</span>
                         {form.eventPlanFileName

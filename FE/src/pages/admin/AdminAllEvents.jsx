@@ -153,7 +153,7 @@ export default function AdminAllEvents({ showToast }) {
                           <button
                             type="button"
                             className="stl-club-name stl-timeline-semester-btn"
-                            onClick={() => navigate(`/events/${ev.id}`)}
+                            onClick={() => navigate(`/admin/events/${ev.id}`)}
                           >
                             {ev.title || '—'}
                           </button>
@@ -178,7 +178,7 @@ export default function AdminAllEvents({ showToast }) {
                             <button
                               type="button"
                               className="stl-action-btn"
-                              onClick={() => navigate(`/events/${ev.id}`)}
+                              onClick={() => navigate(`/admin/events/${ev.id}`)}
                             >
                               Xem chi tiết
                             </button>

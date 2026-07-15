@@ -27,7 +27,25 @@ const FIELD_DISPLAY = {
 };
 
 /** File mẫu tĩnh trong /public (sinh bằng scripts/generate-event-template.mjs). */
-const TEMPLATE_URL = `${import.meta.env.BASE_URL || '/'}mau-tao-su-kien.docx`;
+const BASE = import.meta.env.BASE_URL || '/';
+const TEMPLATE_FILES = [
+  { url: `${BASE}mau-tao-su-kien.docx`, name: 'mau-tao-su-kien.docx' },
+  { url: `${BASE}mau-tao-su-kien-vi-du.docx`, name: 'mau-tao-su-kien-vi-du.docx' },
+];
+
+/** Tải cả 2 file mẫu: bản trống để điền + bản ví dụ minh hoạ. */
+const downloadTemplateFiles = () => {
+  TEMPLATE_FILES.forEach((file, i) => {
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href = file.url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }, i * 350);
+  });
+};
 
 const EventDocImportPanel = ({ onApply, onAttachFile, disabled = false, showToast }) => {
   const inputRef = useRef(null);
@@ -156,9 +174,13 @@ const EventDocImportPanel = ({ onApply, onAttachFile, disabled = false, showToas
       </div>
 
       <div className="event-doc-import__actions">
-        <a className="event-doc-import__template-btn" href={TEMPLATE_URL} download>
+        <button
+          type="button"
+          className="event-doc-import__template-btn"
+          onClick={downloadTemplateFiles}
+        >
           Tải file mẫu (.docx)
-        </a>
+        </button>
         {lastText.trim() && (
           <button
             type="button"

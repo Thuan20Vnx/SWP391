@@ -13,7 +13,7 @@ import { statusClass } from '../../utils/eventStatus';
 import { resolveEventSpeakers } from '../../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import { resolvePartnerAttachmentUrl } from '../../utils/partnerDisplay';
-import { isProtectedMediaUrl, openProtectedMedia } from '../../utils/mediaFile';
+import { openProtectedMedia } from '../../utils/mediaFile';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import EventBentoStatsGrid from '../../components/events/EventBentoStatsGrid';
 import EventRatingDetailPanel from '../../components/events/EventRatingDetailPanel';
@@ -252,11 +252,7 @@ const PartnerEventDetail = () => {
     const href = file.href || file.url || '';
     if (!href || href === '#') return;
     try {
-      if (isProtectedMediaUrl(file.url) || isProtectedMediaUrl(file.attachmentUrl) || href.startsWith('/api/')) {
-        await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
-        return;
-      }
-      window.open(href, '_blank', 'noopener,noreferrer');
+      await openProtectedMedia(file.attachmentUrl || file.url || href, file.name || 'attachment');
     } catch (err) {
       showToast?.(err.message || 'Không mở được tệp.', 'error');
     }

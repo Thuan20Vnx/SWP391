@@ -5,7 +5,25 @@ import { formatFileSize, isAllowedEventPlanFile, EVENT_PLAN_MAX_BYTES } from '..
 import { extractTimelineFromTextApi } from '../../services/aiApi';
 
 /** File mẫu tĩnh trong /public (sinh bằng scripts/generate-timeline-template.mjs). */
-const TEMPLATE_URL = `${import.meta.env.BASE_URL || '/'}mau-timeline-ky-hoc.docx`;
+const BASE = import.meta.env.BASE_URL || '/';
+const TEMPLATE_FILES = [
+  { url: `${BASE}mau-timeline-ky-hoc.docx`, name: 'mau-timeline-ky-hoc.docx' },
+  { url: `${BASE}mau-timeline-ky-hoc-vi-du.docx`, name: 'mau-timeline-ky-hoc-vi-du.docx' },
+];
+
+/** Tải cả 2 file mẫu: bản trống để điền + bản ví dụ minh hoạ. */
+const downloadTemplateFiles = () => {
+  TEMPLATE_FILES.forEach((file, i) => {
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href = file.url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }, i * 350);
+  });
+};
 
 /** Nhãn hiển thị cho các trường được điền tự động (để báo cho người dùng). */
 const FIELD_DISPLAY = {
@@ -169,9 +187,13 @@ const TimelineDocImportPanel = ({ onApply, onAttachPlanFile, disabled = false, s
       </div>
 
       <div className="event-doc-import__actions">
-        <a className="event-doc-import__template-btn" href={TEMPLATE_URL} download>
+        <button
+          type="button"
+          className="event-doc-import__template-btn"
+          onClick={downloadTemplateFiles}
+        >
           Tải file mẫu (.docx)
-        </a>
+        </button>
         {lastText.trim() && (
           <button
             type="button"

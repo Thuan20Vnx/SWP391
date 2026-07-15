@@ -60,7 +60,7 @@ const ROLE_CONFIG = {
 
     subtitle: 'Hoạt động hệ thống & quản trị',
 
-    allLink: '/admin/announcements',
+    allLink: '/admin/notifications',
 
     allLabel: 'Quản lý thông báo Admin',
 
@@ -96,9 +96,9 @@ const ROLE_CONFIG = {
 
     subtitle: 'Đề xuất, hợp đồng & phê duyệt',
 
-    allLink: '/partner/announcements',
+    allLink: '/partner/notifications',
 
-    allLabel: 'Quản lý thông báo đối tác',
+    allLabel: 'Xem tất cả thông báo',
 
   },
 
