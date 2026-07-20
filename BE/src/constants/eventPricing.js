@@ -1,4 +1,11 @@
-const STUDENT_FREE_ROLES = new Set(['student', 'staff', 'partner']);
+const STUDENT_FREE_ROLES = new Set([
+  'student',
+  'staff',
+  'partner',
+  'club_manager',
+  'ctsv',
+  'icpdp',
+]);
 
 /** Roles được phép đăng ký / tham gia sự kiện */
 const EVENT_PARTICIPANT_ROLES = ['student', 'staff', 'guest', 'partner'];

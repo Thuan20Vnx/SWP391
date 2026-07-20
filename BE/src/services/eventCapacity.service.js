@@ -27,13 +27,61 @@ const HAS_FREE_SLOT = {
   },
 };
 
+/**
+ * Hạn ngạch từng nhóm vé, suy ra từ ticketTypes của sự kiện.
+ *
+ * Chỉ thực thi khi sự kiện khai báo CẢ vé free lẫn vé phí — đó là lúc "50 vé SV /
+ * 30 vé khách" có ý nghĩa. Sự kiện toàn free (hoặc toàn phí) không có ranh giới để
+ * chia, nên giữ nguyên hành vi cũ: chỉ chặn theo capacity. Nhờ vậy mọi sự kiện đang
+ * chạy không đổi cách hoạt động.
+ *
+ * Đọc quota trước rồi mới ghi là an toàn: quota là cấu hình tĩnh, còn điều kiện tranh
+ * chấp thật (counter) vẫn nằm trong cùng một lệnh atomic ở dưới.
+ */
+const resolveQuotas = (event) => {
+  const types = Array.isArray(event?.ticketTypes) ? event.ticketTypes : [];
+  const sumQty = (match) =>
+    types.filter(match).reduce((total, t) => total + (Number(t.qty) || 0), 0);
+
+  const studentQuota = sumQty((t) => t.priceType !== 'paid');
+  const guestQuota = sumQty((t) => t.priceType === 'paid');
+
+  return { studentQuota, guestQuota, enforced: studentQuota > 0 && guestQuota > 0 };
+};
+
+const STUDENT_USED = { $ifNull: ['$studentRegisteredCount', 0] };
+const RESERVED_USED = { $ifNull: ['$reservedCount', 0] };
+
+/** Số chỗ nhóm khách ngoài trường đã dùng, tính cả chỗ đang giữ tạm. */
+const GUEST_USED = {
+  $add: [{ $subtract: ['$registeredCount', STUDENT_USED] }, RESERVED_USED],
+};
+
+/**
+ * Điều kiện "còn chỗ" đầy đủ: vừa trong capacity tổng, vừa trong hạn ngạch của nhóm.
+ * Gộp vào một $expr vì MongoDB không cho hai khóa $expr trong cùng một filter.
+ */
+const buildSlotFilter = (event, isStudent) => {
+  const { studentQuota, guestQuota, enforced } = resolveQuotas(event);
+  if (!enforced) return HAS_FREE_SLOT;
+
+  const quotaGuard = isStudent
+    ? { $lt: [STUDENT_USED, studentQuota] }
+    : { $lt: [GUEST_USED, guestQuota] };
+
+  return { $expr: { $and: [HAS_FREE_SLOT.$expr, quotaGuard] } };
+};
+
 /** Trả lại một chỗ đã chốt. Điều kiện > 0 chặn counter tụt xuống âm nếu bị gọi thừa. */
-const releaseOccupiedSlot = async (eventId) =>
-  Event.findOneAndUpdate(
-    { _id: eventId, registeredCount: { $gt: 0 } },
-    { $inc: { registeredCount: -1 } },
-    { returnDocument: 'after' },
-  );
+const releaseOccupiedSlot = async (eventId, isStudent = false) => {
+  const dec = { registeredCount: -1 };
+  const filter = { _id: eventId, registeredCount: { $gt: 0 } };
+  if (isStudent) {
+    dec.studentRegisteredCount = -1;
+    filter.studentRegisteredCount = { $gt: 0 };
+  }
+  return Event.findOneAndUpdate(filter, { $inc: dec }, { returnDocument: 'after' });
+};
 
 /** Nhả một chỗ đang giữ tạm. */
 const releaseReservedSlot = async (eventId) =>
@@ -117,11 +165,11 @@ const withSweepRetry = async (eventId, claim) => {
  * Chiếm một chỗ đã chốt (vé miễn phí — đăng ký xong là có chỗ ngay).
  * @returns {Promise<object|null>} Event sau khi tăng, hoặc null nếu đã hết chỗ.
  */
-const occupySlot = async (eventId) =>
-  withSweepRetry(eventId, () =>
+const occupySlot = async (event, isStudent = false) =>
+  withSweepRetry(event._id, () =>
     Event.findOneAndUpdate(
-      { _id: eventId, ...HAS_FREE_SLOT },
-      { $inc: { registeredCount: 1 } },
+      { _id: event._id, ...buildSlotFilter(event, isStudent) },
+      { $inc: isStudent ? { registeredCount: 1, studentRegisteredCount: 1 } : { registeredCount: 1 } },
       { returnDocument: 'after' },
     ),
   );
@@ -130,10 +178,12 @@ const occupySlot = async (eventId) =>
  * Giữ tạm một chỗ cho đơn thanh toán pending.
  * @returns {Promise<object|null>} Event sau khi giữ, hoặc null nếu đã hết chỗ.
  */
-const reserveSlot = async (eventId) =>
-  withSweepRetry(eventId, () =>
+// Chỉ người phải trả tiền mới đi qua đây (nhóm miễn phí đăng ký thẳng), nên chỗ giữ
+// tạm luôn thuộc hạn ngạch khách ngoài trường.
+const reserveSlot = async (event) =>
+  withSweepRetry(event._id, () =>
     Event.findOneAndUpdate(
-      { _id: eventId, ...HAS_FREE_SLOT },
+      { _id: event._id, ...buildSlotFilter(event, false) },
       { $inc: { reservedCount: 1 } },
       { returnDocument: 'after' },
     ),
@@ -171,4 +221,5 @@ module.exports = {
   commitReservedSlot,
   closePendingAndReleaseSlot,
   sweepExpiredReservations,
+  resolveQuotas,
 };

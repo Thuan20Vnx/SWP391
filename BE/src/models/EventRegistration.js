@@ -70,6 +70,14 @@ const eventRegistrationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // Chỗ này lấy từ hạn ngạch vé miễn phí (SV FPT) hay vé khách ngoài trường.
+  // Khác studentPrivilegeApplied: cờ kia chỉ bật khi vé có giá niêm yết > 0, còn cờ
+  // này bám theo role nên đúng cả với sự kiện miễn phí — luồng hủy phải nhả đúng
+  // nhóm đã chiếm, nếu không studentRegisteredCount sẽ trôi dần.
+  studentSlot: {
+    type: Boolean,
+    default: false,
+  },
 }, {
   timestamps: true,
 });
