@@ -119,7 +119,17 @@ const ProfileUsernameSection = ({ showToast, idPrefix = 'profile', currentUserna
       <div id={panelId} className={`ctsv-profile-security-panel${open ? ' is-open' : ''}`}>
         <div className="ctsv-profile-security-panel-inner">
           <div className="ctsv-profile-security-body">
-            {step === 'form' ? (
+            {!hasPassword ? (
+              // Đăng nhập bằng tên đăng nhập bắt buộc có mật khẩu (auth.service từ
+              // chối mọi tài khoản không có passwordHash). Đặt tên lúc này sẽ tạo ra
+              // một tên không bao giờ dùng được, nên chỉ dẫn sang bước tạo mật khẩu —
+              // ở đó đặt được cả hai cùng lúc.
+              <p className="ctsv-profile-security-note">
+                Tài khoản Google chưa có mật khẩu nên chưa dùng được tên đăng nhập.
+                Hãy tạo mật khẩu ở mục <strong>Tạo mật khẩu mới</strong> bên dưới — bạn có thể
+                đặt luôn tên đăng nhập trong cùng bước đó.
+              </p>
+            ) : step === 'form' ? (
               <form className="ctsv-profile-password-form" onSubmit={handleRequest}>
                 <p className="ctsv-profile-security-note">
                   Chúng tôi sẽ gửi mã xác minh tới email của bạn. Mỗi tài khoản chỉ đổi tên đăng nhập

@@ -33,6 +33,22 @@ const GoogleAuthCallback = ({ showToast }) => {
     const params = new URLSearchParams(window.location.search);
     const authStatus = params.get('auth_status');
 
+    // Người dùng bấm "Liên kết Google" nhưng chọn nhầm tài khoản Google khác.
+    // Phiên hiện tại còn nguyên (startGoogleLink không xóa), nên chỉ cần báo lỗi
+    // và đưa họ về đúng trang Cài đặt đã bấm.
+    const linkReturnTo = sessionStorage.getItem('googleLinkReturnTo');
+    if (authStatus === 'link_mismatch') {
+      sessionStorage.removeItem('googleLinkReturnTo');
+      const picked = params.get('email') || '';
+      const expected = params.get('expected') || '';
+      showToast?.(
+        `Tài khoản Google "${picked}" không khớp email "${expected}". Chỉ liên kết được khi hai email trùng nhau.`,
+        'error',
+      );
+      window.location.replace(linkReturnTo || '/');
+      return;
+    }
+
     const finish = async () => {
       if (authStatus === 'success') {
         const token = params.get('token');
@@ -68,6 +84,13 @@ const GoogleAuthCallback = ({ showToast }) => {
         }
 
         dispatchAuthChanged();
+        // Liên kết thành công thì quay lại trang Cài đặt thay vì về trang chủ.
+        if (linkReturnTo) {
+          sessionStorage.removeItem('googleLinkReturnTo');
+          showToast?.('Đã liên kết tài khoản Google.', 'success');
+          window.location.replace(linkReturnTo);
+          return;
+        }
         window.location.replace(getHomePathForRole(role));
         return;
       }

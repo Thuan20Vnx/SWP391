@@ -37,12 +37,19 @@ const googleCallback = async (req, res) => {
   // redirect_uri phải khớp đúng URL mà trình duyệt đã dùng để tới đây (host-aware),
   // nếu không token exchange với Google sẽ báo redirect_uri_mismatch.
   const callbackUrl = `${req.protocol}://${req.get('host')}/api/auth/google/callback`;
-  // Origin FE để chuyển hướng về (do FE gửi qua state), có kiểm tra hợp lệ ở service.
-  const feOrigin = authService.resolveSafeFrontendOrigin(req.query.state);
+  // state = "<origin FE>" hoặc "<origin FE>|link:<email đang đăng nhập>".
+  // Phần sau chỉ có khi bấm "Liên kết Google" từ trang Cài đặt; tách ra trước khi
+  // kiểm tra origin, nếu không chuỗi ghép sẽ không parse được thành URL hợp lệ.
+  const [rawOrigin, linkPart = ''] = String(req.query.state || '').split('|');
+  const feOrigin = authService.resolveSafeFrontendOrigin(rawOrigin);
+  const linkEmail = linkPart.startsWith('link:')
+    ? decodeURIComponent(linkPart.slice('link:'.length))
+    : '';
   try {
     const { redirectUrl } = await authService.googleCallback(req.query.code, {
       redirectUri: callbackUrl,
       frontendOrigin: feOrigin,
+      linkEmail,
     });
     res.redirect(redirectUrl);
   } catch (error) {

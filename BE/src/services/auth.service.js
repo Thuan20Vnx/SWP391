@@ -588,7 +588,7 @@ const googleCallback = async (code, options = {}) => {
   if (!code) {
     throw new AppError('Không nhận được mã code từ Google.', 400);
   }
-  const { redirectUri, frontendOrigin } = options;
+  const { redirectUri, frontendOrigin, linkEmail } = options;
   const feOrigin = frontendOrigin || CLIENT_ORIGIN;
 
   let email = '';
@@ -620,6 +620,17 @@ const googleCallback = async (code, options = {}) => {
     name = payload.name || payload.given_name || 'Người dùng Google';
     picture = payload.picture || '';
     googleId = payload.sub || '';
+  }
+
+  // Chế độ liên kết: người dùng đang đăng nhập bấm "Liên kết Google" từ Cài đặt.
+  // Chỉ chấp nhận khi email Google trùng email tài khoản — nếu không, luồng này sẽ
+  // âm thầm đăng nhập sang tài khoản khác thay vì liên kết, điều người dùng không
+  // hề yêu cầu.
+  if (linkEmail && email.toLowerCase() !== String(linkEmail).toLowerCase()) {
+    return {
+      redirectUrl: `${feOrigin}/auth/google/callback?auth_status=link_mismatch`
+        + `&email=${encodeURIComponent(email)}&expected=${encodeURIComponent(linkEmail)}`,
+    };
   }
 
   let user = await User.findOne({ email: email.toLowerCase() });
