@@ -1223,9 +1223,10 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
       isOwner
         ? EventRegistration.countDocuments({ event: eventId, status: { $ne: 'cancelled' } })
         : Promise.resolve(null),
-      isOwner
-        ? EventRegistration.countDocuments({ event: eventId, status: 'attended' })
-        : Promise.resolve(null),
+      // Luôn đếm, không chỉ cho chủ sự kiện: Event không lưu sẵn checkinCount, nên
+      // người xem khác (IC-PDP, CTSV, partner duyệt đề xuất) sẽ thấy 0 dù đã có
+      // người check-in. Query này đi thẳng vào index {event, status}.
+      EventRegistration.countDocuments({ event: eventId, status: 'attended' }),
       ownerRegistrationPromise,
       user?._id ? getRegisteredEventIds(user._id) : Promise.resolve([]),
       isValidClubId(clubId) && !pickClubMetaFromDoc(cachedListEvent)
@@ -1244,7 +1245,7 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
     isOwner && liveRegisteredCount != null
       ? liveRegisteredCount
       : doc.registeredCount ?? 0;
-  if (isOwner && checkinCount != null) {
+  if (checkinCount != null) {
     doc.checkinCount = checkinCount;
   }
   doc.reach = doc.reach || 0;

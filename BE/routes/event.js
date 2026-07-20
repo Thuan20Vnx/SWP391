@@ -108,7 +108,9 @@ router.get('/:id', async (req, res) => {
     const registrations = await Registration.find({ event: req.params.id }).populate('student', 'fullname studentId email');
     
     const registeredCount = registrations.length;
-    const checkinCount = registrations.filter(r => r.status === 'checked-in').length;
+    // Enum của EventRegistration là 'attended' — 'checked-in' không tồn tại nên
+    // bộ lọc cũ luôn trả về 0.
+    const checkinCount = registrations.filter(r => r.status === 'attended').length;
     
     // Send back event data with real stats
     const eventData = {
