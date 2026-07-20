@@ -27,6 +27,7 @@
 | **Frontend** | React 19, Vite, React Router 7, Tailwind CSS 4 |
 | **Backend** | Node.js, Express 4, Mongoose 9 |
 | **Database** | MongoDB (Atlas) |
+| **Cache / Rate limit** | Redis (ioredis) — tùy chọn, tự fallback in-memory khi không cấu hình |
 | **Xác thực** | JWT + Google OAuth 2.0 (SSO), RBAC đa vai trò |
 | **Lưu trữ media** | Cloudinary |
 | **Email** | Nodemailer / Brevo API |
@@ -88,8 +89,11 @@ SWP391-1/
 cd BE
 npm install
 cp .env.example .env        # rồi điền các biến (MONGO_URI, JWT_SECRET, …)
-node server.js              # chạy tại http://localhost:5000
+npm run dev                 # chạy tại http://localhost:5000, tự reload khi sửa code
 ```
+
+`npm run dev` dùng `node --watch` nên sửa file trong `BE/` là server tự khởi động lại.
+Muốn chạy một lần không tự reload thì dùng `npm run dev:once`.
 
 Các biến môi trường quan trọng (xem đầy đủ trong `BE/.env.example`):
 
@@ -102,9 +106,17 @@ Các biến môi trường quan trọng (xem đầy đủ trong `BE/.env.example
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_CALLBACK_URL` | Đăng nhập Google |
 | `BREVO_API_KEY` / `EMAIL_FROM` | Gửi email OTP/thông báo |
 | `GEMINI_API_KEY` / `GROQ_API_KEY` | AI chatbot & trích xuất file |
+| `REDIS_URL` | Bộ đếm rate limit dùng chung (tùy chọn — thiếu thì fallback in-memory) |
 
 Tạo tài khoản admin: `node seed-admin.js <email> <password> <fullname>`
 Seed dữ liệu mẫu: `npm run seed`
+
+Kiểm thử tính đúng đắn khi tải đồng thời:
+
+```bash
+npm run test:race        # 50 request giành 1 chỗ cuối -> phải đúng 1 thành công
+npm run test:ratelimit   # rate limit theo IP (báo rõ đang chạy Redis hay in-memory)
+```
 
 ### 4.2. Frontend
 
@@ -159,6 +171,8 @@ Hệ thống dùng **RBAC đa vai trò**: một tài khoản có thể mang nhi�
 
 - **Phê duyệt khép kín đa tầng:** CLB → ICPDP → CTSV; đối tác → CTSV → Admin.
 - **Vận hành & điểm danh thời gian thực:** đăng ký, bán vé online, vé QR định danh, kiểm soát check-in chống gian lận.
+- **Toàn vẹn khi tải đồng thời:** giành chỗ bằng thao tác atomic của MongoDB (không bán vượt sức chứa dù nhiều người bấm cùng lúc); vé có phí được **giữ chỗ ngay lúc checkout** và nhả lại khi đơn hết hạn/bị hủy, nên webhook không bao giờ rơi vào cảnh đã nhận tiền mà hết chỗ.
+- **Bảo vệ tầng xác thực:** rate limit theo IP (Redis, fixed-window) chặn spam/bot **trước khi** chạm MongoDB và BCrypt; kết hợp khóa đăng nhập lũy tiến theo email và so sánh dummy-hash chống dò tài khoản qua thời gian phản hồi.
 - **Quản trị & đánh giá đa chiều:** thu thập phản hồi, quản lý Master Data, thống kê hiệu suất CLB qua dashboard.
 
 Quy trình phát triển theo **Agile/Scrum** (`To Do → In Progress → Review → Done`), quản lý trên Jira.

@@ -45,7 +45,7 @@ const coreVi = {
   'header.navigation': 'Điều hướng',
 
   'admin.section.eventsManage': 'QUẢN LÝ SỰ KIỆN',
-  'admin.nav.allEvents': 'Tất cả sự kiện đã duyệt',
+  'admin.nav.allEvents': 'Tất cả sự kiện',
   'admin.section.management': 'QUẢN TRỊ',
   'admin.section.events': 'SỰ KIỆN',
   'admin.section.clubs': 'QUẢN LÝ CLB',
@@ -168,7 +168,7 @@ const coreEn = {
   'header.navigation': 'Navigation',
 
   'admin.section.eventsManage': 'EVENT MANAGEMENT',
-  'admin.nav.allEvents': 'All approved events',
+  'admin.nav.allEvents': 'All events',
   'admin.section.management': 'ADMINISTRATION',
   'admin.section.events': 'EVENTS',
   'admin.section.clubs': 'CLUB MANAGEMENT',

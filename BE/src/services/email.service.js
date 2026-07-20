@@ -404,6 +404,87 @@ const sendResetEmail = async (email, fullname, otp) => {
   });
 };
 
+/**
+ * OTP xác minh khi người dùng đổi email đăng nhập hoặc tên đăng nhập.
+ * `purpose` quyết định nội dung: gửi tới hòm thư cũ, hòm thư mới, hay đổi tên.
+ */
+const sendIdentityChangeOtpEmail = async (email, fullname, otp, purpose, context = {}) => {
+  writeDevOtp(otp);
+
+  const COPY = {
+    email_current: {
+      eyebrow: 'Xác minh hòm thư hiện tại',
+      heading: 'Xác nhận đổi email đăng nhập',
+      body: `Tài khoản của bạn vừa yêu cầu đổi email đăng nhập sang <strong style="color:#1e293b;">${context.newEmail || ''}</strong>. Nhập mã bên dưới vào trang Cài đặt để xác nhận bạn là chủ hòm thư hiện tại.`,
+      subject: 'Xác nhận đổi email đăng nhập F-Events',
+    },
+    email_new: {
+      eyebrow: 'Xác minh hòm thư mới',
+      heading: 'Xác nhận địa chỉ email mới',
+      body: 'Địa chỉ này vừa được dùng để làm email đăng nhập mới cho một tài khoản F-Events. Nhập mã bên dưới để xác nhận bạn sở hữu hòm thư này.',
+      subject: 'Xác nhận email mới F-Events',
+    },
+    username: {
+      eyebrow: 'Xác minh đổi tên đăng nhập',
+      heading: 'Xác nhận đổi tên đăng nhập',
+      body: `Tài khoản của bạn vừa yêu cầu đổi tên đăng nhập sang <strong style="color:#1e293b;">${context.newUsername || ''}</strong>. Nhập mã bên dưới để xác nhận.`,
+      subject: 'Xác nhận đổi tên đăng nhập F-Events',
+    },
+  };
+
+  const copy = COPY[purpose] || COPY.username;
+  const otpBoxes = buildOtpDigitBoxes(otp);
+
+  const htmlContent = buildEmailShell({
+    title: copy.subject,
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">${copy.eyebrow}</p>
+      <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">${copy.heading}</h1>
+      <p style="margin:0 0 4px;font-size:15px;line-height:24px;color:#334155;">Xin chào ${fullname},</p>
+      <p style="margin:0;font-size:15px;line-height:24px;color:#334155;">${copy.body}</p>
+      ${otpBoxes}
+      <p style="margin:0 0 24px;font-size:13px;line-height:20px;color:#8a7b72;text-align:center;">Mã có hiệu lực 10 phút.</p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="border-top:1px solid #f0e8e2;">
+        <tr>
+          <td style="padding-top:20px;font-size:13px;line-height:20px;color:#8a7b72;">
+            Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email và đổi mật khẩu ngay. Không chia sẻ mã với bất kỳ ai.
+          </td>
+        </tr>
+      </table>
+    `,
+  });
+
+  await sendMail({ to: email, subject: copy.subject, html: htmlContent });
+};
+
+/**
+ * Báo về hòm thư CŨ sau khi email đăng nhập đã đổi thành công — để chủ tài khoản
+ * biết ngay nếu đây không phải việc mình làm.
+ */
+const sendEmailChangedNoticeEmail = async ({ to, fullname, newEmail }) => {
+  const htmlContent = buildEmailShell({
+    title: 'Email đăng nhập đã được thay đổi',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#8a7b72;">Cảnh báo bảo mật</p>
+      <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">Email đăng nhập đã được thay đổi</h1>
+      <p style="margin:0 0 4px;font-size:15px;line-height:24px;color:#334155;">Xin chào ${fullname},</p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:24px;color:#334155;">
+        Email đăng nhập của tài khoản đã được đổi từ <strong style="color:#1e293b;">${to}</strong>
+        sang <strong style="color:#1e293b;">${newEmail}</strong>. Từ giờ bạn hãy dùng địa chỉ mới để đăng nhập.
+      </p>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="border-top:1px solid #f0e8e2;">
+        <tr>
+          <td style="padding-top:20px;font-size:13px;line-height:20px;color:#8a7b72;">
+            Nếu bạn KHÔNG thực hiện thay đổi này, hãy liên hệ Phòng Công tác Sinh viên ngay lập tức để được hỗ trợ khôi phục tài khoản.
+          </td>
+        </tr>
+      </table>
+    `,
+  });
+
+  await sendMail({ to, subject: 'Cảnh báo: email đăng nhập đã được thay đổi', html: htmlContent });
+};
+
 const sendLoginLockAlertEmail = async (email, fullname, unlockToken) => {
   const unlockLink = `${APP_URL}/unlock-account?token=${encodeURIComponent(unlockToken)}`;
   const htmlContent = buildEmailShell({
@@ -933,6 +1014,8 @@ module.exports = {
   sendRegistrationOpeningSoonEmail,
   sendEventStartingSoonEmail,
   sendResetEmail,
+  sendIdentityChangeOtpEmail,
+  sendEmailChangedNoticeEmail,
   sendLoginLockAlertEmail,
   sendActivationEmail,
   sendMailInBackground,

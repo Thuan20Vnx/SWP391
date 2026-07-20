@@ -191,8 +191,13 @@ export const fetchAdminDashboardStats = ({ months, endYear, endMonth } = {}) => 
   return adminFetch(`/dashboard/stats${qs ? `?${qs}` : ''}`);
 };
 
-export const fetchAdminAnalytics = (period = 'month') =>
-  adminFetch(`/analytics?period=${encodeURIComponent(period)}`);
+export const fetchAdminAnalytics = (period = 'month', { month, quarter, year } = {}) => {
+  const params = new URLSearchParams({ period });
+  if (month) params.set('month', month);
+  if (quarter) params.set('quarter', quarter);
+  if (year) params.set('year', year);
+  return adminFetch(`/analytics?${params}`);
+};
 
 export const fetchSystemHealth = () => adminFetch('/system-health');
 
@@ -213,9 +218,10 @@ export const deleteAdminAccount = async (id) => {
   return parseJson(res);
 };
 
-export const fetchAdminApprovedEvents = ({ source = '', search = '', page = 1, limit = 30 } = {}) => {
+export const fetchAdminAllEvents = ({ source = '', search = '', status = '', page = 1, limit = 30 } = {}) => {
   const params = new URLSearchParams({ page, limit });
   if (source && source !== 'all') params.set('source', source);
+  if (status && status !== 'all') params.set('status', status);
   if (search) params.set('search', search);
   return adminFetch(`/events/approved?${params}`);
 };

@@ -8,6 +8,7 @@ const queueActivationEmail = (email, fullname, password) => {
   });
 };
 const { deriveCourseFromStudentId, normalizeStudentId } = require('../utils/studentId');
+const { generateUsernameForEmail } = require('../utils/username');
 
 const DEFAULT_ADMIN_PASSWORD = process.env.ADMIN_DEFAULT_USER_PASSWORD || 'Fpt@2026';
 
@@ -18,6 +19,7 @@ const FE_ROLE_TO_DB = {
   club_organizer: 'club_manager',
   student: 'student',
   attendee: 'guest',
+  admin: 'admin',
 };
 
 const DB_ROLE_TO_FE = {
@@ -139,6 +141,9 @@ const createAccount = async (payload) => {
   const userData = {
     fullname: fullname.trim(),
     email: emailKey,
+    // Tài khoản do admin tạo cũng cần tên đăng nhập để dùng được ô "Email hoặc
+    // tên đăng nhập" ở màn hình đăng nhập.
+    username: await generateUsernameForEmail(emailKey),
     role: dbRole,
     studentId: studentId || '',
     phone: phone || '',
@@ -245,6 +250,36 @@ const demoteFormerManagerToStudent = async (managerId) => {
   await former.save();
   const SchoolMember = require('../models/SchoolMember');
   await SchoolMember.updateOne({ email: former.email }, { $set: { role: 'student' } });
+};
+
+/**
+ * Sự kiện thuộc về CLB, không thuộc về cá nhân chủ nhiệm. Nhưng sự kiện do một
+ * tài khoản tạo khi còn là sinh viên thì có clubId = null, nên sau khi admin
+ * nâng tài khoản đó lên chủ nhiệm CLB thì sự kiện không gắn vào CLB nào cả và
+ * biến mất khỏi danh sách của CLB. Gắn bù các sự kiện mồ côi đó vào CLB được
+ * giao, để về sau chuyển nhượng chủ nhiệm thì sự kiện vẫn ở lại với CLB.
+ */
+const attachOrphanEventsToClub = async (userId, clubId) => {
+  const Event = require('../models/Event');
+  const result = await Event.updateMany(
+    {
+      createdBy: userId,
+      isDeleted: { $ne: true },
+      $and: [
+        { $or: [{ clubId: null }, { clubId: { $exists: false } }] },
+        // Chỉ nhận sự kiện chưa gắn nguồn nào. Sự kiện 'school' / 'partner' của
+        // tài khoản từng là CTSV / IC-PDP cũng có clubId = null, không được biến
+        // chúng thành sự kiện CLB.
+        { $or: [{ source: null }, { source: '' }, { source: { $exists: false } }, { source: 'club' }] },
+      ],
+    },
+    { $set: { clubId, source: 'club' } },
+  );
+  if (result.modifiedCount) {
+    require('../utils/eventCache').clearEventCache();
+    console.log(`[Admin] Gắn ${result.modifiedCount} sự kiện mồ côi vào CLB ${clubId}.`);
+  }
+  return result.modifiedCount || 0;
 };
 
 const enrichWithManagedClub = async (account, user) => {
@@ -354,7 +389,11 @@ const updateAccount = async (userId, payload) => {
     }
     const dbRole = FE_ROLE_TO_DB[String(feRole).trim()];
     if (!dbRole) throw new AppError('Vai trò hệ thống không hợp lệ!', 400);
-    if (dbRole === 'admin') throw new AppError('Không thể gán vai trò quản trị qua giao diện này!', 403);
+    // Nâng lên quản trị: chỉ cho phép email nội bộ FPT.
+    const nextEmail = String(email !== undefined ? email : user.email || '').trim();
+    if (dbRole === 'admin' && !/@fpt\.edu\.vn$/i.test(nextEmail)) {
+      throw new AppError('Chỉ tài khoản email @fpt.edu.vn mới được nâng lên quản trị hệ thống!', 400);
+    }
     user.role = dbRole;
     user.markModified('role');
   }
@@ -442,6 +481,7 @@ const updateAccount = async (userId, payload) => {
         club.managedBy = user._id;
         if (!String(club.president || '').trim()) club.president = user.fullname;
         await club.save();
+        await attachOrphanEventsToClub(user._id, club._id);
         // Người quản lý cũ bị thay: nếu không còn quản CLB nào thì trả về sinh viên
         // (không phải khách), theo đúng quy tắc chuyển nhượng CLB.
         if (prevManagerId && String(prevManagerId) !== String(user._id)) {

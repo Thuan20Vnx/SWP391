@@ -1611,6 +1611,10 @@ html.dark .admin-role-picker__icon--attendee {
   background: var(--bg-card) !important;
 }
 
+html.dark .admin-role-picker__icon--admin {
+  background: var(--bg-card) !important;
+}
+
 html.dark .admin-acc-action-btn--danger:hover:not(:disabled):not(.admin-acc-action-btn--disabled) {
   background: var(--bg-card) !important;
 }
@@ -1662,6 +1666,18 @@ html.dark .admin-acc-modal__switch-thumb {
 
 html.dark .admin-analytics-period {
   background: var(--bg-card) !important;
+}
+
+html.dark .admin-analytics-picker__select {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+
+html.dark .admin-analytics-picker__select:hover,
+html.dark .admin-analytics-picker__select:focus-visible {
+  border-color: #f26f21 !important;
+  color: #f26f21 !important;
 }
 
 html.dark .admin-analytics-period__btn:hover:not(.admin-analytics-period__btn--active) {
@@ -2430,6 +2446,44 @@ html.dark .ev-qr-expiry-mode__btn {
 
 html.dark .ev-qr-expiry-datetime {
   background: var(--bg-card) !important;
+}
+
+html.dark .ev-qr-rotate-input {
+  background: var(--bg-card) !important;
+  color: var(--text-main) !important;
+}
+
+html.dark .ev-qr-rotate-input:disabled {
+  background: var(--surface-hover) !important;
+  color: var(--text-muted) !important;
+}
+
+html.dark .ev-qr-rotate-switch:not(.is-on) {
+  background: var(--surface-hover) !important;
+}
+
+html.dark .ctsv-profile-security-cancel {
+  border-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+html.dark .ctsv-profile-security-cancel:hover:not(:disabled) {
+  background: var(--surface-hover) !important;
+  color: var(--text-main) !important;
+}
+
+html.dark .identity-otp-group > label {
+  color: var(--text-secondary) !important;
+}
+
+html.dark .identity-field-hint {
+  color: var(--text-muted) !important;
+}
+
+html.dark .partner-profile-card__locked {
+  background: rgba(180, 83, 9, 0.18) !important;
+  border-color: #b45309 !important;
+  color: #fcd34d !important;
 }
 
 html.dark .ev-qr-zoom-modal {

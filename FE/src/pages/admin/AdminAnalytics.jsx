@@ -98,9 +98,26 @@ const AdminAnalytics = () => {
   const { showToast } = useOutletContext() || {};
   const { t, language } = useTranslation();
   const role = getUserRole();
+  const today = useMemo(() => new Date(), []);
   const [period, setPeriod] = useState('month');
+  const [month, setMonth] = useState(today.getMonth() + 1);
+  const [quarter, setQuarter] = useState(Math.floor(today.getMonth() / 3) + 1);
+  const [year, setYear] = useState(today.getFullYear());
   const [viewAllSection, setViewAllSection] = useState(null);
-  const live = useAdminAnalyticsLiveData(period, language);
+
+  // Chỉ gửi tham số có ý nghĩa với đơn vị kỳ đang chọn.
+  const selection = useMemo(() => {
+    if (period === 'year') return { year };
+    if (period === 'quarter') return { quarter, year };
+    return { month, year };
+  }, [period, month, quarter, year]);
+
+  const yearOptions = useMemo(() => {
+    const current = today.getFullYear();
+    return Array.from({ length: 6 }, (_, i) => current - i);
+  }, [today]);
+
+  const live = useAdminAnalyticsLiveData(period, selection, language);
   const {
     overview: rawOverview,
     starDistribution,
@@ -118,6 +135,7 @@ const AdminAnalytics = () => {
     loading,
     exportPayload,
     periodLabel,
+    prevPeriodLabel,
   } = live;
 
   const periodOptions = useMemo(() => mapSelectOptions(ADMIN_ANALYTICS_PERIODS, t), [t]);
@@ -171,8 +189,9 @@ const AdminAnalytics = () => {
       return;
     }
     try {
+      // periodLabel từ BE là kỳ cụ thể ("Tháng 07/2026"), rõ hơn nhãn nút ("Theo tháng").
       const activePeriodLabel =
-        periodOptions.find((opt) => opt.value === period)?.label || periodLabel || period;
+        periodLabel || periodOptions.find((opt) => opt.value === period)?.label || period;
       downloadAdminAnalyticsReport(exportPayload, {
         periodLabel: activePeriodLabel,
         language,
@@ -196,6 +215,11 @@ const AdminAnalytics = () => {
             <p className="admin-page-header__clock">
               {t('admin.analytics.subtitle', { time: formatAnalyticsDateTime(now, language) })}
             </p>
+            {periodLabel && (
+              <p className="admin-page-header__clock admin-analytics-period-caption">
+                {t('admin.analytics.periodCurrent', { period: periodLabel, prev: prevPeriodLabel })}
+              </p>
+            )}
           </div>
           <div className="admin-analytics-toolbar">
             <div className="admin-analytics-period" role="tablist" aria-label={t('admin.analytics.periodAria')}>
@@ -211,6 +235,55 @@ const AdminAnalytics = () => {
                   {opt.label}
                 </button>
               ))}
+            </div>
+            <div className="admin-analytics-picker">
+              {period === 'month' && (
+                <label className="admin-analytics-picker__field">
+                  <span className="admin-analytics-picker__label">{t('admin.analytics.monthLabel')}</span>
+                  <select
+                    className="admin-analytics-picker__select"
+                    value={month}
+                    aria-label={t('admin.analytics.monthAria')}
+                    onChange={(e) => setMonth(Number(e.target.value))}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <option key={m} value={m}>
+                        {t('admin.analytics.monthOption', { value: String(m).padStart(2, '0') })}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {period === 'quarter' && (
+                <label className="admin-analytics-picker__field">
+                  <span className="admin-analytics-picker__label">{t('admin.analytics.quarterLabel')}</span>
+                  <select
+                    className="admin-analytics-picker__select"
+                    value={quarter}
+                    aria-label={t('admin.analytics.quarterAria')}
+                    onChange={(e) => setQuarter(Number(e.target.value))}
+                  >
+                    {[1, 2, 3, 4].map((q) => (
+                      <option key={q} value={q}>
+                        {t('admin.analytics.quarterOption', { value: q })}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label className="admin-analytics-picker__field">
+                <span className="admin-analytics-picker__label">{t('admin.analytics.yearLabel')}</span>
+                <select
+                  className="admin-analytics-picker__select"
+                  value={year}
+                  aria-label={t('admin.analytics.yearAria')}
+                  onChange={(e) => setYear(Number(e.target.value))}
+                >
+                  {yearOptions.map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </label>
             </div>
             <button type="button" className="admin-analytics-export" onClick={handleExport} disabled={loading}>
               <IconExport />

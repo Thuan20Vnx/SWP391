@@ -13,6 +13,12 @@ const {
 const { isEventPubliclyVisible } = require('../constants/eventWorkflow');
 const { syncEventToGoogleCalendar } = require('./calendar.service');
 const { sendPaymentConfirmationEmail } = require('./email.service');
+const {
+  reserveSlot,
+  releaseReservedSlot,
+  commitReservedSlot,
+  closePendingAndReleaseSlot,
+} = require('./eventCapacity.service');
 
 const QR_BASE = 'https://qr.sepay.vn/img';
 
@@ -90,7 +96,10 @@ const createEventTicketPayment = async (user, eventId) => {
       throw new AppError('Đã hết hạn đăng ký sự kiện.', 400);
     }
   }
-  if (event.registeredCount >= event.capacity) throw new AppError('Sự kiện đã hết chỗ.', 400);
+  // Đường thoát sớm; chốt chặn thật là reserveSlot() atomic ở dưới.
+  if (event.registeredCount + (event.reservedCount || 0) >= event.capacity) {
+    throw new AppError('Sự kiện đã hết chỗ.', 400);
+  }
 
   const amount = calculateTicketAmount(user, event);
   if (amount <= 0) {
@@ -102,18 +111,23 @@ const createEventTicketPayment = async (user, eventId) => {
     throw new AppError('Bạn đã đăng ký sự kiện này rồi.', 409);
   }
 
-  // Tái dùng đơn pending còn hạn nếu có
   const now = Date.now();
-  await Payment.updateMany(
-    {
-      user: user._id,
-      event: eventId,
-      status: 'pending',
-      expiresAt: { $lte: new Date(now) },
-    },
-    { $set: { status: 'expired' } },
-  );
 
+  // Dọn các đơn pending đã quá hạn của chính user này và nhả chỗ chúng đang giữ.
+  // Duyệt từng đơn thay vì updateMany để mỗi chỗ giữ đều được trả lại đúng một lần.
+  const stalePendings = await Payment.find({
+    user: user._id,
+    event: eventId,
+    status: 'pending',
+    expiresAt: { $lte: new Date(now) },
+  }).select('_id');
+
+  for (const stale of stalePendings) {
+    // eslint-disable-next-line no-await-in-loop
+    await closePendingAndReleaseSlot(stale._id, 'expired');
+  }
+
+  // Tái dùng đơn pending còn hạn: chỗ đã được giữ từ lần tạo trước, không giữ thêm.
   const pending = await Payment.findOne({
     user: user._id,
     event: eventId,
@@ -124,27 +138,46 @@ const createEventTicketPayment = async (user, eventId) => {
     return buildPaymentView(pending, settings);
   }
 
-  const code = await generateUniqueCode();
-  const expiresAt = new Date(now + (Number(settings.expireMinutes) || 15) * 60 * 1000);
+  // Giữ chỗ NGAY khi tạo đơn, không đợi tới lúc trả tiền. Nếu chỉ kiểm tra sức chứa
+  // ở webhook thì tiền đã vào rồi mới phát hiện hết chỗ — thu tiền mà không giao vé.
+  const reserved = await reserveSlot(eventId);
+  if (!reserved) {
+    const err = new AppError('Sự kiện đã hết chỗ.', 409);
+    err.extra = { code: 'EVENT_FULL' };
+    throw err;
+  }
 
-  const payment = await Payment.create({
-    code,
-    orderType: 'event_ticket',
-    event: eventId,
-    user: user._id,
-    userEmail: user.email || '',
-    amount,
-    status: 'pending',
-    expiresAt,
-  });
+  try {
+    const code = await generateUniqueCode();
+    const expiresAt = new Date(now + (Number(settings.expireMinutes) || 15) * 60 * 1000);
 
-  return buildPaymentView(payment, settings);
+    const payment = await Payment.create({
+      code,
+      orderType: 'event_ticket',
+      event: eventId,
+      user: user._id,
+      userEmail: user.email || '',
+      amount,
+      status: 'pending',
+      expiresAt,
+      slotReserved: true,
+    });
+
+    return buildPaymentView(payment, settings);
+  } catch (err) {
+    // Không tạo được đơn thì phải nhả chỗ vừa giữ, nếu không chỗ sẽ bị treo
+    // cho tới khi có người dọn thủ công.
+    await releaseReservedSlot(eventId);
+    throw err;
+  }
 };
 
 const lazyExpire = async (payment) => {
   if (payment.status === 'pending' && payment.expiresAt && payment.expiresAt.getTime() < Date.now()) {
+    await closePendingAndReleaseSlot(payment._id, 'expired');
+    // Đồng bộ lại document đang giữ trên bộ nhớ để caller đọc đúng trạng thái mới.
     payment.status = 'expired';
-    await payment.save();
+    payment.slotReserved = false;
   }
   return payment;
 };
@@ -177,8 +210,9 @@ const cancelPayment = async (code, user) => {
     throw new AppError('Đơn đã thanh toán, không thể hủy.', 400);
   }
   if (payment.status === 'pending') {
+    await closePendingAndReleaseSlot(payment._id, 'cancelled');
     payment.status = 'cancelled';
-    await payment.save();
+    payment.slotReserved = false;
   }
   return { code: payment.code, status: payment.status };
 };
@@ -190,7 +224,26 @@ const finalizePaidRegistration = async (payment) => {
   const event = await Event.findById(payment.event);
   if (!event) return null;
 
+  // Giành quyền hoàn tất đơn bằng một lệnh atomic: chỉ lần gọi đầu tiên lật được
+  // pending -> paid. SePay có thể gửi lại webhook nhiều lần và hai lần gửi có thể
+  // chạy song song; không có chốt này thì mỗi lần lặp lại sẽ cộng thêm một chỗ.
+  // returnDocument:'before' để đọc được slotReserved ở trạng thái TRƯỚC khi lật cờ.
+  const claimed = await Payment.findOneAndUpdate(
+    { _id: payment._id, status: 'pending' },
+    { $set: { status: 'paid', slotReserved: false } },
+    { returnDocument: 'before' },
+  );
+
+  if (!claimed) {
+    // Một lần gọi khác đã hoàn tất đơn này rồi — không cộng chỗ lần nữa.
+    return EventRegistration.findOne({ user: payment.user, event: payment.event });
+  }
+
+  const hadReservation = claimed.slotReserved === true;
+  payment.slotReserved = false;
+
   let registration = await EventRegistration.findOne({ user: payment.user, event: payment.event });
+  const alreadyRegistered = registration?.status === 'registered';
   const fields = {
     listPrice: getListPrice(event),
     amountPaid: payment.amount,
@@ -199,13 +252,11 @@ const finalizePaidRegistration = async (payment) => {
   };
 
   if (registration) {
-    if (registration.status !== 'registered') {
+    if (!alreadyRegistered) {
       registration.cancelledAt = null;
       registration.registeredAt = new Date();
       Object.assign(registration, fields);
       await registration.save();
-      event.registeredCount = Math.min(event.registeredCount + 1, event.capacity);
-      await event.save();
     }
   } else {
     registration = await EventRegistration.create({
@@ -214,8 +265,15 @@ const finalizePaidRegistration = async (payment) => {
       registeredAt: new Date(),
       ...fields,
     });
-    event.registeredCount = Math.min(event.registeredCount + 1, event.capacity);
-    await event.save();
+  }
+
+  if (!alreadyRegistered) {
+    // Chuyển chỗ giữ tạm thành chỗ đã chốt. Không kiểm tra sức chứa ở đây:
+    // tiền đã vào nên từ chối lúc này là thu tiền mà không giao vé.
+    await commitReservedSlot(payment.event, hadReservation);
+  } else if (hadReservation) {
+    // Đã có chỗ chốt từ trước (hiếm) — chỉ cần trả lại chỗ giữ tạm để không đếm đôi.
+    await releaseReservedSlot(payment.event);
   }
 
   // Đồng bộ Google Calendar (không chặn nếu lỗi)

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminPortalListLayout from '../../components/admin/AdminPortalListLayout';
 import AdminStlFilterDropdown from '../../components/admin/AdminStlFilterDropdown';
 import ClubTablePagination from '../../components/ui/ClubTablePagination';
-import { fetchAdminApprovedEvents } from '../../services/adminApi';
+import { fetchAdminAllEvents } from '../../services/adminApi';
 import { formatPortalDate, toStlBadgeTone } from '../../utils/adminStlBadge';
 import '../../styles/admin-dashboard.css';
 
@@ -22,11 +22,41 @@ const SOURCE_META = {
   partner: { label: 'Đối tác', tone: 'green' },
 };
 
+const STATUS_OPTIONS = [
+  { id: 'all', label: 'Tất cả trạng thái' },
+  { id: 'pending', label: 'Chờ xử lý' },
+  { id: 'approved', label: 'Mở đăng ký' },
+  { id: 'live', label: 'Đang diễn ra' },
+  { id: 'ended', label: 'Đã kết thúc' },
+  { id: 'rejected', label: 'Bị từ chối' },
+  { id: 'cancelled', label: 'Đã hủy' },
+  { id: 'hidden', label: 'Đã ẩn' },
+  { id: 'draft', label: 'Bản nháp' },
+];
+
 const STATUS_META = {
   approved: { label: 'Mở đăng ký', tone: 'green' },
   live: { label: 'Đang diễn ra', tone: 'green' },
   ended: { label: 'Đã kết thúc', tone: 'amber' },
   expired: { label: 'Hết hạn', tone: 'amber' },
+  draft: { label: 'Bản nháp', tone: 'amber' },
+  pending: { label: 'Chờ duyệt', tone: 'blue' },
+  pending_icpdp: { label: 'Chờ IC-PDP duyệt', tone: 'blue' },
+  pending_ctsv: { label: 'Chờ CTSV duyệt', tone: 'blue' },
+  pending_admin: { label: 'Chờ Admin duyệt', tone: 'blue' },
+  revision: { label: 'Yêu cầu chỉnh sửa', tone: 'amber' },
+  pending_edit: { label: 'Chờ duyệt chỉnh sửa', tone: 'blue' },
+  pending_cancel: { label: 'Chờ duyệt hủy', tone: 'blue' },
+  pending_hide: { label: 'Chờ duyệt ẩn', tone: 'blue' },
+  pending_postpone: { label: 'Chờ duyệt hoãn', tone: 'blue' },
+  pending_delete: { label: 'Chờ duyệt xóa', tone: 'blue' },
+  pending_icpdp_edit: { label: 'Chờ IC-PDP duyệt chỉnh sửa', tone: 'blue' },
+  pending_icpdp_cancel: { label: 'Chờ IC-PDP duyệt hủy', tone: 'blue' },
+  pending_icpdp_postpone: { label: 'Chờ IC-PDP duyệt hoãn', tone: 'blue' },
+  pending_icpdp_delete: { label: 'Chờ IC-PDP duyệt xóa', tone: 'blue' },
+  rejected: { label: 'Bị từ chối', tone: 'red' },
+  cancelled: { label: 'Đã hủy', tone: 'red' },
+  hidden: { label: 'Đã ẩn', tone: 'amber' },
 };
 
 const PAGE_SIZE = 20;
@@ -35,15 +65,16 @@ export default function AdminAllEvents({ showToast }) {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [source, setSource] = useState('all');
+  const [status, setStatus] = useState('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(
-    async (p = 1, src = source, q = search) => {
+    async (p = 1, src = source, q = search, sts = status) => {
       setLoading(true);
       try {
-        const res = await fetchAdminApprovedEvents({ source: src, search: q, page: p, limit: PAGE_SIZE });
+        const res = await fetchAdminAllEvents({ source: src, search: q, status: sts, page: p, limit: PAGE_SIZE });
         setData(res);
         setPage(p);
       } catch (err) {
@@ -52,13 +83,13 @@ export default function AdminAllEvents({ showToast }) {
         setLoading(false);
       }
     },
-    [source, search, showToast]
+    [source, search, status, showToast]
   );
 
   useEffect(() => {
-    const timer = setTimeout(() => load(1, source, search), search ? 300 : 0);
+    const timer = setTimeout(() => load(1, source, search, status), search ? 300 : 0);
     return () => clearTimeout(timer);
-  }, [source, search, load]);
+  }, [source, search, status, load]);
 
   const events = data?.events || [];
   const total = data?.total ?? 0;
@@ -72,22 +103,31 @@ export default function AdminAllEvents({ showToast }) {
     <main className="admin-main">
       <AdminPortalListLayout
         eyebrow="Admin · Quản lý sự kiện"
-        title="Tất cả sự kiện đã duyệt"
-        description="Danh sách sự kiện đã được phê duyệt trong hệ thống — lọc theo nguồn và tìm kiếm nhanh."
+        title="Tất cả sự kiện"
+        description="Toàn bộ sự kiện trong hệ thống ở mọi trạng thái — lọc theo nguồn, trạng thái và tìm kiếm nhanh."
         statNum={loading ? '—' : total}
-        statLabel={source === 'all' ? 'Sự kiện' : 'Sự kiện (bộ lọc)'}
+        statLabel={source === 'all' && status === 'all' ? 'Sự kiện' : 'Sự kiện (bộ lọc)'}
         statHint={!loading && liveCount > 0 ? `${liveCount} đang diễn ra trên trang này` : null}
         searchValue={search}
         onSearchChange={setSearch}
         searchPlaceholder="Tìm tên sự kiện, địa điểm…"
         filterSlot={(
-          <AdminStlFilterDropdown
-            label="Nguồn"
-            value={source}
-            options={SOURCE_OPTIONS}
-            onChange={setSource}
-            ariaLabel="Lọc theo nguồn sự kiện"
-          />
+          <>
+            <AdminStlFilterDropdown
+              label="Nguồn"
+              value={source}
+              options={SOURCE_OPTIONS}
+              onChange={setSource}
+              ariaLabel="Lọc theo nguồn sự kiện"
+            />
+            <AdminStlFilterDropdown
+              label="Trạng thái"
+              value={status}
+              options={STATUS_OPTIONS}
+              onChange={setStatus}
+              ariaLabel="Lọc theo trạng thái sự kiện"
+            />
+          </>
         )}
         summaryText={loading ? null : (
           <>
@@ -102,7 +142,7 @@ export default function AdminAllEvents({ showToast }) {
               page={page}
               totalItems={total}
               pageSize={PAGE_SIZE}
-              onChange={(p) => load(p, source, search)}
+              onChange={(p) => load(p, source, search, status)}
             />
           ) : null
         }

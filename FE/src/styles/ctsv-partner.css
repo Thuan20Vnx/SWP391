@@ -2957,7 +2957,51 @@ html:has(.ctsv-app-shell) body {
 .ctsv-profile-security-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 12px;
   padding-top: 4px;
+}
+
+/* Đổi email / tên đăng nhập */
+.ctsv-profile-security-cancel {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ctsv-profile-security-cancel:hover:not(:disabled) {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.ctsv-profile-security-cancel:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.identity-otp-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.identity-otp-group > label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.identity-field-hint {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #64748b;
 }
 
 .ctsv-profile-security-actions .btn-save-profile {

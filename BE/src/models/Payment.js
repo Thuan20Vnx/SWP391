@@ -28,6 +28,11 @@ const paymentSchema = new mongoose.Schema(
     // Liên kết tới bản ghi đăng ký sau khi hoàn tất
     registration: { type: mongoose.Schema.Types.ObjectId, ref: 'EventRegistration', default: null },
 
+    // true khi đơn này đang giữ 1 chỗ trong Event.reservedCount.
+    // Cờ được lật về false bằng thao tác atomic đúng một lần khi nhả/chuyển chỗ,
+    // nhờ đó đơn không bao giờ nhả chỗ hai lần dù webhook và cron cùng chạy.
+    slotReserved: { type: Boolean, default: false },
+
     expiresAt: { type: Date, required: true },
 
     // Hoàn tiền

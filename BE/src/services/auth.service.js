@@ -44,6 +44,13 @@ const {
   unlockAccount,
 } = require('./loginLockout.service');
 const { sanitizeUserAvatarForApi } = require('../utils/userAvatarStorage');
+const {
+  normalizeUsername,
+  looksLikeEmail,
+  validateUsername,
+  isUsernameTaken,
+  generateUsernameForEmail,
+} = require('../utils/username');
 
 const sanitizeUser = (user) => {
   const base = User.sanitizeUser(user);
@@ -85,6 +92,8 @@ const createUserFromGoogle = async ({ email, name, picture, googleId, googleCale
   return User.create({
     fullname: name,
     email: email.toLowerCase(),
+    // Tài khoản Google không tự nhập tên đăng nhập — sinh từ phần trước @ của email.
+    username: await generateUsernameForEmail(email),
     passwordHash: null,
     googleId: googleId || null,
     googleCalendarRefreshToken: googleCalendarRefreshToken || null,
@@ -99,15 +108,28 @@ const createUserFromGoogle = async ({ email, name, picture, googleId, googleCale
   });
 };
 
-const login = async ({ email, password }) => {
-  if (!email || !password) {
-    throw new AppError('Vui lòng điền đầy đủ email và mật khẩu!', 400);
+const login = async ({ email, username, identifier, password }) => {
+  // FE mới gửi `identifier` (email hoặc tên đăng nhập); vẫn nhận `email` để
+  // tương thích với client cũ.
+  const rawIdentifier = String(identifier ?? email ?? username ?? '').trim();
+
+  if (!rawIdentifier || !password) {
+    throw new AppError('Vui lòng điền đầy đủ email / tên đăng nhập và mật khẩu!', 400);
   }
 
-  const emailKey = email.trim().toLowerCase();
-  await assertPasswordLockoutAllowed(emailKey);
+  const isEmailLogin = looksLikeEmail(rawIdentifier);
+  const user = isEmailLogin
+    ? await User.findOne({ email: rawIdentifier.toLowerCase() })
+    : await User.findOne({ username: normalizeUsername(rawIdentifier) });
 
-  const user = await User.findOne({ email: emailKey });
+  // Khóa đăng nhập luôn tính theo email thật của tài khoản, để đăng nhập bằng
+  // tên đăng nhập và bằng email dùng chung một bộ đếm — nếu không kẻ tấn công
+  // chỉ cần đổi qua lại giữa hai cách là nhân đôi số lần thử.
+  const lockKey = user?.email
+    ? user.email
+    : (isEmailLogin ? rawIdentifier.toLowerCase() : normalizeUsername(rawIdentifier));
+
+  await assertPasswordLockoutAllowed(lockKey);
 
   if (user && !user.passwordHash) {
     throw new AppError('Tài khoản này sử dụng đăng nhập Google. Vui lòng đăng nhập bằng Google!', 401);
@@ -118,14 +140,17 @@ const login = async ({ email, password }) => {
     throw new AppError(`Tài khoản đang bị khóa tạm thời đến ${until}.`, 403);
   }
 
+  // Vẫn so sánh với hash giả khi không có tài khoản, để thời gian phản hồi không
+  // tiết lộ email/tên đăng nhập nào tồn tại. Nhưng phải chặn tường minh khi
+  // user null — không được dựa vào việc hash giả "chắc chắn không khớp".
   const isMatch = await verifyPasswordWithTiming(password, user?.passwordHash);
 
-  if (!isMatch) {
-    const record = await recordFailedLogin(emailKey, user || null);
+  if (!user || !isMatch) {
+    const record = await recordFailedLogin(lockKey, user || null);
     await throwAfterFailedLogin(record);
   }
 
-  await clearLoginLockout(emailKey);
+  await clearLoginLockout(lockKey);
   await User.syncAndPersistUserProfile(user);
   await assertSystemLoginAllowed(user);
 
@@ -136,11 +161,20 @@ const login = async ({ email, password }) => {
   };
 };
 
-const signup = async ({ fullname, email, phone, password }) => {
+const signup = async ({ fullname, email, username, phone, password }) => {
   if (!fullname?.trim()) throw new AppError('Họ và tên không được để trống!', 400);
   if (!email) throw new AppError('Email không được để trống!', 400);
+  if (!username) throw new AppError('Tên đăng nhập không được để trống!', 400);
   if (!phone) throw new AppError('Số điện thoại không được để trống!', 400);
   if (!password) throw new AppError('Mật khẩu không được để trống!', 400);
+
+  const usernameCheck = validateUsername(username);
+  if (!usernameCheck.valid) throw new AppError(usernameCheck.message, 400);
+  const usernameKey = usernameCheck.username;
+
+  if (await isUsernameTaken(usernameKey)) {
+    throw new AppError('Tên đăng nhập đã được sử dụng. Vui lòng chọn tên khác!', 400);
+  }
 
   const security = await getSecuritySettings();
   const passwordCheck = validatePasswordPolicy(password, {
@@ -183,6 +217,7 @@ const signup = async ({ fullname, email, phone, password }) => {
   pendingUsers.set(emailKey, createPendingSignupEntry({
     fullname: fullname.trim(),
     email: email.trim(),
+    username: usernameKey,
     phone: phone.trim(),
     passwordHash: hashedPassword,
     otp: otpCode,
@@ -204,6 +239,27 @@ const signup = async ({ fullname, email, phone, password }) => {
     status: 'OTP_SENT',
     message: 'Mã xác minh OTP đã được gửi đến email của bạn!',
   };
+};
+
+/**
+ * Kiểm tra tên đăng nhập trước khi gửi form đăng ký. Chỉ trả về hợp lệ/còn trống
+ * — không tiết lộ thông tin gì khác về tài khoản đang giữ tên đó.
+ */
+const checkUsername = async ({ username }) => {
+  const check = validateUsername(username);
+  if (!check.valid) {
+    return { available: false, valid: false, message: check.message };
+  }
+
+  if (await isUsernameTaken(check.username)) {
+    return {
+      available: false,
+      valid: true,
+      message: 'Tên đăng nhập đã được sử dụng. Vui lòng chọn tên khác!',
+    };
+  }
+
+  return { available: true, valid: true, message: 'Tên đăng nhập có thể sử dụng.' };
 };
 
 const verifyOtp = async ({ email, otp }) => {
@@ -252,9 +308,17 @@ const verifyOtp = async ({ email, otp }) => {
 
   const { role, studentId, course } = await User.detectRole(pendingUser.email);
 
+  // Giữa lúc gửi OTP và lúc xác minh có thể có người khác lấy mất tên đăng nhập.
+  // Tài khoản cũ không có username nên fallback sinh tự động thay vì chặn đăng ký.
+  let usernameKey = normalizeUsername(pendingUser.username);
+  if (!usernameKey || await isUsernameTaken(usernameKey)) {
+    usernameKey = await generateUsernameForEmail(emailKey);
+  }
+
   const newUser = await User.create({
     fullname: pendingUser.fullname,
     email: emailKey,
+    username: usernameKey,
     phone: pendingUser.phone,
     passwordHash: pendingUser.passwordHash,
     authProvider: 'local',
@@ -654,6 +718,7 @@ const googleCalendarCallback = async (code, state) => {
 module.exports = {
   login,
   signup,
+  checkUsername,
   verifyOtp,
   resendOtp,
   forgotPassword,

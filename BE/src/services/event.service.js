@@ -321,10 +321,40 @@ const applyStateFilter = (events, stateId, registeredSet) => {
   });
 };
 
+/**
+ * Banner trang chủ: sự kiện chưa kết thúc luôn được ưu tiên hơn sự kiện đã qua.
+ * Trước đây chỉ xếp theo registeredCount toàn thời gian, nên vài sự kiện lớn đã
+ * kết thúc (Jamboree, Miss Grand...) chiếm banner vĩnh viễn và sự kiện mới
+ * không bao giờ lên được.
+ */
+const rankFeatured = (list) => {
+  const now = Date.now();
+  const isUpcoming = (event) => {
+    if (event.eventState !== 'active') return false;
+    const end = new Date(event.endDate).getTime();
+    return Number.isNaN(end) || end >= now;
+  };
+
+  return list.sort((a, b) => {
+    const upcomingDiff = Number(isUpcoming(b)) - Number(isUpcoming(a));
+    if (upcomingDiff !== 0) return upcomingDiff;
+
+    // Trong nhóm sắp diễn ra: sự kiện bắt đầu sớm nhất lên trước, để banner luôn
+    // xoay theo lịch thay vì đứng yên ở sự kiện đông nhất.
+    if (isUpcoming(a) && isUpcoming(b)) {
+      const startDiff = new Date(a.startDate || 0).getTime() - new Date(b.startDate || 0).getTime();
+      if (startDiff !== 0) return startDiff;
+    }
+
+    return (b.registeredCount ?? 0) - (a.registeredCount ?? 0);
+  });
+};
+
 const applySort = (events, sort) => {
   const list = [...events];
   switch (String(sort || '').trim()) {
     case 'featured':
+      return rankFeatured(list);
     case 'popular':
       return list.sort((a, b) => (b.registeredCount ?? 0) - (a.registeredCount ?? 0));
     case 'newest':
@@ -520,7 +550,12 @@ const getMyEvents = async (user, activeClubId = null) => {
     // Chủ nhiệm thấy: sự kiện do mình tạo HOẶC sự kiện thuộc CLB mình quản lý
     // (không phụ thuộc người tạo — quan trọng sau khi chuyển chủ nhiệm).
     const or = [{ createdBy: user._id }];
-    if (activeClubId) {
+    // activeClubId đến từ header FE và có thể là CLB cũ / không còn thuộc quyền
+    // quản lý (ví dụ sau khi admin đổi vai trò). Chỉ dùng khi nó thực sự nằm
+    // trong danh sách CLB đang quản lý, nếu không thì lấy toàn bộ.
+    const isManagedActiveClub = activeClubId
+      && managedClubIds.some((id) => String(id) === String(activeClubId));
+    if (isManagedActiveClub) {
       or.push({ clubId: activeClubId });
     } else if (managedClubIds.length) {
       or.push({ clubId: { $in: managedClubIds } });

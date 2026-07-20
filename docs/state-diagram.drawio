@@ -1,0 +1,1041 @@
+<mxfile host="app.diagrams.net" version="24.0.0" type="device">
+  <diagram id="st-event" name="Event">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="860" math="0" shadow="0" background="none">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s_t" value="Event — State Diagram" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#1A1A1A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="34" width="700" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s_s" value="Event.status. There is no single linear approval chain: a club event and a school event enter at different states and meet at pending_admin. Right-hand side: approving change requests raised after publication." style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="62" width="1240" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i1" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="752" y="118" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i2" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1103" y="118" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_pending_icpdp" value="pending_icpdp
+AWAITING ICPDP" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="640" y="170" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_pending_admin" value="pending_admin
+AWAITING ADMIN" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="640" y="300" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_approved" value="approved
+REGISTRATION OPEN" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="640" y="430" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_live" value="live
+IN PROGRESS" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="640" y="540" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_ended" value="ended
+FINISHED" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="640" y="650" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_pending" value="pending
+SCHOOL EVENT, NOT YET SUBMITTED" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="170" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_revision" value="revision
+NEEDS REVISION" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="240" y="300" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rejected" value="rejected
+REJECTED" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="240" y="560" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cancelled" value="cancelled
+CANCELLED" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="760" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_hidden" value="hidden
+HIDDEN" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="760" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_fin" value="" style="ellipse;shape=endState;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="775" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_fr_c1" value="Change request — awaiting ICPDP  (raised by Club)" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;strokeWidth=1.5;dashed=1;dashPattern=8 6;fontSize=11;fontColor=#777777;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="300" width="300" height="236" as="geometry" />
+        </mxCell>
+        <mxCell id="s_c1_0" value="pending_icpdp_cancel" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="340" width="260" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s_c1_1" value="pending_icpdp_postpone" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="388" width="260" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s_c1_2" value="pending_icpdp_delete" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="436" width="260" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s_c1_3" value="pending_icpdp_edit" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="484" width="260" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s_fr_c2" value="Change request — awaiting Admin" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;strokeWidth=1.5;dashed=1;dashPattern=8 6;fontSize=11;fontColor=#777777;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="1440" y="300" width="300" height="284" as="geometry" />
+        </mxCell>
+        <mxCell id="s_c2_0" value="pending_cancel" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="340" width="260" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s_c2_1" value="pending_hide" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="388" width="260" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s_c2_2" value="pending_postpone" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="436" width="260" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s_c2_3" value="pending_edit" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="484" width="260" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s_c2_4" value="pending_delete" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="532" width="260" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s_prev" value="back to statusBeforeModeration
+approved | live | ended" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="580" width="300" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="s_deadlbl" value="never written onto an Event" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="240" y="650" width="230" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_dead" value="pending_ctsv    ·    draft" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;dashed=1;dashPattern=6 6;fontColor=#AAAAAA;strokeColor=#BBBBBB;" vertex="1" parent="1">
+          <mxGeometry x="240" y="678" width="230" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n2" value="statusBeforeModeration is captured immediately before the request is raised (captureStatusBeforeModeration)." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="648" width="300" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n1" value="A school-level event skips the ICPDP tier: it is created at pending and submitted straight to pending_admin. A club event is created at pending_icpdp and, once ICPDP approves, jumps to pending_admin — pending_ctsv belongs to EventProposal, never to Event." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="648" width="300" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n3" value="eventState is a parallel field: active | postponed | expired. Approving &quot;postpone&quot; changes eventState only — status is left untouched. status = live is an explicit CTSV action; nothing schedules it." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="40" y="760" width="560" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Event_e0" value="club manager creates an event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i1" target="s_pending_icpdp">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e1" value="CTSV / ICPDP creates a school event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i2" target="s_pending">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e2" value="CTSV submits it" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="s_pending" target="s_pending_admin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="940" y="196" />
+            <mxPoint x="940" y="326" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e3" value="ICPDP approves the club proposal
+(CTSV is not in this chain)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_pending_icpdp" target="s_pending_admin">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e4" value="Admin approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_pending_admin" target="s_approved">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e5" value="CTSV opens the event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_approved" target="s_live">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e6" value="endDate has passed" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_live" target="s_ended">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e7" value="revision requested" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.1;exitY=0;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_pending_icpdp" target="s_revision">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="663" y="150" />
+            <mxPoint x="355" y="150" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e8" value="resubmit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_revision" target="s_pending_icpdp">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="530" y="326" />
+            <mxPoint x="530" y="196" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e9" value="ICPDP rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0;exitY=0.85;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_pending_icpdp" target="s_rejected">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="580" y="214" />
+            <mxPoint x="580" y="530" />
+            <mxPoint x="355" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e10" value="Admin rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="s_pending_admin" target="s_rejected">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="610" y="326" />
+            <mxPoint x="610" y="586" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e11" value="Club requests cancel / postpone / delete / edit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.35;entryX=0;entryY=0.35;" edge="1" parent="1" source="s_approved" target="s_fr_c1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="980" y="448" />
+            <mxPoint x="980" y="382" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.65;" edge="1" parent="1" source="s_live" target="s_fr_c1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="1000" y="566" />
+            <mxPoint x="1000" y="455" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.65;entryX=0;entryY=0.85;" edge="1" parent="1" source="s_ended" target="s_fr_c1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="1020" y="684" />
+            <mxPoint x="1020" y="501" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e14" value="ICPDP approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.4;entryX=0;entryY=0.4;" edge="1" parent="1" source="s_fr_c1" target="s_fr_c2">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e15" value="ICPDP rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#999999;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;dashed=1;dashPattern=6 6;exitX=0.3;exitY=1;entryX=0.3;entryY=0;" edge="1" parent="1" source="s_fr_c1" target="s_prev">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e16" value="Admin rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#999999;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;dashed=1;dashPattern=6 6;exitX=0;exitY=0.9;entryX=1;entryY=0.5;" edge="1" parent="1" source="s_fr_c2" target="s_prev">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e17" value="Admin approves &quot;cancel&quot;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.2;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_fr_c2" target="s_cancelled">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="1500" y="710" />
+            <mxPoint x="1175" y="710" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e18" value="Admin approves &quot;hide&quot;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_fr_c2" target="s_hidden">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="1590" y="730" />
+            <mxPoint x="1515" y="730" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Event_e19" value="Admin approves &quot;delete&quot;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.8;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_fr_c2" target="s_fin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="1680" y="750" />
+            <mxPoint x="1711" y="750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="st-pay" name="Payment + Registration">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="900" math="0" shadow="0" background="none">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s_t" value="Payment + EventRegistration — State Diagram" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#1A1A1A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="34" width="800" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s_s" value="A paid ticket reserves its seat at checkout (slotReserved) and releases it on expiry or cancellation, so the webhook can never take the money only to find the event full." style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="62" width="1000" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="s_pt" value="Payment.status" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="60" y="120" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i1" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="160" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_pending" value="pending
+slotReserved = true" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="60" y="220" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_paid" value="paid
+slotReserved = false" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="60" y="360" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_expired" value="expired" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="330" y="220" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cancelled" value="cancelled" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="330" y="300" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_pfin" value="" style="ellipse;shape=endState;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="460" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rt" value="Payment.refundStatus  (parallel field, meaningful only while status = paid)" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="640" y="120" width="420" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rnone" value="none" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="640" y="220" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rreq" value="requested" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="900" y="220" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rapp" value="approved" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="900" y="320" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rrej" value="rejected" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="900" y="420" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_gt" value="EventRegistration.status" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="60" y="560" width="300" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i2" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="600" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_registered" value="registered" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="60" y="660" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_attended" value="attended" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="400" y="660" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rcancel" value="cancelled" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="790" width="210" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n1" value="Payment.registration points at the EventRegistration created once the webhook confirms payment." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="640" y="560" width="420" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n2" value="attendanceLog[] records every check-in / check-out session; status &quot;attended&quot; is set once, by qrScanner.service." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="640" y="620" width="420" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PaymentRegistration_e0" value="checkout" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i1" target="s_pending">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e1" value="SePay webhook
+atomic findOneAndUpdate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_pending" target="s_paid">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e2" value="past expiresAt
+⇒ seat released" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.3;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_pending" target="s_expired">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e3" value="user cancels
+⇒ seat released" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.7;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_pending" target="s_cancelled">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_paid" target="s_pfin">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e5" value="user requests refund" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_rnone" target="s_rreq">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e6" value="Admin approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.35;exitY=1;entryX=0.35;entryY=0;" edge="1" parent="1" source="s_rreq" target="s_rapp">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e7" value="Admin rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="s_rreq" target="s_rrej">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="1180" y="245" />
+            <mxPoint x="1180" y="445" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e8" value="free signup, or created by the
+webhook once payment clears" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i2" target="s_registered">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e9" value="QR check-in scanned" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_registered" target="s_attended">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e10" value="user cancels" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.35;exitY=1;entryX=0.35;entryY=0;" edge="1" parent="1" source="s_registered" target="s_rcancel">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PaymentRegistration_e11" value="registers again" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.7;entryX=0.7;entryY=1;" edge="1" parent="1" source="s_rcancel" target="s_registered">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="330" y="815" />
+            <mxPoint x="330" y="745" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="st-partner" name="Partner + Contract">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1120" pageHeight="940" math="0" shadow="0" background="none">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s_t" value="Partner + Contract — State Diagram" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#1A1A1A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="34" width="700" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s_s" value="Partners are approved in two tiers: CTSV screens first, Admin decides. Contract is a separate machine attached to an approved partner." style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="62" width="1000" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i1" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="140" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_pending" value="pending
+AWAITING CTSV" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_info" value="info_requested
+MORE INFO NEEDED" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_padmin" value="pending_admin
+AWAITING ADMIN" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="400" y="200" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_approved" value="approved
+ACTIVE PARTNER" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="740" y="200" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rejected" value="rejected
+REJECTED" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="340" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_term" value="terminationStatus
+= pending" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="740" y="340" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_fin" value="" style="ellipse;shape=endState;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="841" y="460" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_ct" value="Contract.status" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="60" y="600" width="300" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i2" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="640" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cdraft" value="draft" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="700" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cpend" value="pending" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="400" y="700" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_capp" value="approved" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="740" y="700" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_crej" value="rejected" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="820" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n1" value="When Admin approves a partner, every pending Contract for that partner flips to approved in the same operation (admin.routes.js)." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="740" y="600" width="300" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="PartnerContract_e0" value="partner submits application" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i1" target="s_pending">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e1" value="CTSV approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_pending" target="s_padmin">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e2" value="CTSV requests more info" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.35;exitY=1;entryX=0.35;entryY=0;" edge="1" parent="1" source="s_pending" target="s_info">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e3" value="CTSV approves after supplement" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.85;" edge="1" parent="1" source="s_info" target="s_padmin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="350" y="366" />
+            <mxPoint x="350" y="244" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e4" value="CTSV rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.75;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_info" target="s_rejected">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e5" value="Admin approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_padmin" target="s_approved">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e6" value="Admin rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_padmin" target="s_rejected">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e7" value="termination requested" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_approved" target="s_term">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e8" value="Admin accepts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_term" target="s_fin">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e9" value="CTSV drafts contract" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i2" target="s_cdraft">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e10" value="send for signing" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cdraft" target="s_cpend">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e11" value="CTSV confirms signature
+(signedAt)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cpend" target="s_capp">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerContract_e12" value="rejected" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_cpend" target="s_crej">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="st-club" name="Club Registration + Timeline">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1060" math="0" shadow="0" background="none">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s_t" value="ClubRegistration + ClubSemesterTimeline — State Diagram" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#1A1A1A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="34" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s_s" value="Both run ICPDP then Admin. Timeline adds a nested machine for change requests raised after approval." style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="62" width="1000" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="s_at" value="ClubRegistration.status" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="60" y="120" width="300" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i1" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="160" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_apic" value="pending_icpdp" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="60" y="220" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_apad" value="pending_admin" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="400" y="220" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_aapp" value="approved
+⇒ creates Club (active)" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="740" y="220" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_arev" value="revision" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="350" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_arej" value="rejected" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="350" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_acan" value="cancelled" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="740" y="350" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_bt" value="ClubSemesterTimeline.status" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="60" y="500" width="320" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i2" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="540" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_bdraft" value="draft" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="600" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_bpic" value="pending_icpdp" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="400" y="600" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_bpad" value="pending_admin" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="740" y="600" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_bapp" value="approved" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="600" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_brev" value="revision" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="730" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_brej" value="rejected" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="740" y="730" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_bcan" value="cancelled" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="730" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_fr_cr" value="changeRequest.status — edit / cancel / delete requested after the plan was approved" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;strokeWidth=1.5;dashed=1;dashPattern=8 6;fontSize=11;fontColor=#777777;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="60" y="860" width="1250" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cr_0" value="none" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="90" y="920" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cr_1" value="pending_icpdp" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="290" y="920" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cr_2" value="pending_admin" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="490" y="920" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cr_3" value="approved" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="690" y="920" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cr_4" value="rejected" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="890" y="920" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cr_5" value="scheduled_delete" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;strokeWidth=1;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="920" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n1" value="approvedSnapshot keeps the approved version for diffing when the club asks to edit; scheduledDeleteAt schedules the soft delete." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="470" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e0" value="student applies to found a club" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i1" target="s_apic">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e1" value="ICPDP approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_apic" target="s_apad">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e2" value="Admin approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_apad" target="s_aapp">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e3" value="ICPDP requests revision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.35;exitY=1;entryX=0.35;entryY=0;" edge="1" parent="1" source="s_apic" target="s_arev">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e4" value="resubmit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=0;entryX=0.25;entryY=1;" edge="1" parent="1" source="s_arev" target="s_apad">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="175" y="332" />
+            <mxPoint x="457" y="332" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e5" value="Admin rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_apad" target="s_arej">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e6" value="application cancelled" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_aapp" target="s_acan">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e7" value="club drafts semester plan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i2" target="s_bdraft">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e8" value="submit for approval" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_bdraft" target="s_bpic">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e9" value="ICPDP approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_bpic" target="s_bpad">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e10" value="Admin approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_bpad" target="s_bapp">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e11" value="revision requested" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.35;exitY=1;entryX=0.35;entryY=0;" edge="1" parent="1" source="s_bpic" target="s_brev">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e12" value="resubmit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0;exitY=0.5;entryX=0.2;entryY=1;" edge="1" parent="1" source="s_brev" target="s_bpic">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="360" y="756" />
+            <mxPoint x="360" y="678" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e13" value="rejected" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_bpad" target="s_brej">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e14" value="plan cancelled" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_bapp" target="s_bcan">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e15" value="club raises request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cr_0" target="s_cr_1">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e16" value="ICPDP approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cr_1" target="s_cr_2">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e17" value="Admin approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cr_2" target="s_cr_3">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cr_3" target="s_cr_4">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ClubRegistrationTimeline_e19" value="type = delete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cr_4" target="s_cr_5">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="st-proposal" name="EventProposal">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1120" pageHeight="700" math="0" shadow="0" background="none">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s_t" value="EventProposal — State Diagram" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#1A1A1A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="34" width="700" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s_s" value="The club-side half of the Event flow. Creating a club event writes an Event AND a mirrored EventProposal (event.service.js syncClubEventProposal); the two are linked by Event.proposalId." style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="62" width="1100" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i1" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="140" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_picpdp" value="pending_icpdp
+AWAITING ICPDP" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="240" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_pctsv" value="pending_ctsv
+AWAITING CTSV" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="420" y="120" width="240" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_padmin" value="pending_admin
+AWAITING ADMIN" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="420" y="280" width="240" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_approved" value="approved
+⇒ Event set to approved" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="800" y="200" width="240" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_revision" value="revision
+NEEDS REVISION" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="400" width="240" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rejected" value="rejected" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="420" y="470" width="240" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_draft" value="draft" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="800" y="400" width="240" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_fin" value="" style="ellipse;shape=endState;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="911" y="320" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n1" value="draft is declared in PROPOSAL_STATUSES but no code path ever writes it — a proposal starts life at pending_icpdp." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="800" y="470" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n2" value="Rejection is allowed from pending_ctsv, pending_icpdp and revision (routes/ctsv.routes.js). Only the revision and pending_ctsv arrows are drawn, to keep the lanes readable." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="60" y="590" width="480" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n3" value="Approving the proposal is what creates or flips the public Event: Event.proposalId is set and Event.status becomes approved in the same request." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="800" y="120" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="EventProposal_e0" value="club creates an event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i1" target="s_picpdp">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventProposal_e1" value="ICPDP approves
+(non-club proposal)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.3;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_picpdp" target="s_pctsv">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventProposal_e2" value="ICPDP approves
+(club proposal — skips CTSV)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.7;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_picpdp" target="s_padmin">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventProposal_e3" value="CTSV approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.3;" edge="1" parent="1" source="s_pctsv" target="s_approved">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventProposal_e4" value="Admin approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.7;" edge="1" parent="1" source="s_padmin" target="s_approved">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventProposal_e5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_approved" target="s_fin">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventProposal_e6" value="ICPDP requests revision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.3;exitY=1;entryX=0.3;entryY=0;" edge="1" parent="1" source="s_picpdp" target="s_revision">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventProposal_e7" value="club resubmits
+(review notes cleared)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.7;exitY=0;entryX=0.7;entryY=1;" edge="1" parent="1" source="s_revision" target="s_picpdp">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventProposal_e8" value="rejected from revision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0;entryY=0.75;" edge="1" parent="1" source="s_revision" target="s_rejected">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="180" y="505" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EventProposal_e9" value="CTSV rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.2;exitY=0;entryX=0.2;entryY=1;" edge="1" parent="1" source="s_pctsv" target="s_rejected">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="468" y="100" />
+            <mxPoint x="30" y="100" />
+            <mxPoint x="30" y="545" />
+            <mxPoint x="468" y="545" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="st-per" name="PartnerEventRequest">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1420" pageHeight="620" math="0" shadow="0" background="none">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s_t" value="PartnerEventRequest — State Diagram" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#1A1A1A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="34" width="760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s_s" value="A partner proposing its own event. Note the bulk transitions: approving or rejecting the PARTNER record sweeps every one of that partner’s requests along with it." style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="62" width="1100" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i1" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="140" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_draft" value="draft" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_pending" value="pending" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="400" y="200" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_info" value="info_requested" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="340" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_approved" value="approved" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="760" y="200" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_hidden" value="hidden" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="200" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rejected" value="rejected" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="760" y="340" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cancelled" value="cancelled" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_deleted" value="deleted" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="760" y="470" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_fin" value="" style="ellipse;shape=endState;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1211" y="485" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n1" value="Cancelling a request also stamps the linked Partner record as rejected, with rejectionReason = SELF_CANCEL_REASON." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="60" y="470" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n2" value="Admin rejecting the partner sweeps requests in pending, info_requested AND approved into rejected (admin.routes.js)." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="340" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n3" value="hidden is a real status, not just the hiddenAt timestamp: hideRequest() toggles status between approved and hidden and mirrors it onto Event.isHidden." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="470" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e0" value="partner saves a draft" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i1" target="s_draft">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e1" value="submit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_draft" target="s_pending">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e2" value="CTSV approves the partner
+⇒ bulk update" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_pending" target="s_approved">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e3" value="CTSV requests supplements
+⇒ bulk update" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.3;exitY=1;entryX=0.3;entryY=0;" edge="1" parent="1" source="s_pending" target="s_info">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e4" value="partner supplements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.7;exitY=0;entryX=0.7;entryY=1;" edge="1" parent="1" source="s_info" target="s_pending">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e5" value="bulk update on partner approval" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.85;" edge="1" parent="1" source="s_info" target="s_approved">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="700" y="366" />
+            <mxPoint x="700" y="244" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e6" value="partner cancels" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0;exitY=0.7;entryX=1;entryY=0.5;" edge="1" parent="1" source="s_pending" target="s_cancelled">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="370" y="236" />
+            <mxPoint x="370" y="366" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e7" value="partner hides
+⇒ Event.isHidden = true" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.35;entryX=0;entryY=0.35;" edge="1" parent="1" source="s_approved" target="s_hidden">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e8" value="partner unhides" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0;exitY=0.75;entryX=1;entryY=0.75;" edge="1" parent="1" source="s_hidden" target="s_approved">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e9" value="Admin rejects the partner
+⇒ bulk update" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_approved" target="s_rejected">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e10" value="partner deletes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_rejected" target="s_deleted">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PartnerEventRequest_e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_deleted" target="s_fin">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="st-change" name="Change Requests">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1540" pageHeight="800" math="0" shadow="0" background="none">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s_t" value="EventChangeRequest + ClubChangeRequest — State Diagram" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#1A1A1A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="34" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="s_s" value="Two structurally identical machines: pending → approved | rejected. What makes them worth drawing is the effect of approval, which is dispatched on requestType." style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="62" width="1100" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="s_et" value="EventChangeRequest.status      requestType: edit | delete | hide" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="60" y="130" width="560" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i1" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="170" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_epend" value="pending" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="60" y="230" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_eappr" value="approved" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="400" y="230" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_erej" value="rejected" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="360" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_fr_ef" value="effect of approval — on the Event document" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;strokeWidth=1.5;dashed=1;dashPattern=8 6;fontSize=11;fontColor=#777777;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="740" y="160" width="420" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="s_ef0" value="requestType = hide
+⇒ Event.isHidden = true" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BBBBBB;strokeWidth=1;fontSize=10;fontColor=#555555;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="760" y="200" width="380" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="s_ef1" value="requestType = edit
+⇒ patch title, description, location, startDate,
+endDate, capacity (+ totalTickets), category" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BBBBBB;strokeWidth=1;fontSize=10;fontColor=#555555;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="760" y="270" width="380" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="s_ef2" value="requestType = delete
+⇒ isDeleted = true, isHidden = true, status = ended" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BBBBBB;strokeWidth=1;fontSize=10;fontColor=#555555;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="760" y="340" width="380" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="s_ct" value="ClubChangeRequest.status      requestType: edit | delete" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="60" y="470" width="560" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="s_i2" value="" style="ellipse;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="510" width="22" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cpend" value="pending" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="60" y="570" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cappr" value="approved" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="400" y="570" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_crej" value="rejected" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=12;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="700" width="230" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s_fr_cf" value="effect of approval — on the Club document" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;strokeWidth=1.5;dashed=1;dashPattern=8 6;fontSize=11;fontColor=#777777;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="740" y="540" width="420" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cf0" value="requestType = edit
+⇒ patch name, category, description, president,
+email, hotline" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BBBBBB;strokeWidth=1;fontSize=10;fontColor=#555555;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="760" y="580" width="380" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cf1" value="requestType = delete
+⇒ Club.status = inactive   (soft retire, never removed)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BBBBBB;strokeWidth=1;fontSize=10;fontColor=#555555;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="760" y="650" width="380" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n1" value="Each request stores two embedded documents: snapshot{} freezes the record as it looked when the request was raised, payload{} holds the proposed values. Approval copies payload onto the live record field by field — an absent field is left alone rather than blanked." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="160" width="300" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n2" value="Neither delete actually removes anything. A club is retired by flipping status to inactive; an event is flagged isDeleted + isHidden and forced to ended. Both records stay queryable." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="540" width="300" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s_n3" value="Rejection only writes status and adminNote — the target document is never touched." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="700" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ChangeRequests_e0" value="club or CTSV raises a request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i1" target="s_epend">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e1" value="Admin approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_epend" target="s_eappr">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e2" value="Admin rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_epend" target="s_erej">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.75;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_eappr" target="s_ef2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="660" y="269" />
+            <mxPoint x="660" y="368" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_eappr" target="s_ef1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="690" y="256" />
+            <mxPoint x="690" y="298" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.25;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_eappr" target="s_ef0">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="720" y="243" />
+            <mxPoint x="720" y="228" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e6" value="club raises a request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_i2" target="s_cpend">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e7" value="Admin approves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cpend" target="s_cappr">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e8" value="Admin rejects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="s_cpend" target="s_crej">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.6;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cappr" target="s_cf1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="660" y="601" />
+            <mxPoint x="660" y="678" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ChangeRequests_e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.35;entryX=0;entryY=0.5;" edge="1" parent="1" source="s_cappr" target="s_cf0">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+            <mxPoint x="690" y="588" />
+            <mxPoint x="690" y="608" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

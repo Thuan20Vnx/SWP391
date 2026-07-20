@@ -18,9 +18,10 @@ const createPendingResetEntry = ({ email, otp, expiresAt }) => ({
   locked: false,
 });
 
-const createPendingSignupEntry = ({ fullname, email, phone, passwordHash, otp, expiresAt }) => ({
+const createPendingSignupEntry = ({ fullname, email, username, phone, passwordHash, otp, expiresAt }) => ({
   fullname,
   email,
+  username,
   phone,
   passwordHash,
   otp,

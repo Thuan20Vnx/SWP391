@@ -20,9 +20,13 @@ const MAX_OTP_ATTEMPTS = 5;
 const patterns = {
   fullname: /^[\p{L}\s]{5,50}$/u,
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  // Phải khớp quy tắc ở BE/src/utils/username.js
+  username: /^[a-z][a-z0-9._]{2,18}[a-z0-9]$/,
   phone: /^0[3|5|7|8|9][0-9]{8}$/,
   password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
 };
+
+const USERNAME_HINT = 'Tên đăng nhập từ 4-20 ký tự, bắt đầu bằng chữ cái, chỉ gồm chữ thường, số, dấu chấm và gạch dưới';
 
 const Signup = ({ showToast }) => {
   const navigate = useNavigate();
@@ -31,6 +35,7 @@ const Signup = ({ showToast }) => {
   const [formData, setFormData] = useState({
     fullname: '',
     email: '',
+    username: '',
     phone: '',
     password: '',
     confirmPassword: '',
@@ -44,6 +49,8 @@ const Signup = ({ showToast }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleAccountError, setGoogleAccountError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [usernameAvailable, setUsernameAvailable] = useState(null);
 
   // OTP related states
   const [showOtpStep, setShowOtpStep] = useState(false);
@@ -171,6 +178,8 @@ const Signup = ({ showToast }) => {
       }
     } else if (name === 'email') {
       isValid = patterns.email.test(value.trim());
+    } else if (name === 'username') {
+      isValid = patterns.username.test(value.trim().toLowerCase());
     } else if (name === 'phone') {
       isValid = patterns.phone.test(value.trim());
     } else if (name === 'password') {
@@ -224,6 +233,48 @@ const Signup = ({ showToast }) => {
     }
   };
 
+  const handleUsernameChange = (e) => {
+    // Chuẩn hóa ngay khi gõ: server luôn lưu chữ thường, hiện đúng cái sẽ được lưu.
+    const value = e.target.value.trim().toLowerCase();
+    setFormData(prev => ({ ...prev, username: value }));
+    setUsernameError('');
+    setUsernameAvailable(null);
+    validateField('username', value);
+  };
+
+  // Hỏi server tên đăng nhập còn trống không, sau khi người dùng ngừng gõ.
+  useEffect(() => {
+    const username = formData.username.trim().toLowerCase();
+    if (!patterns.username.test(username)) {
+      setUsernameAvailable(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      fetch(`${API_BASE}/api/auth/check-username?username=${encodeURIComponent(username)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (cancelled) return;
+          setUsernameAvailable(Boolean(data.available));
+          if (!data.available) {
+            setUsernameError(data.message || 'Tên đăng nhập đã được sử dụng.');
+            setErrors(prev => ({ ...prev, username: true }));
+            setValidFields(prev => ({ ...prev, username: false }));
+          }
+        })
+        .catch(() => {
+          // Không chặn người dùng nếu chỉ mất mạng — server vẫn kiểm tra lúc submit.
+          if (!cancelled) setUsernameAvailable(null);
+        });
+    }, 450);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [formData.username]);
+
   const triggerShake = (name) => {
     setShakeFields(prev => ({ ...prev, [name]: true }));
     setTimeout(() => {
@@ -236,16 +287,18 @@ const Signup = ({ showToast }) => {
 
     const isNameValid = validateField('fullname', formData.fullname);
     const isEmailValid = validateField('email', formData.email);
+    const isUsernameValid = validateField('username', formData.username);
     const isPhoneValid = validateField('phone', formData.phone);
     const isPasswordValid = validateField('password', formData.password);
     const isConfirmValid = validateField('confirmPassword', formData.confirmPassword);
     const isTermsValid = validateField('terms', formData.terms);
 
-    const isFormValid = isNameValid && isEmailValid && isPhoneValid && isPasswordValid && isConfirmValid && isTermsValid;
+    const isFormValid = isNameValid && isEmailValid && isUsernameValid && isPhoneValid && isPasswordValid && isConfirmValid && isTermsValid;
 
     if (!isFormValid) {
       if (!isNameValid) triggerShake('fullname');
       if (!isEmailValid) triggerShake('email');
+      if (!isUsernameValid) triggerShake('username');
       if (!isPhoneValid) triggerShake('phone');
       if (!isPasswordValid) triggerShake('password');
       if (!isConfirmValid) triggerShake('confirmPassword');
@@ -262,6 +315,7 @@ const Signup = ({ showToast }) => {
       body: JSON.stringify({
         fullname: formData.fullname,
         email: formData.email,
+        username: formData.username.trim().toLowerCase(),
         phone: formData.phone,
         password: formData.password
       })
@@ -280,6 +334,13 @@ const Signup = ({ showToast }) => {
           setGoogleAccountError(data.message || 'Email đã được đăng ký bằng Google.');
           setErrors(prev => ({ ...prev, email: true }));
           triggerShake('email');
+        } else if (/tên đăng nhập/i.test(data.message || '')) {
+          // Lỗi tên đăng nhập phải hiện ngay dưới ô tên đăng nhập, không phải ô email.
+          setUsernameError(data.message);
+          setUsernameAvailable(false);
+          setErrors((prev) => ({ ...prev, username: true }));
+          setValidFields((prev) => ({ ...prev, username: false }));
+          triggerShake('username');
         } else {
           setGoogleAccountError(data.message || 'Đăng ký thất bại!');
           setErrors((prev) => ({ ...prev, email: true }));
@@ -624,6 +685,32 @@ const Signup = ({ showToast }) => {
                         Đăng nhập bằng Google
                       </Link>
                     </p>
+                  )}
+                </div>
+
+                {/* Username Field */}
+                <div className={getGroupClass('username')} id="group-username" style={{ marginBottom: '0px' }}>
+                  <div className="input-wrapper">
+                    <span className="input-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    </span>
+                    <input
+                      type="text"
+                      id="username"
+                      placeholder=" "
+                      required
+                      autoComplete="username"
+                      value={formData.username}
+                      onChange={handleUsernameChange}
+                    />
+                    <label htmlFor="username">Tên đăng nhập</label>
+                  </div>
+                  <span className="error-message" id="error-username">{usernameError || USERNAME_HINT}</span>
+                  {!usernameError && usernameAvailable === true && (
+                    <p className="signup-username-ok">Tên đăng nhập có thể sử dụng.</p>
                   )}
                 </div>
 

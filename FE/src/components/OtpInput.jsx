@@ -81,7 +81,7 @@ const OtpInput = ({
   const handlePaste = (event) => {
     event.preventDefault();
     const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
-    if (!padded) return;
+    if (!pasted) return;
 
     const nextDigits = Array.from({ length: OTP_LENGTH }, (_, index) => pasted[index] || '');
     emitValue(nextDigits);

@@ -339,12 +339,32 @@ router.patch('/system-config', adminOrIcpdp, asyncHandler(async (req, res) => {
   res.json({ success: true, config, message: 'Đã cập nhật cấu hình bảo trì' });
 }));
 
-// Tất cả sự kiện đã được duyệt (approved/live/ended/expired)
-router.get('/events/approved', adminOnly, asyncHandler(async (req, res) => {
-  const APPROVED_STATUSES = ['approved', 'live', 'ended', 'expired'];
-  const { source, search, page = 1, limit = 30 } = req.query;
+// Tất cả sự kiện trong hệ thống, mọi trạng thái. Lọc tùy chọn theo nguồn/trạng thái.
+// `status` nhận một trạng thái cụ thể, hoặc nhóm 'pending' (mọi trạng thái chờ xử lý).
+const PENDING_ADMIN_LIST_STATUSES = [
+  'pending',
+  'pending_icpdp',
+  'pending_ctsv',
+  'pending_admin',
+  'revision',
+  'pending_icpdp_cancel',
+  'pending_icpdp_postpone',
+  'pending_icpdp_delete',
+  'pending_icpdp_edit',
+  'pending_cancel',
+  'pending_hide',
+  'pending_postpone',
+  'pending_edit',
+  'pending_delete',
+];
 
-  const filter = { isDeleted: { $ne: true }, status: { $in: APPROVED_STATUSES } };
+router.get('/events/approved', adminOnly, asyncHandler(async (req, res) => {
+  const { source, search, status, page = 1, limit = 30 } = req.query;
+
+  const filter = { isDeleted: { $ne: true } };
+  if (status && status !== 'all') {
+    filter.status = status === 'pending' ? { $in: PENDING_ADMIN_LIST_STATUSES } : status;
+  }
   if (source && source !== 'all') filter.source = source;
   if (search) {
     filter.$or = [

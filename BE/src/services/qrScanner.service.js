@@ -188,8 +188,13 @@ const generateStationQr = async (user, eventId, body = {}) => {
   }
   const action = body.action === 'checkout' ? 'checkout' : 'checkin';
   const token = crypto.randomBytes(24).toString('hex');
-  const attendanceCode = await generateUniqueAttendanceCode();
   const expiresAt = resolveQrExpiresAt(body);
+
+  // Khi BTC bật tự động xoay mã (vài giây/lần), chỉ đổi token QR và giữ nguyên mã
+  // điểm danh 6 ký tự — nếu không sinh viên đang gõ mã tay sẽ liên tục bị sai.
+  const current = getStationCredentials(event, action);
+  const keepCode = Boolean(body.keepAttendanceCode) && Boolean(current.attendanceCode);
+  const attendanceCode = keepCode ? current.attendanceCode : await generateUniqueAttendanceCode();
 
   if (action === 'checkout') {
     event.checkoutQrToken = token;

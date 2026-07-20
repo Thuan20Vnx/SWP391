@@ -96,6 +96,13 @@ const eventSchema = new mongoose.Schema(
       default: 0,
       min: 0
     },
+    // Số chỗ đang được giữ tạm cho các đơn thanh toán pending (chưa trả tiền xong).
+    // Chỗ đã giữ vẫn tính vào sức chứa để tránh bán vượt, và được nhả khi đơn hết hạn/bị hủy.
+    reservedCount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
     status: {
       type: String,
       enum: EVENT_STATUSES,
@@ -293,9 +300,11 @@ eventSchema.virtual('fillPercent').get(function () {
   return Math.min(100, Math.round((this.registeredCount / cap) * 100));
 });
 
+// Trừ cả chỗ đang giữ tạm cho đơn pending: người dùng không mua được số chỗ đó,
+// nên hiển thị chúng là "còn trống" sẽ dẫn tới báo hết chỗ ngay khi bấm mua.
 eventSchema.virtual('remainingTickets').get(function () {
   const cap = this.capacity || this.totalTickets || 0;
-  return Math.max(0, cap - (this.registeredCount || 0));
+  return Math.max(0, cap - (this.registeredCount || 0) - (this.reservedCount || 0));
 });
 
 eventSchema.pre('validate', function () {

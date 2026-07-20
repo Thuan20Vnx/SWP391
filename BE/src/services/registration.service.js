@@ -13,6 +13,7 @@ const {
   syncEventToGoogleCalendar,
   removeEventFromGoogleCalendar,
 } = require('./calendar.service');
+const { occupySlot, releaseOccupiedSlot } = require('./eventCapacity.service');
 
 const formatEventForMyEvents = (registration) => {
   const event = registration.event;
@@ -73,13 +74,22 @@ const assertEventRegisterable = (event) => {
       throw new AppError('Đã hết hạn đăng ký sự kiện.', 400);
     }
   }
-  if (event.registeredCount >= event.capacity) {
+  // Chỉ là đường thoát sớm cho trường hợp đã rõ ràng hết chỗ — KHÔNG phải chốt chặn.
+  // Chốt chặn thật nằm ở occupySlot() (atomic), vì số liệu đọc ở đây có thể cũ
+  // ngay khi vừa đọc xong nếu có request khác đang giành chỗ song song.
+  if (event.registeredCount + (event.reservedCount || 0) >= event.capacity) {
     throw new AppError('Sự kiện đã hết chỗ.', 400);
   }
 };
 
+const throwEventFullError = () => {
+  const err = new AppError('Sự kiện đã hết chỗ.', 409);
+  err.extra = { code: 'EVENT_FULL' };
+  throw err;
+};
+
 const registerForEvent = async (user, eventId) => {
-  const event = await Event.findById(eventId);
+  let event = await Event.findById(eventId);
   assertEventRegisterable(event);
 
   const listPrice = getListPrice(event);
@@ -93,9 +103,10 @@ const registerForEvent = async (user, eventId) => {
     throw err;
   }
 
-  let registration = await EventRegistration.findOne({ user: user._id, event: eventId });
+  const existing = await EventRegistration.findOne({ user: user._id, event: eventId });
 
-  if (registration?.status === 'registered') {
+  // Kiểm tra trùng TRƯỚC khi chiếm chỗ để không giữ chỗ thừa rồi phải nhả lại.
+  if (existing && existing.status !== 'cancelled') {
     throw new AppError('Bạn đã đăng ký sự kiện này rồi.', 409);
   }
 
@@ -105,23 +116,44 @@ const registerForEvent = async (user, eventId) => {
     studentPrivilegeApplied,
   };
 
-  if (registration?.status === 'cancelled') {
-    registration.status = 'registered';
-    registration.registeredAt = new Date();
-    registration.cancelledAt = null;
-    Object.assign(registration, pricingFields);
-    await registration.save();
-  } else {
-    registration = await EventRegistration.create({
-      user: user._id,
-      event: eventId,
-      status: 'registered',
-      ...pricingFields,
-    });
+  // Giành chỗ bằng một lệnh atomic: vừa kiểm tra còn chỗ vừa tăng counter.
+  // Trả về null nghĩa là request khác đã lấy mất chỗ cuối trong lúc ta xử lý.
+  const occupied = await occupySlot(eventId);
+  if (!occupied) {
+    throwEventFullError();
   }
 
-  event.registeredCount = Math.min(event.registeredCount + 1, event.capacity);
-  await event.save();
+  let registration;
+  try {
+    if (existing) {
+      existing.status = 'registered';
+      existing.registeredAt = new Date();
+      existing.cancelledAt = null;
+      Object.assign(existing, pricingFields);
+      await existing.save();
+      registration = existing;
+    } else {
+      registration = await EventRegistration.create({
+        user: user._id,
+        event: eventId,
+        status: 'registered',
+        ...pricingFields,
+      });
+    }
+  } catch (err) {
+    // Chỗ đã chiếm nhưng bản ghi không tạo được — phải nhả ra, nếu không sự kiện
+    // sẽ rò rỉ chỗ và báo hết chỗ trong khi thực tế vẫn trống.
+    await releaseOccupiedSlot(eventId);
+
+    // Unique index (user, event) chặn hai request cùng người bấm đăng ký một lúc.
+    if (err?.code === 11000) {
+      throw new AppError('Bạn đã đăng ký sự kiện này rồi.', 409);
+    }
+    throw err;
+  }
+
+  // Dùng bản Event vừa trả về từ lệnh atomic để các bước sau đọc đúng số mới nhất.
+  event = occupied;
 
   const googleCalendarEventId = await syncEventToGoogleCalendar(user._id, event);
   if (googleCalendarEventId) {
@@ -157,11 +189,25 @@ const registerForEvent = async (user, eventId) => {
 };
 
 const cancelRegistration = async (userId, eventId) => {
-  const registration = await EventRegistration.findOne({
-    user: userId,
-    event: eventId,
-    status: 'registered',
-  });
+  // Chuyển 'registered' -> 'cancelled' bằng một lệnh atomic. Nếu hai request hủy
+  // cùng lúc thì chỉ request đầu khớp filter, request sau nhận null và dừng lại —
+  // nhờ vậy chỗ chỉ được nhả đúng một lần.
+  // returnDocument:'before' để lấy bản ghi TRƯỚC khi cập nhật, vì ta cần googleCalendarEventId cũ.
+  const registration = await EventRegistration.findOneAndUpdate(
+    {
+      user: userId,
+      event: eventId,
+      status: 'registered',
+    },
+    {
+      $set: {
+        status: 'cancelled',
+        cancelledAt: new Date(),
+        googleCalendarEventId: null,
+      },
+    },
+    { returnDocument: 'before' },
+  );
 
   if (!registration) {
     throw new AppError('Bạn chưa đăng ký sự kiện này.', 404);
@@ -169,18 +215,10 @@ const cancelRegistration = async (userId, eventId) => {
 
   const { googleCalendarEventId } = registration;
 
-  registration.status = 'cancelled';
-  registration.cancelledAt = new Date();
-  registration.googleCalendarEventId = null;
-  await registration.save();
-
   await removeEventFromGoogleCalendar(userId, googleCalendarEventId);
 
-  const event = await Event.findById(eventId);
-  if (event) {
-    event.registeredCount = Math.max(0, event.registeredCount - 1);
-    await event.save();
-  }
+  // Nhả chỗ atomic thay vì đọc-sửa-lưu, để hủy và đăng ký chạy song song không đè lên nhau.
+  await releaseOccupiedSlot(eventId);
 
   invalidateRegisteredIdsCache(userId);
 

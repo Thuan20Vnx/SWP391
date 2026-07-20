@@ -12,6 +12,20 @@ services:
       retries: 5
       start_period: 20s
 
+  redis:
+    image: redis:7-alpine
+    container_name: fevents-redis
+    restart: unless-stopped
+    # Bộ đếm rate limit là dữ liệu tạm, mất khi restart cũng không sao —
+    # nên tắt lưu xuống đĩa cho nhẹ, và chặn RAM để không nuốt hết bộ nhớ máy.
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
   backend:
     build:
       context: ./BE
@@ -20,9 +34,12 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       PORT: 5000
       MONGO_URI: mongodb://mongo:27017/FEventsDB
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       APP_URL: ${APP_URL:-http://localhost}

@@ -41,6 +41,13 @@ const RoleIcon = ({ tone }) => {
           <path {...common} d="M6 12v5c2 1.5 4 2 6 2s4-.5 6-2v-5" />
         </svg>
       );
+    case 'admin':
+      return (
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path {...common} d="M12 3l7 3v5c0 4.4-3 8.4-7 10-4-1.6-7-5.6-7-10V6l7-3Z" />
+          <path {...common} d="M12 9v3M12 15h.01" />
+        </svg>
+      );
     case 'attendee':
     default:
       return (

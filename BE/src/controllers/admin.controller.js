@@ -83,8 +83,8 @@ const getSystemHealth = async (req, res) => {
 };
 
 const getAnalytics = async (req, res) => {
-  const period = req.query.period || 'month';
-  const analytics = await adminAnalyticsService.getAdminAnalytics(period);
+  const { period = 'month', month, quarter, year } = req.query;
+  const analytics = await adminAnalyticsService.getAdminAnalytics(period, { month, quarter, year });
   res.status(200).json({ success: true, analytics });
 };
 

@@ -50,6 +50,49 @@
   box-shadow: 0 2px 8px rgba(242, 111, 33, 0.3);
 }
 
+.admin-analytics-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-analytics-picker__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-analytics-picker__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.admin-analytics-picker__select {
+  padding: 9px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #584238;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-analytics-picker__select:hover,
+.admin-analytics-picker__select:focus-visible {
+  border-color: #f26f21;
+  color: #f26f21;
+  outline: none;
+}
+
+.admin-analytics-period-caption {
+  font-weight: 600;
+  color: #f26f21;
+}
+
 .admin-analytics-export {
   display: inline-flex;
   align-items: center;
@@ -441,6 +484,11 @@
 
   .admin-analytics-period {
     justify-content: center;
+  }
+
+  .admin-analytics-picker {
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
   .admin-analytics-export {

@@ -7,30 +7,66 @@ const PERIOD_LABELS = {
   year: 'Năm nay',
 };
 
-const getPeriodBounds = (period, now = new Date()) => {
-  const end = now;
+/** Số nguyên trong [min, max], ngược lại trả về fallback. */
+const parseBounded = (raw, min, max, fallback) => {
+  const n = parseInt(String(raw ?? '').trim(), 10);
+  if (!Number.isFinite(n) || n < min || n > max) return fallback;
+  return n;
+};
+
+/**
+ * Khoảng thời gian của kỳ được chọn + kỳ liền trước (để tính xu hướng).
+ * `period` là ĐƠN VỊ (month/quarter/year); `month`/`quarter`/`year` chỉ ra kỳ cụ thể,
+ * mặc định là kỳ hiện tại. Kỳ hiện tại kết thúc ở `now`, kỳ quá khứ kết thúc trọn kỳ.
+ */
+const getPeriodBounds = (period, now = new Date(), selection = {}) => {
+  const year = parseBounded(selection.year, 2000, 2100, now.getFullYear());
+  // Kỳ đã trôi qua thì chốt ở cuối kỳ; kỳ đang diễn ra thì chốt ở thời điểm hiện tại.
+  const clampEnd = (rawEnd) => (rawEnd > now ? now : rawEnd);
 
   if (period === 'year') {
-    const start = new Date(now.getFullYear(), 0, 1);
-    const prevEnd = new Date(start.getTime() - 1);
-    const prevStart = new Date(now.getFullYear() - 1, 0, 1);
-    return { start, end, prevStart, prevEnd };
+    const start = new Date(year, 0, 1);
+    const end = clampEnd(new Date(year + 1, 0, 1, 0, 0, 0, -1));
+    return {
+      start,
+      end,
+      prevStart: new Date(year - 1, 0, 1),
+      prevEnd: new Date(start.getTime() - 1),
+    };
   }
 
   if (period === 'quarter') {
-    const quarter = Math.floor(now.getMonth() / 3);
-    const start = new Date(now.getFullYear(), quarter * 3, 1);
-    const prevEnd = new Date(start.getTime() - 1);
+    const quarter = parseBounded(selection.quarter, 1, 4, Math.floor(now.getMonth() / 3) + 1) - 1;
+    const start = new Date(year, quarter * 3, 1);
+    const end = clampEnd(new Date(year, quarter * 3 + 3, 1, 0, 0, 0, -1));
     const prevQuarter = quarter === 0 ? 3 : quarter - 1;
-    const prevYear = quarter === 0 ? now.getFullYear() - 1 : now.getFullYear();
-    const prevStart = new Date(prevYear, prevQuarter * 3, 1);
-    return { start, end, prevStart, prevEnd };
+    const prevYear = quarter === 0 ? year - 1 : year;
+    return {
+      start,
+      end,
+      prevStart: new Date(prevYear, prevQuarter * 3, 1),
+      prevEnd: new Date(start.getTime() - 1),
+    };
   }
 
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const prevEnd = new Date(start.getTime() - 1);
-  const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  return { start, end, prevStart, prevEnd };
+  const month = parseBounded(selection.month, 1, 12, now.getMonth() + 1) - 1;
+  const start = new Date(year, month, 1);
+  const end = clampEnd(new Date(year, month + 1, 1, 0, 0, 0, -1));
+  return {
+    start,
+    end,
+    prevStart: new Date(year, month - 1, 1),
+    prevEnd: new Date(start.getTime() - 1),
+  };
+};
+
+/** Nhãn kỳ hiển thị, ví dụ "Tháng 07/2026", "Quý 3/2026", "Năm 2026". */
+const buildPeriodLabel = (period, start) => {
+  if (period === 'year') return `Năm ${start.getFullYear()}`;
+  if (period === 'quarter') {
+    return `Quý ${Math.floor(start.getMonth() / 3) + 1}/${start.getFullYear()}`;
+  }
+  return `Tháng ${String(start.getMonth() + 1).padStart(2, '0')}/${start.getFullYear()}`;
 };
 
 const formatTrendPercent = (current, previous) => {
@@ -249,10 +285,10 @@ const buildReviewItems = (reviews) =>
     createdAt: row.createdAt,
   }));
 
-const getAdminAnalytics = async (period = 'month') => {
+const getAdminAnalytics = async (period = 'month', selection = {}) => {
   const normalizedPeriod = ['month', 'quarter', 'year'].includes(period) ? period : 'month';
   const now = new Date();
-  const { start, end, prevStart, prevEnd } = getPeriodBounds(normalizedPeriod, now);
+  const { start, end, prevStart, prevEnd } = getPeriodBounds(normalizedPeriod, now, selection);
 
   const [reviews, prevReviews] = await Promise.all([
     loadReviewsInRange(start, end),
@@ -268,7 +304,13 @@ const getAdminAnalytics = async (period = 'month') => {
   return {
     checkedAt: now.toISOString(),
     period: normalizedPeriod,
-    periodLabel: PERIOD_LABELS[normalizedPeriod] || PERIOD_LABELS.month,
+    periodLabel: buildPeriodLabel(normalizedPeriod, start),
+    prevPeriodLabel: buildPeriodLabel(normalizedPeriod, prevStart),
+    periodStart: start.toISOString(),
+    periodEnd: end.toISOString(),
+    selectedYear: start.getFullYear(),
+    selectedMonth: start.getMonth() + 1,
+    selectedQuarter: Math.floor(start.getMonth() / 3) + 1,
     overview: buildOverview(reviews, prevReviews),
     starDistribution,
     starDetailRows: buildStarDetailRows(reviews, starDistribution),
@@ -284,4 +326,4 @@ const getAdminAnalytics = async (period = 'month') => {
   };
 };
 
-module.exports = { getAdminAnalytics, getPeriodBounds, PERIOD_LABELS };
+module.exports = { getAdminAnalytics, getPeriodBounds, buildPeriodLabel, PERIOD_LABELS };

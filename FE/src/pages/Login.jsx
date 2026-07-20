@@ -13,7 +13,17 @@ import { resolveUserAvatar } from '../utils/image';
 import defaultAvatar from '../constants/defaultAvatar';
 
 const patterns = {
-  email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  // Phải khớp quy tắc ở BE/src/utils/username.js
+  username: /^[a-z][a-z0-9._]{2,18}[a-z0-9]$/
+};
+
+/** Ô đăng nhập nhận cả email lẫn tên đăng nhập. */
+const isValidLoginIdentifier = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return false;
+  if (raw.includes('@')) return patterns.email.test(raw);
+  return patterns.username.test(raw.toLowerCase());
 };
 
 const REMEMBER_EMAIL_KEY = 'rememberedLoginEmail';
@@ -36,7 +46,8 @@ const Login = ({ showToast }) => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    email: '',
+    // `identifier` = email hoặc tên đăng nhập
+    identifier: '',
     password: ''
   });
 
@@ -52,7 +63,7 @@ const Login = ({ showToast }) => {
   const [remainingAttempts, setRemainingAttempts] = useState(null);
   const [lockedForEmail, setLockedForEmail] = useState('');
 
-  const normalizeLoginEmail = (email) => email.trim().toLowerCase();
+  const normalizeLoginIdentifier = (value) => String(value || '').trim().toLowerCase();
 
   const resetLoginLockState = () => {
     setLoginLocked(false);
@@ -62,29 +73,29 @@ const Login = ({ showToast }) => {
     setRemainingAttempts(null);
   };
 
-  const clearLockStateIfEmailChanged = (nextEmail) => {
-    const normalized = normalizeLoginEmail(nextEmail);
+  const clearLockStateIfIdentifierChanged = (nextIdentifier) => {
+    const normalized = normalizeLoginIdentifier(nextIdentifier);
     if (lockedForEmail && normalized !== lockedForEmail) {
       resetLoginLockState();
       setErrors((prev) => ({ ...prev, password: false }));
     }
   };
 
-  const isLoginBlockedForCurrentEmail = () => {
+  const isLoginBlockedForCurrentIdentifier = () => {
     if (!lockedForEmail) return false;
-    if (normalizeLoginEmail(formData.email) !== lockedForEmail) return false;
+    if (normalizeLoginIdentifier(formData.identifier) !== lockedForEmail) return false;
     return emailLocked || lockCountdown > 0;
   };
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
-    if (!savedEmail) return;
+    const savedIdentifier = localStorage.getItem(REMEMBER_EMAIL_KEY);
+    if (!savedIdentifier) return;
 
-    setFormData((prev) => ({ ...prev, email: savedEmail }));
+    setFormData((prev) => ({ ...prev, identifier: savedIdentifier }));
     setRememberMe(true);
     setValidFields((prev) => ({
       ...prev,
-      email: patterns.email.test(savedEmail.trim()),
+      identifier: isValidLoginIdentifier(savedIdentifier),
     }));
   }, []);
 
@@ -105,19 +116,19 @@ const Login = ({ showToast }) => {
     return () => window.clearInterval(timer);
   }, [loginLocked, lockCountdown]);
 
-  const applyLoginLock = (retryAfterSeconds, email) => {
+  const applyLoginLock = (retryAfterSeconds, identifier) => {
     const seconds = Math.max(0, Number(retryAfterSeconds) || 30);
     setLoginLocked(true);
     setEmailLocked(false);
     setLockCountdown(seconds);
-    setLockedForEmail(normalizeLoginEmail(email));
+    setLockedForEmail(normalizeLoginIdentifier(identifier));
   };
 
-  const applyEmailLock = (email) => {
+  const applyEmailLock = (identifier) => {
     setLoginLocked(true);
     setEmailLocked(true);
     setLockCountdown(0);
-    setLockedForEmail(normalizeLoginEmail(email));
+    setLockedForEmail(normalizeLoginIdentifier(identifier));
     setErrors((prev) => ({ ...prev, password: false }));
   };
 
@@ -126,13 +137,13 @@ const Login = ({ showToast }) => {
     setErrors((prev) => ({ ...prev, password: true }));
 
     if (status === 423 && data.code === 'LOGIN_EMAIL_LOCKED') {
-      applyEmailLock(formData.email);
+      applyEmailLock(formData.identifier);
       triggerShake('password');
       return;
     }
 
     if (status === 423 && data.code === 'LOGIN_LOCKED') {
-      applyLoginLock(data.retryAfterSeconds, formData.email);
+      applyLoginLock(data.retryAfterSeconds, formData.identifier);
       setErrors((prev) => ({ ...prev, password: false }));
       triggerShake('password');
       return;
@@ -163,8 +174,8 @@ const Login = ({ showToast }) => {
   const validateField = (name, value) => {
     let isValid = false;
 
-    if (name === 'email') {
-      isValid = patterns.email.test(value.trim());
+    if (name === 'identifier') {
+      isValid = isValidLoginIdentifier(value);
     } else if (name === 'password') {
       isValid = value.trim().length >= 8;
     }
@@ -178,29 +189,35 @@ const Login = ({ showToast }) => {
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
-    validateField(id, value);
 
     if (id === 'password') {
-      // Reset password error message back to default rules helper
+      // Màn hình đăng nhập không kiểm tra độ dài mật khẩu khi đang gõ — người dùng
+      // nhập mật khẩu có sẵn chứ không đặt mật khẩu mới, nên báo lỗi lúc này chỉ
+      // gây khó chịu. Chỉ xóa lỗi cũ, việc kiểm tra để lúc bấm Đăng nhập.
+      setErrors(prev => ({ ...prev, password: false }));
+      setValidFields(prev => ({ ...prev, password: value.trim().length > 0 }));
       const errorMsg = document.getElementById('error-password');
-      if (errorMsg) errorMsg.textContent = "Mật khẩu phải từ 8 ký tự trở lên";
+      if (errorMsg) errorMsg.textContent = 'Mật khẩu phải từ 8 ký tự trở lên';
+      return;
     }
+
+    validateField(id, value);
   };
 
-  const handleEmailChange = (e) => {
+  const handleIdentifierChange = (e) => {
     const value = e.target.value;
-    clearLockStateIfEmailChanged(value);
-    setFormData(prev => ({ ...prev, email: value }));
+    clearLockStateIfIdentifierChanged(value);
+    setFormData(prev => ({ ...prev, identifier: value }));
 
-    const isValid = patterns.email.test(value.trim());
+    const isValid = isValidLoginIdentifier(value);
 
-    setErrors(prev => ({ ...prev, email: !isValid }));
-    setValidFields(prev => ({ ...prev, email: isValid }));
+    setErrors(prev => ({ ...prev, identifier: !isValid }));
+    setValidFields(prev => ({ ...prev, identifier: isValid }));
 
-    const errorSpan = document.getElementById('error-email');
+    const errorSpan = document.getElementById('error-identifier');
     if (errorSpan) {
-      errorSpan.textContent = "Vui lòng nhập email hợp lệ";
-      errorSpan.style.color = "var(--border-error)";
+      errorSpan.textContent = 'Vui lòng nhập email hoặc tên đăng nhập hợp lệ';
+      errorSpan.style.color = 'var(--border-error)';
     }
   };
 
@@ -214,15 +231,15 @@ const Login = ({ showToast }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (isLoginBlockedForCurrentEmail()) return;
+    if (isLoginBlockedForCurrentIdentifier()) return;
 
-    const isEmailValid = validateField('email', formData.email);
+    const isIdentifierValid = validateField('identifier', formData.identifier);
     const isPasswordValid = validateField('password', formData.password);
 
-    const isFormValid = isEmailValid && isPasswordValid;
+    const isFormValid = isIdentifierValid && isPasswordValid;
 
     if (!isFormValid) {
-      if (!isEmailValid) triggerShake('email');
+      if (!isIdentifierValid) triggerShake('identifier');
       if (!isPasswordValid) triggerShake('password');
       return;
     }
@@ -233,7 +250,7 @@ const Login = ({ showToast }) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: formData.email,
+        identifier: formData.identifier,
         password: formData.password
       })
     })
@@ -246,12 +263,14 @@ const Login = ({ showToast }) => {
           persistProfileFromUser(data.user);
 
           localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('userEmail', formData.email);
+          // Phải lấy email từ phản hồi máy chủ: khi đăng nhập bằng tên đăng nhập
+          // thì ô nhập không phải email, lưu thẳng vào đây sẽ hỏng cả app.
+          localStorage.setItem('userEmail', data.user?.email || '');
           localStorage.setItem('loginMethod', 'local');
           if (data.token) localStorage.setItem('authToken', data.token);
 
           if (rememberMe) {
-            localStorage.setItem(REMEMBER_EMAIL_KEY, formData.email.trim().toLowerCase());
+            localStorage.setItem(REMEMBER_EMAIL_KEY, formData.identifier.trim().toLowerCase());
           } else {
             localStorage.removeItem(REMEMBER_EMAIL_KEY);
           }
@@ -280,9 +299,9 @@ const Login = ({ showToast }) => {
       });
   };
 
-  const isSubmitDisabled = loading || isLoginBlockedForCurrentEmail();
-  const showTempLockBanner = isLoginBlockedForCurrentEmail() && !emailLocked && lockCountdown > 0;
-  const showEmailLockBanner = isLoginBlockedForCurrentEmail() && emailLocked;
+  const isSubmitDisabled = loading || isLoginBlockedForCurrentIdentifier();
+  const showTempLockBanner = isLoginBlockedForCurrentIdentifier() && !emailLocked && lockCountdown > 0;
+  const showEmailLockBanner = isLoginBlockedForCurrentIdentifier() && emailLocked;
 
   const handleSsoClick = () => {};
 
@@ -294,7 +313,7 @@ const Login = ({ showToast }) => {
 
   return (
     <main className="page-container">
-      <section className="branding-column" aria-label="Giới thiệu cộng đồng FPT">
+      <section className="branding-column login-branding-column" aria-label="Giới thiệu cộng đồng FPT">
         <div className="glass-overlay" />
         <div className="branding-content">
           <div className="slogan-container">
@@ -374,27 +393,27 @@ const Login = ({ showToast }) => {
           {/* Manual Login Form */}
           <form id="login-form" onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-            {/* Email Field */}
-            <div className={getGroupClass('email')} id="group-email" style={{ marginBottom: '0px' }}>
+            {/* Email hoặc tên đăng nhập */}
+            <div className={getGroupClass('identifier')} id="group-identifier" style={{ marginBottom: '0px' }}>
               <div className="input-wrapper">
                 <span className="input-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                 </span>
                 <input
-                  type="email"
-                  id="email"
+                  type="text"
+                  id="identifier"
                   placeholder=" "
                   required
-                  autoComplete="email"
-                  value={formData.email}
-                  onChange={handleEmailChange}
+                  autoComplete="username"
+                  value={formData.identifier}
+                  onChange={handleIdentifierChange}
                 />
-                <label htmlFor="email">Email của bạn</label>
+                <label htmlFor="identifier">Email hoặc tên đăng nhập</label>
               </div>
-              <span className="error-message" id="error-email">Vui lòng nhập email hợp lệ</span>
+              <span className="error-message" id="error-identifier">Vui lòng nhập email hoặc tên đăng nhập hợp lệ</span>
             </div>
 
             {/* Password Field */}

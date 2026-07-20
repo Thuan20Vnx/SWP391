@@ -54,6 +54,7 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, onResetPasswo
   const isAdmin = account.role === 'admin';
   const showStudentFields = form.role === 'student' || account.role === 'student';
   const isClubRole = form.role === 'club_organizer';
+  const promotingToAdmin = !isAdmin && form.role === 'admin';
   const clubOptions = clubs.map((c) => ({
     value: c.id,
     label: c.hasManager && c.id !== form.managedClubId ? `${c.name} (đã có quản lý)` : c.name,
@@ -61,6 +62,13 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, onResetPasswo
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (promotingToAdmin) {
+      const ok = window.confirm(
+        `Nâng "${account.name || account.email}" lên Quản trị hệ thống?\n\n`
+        + 'Tài khoản này sẽ có toàn quyền trên hệ thống và sau đó không thể hạ vai trò qua giao diện.',
+      );
+      if (!ok) return;
+    }
     onSubmit({
       role: form.role,
       fullname: form.fullname,
@@ -114,6 +122,12 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, onResetPasswo
                 onChange={(v) => patch('role', v)}
                 name="edit-account-role"
               />
+            )}
+            {promotingToAdmin && (
+              <span className="admin-acc-modal__note">
+                Tài khoản sẽ có toàn quyền quản trị. Chỉ áp dụng cho email @fpt.edu.vn và không thể
+                hạ vai trò lại qua giao diện này.
+              </span>
             )}
           </label>
 

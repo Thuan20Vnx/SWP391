@@ -35,7 +35,6 @@ import {
   filterActiveDiscoveryEvents,
   HOME_RECOMMEND_TABS,
   sortHomeEventsByRecommendTab,
-  sortEventsByPopular,
   HOME_DISPLAY_LIMIT,
 } from '../data/eventDiscoveryData';
 import { eventRequiresPayment } from '../utils/eventRegisterAction';
@@ -183,13 +182,14 @@ const Home = ({ showToast }) => {
     };
   }, [debouncedSearch, categoryFilter, recommendTab, viewerRole]);
 
-  // Hero banner — endpoint /featured (3 sự kiện, không tải cả danh sách)
+  // Hero banner — endpoint /featured (lấy dư vài sự kiện rồi chọn 3, vì sự kiện
+  // chưa có ảnh bìa sẽ bị loại khi dựng slide).
   useEffect(() => {
     let cancelled = false;
     setHeroLoading(true);
     setHeroUnavailable(false);
 
-    fetchFeaturedEvents({ limit: 3 }, { forceRefresh: true })
+    fetchFeaturedEvents({ limit: 8 }, { forceRefresh: true })
       .then((data) => {
         if (cancelled) return;
         setHeroEvents(mapListToCards(data, viewerRole, { activeOnly: false }));
@@ -261,7 +261,8 @@ const Home = ({ showToast }) => {
   );
 
   const heroSlides = useMemo(() => {
-    return mapEventsToHeroSlides(sortEventsByPopular(heroEvents), {
+    // Không sắp xếp lại ở đây — mapEventsToHeroSlides đã ưu tiên sự kiện sắp diễn ra.
+    return mapEventsToHeroSlides(heroEvents, {
       categoryLabel: (event) => event.categoryLabel || event.category,
       organizerLabel: (event) => event.organizerLabel || '',
       dateLabel: (event) => event.dateLabel || '',

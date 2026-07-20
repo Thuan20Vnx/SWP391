@@ -120,8 +120,14 @@ const getPrimaryPartner = async (email, { includeHeavy = true } = {}) => {
   if (!normalized) return null;
 
   const select = includeHeavy ? PARTNER_LOGO_FIELDS : PARTNER_SUMMARY_FIELDS;
+  // Phải sort giống getPartnerMePayload: nếu một email có nhiều hồ sơ đã duyệt,
+  // đường ghi (PATCH /me) và đường đọc (GET /me) sẽ chọn hai document khác nhau
+  // → lưu thành công nhưng màn hình vẫn hiện dữ liệu cũ.
   const [approved, latest] = await Promise.all([
-    Partner.findOne({ email: normalized, status: 'approved' }).select(select).lean(),
+    Partner.findOne({ email: normalized, status: 'approved' })
+      .sort({ createdAt: -1 })
+      .select(select)
+      .lean(),
     Partner.findOne({ email: normalized }).sort({ createdAt: -1 }).select(select).lean()
   ]);
 

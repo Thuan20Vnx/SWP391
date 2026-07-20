@@ -19,6 +19,17 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
+  /** Tên đăng nhập — định danh phụ, người dùng có thể đăng nhập bằng tên này thay email. */
+  username: {
+    type: String,
+    trim: true,
+    lowercase: true
+  },
+  /** Lần đổi tên đăng nhập gần nhất — dùng để áp thời gian chờ 30 ngày. */
+  usernameChangedAt: {
+    type: Date,
+    default: null
+  },
   phone: {
     type: String,
     trim: true,
@@ -102,6 +113,15 @@ userSchema.index(
   {
     unique: true,
     partialFilterExpression: { googleId: { $exists: true, $type: 'string', $gt: '' } }
+  }
+);
+// Unique một phần giống googleId: tài khoản cũ chưa có username (null / thiếu
+// field) không bị đụng nhau, chỉ các username thật mới phải là duy nhất.
+userSchema.index(
+  { username: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { username: { $exists: true, $type: 'string', $gt: '' } }
   }
 );
 
@@ -293,6 +313,10 @@ userSchema.pre('validate', function () {
   if (this.phone === '') {
     this.phone = undefined;
   }
+  // Chuỗi rỗng vẫn bị index unique tính là một giá trị — phải bỏ hẳn field.
+  if (this.username === '' || this.username === null) {
+    this.username = undefined;
+  }
   // Enum chỉ nhận lowercase (ctsv); DB cũ có thể lưu "CTSV"
   this.role = normalizeRole(this.role || resolveUserRole(this));
 });
@@ -300,6 +324,9 @@ userSchema.pre('validate', function () {
 userSchema.pre('save', function () {
   if (this.phone === '') {
     this.phone = undefined;
+  }
+  if (this.username === '' || this.username === null) {
+    this.username = undefined;
   }
   this.role = normalizeRole(this.role || resolveUserRole(this));
   if (this.studentId) {

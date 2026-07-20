@@ -104,6 +104,10 @@ body {
   overflow: hidden;
 }
 
+.login-branding-column {
+  background-image: url('./assets/fpt_university_danang.jpg');
+}
+
 /* Warm tint multiplier and glass overlay */
 .glass-overlay {
   position: absolute;
@@ -411,6 +415,18 @@ body {
   transform: translateY(0);
   height: auto;
   margin-bottom: 2px;
+}
+
+/* Xác nhận tên đăng nhập còn trống — dòng phụ dưới ô nhập */
+.signup-username-ok {
+  display: block;
+  margin: 4px 0 2px 4px;
+  font-size: 0.8rem;
+  color: #15803d;
+}
+
+html.dark .signup-username-ok {
+  color: #4ade80;
 }
 
 /* Checkbox Style */

@@ -27,15 +27,17 @@ const mapReviewItems = (items, language) =>
     time: formatReviewTime(review, language),
   }));
 
-export function useAdminAnalyticsLiveData(period = 'month', language = 'vi', tickMs = 60000) {
+export function useAdminAnalyticsLiveData(period = 'month', selection = {}, language = 'vi', tickMs = 60000) {
   const [now, setNow] = useState(() => new Date());
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Tách từng giá trị: object `selection` tạo tham chiếu mới mỗi lần render.
+  const { month, quarter, year } = selection;
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetchAdminAnalytics(period);
+      const res = await fetchAdminAnalytics(period, { month, quarter, year });
       setAnalytics(res.analytics || res);
       setError(null);
     } catch (err) {
@@ -44,7 +46,7 @@ export function useAdminAnalyticsLiveData(period = 'month', language = 'vi', tic
     } finally {
       setLoading(false);
     }
-  }, [period]);
+  }, [period, month, quarter, year]);
 
   useEffect(() => {
     setLoading(true);
@@ -79,6 +81,7 @@ export function useAdminAnalyticsLiveData(period = 'month', language = 'vi', tic
       error,
       refresh,
       periodLabel: data.periodLabel || '',
+      prevPeriodLabel: data.prevPeriodLabel || '',
       overview,
       starDistribution,
       starDetailRows: data.starDetailRows || [],

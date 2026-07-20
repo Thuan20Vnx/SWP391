@@ -72,6 +72,18 @@ const PartnerProfileSettings = ({ showToast }) => {
   }, []);
 
   const canEditCompany = Boolean(partnerRecord && ['approved', 'info_requested'].includes(partnerRecord.status));
+
+  // Form khóa toàn bộ mà không báo lý do thì đối tác chỉ thấy "không sửa được".
+  const lockedReason = (() => {
+    if (profileLoading || canEditCompany) return '';
+    if (!partnerRecord) {
+      return 'Chưa có hồ sơ doanh nghiệp. Vui lòng gửi đề xuất hợp tác đầu tiên để tạo hồ sơ.';
+    }
+    if (partnerRecord.status === 'rejected') {
+      return 'Hồ sơ doanh nghiệp đã bị từ chối nên không thể chỉnh sửa. Vui lòng liên hệ CTSV.';
+    }
+    return 'Hồ sơ doanh nghiệp đang chờ duyệt. Bạn có thể chỉnh sửa sau khi hồ sơ được duyệt hoặc khi Nhà trường yêu cầu bổ sung thông tin.';
+  })();
   const displayAvatar = user.avatar || defaultAvatar;
 
   const handleUserSave = async () => {
@@ -221,6 +233,7 @@ const PartnerProfileSettings = ({ showToast }) => {
             <p className="partner-profile-card__desc">
               Hồ sơ hiển thị trên đề xuất hợp tác và các tài liệu làm việc với FPT University.
             </p>
+            {lockedReason && <p className="partner-profile-card__locked">{lockedReason}</p>}
             <div className="partner-company-logo-row">
               <button
                 type="button"

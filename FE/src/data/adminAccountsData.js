@@ -47,6 +47,12 @@ export const ADMIN_ROLE_PICKER_OPTIONS = [
     descKey: 'admin.accounts.roleDesc.attendee',
     tone: 'attendee',
   },
+  {
+    value: 'admin',
+    labelKey: 'admin.accounts.role.admin',
+    descKey: 'admin.accounts.roleDesc.admin',
+    tone: 'admin',
+  },
 ];
 
 export const ADMIN_ACCOUNT_ROLE_FILTERS = [
@@ -57,6 +63,7 @@ export const ADMIN_ACCOUNT_ROLE_FILTERS = [
   { key: 'club_organizer', labelKey: 'admin.accounts.role.club_organizer' },
   { key: 'student', labelKey: 'admin.accounts.role.student' },
   { key: 'attendee', labelKey: 'admin.accounts.role.attendee' },
+  { key: 'admin', labelKey: 'admin.accounts.role.admin' },
 ];
 
 export const ADMIN_ACCOUNT_ROLE_META = {

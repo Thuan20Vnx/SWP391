@@ -3,6 +3,7 @@ const PartnerMember = require('../models/PartnerMember');
 const User = require('../models/User');
 const AppError = require('../utils/AppError');
 const { sendActivationEmail } = require('./email.service');
+const { generateUsernameForEmail } = require('../utils/username');
 
 const DEFAULT_PARTNER_PASSWORD = process.env.ADMIN_DEFAULT_USER_PASSWORD || 'Fpt@2026';
 
@@ -158,6 +159,7 @@ const addPartnerMember = async (partner, body, addedByEmail = '') => {
     user = await User.create({
       fullname,
       email,
+      username: await generateUsernameForEmail(email),
       phone: phone || '',
       role: 'partner',
       campus: 'FPT University Da Nang',

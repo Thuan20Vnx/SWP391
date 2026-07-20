@@ -11,6 +11,11 @@ const signup = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const checkUsername = async (req, res) => {
+  const result = await authService.checkUsername({ username: req.query.username });
+  res.status(200).json({ success: true, ...result });
+};
+
 const verifyOtp = async (req, res) => {
   const result = await authService.verifyOtp(req.body);
   res.status(201).json({ success: true, ...result });
@@ -88,6 +93,7 @@ const resetPassword = async (req, res) => {
 module.exports = {
   login,
   signup,
+  checkUsername,
   verifyOtp,
   resendOtp,
   googleLogin,

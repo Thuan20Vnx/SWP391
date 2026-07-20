@@ -538,6 +538,11 @@
   color: #475569;
 }
 
+.admin-role-picker__icon--admin {
+  background: #ffffff;
+  color: #b91c1c;
+}
+
 .admin-role-picker__text {
   flex: 1;
   min-width: 0;

@@ -2,6 +2,7 @@ const userService = require('../services/user.service');
 const registrationService = require('../services/registration.service');
 const clubService = require('../services/club.service');
 const reviewService = require('../services/review.service');
+const identityChangeService = require('../services/identityChange.service');
 
 const getProfile = async (req, res) => {
   const result = await userService.getProfile(req.authEmail);
@@ -39,6 +40,26 @@ const verifyPassword = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
+const requestEmailChange = async (req, res) => {
+  const result = await identityChangeService.requestEmailChange(req.authEmail, req.body);
+  res.status(200).json({ success: true, ...result });
+};
+
+const confirmEmailChange = async (req, res) => {
+  const result = await identityChangeService.confirmEmailChange(req.authEmail, req.body);
+  res.status(200).json({ success: true, ...result });
+};
+
+const requestUsernameChange = async (req, res) => {
+  const result = await identityChangeService.requestUsernameChange(req.authEmail, req.body);
+  res.status(200).json({ success: true, ...result });
+};
+
+const confirmUsernameChange = async (req, res) => {
+  const result = await identityChangeService.confirmUsernameChange(req.authEmail, req.body);
+  res.status(200).json({ success: true, ...result });
+};
+
 const getMyEvents = async (req, res) => {
   const result = await registrationService.getMyEvents(req.user._id, {
     tab: req.query.tab || 'upcoming',
@@ -65,6 +86,10 @@ module.exports = {
   getAvatar,
   changePassword,
   verifyPassword,
+  requestEmailChange,
+  confirmEmailChange,
+  requestUsernameChange,
+  confirmUsernameChange,
   getMyEvents,
   getMyClubs,
   getEventReviews,

@@ -585,8 +585,13 @@ router.get('/events/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
     }
     // Admin xem chi tiết mọi sự kiện (kể cả CLB) nên luôn được xem roster + cover.
+    // CTSV là bên quản lý sự kiện đối tác (xem buildCtsvManagedEventsFilter) nên cũng
+    // phải xem được roster — nếu không thì tab Danh sách sinh viên / điểm danh trống
+    // dù CTSV vẫn tạo được mã QR check-in cho sự kiện đó.
     const canViewRoster =
-      canRoleManageSchoolEvent(event, req.userRole) || req.userRole === 'admin';
+      canRoleManageSchoolEvent(event, req.userRole)
+      || req.userRole === 'admin'
+      || (req.userRole === 'ctsv' && event.source === 'partner');
     let students;
     if (canViewRoster) {
       const registrations = await EventRegistration.find({ event: event._id })

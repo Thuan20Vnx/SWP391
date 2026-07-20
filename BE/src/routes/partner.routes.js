@@ -124,7 +124,7 @@ router.patch('/me', async (req, res) => {
       }
     });
 
-    const updated = await Partner.findByIdAndUpdate(
+    await Partner.findByIdAndUpdate(
       partner._id,
       { $set: updates },
       { new: true, runValidators: true }
@@ -132,7 +132,10 @@ router.patch('/me', async (req, res) => {
 
     partnerQueryCache.invalidateEmail(req.authEmail);
 
-    return res.json({ success: true, partner: updated });
+    // Trả về đúng shape của GET /me (đã sanitize logo/logoUrl/hasLogo) để FE
+    // render lại bằng cùng một dữ liệu, tránh mất logo sau khi lưu.
+    const payload = await getPartnerMePayload(req.authEmail);
+    return res.json({ success: true, partner: payload.partner });
   } catch (error) {
     return handleError(res, error, 'partner patch me');
   }
