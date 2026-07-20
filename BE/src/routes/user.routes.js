@@ -36,5 +36,9 @@ router.post('/email-change/request', identityLimiter, asyncHandler(userControlle
 router.post('/email-change/confirm', asyncHandler(userController.confirmEmailChange));
 router.post('/username-change/request', identityLimiter, asyncHandler(userController.requestUsernameChange));
 router.post('/username-change/confirm', asyncHandler(userController.confirmUsernameChange));
+// Tạo mật khẩu đầu tiên cho tài khoản Google — cùng giới hạn tần suất với đổi định
+// danh, vì đây cũng là thao tác cấp thêm đường đăng nhập vào tài khoản.
+router.post('/password-setup/request', identityLimiter, asyncHandler(userController.requestPasswordSetup));
+router.post('/password-setup/confirm', asyncHandler(userController.confirmPasswordSetup));
 
 module.exports = router;

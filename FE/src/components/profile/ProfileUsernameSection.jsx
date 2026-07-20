@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import OtpInput from '../OtpInput';
 import { requestUsernameChange, confirmUsernameChange } from '../../services/identityApi';
+import { API_BASE, getAuthHeaders } from '../../utils/api';
 
 const IconChevronDown = () => (
   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden>
@@ -12,10 +13,26 @@ const USERNAME_HINT = 'Từ 4-20 ký tự, bắt đầu bằng chữ cái, chỉ
 
 /**
  * Đổi tên đăng nhập — hai bước, xác minh bằng OTP gửi tới email của tài khoản.
- * Tài khoản Google không có mật khẩu nên bỏ qua ô mật khẩu, chỉ dùng OTP.
+ * Tài khoản chưa đặt mật khẩu thì bỏ qua ô mật khẩu, chỉ dùng OTP.
+ *
+ * Điều kiện phải là "đã có mật khẩu chưa", không phải "đăng nhập bằng Google":
+ * người dùng Google có thể tự tạo mật khẩu ở mục Đổi mật khẩu, và khi đó máy chủ
+ * (identityChange.service — `if (user.passwordHash) assertPassword(...)`) sẽ bắt
+ * buộc nhập mật khẩu. Bám theo loginMethod sẽ ẩn mất ô và request luôn hỏng 400.
  */
 const ProfileUsernameSection = ({ showToast, idPrefix = 'profile', currentUsername = '', onChanged }) => {
-  const isGoogleLogin = localStorage.getItem('loginMethod') === 'google';
+  const [hasPassword, setHasPassword] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    fetch(`${API_BASE}/api/user/profile`, { headers: getAuthHeaders() })
+      .then((res) => res.json())
+      .then((data) => {
+        if (alive && data?.user) setHasPassword(Boolean(data.user.hasPassword));
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState('form');
   const [form, setForm] = useState({ newUsername: '', currentPassword: '' });
@@ -37,7 +54,7 @@ const ProfileUsernameSection = ({ showToast, idPrefix = 'profile', currentUserna
       showToast?.('Vui lòng nhập tên đăng nhập mới.', 'error');
       return;
     }
-    if (!isGoogleLogin && !form.currentPassword) {
+    if (hasPassword && !form.currentPassword) {
       showToast?.('Vui lòng nhập mật khẩu hiện tại.', 'error');
       return;
     }
@@ -124,7 +141,7 @@ const ProfileUsernameSection = ({ showToast, idPrefix = 'profile', currentUserna
                     />
                     <span className="identity-field-hint">{USERNAME_HINT}</span>
                   </div>
-                  {!isGoogleLogin && (
+                  {hasPassword && (
                     <div className="profile-input-group profile-form-grid-full">
                       <label htmlFor={`${idPrefix}-username-password`}>Mật khẩu hiện tại</label>
                       <input

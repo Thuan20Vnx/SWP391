@@ -198,6 +198,14 @@ const updateProfile = async (email, body) => {
   };
 };
 
+/**
+ * Đổi mật khẩu cho tài khoản ĐÃ có mật khẩu.
+ *
+ * Tài khoản chưa có mật khẩu (đăng nhập bằng Google) phải đi qua luồng riêng có OTP
+ * — xem identityChange.service.requestPasswordSetup. Không được phép đặt mật khẩu ở
+ * đây: đặt lần đầu biến một phiên tạm thời thành lối vào lâu dài, nên nếu endpoint
+ * này chấp nhận thì cổng OTP kia bị đi vòng chỉ bằng cách bỏ trống currentPassword.
+ */
 const changePassword = async (email, { currentPassword, newPassword }) => {
   if (!currentPassword || !newPassword) {
     throw new AppError('Vui lòng cung cấp đầy đủ thông tin!', 400);
@@ -218,7 +226,10 @@ const changePassword = async (email, { currentPassword, newPassword }) => {
   }
 
   if (!user.passwordHash) {
-    throw new AppError('Tài khoản này sử dụng đăng nhập Google, không thể đổi mật khẩu!', 400);
+    throw new AppError(
+      'Tài khoản chưa có mật khẩu. Vui lòng dùng chức năng tạo mật khẩu để nhận mã xác minh qua email.',
+      400,
+    );
   }
 
   const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
@@ -230,7 +241,7 @@ const changePassword = async (email, { currentPassword, newPassword }) => {
   user.passwordHash = await bcrypt.hash(newPassword, 10);
   await user.save();
 
-  return { message: 'Thay đổi mật khẩu thành công!' };
+  return { message: 'Thay đổi mật khẩu thành công!', hasPassword: true };
 };
 
 const verifyPassword = async (email, password) => {
