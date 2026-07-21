@@ -39,12 +39,17 @@ const TextAreaField = ({ label, value, onChange, readOnly = false, rows = 2 }) =
 
 const PartnerProfileSettings = ({ showToast }) => {
   const companyLogoInputRef = useRef(null);
+  const avatarInputRef = useRef(null);
   const [user, setUser] = useState({ fullname: '', email: '', phone: '', avatar: '' });
   const [company, setCompany] = useState({});
   const [partnerRecord, setPartnerRecord] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [savingUser, setSavingUser] = useState(false);
   const [savingCompany, setSavingCompany] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [avatarCropOpen, setAvatarCropOpen] = useState(false);
+  const [avatarCropSrc, setAvatarCropSrc] = useState('');
+  const [avatarCropFileName, setAvatarCropFileName] = useState('');
   const [logoCropOpen, setLogoCropOpen] = useState(false);
   const [logoCropSrc, setLogoCropSrc] = useState('');
   const [logoCropFileName, setLogoCropFileName] = useState('');
@@ -136,6 +141,49 @@ const PartnerProfileSettings = ({ showToast }) => {
     }
   };
 
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const dataUrl = await openImageFilePicker(file, {
+      onError: (msg) => msg && showToast?.(msg, 'error'),
+    });
+    if (dataUrl) {
+      setAvatarCropSrc(dataUrl);
+      setAvatarCropFileName(file?.name || 'avatar.jpg');
+      setAvatarCropOpen(true);
+    }
+  };
+
+  const handleAvatarCropCancel = () => {
+    setAvatarCropOpen(false);
+    setAvatarCropSrc('');
+    setAvatarCropFileName('');
+  };
+
+  const handleAvatarCropConfirm = async (dataUrl) => {
+    handleAvatarCropCancel();
+    if (!dataUrl) {
+      showToast?.('Không xử lý được ảnh đại diện. Vui lòng thử lại.', 'error');
+      return;
+    }
+    if (dataUrl.length > 750000) {
+      showToast?.('Ảnh vẫn quá lớn sau khi cắt. Hãy zoom xa hơn hoặc chọn ảnh khác.', 'error');
+      return;
+    }
+
+    setSavingAvatar(true);
+    try {
+      const res = await updatePartnerUserProfile({ picture: dataUrl });
+      const nextUser = res?.user || {};
+      setUser((prev) => ({ ...prev, avatar: resolveUserAvatar(nextUser, dataUrl) }));
+      showToast?.(res?.message || 'Đã cập nhật ảnh đại diện.', 'success');
+    } catch (error) {
+      showToast?.(error.message || 'Không thể cập nhật ảnh đại diện.', 'error');
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
   const openLogoCrop = (src, name = 'partner-logo.jpg') => {
     if (!src) return;
     setLogoCropSrc(src);
@@ -204,9 +252,36 @@ const PartnerProfileSettings = ({ showToast }) => {
               Cập nhật họ tên và số điện thoại của tài khoản đăng nhập.
             </p>
             <div className="partner-user-avatar-row">
-              <div className="partner-user-avatar-preview">
+              <button
+                type="button"
+                className="partner-user-avatar-preview partner-user-avatar-preview--clickable"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={savingAvatar}
+                aria-label="Đổi ảnh đại diện"
+              >
                 <img src={displayAvatar} alt="Ảnh đại diện" />
+                <span className="partner-user-avatar-preview__overlay">
+                  {savingAvatar ? 'Đang lưu…' : 'Đổi ảnh'}
+                </span>
+              </button>
+              <div className="partner-company-logo-actions">
+                <button
+                  type="button"
+                  className="partner-btn-outline"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={savingAvatar}
+                >
+                  {savingAvatar ? 'Đang lưu...' : 'Đổi ảnh đại diện'}
+                </button>
+                <span>Ảnh vuông, tối đa 5MB. Có thể cắt và thu phóng.</span>
               </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleAvatarFileChange}
+              />
             </div>
             <div className="partner-form-grid">
               <Field
@@ -363,6 +438,13 @@ const PartnerProfileSettings = ({ showToast }) => {
           </section>
         </div>
       )}
+      <AvatarCropModal
+        open={avatarCropOpen}
+        imageSrc={avatarCropSrc}
+        fileName={avatarCropFileName}
+        onCancel={handleAvatarCropCancel}
+        onConfirm={handleAvatarCropConfirm}
+      />
       <AvatarCropModal
         open={logoCropOpen}
         imageSrc={logoCropSrc}

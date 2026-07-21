@@ -8,12 +8,19 @@ const patterns = {
   phone: /^0[3|5|7|8|9][0-9]{8}$/,
 };
 
+const isValidContact = (value) => {
+  const trimmed = String(value || '').trim();
+  return patterns.email.test(trimmed) || patterns.phone.test(trimmed);
+};
+
 const ForgotPassword = ({ showToast }) => {
   const [searchParams] = useSearchParams();
   // Cho phép prefill khi mở từ nơi khác (vd: nút "Quên mật khẩu?" trong Cài đặt).
-  const [contact, setContact] = useState(() => searchParams.get('contact') || '');
+  // Tính sẵn trạng thái hợp lệ ngay lúc khởi tạo, không cần effect.
+  const initialContact = searchParams.get('contact') || '';
+  const [contact, setContact] = useState(initialContact);
   const [errors, setErrors] = useState(false);
-  const [validFields, setValidFields] = useState(false);
+  const [validFields, setValidFields] = useState(() => isValidContact(initialContact));
   const [shakeFields, setShakeFields] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -43,20 +50,12 @@ const ForgotPassword = ({ showToast }) => {
       setValidFields(false);
       return false;
     }
-    const isEmail = patterns.email.test(trimmed);
-    const isPhone = patterns.phone.test(trimmed);
-    const isValid = isEmail || isPhone;
+    const isValid = isValidContact(trimmed);
 
     setErrors(!isValid);
     setValidFields(isValid);
     return isValid;
   };
-
-  // Nếu được mở kèm ?contact=... thì đánh dấu hợp lệ ngay để sẵn sàng gửi.
-  useEffect(() => {
-    if (contact.trim()) validateContact(contact);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
