@@ -190,6 +190,18 @@ const registerForEvent = async (user, eventId) => {
 };
 
 const cancelRegistration = async (userId, eventId) => {
+  // Vé có phí không cho tự hủy: hủy sau khi đã trả tiền sẽ phát sinh hoàn tiền và
+  // trạng thái "đã hủy nhưng đã thanh toán" gây kẹt luồng mua lại. Muốn đổi ý thì
+  // liên hệ BTC. Vé miễn phí vẫn hủy bình thường.
+  const paidReg = await EventRegistration.findOne({
+    user: userId,
+    event: eventId,
+    status: 'registered',
+  });
+  if (paidReg && (paidReg.amountPaid || 0) > 0) {
+    throw new AppError('Vé có phí không thể tự hủy. Vui lòng liên hệ ban tổ chức nếu cần hỗ trợ.', 400);
+  }
+
   // Chuyển 'registered' -> 'cancelled' bằng một lệnh atomic. Nếu hai request hủy
   // cùng lúc thì chỉ request đầu khớp filter, request sau nhận null và dừng lại —
   // nhờ vậy chỗ chỉ được nhả đúng một lần.

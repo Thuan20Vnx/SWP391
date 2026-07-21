@@ -121,7 +121,12 @@ const createEventTicketPayment = async (user, eventId) => {
     refundStatus: { $ne: 'approved' }, // đơn đã hoàn tiền thì không tính là còn vé
   });
   if (paidExisting) {
-    throw new AppError('Bạn đã thanh toán vé sự kiện này rồi. Vui lòng kiểm tra mục vé của bạn.', 409);
+    // Chỉ chặn khi vé từ đơn đã trả vẫn còn hiệu lực. Nếu đăng ký đã bị hủy (người
+    // dùng hoặc BTC hủy) thì cho mua lại — đơn cũ không còn là vé đang giữ.
+    const heldReg = await EventRegistration.findOne({ user: user._id, event: eventId });
+    if (heldReg && heldReg.status !== 'cancelled') {
+      throw new AppError('Bạn đã thanh toán vé sự kiện này rồi. Vui lòng kiểm tra mục vé của bạn.', 409);
+    }
   }
 
   const now = Date.now();

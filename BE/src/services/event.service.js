@@ -1270,6 +1270,8 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
       checkedOutAt: myRegistration.checkedOutAt || null,
       attendanceLog: sessions,
       hasReviewed: Boolean(myReview),
+      // Để FE ẩn nút "Hủy đăng ký" với vé có phí (vé phí không cho tự hủy).
+      amountPaid: myRegistration.amountPaid || 0,
     };
   }
 

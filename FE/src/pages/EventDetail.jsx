@@ -1036,7 +1036,8 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
               )}
               {(event.isRegistered || event.myRegistration) &&
                 event.eventState !== 'expired' &&
-                !(event.myRegistration?.checkedInAt || event.myRegistration?.status === 'attended') && (
+                !(event.myRegistration?.checkedInAt || event.myRegistration?.status === 'attended') &&
+                !(event.myRegistration?.amountPaid > 0) && (
                 <button
                   type="button"
                   className="event-detail-page__cancel-btn"
