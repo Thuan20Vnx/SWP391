@@ -111,6 +111,19 @@ const createEventTicketPayment = async (user, eventId) => {
     throw new AppError('Bạn đã đăng ký sự kiện này rồi.', 409);
   }
 
+  // Đã có giao dịch trả thành công cho vé này thì KHÔNG tạo đơn mới — nếu không, một
+  // lần bấm mua nữa (khi trạng thái đăng ký chưa kịp đồng bộ) sẽ tạo QR khác và thu
+  // tiền lần hai cho cùng một vé.
+  const paidExisting = await Payment.findOne({
+    user: user._id,
+    event: eventId,
+    status: 'paid',
+    refundStatus: { $ne: 'approved' }, // đơn đã hoàn tiền thì không tính là còn vé
+  });
+  if (paidExisting) {
+    throw new AppError('Bạn đã thanh toán vé sự kiện này rồi. Vui lòng kiểm tra mục vé của bạn.', 409);
+  }
+
   const now = Date.now();
 
   // Dọn các đơn pending đã quá hạn của chính user này và nhả chỗ chúng đang giữ.
@@ -244,6 +257,14 @@ const finalizePaidRegistration = async (payment) => {
 
   let registration = await EventRegistration.findOne({ user: payment.user, event: payment.event });
   const alreadyRegistered = registration?.status === 'registered';
+
+  // Tài khoản đã có vé (đăng ký active) từ TRƯỚC khi tiền của đơn này vào => đây là
+  // thanh toán TRÙNG cho cùng một vé. Tiền đã vào tài khoản nên vẫn để 'paid', nhưng
+  // gắn cờ yêu cầu hoàn tiền để BTC/Admin xử lý — không "nuốt" tiền của người mua.
+  if (alreadyRegistered && payment.refundStatus === 'none') {
+    payment.refundStatus = 'requested';
+    payment.refundReason = 'Thanh toán trùng: tài khoản đã đăng ký/đã có vé sự kiện này trước đó.';
+  }
   const fields = {
     listPrice: getListPrice(event),
     amountPaid: payment.amount,
