@@ -114,11 +114,12 @@ const registerForEvent = async (user, eventId) => {
     listPrice,
     amountPaid,
     studentPrivilegeApplied,
+    studentSlot: hasStudentTicketPrivilege(user),
   };
 
   // Giành chỗ bằng một lệnh atomic: vừa kiểm tra còn chỗ vừa tăng counter.
   // Trả về null nghĩa là request khác đã lấy mất chỗ cuối trong lúc ta xử lý.
-  const occupied = await occupySlot(eventId);
+  const occupied = await occupySlot(event, hasStudentTicketPrivilege(user));
   if (!occupied) {
     throwEventFullError();
   }
@@ -143,7 +144,7 @@ const registerForEvent = async (user, eventId) => {
   } catch (err) {
     // Chỗ đã chiếm nhưng bản ghi không tạo được — phải nhả ra, nếu không sự kiện
     // sẽ rò rỉ chỗ và báo hết chỗ trong khi thực tế vẫn trống.
-    await releaseOccupiedSlot(eventId);
+    await releaseOccupiedSlot(eventId, hasStudentTicketPrivilege(user));
 
     // Unique index (user, event) chặn hai request cùng người bấm đăng ký một lúc.
     if (err?.code === 11000) {
@@ -218,7 +219,7 @@ const cancelRegistration = async (userId, eventId) => {
   await removeEventFromGoogleCalendar(userId, googleCalendarEventId);
 
   // Nhả chỗ atomic thay vì đọc-sửa-lưu, để hủy và đăng ký chạy song song không đè lên nhau.
-  await releaseOccupiedSlot(eventId);
+  await releaseOccupiedSlot(eventId, registration.studentSlot === true);
 
   invalidateRegisteredIdsCache(userId);
 

@@ -611,6 +611,12 @@ router.get('/events/:id', async (req, res) => {
       }));
     }
     let formatted = formatEvent(event, { includePlanFile: true });
+    // Event không lưu sẵn checkinCount, nên thẻ "Đã check-in" luôn hiện 0 dù roster
+    // đã có người điểm danh. Đếm trực tiếp qua index {event, status}.
+    formatted.checkinCount = await EventRegistration.countDocuments({
+      event: event._id,
+      status: 'attended',
+    });
     if (canViewRoster) {
       const { attachInlineEventCover } = require('../utils/eventCoverStorage');
       formatted = await attachInlineEventCover(formatted, event);

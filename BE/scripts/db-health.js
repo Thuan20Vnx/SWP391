@@ -19,6 +19,7 @@ const Partner = require('../src/models/Partner');
 const PartnerEventRequest = require('../src/models/PartnerEventRequest');
 const Contract = require('../src/models/Contract');
 const Announcement = require('../src/models/Announcement');
+const Payment = require('../src/models/Payment');
 
 const MODELS = [
   User,
@@ -131,6 +132,129 @@ const checkRegistrationDrift = async ({ repair = false } = {}) => {
   }
 };
 
+/**
+ * reservedCount phải bằng số đơn thanh toán còn đang thực sự giữ chỗ.
+ *
+ * Bản cũ của expireStalePayments lật pending -> expired bằng updateMany mà không
+ * hạ reservedCount, để lại đơn 'expired' nhưng slotReserved vẫn true. Mỗi đơn như
+ * vậy chiếm một chỗ mà không luồng nào nhả được nữa, nên sự kiện dần hết chỗ ảo.
+ */
+const checkReservationDrift = async ({ repair = false } = {}) => {
+  printSection(repair ? 'Repair: reservedCount sync' : 'Integrity: reservedCount vs Payment');
+
+  const orphanReserved = await Payment.countDocuments({
+    slotReserved: true,
+    status: { $ne: 'pending' }
+  });
+  if (orphanReserved > 0) {
+    console.log(`  ${orphanReserved} đơn đã đóng nhưng còn cờ slotReserved`);
+    if (repair) {
+      await Payment.updateMany(
+        { slotReserved: true, status: { $ne: 'pending' } },
+        { $set: { slotReserved: false } }
+      );
+      console.log(`  FIXED cleared slotReserved on ${orphanReserved} closed payment(s)`);
+    }
+  }
+
+  const events = await Event.find({}).select('_id title reservedCount').lean();
+  let driftCount = 0;
+  let repaired = 0;
+
+  for (const ev of events) {
+    const stored = ev.reservedCount || 0;
+    const actual = await Payment.countDocuments({
+      event: ev._id,
+      status: 'pending',
+      slotReserved: true
+    });
+    if (actual !== stored) {
+      driftCount += 1;
+      if (repair) {
+        await Event.updateOne({ _id: ev._id }, { $set: { reservedCount: actual } });
+        repaired += 1;
+        console.log(`  FIXED ${ev.title?.slice(0, 40) || ev._id}: ${stored} → ${actual}`);
+      } else {
+        console.log(
+          `  DRIFT ${ev.title?.slice(0, 40) || ev._id}: stored=${stored}, actual=${actual}`
+        );
+      }
+    }
+  }
+
+  if (driftCount === 0) {
+    console.log('  OK — all events match reserved slot counts');
+  } else if (!repair) {
+    console.log(`  Found ${driftCount} event(s) with reserved drift (run with --repair-counts to fix)`);
+  } else {
+    console.log(`  Repaired ${repaired} event(s)`);
+  }
+};
+
+/**
+ * Backfill studentSlot cho bản ghi cũ + đồng bộ Event.studentRegisteredCount.
+ *
+ * Hạn ngạch theo loại vé mới được thực thi, nên bản ghi tạo trước đó chưa có cờ
+ * studentSlot. Không backfill thì luồng hủy sẽ nhả sai nhóm và counter trôi dần.
+ * Nhóm được suy từ role của người đăng ký — cùng tiêu chí mà occupySlot dùng.
+ */
+const checkStudentSlotDrift = async ({ repair = false } = {}) => {
+  printSection(repair ? 'Repair: studentSlot + studentRegisteredCount' : 'Integrity: studentSlot backfill');
+
+  const { STUDENT_FREE_ROLES } = require('../src/constants/eventPricing');
+  const freeRoles = [...STUDENT_FREE_ROLES];
+
+  const missing = await EventRegistration.countDocuments({ studentSlot: { $exists: false } });
+  if (missing > 0) {
+    console.log(`  ${missing} bản ghi đăng ký chưa có cờ studentSlot`);
+    if (repair) {
+      const freeUserIds = await User.find({ role: { $in: freeRoles } }).distinct('_id');
+      const asStudent = await EventRegistration.updateMany(
+        { studentSlot: { $exists: false }, user: { $in: freeUserIds } },
+        { $set: { studentSlot: true } }
+      );
+      const asGuest = await EventRegistration.updateMany(
+        { studentSlot: { $exists: false } },
+        { $set: { studentSlot: false } }
+      );
+      console.log(`  FIXED studentSlot=true cho ${asStudent.modifiedCount}, =false cho ${asGuest.modifiedCount}`);
+    }
+  }
+
+  const events = await Event.find({}).select('_id title studentRegisteredCount').lean();
+  let driftCount = 0;
+  let repaired = 0;
+
+  for (const ev of events) {
+    const stored = ev.studentRegisteredCount || 0;
+    const actual = await EventRegistration.countDocuments({
+      event: ev._id,
+      status: { $ne: 'cancelled' },
+      studentSlot: true
+    });
+    if (actual !== stored) {
+      driftCount += 1;
+      if (repair) {
+        await Event.updateOne({ _id: ev._id }, { $set: { studentRegisteredCount: actual } });
+        repaired += 1;
+        console.log(`  FIXED ${ev.title?.slice(0, 40) || ev._id}: ${stored} → ${actual}`);
+      } else {
+        console.log(
+          `  DRIFT ${ev.title?.slice(0, 40) || ev._id}: stored=${stored}, actual=${actual}`
+        );
+      }
+    }
+  }
+
+  if (driftCount === 0 && missing === 0) {
+    console.log('  OK — student slot counters in sync');
+  } else if (!repair) {
+    console.log(`  Found ${driftCount} event(s) with student slot drift (run with --repair-counts to fix)`);
+  } else {
+    console.log(`  Repaired ${repaired} event(s)`);
+  }
+};
+
 const checkOrphans = async () => {
   printSection('Integrity: basic orphan checks');
   const [orphanRegs, annWithoutEvent] = await Promise.all([
@@ -202,6 +326,8 @@ const main = async () => {
   }
   await listIndexes();
   await checkRegistrationDrift({ repair: shouldRepairCounts });
+  await checkReservationDrift({ repair: shouldRepairCounts });
+  await checkStudentSlotDrift({ repair: shouldRepairCounts });
   if (shouldCleanupOrphans) {
     await cleanupOrphanRegistrations({ dryRun: isDryRun });
   }

@@ -430,6 +430,16 @@ const sendIdentityChangeOtpEmail = async (email, fullname, otp, purpose, context
       body: `Tài khoản của bạn vừa yêu cầu đổi tên đăng nhập sang <strong style="color:#1e293b;">${context.newUsername || ''}</strong>. Nhập mã bên dưới để xác nhận.`,
       subject: 'Xác nhận đổi tên đăng nhập F-Events',
     },
+    password_setup: {
+      eyebrow: 'Xác minh tạo mật khẩu',
+      heading: 'Xác nhận tạo mật khẩu đăng nhập',
+      body: `Tài khoản Google của bạn vừa yêu cầu tạo mật khẩu để đăng nhập trực tiếp${
+        context.newUsername
+          ? ` với tên đăng nhập <strong style="color:#1e293b;">${context.newUsername}</strong>`
+          : ''
+      }. Nhập mã bên dưới để xác nhận.`,
+      subject: 'Xác nhận tạo mật khẩu F-Events',
+    },
   };
 
   const copy = COPY[purpose] || COPY.username;

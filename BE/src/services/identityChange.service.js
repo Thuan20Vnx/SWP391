@@ -354,9 +354,123 @@ const confirmUsernameChange = async (authEmail, { otp } = {}) => {
   };
 };
 
+// ---------------------------------------------------------------------------
+// Tạo mật khẩu đầu tiên cho tài khoản Google (kèm tên đăng nhập nếu chưa có)
+// ---------------------------------------------------------------------------
+
+/**
+ * Bước 1: nhận mật khẩu mong muốn, gửi OTP về hòm thư của tài khoản.
+ *
+ * Vì sao cần OTP: đặt mật khẩu lần đầu biến một phiên đăng nhập tạm thời thành lối
+ * vào lâu dài. Chỉ dựa vào token thì ai mượn được máy đang mở sẵn cũng đặt được mật
+ * khẩu rồi đăng nhập lại bất cứ lúc nào. OTP buộc phải kiểm soát cả hòm thư.
+ *
+ * Tài khoản Google thường chưa có tên đăng nhập, nên cho đặt luôn trong cùng bước
+ * để không phải đi qua luồng đổi tên (vốn đòi mật khẩu hiện tại) ngay sau đó.
+ */
+const requestPasswordSetup = async (authEmail, { newPassword, newUsername } = {}) => {
+  const user = await loadUser(authEmail);
+  await assertNotLockedOut(user.email);
+
+  if (user.passwordHash) {
+    throw new AppError('Tài khoản đã có mật khẩu. Vui lòng dùng chức năng đổi mật khẩu.', 400);
+  }
+
+  if (!newPassword || String(newPassword).length < 6) {
+    throw new AppError('Mật khẩu phải có ít nhất 6 ký tự!', 400);
+  }
+
+  // Tên đăng nhập là tùy chọn: người dùng vẫn đăng nhập được bằng email.
+  let username = '';
+  if (newUsername) {
+    if (user.username) {
+      throw new AppError('Tài khoản đã có tên đăng nhập. Vui lòng dùng chức năng đổi tên đăng nhập.', 400);
+    }
+    const check = validateUsername(newUsername);
+    if (!check.valid) throw new AppError(check.message, 400);
+    if (await isUsernameTaken(check.username, user._id)) {
+      throw new AppError('Tên đăng nhập đã được sử dụng. Vui lòng chọn tên khác!', 400);
+    }
+    username = check.username;
+  }
+
+  const otp = store.generateSecureOtp();
+  store.setEntry(user._id, store.createEntry({
+    type: 'password_setup',
+    newUsername: username,
+    otpCurrent: otp,
+    passwordHash: await bcrypt.hash(newPassword, 10),
+  }));
+
+  try {
+    await sendIdentityChangeOtpEmail(user.email, user.fullname, otp, 'password_setup', {
+      newUsername: username,
+    });
+  } catch (err) {
+    store.clearEntry(user._id);
+    console.error('[IdentityChange] Gửi OTP tạo mật khẩu thất bại:', err.message);
+    throw new AppError('Không gửi được mã xác minh. Vui lòng thử lại sau.', 503);
+  }
+
+  return {
+    message: 'Đã gửi mã xác minh tới email của bạn.',
+    newUsername: username,
+    expiresInMinutes: store.OTP_TTL_MS / 60000,
+  };
+};
+
+/** Bước 2: xác minh OTP rồi mới ghi mật khẩu (và tên đăng nhập) vào tài khoản. */
+const confirmPasswordSetup = async (authEmail, { otp } = {}) => {
+  const user = await loadUser(authEmail);
+  const entry = store.getEntry(user._id);
+
+  if (!entry || entry.type !== 'password_setup') {
+    throw new AppError('Không tìm thấy yêu cầu tạo mật khẩu hoặc mã đã hết hạn. Vui lòng thực hiện lại.', 400);
+  }
+  if (store.isLocked(entry)) store.throwLockedError(entry);
+
+  if (!store.safeCompareOtp(otp, entry.otpCurrent)) {
+    store.recordFailedAttempt(entry);
+    if (store.isLocked(entry)) store.throwLockedError(entry);
+
+    const remaining = store.getRemainingAttempts(entry);
+    const err = new AppError(`Mã xác minh không chính xác. Bạn còn ${remaining} lần thử.`, 400);
+    err.extra = { code: 'OTP_INVALID', remainingAttempts: remaining };
+    throw err;
+  }
+
+  // Chặn trường hợp có mật khẩu bằng đường khác trong lúc chờ OTP.
+  if (user.passwordHash) {
+    store.clearEntry(user._id);
+    throw new AppError('Tài khoản đã có mật khẩu. Vui lòng dùng chức năng đổi mật khẩu.', 400);
+  }
+
+  if (entry.newUsername) {
+    if (await isUsernameTaken(entry.newUsername, user._id)) {
+      store.clearEntry(user._id);
+      throw new AppError('Tên đăng nhập vừa được người khác sử dụng. Vui lòng chọn tên khác.', 400);
+    }
+    user.username = entry.newUsername;
+    user.usernameChangedAt = new Date();
+  }
+
+  user.passwordHash = entry.passwordHash;
+  await user.save();
+  store.clearEntry(user._id);
+
+  return {
+    message: entry.newUsername
+      ? 'Đã tạo mật khẩu và tên đăng nhập. Từ giờ bạn có thể đăng nhập bằng cả Google lẫn mật khẩu.'
+      : 'Đã tạo mật khẩu. Từ giờ bạn có thể đăng nhập bằng cả Google lẫn mật khẩu.',
+    user: sanitizeUser(user),
+  };
+};
+
 module.exports = {
   requestEmailChange,
   confirmEmailChange,
   requestUsernameChange,
   confirmUsernameChange,
+  requestPasswordSetup,
+  confirmPasswordSetup,
 };

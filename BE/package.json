@@ -14,6 +14,7 @@
     "seed:reviews": "node seed-event-reviews.js",
     "test:race": "node scripts/test-registration-race.js",
     "test:ratelimit": "node scripts/test-rate-limit.js",
+    "test:google-mock-guard": "node scripts/test-google-mock-guard.js",
     "db:audit": "node scripts/db-health.js",
     "db:sync-indexes": "node scripts/db-health.js --sync",
     "db:repair-counts": "node scripts/db-health.js --repair-counts",

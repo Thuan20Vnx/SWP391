@@ -140,7 +140,7 @@ const createEventTicketPayment = async (user, eventId) => {
 
   // Giữ chỗ NGAY khi tạo đơn, không đợi tới lúc trả tiền. Nếu chỉ kiểm tra sức chứa
   // ở webhook thì tiền đã vào rồi mới phát hiện hết chỗ — thu tiền mà không giao vé.
-  const reserved = await reserveSlot(eventId);
+  const reserved = await reserveSlot(event);
   if (!reserved) {
     const err = new AppError('Sự kiện đã hết chỗ.', 409);
     err.extra = { code: 'EVENT_FULL' };
@@ -490,14 +490,28 @@ const repairPaymentIndexes = async () => {
  * Cron: hết hạn hàng loạt các đơn pending quá hạn.
  */
 const expireStalePayments = async () => {
-  const result = await Payment.updateMany(
-    { status: 'pending', expiresAt: { $lt: new Date() } },
-    { $set: { status: 'expired' } },
-  );
-  if (result.modifiedCount > 0) {
-    console.log(`[Payment cron] Đã hết hạn ${result.modifiedCount} đơn pending.`);
+  // Phải đi qua closePendingAndReleaseSlot cho từng đơn, không dùng updateMany.
+  // updateMany lật pending -> expired mà không hạ reservedCount, trong khi
+  // sweepExpiredReservations chỉ tìm đơn còn status 'pending'. Chỗ giữ tạm của
+  // đơn đã bị lật sẽ không còn ai nhả được, tức sự kiện mất chỗ vĩnh viễn.
+  const stale = await Payment.find({
+    status: 'pending',
+    expiresAt: { $lt: new Date() },
+  }).select('_id');
+
+  let expired = 0;
+  let released = 0;
+  for (const payment of stale) {
+    // eslint-disable-next-line no-await-in-loop
+    const didRelease = await closePendingAndReleaseSlot(payment._id, 'expired');
+    expired += 1;
+    if (didRelease) released += 1;
   }
-  return result.modifiedCount;
+
+  if (expired > 0) {
+    console.log(`[Payment cron] Đã hết hạn ${expired} đơn pending, nhả ${released} chỗ.`);
+  }
+  return expired;
 };
 
 module.exports = {

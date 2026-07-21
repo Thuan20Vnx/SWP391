@@ -12,6 +12,9 @@ module.exports = {
   GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback',
   GOOGLE_CALENDAR_CALLBACK_URL: process.env.GOOGLE_CALENDAR_CALLBACK_URL || 'http://localhost:5000/api/auth/google/calendar/callback',
   OTP_EXPIRY_MINUTES: 5,
-  MOCK_GOOGLE_EMAIL: process.env.MOCK_GOOGLE_EMAIL || 'kxnhan1507@gmail.com',
-  MOCK_GOOGLE_NAME: process.env.MOCK_GOOGLE_NAME || 'Nhân Khưu Xuân',
+  // Mặc định phải là địa chỉ KHÔNG tồn tại. Trước đây trỏ vào một tài khoản thật,
+  // nên mỗi lần rơi vào nhánh giả lập là đăng nhập thẳng vào tài khoản của người đó.
+  MOCK_GOOGLE_EMAIL: process.env.MOCK_GOOGLE_EMAIL || 'mock-google-user@example.invalid',
+  MOCK_GOOGLE_NAME: process.env.MOCK_GOOGLE_NAME || 'Mock Google User',
+  NODE_ENV: process.env.NODE_ENV || 'development',
 };

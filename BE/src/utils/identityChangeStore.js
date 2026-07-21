@@ -68,12 +68,22 @@ const throwLockedError = (entry) => {
   throw err;
 };
 
-const createEntry = ({ type, newEmail = '', newUsername = '', otpCurrent, otpNew = '' }) => ({
+const createEntry = ({
+  type,
+  newEmail = '',
+  newUsername = '',
+  otpCurrent,
+  otpNew = '',
+  // Đã băm sẵn bằng bcrypt trước khi vào đây — không giữ mật khẩu thô trong bộ nhớ
+  // suốt 10 phút chờ OTP.
+  passwordHash = '',
+}) => ({
   type,
   newEmail,
   newUsername,
   otpCurrent,
   otpNew,
+  passwordHash,
   expiresAt: Date.now() + OTP_TTL_MS,
   failedAttempts: 0,
   lockedUntil: null,

@@ -124,7 +124,6 @@ export default {
   'password.success': 'Password changed successfully.',
   'password.fail': 'Failed to change password.',
   'password.title': 'Change password',
-  'password.googleNote': 'Google sign-in accounts cannot change password here.',
 
   'home.heroFeatured': 'Featured event',
   'home.heroPrev': 'Previous featured event',

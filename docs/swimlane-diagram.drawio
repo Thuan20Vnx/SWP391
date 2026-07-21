@@ -199,7 +199,7 @@ status = ended" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FF
     </mxGraphModel>
   </diagram>
   <diagram id="sw-ticket" name="Paid Ticket + Check-in">
-    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1620" pageHeight="1660" math="0" shadow="0" background="none">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1620" pageHeight="1700" math="0" shadow="0" background="none">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -227,7 +227,7 @@ status = ended" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FF
         <mxCell id="w_fr_b2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1" parent="1">
           <mxGeometry x="640" y="170" width="300" height="1430" as="geometry" />
         </mxCell>
-        <mxCell id="w_fr_h3" value="QR Scanner" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F4F4F4;strokeColor=#999999;strokeWidth=1;fontSize=13;fontStyle=1;fontColor=#1A1A1A;" vertex="1" parent="1">
+        <mxCell id="w_fr_h3" value="Event Organiser" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F4F4F4;strokeColor=#999999;strokeWidth=1;fontSize=13;fontStyle=1;fontColor=#1A1A1A;" vertex="1" parent="1">
           <mxGeometry x="940" y="120" width="300" height="44" as="geometry" />
         </mxCell>
         <mxCell id="w_fr_b3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1" parent="1">
@@ -286,22 +286,24 @@ ignored, no double booking" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;f
 link Payment.registration" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1;fontSize=11;fontColor=#1A1A1A;verticalAlign=middle;dashed=0;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="680" y="1030" width="220" height="72" as="geometry" />
         </mxCell>
-        <mxCell id="w_s5" value="Email the ticket QR" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1;fontSize=11;fontColor=#1A1A1A;verticalAlign=middle;dashed=0;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+        <mxCell id="w_s5" value="Send the payment confirmation email
+(order code, amount, paidAt)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1;fontSize=11;fontColor=#1A1A1A;verticalAlign=middle;dashed=0;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="680" y="1140" width="220" height="56" as="geometry" />
         </mxCell>
-        <mxCell id="w_a3" value="Show the QR at the door" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=11;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="80" y="1250" width="220" height="56" as="geometry" />
+        <mxCell id="w_org" value="Put the station QR on display
+(token + expiresAt + attendanceCode)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=11;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="980" y="1250" width="220" height="64" as="geometry" />
         </mxCell>
-        <mxCell id="w_a4" value="Scan it (needs an
-active QrScannerGrant)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=11;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="980" y="1330" width="220" height="64" as="geometry" />
+        <mxCell id="w_stu" value="Scan the station QR,
+or type the attendance code" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1.5;fontSize=11;fontColor=#1A1A1A;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1350" width="220" height="64" as="geometry" />
         </mxCell>
-        <mxCell id="w_s6" value="status = attended, stamp
-checkedInAt + attendanceLog" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1;fontSize=11;fontColor=#1A1A1A;verticalAlign=middle;dashed=0;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
-          <mxGeometry x="680" y="1430" width="220" height="64" as="geometry" />
+        <mxCell id="w_s6" value="Validate code + token, resolve THIS user’s
+registration, set status = attended" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A1A1A;strokeWidth=1;fontSize=11;fontColor=#1A1A1A;verticalAlign=middle;dashed=0;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="680" y="1450" width="220" height="72" as="geometry" />
         </mxCell>
         <mxCell id="w_end" value="" style="ellipse;shape=endState;fillColor=#1A1A1A;strokeColor=#1A1A1A;html=1;" vertex="1" parent="1">
-          <mxGeometry x="778" y="1530" width="24" height="24" as="geometry" />
+          <mxGeometry x="778" y="1560" width="24" height="24" as="geometry" />
         </mxCell>
         <mxCell id="w_n1" value="The claim is one findOneAndUpdate filtered on {status: pending}, read with returnDocument: before. Whoever flips it first owns the seat, so a replayed webhook cannot double-book." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1300" y="200" width="280" height="170" as="geometry" />
@@ -311,6 +313,12 @@ checkedInAt + attendanceLog" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;
         </mxCell>
         <mxCell id="w_n3" value="expireMinutes comes from SystemSettings.payment (default 15). A sweep flips stale pending payments to expired and hands the seat back to capacity." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1300" y="530" width="280" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="w_n4" value="Attendance is SELF-SCAN. performSelfScan resolves the registration from the scanning user’s own session, so the person scanning is the person marked present. QrScannerGrant is the right to GENERATE a station QR for an event, not to scan other people’s tickets." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="700" width="280" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="w_n5" value="The confirmation email carries the order code and amount — there is no ticket QR attached. Check-in uses the event’s station QR instead." style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#777777;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="920" width="280" height="120" as="geometry" />
         </mxCell>
         <mxCell id="PaidTicketCheckin_e0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="w_start" target="w_a1">
           <mxGeometry relative="1" as="geometry">
@@ -384,24 +392,25 @@ checkedInAt + attendanceLog" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;
           <mxGeometry relative="1" as="geometry">
           </mxGeometry>
         </mxCell>
-        <mxCell id="PaidTicketCheckin_e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="w_s5" target="w_a3">
+        <mxCell id="PaidTicketCheckin_e14" value="on the event day" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="w_s5" target="w_org">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-            <mxPoint x="190" y="1168" />
+            <mxPoint x="1090" y="1168" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="PaidTicketCheckin_e15" value="present the QR" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="w_a3" target="w_a4">
+        <mxCell id="PaidTicketCheckin_e15" value="student scans it" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="w_org" target="w_stu">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-            <mxPoint x="1090" y="1278" />
+            <mxPoint x="620" y="1282" />
+            <mxPoint x="620" y="1382" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="PaidTicketCheckin_e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=1;entryY=0.5;" edge="1" parent="1" source="w_a4" target="w_s6">
+        <mxCell id="PaidTicketCheckin_e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontColor=#444444;labelBackgroundColor=#FFFFFF;exitDx=0;exitDy=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="w_stu" target="w_s6">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-            <mxPoint x="1090" y="1462" />
+            <mxPoint x="190" y="1486" />
             </Array>
           </mxGeometry>
         </mxCell>

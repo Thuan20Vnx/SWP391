@@ -24,9 +24,7 @@ const resolveBackendOrigin = () => {
 
 export const GOOGLE_REDIRECT_URI = `${resolveBackendOrigin()}/api/auth/google/callback`;
 
-export const startGoogleLogin = () => {
-  clearSession();
-
+const buildGoogleAuthUrl = (state) => {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: `${resolveBackendOrigin()}/api/auth/google/callback`,
@@ -34,7 +32,30 @@ export const startGoogleLogin = () => {
     scope: 'openid email profile',
     prompt: 'select_account',
     // Gửi kèm origin FE để backend biết chuyển hướng về đúng nơi đã bắt đầu đăng nhập.
-    state: typeof window !== 'undefined' ? window.location.origin : '',
+    state,
   });
-  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+};
+
+const currentOrigin = () => (typeof window !== 'undefined' ? window.location.origin : '');
+
+export const startGoogleLogin = () => {
+  clearSession();
+  window.location.href = buildGoogleAuthUrl(currentOrigin());
+};
+
+/**
+ * Liên kết tài khoản Google vào tài khoản ĐANG đăng nhập.
+ *
+ * Khác startGoogleLogin ở hai điểm: không xóa phiên hiện tại, và gửi kèm email của
+ * tài khoản để backend từ chối nếu người dùng lỡ chọn nhầm Google account khác —
+ * không có chốt đó thì luồng này sẽ âm thầm đăng nhập sang tài khoản kia.
+ */
+export const startGoogleLink = (currentEmail, returnTo) => {
+  if (typeof window !== 'undefined' && returnTo) {
+    // Trang callback dùng cái này để đưa người dùng về đúng chỗ đã bấm nút.
+    sessionStorage.setItem('googleLinkReturnTo', returnTo);
+  }
+  const state = `${currentOrigin()}|link:${encodeURIComponent(currentEmail || '')}`;
+  window.location.href = buildGoogleAuthUrl(state);
 };

@@ -346,6 +346,11 @@ userSchema.pre('save', function () {
 userSchema.statics.sanitizeUser = function (user) {
   if (!user) return null;
   const obj = user.toObject ? user.toObject() : { ...user };
+  // Cho FE biết tài khoản đã có mật khẩu chưa, để hiện "Tạo mật khẩu" hay "Đổi mật
+  // khẩu". Phải tính TRƯỚC khi xóa passwordHash, và chỉ lộ boolean.
+  obj.hasPassword = Boolean(obj.passwordHash);
+  // Đã gắn tài khoản Google chưa — dùng để hiện trạng thái liên kết ở Cài đặt.
+  obj.hasGoogleLinked = Boolean(obj.googleId);
   delete obj.passwordHash;
   delete obj.password;
   delete obj.otp;

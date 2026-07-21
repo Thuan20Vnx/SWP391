@@ -29,7 +29,25 @@ const {
   CLIENT_ORIGIN,
   MOCK_GOOGLE_EMAIL,
   MOCK_GOOGLE_NAME,
+  NODE_ENV,
 } = require('../config/env');
+
+/**
+ * Có được phép dùng nhánh Google giả lập không.
+ *
+ * Nhánh giả lập bỏ qua toàn bộ xác thực với Google và tin thẳng email do phía gọi
+ * đưa vào, nên nó tương đương một cửa hậu đăng nhập. Chỉ mở khi hệ thống thực sự
+ * CHƯA cấu hình Google (client id còn là 'mock') và không chạy production.
+ *
+ * Điều kiện phải gồm cả hai: chỉ dựa vào NODE_ENV là chưa đủ, vì biến này có thể
+ * không được đặt trên môi trường thật; còn khi đã có credential Google thật thì
+ * không có lý do chính đáng nào để chấp nhận đăng nhập không qua kiểm chứng.
+ */
+const GOOGLE_MOCK_ALLOWED = GOOGLE_CLIENT_ID === 'mock' && NODE_ENV !== 'production';
+
+/** Nhánh giả lập cho luồng redirect (callback) — điều kiện dựa trên client secret. */
+const GOOGLE_CALLBACK_MOCK_ALLOWED =
+  (!GOOGLE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET === 'mock') && NODE_ENV !== 'production';
 const { verifyToken } = require('../utils/jwt');
 const {
   assertLoginAllowed: assertSystemLoginAllowed,
@@ -501,7 +519,10 @@ const googleLogin = async ({ token, email, name, isMock, picture }) => {
   let googlePicture = '';
   let googleId = '';
 
-  if (GOOGLE_CLIENT_ID !== 'mock' && !isMock) {
+  // `isMock` đến từ body của request nên KHÔNG được phép tự nó mở nhánh giả lập:
+  // trước đây chỉ cần gửi { isMock: true, email: <bất kỳ> } là nhận được token hợp lệ
+  // của tài khoản đó, kể cả tài khoản admin, dù Google đã cấu hình thật.
+  if (!GOOGLE_MOCK_ALLOWED) {
     if (!token) throw new AppError('Thiếu mã token Google!', 400);
 
     const client = new OAuth2Client(GOOGLE_CLIENT_ID);
@@ -588,7 +609,7 @@ const googleCallback = async (code, options = {}) => {
   if (!code) {
     throw new AppError('Không nhận được mã code từ Google.', 400);
   }
-  const { redirectUri, frontendOrigin } = options;
+  const { redirectUri, frontendOrigin, linkEmail } = options;
   const feOrigin = frontendOrigin || CLIENT_ORIGIN;
 
   let email = '';
@@ -596,7 +617,13 @@ const googleCallback = async (code, options = {}) => {
   let picture = '';
   let googleId = '';
 
-  if (!GOOGLE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET === 'mock') {
+  if (!GOOGLE_CLIENT_SECRET && !GOOGLE_CALLBACK_MOCK_ALLOWED) {
+    // Thiếu cấu hình trên môi trường thật: phải báo lỗi, tuyệt đối không rơi vào
+    // nhánh giả lập — nó sẽ đăng nhập mọi người vào cùng một tài khoản mock.
+    throw new AppError('Đăng nhập Google chưa được cấu hình.', 503);
+  }
+
+  if (GOOGLE_CALLBACK_MOCK_ALLOWED) {
     console.log('[MOCK CALLBACK] Client Secret is not set. Simulating login...');
     email = MOCK_GOOGLE_EMAIL;
     name = MOCK_GOOGLE_NAME;
@@ -620,6 +647,17 @@ const googleCallback = async (code, options = {}) => {
     name = payload.name || payload.given_name || 'Người dùng Google';
     picture = payload.picture || '';
     googleId = payload.sub || '';
+  }
+
+  // Chế độ liên kết: người dùng đang đăng nhập bấm "Liên kết Google" từ Cài đặt.
+  // Chỉ chấp nhận khi email Google trùng email tài khoản — nếu không, luồng này sẽ
+  // âm thầm đăng nhập sang tài khoản khác thay vì liên kết, điều người dùng không
+  // hề yêu cầu.
+  if (linkEmail && email.toLowerCase() !== String(linkEmail).toLowerCase()) {
+    return {
+      redirectUrl: `${feOrigin}/auth/google/callback?auth_status=link_mismatch`
+        + `&email=${encodeURIComponent(email)}&expected=${encodeURIComponent(linkEmail)}`,
+    };
   }
 
   let user = await User.findOne({ email: email.toLowerCase() });

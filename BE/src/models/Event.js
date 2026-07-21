@@ -103,6 +103,14 @@ const eventSchema = new mongoose.Schema(
       default: 0,
       min: 0
     },
+    // Phần của registeredCount thuộc nhóm được miễn phí (SV FPT, staff...).
+    // Tách riêng để thực thi hạn ngạch từng loại vé trong ticketTypes: số chỗ khách
+    // ngoài trường đã dùng = registeredCount - studentRegisteredCount + reservedCount.
+    studentRegisteredCount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
     status: {
       type: String,
       enum: EVENT_STATUSES,

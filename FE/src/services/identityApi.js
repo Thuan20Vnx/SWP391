@@ -30,3 +30,10 @@ export const requestUsernameChange = (newUsername, currentPassword) =>
 
 export const confirmUsernameChange = (otp) =>
   post('username-change/confirm', { otp });
+
+/** Tạo mật khẩu đầu tiên cho tài khoản Google. newUsername là tùy chọn. */
+export const requestPasswordSetup = (newPassword, newUsername) =>
+  post('password-setup/request', { newPassword, newUsername });
+
+export const confirmPasswordSetup = (otp) =>
+  post('password-setup/confirm', { otp });

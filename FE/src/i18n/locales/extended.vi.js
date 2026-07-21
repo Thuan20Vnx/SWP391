@@ -124,7 +124,6 @@ export default {
   'password.success': 'Đổi mật khẩu thành công.',
   'password.fail': 'Đổi mật khẩu thất bại.',
   'password.title': 'Đổi mật khẩu',
-  'password.googleNote': 'Tài khoản đăng nhập bằng Google không hỗ trợ đổi mật khẩu tại đây.',
 
   'home.heroFeatured': 'Sự kiện nổi bật',
   'home.heroPrev': 'Sự kiện nổi bật trước',
