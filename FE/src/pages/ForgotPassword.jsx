@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { FE_LOGO, FE_LOGO_ALT } from '../assets/brand';
 import { API_BASE } from '../utils/api';
 
@@ -9,13 +9,13 @@ const patterns = {
 };
 
 const ForgotPassword = ({ showToast }) => {
-  const [contact, setContact] = useState('');
+  const [searchParams] = useSearchParams();
+  // Cho phép prefill khi mở từ nơi khác (vd: nút "Quên mật khẩu?" trong Cài đặt).
+  const [contact, setContact] = useState(() => searchParams.get('contact') || '');
   const [errors, setErrors] = useState(false);
   const [validFields, setValidFields] = useState(false);
   const [shakeFields, setShakeFields] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [googleBlocked, setGoogleBlocked] = useState(false);
-  const [googleBlockedMsg, setGoogleBlockedMsg] = useState('');
   const [emailSent, setEmailSent] = useState(false);
 
   const [countdown, setCountdown] = useState(0);
@@ -52,11 +52,15 @@ const ForgotPassword = ({ showToast }) => {
     return isValid;
   };
 
+  // Nếu được mở kèm ?contact=... thì đánh dấu hợp lệ ngay để sẵn sàng gửi.
+  useEffect(() => {
+    if (contact.trim()) validateContact(contact);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleInputChange = (e) => {
     const value = e.target.value;
     setContact(value);
-    setGoogleBlocked(false);
-    setGoogleBlockedMsg('');
     setEmailSent(false);
     validateContact(value);
   };
@@ -86,16 +90,10 @@ const ForgotPassword = ({ showToast }) => {
       .then(({ status, data }) => {
         setLoading(false);
         if (status === 200) {
-          setGoogleBlocked(false);
           setEmailSent(true);
           setCountdown(60);
           setIsCounting(true);
           showToast('Đã gửi liên kết khôi phục. Kiểm tra hộp thư của bạn.', 'success');
-        } else if (status === 403 && data.code === 'GOOGLE_ACCOUNT') {
-          setGoogleBlocked(true);
-          setGoogleBlockedMsg(data.message || 'Tài khoản này đăng nhập bằng Google.');
-          setErrors(true);
-          showToast(data.message, 'error');
         } else {
           showToast(data.message || 'Gửi liên kết khôi phục thất bại.', 'error');
         }
@@ -111,7 +109,7 @@ const ForgotPassword = ({ showToast }) => {
 
   return (
     <main className="page-container">
-      <section className="branding-column" aria-label="Giới thiệu cộng đồng FPT">
+      <section className="branding-column login-branding-column" aria-label="Giới thiệu cộng đồng FPT">
         <div className="glass-overlay" />
         <div className="branding-content">
           <div className="slogan-container">
@@ -151,18 +149,10 @@ const ForgotPassword = ({ showToast }) => {
             <header className="form-header auth-form-header">
               <h1 id="main-title">Khôi phục mật khẩu</h1>
               <p className="subtitle">
-                Nhập email hoặc số điện thoại bạn đã dùng khi đăng ký tài khoản email/mật khẩu.
+                Nhập email hoặc số điện thoại của tài khoản. Mã xác minh sẽ được gửi tới email
+                để bạn đặt lại mật khẩu.
               </p>
             </header>
-
-            {googleBlocked && (
-              <div className="auth-notice auth-notice--warning" role="alert">
-                <p>{googleBlockedMsg}</p>
-                <Link to="/login" className="auth-notice__link">
-                  Đăng nhập bằng Google
-                </Link>
-              </div>
-            )}
 
             {emailSent && isCounting && (
               <div className="auth-notice auth-notice--success" role="status">
@@ -213,7 +203,7 @@ const ForgotPassword = ({ showToast }) => {
                 type="submit"
                 id="forgot-btn"
                 className={`primary-button auth-submit-btn ${isCounting ? 'btn-countdown' : ''}`}
-                disabled={loading || isCounting || googleBlocked}
+                disabled={loading || isCounting}
               >
                 {loading ? (
                   <span className="btn-spinner" />
@@ -233,7 +223,8 @@ const ForgotPassword = ({ showToast }) => {
                 </Link>
               </p>
               <p className="auth-hint">
-                Tài khoản đăng nhập Google không hỗ trợ đặt lại mật khẩu tại đây.
+                Tài khoản Google cũng đặt lại (hoặc tạo) được mật khẩu tại đây — mã xác minh sẽ
+                gửi về email của bạn.
               </p>
             </footer>
           </div>

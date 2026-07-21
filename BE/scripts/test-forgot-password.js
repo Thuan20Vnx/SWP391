@@ -60,7 +60,7 @@ const run = async () => {
   const loginResult = await authService.login({ email: TEST_EMAIL, password: NEW_PASSWORD });
   console.log('   OK:', loginResult.message);
 
-  console.log('5) forgotPassword for Google-only account...');
+  console.log('5) forgotPassword for Google-only account (tạo mật khẩu lần đầu qua OTP)...');
   const googleEmail = `google-only-${Date.now()}@example.com`;
   await User.deleteOne({ email: googleEmail });
   await User.create({
@@ -76,11 +76,28 @@ const run = async () => {
     interests: [],
   });
 
-  try {
-    await authService.forgotPassword({ contact: googleEmail });
-    throw new Error('Expected Google account to be rejected');
-  } catch (err) {
-    console.log('   Expected fail:', err.statusCode, err.message, err.extra || '');
+  const googleForgot = await authService.forgotPassword({ contact: googleEmail });
+  console.log('   OK:', googleForgot.message);
+  const googlePending = pendingResets.get(googleEmail);
+  if (!googlePending?.otp) {
+    throw new Error('Không tìm thấy OTP cho tài khoản Google');
+  }
+
+  console.log('6) resetPassword đặt mật khẩu cho tài khoản Google...');
+  const googleReset = await authService.resetPassword({
+    email: googleEmail,
+    otp: googlePending.otp,
+    newPassword: NEW_PASSWORD,
+  });
+  console.log('   OK:', googleReset.message);
+
+  console.log('7) tài khoản Google đăng nhập được bằng mật khẩu vừa tạo...');
+  const googleLoginResult = await authService.login({ email: googleEmail, password: NEW_PASSWORD });
+  console.log('   OK:', googleLoginResult.message);
+
+  const googleUser = await User.findOne({ email: googleEmail });
+  if (!googleUser.passwordHash) {
+    throw new Error('Tài khoản Google chưa được đặt passwordHash sau khi reset');
   }
 
   await User.deleteOne({ email: TEST_EMAIL });
