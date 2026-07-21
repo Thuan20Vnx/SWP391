@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import OtpInput from '../OtpInput';
 import { API_BASE, getAuthHeaders } from '../../utils/api';
 import { requestPasswordSetup, confirmPasswordSetup } from '../../services/identityApi';
@@ -36,6 +37,7 @@ const ProfilePasswordSection = ({
   // null = chưa biết. Tránh nhấp nháy nhãn khi hồ sơ chưa về.
   const [hasPassword, setHasPassword] = useState(null);
   const [hasUsername, setHasUsername] = useState(true);
+  const [email, setEmail] = useState('');
   const panelId = `${idPrefix}-password-panel`;
 
   // Nguồn sự thật là hồ sơ từ máy chủ, không phải loginMethod trong localStorage:
@@ -48,6 +50,7 @@ const ProfilePasswordSection = ({
         if (!alive || !data?.user) return;
         setHasPassword(Boolean(data.user.hasPassword));
         setHasUsername(Boolean(data.user.username));
+        setEmail(data.user.email || '');
       })
       .catch(() => {
         // Không đọc được thì coi như đã có mật khẩu — form đầy đủ vẫn dùng được,
@@ -204,6 +207,12 @@ const ProfilePasswordSection = ({
         </div>
       </div>
       <div className="ctsv-profile-security-actions">
+        <Link
+          to={`/forgot-password${email ? `?contact=${encodeURIComponent(email)}` : ''}`}
+          className="accent-link ctsv-profile-forgot-link"
+        >
+          Quên mật khẩu hiện tại?
+        </Link>
         <button type="submit" className="primary-button btn-save-profile" disabled={loading}>
           {loading ? 'Đang lưu...' : 'Lưu mật khẩu mới'}
         </button>

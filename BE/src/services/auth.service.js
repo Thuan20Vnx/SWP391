@@ -405,11 +405,10 @@ const forgotPassword = async ({ contact }) => {
     throw new AppError('Email hoặc số điện thoại không tồn tại trên hệ thống.', 404);
   }
 
-  if (User.isGoogleOnlyAccount(user)) {
-    throwGoogleAccountError(
-      'Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu. Vui lòng đăng nhập bằng Google.'
-    );
-  }
+  // Tài khoản Google vẫn đặt lại được mật khẩu ở đây: mã OTP gửi về chính email của
+  // tài khoản (email này đã được Google xác minh) nên kiểm soát được hòm thư là đủ.
+  // Với tài khoản Google chưa có mật khẩu, đây là bước TẠO mật khẩu đầu tiên — sau đó
+  // đăng nhập được bằng cả Google lẫn email/mật khẩu.
 
   const otpCode = generateOtp();
   const emailKey = user.email.toLowerCase();
@@ -495,13 +494,8 @@ const resetPassword = async ({ email, otp, newPassword }) => {
     throw new AppError('Không tìm thấy người dùng trên hệ thống.', 404);
   }
 
-  if (User.isGoogleOnlyAccount(user)) {
-    pendingResets.delete(emailKey);
-    throwGoogleAccountError(
-      'Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu. Vui lòng đăng nhập bằng Google.'
-    );
-  }
-
+  // Không chặn tài khoản Google: đã qua OTP gửi về email của tài khoản. Nếu trước đó
+  // chưa có mật khẩu thì lần này chính là tạo mật khẩu đầu tiên.
   user.passwordHash = await bcrypt.hash(newPassword, 10);
   if (!user.authProvider || user.authProvider === 'google') {
     user.authProvider = 'local';

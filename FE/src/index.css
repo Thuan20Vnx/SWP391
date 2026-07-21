@@ -14382,6 +14382,13 @@ a.event-discovery-card__btn {
   border-radius: 10px;
 }
 
+/* Link "Quên mật khẩu?" nằm sát trái, nút lưu vẫn ở phải. */
+.ctsv-profile-security-actions .ctsv-profile-forgot-link {
+  margin-right: auto;
+  align-self: center;
+  font-size: 0.9rem;
+}
+
 .ctsv-profile-security-note {
   margin: 20px 0 0;
   padding: 12px 14px;
@@ -14458,11 +14465,18 @@ a.event-discovery-card__btn {
   }
 
   .ctsv-profile-security-actions {
-    justify-content: stretch;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
   }
 
   .ctsv-profile-security-actions .btn-save-profile {
     width: 100%;
+  }
+
+  .ctsv-profile-security-actions .ctsv-profile-forgot-link {
+    margin-right: 0;
+    text-align: center;
   }
 }
 
