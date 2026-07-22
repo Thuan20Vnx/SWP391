@@ -77,7 +77,6 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated, edit
   const showSchoolModeration =
     access.canManage && event.source === 'school' && canCtsvRequestModeration(event);
   const showCtsvActions = access.canManage && showPartnerActions;
-  const showRequestEditBtn = showSchoolModeration && !canEditSchoolEvent;
   const showOpenEditFormLink =
     access.canManage && event.source === 'school' && canEditSchoolEvent && !moderationPending;
 
@@ -211,9 +210,11 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated, edit
 
           {showOpenEditFormLink && (
             <div className="ctsv-moderation-edit-approved">
-              <span className="ctsv-moderation-edit-approved__badge">Admin đã duyệt chỉnh sửa</span>
+              <span className="ctsv-moderation-edit-approved__badge">
+                {event.ctsvEditUnlocked ? 'Admin đã duyệt chỉnh sửa' : 'Sửa nội dung & gửi Admin duyệt'}
+              </span>
               <Link to={`${editBasePath}/${eventId}/edit`} className="ev-btn-primary" style={{ display: 'inline-flex' }}>
-                Mở form chỉnh sửa
+                {event.ctsvEditUnlocked ? 'Mở form chỉnh sửa' : 'Chỉnh sửa sự kiện'}
               </Link>
             </div>
           )}
@@ -246,11 +247,6 @@ const CtsvEventActionsPanel = ({ event, eventId, showToast, onEventUpdated, edit
 
             <div className="ctsv-moderation-actions">
               <div className="ctsv-moderation-actions__left">
-                {showRequestEditBtn && (
-                  <button type="button" className="ctsv-action-btn ctsv-action-btn--edit" onClick={() => openModerationConfirm('edit')}>
-                    Yêu cầu chỉnh sửa
-                  </button>
-                )}
                 <button type="button" className="ctsv-action-btn ctsv-action-btn--postpone" onClick={() => openModerationConfirm('postpone')}>
                   {weatherPostpone ? 'Hoãn (thời tiết)' : 'Yêu cầu hoãn'}
                 </button>

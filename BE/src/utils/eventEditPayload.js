@@ -7,11 +7,12 @@
  * áp dụng chỉ cần gán lại theo đúng guard "chỉ ghi khi có giá trị".
  */
 
-/** Danh sách field CLB được chỉnh sửa qua form. */
+/** Danh sách field được chỉnh sửa qua form (dùng chung CLB và sự kiện cấp trường). */
 const EDITABLE_FIELDS = [
   'title',
   'description',
   'thumbnail',
+  'image',
   'bannerFileName',
   'eventPlanFile',
   'eventPlanFileName',
@@ -28,9 +29,17 @@ const EDITABLE_FIELDS = [
   'ticketPrice',
   'ticketTypes',
   'speaker',
+  'speakerRole',
+  'speakerAvatar',
+  'speakers',
   'agenda',
   'learningOutcomes',
   'timelineSource',
+  // Field riêng của sự kiện cấp trường
+  'eventType',
+  'duration',
+  'format',
+  'expectedAttendees',
 ];
 
 /** Gom các giá trị (đã chuẩn hoá) thành payload chỉ chứa field hợp lệ. */
@@ -51,6 +60,7 @@ const applyEditPayload = (event, payload) => {
     event.description = payload.description || 'Chưa có mô tả';
   }
   if (payload.thumbnail) event.thumbnail = payload.thumbnail;
+  if (payload.image) event.image = payload.image;
   if (payload.bannerFileName !== undefined) {
     event.bannerFileName = String(payload.bannerFileName || '').trim();
   }
@@ -81,11 +91,18 @@ const applyEditPayload = (event, payload) => {
     event.ticketTypes = payload.ticketTypes;
   }
   if (payload.speaker !== undefined) event.speaker = payload.speaker;
+  if (payload.speakerRole !== undefined) event.speakerRole = payload.speakerRole;
+  if (payload.speakerAvatar !== undefined) event.speakerAvatar = payload.speakerAvatar;
+  if (Array.isArray(payload.speakers)) event.speakers = payload.speakers;
   if (payload.agenda !== undefined) event.agenda = payload.agenda;
   if (payload.learningOutcomes !== undefined) {
     event.learningOutcomes = payload.learningOutcomes;
   }
   if (payload.timelineSource) event.timelineSource = payload.timelineSource;
+  if (payload.eventType !== undefined) event.eventType = payload.eventType;
+  if (payload.duration !== undefined) event.duration = payload.duration;
+  if (payload.format) event.format = payload.format;
+  if (payload.expectedAttendees != null) event.expectedAttendees = payload.expectedAttendees;
 };
 
 module.exports = { EDITABLE_FIELDS, buildEditPayload, applyEditPayload };

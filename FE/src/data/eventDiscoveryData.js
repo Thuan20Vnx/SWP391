@@ -320,6 +320,7 @@ export const mapApiEventToCard = (event, { viewerRole = 'guest' } = {}) => {
     amountDue,
     priceLabel,
     studentPrivilegeApplied,
+    ticketTypes: event.ticketTypes || [],
     source: event.source || 'club',
     schoolOrganizerRole: event.schoolOrganizerRole || 'ctsv',
     status: event.status || '',
@@ -377,6 +378,7 @@ export const mapApiEventToHomeCard = (event) => {
     amountDue: event.amountDue ?? Math.max(0, Number(event.ticketPrice) || 0),
     priceLabel: event.priceLabel || 'MIỄN PHÍ',
     studentPrivilegeApplied: event.studentPrivilegeApplied === true,
+    ticketTypes: event.ticketTypes || [],
   };
 };
 

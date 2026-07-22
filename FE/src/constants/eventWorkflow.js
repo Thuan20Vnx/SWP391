@@ -65,7 +65,12 @@ export const canCtsvEditSchoolEvent = (event) =>
   (event?.ctsvEditUnlocked === true ||
     event?.statusKey === 'rejected' ||
     event?.statusKey === SCHOOL_EVENT_SUBMIT_STATUS ||
-    event?.statusKey === 'revision');
+    event?.statusKey === 'revision' ||
+    // Đã công khai: người tổ chức điền form sửa rồi gửi thẳng Admin duyệt (giữ chờ),
+    // không cần xin mở khóa trước.
+    event?.statusKey === 'approved' ||
+    event?.statusKey === 'live' ||
+    event?.statusKey === 'ended');
 
 /** Chỉnh sửa sự kiện cấp trường theo đơn vị gửi đơn (CTSV / IC-PDP) */
 export const canEditSchoolEventForPortal = (event, portalRole = 'ctsv') => {

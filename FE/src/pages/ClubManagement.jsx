@@ -45,6 +45,7 @@ const toClubDiscoveryCard = (ev) => {
     cardState: clubCardState(ev),
     primaryLabel: 'Quản lý',
     priceLabel: ev.ticketPrice > 0 ? `${Number(ev.ticketPrice).toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
+    ticketTypes: ev.ticketTypes || [],
     organizerLabel: 'CLB',
   };
 };

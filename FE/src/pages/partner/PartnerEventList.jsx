@@ -50,6 +50,7 @@ const toDiscoveryCard = (ev) => ({
   cardState: cardStateFromEv(ev),
   primaryLabel: 'Quản lý',
   priceLabel: ev.ticketPrice > 0 ? `${Number(ev.ticketPrice).toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
+  ticketTypes: ev.ticketTypes || [],
   organizerLabel: 'Đối tác',
 });
 

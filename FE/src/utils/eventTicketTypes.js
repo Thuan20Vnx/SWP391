@@ -63,6 +63,19 @@ export const isRoleAudienceAllowed = (role, ticketTypes = []) => {
   return true;
 };
 
+/**
+ * Nhãn ngắn cho thẻ sự kiện: vé mở cho sinh viên, khách, hay cả hai.
+ * Trả về '' khi sự kiện không khai báo loại vé (dữ liệu cũ) — không hiển thị gì.
+ */
+export const ticketAudienceSummaryLabel = (ticketTypes = []) => {
+  const { allowsStudent, allowsGuest, restricted } = resolveEventAudiences(ticketTypes);
+  if (!restricted) return '';
+  if (allowsStudent && allowsGuest) return 'Vé sinh viên và khách';
+  if (allowsStudent) return 'Vé sinh viên';
+  if (allowsGuest) return 'Vé khách';
+  return '';
+};
+
 export const totalTicketQty = (tickets = []) =>
   (tickets || []).reduce((sum, t) => sum + Math.max(0, Number(t.qty) || 0), 0);
 

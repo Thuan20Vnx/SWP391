@@ -57,6 +57,7 @@ const toDiscoveryCard = (ev) => ({
   cardState: cardStateFromEv(ev),
   primaryLabel: isCtsvManagedEvent(ev) ? 'Quản lý' : 'Xem chi tiết',
   priceLabel: ev.ticketPrice > 0 ? `${Number(ev.ticketPrice).toLocaleString('vi-VN')}đ` : 'MIỄN PHÍ',
+  ticketTypes: ev.ticketTypes || [],
   organizerLabel: ev.source === 'school' ? 'Trường' : ev.source === 'partner' ? 'Đối tác' : 'CLB',
   hasEventPlan: ev.hasEventPlan,
 });

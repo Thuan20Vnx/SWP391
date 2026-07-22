@@ -373,11 +373,13 @@ const approveModeration = async (eventId, authEmail) => {
     event.postponeIsWeather = false;
   } else if (action === 'edit') {
     event.status = previous;
-    if (event.source === 'club' && event.pendingEdit?.payload) {
-      // CLB đã gửi form sửa trước — áp dụng nội dung giữ chờ khi Admin duyệt.
+    if (event.pendingEdit?.payload) {
+      // Người tổ chức đã gửi form sửa trước (CLB hoặc cấp trường) — áp dụng nội dung
+      // giữ chờ khi Admin duyệt.
       applyEditPayload(event, event.pendingEdit.payload);
       event.pendingEdit = null;
       event.clubEditUnlocked = false;
+      event.ctsvEditUnlocked = false;
     } else if (event.source === 'club') {
       event.clubEditUnlocked = true;
     } else {

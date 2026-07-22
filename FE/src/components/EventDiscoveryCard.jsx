@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { getCategoryColor, getFillPercent } from '../data/eventDiscoveryData';
+import { ticketAudienceSummaryLabel } from '../utils/eventTicketTypes';
 import { prefetchPublicEventById } from '../services/eventsApi';
 import { DEFAULT_EVENT_IMAGE } from '../utils/eventDisplay';
 import AuthedImage from './AuthedImage';
@@ -51,6 +52,7 @@ const EventDiscoveryCard = ({
 
   const fillPercent = getFillPercent(filledSlots, totalSlots);
   const categoryColor = getCategoryColor(category);
+  const audienceLabel = event.audienceLabel || ticketAudienceSummaryLabel(event.ticketTypes);
   const isExpired = cardState === 'expired';
   const isPostponed = cardState === 'postponed';
   const isRegistered = cardState === 'registered' || registered;
@@ -176,7 +178,7 @@ const EventDiscoveryCard = ({
             </div>
           </div>
 
-          {(showProgress || (priceLabel && !isPostponed)) && (
+          {(showProgress || (priceLabel && !isPostponed) || (audienceLabel && !isPostponed)) && (
             <div className="event-discovery-card__info-panel">
               {showProgress && (
                 <div className="event-discovery-card__progress">
@@ -195,9 +197,14 @@ const EventDiscoveryCard = ({
                 </div>
               )}
 
-              {priceLabel && !isPostponed && (
+              {((priceLabel && !isPostponed) || (audienceLabel && !isPostponed)) && (
                 <div className="event-discovery-card__price">
-                  <span className="event-discovery-card__price-label">{priceLabel}</span>
+                  {priceLabel && !isPostponed && (
+                    <span className="event-discovery-card__price-label">{priceLabel}</span>
+                  )}
+                  {audienceLabel && !isPostponed && (
+                    <span className="event-discovery-card__audience-badge">{audienceLabel}</span>
+                  )}
                   {studentPrivilegeApplied && (
                     <span className="event-discovery-card__price-badge">Ưu đãi SV</span>
                   )}

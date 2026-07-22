@@ -1358,10 +1358,9 @@ router.get('/school-events/moderation', async (req, res) => {
 router.patch('/school-events/:id/moderation/approve', async (req, res) => {
   try {
     const result = await approveModeration(req.params.id, req.authEmail);
-    // CLB sửa sự kiện đã duyệt: nội dung sửa được áp dụng và công khai lại ngay tại
-    // bước này ⇒ báo cho sinh viên đã đăng ký. (Sự kiện cấp trường chỉ mở khóa form ở
-    // đây, nội dung mới publish sau khi Admin duyệt lại ở /school-events/:id/approve.)
-    if (result.action === 'edit' && result.event?.source === 'club') {
+    // Sửa sự kiện đã duyệt (CLB và cấp trường): nội dung giữ chờ được áp dụng và công
+    // khai lại ngay tại bước này ⇒ báo cho sinh viên đã đăng ký.
+    if (result.action === 'edit' && result.event) {
       notifyRegistrantsOfEventUpdate(result.event).catch((err) => {
         console.error('notify registrants of event update:', err.message);
       });

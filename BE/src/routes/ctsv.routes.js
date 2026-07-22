@@ -54,6 +54,8 @@ const {
   approveIcpdpModeration,
   rejectIcpdpModeration
 } = require('../services/eventModeration.service');
+const { buildEditPayload } = require('../utils/eventEditPayload');
+const { isModerationPendingStatus } = require('../constants/eventModeration');
 const {
   normalizeTicketTypes,
   deriveTicketPriceFromTypes,
@@ -771,6 +773,55 @@ router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
       return res.status(403).json({
         success: false,
         message: 'Bạn không có quyền chỉnh sửa sự kiện do đơn vị khác gửi.'
+      });
+    }
+
+    // Sự kiện đã công khai (approved/live/ended) và chưa được mở khóa sửa trực tiếp:
+    // người tổ chức điền form rồi gửi luôn — nội dung giữ chờ (pendingEdit), CHỈ áp dụng
+    // khi Admin duyệt. Không cần xin phép sửa trước (giống luồng CLB).
+    const isSchoolModerationEdit =
+      ['approved', 'live', 'ended'].includes(event.status) && event.ctsvEditUnlocked !== true;
+
+    if (isSchoolModerationEdit) {
+      const editFields = {
+        ...data,
+        registrationStartDate: new Date(data.registrationStartDate),
+        registrationEndDate: data.registrationEndDate ? new Date(data.registrationEndDate) : undefined,
+        startDate: new Date(data.startDate),
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
+      };
+      event.pendingEdit = {
+        payload: buildEditPayload(editFields),
+        requestedByEmail: req.authEmail || '',
+        requestedAt: new Date(),
+      };
+      if (!isModerationPendingStatus(event.status)) {
+        event.statusBeforeModeration = event.status;
+      }
+      event.status = 'pending_edit';
+      event.moderationReason = String(req.body.moderationReason || '').trim() || 'Cập nhật nội dung sự kiện';
+      event.moderationReasonCategory = '';
+      event.moderationRequestedByEmail = req.authEmail || '';
+      event.moderationRequestedAt = new Date();
+      event.ctsvEditUnlocked = false;
+      event.rejectionReason = '';
+      event.lastModerationAction = '';
+      event.lastModerationRejectedBy = '';
+      await event.save();
+
+      createAndBroadcast({
+        recipientRoles: ['admin'],
+        title: 'Yêu cầu chỉnh sửa sự kiện cấp trường',
+        body: `${event.schoolOrganizerRole === 'icpdp' ? 'IC-PDP' : 'CTSV'} đã gửi nội dung chỉnh sửa cho sự kiện "${event.title}" — chờ Admin phê duyệt.`,
+        type: 'event_change_submit',
+        refId: String(event._id),
+        refType: 'Event'
+      }).catch(() => {});
+
+      return res.json({
+        success: true,
+        event: formatEvent(event),
+        message: 'Đã gửi yêu cầu chỉnh sửa — chờ Admin phê duyệt.'
       });
     }
 
