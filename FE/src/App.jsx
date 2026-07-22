@@ -73,7 +73,6 @@ import AdminSubmittedReports from './pages/admin/AdminSubmittedReports';
 import AdminSubmittedReportDetail from './pages/admin/AdminSubmittedReportDetail';
 import MyEvents from './pages/MyEvents';
 import MyClubs from './pages/MyClubs';
-import MyPayments from './pages/MyPayments';
 import AdminPayments from './pages/admin/AdminPayments';
 import AdminPartnerSettlements from './pages/admin/AdminPartnerSettlements';
 import AdminPartnerSettlementDetail from './pages/admin/AdminPartnerSettlementDetail';
@@ -562,14 +561,6 @@ function App() {
             </Route>
           </Route>
           <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
-          <Route
-            path="/my-payments"
-            element={
-              <ProtectedRoute>
-                <MyPayments showToast={showToast} />
-              </ProtectedRoute>
-            }
-          />
           <Route path="/terms" element={<StaticPage pageKey="terms" />} />
           <Route path="/privacy" element={<StaticPage pageKey="privacy" />} />
           <Route path="/support" element={<StaticPage pageKey="support" />} />

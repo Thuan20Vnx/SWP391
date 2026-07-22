@@ -11,36 +11,22 @@ const parseJson = async (res) => {
   return data;
 };
 
-// Tạo đơn thanh toán vé sự kiện (mua vé có phí)
+// Create an event ticket payment order.
 export const checkoutEventTicket = (eventId) =>
   fetch(`${API_BASE}/api/payments/events/${eventId}/checkout`, {
     method: 'POST',
     headers: getAuthHeaders(),
   }).then(parseJson);
 
-// Poll trạng thái đơn
+// Poll payment status.
 export const fetchPaymentStatus = (code) =>
   fetch(`${API_BASE}/api/payments/${encodeURIComponent(code)}/status`, {
     headers: getAuthHeaders(),
   }).then(parseJson);
 
-// Hủy đơn pending
+// Cancel a pending payment order.
 export const cancelPayment = (code) =>
   fetch(`${API_BASE}/api/payments/${encodeURIComponent(code)}/cancel`, {
     method: 'POST',
     headers: getAuthHeaders(),
-  }).then(parseJson);
-
-// Lịch sử thanh toán của user
-export const fetchMyPayments = ({ page = 1, limit = 20 } = {}) =>
-  fetch(`${API_BASE}/api/payments/my?page=${page}&limit=${limit}`, {
-    headers: getAuthHeaders(),
-  }).then(parseJson);
-
-// Yêu cầu hoàn tiền
-export const requestRefund = (code, reason = '') =>
-  fetch(`${API_BASE}/api/payments/${encodeURIComponent(code)}/refund-request`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ reason }),
   }).then(parseJson);
