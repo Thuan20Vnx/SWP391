@@ -1425,6 +1425,22 @@ router.patch('/school-events/:id/reject', async (req, res) => {
     if (!event) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
     }
+    // Sự kiện đang chờ điều phối (yêu cầu chỉnh sửa/hoãn/ẩn/hủy trên bản đã duyệt) không
+    // phải "đơn tổ chức lần đầu": từ chối phải KHÔI PHỤC trạng thái trước đó (vd. approved),
+    // không đánh dấu cả sự kiện là 'rejected' — nếu không nó kẹt ở "chờ duyệt".
+    if (MODERATION_PENDING_STATUSES.includes(event.status)) {
+      const result = await rejectModeration(req.params.id, reason, req.authEmail);
+      createAndBroadcast({
+        recipientRoles: ['ctsv', 'icpdp'],
+        recipientEmails: [result.event?.moderationRequestedByEmail, result.event?.createdByEmail],
+        title: 'Yêu cầu điều chỉnh sự kiện bị từ chối',
+        body: reason || 'Admin chưa chấp nhận yêu cầu điều chỉnh sự kiện.',
+        type: 'event_change_reject',
+        refId: String(req.params.id),
+        refType: 'Event'
+      }).catch(() => {});
+      return res.json({ success: true, event: formatEvent(result.event), message: result.message });
+    }
     if (!canAdminApproveSchoolEvent(event)) {
       return res.status(400).json({
         success: false,
