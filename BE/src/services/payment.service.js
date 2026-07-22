@@ -8,6 +8,7 @@ const { getPaymentSettings } = require('./systemSettings.service');
 const {
   calculateTicketAmount,
   getListPrice,
+  canUserRegisterEvent,
   formatVnd,
 } = require('../constants/eventPricing');
 const { isEventPubliclyVisible } = require('../constants/eventWorkflow');
@@ -99,6 +100,10 @@ const createEventTicketPayment = async (user, eventId) => {
   // Đường thoát sớm; chốt chặn thật là reserveSlot() atomic ở dưới.
   if (event.registeredCount + (event.reservedCount || 0) >= event.capacity) {
     throw new AppError('Sự kiện đã hết chỗ.', 400);
+  }
+
+  if (!canUserRegisterEvent(user, event)) {
+    throw new AppError('Sự kiện này không mở vé cho đối tượng của bạn.', 403);
   }
 
   const amount = calculateTicketAmount(user, event);

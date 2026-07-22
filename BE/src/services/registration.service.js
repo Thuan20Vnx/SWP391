@@ -5,6 +5,7 @@ const {
   calculateTicketAmount,
   getListPrice,
   hasStudentTicketPrivilege,
+  canUserRegisterEvent,
   formatVnd,
   enrichEventWithPricing,
 } = require('../constants/eventPricing');
@@ -88,9 +89,18 @@ const throwEventFullError = () => {
   throw err;
 };
 
+const assertAudienceAllowed = (user, event) => {
+  if (canUserRegisterEvent(user, event)) return;
+  const message = hasStudentTicketPrivilege(user)
+    ? 'Sự kiện này chỉ dành cho khách ngoài trường.'
+    : 'Sự kiện này chỉ dành cho sinh viên / cán bộ FPT.';
+  throw new AppError(message, 403);
+};
+
 const registerForEvent = async (user, eventId) => {
   let event = await Event.findById(eventId);
   assertEventRegisterable(event);
+  assertAudienceAllowed(user, event);
 
   const listPrice = getListPrice(event);
   const amountPaid = calculateTicketAmount(user, event);

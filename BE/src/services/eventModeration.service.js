@@ -4,8 +4,9 @@ const EventRegistration = require('../models/EventRegistration');
 const AppError = require('../utils/AppError');
 const { applyEditPayload } = require('../utils/eventEditPayload');
 
-// Khi sự kiện đã có sinh viên đăng ký thì không cho chỉnh sửa/xóa/hủy nữa — chỉ được hoãn.
-const REGISTERED_LOCKED_ACTIONS = new Set(['edit', 'delete', 'cancel']);
+// Khi sự kiện đã có sinh viên đăng ký thì không cho xóa/hủy nữa — chỉ được hoãn hoặc
+// chỉnh sửa (chỉnh sửa sẽ báo lại cho sinh viên đã đăng ký qua email sau khi cập nhật).
+const REGISTERED_LOCKED_ACTIONS = new Set(['delete', 'cancel']);
 
 const assertActionAllowedWhenRegistered = async (event, action) => {
   if (!REGISTERED_LOCKED_ACTIONS.has(action)) return;
@@ -14,9 +15,9 @@ const assertActionAllowedWhenRegistered = async (event, action) => {
     status: { $ne: 'cancelled' },
   });
   if (registeredCount > 0) {
-    const label = { edit: 'chỉnh sửa', delete: 'xóa', cancel: 'hủy' }[action] || action;
+    const label = { delete: 'xóa', cancel: 'hủy' }[action] || action;
     throw new AppError(
-      `Sự kiện đã có sinh viên đăng ký nên không thể yêu cầu ${label}. Bạn chỉ có thể hoãn sự kiện.`,
+      `Sự kiện đã có sinh viên đăng ký nên không thể yêu cầu ${label}. Bạn chỉ có thể hoãn hoặc chỉnh sửa sự kiện.`,
       400
     );
   }
@@ -403,7 +404,7 @@ const approveModeration = async (eventId, authEmail) => {
   event.adminApprovedAt = new Date();
 
   await event.save();
-  return { message: 'Đã phê duyệt yêu cầu điều phối sự kiện.', event };
+  return { message: 'Đã phê duyệt yêu cầu điều phối sự kiện.', event, action };
 };
 
 const rejectModeration = async (eventId, reason, authEmail) => {

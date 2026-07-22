@@ -21,6 +21,8 @@ const clubRegistrationService = require('../services/clubRegistration.service');
 const Contract = require('../models/Contract');
 const Event = require('../models/Event');
 const EventProposal = require('../models/EventProposal');
+const EventRegistration = require('../models/EventRegistration');
+const { sendEventUpdatedEmail } = require('../services/email.service');
 const SubmittedCtsvReport = require('../models/SubmittedCtsvReport');
 const PartnerMember = require('../models/PartnerMember');
 const PartnerEventRequest = require('../models/PartnerEventRequest');
@@ -1115,6 +1117,15 @@ router.patch('/partners/:id/approve', async (req, res) => {
             adminApprovedAt: new Date()
           }
         });
+        // Sự kiện công khai vừa được cập nhật ⇒ báo cho sinh viên đã đăng ký (nếu có).
+        notifyRegistrantsOfEventUpdate({
+          _id: eventRequest.eventId,
+          title: eventFields.title,
+          startDate: eventFields.startDate,
+          location: eventFields.location,
+        }).catch((err) => {
+          console.error('notify registrants of event update:', err.message);
+        });
       } else {
         const newEvent = await Event.create({
           ...eventFields,
@@ -1262,6 +1273,33 @@ router.get('/school-events', async (req, res) => {
   }
 });
 
+// Sự kiện đang chờ Admin mà đã có sinh viên đăng ký ⇒ đây là bản chỉnh sửa của một
+// sự kiện từng công khai (đăng ký chỉ mở khi sự kiện công khai). Khi Admin duyệt lại,
+// báo cho toàn bộ sinh viên đã đăng ký (chưa hủy) qua email để họ nắm thông tin mới.
+const notifyRegistrantsOfEventUpdate = async (event) => {
+  const registrations = await EventRegistration.find({
+    event: event._id,
+    status: { $ne: 'cancelled' },
+  })
+    .populate('user', 'fullname email')
+    .lean();
+
+  for (const reg of registrations) {
+    const email = reg.user?.email;
+    if (!email) continue;
+    sendEventUpdatedEmail({
+      to: email,
+      fullname: reg.user?.fullname,
+      eventTitle: event.title,
+      eventStart: event.startDate,
+      location: event.location,
+      eventId: String(event._id),
+    }).catch((err) => {
+      console.error(`[Email] Báo cập nhật sự kiện thất bại (${email}):`, err.message);
+    });
+  }
+};
+
 router.patch('/school-events/:id/approve', async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
@@ -1276,6 +1314,9 @@ router.patch('/school-events/:id/approve', async (req, res) => {
     }
     Object.assign(event, buildSchoolEventAdminApproveMeta(req.authEmail));
     await event.save();
+    notifyRegistrantsOfEventUpdate(event).catch((err) => {
+      console.error('notify registrants of event update:', err.message);
+    });
     createAndBroadcast({
       recipientRoles: [event.schoolOrganizerRole || 'ctsv'],
       recipientEmails: event.ctsvSubmittedByEmail ? [event.ctsvSubmittedByEmail] : [],
@@ -1317,6 +1358,14 @@ router.get('/school-events/moderation', async (req, res) => {
 router.patch('/school-events/:id/moderation/approve', async (req, res) => {
   try {
     const result = await approveModeration(req.params.id, req.authEmail);
+    // CLB sửa sự kiện đã duyệt: nội dung sửa được áp dụng và công khai lại ngay tại
+    // bước này ⇒ báo cho sinh viên đã đăng ký. (Sự kiện cấp trường chỉ mở khóa form ở
+    // đây, nội dung mới publish sau khi Admin duyệt lại ở /school-events/:id/approve.)
+    if (result.action === 'edit' && result.event?.source === 'club') {
+      notifyRegistrantsOfEventUpdate(result.event).catch((err) => {
+        console.error('notify registrants of event update:', err.message);
+      });
+    }
     createAndBroadcast({
       recipientRoles: ['ctsv', 'icpdp'],
       recipientEmails: [result.event?.moderationRequestedByEmail, result.event?.createdByEmail],

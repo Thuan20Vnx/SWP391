@@ -1,5 +1,6 @@
 import { getCategoryColor, getFillPercent } from './eventDiscoveryData';
 import { formatVnd, resolveEventPricing } from '../utils/ticketPricing';
+import { isRoleAudienceAllowed } from '../utils/eventTicketTypes';
 import { resolveEventSpeakers } from '../constants/eventSpeaker';
 import { getCategoryDisplayLabel } from '../constants/eventCategories';
 import { resolveEventDisplayImage, resolveSpeakerAvatarUrl } from '../utils/eventDisplay';
@@ -247,6 +248,13 @@ export const mapApiEventToDetail = (event, { viewerRole = 'guest' } = {}) => {
   const pricing = resolveEventPricing(event, viewerRole);
   const { listPrice, amountDue, priceLabel, studentPrivilegeApplied } = pricing;
 
+  // Vé chỉ mở cho sinh viên/khách theo audience — khóa nút cho đối tượng không thuộc nhóm.
+  const audienceAllowed = isRoleAudienceAllowed(viewerRole, event.ticketTypes);
+  const audienceBlockLabel =
+    String(viewerRole || 'guest').toLowerCase() === 'guest'
+      ? 'Chỉ dành cho SV/CB FPT'
+      : 'Chỉ dành cho khách ngoài trường';
+
   return {
     id: event._id,
     title: event.title,
@@ -298,15 +306,19 @@ export const mapApiEventToDetail = (event, { viewerRole = 'guest' } = {}) => {
     registrationNotOpen: Boolean(registrationNotOpen),
     registrationClosed: Boolean(registrationClosed),
     registrationStatus,
+    audienceBlocked: !audienceAllowed && !isRegistered,
     primaryActionLabel: registrationNotOpen
       ? (registrationOpenLabel ? `Mở đăng ký ${registrationOpenLabel}` : 'Chưa mở đăng ký')
       : registrationClosed
         ? 'Đã đóng đăng ký'
-        : pricing.primaryActionLabel || getPrimaryActionLabel(event, isRegistered, amountDue, listPrice),
+        : (!audienceAllowed && !isRegistered)
+          ? audienceBlockLabel
+          : pricing.primaryActionLabel || getPrimaryActionLabel(event, isRegistered, amountDue, listPrice),
     primaryDisabled:
       eventState === 'expired' ||
       Boolean(registrationNotOpen) ||
       Boolean(registrationClosed) ||
+      (!audienceAllowed && !isRegistered) ||
       (eventState !== 'postponed' &&
         !isRegistered &&
         capacity > 0 &&

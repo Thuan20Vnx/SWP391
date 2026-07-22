@@ -168,14 +168,11 @@ const getActiveEventRequestBundle = async (email) => {
     const ev = await Event.findById(activeRequest.eventId)
       .select('registeredCount settlement')
       .lean();
-    if (ev) {
-      if ((ev.registeredCount || 0) > 0) {
-        activeRequest.editLock = 'registered';
-        activeRequest.editLockReason = 'Sự kiện đã có người đăng ký nên không thể chỉnh sửa hay gửi lại yêu cầu.';
-      } else if (ev.settlement?.status === 'paid') {
-        activeRequest.editLock = 'settled';
-        activeRequest.editLockReason = 'Sự kiện đã được tất toán nên không thể chỉnh sửa hay gửi lại yêu cầu.';
-      }
+    // Sự kiện đã có người đăng ký VẪN cho sửa (gửi lại CTSV duyệt, sinh viên được báo
+    // qua email khi duyệt xong). Chỉ khóa khi đã tất toán doanh thu.
+    if (ev && ev.settlement?.status === 'paid') {
+      activeRequest.editLock = 'settled';
+      activeRequest.editLockReason = 'Sự kiện đã được tất toán nên không thể chỉnh sửa hay gửi lại yêu cầu.';
     }
   }
 
@@ -364,15 +361,13 @@ const cancelRequest = async (email, requestId) => {
   return toRequestApi(doc);
 };
 
-// Sự kiện đã có người đăng ký hoặc đã tất toán thì không cho chỉnh sửa/gửi lại lên CTSV.
+// Sự kiện đã có người đăng ký VẪN cho sửa (gửi lại CTSV duyệt, sinh viên được báo qua
+// email khi duyệt xong). Chỉ chặn khi đã tất toán doanh thu.
 const assertRequestEditable = async (doc) => {
   if (!doc?.eventId) return;
   const Event = require('../models/Event');
-  const ev = await Event.findById(doc.eventId).select('registeredCount settlement').lean();
+  const ev = await Event.findById(doc.eventId).select('settlement').lean();
   if (!ev) return;
-  if ((ev.registeredCount || 0) > 0) {
-    throw new AppError('Sự kiện đã có người đăng ký nên không thể chỉnh sửa hay gửi lại yêu cầu.', 400);
-  }
   if (ev.settlement?.status === 'paid') {
     throw new AppError('Sự kiện đã được tất toán nên không thể chỉnh sửa hay gửi lại yêu cầu.', 400);
   }

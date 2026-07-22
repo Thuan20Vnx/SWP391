@@ -1010,6 +1010,13 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
                   {registerLoading ? 'Đang xử lý...' : event.primaryActionLabel}
                 </button>
               )}
+              {event.audienceBlocked && !event.registrationNotOpen && !event.registrationClosed && (
+                <p className="event-detail-page__remind-hint">
+                  {viewerRole === 'guest'
+                    ? 'Sự kiện này chỉ mở đăng ký cho sinh viên / cán bộ FPT.'
+                    : 'Sự kiện này chỉ mở đăng ký cho khách ngoài trường.'}
+                </p>
+              )}
               {(event.isRegistered || event.myRegistration) && event.eventState !== 'expired' && buildGoogleCalendarUrl({
                 title: event.title,
                 start: event.startISO,

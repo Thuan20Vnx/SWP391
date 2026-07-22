@@ -977,7 +977,7 @@ router.patch('/events/:id/publish', requireSchoolEventSubmit, async (req, res) =
 });
 
 // PATCH /api/ctsv/events/:id/moderation — hủy / hoãn / ẩn (hoãn thời tiết: không cần Admin)
-router.patch('/events/:id/moderation', requireCtsvApprove, async (req, res) => {
+router.patch('/events/:id/moderation', requireProposalModerate, async (req, res) => {
   try {
     const { action, reason, isWeatherPostpone } = req.body || {};
     const result = await requestModeration(

@@ -32,6 +32,37 @@ export const audienceLabel = (audience) => {
   return opt?.label || audience || '—';
 };
 
+// Nhóm vai trò được coi là "nội bộ FPT" cho mục đích khớp vé (đồng bộ BE eventPricing).
+const STUDENT_SIDE_ROLES = new Set(['student', 'staff', 'partner']);
+
+/**
+ * Sự kiện đang mở cho nhóm đối tượng nào, suy từ các loại vé còn mở (qty > 0).
+ * Không khai báo ticketTypes (dữ liệu cũ) → không ràng buộc.
+ */
+export const resolveEventAudiences = (ticketTypes = []) => {
+  const open = (Array.isArray(ticketTypes) ? ticketTypes : []).filter(
+    (t) => (Number(t.qty) || 0) > 0
+  );
+  if (!open.length) return { allowsStudent: true, allowsGuest: true, restricted: false };
+  const set = new Set(open.map((t) => t.audience || 'SV FPT'));
+  const allowsStudent = set.has('SV FPT') || set.has('Tất cả');
+  const allowsGuest = set.has('Khách ngoài trường') || set.has('Tất cả');
+  return { allowsStudent, allowsGuest, restricted: true };
+};
+
+/**
+ * Vai trò người xem có được phép đăng ký sự kiện theo đối tượng vé không.
+ * Chỉ kết luận cho khách và nhóm nội bộ FPT; vai trò quản lý để BE quyết định (không chặn nút).
+ */
+export const isRoleAudienceAllowed = (role, ticketTypes = []) => {
+  const { allowsStudent, allowsGuest, restricted } = resolveEventAudiences(ticketTypes);
+  if (!restricted) return true;
+  const r = String(role || 'guest').toLowerCase();
+  if (r === 'guest') return allowsGuest;
+  if (STUDENT_SIDE_ROLES.has(r)) return allowsStudent;
+  return true;
+};
+
 export const totalTicketQty = (tickets = []) =>
   (tickets || []).reduce((sum, t) => sum + Math.max(0, Number(t.qty) || 0), 0);
 

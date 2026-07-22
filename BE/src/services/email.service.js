@@ -916,6 +916,39 @@ const sendStatusUpdateEmail = async ({ to, title, body, ctaUrl, ctaLabel }) => {
   return sendMail({ to, subject: title, html: htmlContent });
 };
 
+/**
+ * Báo cho sinh viên ĐÃ ĐĂNG KÝ khi sự kiện họ tham gia được chỉnh sửa và Admin đã
+ * duyệt lại (công khai trở lại). Kèm mốc thời gian/địa điểm mới để đối chiếu nhanh.
+ */
+const sendEventUpdatedEmail = async ({
+  to,
+  fullname,
+  eventTitle,
+  eventStart,
+  location,
+  eventId,
+}) => {
+  if (!to) return null;
+  const greeting = fullname ? `Xin chào ${fullname},` : 'Xin chào bạn,';
+  const eventUrl = eventId ? `${APP_URL}/events/${eventId}` : '';
+  const htmlContent = buildEmailShell({
+    title: `Sự kiện đã cập nhật: ${eventTitle} — F-Events`,
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#f26f21;font-weight:600;">Cập nhật sự kiện</p>
+      <h1 style="margin:0 0 18px;font-size:21px;font-weight:700;color:#1e293b;line-height:1.35;">${eventTitle}</h1>
+      <p style="margin:0 0 6px;font-size:15px;line-height:24px;color:#334155;">${greeting}</p>
+      <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#334155;">Sự kiện bạn đã đăng ký vừa được ban tổ chức <strong>chỉnh sửa</strong> và đã được duyệt lại. Vui lòng kiểm tra lại thông tin mới nhất bên dưới.</p>
+      ${infoCard(
+        (eventStart ? infoRow('Thời gian', fmtVnDateTime(eventStart)) : '') +
+        (location ? infoRow('Địa điểm', location) : '')
+      )}
+      ${eventUrl ? ctaButton(eventUrl, 'Xem chi tiết sự kiện') : ''}
+      <p style="margin:16px 0 0;font-size:13px;line-height:20px;color:#8a7b72;border-top:1px solid #f0e8e2;padding-top:18px;">Bạn nhận email này vì đã đăng ký tham gia sự kiện trên F-Events. Nếu thông tin mới không còn phù hợp, bạn có thể hủy vé trong mục "Vé của tôi".</p>
+    `,
+  });
+  return sendMail({ to, subject: `Sự kiện đã cập nhật: ${eventTitle}`, html: htmlContent });
+};
+
 const sendEventCheckoutThankYouEmail = async ({ to, fullname, eventTitle, eventId }) => {
   if (!to) return null;
   const eventUrl = eventId ? `${APP_URL}/events/${eventId}` : '';
@@ -1019,6 +1052,7 @@ const sendPartnerSettlementPaidEmail = async ({ to, partnerName, eventTitle, amo
 module.exports = {
   sendOtpEmail,
   sendStatusUpdateEmail,
+  sendEventUpdatedEmail,
   sendEventCheckoutThankYouEmail,
   sendReminderSignupEmail,
   sendRegistrationOpeningSoonEmail,
