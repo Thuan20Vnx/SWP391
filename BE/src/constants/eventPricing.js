@@ -1,7 +1,8 @@
+// Partner KHÔNG nằm trong nhóm miễn phí: đối tác là khách ngoài trường,
+// mua vé theo giá niêm yết và chiếm hạn ngạch vé khách.
 const STUDENT_FREE_ROLES = new Set([
   'student',
   'staff',
-  'partner',
   'club_manager',
   'ctsv',
   'icpdp',
