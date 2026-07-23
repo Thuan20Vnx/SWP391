@@ -1197,7 +1197,13 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
     throw new AppError('Không tìm thấy sự kiện!', 404);
   }
 
-  const isOwner = user?._id && String(event.createdBy?._id || event.createdBy) === String(user._id);
+  // "Owner" = người tạo HOẶC chủ nhiệm đang quản lý CLB của sự kiện — sau khi
+  // chuyển nhượng chủ nhiệm, createdBy vẫn là người cũ nên không thể chỉ so createdBy.
+  let isOwner = Boolean(user?._id && String(event.createdBy?._id || event.createdBy) === String(user._id));
+  if (!isOwner && user?._id && user.role === 'club_manager' && isValidClubId(event.clubId)) {
+    const managedClubs = await findManagedClubs(user._id);
+    isOwner = managedClubs.some((c) => String(c._id) === String(event.clubId));
+  }
   const isPublic = SCHOOL_EVENT_PUBLIC_STATUSES.includes(event.status) && event.isHidden !== true;
 
   if (!isPublic && !isOwner) {

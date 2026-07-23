@@ -56,22 +56,15 @@ const resolveQrExpiresAt = (body = {}) => {
   return new Date(now.getTime() + QR_TTL_MS);
 };
 
-const resolveManagedClub = async (userId) => {
-  let club = await Club.findOne({ managedBy: userId });
-  if (!club) {
-    const { MANAGED_CLUB_SLUG } = require('./club.service');
-    club = await Club.findOne({ slug: MANAGED_CLUB_SLUG });
-  }
-  return club;
-};
-
 const canUserManageEventQr = async (user, event) => {
   if (!user || !event) return false;
   if (user.role === 'admin') return true;
   if (user.role === 'club_manager' && event.source === 'club') {
     if (String(event.createdBy) === String(user._id)) return true;
-    const club = await resolveManagedClub(user._id);
-    return club && String(club.managedBy) === String(user._id);
+    // Phải đúng CLB của sự kiện — chủ nhiệm CLB khác không được quản lý QR.
+    if (!event.clubId) return false;
+    const club = await Club.findOne({ _id: event.clubId, managedBy: user._id }).select('_id').lean();
+    return Boolean(club);
   }
   if (user.role === 'icpdp' && event.source === 'school' && event.schoolOrganizerRole === 'icpdp') return true;
   if (user.role === 'ctsv') return ['school', 'partner', 'club'].includes(event.source);
