@@ -593,7 +593,9 @@ router.get('/events/:id', async (req, res) => {
     const canViewRoster =
       canRoleManageSchoolEvent(event, req.userRole)
       || req.userRole === 'admin'
-      || (req.userRole === 'ctsv' && event.source === 'partner');
+      || (req.userRole === 'ctsv' && event.source === 'partner')
+      // IC-PDP duyệt và theo dõi sự kiện CLB nên phải xem được danh sách sinh viên.
+      || (req.userRole === 'icpdp' && event.source === 'club');
     let students;
     if (canViewRoster) {
       const registrations = await EventRegistration.find({ event: event._id })

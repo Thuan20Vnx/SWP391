@@ -114,6 +114,7 @@ const Home = ({ showToast }) => {
   const [heroUnavailable, setHeroUnavailable] = useState(false);
 
   const [recommendTab, setRecommendTab] = useState('newest');
+  const [gridPage, setGridPage] = useState(1);
   const filterParamsRef = useRef({ debouncedSearch, categoryFilter });
   filterParamsRef.current = { debouncedSearch, categoryFilter };
 
@@ -255,10 +256,23 @@ const Home = ({ showToast }) => {
     [events, recommendTab, userProfile, isLoggedIn, isCtsvStaff]
   );
 
-  const filteredEvents = useMemo(
-    () => applyLocalFilters(sortedEvents).slice(0, HOME_DISPLAY_LIMIT),
+  // Toàn bộ sự kiện đang mở (đã loại sự kiện kết thúc từ filterActiveDiscoveryEvents),
+  // chia trang HOME_DISPLAY_LIMIT sự kiện/trang thay vì cắt cứng 6 sự kiện đầu.
+  const allFilteredEvents = useMemo(
+    () => applyLocalFilters(sortedEvents),
     [sortedEvents, timeFilter]
   );
+  const gridTotalPages = Math.max(1, Math.ceil(allFilteredEvents.length / HOME_DISPLAY_LIMIT));
+  const safeGridPage = Math.min(gridPage, gridTotalPages);
+  const filteredEvents = useMemo(
+    () => allFilteredEvents.slice((safeGridPage - 1) * HOME_DISPLAY_LIMIT, safeGridPage * HOME_DISPLAY_LIMIT),
+    [allFilteredEvents, safeGridPage]
+  );
+
+  // Đổi bộ lọc / tab gợi ý / từ khóa thì quay về trang 1.
+  useEffect(() => {
+    setGridPage(1);
+  }, [debouncedSearch, categoryFilter, timeFilter, recommendTab]);
 
   const heroSlides = useMemo(() => {
     // Không sắp xếp lại ở đây — mapEventsToHeroSlides đã ưu tiên sự kiện sắp diễn ra.
@@ -462,6 +476,7 @@ const Home = ({ showToast }) => {
             </button>
           </div>
         ) : filteredEvents.length > 0 ? (
+          <>
           <section className="event-discovery-grid">
             {filteredEvents.map((event) => {
               const cardProps = resolveDiscoveryCardProps({
@@ -491,6 +506,30 @@ const Home = ({ showToast }) => {
               );
             })}
           </section>
+          {gridTotalPages > 1 && (
+            <nav className="events-page__load-more-wrap" aria-label="Phân trang sự kiện nổi bật">
+              <button
+                type="button"
+                className="events-page__page-btn"
+                onClick={() => setGridPage(Math.max(1, safeGridPage - 1))}
+                disabled={safeGridPage === 1}
+              >
+                Trước
+              </button>
+              <span className="events-page__page-status" aria-live="polite">
+                Trang {safeGridPage} / {gridTotalPages}
+              </span>
+              <button
+                type="button"
+                className="events-page__page-btn"
+                onClick={() => setGridPage(Math.min(gridTotalPages, safeGridPage + 1))}
+                disabled={safeGridPage === gridTotalPages}
+              >
+                Sau
+              </button>
+            </nav>
+          )}
+          </>
         ) : (
           <div className="no-events-card">
             <svg viewBox="0 0 24 24" width="64" height="64" className="no-events-icon">

@@ -48,6 +48,11 @@ const formatEvent = (doc, opts = {}) => {
     totalTickets: cap,
     capacity: cap,
     registeredCount: o.registeredCount || 0,
+    // Thẻ Đánh giá / Lượt tiếp cận trên dashboard CTSV / IC-PDP / Admin —
+    // thiếu các field này thì luôn hiện 0.0 dù sự kiện đã có review.
+    averageRating: o.averageRating ?? 0,
+    reviewCount: o.reviewCount ?? 0,
+    reach: o.reach || 0,
     status: STATUS_LABELS[o.status] || o.status,
     statusKey: o.status,
     image: cover.image,

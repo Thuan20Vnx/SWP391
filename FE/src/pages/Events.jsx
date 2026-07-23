@@ -26,7 +26,8 @@ import {
 
 const PAGE_SIZE = 6;
 const USE_FIGMA_FALLBACK = false;
-const DEFAULT_STATE_FILTER = 'open';
+// Mặc định hiện đủ mọi sự kiện (đang mở, hết vé, đã kết thúc, bị hoãn).
+const DEFAULT_STATE_FILTER = 'all';
 
 const ORGANIZER_SELECT_OPTIONS = ORGANIZER_FILTERS.map((f) => ({
   value: f.id,
@@ -399,6 +400,7 @@ const Events = ({ showToast }) => {
         ) : visibleEvents.length === 0 ? (
           <div className="events-page__empty">
             <p>
+              {stateFilter === 'all' && 'Chưa có sự kiện nào phù hợp bộ lọc.'}
               {stateFilter === 'expired' && 'Chưa có sự kiện đã kết thúc trong bộ lọc này.'}
               {stateFilter === 'postponed' && 'Không có sự kiện bị hoãn.'}
               {stateFilter === 'open' && 'Không có sự kiện đang mở đăng ký.'}

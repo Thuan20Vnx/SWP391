@@ -22,6 +22,7 @@ export const CATEGORY_FILTERS = [
 ];
 
 export const STATE_FILTERS = [
+  { id: 'all', label: 'Tất cả' },
   { id: 'open', label: 'Đang mở' },
   { id: 'expired', label: 'Đã kết thúc' },
   { id: 'postponed', label: 'Bị hoãn' },
