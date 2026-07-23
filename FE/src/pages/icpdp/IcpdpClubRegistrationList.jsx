@@ -216,11 +216,11 @@ const IcpdpClubRegistrationList = () => {
           phone: form.phone.trim(),
           description: form.description.trim(),
         });
-        showToast?.('Đã tạo CLB mới — CLB hoạt động ngay, Admin được thông báo.', 'success');
+        showToast?.('Đã tạo đơn CLB — chờ Admin phê duyệt.', 'success');
         setModal(null);
         setView('registrations');
-        setStatusFilter('approved');
-        load('approved');
+        setStatusFilter('pending_admin');
+        load('pending_admin');
       } catch (err) {
         showToast?.(err.message || 'Tạo CLB thất bại.', 'error');
       } finally {
@@ -280,8 +280,8 @@ const IcpdpClubRegistrationList = () => {
           <span className="ctsv-events-eyebrow">IC-PDP · Câu lạc bộ</span>
           <h1>Quản lý câu lạc bộ</h1>
           <p>
-            Duyệt đơn thành lập CLB mới và quản lý (sửa/xóa) các CLB đang hoạt động. IC-PDP là cấp
-            quyết định — CLB được tạo ngay khi duyệt, Admin chỉ nhận thông báo.
+            Duyệt đơn thành lập CLB mới và quản lý (sửa/xóa) các CLB đang hoạt động. Đơn do IC-PDP tạo sẽ
+            chuyển thẳng cho Admin phê duyệt; riêng chuyển nhượng chủ nhiệm do IC-PDP duyệt.
           </p>
         </div>
         <div className="ctsv-events-hero-aside">
@@ -573,8 +573,8 @@ const IcpdpClubRegistrationList = () => {
             <div className="icpdp-cm-body">
               {isCreate && (
                 <p className="icpdp-cm-hint">
-                  CLB được tạo và kích hoạt ngay khi bấm lưu — hệ thống gán quyền chủ nhiệm cho email đã nhập
-                  (sinh viên hoặc chủ nhiệm CLB khác kiêm nhiệm). Admin sẽ nhận thông báo.
+                  Đơn thành lập sẽ được gửi cho Admin phê duyệt. Sau khi duyệt, hệ thống tạo CLB và gán quyền
+                  chủ nhiệm cho email đã nhập (sinh viên hoặc chủ nhiệm CLB khác kiêm nhiệm).
                 </p>
               )}
               <div className="icpdp-cm-field">

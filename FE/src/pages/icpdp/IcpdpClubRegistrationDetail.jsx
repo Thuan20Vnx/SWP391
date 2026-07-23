@@ -75,8 +75,7 @@ const IcpdpClubRegistrationDetail = () => {
     );
   }
 
-  // pending_admin: đơn tồn từ luồng cũ — IC-PDP giờ tự duyệt luôn được.
-  const canIcpdpForward = !isAdmin && ['pending_icpdp', 'revision', 'pending_admin'].includes(registration.statusKey);
+  const canIcpdpForward = !isAdmin && ['pending_icpdp', 'revision'].includes(registration.statusKey);
   const canAdminApprove = isAdmin && registration.statusKey === 'pending_admin';
   const canIcpdpReject = !isAdmin && ['pending_icpdp', 'revision'].includes(registration.statusKey);
   const canAdminReject = isAdmin && registration.statusKey === 'pending_admin';
@@ -275,7 +274,7 @@ const IcpdpClubRegistrationDetail = () => {
       {canIcpdpForward && (
         <div className="icpdp-view-banner" style={{ borderColor: 'rgba(124, 58, 237, 0.35)', background: '#fff' }}>
           <p>
-            IC-PDP rà soát đơn và <strong>duyệt để tạo CLB ngay</strong> — Admin chỉ nhận thông báo, không cần duyệt.
+            IC-PDP rà soát đơn, sau đó <strong>chuyển Admin phê duyệt cuối</strong> để tạo CLB trên hệ thống.
           </p>
         </div>
       )}
@@ -471,7 +470,7 @@ const IcpdpClubRegistrationDetail = () => {
                     disabled={submitting}
                     onClick={handleForward}
                   >
-                    Duyệt & tạo CLB
+                    Chuyển Admin duyệt
                   </button>
                   <button
                     type="button"
@@ -524,7 +523,7 @@ const IcpdpClubRegistrationDetail = () => {
               </p>
             )}
             <p className="icpdp-club-reg-hint">
-              Bạn có thể sửa lại thông tin và duyệt lại — CLB sẽ được tạo ngay, Admin nhận thông báo.
+              Bạn có thể sửa lại thông tin và gửi lại đơn cho Admin phê duyệt.
             </p>
             <div className="icpdp-club-reg-actions__btns">
               <button
@@ -595,7 +594,7 @@ const IcpdpClubRegistrationDetail = () => {
                 disabled={submitting}
                 onClick={handleResubmit}
               >
-                {submitting ? 'Đang xử lý…' : 'Sửa & duyệt lại'}
+                {submitting ? 'Đang gửi…' : 'Gửi lại cho Admin'}
               </button>
               <button
                 type="button"

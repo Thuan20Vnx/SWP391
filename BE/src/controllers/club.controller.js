@@ -132,31 +132,6 @@ const rejectChairmanTransfer = async (req, res) => {
   res.status(200).json({ success: true, ...result });
 };
 
-const submitClubRegistration = async (req, res) => {
-  try {
-    const registration = await clubRegistrationService.createRegistration(req.body, {
-      email: req.authEmail,
-      userId: req.user?._id,
-    });
-    createAndBroadcast({
-      recipientRoles: ['icpdp'],
-      title: 'Đơn thành lập CLB mới',
-      body: `${registration.clubName || 'Một CLB'} vừa gửi đơn thành lập và đang chờ xét duyệt.`,
-      type: 'club_submit',
-      refId: String(registration.id || registration._id || ''),
-      refType: 'club_registration'
-    }).catch(() => {});
-    res.status(201).json({
-      success: true,
-      registration,
-      message: 'Đã gửi đơn thành lập CLB — chờ IC-PDP xét duyệt.',
-    });
-  } catch (error) {
-    const status = error.statusCode || 500;
-    res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
-  }
-};
-
 const handleTimelineError = (res, error) => {
   const status = error.statusCode || 500;
   res.status(status).json({ success: false, message: error.message || 'Lỗi máy chủ nội bộ!' });
@@ -426,7 +401,6 @@ module.exports = {
   approveChairmanTransfer,
   rejectChairmanTransfer,
   getManagedClubs,
-  submitClubRegistration,
   listSemesterTimelines,
   getSemesterTimeline,
   getSemesterTimelinePlan,

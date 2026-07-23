@@ -19,7 +19,7 @@ const notifyClubRegistrationApproved = async (registration, club) => {
       emailService.sendStatusUpdateEmail({
         to: registration.presidentEmail,
         title: `CLB "${clubName}" đã được duyệt`,
-        body: `Chúc mừng! Đơn thành lập CLB "${clubName}" đã được IC-PDP phê duyệt và bạn được giao làm Chủ nhiệm CLB. Bạn có thể bắt đầu quản lý CLB, tạo timeline và đề xuất sự kiện trên F-Events.`,
+        body: `Chúc mừng! Đơn thành lập CLB "${clubName}" đã được Admin phê duyệt và bạn được giao làm Chủ nhiệm CLB. Bạn có thể bắt đầu quản lý CLB, tạo timeline và đề xuất sự kiện trên F-Events.`,
         ctaUrl: clubUrl,
         ctaLabel: 'Xem CLB',
       })
@@ -124,36 +124,8 @@ const getRegistrationById = async (id) => {
   return formatClubRegistration(row);
 };
 
-const createRegistration = async (payload, submitter = {}) => {
-  const categories = Club.CATEGORIES || [];
-  if (!categories.includes(payload.category)) {
-    const err = new Error('Lĩnh vực CLB không hợp lệ!');
-    err.statusCode = 400;
-    throw err;
-  }
-  const email = String(submitter.email || payload.presidentEmail || '').trim().toLowerCase();
-  const registration = await ClubRegistration.create({
-    clubName: payload.clubName,
-    proposedSlug: payload.proposedSlug || '',
-    category: payload.category,
-    description: payload.description,
-    president: payload.president,
-    presidentEmail: payload.presidentEmail,
-    contactEmail: payload.contactEmail || payload.presidentEmail,
-    phone: payload.phone || '',
-    facebook: payload.facebook || '',
-    website: payload.website || '',
-    activityField: payload.activityField || '',
-    scale: payload.scale || '',
-    logoText: payload.logoText || '',
-    logoColor: payload.logoColor || '#7c3aed',
-    coverImage: payload.coverImage || '',
-    submittedByEmail: email,
-    submittedByUser: submitter.userId || null,
-    status: 'pending_icpdp',
-  });
-  return formatClubRegistration(registration);
-};
+// Luồng sinh viên tự gửi đơn thành lập CLB đã bỏ — chỉ IC-PDP tạo đơn
+// (icpdpCreateRegistration) rồi Admin phê duyệt cuối.
 
 const createClubFromRegistration = async (registration, session) => {
   const baseSlug = slugify(registration.proposedSlug || registration.clubName);
@@ -236,27 +208,30 @@ const finalizeApproval = async (registration, { note, reviewerEmail, noteField =
   };
 };
 
-/**
- * IC-PDP phê duyệt cuối — tạo CLB ngay, Admin chỉ nhận thông báo (không duyệt).
- * Nhận cả đơn pending_admin cũ còn tồn để IC-PDP tự chốt nốt.
- */
-const icpdpApproveRegistration = async (id, { note, reviewerEmail } = {}) => {
+/** IC-PDP rà soát và chuyển Admin phê duyệt cuối */
+const icpdpForwardToAdmin = async (id, { note, reviewerEmail } = {}) => {
   const registration = await ClubRegistration.findById(id);
   if (!registration) {
     const err = new Error('Không tìm thấy đơn đăng ký CLB!');
     err.statusCode = 404;
     throw err;
   }
-  if (!['pending_icpdp', 'revision', 'pending_admin'].includes(registration.status)) {
+  if (!['pending_icpdp', 'revision'].includes(registration.status)) {
     const err = new Error('Đơn không ở trạng thái chờ IC-PDP xử lý!');
     err.statusCode = 400;
     throw err;
   }
 
-  return finalizeApproval(registration, { note, reviewerEmail, noteField: 'icpdpNote' });
+  registration.status = 'pending_admin';
+  registration.icpdpNote = String(note || '').trim();
+  registration.reviewedByEmail = reviewerEmail || '';
+  registration.reviewedAt = new Date();
+  await registration.save();
+
+  return formatClubRegistration(registration);
 };
 
-/** Admin phê duyệt (giữ cho các đơn pending_admin cũ) — tạo CLB */
+/** Admin phê duyệt cuối — tạo CLB */
 const adminApproveRegistration = async (id, { note, reviewerEmail } = {}) => {
   const registration = await ClubRegistration.findById(id);
   if (!registration) {
@@ -284,7 +259,7 @@ const rejectRegistration = async (id, { reason, reviewerEmail, reviewerRole } = 
   const allowedByRole =
     reviewerRole === 'admin'
       ? ['pending_admin']
-      : ['pending_icpdp', 'revision', 'pending_admin'];
+      : ['pending_icpdp', 'revision'];
 
   if (!allowedByRole.includes(registration.status)) {
     const err = new Error('Đơn không thể từ chối ở trạng thái hiện tại!');
@@ -408,14 +383,14 @@ const icpdpResubmitRegistration = async (id, payload = {}, creatorEmail) => {
     registration.description = String(payload.description || '').trim() || registration.description;
   }
 
+  registration.status = 'pending_admin';
   registration.rejectionReason = '';
   registration.adminNote = '';
-  registration.icpdpNote = 'Đơn được IC-PDP sửa và duyệt lại.';
-
-  // IC-PDP sửa xong là duyệt luôn — tạo CLB, không cần Admin duyệt.
-  return finalizeApproval(registration, {
-    reviewerEmail: String(creatorEmail || '').trim().toLowerCase(),
-  });
+  registration.icpdpNote = 'Đơn được IC-PDP sửa và gửi lại.';
+  registration.reviewedByEmail = String(creatorEmail || '').trim().toLowerCase();
+  registration.reviewedAt = new Date();
+  await registration.save();
+  return formatClubRegistration(registration);
 };
 
 /** IC-PDP hủy gửi đơn đang chờ Admin duyệt. */
@@ -444,7 +419,7 @@ const countPendingForRole = (viewerRole) => {
   return ClubRegistration.countDocuments({ status: 'pending_icpdp' });
 };
 
-// IC-PDP tự tạo đơn thành lập CLB → tạo CLB ngay, Admin chỉ nhận thông báo.
+// IC-PDP tự tạo đơn thành lập CLB → gửi thẳng cho Admin phê duyệt.
 const icpdpCreateRegistration = async (payload, creatorEmail) => {
   const categories = Club.CATEGORIES || [];
   if (!payload.clubName || !String(payload.clubName).trim()) {
@@ -492,23 +467,18 @@ const icpdpCreateRegistration = async (payload, creatorEmail) => {
     icpdpNote: 'Đơn do IC-PDP tạo trực tiếp.',
     reviewedByEmail: String(creatorEmail || '').trim().toLowerCase(),
     reviewedAt: new Date(),
-    status: 'pending_icpdp',
+    status: 'pending_admin',
   });
-
-  // IC-PDP là cấp duyệt cuối: tạo CLB ngay trong cùng thao tác.
-  return finalizeApproval(registration, {
-    reviewerEmail: String(creatorEmail || '').trim().toLowerCase(),
-  });
+  return formatClubRegistration(registration);
 };
 
 module.exports = {
   listRegistrations,
   getRegistrationById,
-  createRegistration,
   icpdpCreateRegistration,
   icpdpResubmitRegistration,
   icpdpCancelRegistration,
-  icpdpApproveRegistration,
+  icpdpForwardToAdmin,
   adminApproveRegistration,
   rejectRegistration,
   requestRevision,

@@ -11,12 +11,8 @@ const router = express.Router();
 
 router.get('/', optionalAuth, optionalAuthorize, asyncHandler(clubController.getClubs));
 
-router.post(
-  '/registrations',
-  authMiddleware,
-  authorize('student', 'staff', 'club_manager'),
-  asyncHandler(clubController.submitClubRegistration)
-);
+// Không còn luồng sinh viên tự gửi đơn thành lập CLB — chỉ IC-PDP tạo đơn
+// (POST /api/admin/club-registrations) rồi Admin phê duyệt cuối.
 
 router.get(
   '/manage/clubs',
