@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { parseScanQrPayload } from '../utils/parseScanQrUrl';
 
@@ -8,6 +8,7 @@ const QrCameraScanner = ({ onScan, onError, paused = false }) => {
   const handledRef = useRef(false);
   const [cameraError, setCameraError] = useState('');
   const [starting, setStarting] = useState(true);
+  const [decoded, setDecoded] = useState(false);
 
   useEffect(() => {
     if (paused) return undefined;
@@ -17,6 +18,19 @@ const QrCameraScanner = ({ onScan, onError, paused = false }) => {
     const scanner = new Html5Qrcode(regionId, { verbose: false });
     scannerRef.current = scanner;
 
+    // stop() reject nếu scanner chưa/không còn chạy; clear() là hàm sync.
+    const stopScanner = () =>
+      scanner
+        .stop()
+        .catch(() => {})
+        .finally(() => {
+          try {
+            scanner.clear();
+          } catch {
+            /* vùng render đã bị React gỡ */
+          }
+        });
+
     const handleDecoded = (decodedText) => {
       if (handledRef.current || cancelled) return;
       const payload = parseScanQrPayload(decodedText);
@@ -25,51 +39,50 @@ const QrCameraScanner = ({ onScan, onError, paused = false }) => {
         return;
       }
       handledRef.current = true;
-      scanner
-        .stop()
-        .catch(() => {})
-        .finally(() => {
-          scanner.clear().catch(() => {});
-          onScan?.(payload);
-        });
+      setDecoded(true);
+      onScan?.(payload);
+      stopScanner();
     };
 
-    const startScanner = async () => {
-      setStarting(true);
-      setCameraError('');
-      try {
-        await scanner.start(
-          { facingMode: 'environment' },
-          {
-            fps: 10,
-            qrbox: (viewfinderWidth, viewfinderHeight) => {
-              const edge = Math.min(viewfinderWidth, viewfinderHeight) * 0.72;
-              return { width: edge, height: edge };
-            },
-            aspectRatio: 1,
+    setStarting(true);
+    setCameraError('');
+    setDecoded(false);
+
+    // Giữ promise của start() để cleanup đợi xong mới stop. Nếu stop ngay khi
+    // start còn dang dở (StrictMode mount đôi, bấm Quét lại đổi key), stop()
+    // reject vì "chưa chạy" còn stream camera của start cũ vẫn giữ thiết bị
+    // → lần mở sau chỉ thấy khung đen.
+    const startPromise = scanner
+      .start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const edge = Math.min(viewfinderWidth, viewfinderHeight) * 0.72;
+            return { width: edge, height: edge };
           },
-          handleDecoded,
-          () => {}
-        );
-        if (!cancelled) setStarting(false);
-      } catch {
+          aspectRatio: 1,
+        },
+        handleDecoded,
+        () => {}
+      )
+      .then(() => {
+        if (cancelled) {
+          stopScanner();
+          return;
+        }
+        setStarting(false);
+      })
+      .catch(() => {
         if (cancelled) return;
         setCameraError('Không mở được camera. Hãy cấp quyền camera hoặc nhập mã điểm danh bên dưới.');
         setStarting(false);
         onError?.('Không mở được camera.');
-      }
-    };
-
-    startScanner();
+      });
 
     return () => {
       cancelled = true;
-      scanner
-        .stop()
-        .catch(() => {})
-        .finally(() => {
-          scanner.clear().catch(() => {});
-        });
+      startPromise.finally(stopScanner);
       scannerRef.current = null;
     };
   }, [regionId, onScan, onError, paused]);
@@ -78,10 +91,10 @@ const QrCameraScanner = ({ onScan, onError, paused = false }) => {
     <div className="qr-scan-camera">
       <div className="qr-scan-camera__frame">
         <div id={regionId} className="qr-scan-camera__viewport" aria-label="QR scanner viewfinder" />
-        {starting && !cameraError && (
+        {(starting || decoded) && !cameraError && (
           <div className="qr-scan-camera__overlay">
             <span className="btn-spinner qr-scan-camera__spinner" aria-hidden="true" />
-            <p>Đang mở camera…</p>
+            <p>{decoded ? 'Đang xử lý mã QR…' : 'Đang mở camera…'}</p>
           </div>
         )}
       </div>

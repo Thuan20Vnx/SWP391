@@ -4,6 +4,8 @@ import QRCode from 'qrcode';
 
 import AppSelect from '../ui/AppSelect';
 
+import VnDateTimeInput from '../ui/VnDateTimeInput';
+
 import { fetchStationQr, generateStationQr } from '../../services/scannerApi';
 
 const DURATION_OPTIONS = [
@@ -83,8 +85,7 @@ const QrExpiryForm = ({ expiryMode, onModeChange, durationMinutes, onDurationCha
         placeholder="Chọn thời gian"
       />
     ) : (
-      <input
-        type="datetime-local"
+      <VnDateTimeInput
         className="ev-qr-expiry-datetime"
         value={expiresAtLocal}
         min={toLocalDatetimeValue()}
@@ -257,10 +258,13 @@ const QrCard = ({ title, description, action, eventId, station, generating, onGe
         <div className="ev-qr-attendance-code">
           <span className="ev-qr-attendance-code__label">Mã điểm danh</span>
           <div className="ev-qr-attendance-code__row">
-            <code className="ev-qr-attendance-code__value">{station.attendanceCode}</code>
+            {/* Ẩn mã thì che luôn mã điểm danh — chiếu màn hình mà lộ mã 6 ký tự
+                thì sinh viên vắng mặt vẫn nhập được từ xa. */}
+            <code className="ev-qr-attendance-code__value">{hidden ? '••••••' : station.attendanceCode}</code>
             <button
               type="button"
               className="ev-btn-outline ev-btn-sm"
+              disabled={hidden}
               onClick={() => {
                 navigator.clipboard?.writeText(station.attendanceCode);
                 showToast?.('Đã sao chép mã điểm danh.', 'success');

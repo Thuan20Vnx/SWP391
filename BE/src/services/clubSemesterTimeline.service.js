@@ -120,6 +120,12 @@ const normalizeItems = (items) => {
       if (plannedDate) {
         assertOnOrAfterToday(plannedDate, 'Thời gian bắt đầu dự kiến');
       }
+      if (plannedDate && plannedEndDate && plannedEndDate <= plannedDate) {
+        throw new AppError(
+          `Mốc "${String(item.title || '').trim() || 'chưa đặt tên'}": thời gian kết thúc dự kiến phải sau thời gian bắt đầu.`,
+          400
+        );
+      }
       return {
         title: String(item.title || '').trim(),
         description: String(item.description || '').trim(),
