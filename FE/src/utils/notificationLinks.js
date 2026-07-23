@@ -9,6 +9,7 @@ export const TYPE_TO_TONE = {
   club_reject: 'alert',
   club_revision: 'warning',
   event_revision: 'warning',
+  club_new_event: 'success',
   event_change_approve: 'success',
   event_change_reject: 'alert',
   event_change_submit: 'info',
@@ -52,6 +53,11 @@ export const refToLink = (refType, refId, role) => {
   if (refType === 'club_registration') {
     if (role === 'admin') return `/admin/icpdp/club-registrations/${refId}`;
     if (role === 'icpdp') return `/icpdp/club-registrations/${refId}`;
+    return '/quan-ly-clb';
+  }
+  if (refType === 'club_transfer_request') {
+    if (role === 'admin') return '/admin/icpdp/club-registrations';
+    if (role === 'icpdp') return '/icpdp/club-registrations';
     return '/quan-ly-clb';
   }
   if (refType === 'semester_timeline') {

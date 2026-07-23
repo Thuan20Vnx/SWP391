@@ -82,7 +82,9 @@ export const persistClubSidebarMode = (mode) => {
 export const isClubDesktop = () => window.matchMedia('(min-width: 1024px)').matches;
 export const isClubNavActive = (key, activeNav) => activeNav === key;
 
-export const CLUB_PORTAL_HOME_NAV = 'list';
+// Trang "home" của portal CLB: Dashboard thống kê — bấm "Quản lý CLB" ở header
+// là thấy tổng quan số liệu thay vì rơi thẳng vào danh sách sự kiện.
+export const CLUB_PORTAL_HOME_NAV = 'dashboard';
 
 export const resolveClubActiveNav = (pathname) => {
   if (pathname.startsWith('/quan-ly-clb/announcements')) return 'announcements';
@@ -144,9 +146,9 @@ export const navigateClubNavItem = ({
   }
 };
 
-/** Header / menu chính — luôn mở trang danh sách sự kiện, không nhớ tab "Tạo đề xuất" */
+/** Header / menu chính — mở Dashboard thống kê kèm sidebar để nhận ra đang ở portal */
 export const navigateClubPortalHome = (navigate, pathname = '', options = {}) => {
-  const { keepSidebarOpen = false } = options;
+  const { keepSidebarOpen = true } = options;
 
   try {
     sessionStorage.setItem('clb_active_nav', CLUB_PORTAL_HOME_NAV);

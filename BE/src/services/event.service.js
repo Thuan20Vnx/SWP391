@@ -201,6 +201,34 @@ const notifyClubEventDecision = async (event, status, rejectionReason = '') => {
   }
 };
 
+// Báo chuông cho những người đang theo dõi CLB khi CLB có sự kiện mới được duyệt.
+const notifyClubFollowersNewEvent = async (event) => {
+  try {
+    if (!isClubManagedEvent(event) || !event.clubId) return;
+    const ClubFollow = require('../models/ClubFollow');
+    const [club, follows] = await Promise.all([
+      Club.findById(event.clubId).select('name').lean(),
+      ClubFollow.find({ club: event.clubId, status: 'following' })
+        .populate('user', 'email')
+        .lean(),
+    ]);
+    const emails = follows.map((f) => f.user?.email).filter(Boolean);
+    if (!emails.length) return;
+    const clubName = club?.name || event.clubName || 'CLB bạn theo dõi';
+    createAndBroadcast({
+      recipientEmails: emails,
+      title: `${clubName} vừa có sự kiện mới`,
+      body: `Sự kiện "${event.title || 'Sự kiện mới'}" đã mở — xem chi tiết và đăng ký ngay.`,
+      type: 'club_new_event',
+      refId: String(event._id),
+      // refType 'Event' → chuông dẫn tới /events/:id, không nằm nhóm gửi email hàng loạt.
+      refType: 'Event',
+    }).catch(() => {});
+  } catch (err) {
+    console.error('[notifyClubFollowersNewEvent]', err.message);
+  }
+};
+
 const notifyClubProposalDeletedToIcpdp = async (event, { clubName = '' } = {}) => {
   if (!isClubManagedEvent(event) && event.source !== 'club') return;
 
@@ -882,6 +910,9 @@ const updateEventStatus = async (eventId, { status, rejectionReason, authEmail }
 
   if (isClubManagedEvent(event)) {
     notifyClubEventDecision(event, status, rejectionReason).catch(() => {});
+    if (status === 'approved') {
+      notifyClubFollowersNewEvent(event).catch(() => {});
+    }
   }
 
   return {
