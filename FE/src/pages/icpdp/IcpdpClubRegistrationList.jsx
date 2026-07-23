@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useOutletContext } from 'react-router-dom';
+import { Link, useLocation, useOutletContext, useSearchParams } from 'react-router-dom';
 import { fetchClubRegistrations, createClubRegistration } from '../../services/adminApi';
 import { fetchIcpdpClubs, updateIcpdpClub, deleteIcpdpClub } from '../../services/clubTimelineApi';
 import {
@@ -56,7 +56,12 @@ const IcpdpClubRegistrationList = () => {
   const { showToast } = useOutletContext() || {};
   const { pathname } = useLocation();
   const basePath = resolveBasePath(pathname);
-  const [view, setView] = useState('registrations');
+  const [searchParams] = useSearchParams();
+  // ?view=clubs|transfers — cho phép banner/thông báo mở thẳng đúng tab.
+  const initialView = ['clubs', 'transfers'].includes(searchParams.get('view'))
+    ? searchParams.get('view')
+    : 'registrations';
+  const [view, setView] = useState(initialView);
 
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);

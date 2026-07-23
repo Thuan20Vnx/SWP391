@@ -49,13 +49,16 @@ const applyApprovedChange = async (request, club) => {
     return;
   }
 
+  // Ô bỏ trống trong đề xuất nghĩa là "không đổi" — payload subdoc luôn default ''
+  // nên không được ghi đè giá trị rỗng (description rỗng còn làm Club validation
+  // nổ "Path `description` is required").
   const patch = request.payload || {};
   if (patch.name?.trim()) club.name = patch.name.trim();
-  if (patch.category) club.category = patch.category;
-  if (patch.description !== undefined) club.description = patch.description;
-  if (patch.president !== undefined) club.president = patch.president;
-  if (patch.email !== undefined) club.email = patch.email;
-  if (patch.hotline !== undefined) club.hotline = patch.hotline;
+  if (patch.category?.trim()) club.category = patch.category.trim();
+  if (patch.description?.trim()) club.description = patch.description.trim();
+  if (patch.president?.trim()) club.president = patch.president.trim();
+  if (patch.email?.trim()) club.email = patch.email.trim();
+  if (patch.hotline?.trim()) club.hotline = patch.hotline.trim();
   await club.save();
 };
 
@@ -98,6 +101,17 @@ const rejectChangeRequest = async (id, { adminNote, processorEmail }) => {
   return { request: formatClubChangeRequest(request, club) };
 };
 
+/**
+ * Sửa "nhỏ" (chủ nhiệm hiển thị, email liên hệ, hotline, mô tả) không cần Admin
+ * duyệt — chỉ đổi tên CLB / lĩnh vực mới phải qua Admin.
+ */
+const isMinorEditOnly = (club, payload = {}) => {
+  const nameChanged = Boolean(payload.name?.trim()) && payload.name.trim() !== (club.name || '');
+  const categoryChanged =
+    Boolean(payload.category?.trim()) && payload.category.trim() !== (club.category || '');
+  return !nameChanged && !categoryChanged;
+};
+
 const createChangeRequest = async (user, clubId, body) => {
   const { requestType, reason, payload } = body;
 
@@ -121,6 +135,29 @@ const createChangeRequest = async (user, clubId, body) => {
   });
   if (pendingExists) {
     throw new AppError('Đã có yêu cầu đang chờ xử lý cho CLB này!', 400);
+  }
+
+  // Sửa thông tin liên hệ / mô tả: áp dụng ngay, lưu bản ghi đã duyệt để truy vết,
+  // Admin chỉ nhận thông báo.
+  if (requestType === 'edit' && isMinorEditOnly(club, payload)) {
+    const row = await ClubChangeRequest.create({
+      clubId: club._id,
+      requestType,
+      status: 'approved',
+      reason: reason.trim(),
+      payload: payload || {},
+      snapshot: buildClubSnapshot(club),
+      requestedByEmail: user.email,
+      requestedByName: user.fullname || '',
+      adminNote: 'Tự động áp dụng — thay đổi thông tin liên hệ không cần Admin duyệt.',
+      processedByEmail: user.email,
+    });
+    await applyApprovedChange(row, club);
+    return {
+      message: 'Đã cập nhật thông tin CLB — thay đổi liên hệ áp dụng ngay, không cần Admin duyệt.',
+      request: formatClubChangeRequest(row, club),
+      autoApplied: true,
+    };
   }
 
   const row = await ClubChangeRequest.create({

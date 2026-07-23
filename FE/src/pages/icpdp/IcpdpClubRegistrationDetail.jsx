@@ -75,6 +75,11 @@ const IcpdpClubRegistrationDetail = () => {
     );
   }
 
+  // CLB tạo từ đơn này đã bị xóa/ngừng hoạt động (sau khi Admin duyệt yêu cầu xóa).
+  const clubRemoved =
+    registration.statusKey === 'approved' &&
+    Boolean(registration.clubStatus) &&
+    registration.clubStatus !== 'active';
   const canIcpdpForward = !isAdmin && ['pending_icpdp', 'revision'].includes(registration.statusKey);
   const canAdminApprove = isAdmin && registration.statusKey === 'pending_admin';
   const canIcpdpReject = !isAdmin && ['pending_icpdp', 'revision'].includes(registration.statusKey);
@@ -258,9 +263,13 @@ const IcpdpClubRegistrationDetail = () => {
         <div className="ctsv-ed-hero-body" style={{ flex: 1 }}>
           <div className="ctsv-ed-hero-tags">
             <span className="ctsv-ed-source ctsv-ed-source--club">Thành lập CLB mới</span>
-            <span className={`status-pill ${statusClass(registration.status, registration.statusKey)}`}>
-              {registration.status}
-            </span>
+            {clubRemoved ? (
+              <span className={`status-pill ${statusClass('Đã xóa', 'rejected')}`}>CLB đã xóa</span>
+            ) : (
+              <span className={`status-pill ${statusClass(registration.status, registration.statusKey)}`}>
+                {registration.status}
+              </span>
+            )}
           </div>
           <h1>{registration.clubName}</h1>
           <ul className="ctsv-ed-meta">
@@ -288,15 +297,24 @@ const IcpdpClubRegistrationDetail = () => {
       )}
 
       {registration.statusKey === 'approved' && (registration.clubSlug || registration.clubId) && (
-        <div className="icpdp-view-banner" style={{ borderColor: 'rgba(34, 197, 94, 0.3)', background: '#fff' }}>
-          <p style={{ color: '#15803d' }}>
-            CLB đã được tạo.{' '}
-            <Link to={`/clubs/${registration.clubSlug || registration.clubId}`}>Xem trang CLB →</Link>
-          </p>
-        </div>
+        clubRemoved ? (
+          <div className="icpdp-view-banner" style={{ borderColor: 'rgba(220, 38, 38, 0.3)', background: '#fff' }}>
+            <p style={{ color: '#b91c1c' }}>
+              CLB đã bị xóa / ngừng hoạt động theo yêu cầu đã được Admin duyệt.
+            </p>
+          </div>
+        ) : (
+          <div className="icpdp-view-banner" style={{ borderColor: 'rgba(34, 197, 94, 0.3)', background: '#fff' }}>
+            <p style={{ color: '#15803d' }}>
+              CLB đã được tạo.{' '}
+              {/* Mở tab "CLB hiện có" trong portal — trang public /clubs/:slug là giao diện sinh viên. */}
+              <Link to={`${basePath}?view=clubs`}>Xem trong Quản lý CLB →</Link>
+            </p>
+          </div>
+        )
       )}
 
-      {!isAdmin && registration.statusKey === 'approved' && registration.clubId && (
+      {!isAdmin && registration.statusKey === 'approved' && registration.clubId && !clubRemoved && (
         <aside className="ctsv-ed-actions icpdp-club-reg-actions">
           <h2>Yêu cầu Admin sửa / xóa CLB</h2>
 
@@ -327,6 +345,10 @@ const IcpdpClubRegistrationDetail = () => {
             <>
               {changeRequestMode === 'edit' && changeEditForm && (
                 <>
+                  <p className="icpdp-club-reg-hint">
+                    Đổi Chủ nhiệm hiển thị, Email liên hệ, Hotline, Mô tả sẽ áp dụng ngay không cần
+                    Admin duyệt. Chỉ đổi Tên CLB / Lĩnh vực mới cần Admin phê duyệt.
+                  </p>
                   <label htmlFor="cr-name">Tên CLB</label>
                   <input
                     id="cr-name"
@@ -395,7 +417,7 @@ const IcpdpClubRegistrationDetail = () => {
                   disabled={changeSubmitting}
                   onClick={handleSubmitChangeRequest}
                 >
-                  {changeSubmitting ? 'Đang gửi…' : 'Gửi yêu cầu cho Admin'}
+                  {changeSubmitting ? 'Đang gửi…' : 'Gửi yêu cầu'}
                 </button>
                 <button
                   type="button"

@@ -121,7 +121,14 @@ const getRegistrationById = async (id) => {
     err.statusCode = 404;
     throw err;
   }
-  return formatClubRegistration(row);
+  const formatted = formatClubRegistration(row);
+  // Đơn đã duyệt nhưng CLB có thể đã bị xóa/ngừng hoạt động sau đó — FE cần biết
+  // để không hiện "CLB đã được tạo" nữa.
+  if (formatted.clubId) {
+    const club = await Club.findById(formatted.clubId).select('status').lean();
+    formatted.clubStatus = club ? club.status : 'deleted';
+  }
+  return formatted;
 };
 
 // Luồng sinh viên tự gửi đơn thành lập CLB đã bỏ — chỉ IC-PDP tạo đơn

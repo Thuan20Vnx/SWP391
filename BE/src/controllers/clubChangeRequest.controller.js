@@ -59,8 +59,12 @@ const create = async (req, res) => {
   const result = await clubChangeRequestService.createChangeRequest(req.user, req.params.id, req.body);
   createAndBroadcast({
     recipientRoles: ['admin'],
-    title: 'Yêu cầu thay đổi CLB mới',
-    body: `IC-PDP vừa gửi yêu cầu ${req.body.requestType === 'delete' ? 'xóa' : 'sửa'} CLB "${result.request?.club?.name || ''}".`,
+    title: result.autoApplied
+      ? 'IC-PDP đã cập nhật thông tin CLB'
+      : 'Yêu cầu thay đổi CLB mới',
+    body: result.autoApplied
+      ? `IC-PDP vừa cập nhật thông tin liên hệ CLB "${result.request?.club?.name || ''}" (không cần duyệt).`
+      : `IC-PDP vừa gửi yêu cầu ${req.body.requestType === 'delete' ? 'xóa' : 'sửa'} CLB "${result.request?.club?.name || ''}".`,
     type: 'club_change_submit',
     refId: String(result.request?.id || ''),
     refType: 'club_change_request',
