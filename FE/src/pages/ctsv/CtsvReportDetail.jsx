@@ -77,15 +77,10 @@ const CtsvReportDetail = () => {
   const source = SOURCE_META[report?.source] || SOURCE_META.club;
   const stats = report?.stats;
   const isPartnerReport = report?.source === 'partner';
-  const alreadySent = Boolean(submission?.submittedAt);
   const alreadySentToPartner = Boolean(submission?.sentToPartnerAt);
-  const submitLabel = isPartnerReport
-    ? alreadySentToPartner
-      ? 'Đã gửi Partner & Admin'
-      : 'Gửi Partner & Admin'
-    : alreadySent
-      ? 'Đã gửi Admin'
-      : 'Gửi Admin xem';
+  // Admin luôn tự xem được báo cáo sự kiện đã kết thúc — chỉ còn nút gửi cho
+  // Partner (kèm email) với sự kiện đối tác.
+  const submitLabel = alreadySentToPartner ? 'Đã gửi Partner' : 'Gửi Partner xem';
 
   const timelineMax = useMemo(() => {
     const items = report?.registrationTimeline || [];
@@ -132,7 +127,7 @@ const CtsvReportDetail = () => {
   };
 
   const handleSubmitReport = async () => {
-    if (!report || submitting || (isPartnerReport ? alreadySentToPartner : alreadySent)) return;
+    if (!report || submitting || !isPartnerReport || alreadySentToPartner) return;
     setSubmitting(true);
     try {
       const data = await submitCtsvReport(report.id || id);
@@ -211,32 +206,22 @@ const CtsvReportDetail = () => {
             <button type="button" className="ctsv-btn-secondary" onClick={handleExportExcel} disabled={exporting}>
               {exporting ? 'Đang xuất Excel...' : 'Xuất file Excel'}
             </button>
-            <button
-              type="button"
-              className="ctsv-btn-primary"
-              onClick={handleSubmitReport}
-              disabled={submitting || (isPartnerReport ? alreadySentToPartner : alreadySent)}
-            >
-              {submitting
-                ? isPartnerReport
-                  ? 'Đang gửi Partner & Admin...'
-                  : 'Đang gửi Admin...'
-                : submitLabel}
-            </button>
+            {isPartnerReport && (
+              <button
+                type="button"
+                className="ctsv-btn-primary"
+                onClick={handleSubmitReport}
+                disabled={submitting || alreadySentToPartner}
+              >
+                {submitting ? 'Đang gửi Partner...' : submitLabel}
+              </button>
+            )}
             {isPartnerReport && alreadySentToPartner && submission?.partnerEmail ? (
               <p className="ctsv-rd-sent-note" style={{ width: '100%' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
-                Đã gửi cho Partner ({submission.partnerEmail}) và Admin
-                {submission.submittedAt ? ` · ${formatReviewDate(submission.submittedAt)}` : ''}.
-              </p>
-            ) : !isPartnerReport && alreadySent ? (
-              <p className="ctsv-rd-sent-note" style={{ width: '100%' }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-                Đã gửi Admin
+                Đã gửi cho Partner ({submission.partnerEmail})
                 {submission.submittedAt ? ` · ${formatReviewDate(submission.submittedAt)}` : ''}.
               </p>
             ) : null}
@@ -410,18 +395,16 @@ const CtsvReportDetail = () => {
         <button type="button" className="ctsv-btn-secondary" onClick={handleExportExcel} disabled={exporting}>
           {exporting ? 'Đang xuất Excel...' : 'Xuất file Excel'}
         </button>
-        <button
-          type="button"
-          className="ctsv-btn-primary"
-          onClick={handleSubmitReport}
-          disabled={submitting || (isPartnerReport ? alreadySentToPartner : alreadySent)}
-        >
-          {submitting
-            ? isPartnerReport
-              ? 'Đang gửi Partner & Admin...'
-              : 'Đang gửi Admin...'
-            : submitLabel}
-        </button>
+        {isPartnerReport && (
+          <button
+            type="button"
+            className="ctsv-btn-primary"
+            onClick={handleSubmitReport}
+            disabled={submitting || alreadySentToPartner}
+          >
+            {submitting ? 'Đang gửi Partner...' : submitLabel}
+          </button>
+        )}
         {report.isDemo && (
           <p className="ctsv-rd-demo-note">
             Sự kiện demo, số liệu mẫu để thử màn hình báo cáo sau khi kết thúc.

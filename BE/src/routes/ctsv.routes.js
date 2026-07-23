@@ -1200,9 +1200,33 @@ router.get('/reports', async (req, res) => {
   }
 });
 
+// Ma trận xem báo cáo theo nguồn sự kiện:
+// - CLB kết thúc: CLB + IC-PDP + Admin (CTSV, partner: không)
+// - IC-PDP kết thúc: IC-PDP + Admin
+// - Partner kết thúc: Partner + CTSV + Admin
+// - CTSV kết thúc: CTSV + Admin
+const canRoleViewReport = (event, role) => {
+  if (role === 'admin') return true;
+  const org = event.schoolOrganizerRole || 'ctsv';
+  if (role === 'icpdp') {
+    return event.source === 'club' || (event.source === 'school' && org === 'icpdp');
+  }
+  if (role === 'ctsv') {
+    return event.source === 'partner' || (event.source === 'school' && org !== 'icpdp');
+  }
+  return false;
+};
+
 // GET /api/ctsv/reports/:id — chi tiết báo cáo sau sự kiện (đã kết thúc)
 router.get('/reports/:id', async (req, res) => {
   try {
+    const scopeEvent = await Event.findById(req.params.id).select('source schoolOrganizerRole').lean();
+    if (!scopeEvent) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện!' });
+    }
+    if (!canRoleViewReport(scopeEvent, req.userRole)) {
+      return res.status(403).json({ success: false, message: 'Bạn không có quyền xem báo cáo sự kiện này.' });
+    }
     const result = await getCtsvReportDetail(req.params.id);
     const submission = await getSubmissionMeta(req.params.id);
     return res.json({ success: true, report: result.report, submission });

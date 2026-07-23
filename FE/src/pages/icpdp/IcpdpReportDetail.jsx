@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { fetchIcpdpReportDetail, submitIcpdpReport } from '../../services/icpdpApi';
+import { fetchIcpdpReportDetail } from '../../services/icpdpApi';
 import { getCategoryDisplayLabel } from '../../constants/eventCategories';
 import {
   REPORT_FILL_RATE_LABEL,
@@ -46,7 +46,6 @@ const IcpdpReportDetail = () => {
   const [report, setReport] = useState(null);
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -95,32 +94,11 @@ const IcpdpReportDetail = () => {
     );
   }
 
-  const handleSubmit = async () => {
-    if (submitting || submission?.submittedAt) return;
-    setSubmitting(true);
-    try {
-      const data = await submitIcpdpReport(report.id || id);
-      setSubmission((prev) => ({
-        ...(prev || {}),
-        reportId: data.submission?.reportId || report.id || id,
-        submittedAt: data.submission?.submittedAt || new Date().toISOString(),
-        submittedByEmail: data.submission?.submittedByEmail || prev?.submittedByEmail || '',
-      }));
-      showToast?.(data.message || 'Đã gửi báo cáo cho Admin.', 'success');
-    } catch (err) {
-      showToast?.(err.message || 'Không gửi được báo cáo.', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   if (!report) return null;
 
   const source = SOURCE_META[report.source] || SOURCE_META.club;
   const stats = report.stats;
   const submittedByClub = submission?.submittedByRole === 'club_manager';
-  const isPartnerReport = report.source === 'partner';
-  const alreadySent = Boolean(submission?.submittedAt);
 
   return (
     <div className="ctsv-rd-page">
@@ -331,32 +309,12 @@ const IcpdpReportDetail = () => {
             Xem hồ sơ sự kiện
           </Link>
         )}
-        {!report.isDemo && !isPartnerReport && !alreadySent && (
-          <button
-            type="button"
-            className="ctsv-btn-primary"
-            onClick={handleSubmit}
-            disabled={submitting}
-          >
-            {submitting ? 'Đang gửi Admin...' : 'Gửi Admin xem'}
-          </button>
-        )}
         {report.isDemo && (
           <p className="ctsv-rd-demo-note">
             Sự kiện demo, số liệu mẫu để thử màn hình báo cáo sau khi kết thúc.
           </p>
         )}
       </div>
-
-      {!report.isDemo && !isPartnerReport && alreadySent && (
-        <p className="ctsv-rd-sent-note">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M20 6L9 17l-5-5" />
-          </svg>
-          Đã gửi Admin
-          {submission?.submittedAt ? ` · ${formatDateTime(submission.submittedAt)}` : ''}.
-        </p>
-      )}
     </div>
   );
 };
