@@ -43,6 +43,26 @@ router.post(
   asyncHandler(clubController.transferClubChairman)
 );
 
+// IC-PDP duyệt yêu cầu chuyển nhượng chủ nhiệm (Admin chỉ xem/nhận thông báo).
+router.get(
+  '/transfer-requests',
+  authMiddleware,
+  authorize('icpdp', 'admin'),
+  asyncHandler(clubController.listChairmanTransferRequests)
+);
+router.patch(
+  '/transfer-requests/:id/approve',
+  authMiddleware,
+  authorize('icpdp'),
+  asyncHandler(clubController.approveChairmanTransfer)
+);
+router.patch(
+  '/transfer-requests/:id/reject',
+  authMiddleware,
+  authorize('icpdp'),
+  asyncHandler(clubController.rejectChairmanTransfer)
+);
+
 router.post(
   '/manage/semester-timelines/check-conflicts',
   authMiddleware,

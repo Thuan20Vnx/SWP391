@@ -16,7 +16,10 @@ const buildClubSnapshot = (club) => ({
 const listChangeRequests = async ({ status = 'pending', type, clubId } = {}) => {
   const filter = {};
   if (status && status !== 'all') filter.status = status;
+  // Yêu cầu 'transfer' do IC-PDP duyệt riêng (/api/clubs/transfer-requests),
+  // không đưa vào danh sách Admin duyệt sửa/xóa CLB.
   if (type && type !== 'all') filter.requestType = type;
+  else filter.requestType = { $in: ['edit', 'delete'] };
   if (clubId) filter.clubId = clubId;
 
   const rows = await ClubChangeRequest.find(filter)
@@ -59,6 +62,9 @@ const applyApprovedChange = async (request, club) => {
 const approveChangeRequest = async (id, { adminNote, processorEmail }) => {
   const request = await ClubChangeRequest.findById(id);
   if (!request) throw new AppError('Không tìm thấy yêu cầu!', 404);
+  if (request.requestType === 'transfer') {
+    throw new AppError('Yêu cầu chuyển nhượng do IC-PDP duyệt, không qua luồng này.', 400);
+  }
   if (request.status !== 'pending') {
     throw new AppError('Yêu cầu đã được xử lý!', 400);
   }

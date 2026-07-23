@@ -7,7 +7,7 @@ const { formatClubRegistration } = require('../utils/clubRegistrationFormat');
 const emailService = require('./email.service');
 const { APP_URL } = require('../config/env');
 
-// Gửi mail khi đơn thành lập CLB được Admin duyệt: cho chủ nhiệm + cho IC-PDP (chạy nền).
+// Gửi mail khi đơn thành lập CLB được duyệt: cho chủ nhiệm + cho IC-PDP (chạy nền).
 const notifyClubRegistrationApproved = async (registration, club) => {
   const clubUrl = club?.slug ? `${APP_URL}/clubs/${club.slug}` : `${APP_URL}/cau-lac-bo`;
   const clubName = registration.clubName || club?.name || 'CLB';
@@ -19,7 +19,7 @@ const notifyClubRegistrationApproved = async (registration, club) => {
       emailService.sendStatusUpdateEmail({
         to: registration.presidentEmail,
         title: `CLB "${clubName}" đã được duyệt`,
-        body: `Chúc mừng! Đơn thành lập CLB "${clubName}" đã được Admin phê duyệt và bạn được giao làm Chủ nhiệm CLB. Bạn có thể bắt đầu quản lý CLB, tạo timeline và đề xuất sự kiện trên F-Events.`,
+        body: `Chúc mừng! Đơn thành lập CLB "${clubName}" đã được IC-PDP phê duyệt và bạn được giao làm Chủ nhiệm CLB. Bạn có thể bắt đầu quản lý CLB, tạo timeline và đề xuất sự kiện trên F-Events.`,
         ctaUrl: clubUrl,
         ctaLabel: 'Xem CLB',
       })
@@ -38,7 +38,7 @@ const notifyClubRegistrationApproved = async (registration, club) => {
       emailService.sendStatusUpdateEmail({
         to,
         title: `Đơn thành lập CLB "${clubName}" đã được duyệt`,
-        body: `Đơn thành lập CLB "${clubName}" (chủ nhiệm: ${registration.presidentEmail || '—'}) đã được Admin phê duyệt. CLB đã được tạo và kích hoạt trên hệ thống.`,
+        body: `Đơn thành lập CLB "${clubName}" (chủ nhiệm: ${registration.presidentEmail || '—'}) đã được phê duyệt. CLB đã được tạo và kích hoạt trên hệ thống.`,
         ctaUrl: clubUrl,
         ctaLabel: 'Xem CLB',
       })
@@ -203,50 +203,15 @@ const createClubFromRegistration = async (registration, session) => {
   return club;
 };
 
-/** IC-PDP rà soát và chuyển Admin phê duyệt cuối */
-const icpdpForwardToAdmin = async (id, { note, reviewerEmail } = {}) => {
-  const registration = await ClubRegistration.findById(id);
-  if (!registration) {
-    const err = new Error('Không tìm thấy đơn đăng ký CLB!');
-    err.statusCode = 404;
-    throw err;
-  }
-  if (!['pending_icpdp', 'revision'].includes(registration.status)) {
-    const err = new Error('Đơn không ở trạng thái chờ IC-PDP xử lý!');
-    err.statusCode = 400;
-    throw err;
-  }
-
-  registration.status = 'pending_admin';
-  registration.icpdpNote = String(note || '').trim();
-  registration.reviewedByEmail = reviewerEmail || '';
-  registration.reviewedAt = new Date();
-  await registration.save();
-
-  return formatClubRegistration(registration);
-};
-
-/** Admin phê duyệt cuối — tạo CLB */
-const adminApproveRegistration = async (id, { note, reviewerEmail } = {}) => {
-  const registration = await ClubRegistration.findById(id);
-  if (!registration) {
-    const err = new Error('Không tìm thấy đơn đăng ký CLB!');
-    err.statusCode = 404;
-    throw err;
-  }
-  if (registration.status !== 'pending_admin') {
-    const err = new Error('Đơn không ở trạng thái chờ Admin duyệt!');
-    err.statusCode = 400;
-    throw err;
-  }
-
+/** Chốt duyệt: tạo CLB trong transaction + gửi mail thông báo. */
+const finalizeApproval = async (registration, { note, reviewerEmail, noteField = 'icpdpNote' } = {}) => {
   const session = await mongoose.startSession();
   let club;
   try {
     await session.withTransaction(async () => {
       club = await createClubFromRegistration(registration, session);
       registration.status = 'approved';
-      registration.adminNote = String(note || '').trim();
+      if (String(note || '').trim()) registration[noteField] = String(note).trim();
       registration.reviewedByEmail = reviewerEmail || '';
       registration.reviewedAt = new Date();
       await registration.save({ session });
@@ -271,6 +236,43 @@ const adminApproveRegistration = async (id, { note, reviewerEmail } = {}) => {
   };
 };
 
+/**
+ * IC-PDP phê duyệt cuối — tạo CLB ngay, Admin chỉ nhận thông báo (không duyệt).
+ * Nhận cả đơn pending_admin cũ còn tồn để IC-PDP tự chốt nốt.
+ */
+const icpdpApproveRegistration = async (id, { note, reviewerEmail } = {}) => {
+  const registration = await ClubRegistration.findById(id);
+  if (!registration) {
+    const err = new Error('Không tìm thấy đơn đăng ký CLB!');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (!['pending_icpdp', 'revision', 'pending_admin'].includes(registration.status)) {
+    const err = new Error('Đơn không ở trạng thái chờ IC-PDP xử lý!');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  return finalizeApproval(registration, { note, reviewerEmail, noteField: 'icpdpNote' });
+};
+
+/** Admin phê duyệt (giữ cho các đơn pending_admin cũ) — tạo CLB */
+const adminApproveRegistration = async (id, { note, reviewerEmail } = {}) => {
+  const registration = await ClubRegistration.findById(id);
+  if (!registration) {
+    const err = new Error('Không tìm thấy đơn đăng ký CLB!');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (registration.status !== 'pending_admin') {
+    const err = new Error('Đơn không ở trạng thái chờ Admin duyệt!');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  return finalizeApproval(registration, { note, reviewerEmail, noteField: 'adminNote' });
+};
+
 const rejectRegistration = async (id, { reason, reviewerEmail, reviewerRole } = {}) => {
   const registration = await ClubRegistration.findById(id);
   if (!registration) {
@@ -282,7 +284,7 @@ const rejectRegistration = async (id, { reason, reviewerEmail, reviewerRole } = 
   const allowedByRole =
     reviewerRole === 'admin'
       ? ['pending_admin']
-      : ['pending_icpdp', 'revision'];
+      : ['pending_icpdp', 'revision', 'pending_admin'];
 
   if (!allowedByRole.includes(registration.status)) {
     const err = new Error('Đơn không thể từ chối ở trạng thái hiện tại!');
@@ -385,8 +387,9 @@ const icpdpResubmitRegistration = async (id, payload = {}, creatorEmail) => {
       err.statusCode = 400;
       throw err;
     }
-    if (presidentUser.role !== 'student') {
-      const err = new Error('Chỉ có thể chọn tài khoản sinh viên làm chủ nhiệm CLB.');
+    // Cho phép chủ nhiệm đang quản CLB khác kiêm nhiệm thêm CLB mới.
+    if (!['student', 'club_manager'].includes(presidentUser.role)) {
+      const err = new Error('Chủ nhiệm CLB phải là tài khoản sinh viên hoặc chủ nhiệm CLB hiện có.');
       err.statusCode = 400;
       throw err;
     }
@@ -405,14 +408,14 @@ const icpdpResubmitRegistration = async (id, payload = {}, creatorEmail) => {
     registration.description = String(payload.description || '').trim() || registration.description;
   }
 
-  registration.status = 'pending_admin';
   registration.rejectionReason = '';
   registration.adminNote = '';
-  registration.icpdpNote = 'Đơn được IC-PDP sửa và gửi lại.';
-  registration.reviewedByEmail = String(creatorEmail || '').trim().toLowerCase();
-  registration.reviewedAt = new Date();
-  await registration.save();
-  return formatClubRegistration(registration);
+  registration.icpdpNote = 'Đơn được IC-PDP sửa và duyệt lại.';
+
+  // IC-PDP sửa xong là duyệt luôn — tạo CLB, không cần Admin duyệt.
+  return finalizeApproval(registration, {
+    reviewerEmail: String(creatorEmail || '').trim().toLowerCase(),
+  });
 };
 
 /** IC-PDP hủy gửi đơn đang chờ Admin duyệt. */
@@ -441,7 +444,7 @@ const countPendingForRole = (viewerRole) => {
   return ClubRegistration.countDocuments({ status: 'pending_icpdp' });
 };
 
-// IC-PDP tự tạo đơn thành lập CLB → gửi thẳng cho Admin phê duyệt.
+// IC-PDP tự tạo đơn thành lập CLB → tạo CLB ngay, Admin chỉ nhận thông báo.
 const icpdpCreateRegistration = async (payload, creatorEmail) => {
   const categories = Club.CATEGORIES || [];
   if (!payload.clubName || !String(payload.clubName).trim()) {
@@ -461,15 +464,15 @@ const icpdpCreateRegistration = async (payload, creatorEmail) => {
     throw err;
   }
 
-  // Chủ nhiệm CLB bắt buộc là tài khoản SINH VIÊN đã có trong hệ thống.
+  // Chủ nhiệm phải là tài khoản đã có: sinh viên, hoặc chủ nhiệm CLB khác (kiêm nhiệm).
   const presidentUser = await User.findOne({ email: presidentEmail }).select('role fullname');
   if (!presidentUser) {
     const err = new Error('Email chủ nhiệm phải là tài khoản đã có trong hệ thống.');
     err.statusCode = 400;
     throw err;
   }
-  if (presidentUser.role !== 'student') {
-    const err = new Error('Chỉ có thể chọn tài khoản sinh viên làm chủ nhiệm CLB.');
+  if (!['student', 'club_manager'].includes(presidentUser.role)) {
+    const err = new Error('Chủ nhiệm CLB phải là tài khoản sinh viên hoặc chủ nhiệm CLB hiện có.');
     err.statusCode = 400;
     throw err;
   }
@@ -489,9 +492,13 @@ const icpdpCreateRegistration = async (payload, creatorEmail) => {
     icpdpNote: 'Đơn do IC-PDP tạo trực tiếp.',
     reviewedByEmail: String(creatorEmail || '').trim().toLowerCase(),
     reviewedAt: new Date(),
-    status: 'pending_admin',
+    status: 'pending_icpdp',
   });
-  return formatClubRegistration(registration);
+
+  // IC-PDP là cấp duyệt cuối: tạo CLB ngay trong cùng thao tác.
+  return finalizeApproval(registration, {
+    reviewerEmail: String(creatorEmail || '').trim().toLowerCase(),
+  });
 };
 
 module.exports = {
@@ -501,7 +508,7 @@ module.exports = {
   icpdpCreateRegistration,
   icpdpResubmitRegistration,
   icpdpCancelRegistration,
-  icpdpForwardToAdmin,
+  icpdpApproveRegistration,
   adminApproveRegistration,
   rejectRegistration,
   requestRevision,

@@ -285,11 +285,13 @@ const attachOrphanEventsToClub = async (userId, clubId) => {
 const enrichWithManagedClub = async (account, user) => {
   if (user.role !== 'club_manager') return account;
   const Club = require('../models/Club');
-  const club = await Club.findOne({ managedBy: user._id }).select('name slug').lean();
+  const clubs = await Club.find({ managedBy: user._id }).select('name slug').sort({ name: 1 }).lean();
   return {
     ...account,
-    managedClubId: club ? String(club._id) : '',
-    managedClubName: club ? club.name : '',
+    // Một chủ nhiệm có thể quản nhiều CLB — giữ managedClubId (CLB đầu) cho chỗ cũ.
+    managedClubId: clubs[0] ? String(clubs[0]._id) : '',
+    managedClubName: clubs.map((c) => c.name).join(', '),
+    managedClubIds: clubs.map((c) => String(c._id)),
   };
 };
 
@@ -377,6 +379,7 @@ const updateAccount = async (userId, payload) => {
     role: feRole,
     isActive,
     managedClubId,
+    managedClubIds,
   } = payload;
 
   if (!fullname?.trim()) throw new AppError('Họ tên / tên đơn vị không được để trống!', 400);
@@ -465,27 +468,42 @@ const updateAccount = async (userId, payload) => {
   await user.save();
 
   // Gán / gỡ CLB cho tài khoản Ban tổ chức CLB (club_manager).
+  // Một tài khoản có thể quản NHIỀU CLB — nhận managedClubIds (mảng),
+  // vẫn tương thích ngược với managedClubId (chuỗi đơn).
   if (user.role === 'club_manager') {
     const Club = require('../models/Club');
-    const wantClubId = managedClubId !== undefined ? String(managedClubId || '').trim() : undefined;
-    if (wantClubId !== undefined) {
-      // Gỡ user khỏi mọi CLB khác đang do user này quản lý (mỗi tài khoản quản 1 CLB).
+    let wantIds;
+    if (Array.isArray(managedClubIds)) {
+      wantIds = [...new Set(managedClubIds.map((id) => String(id || '').trim()).filter(Boolean))];
+    } else if (managedClubId !== undefined) {
+      const single = String(managedClubId || '').trim();
+      wantIds = single ? [single] : [];
+    }
+    if (wantIds !== undefined) {
+      // Gỡ user khỏi các CLB không còn trong danh sách được gán.
       await Club.updateMany(
-        { managedBy: user._id, ...(wantClubId ? { _id: { $ne: wantClubId } } : {}) },
+        { managedBy: user._id, ...(wantIds.length ? { _id: { $nin: wantIds } } : {}) },
         { $set: { managedBy: null } },
       );
-      if (wantClubId) {
-        const club = await Club.findById(wantClubId);
+      let orphanAttached = false;
+      for (const clubId of wantIds) {
+        const club = await Club.findById(clubId);
         if (!club) throw new AppError('Không tìm thấy CLB được chọn!', 404);
         const prevManagerId = club.managedBy;
-        club.managedBy = user._id;
-        if (!String(club.president || '').trim()) club.president = user.fullname;
-        await club.save();
-        await attachOrphanEventsToClub(user._id, club._id);
-        // Người quản lý cũ bị thay: nếu không còn quản CLB nào thì trả về sinh viên
-        // (không phải khách), theo đúng quy tắc chuyển nhượng CLB.
-        if (prevManagerId && String(prevManagerId) !== String(user._id)) {
-          await demoteFormerManagerToStudent(prevManagerId);
+        if (String(prevManagerId || '') !== String(user._id)) {
+          club.managedBy = user._id;
+          if (!String(club.president || '').trim()) club.president = user.fullname;
+          await club.save();
+          // Người quản lý cũ bị thay: nếu không còn quản CLB nào thì trả về sinh viên
+          // (không phải khách), theo đúng quy tắc chuyển nhượng CLB.
+          if (prevManagerId) {
+            await demoteFormerManagerToStudent(prevManagerId);
+          }
+        }
+        // Sự kiện mồ côi chỉ gắn được vào một CLB — dùng CLB đầu tiên trong danh sách.
+        if (!orphanAttached) {
+          await attachOrphanEventsToClub(user._id, club._id);
+          orphanAttached = true;
         }
       }
     }

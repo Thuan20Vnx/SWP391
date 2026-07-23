@@ -427,16 +427,17 @@ router.get('/club-registrations', adminOrIcpdp, async (req, res) => {
 
 router.post('/club-registrations', icpdpOnly, async (req, res) => {
   try {
-    const registration = await clubRegistrationService.icpdpCreateRegistration(req.body, req.authEmail);
+    const result = await clubRegistrationService.icpdpCreateRegistration(req.body, req.authEmail);
+    // Admin chỉ nhận thông báo — IC-PDP là cấp quyết định, CLB đã được tạo.
     createAndBroadcast({
       recipientRoles: ['admin'],
-      title: 'Đơn thành lập CLB mới (IC-PDP)',
-      body: `IC-PDP vừa tạo đơn thành lập CLB "${registration.clubName}". Chờ Admin phê duyệt.`,
+      title: 'IC-PDP đã tạo CLB mới',
+      body: `IC-PDP vừa tạo CLB "${result.registration.clubName}" (chủ nhiệm: ${result.registration.presidentEmail || '—'}). CLB đã hoạt động trên hệ thống.`,
       type: 'club_submit',
-      refId: String(registration.id || ''),
+      refId: String(result.registration.id || ''),
       refType: 'club_registration'
     }).catch(() => {});
-    return res.status(201).json({ success: true, registration, message: 'Đã tạo đơn CLB — chờ Admin phê duyệt.' });
+    return res.status(201).json({ success: true, ...result, message: 'Đã tạo CLB mới — CLB hoạt động ngay, Admin được thông báo.' });
   } catch (error) {
     if (error.statusCode) {
       return res.status(error.statusCode).json({ success: false, message: error.message });
@@ -461,22 +462,23 @@ router.get('/club-registrations/:id', adminOrIcpdp, async (req, res) => {
 
 router.patch('/club-registrations/:id/forward-admin', icpdpOnly, async (req, res) => {
   try {
-    const registration = await clubRegistrationService.icpdpForwardToAdmin(req.params.id, {
+    // IC-PDP là cấp duyệt cuối: duyệt là tạo CLB ngay, Admin chỉ nhận thông báo.
+    const result = await clubRegistrationService.icpdpApproveRegistration(req.params.id, {
       note: req.body.note || '',
       reviewerEmail: req.authEmail,
     });
     createAndBroadcast({
       recipientRoles: ['admin'],
-      title: 'Đơn thành lập CLB cần Admin duyệt',
-      body: `${registration.clubName || 'Một CLB'} đã được IC-PDP duyệt sơ bộ.`,
+      title: 'IC-PDP đã duyệt đơn thành lập CLB',
+      body: `CLB "${result.registration.clubName || ''}" (chủ nhiệm: ${result.registration.presidentEmail || '—'}) đã được IC-PDP phê duyệt và tạo trên hệ thống.`,
       type: 'club_submit',
       refId: String(req.params.id),
       refType: 'club_registration'
     }).catch(() => {});
     return res.json({
       success: true,
-      registration,
-      message: 'Đã chuyển đơn lên Admin phê duyệt.',
+      ...result,
+      message: 'Đã duyệt — CLB mới đã được tạo!',
     });
   } catch (error) {
     if (error.statusCode) {
@@ -569,20 +571,20 @@ router.patch('/club-registrations/:id/revision', icpdpOnly, async (req, res) => 
 
 router.patch('/club-registrations/:id/icpdp-resubmit', icpdpOnly, async (req, res) => {
   try {
-    const registration = await clubRegistrationService.icpdpResubmitRegistration(
+    const result = await clubRegistrationService.icpdpResubmitRegistration(
       req.params.id,
       req.body,
       req.authEmail
     );
     createAndBroadcast({
       recipientRoles: ['admin'],
-      title: 'Đơn thành lập CLB đã được gửi lại (IC-PDP)',
-      body: `IC-PDP đã sửa và gửi lại đơn thành lập CLB "${registration.clubName}". Chờ Admin phê duyệt.`,
+      title: 'IC-PDP đã sửa và duyệt lại đơn thành lập CLB',
+      body: `CLB "${result.registration.clubName}" đã được IC-PDP sửa, duyệt lại và tạo trên hệ thống.`,
       type: 'club_submit',
       refId: String(req.params.id),
       refType: 'club_registration'
     }).catch(() => {});
-    return res.json({ success: true, registration, message: 'Đã gửi lại đơn — chờ Admin phê duyệt.' });
+    return res.json({ success: true, ...result, message: 'Đã sửa và duyệt lại — CLB đã được tạo!' });
   } catch (error) {
     if (error.statusCode) {
       return res.status(error.statusCode).json({ success: false, message: error.message });

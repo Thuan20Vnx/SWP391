@@ -55,10 +55,17 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, onResetPasswo
   const showStudentFields = form.role === 'student' || account.role === 'student';
   const isClubRole = form.role === 'club_organizer';
   const promotingToAdmin = !isAdmin && form.role === 'admin';
-  const clubOptions = clubs.map((c) => ({
-    value: c.id,
-    label: c.hasManager && c.id !== form.managedClubId ? `${c.name} (đã có quản lý)` : c.name,
-  }));
+  const selectedClubIds = Array.isArray(form.managedClubIds) ? form.managedClubIds : [];
+
+  const toggleClub = (clubId) => {
+    setForm((prev) => {
+      const current = Array.isArray(prev.managedClubIds) ? prev.managedClubIds : [];
+      const next = current.includes(clubId)
+        ? current.filter((id) => id !== clubId)
+        : [...current, clubId];
+      return { ...prev, managedClubIds: next };
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -79,7 +86,7 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, onResetPasswo
       course: form.course,
       campus: form.campus,
       isActive: form.isActive,
-      ...(isClubRole ? { managedClubId: form.managedClubId || '' } : {}),
+      ...(isClubRole ? { managedClubIds: selectedClubIds } : {}),
     });
   };
 
@@ -132,21 +139,34 @@ const AdminAccountEditModal = ({ open, account, onClose, onSubmit, onResetPasswo
           </label>
 
           {isClubRole && (
-            <label className="admin-acc-modal__field">
+            <div className="admin-acc-modal__field">
               <span className="admin-acc-modal__label">Câu lạc bộ phụ trách</span>
-              <AdminFilterDropdown
-                label=""
-                value={form.managedClubId || ''}
-                options={[{ value: '', label: '— Chưa gán CLB —' }, ...clubOptions]}
-                onChange={(v) => patch('managedClubId', v)}
-                menuOpen={openMenu === 'club'}
-                onMenuToggle={setOpenMenu}
-                menuId="club"
-              />
+              <div className="admin-acc-modal__club-list" role="group" aria-label="Chọn CLB phụ trách">
+                {clubs.length === 0 && (
+                  <p className="admin-acc-modal__note">Chưa có CLB nào trên hệ thống.</p>
+                )}
+                {clubs.map((c) => {
+                  const checked = selectedClubIds.includes(c.id);
+                  return (
+                    <label key={c.id} className="admin-acc-modal__club-option">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleClub(c.id)}
+                      />
+                      <span>
+                        {c.name}
+                        {c.hasManager && !checked ? ' (đã có quản lý)' : ''}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
               <span className="admin-acc-modal__note">
-                Chọn CLB mà tài khoản này sẽ làm Ban tổ chức / quản lý.
+                Tick các CLB mà tài khoản này quản lý — một tài khoản có thể phụ trách nhiều CLB.
+                Chọn CLB đã có quản lý sẽ thay thế người quản lý cũ.
               </span>
-            </label>
+            </div>
           )}
 
           <label className="admin-acc-modal__field">

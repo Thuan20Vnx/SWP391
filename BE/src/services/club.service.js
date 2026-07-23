@@ -402,34 +402,20 @@ const getManagedClubs = async (userId, activeClubId = null) => {
   };
 };
 
-const transferClubChairman = async (currentUserId, payload = {}, activeClubId = null) => {
-  const club = await resolveManagedClub(currentUserId, activeClubId);
-  if (!club) throw new AppError('Không tìm thấy CLB bạn đang quản lý.', 404);
-  if (club.managedBy && String(club.managedBy) !== String(currentUserId)) {
-    throw new AppError('Bạn không có quyền chuyển nhượng chủ nhiệm CLB này.', 403);
-  }
-  const targetEmail = String(payload.targetEmail || payload.email || '').trim().toLowerCase();
-  if (!targetEmail) throw new AppError('Vui lòng nhập email sinh viên nhận chuyển nhượng.', 400);
-  if (payload.confirm !== true && payload.confirm !== 'true') {
-    throw new AppError('Vui lòng xác nhận chuyển nhượng (confirm: true).', 400);
-  }
+/** Thực thi chuyển nhượng: đổi managedBy, role, quyền sở hữu sự kiện. */
+const executeChairmanTransfer = async (club, targetUser, presidentName = '') => {
   const User = require('../models/User');
   const SchoolMember = require('../models/SchoolMember');
-  const targetUser = await User.findOne({ email: targetEmail });
-  if (!targetUser) throw new AppError('Không tìm thấy tài khoản với email đã nhập.', 404);
-  if (String(targetUser._id) === String(currentUserId)) {
-    throw new AppError('Không thể chuyển nhượng cho chính bạn.', 400);
-  }
-  if (targetUser.role !== 'student') {
-    throw new AppError('Chỉ có thể chuyển nhượng Chủ nhiệm CLB cho sinh viên.', 400);
-  }
-  const previousManagerId = club.managedBy || currentUserId;
-  const previousUser = await User.findById(previousManagerId);
+  const previousManagerId = club.managedBy;
+  const previousUser = previousManagerId ? await User.findById(previousManagerId) : null;
+
   club.managedBy = targetUser._id;
-  club.president = String(payload.presidentName || payload.president || targetUser.fullname || '').trim();
+  club.president = String(presidentName || targetUser.fullname || '').trim();
   await club.save();
-  targetUser.role = 'club_manager';
-  await targetUser.save();
+  if (targetUser.role !== 'club_manager') {
+    targetUser.role = 'club_manager';
+    await targetUser.save();
+  }
   await SchoolMember.updateOne({ email: targetUser.email }, { $set: { role: 'club_manager' } }, { upsert: true });
 
   // App gắn sự kiện theo người tạo (createdBy). Khi đổi chủ nhiệm, chuyển luôn
@@ -459,10 +445,150 @@ const transferClubChairman = async (currentUserId, payload = {}, activeClubId = 
       await SchoolMember.updateOne({ email: previousUser.email }, { $set: { role: 'student' } });
     }
   }
+  return { previousUser };
+};
+
+/**
+ * Chủ nhiệm gửi YÊU CẦU chuyển nhượng — không thực thi ngay.
+ * IC-PDP duyệt mới đổi chủ nhiệm; Admin chỉ nhận thông báo khi hoàn tất.
+ */
+const transferClubChairman = async (currentUserId, payload = {}, activeClubId = null) => {
+  const club = await resolveManagedClub(currentUserId, activeClubId);
+  if (!club) throw new AppError('Không tìm thấy CLB bạn đang quản lý.', 404);
+  if (club.managedBy && String(club.managedBy) !== String(currentUserId)) {
+    throw new AppError('Bạn không có quyền chuyển nhượng chủ nhiệm CLB này.', 403);
+  }
+  const targetEmail = String(payload.targetEmail || payload.email || '').trim().toLowerCase();
+  if (!targetEmail) throw new AppError('Vui lòng nhập email sinh viên nhận chuyển nhượng.', 400);
+  if (payload.confirm !== true && payload.confirm !== 'true') {
+    throw new AppError('Vui lòng xác nhận chuyển nhượng (confirm: true).', 400);
+  }
+  const User = require('../models/User');
+  const targetUser = await User.findOne({ email: targetEmail });
+  if (!targetUser) throw new AppError('Không tìm thấy tài khoản với email đã nhập.', 404);
+  if (String(targetUser._id) === String(currentUserId)) {
+    throw new AppError('Không thể chuyển nhượng cho chính bạn.', 400);
+  }
+  if (!['student', 'club_manager'].includes(targetUser.role)) {
+    throw new AppError('Chỉ có thể chuyển nhượng Chủ nhiệm CLB cho sinh viên hoặc chủ nhiệm CLB khác.', 400);
+  }
+
+  const ClubChangeRequest = require('../models/ClubChangeRequest');
+  const existing = await ClubChangeRequest.findOne({
+    clubId: club._id,
+    requestType: 'transfer',
+    status: 'pending',
+  });
+  if (existing) {
+    throw new AppError('CLB đang có yêu cầu chuyển nhượng chờ IC-PDP duyệt.', 409);
+  }
+
+  const requester = await User.findById(currentUserId).select('email fullname').lean();
+  const request = await ClubChangeRequest.create({
+    clubId: club._id,
+    requestType: 'transfer',
+    status: 'pending',
+    reason: String(payload.reason || '').trim(),
+    requestedByEmail: requester?.email || '',
+    requestedByName: requester?.fullname || '',
+    snapshot: { name: club.name, president: club.president },
+    payload: {
+      president: String(payload.presidentName || payload.president || targetUser.fullname || '').trim(),
+      targetEmail,
+      targetName: targetUser.fullname || '',
+    },
+  });
+
   return {
-    message: `Đã chuyển nhượng chủ nhiệm CLB cho ${targetUser.fullname}.`,
-    club,
+    message: `Đã gửi yêu cầu chuyển nhượng chủ nhiệm cho ${targetUser.fullname} — chờ IC-PDP duyệt.`,
+    request: { id: String(request._id), status: request.status },
+    club: { id: String(club._id), name: club.name },
+    targetUser: { fullname: targetUser.fullname, email: targetUser.email },
+  };
+};
+
+/** IC-PDP: danh sách yêu cầu chuyển nhượng chủ nhiệm. */
+const listChairmanTransferRequests = async ({ status = 'pending' } = {}) => {
+  const ClubChangeRequest = require('../models/ClubChangeRequest');
+  const filter = { requestType: 'transfer' };
+  if (status && status !== 'all') filter.status = status;
+  const rows = await ClubChangeRequest.find(filter)
+    .populate('clubId', 'name slug president')
+    .sort({ createdAt: -1 })
+    .limit(100)
+    .lean();
+  return rows.map((r) => ({
+    id: String(r._id),
+    status: r.status,
+    reason: r.reason || '',
+    adminNote: r.adminNote || '',
+    clubId: r.clubId ? String(r.clubId._id) : '',
+    clubName: r.clubId?.name || r.snapshot?.name || '',
+    currentPresident: r.snapshot?.president || r.clubId?.president || '',
+    requestedByEmail: r.requestedByEmail || '',
+    requestedByName: r.requestedByName || '',
+    targetEmail: r.payload?.targetEmail || '',
+    targetName: r.payload?.targetName || '',
+    newPresidentName: r.payload?.president || '',
+    createdAt: r.createdAt,
+    processedByEmail: r.processedByEmail || '',
+  }));
+};
+
+/** IC-PDP duyệt yêu cầu chuyển nhượng — thực thi đổi chủ nhiệm. */
+const approveChairmanTransfer = async (requestId, reviewerEmail = '') => {
+  const ClubChangeRequest = require('../models/ClubChangeRequest');
+  const User = require('../models/User');
+  const request = await ClubChangeRequest.findById(requestId);
+  if (!request || request.requestType !== 'transfer') {
+    throw new AppError('Không tìm thấy yêu cầu chuyển nhượng.', 404);
+  }
+  if (request.status !== 'pending') {
+    throw new AppError('Yêu cầu đã được xử lý trước đó.', 400);
+  }
+  const club = await Club.findById(request.clubId);
+  if (!club) throw new AppError('CLB của yêu cầu không còn tồn tại.', 404);
+  const targetUser = await User.findOne({ email: request.payload?.targetEmail });
+  if (!targetUser) throw new AppError('Tài khoản nhận chuyển nhượng không còn tồn tại.', 404);
+
+  const { previousUser } = await executeChairmanTransfer(club, targetUser, request.payload?.president);
+
+  request.status = 'approved';
+  request.processedByEmail = String(reviewerEmail || '').trim().toLowerCase();
+  await request.save();
+
+  return {
+    message: `Đã duyệt — chủ nhiệm CLB "${club.name}" chuyển sang ${targetUser.fullname}.`,
+    club: { id: String(club._id), name: club.name },
     newManager: { id: String(targetUser._id), fullname: targetUser.fullname, email: targetUser.email },
+    previousManager: previousUser
+      ? { id: String(previousUser._id), fullname: previousUser.fullname, email: previousUser.email }
+      : null,
+  };
+};
+
+/** IC-PDP từ chối yêu cầu chuyển nhượng. */
+const rejectChairmanTransfer = async (requestId, reason = '', reviewerEmail = '') => {
+  const ClubChangeRequest = require('../models/ClubChangeRequest');
+  const request = await ClubChangeRequest.findById(requestId);
+  if (!request || request.requestType !== 'transfer') {
+    throw new AppError('Không tìm thấy yêu cầu chuyển nhượng.', 404);
+  }
+  if (request.status !== 'pending') {
+    throw new AppError('Yêu cầu đã được xử lý trước đó.', 400);
+  }
+  const trimmed = String(reason || '').trim();
+  if (!trimmed) throw new AppError('Vui lòng nhập lý do từ chối.', 400);
+  request.status = 'rejected';
+  request.adminNote = trimmed;
+  request.processedByEmail = String(reviewerEmail || '').trim().toLowerCase();
+  await request.save();
+  const club = await Club.findById(request.clubId).select('name').lean();
+  return {
+    message: 'Đã từ chối yêu cầu chuyển nhượng.',
+    requestedByEmail: request.requestedByEmail || '',
+    clubName: club?.name || '',
+    reason: trimmed,
   };
 };
 
@@ -581,6 +707,9 @@ module.exports = {
   getManagedClubProfile,
   updateManagedClubProfile,
   transferClubChairman,
+  listChairmanTransferRequests,
+  approveChairmanTransfer,
+  rejectChairmanTransfer,
   getManagedClubs,
   findClubManagedBy,
   findManagedClubs,

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const REQUEST_TYPES = ['edit', 'delete'];
+const REQUEST_TYPES = ['edit', 'delete', 'transfer'];
 const REQUEST_STATUSES = ['pending', 'approved', 'rejected'];
 
 const clubSnapshotSchema = new mongoose.Schema(
@@ -24,6 +24,9 @@ const clubChangePayloadSchema = new mongoose.Schema(
     president: { type: String, default: '' },
     email: { type: String, default: '' },
     hotline: { type: String, default: '' },
+    // requestType 'transfer': người nhận chuyển nhượng chủ nhiệm
+    targetEmail: { type: String, default: '' },
+    targetName: { type: String, default: '' },
   },
   { _id: false }
 );

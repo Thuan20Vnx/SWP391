@@ -77,6 +77,58 @@ const updateManagedClubProfile = async (req, res) => {
 
 const transferClubChairman = async (req, res) => {
   const result = await clubService.transferClubChairman(req.user._id, req.body, readActiveClubId(req));
+  // Báo IC-PDP có yêu cầu chuyển nhượng mới cần duyệt.
+  createAndBroadcast({
+    recipientRoles: ['icpdp'],
+    title: 'Yêu cầu chuyển nhượng chủ nhiệm CLB',
+    body: `CLB "${result.club?.name || ''}" muốn chuyển chủ nhiệm sang ${result.targetUser?.fullname || result.targetUser?.email || ''} — chờ IC-PDP duyệt.`,
+    type: 'club_submit',
+    refId: String(result.request?.id || ''),
+    refType: 'club_transfer_request',
+  }).catch(() => {});
+  res.status(200).json({ success: true, ...result });
+};
+
+const listChairmanTransferRequests = async (req, res) => {
+  const requests = await clubService.listChairmanTransferRequests({ status: req.query.status || 'all' });
+  res.status(200).json({ success: true, requests });
+};
+
+const approveChairmanTransfer = async (req, res) => {
+  const result = await clubService.approveChairmanTransfer(req.params.id, req.authEmail);
+  // Admin chỉ nhận thông báo — không cần duyệt.
+  createAndBroadcast({
+    recipientRoles: ['admin'],
+    title: 'IC-PDP đã duyệt chuyển nhượng chủ nhiệm CLB',
+    body: `CLB "${result.club?.name || ''}" đã đổi chủ nhiệm sang ${result.newManager?.fullname || ''} (${result.newManager?.email || ''}).`,
+    type: 'info',
+    refId: String(req.params.id),
+    refType: 'club_transfer_request',
+  }).catch(() => {});
+  // Báo cho chủ nhiệm cũ + mới.
+  createAndBroadcast({
+    recipientEmails: [result.previousManager?.email, result.newManager?.email].filter(Boolean),
+    title: 'Chuyển nhượng chủ nhiệm CLB đã được duyệt',
+    body: `IC-PDP đã duyệt: ${result.newManager?.fullname || ''} trở thành chủ nhiệm CLB "${result.club?.name || ''}".`,
+    type: 'info',
+    refId: String(req.params.id),
+    refType: 'club_transfer_request',
+  }).catch(() => {});
+  res.status(200).json({ success: true, ...result });
+};
+
+const rejectChairmanTransfer = async (req, res) => {
+  const result = await clubService.rejectChairmanTransfer(req.params.id, req.body?.reason, req.authEmail);
+  if (result.requestedByEmail) {
+    createAndBroadcast({
+      recipientEmails: [result.requestedByEmail],
+      title: 'Yêu cầu chuyển nhượng chủ nhiệm bị từ chối',
+      body: `IC-PDP từ chối yêu cầu chuyển nhượng chủ nhiệm CLB "${result.clubName}". Lý do: ${result.reason}`,
+      type: 'club_reject',
+      refId: String(req.params.id),
+      refType: 'club_transfer_request',
+    }).catch(() => {});
+  }
   res.status(200).json({ success: true, ...result });
 };
 
@@ -370,6 +422,9 @@ module.exports = {
   getManagedClubProfile,
   updateManagedClubProfile,
   transferClubChairman,
+  listChairmanTransferRequests,
+  approveChairmanTransfer,
+  rejectChairmanTransfer,
   getManagedClubs,
   submitClubRegistration,
   listSemesterTimelines,

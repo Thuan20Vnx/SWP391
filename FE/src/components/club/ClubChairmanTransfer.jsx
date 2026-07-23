@@ -65,7 +65,8 @@ const ClubChairmanTransfer = ({ showToast, compact = false, onTransferred }) => 
           <div className="clb-chairman-transfer__alert">
             <strong>Lưu ý quan trọng</strong>
             <p>
-              Sau khi chuyển nhượng, bạn sẽ <em>mất quyền quản lý CLB</em>. Chỉ có thể chuyển nhượng cho <em>sinh viên</em> đã có tài khoản trong trường.
+              Yêu cầu chuyển nhượng sẽ được gửi cho <em>IC-PDP duyệt</em> — sau khi duyệt bạn sẽ <em>mất quyền quản lý CLB</em>.
+              Người nhận phải là <em>sinh viên</em> hoặc <em>chủ nhiệm CLB khác</em> đã có tài khoản trong trường.
             </p>
           </div>
           <form className="clb-chairman-transfer__form" onSubmit={handleSubmit}>
@@ -96,8 +97,8 @@ const ClubChairmanTransfer = ({ showToast, compact = false, onTransferred }) => 
       <ConfirmDialog
         open={confirmOpen}
         title="Xác nhận chuyển nhượng lần 2"
-        message={`Bạn sắp chuyển quyền Chủ nhiệm CLB cho ${email.trim()}${presidentName.trim() ? ` (${presidentName.trim()})` : ''}. Hành động này có hiệu lực ngay.`}
-        confirmLabel="Xác nhận chuyển nhượng"
+        message={`Bạn sắp gửi yêu cầu chuyển quyền Chủ nhiệm CLB cho ${email.trim()}${presidentName.trim() ? ` (${presidentName.trim()})` : ''}. Yêu cầu chỉ có hiệu lực sau khi IC-PDP duyệt.`}
+        confirmLabel="Gửi yêu cầu chuyển nhượng"
         cancelLabel="Quay lại"
         danger
         loading={submitting}

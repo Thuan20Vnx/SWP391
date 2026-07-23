@@ -2,6 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useOutletContext } from 'react-router-dom';
 import { fetchClubRegistrations, createClubRegistration } from '../../services/adminApi';
 import { fetchIcpdpClubs, updateIcpdpClub, deleteIcpdpClub } from '../../services/clubTimelineApi';
+import {
+  fetchClubTransferRequests,
+  approveClubTransferRequest,
+  rejectClubTransferRequest,
+} from '../../services/scannerApi';
 import { statusClass } from '../../utils/eventStatus';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
@@ -61,6 +66,11 @@ const IcpdpClubRegistrationList = () => {
   const [clubs, setClubs] = useState([]);
   const [clubsLoading, setClubsLoading] = useState(true);
 
+  // Yêu cầu chuyển nhượng chủ nhiệm — IC-PDP duyệt, Admin chỉ nhận thông báo.
+  const [transfers, setTransfers] = useState([]);
+  const [transfersLoading, setTransfersLoading] = useState(false);
+  const [transferBusyId, setTransferBusyId] = useState('');
+
   // Modal state: { mode: 'create' | 'edit', club }
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -95,9 +105,62 @@ const IcpdpClubRegistrationList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const loadTransfers = useCallback(() => {
+    setTransfersLoading(true);
+    fetchClubTransferRequests('all')
+      .then((d) => setTransfers(d.requests || []))
+      .catch(() => showToast?.('Không tải được yêu cầu chuyển nhượng.', 'error'))
+      .finally(() => setTransfersLoading(false));
+  }, [showToast]);
+
   useEffect(() => {
     if (view === 'clubs') loadClubs();
-  }, [view, loadClubs]);
+    if (view === 'transfers') loadTransfers();
+  }, [view, loadClubs, loadTransfers]);
+
+  // Đếm chấm đỏ tab chuyển nhượng ngay khi vào trang.
+  useEffect(() => {
+    loadTransfers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pendingTransferCount = useMemo(
+    () => transfers.filter((r) => r.status === 'pending').length,
+    [transfers]
+  );
+
+  const handleApproveTransfer = async (request) => {
+    if (!window.confirm(`Duyệt chuyển chủ nhiệm CLB "${request.clubName}" sang ${request.targetName || request.targetEmail}?`)) return;
+    setTransferBusyId(request.id);
+    try {
+      const res = await approveClubTransferRequest(request.id);
+      showToast?.(res.message || 'Đã duyệt chuyển nhượng.', 'success');
+      loadTransfers();
+    } catch (err) {
+      showToast?.(err.message || 'Duyệt chuyển nhượng thất bại.', 'error');
+    } finally {
+      setTransferBusyId('');
+    }
+  };
+
+  const handleRejectTransfer = async (request) => {
+    const reason = window.prompt(`Lý do từ chối chuyển nhượng CLB "${request.clubName}":`);
+    if (reason === null) return;
+    if (!reason.trim()) {
+      showToast?.('Vui lòng nhập lý do từ chối.', 'error');
+      return;
+    }
+    setTransferBusyId(request.id);
+    try {
+      const res = await rejectClubTransferRequest(request.id, reason.trim());
+      showToast?.(res.message || 'Đã từ chối yêu cầu.', 'success');
+      loadTransfers();
+    } catch (err) {
+      showToast?.(err.message || 'Từ chối thất bại.', 'error');
+    } finally {
+      setTransferBusyId('');
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -153,11 +216,11 @@ const IcpdpClubRegistrationList = () => {
           phone: form.phone.trim(),
           description: form.description.trim(),
         });
-        showToast?.('Đã tạo đơn CLB — chờ Admin phê duyệt.', 'success');
+        showToast?.('Đã tạo CLB mới — CLB hoạt động ngay, Admin được thông báo.', 'success');
         setModal(null);
         setView('registrations');
-        setStatusFilter('pending_admin');
-        load('pending_admin');
+        setStatusFilter('approved');
+        load('approved');
       } catch (err) {
         showToast?.(err.message || 'Tạo CLB thất bại.', 'error');
       } finally {
@@ -217,8 +280,8 @@ const IcpdpClubRegistrationList = () => {
           <span className="ctsv-events-eyebrow">IC-PDP · Câu lạc bộ</span>
           <h1>Quản lý câu lạc bộ</h1>
           <p>
-            Duyệt đơn thành lập CLB mới và quản lý (sửa/xóa) các CLB đang hoạt động. Đơn do IC-PDP tạo sẽ
-            chuyển thẳng cho Admin phê duyệt.
+            Duyệt đơn thành lập CLB mới và quản lý (sửa/xóa) các CLB đang hoạt động. IC-PDP là cấp
+            quyết định — CLB được tạo ngay khi duyệt, Admin chỉ nhận thông báo.
           </p>
         </div>
         <div className="ctsv-events-hero-aside">
@@ -251,9 +314,88 @@ const IcpdpClubRegistrationList = () => {
         >
           CLB hiện có
         </button>
+        <button
+          type="button"
+          className={`icpdp-status-chip ${view === 'transfers' ? 'is-active' : ''}`}
+          onClick={() => setView('transfers')}
+        >
+          Chuyển nhượng chủ nhiệm{pendingTransferCount > 0 ? ` (${pendingTransferCount})` : ''}
+        </button>
       </div>
 
-      {view === 'clubs' ? (
+      {view === 'transfers' ? (
+        transfersLoading ? (
+          <div className="icpdp-proposals-grid" aria-busy="true">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="icpdp-club-tile" style={{ minHeight: 120 }}>
+                <div className="sk sk-line sk-line--lg" />
+                <div className="sk sk-line" />
+              </div>
+            ))}
+          </div>
+        ) : transfers.length === 0 ? (
+          <div className="ctsv-events-empty">
+            <h2>Chưa có yêu cầu chuyển nhượng</h2>
+            <p>Khi chủ nhiệm CLB gửi yêu cầu chuyển quyền, yêu cầu sẽ hiện ở đây để IC-PDP duyệt.</p>
+          </div>
+        ) : (
+          <div className="icpdp-proposals-grid">
+            {transfers.map((r) => (
+              <article key={r.id} className="icpdp-club-tile">
+                <div className="icpdp-club-tile__head">
+                  <span className="icpdp-club-tile__avatar" aria-hidden>
+                    {clubInitials(r.clubName)}
+                  </span>
+                  <div className="icpdp-club-tile__head-text">
+                    <h3 className="icpdp-club-tile__name">{r.clubName || 'CLB'}</h3>
+                    <span className={`clb-table-status clb-table-status--${r.status === 'approved' ? 'approved' : r.status === 'rejected' ? 'rejected' : 'pending'}`}>
+                      {r.status === 'approved' ? 'Đã duyệt' : r.status === 'rejected' ? 'Từ chối' : 'Chờ duyệt'}
+                    </span>
+                  </div>
+                </div>
+                <dl className="icpdp-club-tile__meta">
+                  <div>
+                    <dt>Chủ nhiệm hiện tại</dt>
+                    <dd>{r.requestedByName || r.currentPresident || '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Chuyển sang</dt>
+                    <dd>{r.targetName || '—'} ({r.targetEmail || '—'})</dd>
+                  </div>
+                  <div>
+                    <dt>Ngày gửi</dt>
+                    <dd>{formatDate(r.createdAt)}</dd>
+                  </div>
+                </dl>
+                {r.reason && <p className="icpdp-club-tile__desc">Lý do: {r.reason}</p>}
+                {r.status === 'rejected' && r.adminNote && (
+                  <p className="icpdp-club-tile__desc">Lý do từ chối: {r.adminNote}</p>
+                )}
+                {r.status === 'pending' && (
+                  <div className="icpdp-club-tile__footer">
+                    <button
+                      type="button"
+                      className="icpdp-club-tile__btn"
+                      disabled={transferBusyId === r.id}
+                      onClick={() => handleApproveTransfer(r)}
+                    >
+                      {transferBusyId === r.id ? 'Đang xử lý…' : 'Duyệt'}
+                    </button>
+                    <button
+                      type="button"
+                      className="icpdp-club-tile__btn icpdp-club-tile__btn--danger"
+                      disabled={transferBusyId === r.id}
+                      onClick={() => handleRejectTransfer(r)}
+                    >
+                      Từ chối
+                    </button>
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        )
+      ) : view === 'clubs' ? (
         clubsLoading ? (
           <div className="icpdp-proposals-grid" aria-busy="true">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -431,8 +573,8 @@ const IcpdpClubRegistrationList = () => {
             <div className="icpdp-cm-body">
               {isCreate && (
                 <p className="icpdp-cm-hint">
-                  Đơn thành lập sẽ được gửi cho Admin phê duyệt. Sau khi duyệt, hệ thống tạo CLB và gán quyền
-                  cho chủ nhiệm.
+                  CLB được tạo và kích hoạt ngay khi bấm lưu — hệ thống gán quyền chủ nhiệm cho email đã nhập
+                  (sinh viên hoặc chủ nhiệm CLB khác kiêm nhiệm). Admin sẽ nhận thông báo.
                 </p>
               )}
               <div className="icpdp-cm-field">

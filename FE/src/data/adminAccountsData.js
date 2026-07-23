@@ -152,6 +152,11 @@ export const accountToEditForm = (acc) => ({
   campus: acc.campus || 'FPT University Da Nang',
   isActive: acc.active !== false,
   managedClubId: acc.managedClubId || '',
+  managedClubIds: Array.isArray(acc.managedClubIds)
+    ? acc.managedClubIds
+    : acc.managedClubId
+      ? [acc.managedClubId]
+      : [],
 });
 
 export const getAccountInitials = (name) => {
