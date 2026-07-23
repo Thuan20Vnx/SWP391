@@ -1,4 +1,6 @@
-const STUDENT_FREE_ROLES = new Set(['student', 'staff', 'partner']);
+// Đồng bộ với BE (constants/eventPricing.js STUDENT_FREE_ROLES) — chủ nhiệm CLB,
+// CTSV, IC-PDP cũng là người trong trường nên được vé miễn phí như sinh viên.
+const STUDENT_FREE_ROLES = new Set(['student', 'staff', 'partner', 'club_manager', 'ctsv', 'icpdp']);
 
 export const hasStudentTicketPrivilege = (role) =>
   STUDENT_FREE_ROLES.has(String(role || '').toLowerCase());
