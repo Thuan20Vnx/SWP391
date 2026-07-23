@@ -9,17 +9,28 @@ import { isPendingApproval } from '../../utils/eventStatus';
 import { resolveEventDisplayImage } from '../../utils/eventDisplay';
 import { CTSV_CATEGORY_OPTIONS, getCategoryDisplayLabel } from '../../constants/eventCategories';
 
+// BE không tự đổi status sang 'ended' (chỉ set eventState='expired'), nên phải
+// tự suy "đã kết thúc" từ ngày kết thúc để badge/tab không kẹt ở "Đã duyệt".
+const isEndedEvent = (ev) => {
+  const s = ev.statusKey || ev.status || '';
+  if (s === 'ended') return true;
+  if (!['approved', 'live'].includes(s)) return false;
+  if (ev.eventState === 'postponed') return false;
+  const end = ev.endDate ? new Date(ev.endDate) : null;
+  return Boolean(end && !Number.isNaN(end.getTime()) && end.getTime() < Date.now());
+};
+
 const STATUS_TABS = [
   { key: 'all', label: 'Tất cả', tone: 'all', match: () => true },
-  { key: 'approved', label: 'Đã duyệt', tone: 'success', match: (ev) => ['approved', 'live'].includes(ev.statusKey || ev.status) },
+  { key: 'approved', label: 'Đã duyệt', tone: 'success', match: (ev) => ['approved', 'live'].includes(ev.statusKey || ev.status) && !isEndedEvent(ev) },
   { key: 'pending', label: 'Đang duyệt', tone: 'warning', match: (ev) => /^pending/.test(ev.statusKey || ev.status || '') },
-  { key: 'ended', label: 'Đã kết thúc', tone: 'all', match: (ev) => (ev.statusKey || ev.status) === 'ended' },
+  { key: 'ended', label: 'Đã kết thúc', tone: 'all', match: (ev) => isEndedEvent(ev) },
   { key: 'rejected', label: 'Từ chối', tone: 'alert', match: (ev) => (ev.statusKey || ev.status) === 'rejected' },
 ];
 
 const cardStateFromEv = (ev) => {
   const s = ev.statusKey || ev.status || '';
-  if (s === 'ended') return 'expired';
+  if (isEndedEvent(ev)) return 'expired';
   if (s === 'postponed') return 'postponed';
   return 'active';
 };
@@ -28,7 +39,7 @@ const cardStateFromEv = (ev) => {
 const resolvePartnerStatusBadge = (ev) => {
   if (ev.isHidden) return { label: 'Đã ẩn', tone: 'muted' };
   const s = String(ev.statusKey || ev.status || '').toLowerCase();
-  if (s === 'ended') return { label: 'Đã kết thúc', tone: 'muted' };
+  if (isEndedEvent(ev)) return { label: 'Đã kết thúc', tone: 'muted' };
   if (s === 'rejected') return { label: 'Từ chối', tone: 'alert' };
   if (s === 'info_requested' || s === 'revision') return { label: 'Cần bổ sung', tone: 'warning' };
   if (s.startsWith('pending')) return { label: 'Đang duyệt', tone: 'warning' };

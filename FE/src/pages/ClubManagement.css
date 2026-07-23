@@ -459,6 +459,15 @@
   background: #94a3b8;
 }
 
+.clb-table-status--ended {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.clb-table-status--ended::before {
+  background: #94a3b8;
+}
+
 .clb-event-name {
   font-weight: 600;
   color: #1e293b;

@@ -472,7 +472,13 @@ const EventManagementDetail = ({
 
   const statusMeta = useMemo(() => {
     if (isIcpdpPortal && proposalReview?.statusKey) {
-      return getEventStatusMeta({ statusKey: proposalReview.statusKey });
+      // Kèm endDate/source của sự kiện để đơn đã duyệt nhưng sự kiện đã qua
+      // ngày kết thúc hiển thị "Đã kết thúc" thay vì kẹt ở "Đã duyệt".
+      return getEventStatusMeta({
+        statusKey: proposalReview.statusKey,
+        endDate: eventData?.endDate,
+        source: eventData?.source,
+      });
     }
     return getEventStatusMeta(eventData);
   }, [isIcpdpPortal, proposalReview, eventData]);

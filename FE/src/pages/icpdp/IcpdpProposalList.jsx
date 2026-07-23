@@ -28,7 +28,14 @@ const getItemSubmittedAtMs = (item) => {
 
 const getStatusMeta = (item) => {
   const key = item.data.statusKey || item.data.status;
-  if (key === 'approved') return { label: 'Đã duyệt', tone: 'approved' };
+  if (key === 'approved') {
+    // Đơn đã duyệt nhưng sự kiện qua ngày kết thúc → hiện "Đã kết thúc".
+    const end = item.data.endDate ? new Date(item.data.endDate) : null;
+    if (end && !Number.isNaN(end.getTime()) && end.getTime() < Date.now()) {
+      return { label: 'Đã kết thúc', tone: 'ended' };
+    }
+    return { label: 'Đã duyệt', tone: 'approved' };
+  }
   if (key === 'rejected') return { label: 'Từ chối', tone: 'rejected' };
   if (key === 'revision') return { label: 'Cần chỉnh sửa', tone: 'pending' };
   if (key === 'pending_admin') return { label: 'Chờ Admin', tone: 'pending' };
