@@ -1,0 +1,15 @@
+.vn-datetime {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.vn-datetime > .vn-date {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.vn-datetime__time {
+  flex: 0 0 auto;
+  width: 96px;
+}

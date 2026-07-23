@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import AppSelect from '../ui/AppSelect';
 import AutoGrowTextarea from '../ui/AutoGrowTextarea';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import VnDateTimeInput from '../ui/VnDateTimeInput';
 import EventPlanFilePanel from '../events/EventPlanFilePanel';
 import EventPlanUploadField from '../events/EventPlanUploadField';
 import TimelineDocImportPanel from './TimelineDocImportPanel';
@@ -1122,22 +1123,18 @@ const ClubSemesterTimelinePanel = ({ showToast, mode = 'club', initialTimelineId
               </label>
               <label>
                 Bắt đầu dự kiến *
-                <input
-                  type="datetime-local"
+                <VnDateTimeInput
                   value={item.plannedDate}
-                  onInput={(e) => updateItem(index, 'plannedDate', e.target.value, e.target)}
-                  onChange={(e) => updateItem(index, 'plannedDate', e.target.value, e.target)}
+                  onChange={(e) => updateItem(index, 'plannedDate', e.target.value)}
                   min={toLocalDatetimeInputMin()}
                   required
                 />
               </label>
               <label>
                 Kết thúc dự kiến *
-                <input
-                  type="datetime-local"
+                <VnDateTimeInput
                   value={item.plannedEndDate}
-                  onInput={(e) => updateItem(index, 'plannedEndDate', e.target.value, e.target)}
-                  onChange={(e) => updateItem(index, 'plannedEndDate', e.target.value, e.target)}
+                  onChange={(e) => updateItem(index, 'plannedEndDate', e.target.value)}
                   min={item.plannedDate || undefined}
                   required
                 />

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import BannerCropModal from './ctsv/BannerCropModal';
 import AvatarCropModal from './profile/AvatarCropModal';
 import AppSelect from './ui/AppSelect';
+import VnDateInput from './ui/VnDateInput';
 import {
   CLUB_COVER_ASPECT_H,
   CLUB_COVER_ASPECT_LABEL,
@@ -626,9 +627,8 @@ const ClubProfileUpdate = ({ showToast }) => {
               </div>
               <div className="clb-profile-field">
                 <label htmlFor="club-founded">Ngày thành lập</label>
-                <input
+                <VnDateInput
                   id="club-founded"
-                  type="date"
                   className="clb-input clb-input--date"
                   value={form.foundedDate}
                   onChange={(e) => updateField('foundedDate', e.target.value)}

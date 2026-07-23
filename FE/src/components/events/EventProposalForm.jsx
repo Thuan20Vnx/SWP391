@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../../pages/ClubManagement.css';
 import AppSelect from '../ui/AppSelect';
+import VnDateInput from '../ui/VnDateInput';
 import BannerCropModal from '../ctsv/BannerCropModal';
 import EventIntroFields from './EventIntroFields';
 import EventTicketTypesEditor from './EventTicketTypesEditor';
@@ -713,8 +714,7 @@ const EventProposalForm = ({
                 <label>
                   Ngày Bắt Đầu Đăng Ký <span className="clb-required">*</span>
                 </label>
-                <input
-                  type="date"
+                <VnDateInput
                   value={form.regStartDate}
                   onChange={(e) => patchForm({ regStartDate: e.target.value })}
                   min={todayDateMin}
@@ -740,8 +740,7 @@ const EventProposalForm = ({
             <div className="clb-form-row">
               <div className="clb-form-group">
                 <label>Ngày Kết Thúc Đăng Ký</label>
-                <input
-                  type="date"
+                <VnDateInput
                   value={form.regEndDate}
                   onChange={(e) => patchForm({ regEndDate: e.target.value })}
                   className="clb-input"
@@ -766,8 +765,7 @@ const EventProposalForm = ({
                 <label>
                   Ngày Bắt Đầu Sự Kiện <span className="clb-required">*</span>
                 </label>
-                <input
-                  type="date"
+                <VnDateInput
                   value={form.eventStartDate}
                   onChange={(e) => patchForm({ eventStartDate: e.target.value })}
                   min={todayDateMin}
@@ -793,8 +791,7 @@ const EventProposalForm = ({
             <div className="clb-form-row">
               <div className="clb-form-group">
                 <label>Ngày Kết Thúc Sự Kiện</label>
-                <input
-                  type="date"
+                <VnDateInput
                   value={form.eventEndDate}
                   onChange={(e) => patchForm({ eventEndDate: e.target.value })}
                   className="clb-input"

@@ -1,0 +1,56 @@
+.vn-date {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.vn-date__text {
+  width: 100%;
+  padding-right: 42px;
+}
+
+.vn-date__text[aria-invalid='true'] {
+  border-color: #dc2626;
+}
+
+.vn-date__picker-btn {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.vn-date__picker-btn:hover:not(:disabled) {
+  background: rgba(100, 116, 139, 0.12);
+  color: #334155;
+}
+
+.vn-date__picker-btn:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* Input date native chỉ làm nguồn mở lịch — giấu hẳn khỏi layout nhưng vẫn
+   render để showPicker() hoạt động, neo cạnh nút để lịch bung đúng chỗ. */
+.vn-date__native {
+  position: absolute;
+  right: 6px;
+  bottom: 0;
+  width: 32px;
+  height: 1px;
+  opacity: 0;
+  border: none;
+  padding: 0;
+  pointer-events: none;
+}

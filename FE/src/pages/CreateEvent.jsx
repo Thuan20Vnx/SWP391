@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppSelect from '../components/ui/AppSelect';
+import VnDateTimeInput from '../components/ui/VnDateTimeInput';
 import { EVENT_VENUES } from '../constants/eventVenues';
 import { API_BASE } from '../utils/api';
 
@@ -129,14 +130,14 @@ const CreateEvent = ({ showToast }) => {
 
           <div className="input-group">
             <div className="input-wrapper">
-              <input type="datetime-local" id="startDate" required value={formData.startDate} onChange={handleInputChange} />
+              <VnDateTimeInput id="startDate" required value={formData.startDate} onChange={handleInputChange} />
               <label htmlFor="startDate" style={{ transform: 'translateY(-50%) scale(0.8)', top: '0', background: 'var(--bg-input)' }}>Thời gian bắt đầu</label>
             </div>
           </div>
 
           <div className="input-group">
             <div className="input-wrapper">
-              <input type="datetime-local" id="endDate" required value={formData.endDate} onChange={handleInputChange} />
+              <VnDateTimeInput id="endDate" required value={formData.endDate} onChange={handleInputChange} />
               <label htmlFor="endDate" style={{ transform: 'translateY(-50%) scale(0.8)', top: '0', background: 'var(--bg-input)' }}>Thời gian kết thúc</label>
             </div>
           </div>
