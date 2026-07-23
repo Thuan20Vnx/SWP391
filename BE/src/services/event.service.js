@@ -12,7 +12,8 @@ const { enrichEventWithPricing } = require('../constants/eventPricing');
 const {
   normalizeTicketTypes,
   deriveTicketPriceFromTypes,
-  totalQtyFromTypes
+  totalQtyFromTypes,
+  attachTicketRegistrationCounts
 } = require('../utils/ticketTypes');
 const { normalizeLearningOutcomes } = require('../utils/learningOutcomes');
 const { findClubManagedBy, findManagedClubs, resolveManagedClub } = require('./club.service');
@@ -1254,6 +1255,9 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
   if (checkinCount != null) {
     doc.checkinCount = checkinCount;
   }
+  // Thanh "x/50 đã đăng ký" theo từng loại vé — Event không lưu counter riêng
+  // từng loại nên phải suy từ registeredCount + studentRegisteredCount.
+  doc.ticketTypes = attachTicketRegistrationCounts(doc.ticketTypes, doc);
   doc.reach = doc.reach || 0;
   doc.rating = doc.averageRating ?? 0;
   doc.ratingCount = doc.reviewCount ?? 0;

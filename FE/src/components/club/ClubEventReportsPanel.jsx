@@ -1,8 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  fetchClubReportSubmissions,
-  submitClubEventReport,
-} from '../../services/eventsApi';
+import { useEffect, useMemo, useState } from 'react';
+import { fetchClubReportSubmissions } from '../../services/eventsApi';
 
 const getReportPhase = (event) => {
   const now = Date.now();
@@ -43,11 +40,10 @@ const ReportRowSkeleton = () => (
   </tr>
 );
 
-const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewReport, showToast }) => {
+const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewReport }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [phaseFilter, setPhaseFilter] = useState('all');
   const [submittedMap, setSubmittedMap] = useState({});
-  const [submittingId, setSubmittingId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,26 +63,6 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
       cancelled = true;
     };
   }, []);
-
-  const handleSubmit = useCallback(
-    async (eventId) => {
-      if (!eventId || submittingId) return;
-      setSubmittingId(eventId);
-      try {
-        const data = await submitClubEventReport(eventId);
-        setSubmittedMap((prev) => ({
-          ...prev,
-          [String(eventId)]: data.submission?.submittedAt || new Date().toISOString(),
-        }));
-        showToast?.(data.message || 'Đã gửi báo cáo nghiệm thu cho IC-PDP và Admin.', 'success');
-      } catch (err) {
-        showToast?.(err.message || 'Không gửi được báo cáo.', 'error');
-      } finally {
-        setSubmittingId(null);
-      }
-    },
-    [submittingId, showToast]
-  );
 
   const reportEvents = useMemo(() => {
     return events
@@ -233,7 +209,6 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
                 filtered.map((ev) => {
                   const tier = fillTier(ev.fill);
                   const isSubmitted = Boolean(submittedMap[String(ev.id)]);
-                  const isSubmitting = submittingId === ev.id;
                   const canSubmit = ev.phase === 'ended';
                   return (
                     <tr key={ev.id}>
@@ -278,24 +253,13 @@ const ClubEventReportsPanel = ({ events = [], loadingEvents = false, onViewRepor
                           >
                             {actionLabel(ev.phase)}
                           </button>
-                          {canSubmit && (
-                            isSubmitted ? (
-                              <span className="clb-reports-sent-tag">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                  <path d="M20 6L9 17l-5-5" />
-                                </svg>
-                                Đã nghiệm thu
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                className="clb-btn-primary clb-reports-view-btn"
-                                onClick={() => handleSubmit(ev.id)}
-                                disabled={isSubmitting}
-                              >
-                                {isSubmitting ? 'Đang gửi...' : 'Gửi nghiệm thu'}
-                              </button>
-                            )
+                          {canSubmit && isSubmitted && (
+                            <span className="clb-reports-sent-tag">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                <path d="M20 6L9 17l-5-5" />
+                              </svg>
+                              Đã nghiệm thu
+                            </span>
                           )}
                         </div>
                       </td>

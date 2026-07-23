@@ -4,6 +4,7 @@ const { sanitizeEventCoverForApi } = require('./eventCoverStorage');
 const { sanitizeEventPlanForApi, PLAN_SCOPES, buildClubTimelinePlanUrl, buildSchoolTimelinePlanUrl } = require('./eventPlanStorage');
 const { sanitizeSpeakersForApi } = require('./speakerAvatarStorage');
 const { sanitizeProposalCoverForApi } = require('./proposalCoverStorage');
+const { attachTicketRegistrationCounts } = require('./ticketTypes');
 
 const formatDate = (d) => {
   if (!d) return '';
@@ -88,7 +89,7 @@ const formatEvent = (doc, opts = {}) => {
     agenda: o.agenda || '',
     learningOutcomes: Array.isArray(o.learningOutcomes) ? o.learningOutcomes : [],
     expectedAttendees: o.expectedAttendees ?? 0,
-    ticketTypes: o.ticketTypes || [],
+    ticketTypes: attachTicketRegistrationCounts(o.ticketTypes || [], o),
     source: o.source || 'club',
     schoolOrganizerRole: o.schoolOrganizerRole || 'ctsv',
     partnerId: o.partnerId?.toString?.() || o.partnerId || null,

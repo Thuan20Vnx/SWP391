@@ -966,6 +966,9 @@ const EventManagementDetail = ({
                       {CLUB_CANCEL_MODERATION_LABELS[eventData?.moderationAction] || 'Hủy yêu cầu'}
                     </button>
                   )}
+                  <button type="button" className="ev-btn-outline" onClick={handleExportStudents}>
+                    Xuất báo cáo
+                  </button>
                 </>
               ) : isAdminEventView ? (
                 <>
