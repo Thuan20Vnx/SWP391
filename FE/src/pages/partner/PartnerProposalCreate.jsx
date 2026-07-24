@@ -800,6 +800,24 @@ const PartnerProposalCreate = () => {
                 trường tất toán phần doanh thu về tài khoản ngân hàng đã đăng ký trong hồ sơ đối tác. Vui lòng
                 cập nhật thông tin ngân hàng trong Hồ sơ & Cài đặt để nhận tất toán.
               </p>
+              <Field label="Mức tài trợ mong muốn (VNĐ)" hint="Số tiền tài trợ dự kiến — CTSV dùng để lập hợp đồng.">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={
+                    company.expectedSponsorAmount
+                      ? Number(company.expectedSponsorAmount).toLocaleString('vi-VN')
+                      : ''
+                  }
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    setCompany((prev) => ({ ...prev, expectedSponsorAmount: digits }));
+                  }}
+                  className="ctsv-input"
+                  placeholder="VD: 30.000.000"
+                  disabled={isReadOnly}
+                />
+              </Field>
               <Field label="Quyền lợi đối tác yêu cầu">
                 <div className="partner-benefits-list">
                   {benefits.map((b, i) => (
