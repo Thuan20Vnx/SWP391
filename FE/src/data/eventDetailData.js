@@ -61,13 +61,16 @@ const resolveEventOrganizer = (event) => {
   if (event?.source === 'partner') {
     return {
       kind: 'partner',
-      name: 'Đối tác FPT',
+      // Ưu tiên tên/mô tả công ty đối tác thật (BE gắn partnerName/partnerDescription).
+      name: event.partnerName || 'Đối tác FPT',
       slug: null,
       clubId: '',
-      logo: CLUB_ORGANIZER.logo,
+      logo: event.partnerLogo || CLUB_ORGANIZER.logo,
       memberCount: null,
       eventsHeld: null,
-      description: 'Sự kiện hợp tác cùng đối tác, được CTSV và Admin phê duyệt.',
+      description:
+        event.partnerDescription
+        || 'Sự kiện hợp tác cùng đối tác, được CTSV và Admin phê duyệt.',
     };
   }
   if (event?.clubSlug || event?.clubName || event?.clubId) {

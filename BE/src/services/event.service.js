@@ -1323,6 +1323,21 @@ const getEventById = async (eventId, { user, activeClubId } = {}) => {
     Object.assign(doc, mapClubMeta(clubMeta));
   }
 
+  // Sự kiện đối tác: gắn tên/mô tả công ty thật để trang chi tiết không hiển thị
+  // "Đối tác FPT" mockup ở khối Đơn vị tổ chức.
+  if (doc.source === 'partner' && event.partnerId) {
+    const Partner = require('../models/Partner');
+    const { sanitizePartnerForApi } = require('../utils/partnerMediaStorage');
+    const partner = await Partner.findById(event.partnerId)
+      .select('name description representative logo logoFileExt')
+      .lean();
+    if (partner) {
+      doc.partnerName = partner.name || '';
+      doc.partnerDescription = partner.description || '';
+      doc.partnerLogo = sanitizePartnerForApi(partner).logoUrl || '';
+    }
+  }
+
   if (isOwner && doc.source === 'club') {
     const ownerId = event.createdBy?._id || event.createdBy;
     const club = await resolveManagedClub(user._id, activeClubId)

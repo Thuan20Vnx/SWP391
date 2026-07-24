@@ -12,6 +12,7 @@ import {
 } from '../../services/partnerApi';
 import { openImageFilePicker } from '../../utils/imageFilePicker';
 import { resolveUserAvatar } from '../../utils/image';
+import { resolveMediaUrl } from '../../utils/mediaUrls';
 import { BANK_OPTIONS } from '../../utils/vietqr';
 
 const Field = ({ label, value, onChange, readOnly = false, type = 'text' }) => (
@@ -318,7 +319,7 @@ const PartnerProfileSettings = ({ showToast }) => {
                 aria-label="Đổi logo công ty"
               >
                 {company.logo ? (
-                  <img src={company.logo} alt="Logo công ty" />
+                  <img src={resolveMediaUrl(company.logo)} alt="Logo công ty" />
                 ) : (
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
                     <rect x="3" y="5" width="18" height="14" rx="2" />

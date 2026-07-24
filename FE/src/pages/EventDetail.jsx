@@ -9,6 +9,7 @@ import { fetchAdminPayments } from '../services/adminApi';
 import useUserProfile from '../hooks/useUserProfile';
 import useManagedClubs from '../hooks/useManagedClubs';
 import { API_BASE, getAuthHeaders } from '../utils/api';
+import { resolveMediaUrl } from '../utils/mediaUrls';
 import { getUserRole, isAdminRole, isClubManagerRole } from '../utils/auth';
 import {
   getClubPublicEventAccess,
@@ -669,7 +670,7 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
 
             <section className="event-detail-page__organizer">
               <div className="event-detail-page__organizer-logo">
-                <img src={event.organizer.logo} alt="" />
+                <img src={resolveMediaUrl(event.organizer.logo)} alt="" />
               </div>
               <div className="event-detail-page__organizer-body">
                 <div className="event-detail-page__organizer-top">

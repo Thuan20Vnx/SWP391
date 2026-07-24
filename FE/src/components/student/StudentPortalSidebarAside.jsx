@@ -7,6 +7,9 @@ import { getRoleLabel, isAdminRoleLabel } from '../../utils/role';
 import { clearUserProfileCache } from '../../hooks/useUserProfile';
 import { dispatchAuthChanged } from '../../utils/authEvents';
 import DashboardSidebarNav from '../DashboardSidebarNav';
+import PartnerSidebarModeSwitch from '../partner/PartnerSidebarModeSwitch';
+import ClubSidebarModeSwitch from '../club/ClubSidebarModeSwitch';
+import { CLUB_SIDEBAR_MODE } from '../club/clubNavConfig';
 
 const StudentPortalSidebarAside = ({
   sidebarActive = false,
@@ -38,6 +41,16 @@ const StudentPortalSidebarAside = ({
     onCloseSidebar?.();
   };
 
+  // Partner & chủ nhiệm CLB dùng trang tham gia (/schedule, /my-clubs...) chung
+  // shell này. Giữ nút chuyển chế độ để họ quay lại cổng riêng thay vì "mất" nó.
+  const roleKey = String(role || '').toLowerCase();
+  const isPartner = roleKey === 'partner';
+  const isClubManager = roleKey === 'club_manager';
+  const handleBackToPortal = (path) => {
+    navigate(path);
+    onCloseSidebar?.();
+  };
+
   return (
     <aside className={`sidebar-aside ${sidebarActive ? 'active' : ''}`} aria-label="Menu sinh viên">
       <div
@@ -49,6 +62,19 @@ const StudentPortalSidebarAside = ({
       >
         <img src={FE_LOGO} alt={FE_LOGO_ALT} className="logo-icon" />
       </div>
+
+      {isPartner && (
+        <PartnerSidebarModeSwitch
+          mode="participate"
+          onModeChange={(m) => m === 'partner' && handleBackToPortal('/partner')}
+        />
+      )}
+      {isClubManager && (
+        <ClubSidebarModeSwitch
+          mode={CLUB_SIDEBAR_MODE.PARTICIPATE}
+          onModeChange={(m) => m === CLUB_SIDEBAR_MODE.MANAGE && handleBackToPortal('/quan-ly-clb')}
+        />
+      )}
 
       <DashboardSidebarNav
         activeMenu={activeMenu}

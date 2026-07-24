@@ -22,7 +22,8 @@ router.use(authMiddleware);
 
 router.get('/profile', asyncHandler(userController.getProfile));
 router.get('/my-events', authorize('student', 'staff', 'partner', 'guest', 'club_manager'), asyncHandler(userController.getMyEvents));
-router.get('/my-clubs', authorize('student', 'staff', 'club_manager'), asyncHandler(userController.getMyClubs));
+// Partner & guest cũng theo dõi được CLB nên phải xem được danh sách CLB yêu thích.
+router.get('/my-clubs', authorize('student', 'staff', 'club_manager', 'partner', 'guest'), asyncHandler(userController.getMyClubs));
 router.get('/event-reviews', authorize('student', 'staff', 'partner', 'guest'), asyncHandler(userController.getEventReviews));
 router.put('/profile/avatar', asyncHandler(userController.updateAvatar));
 router.patch('/profile/avatar', asyncHandler(userController.updateAvatar));
