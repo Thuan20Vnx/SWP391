@@ -379,6 +379,45 @@ const rankFeatured = (list) => {
   });
 };
 
+/**
+ * Danh sách sự kiện với bộ lọc "Tất cả": xếp theo giai đoạn thay vì startDate
+ * tăng dần, vì startDate tăng dần đẩy toàn bộ sự kiện đã kết thúc lên đầu.
+ * Thứ tự: đang diễn ra → sắp diễn ra → tạm hoãn → đã kết thúc.
+ */
+const PHASE_ORDER = { ongoing: 0, upcoming: 1, postponed: 2, ended: 3 };
+
+const resolveEventPhase = (event, now) => {
+  const start = new Date(event.startDate || 0).getTime();
+  const end = new Date(event.endDate || 0).getTime();
+  const hasEnded = !Number.isNaN(end) && end < now;
+
+  if (event.eventState === 'expired' || hasEnded) return 'ended';
+  if (event.eventState === 'postponed') return 'postponed';
+  if (!Number.isNaN(start) && start <= now) return 'ongoing';
+  return 'upcoming';
+};
+
+const rankByPhase = (list) => {
+  const now = Date.now();
+  const phases = new Map(list.map((event) => [event, resolveEventPhase(event, now)]));
+
+  return list.sort((a, b) => {
+    const phaseA = phases.get(a);
+    const phaseB = phases.get(b);
+    if (phaseA !== phaseB) return PHASE_ORDER[phaseA] - PHASE_ORDER[phaseB];
+
+    // Đã kết thúc: sự kiện vừa kết thúc lên trước (mới nhất trước).
+    if (phaseA === 'ended') {
+      return new Date(b.endDate || 0).getTime() - new Date(a.endDate || 0).getTime();
+    }
+    // Đang diễn ra: sắp hết trước; còn lại: bắt đầu sớm nhất trước.
+    if (phaseA === 'ongoing') {
+      return new Date(a.endDate || 0).getTime() - new Date(b.endDate || 0).getTime();
+    }
+    return new Date(a.startDate || 0).getTime() - new Date(b.startDate || 0).getTime();
+  });
+};
+
 const applySort = (events, sort) => {
   const list = [...events];
   switch (String(sort || '').trim()) {
@@ -1012,7 +1051,15 @@ const getApprovedEvents = async ({
 
   filtered = applyOrganizerFilter(filtered, organizer);
   filtered = applyStateFilter(filtered, state, registeredSet);
-  filtered = applySort(filtered, sort);
+
+  // Bộ lọc "Tất cả" trộn mọi giai đoạn nên phải xếp theo giai đoạn; các bộ lọc
+  // khác đã đồng nhất giai đoạn rồi, giữ nguyên sort cũ.
+  const stateKey = String(state || 'all').trim() || 'all';
+  const sortKey = String(sort || 'startDate').trim() || 'startDate';
+  filtered =
+    stateKey === 'all' && sortKey === 'startDate'
+      ? rankByPhase([...filtered])
+      : applySort(filtered, sort);
 
   const total = filtered.length;
   const safePage = parseListPage(page);
