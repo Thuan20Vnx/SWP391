@@ -467,6 +467,9 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
   }
 
   const statusClass = `event-detail-page__status event-detail-page__status--${event.registrationStatus.tone}`;
+  // Sự kiện đã kết thúc/bị hoãn thì giữ nhãn trạng thái thật, không đè bằng "Đã đăng ký".
+  const showRegisteredStatus =
+    Boolean(event.myRegistration) && event.eventState !== 'expired' && event.eventState !== 'postponed';
 
   const formatTicketTime = (value) => {
     if (!value) return '';
@@ -846,8 +849,8 @@ const EventDetail = ({ showToast, embedded = false, backPath = '/events', readOn
             ) : (
             <div className="event-detail-page__register-card">
               <div className="event-detail-page__register-head">
-                <span className={event.myRegistration ? 'event-detail-page__status event-detail-page__status--open' : statusClass}>
-                  {event.myRegistration ? 'Đã đăng ký' : event.registrationStatus.label}
+                <span className={showRegisteredStatus ? 'event-detail-page__status event-detail-page__status--open' : statusClass}>
+                  {showRegisteredStatus ? 'Đã đăng ký' : event.registrationStatus.label}
                 </span>
                 <span className="event-detail-page__slots">
                   {event.registeredCount}/{event.capacity} slot

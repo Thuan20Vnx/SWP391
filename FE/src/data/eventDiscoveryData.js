@@ -304,9 +304,15 @@ export const mapApiEventToCard = (event, { viewerRole = 'guest' } = {}) => {
     location: event.location,
     filledSlots,
     totalSlots,
-    cardState: isRegistered ? 'registered' : eventState,
+    // Sự kiện đã kết thúc/bị hoãn phải thắng cờ "đã đăng ký", nếu không thẻ của
+    // người đã đăng ký sẽ kẹt ở "Đã đăng ký" và vẫn bấm được dù đã qua ngày.
+    cardState: eventState === 'expired' || eventState === 'postponed'
+      ? eventState
+      : isRegistered ? 'registered' : eventState,
     postponeReason: event.postponeReason || '',
-    primaryLabel: isRegistered
+    primaryLabel: eventState === 'expired'
+      ? 'Đã kết thúc'
+      : isRegistered
       ? 'Đã đăng ký'
       : registrationNotOpen
         ? 'Sắp mở đăng ký'

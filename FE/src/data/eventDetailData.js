@@ -241,13 +241,18 @@ export const mapApiEventToDetail = (event, { viewerRole = 'guest' } = {}) => {
     ? formatShortDate(event.registrationStartDate)
     : '';
 
-  const registrationStatus = isRegistered
-    ? { label: 'Đã đăng ký', tone: 'open' }
-    : registrationNotOpen
-      ? { label: 'Sắp mở đăng ký', tone: 'warning' }
-      : registrationClosed
-        ? { label: 'Đã đóng đăng ký', tone: 'muted' }
-        : getRegistrationStatus(event);
+  // Đã kết thúc / bị hoãn phải thắng cờ "đã đăng ký" — người đã đăng ký vẫn phải
+  // thấy sự kiện đã qua, không kẹt ở "Đã đăng ký".
+  const eventEnded = eventState === 'expired' || eventState === 'postponed';
+  const registrationStatus = eventEnded
+    ? getRegistrationStatus({ ...event, eventState })
+    : isRegistered
+      ? { label: 'Đã đăng ký', tone: 'open' }
+      : registrationNotOpen
+        ? { label: 'Sắp mở đăng ký', tone: 'warning' }
+        : registrationClosed
+          ? { label: 'Đã đóng đăng ký', tone: 'muted' }
+          : getRegistrationStatus({ ...event, eventState });
   const pricing = resolveEventPricing(event, viewerRole);
   const { listPrice, amountDue, priceLabel, studentPrivilegeApplied } = pricing;
 
@@ -310,13 +315,15 @@ export const mapApiEventToDetail = (event, { viewerRole = 'guest' } = {}) => {
     registrationClosed: Boolean(registrationClosed),
     registrationStatus,
     audienceBlocked: !audienceAllowed && !isRegistered,
-    primaryActionLabel: registrationNotOpen
-      ? (registrationOpenLabel ? `Mở đăng ký ${registrationOpenLabel}` : 'Chưa mở đăng ký')
-      : registrationClosed
-        ? 'Đã đóng đăng ký'
-        : (!audienceAllowed && !isRegistered)
-          ? audienceBlockLabel
-          : pricing.primaryActionLabel || getPrimaryActionLabel(event, isRegistered, amountDue, listPrice),
+    primaryActionLabel: eventEnded
+      ? getPrimaryActionLabel({ ...event, eventState }, isRegistered, amountDue, listPrice)
+      : registrationNotOpen
+        ? (registrationOpenLabel ? `Mở đăng ký ${registrationOpenLabel}` : 'Chưa mở đăng ký')
+        : registrationClosed
+          ? 'Đã đóng đăng ký'
+          : (!audienceAllowed && !isRegistered)
+            ? audienceBlockLabel
+            : pricing.primaryActionLabel || getPrimaryActionLabel({ ...event, eventState }, isRegistered, amountDue, listPrice),
     primaryDisabled:
       eventState === 'expired' ||
       Boolean(registrationNotOpen) ||
