@@ -183,7 +183,7 @@ const AdminAnalytics = () => {
     }
   }, [role, navigate, showToast, t]);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!exportPayload || loading) {
       showToast?.(t('admin.analytics.exportEmpty'), 'error');
       return;
@@ -192,7 +192,7 @@ const AdminAnalytics = () => {
       // periodLabel từ BE là kỳ cụ thể ("Tháng 07/2026"), rõ hơn nhãn nút ("Theo tháng").
       const activePeriodLabel =
         periodLabel || periodOptions.find((opt) => opt.value === period)?.label || period;
-      downloadAdminAnalyticsReport(exportPayload, {
+      await downloadAdminAnalyticsReport(exportPayload, {
         periodLabel: activePeriodLabel,
         language,
       });
