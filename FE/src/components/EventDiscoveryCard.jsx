@@ -49,6 +49,7 @@ const EventDiscoveryCard = ({
     registrationNotOpen,
     registrationClosed,
     soldOut,
+    audienceProgress,
   } = event;
 
   const fillPercent = getFillPercent(filledSlots, totalSlots);
@@ -62,6 +63,10 @@ const EventDiscoveryCard = ({
   const closed = (registrationClosed || isSoldOut) && !isRegistered && !viewOnly;
   const notOpen = upcoming || closed;
   const showProgress = !isPostponed;
+  // Sự kiện cũ không khai báo loại vé thì không tách được, giữ thanh tổng như trước.
+  const audienceGroups = audienceProgress?.groups || [];
+  const onlyOneAudience =
+    audienceProgress?.mode === 'student' || audienceProgress?.mode === 'guest';
   const hasManageAction = viewOnly && typeof onManage === 'function';
   const singleAction = isPostponed || (viewOnly && !hasManageAction);
   const detailPath = detailTo || (event?.id ? `/events/${event.id}` : null);
@@ -183,20 +188,46 @@ const EventDiscoveryCard = ({
           {(showProgress || (priceLabel && !isPostponed) || (audienceLabel && !isPostponed)) && (
             <div className="event-discovery-card__info-panel">
               {showProgress && (
-                <div className="event-discovery-card__progress">
-                  <div className="event-discovery-card__progress-labels">
-                    <span className="event-discovery-card__progress-slot">
-                      <strong>{filledSlots}</strong>/{totalSlots} chỗ
-                    </span>
-                    <span className={isExpired ? 'is-muted' : 'is-accent'}>{fillPercent}% đã đăng ký</span>
+                audienceGroups.length ? (
+                  <div className="event-discovery-card__progress-groups">
+                    {audienceGroups.map((group) => (
+                      <div key={group.key} className="event-discovery-card__progress">
+                        <div className="event-discovery-card__progress-labels">
+                          <span className="event-discovery-card__progress-audience">{group.label}</span>
+                          <span className="event-discovery-card__progress-slot">
+                            <strong>{group.filled}</strong>/{group.total} chỗ
+                          </span>
+                        </div>
+                        <div className="event-discovery-card__progress-track">
+                          <div
+                            className={`event-discovery-card__progress-fill ${isExpired ? 'is-full' : ''}`}
+                            style={{ width: `${Math.max(group.percent, group.percent > 0 ? 4 : 0)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {onlyOneAudience && (
+                      <p className="event-discovery-card__progress-note">
+                        Sự kiện này chỉ mở vé cho {audienceGroups[0].label.toLowerCase()}.
+                      </p>
+                    )}
                   </div>
-                  <div className="event-discovery-card__progress-track">
-                    <div
-                      className={`event-discovery-card__progress-fill ${isExpired ? 'is-full' : ''}`}
-                      style={{ width: `${Math.max(fillPercent, fillPercent > 0 ? 4 : 0)}%` }}
-                    />
+                ) : (
+                  <div className="event-discovery-card__progress">
+                    <div className="event-discovery-card__progress-labels">
+                      <span className="event-discovery-card__progress-slot">
+                        <strong>{filledSlots}</strong>/{totalSlots} chỗ
+                      </span>
+                      <span className={isExpired ? 'is-muted' : 'is-accent'}>{fillPercent}% đã đăng ký</span>
+                    </div>
+                    <div className="event-discovery-card__progress-track">
+                      <div
+                        className={`event-discovery-card__progress-fill ${isExpired ? 'is-full' : ''}`}
+                        style={{ width: `${Math.max(fillPercent, fillPercent > 0 ? 4 : 0)}%` }}
+                      />
+                    </div>
                   </div>
-                </div>
+                )
               )}
 
               {((priceLabel && !isPostponed) || (audienceLabel && !isPostponed)) && (

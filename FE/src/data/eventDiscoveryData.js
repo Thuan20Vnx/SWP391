@@ -1,4 +1,5 @@
 import { formatVnd, resolveEventPricing } from '../utils/ticketPricing';
+import { resolveTicketAudienceProgress } from '../utils/eventTicketTypes';
 import { resolveEventDisplayImage } from '../utils/eventDisplay';
 import { getCategoryDisplayLabel } from '../constants/eventCategories';
 
@@ -21,12 +22,13 @@ export const CATEGORY_FILTERS = [
   { id: 'art', label: 'Nghệ thuật', categories: ['Nghệ thuật', 'NGHỆ THUẬT', 'VĂN HÓA'] },
 ];
 
-// Tách "Đang mở" thành hai giai đoạn rõ ràng. Bốn nhóm này rời nhau và phủ hết
-// danh sách, nên tổng số của chúng bằng đúng số sự kiện ở "Tất cả".
+// Năm nhóm này rời nhau và phủ hết danh sách, nên tổng số của chúng bằng đúng số
+// sự kiện ở "Tất cả".
 export const STATE_FILTERS = [
   { id: 'all', label: 'Tất cả' },
   { id: 'ongoing', label: 'Đang diễn ra' },
   { id: 'upcoming', label: 'Sắp diễn ra' },
+  { id: 'soldout', label: 'Hết vé' },
   { id: 'expired', label: 'Đã kết thúc' },
   { id: 'postponed', label: 'Bị hoãn' },
 ];
@@ -337,6 +339,12 @@ export const mapApiEventToCard = (event, { viewerRole = 'guest' } = {}) => {
     priceLabel,
     studentPrivilegeApplied,
     ticketTypes: event.ticketTypes || [],
+    audienceProgress: resolveTicketAudienceProgress({
+      ticketTypes: event.ticketTypes,
+      capacity: totalSlots,
+      registeredCount: filledSlots,
+      studentRegisteredCount: event.studentRegisteredCount,
+    }),
     source: event.source || 'club',
     schoolOrganizerRole: event.schoolOrganizerRole || 'ctsv',
     status: event.status || '',

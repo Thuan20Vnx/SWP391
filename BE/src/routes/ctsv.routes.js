@@ -31,6 +31,8 @@ const {
   SCHOOL_EVENT_SUBMIT_STATUS
 } = require('../constants/eventWorkflow');
 const { getCtsvReportDetail } = require('../services/ctsvReport.service');
+const { notifyClubFollowersNewEvent } = require('../services/event.service');
+const { assertCapacityCoversRegistrations } = require('../services/eventCapacity.service');
 const reviewService = require('../services/review.service');
 const {
   submitCtsvReport,
@@ -621,6 +623,10 @@ router.get('/events/:id', async (req, res) => {
       event: event._id,
       status: 'attended',
     });
+    formatted.checkoutCount = await EventRegistration.countDocuments({
+      event: event._id,
+      checkedOutAt: { $ne: null },
+    });
     if (canViewRoster) {
       const { attachInlineEventCover } = require('../utils/eventCoverStorage');
       formatted = await attachInlineEventCover(formatted, event);
@@ -753,6 +759,11 @@ router.put('/events/:id', requireSchoolEventSubmit, async (req, res) => {
         message: 'Tiêu đề, thời gian đăng ký và thời gian sự kiện là bắt buộc!'
       });
     }
+
+    assertCapacityCoversRegistrations(event, {
+      capacity: data.capacity,
+      totalTickets: data.totalTickets,
+    });
 
     assertEventScheduleDates({
       registrationStartDate: new Date(data.registrationStartDate),
@@ -1477,6 +1488,8 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
         refId: String(event._id),
         refType: 'Event'
       }).catch(() => {});
+      // Sự kiện CLB vừa công khai → báo cho người đã bấm theo dõi CLB đó.
+      notifyClubFollowersNewEvent(event).catch(() => {});
       return res.json({
         success: true,
         proposal: formatProposal(proposal),
@@ -1531,6 +1544,9 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
       thumbnail: proposal.image,
       status: 'approved',
       source: isClubProposal ? 'club' : undefined,
+      // Thiếu clubId thì sự kiện không gắn được về CLB nào — không lọc theo CLB
+      // được và cũng không tìm ra người theo dõi để gửi thông báo.
+      clubId: isClubProposal ? proposal.clubId || null : undefined,
       createdByEmail: proposal.submittedByEmail,
       approvedByEmail: req.authEmail,
       adminApprovedByEmail: isClubProposal ? req.authEmail : undefined,
@@ -1551,6 +1567,8 @@ router.patch('/proposals/:id/approve', requireCtsvApprove, async (req, res) => {
       refId: String(event._id),
       refType: 'Event'
     }).catch(() => {});
+    // Sự kiện CLB vừa công khai → báo cho người đã bấm theo dõi CLB đó.
+    if (isClubProposal) notifyClubFollowersNewEvent(event).catch(() => {});
 
     return res.json({
       success: true,

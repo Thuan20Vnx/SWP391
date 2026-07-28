@@ -120,6 +120,9 @@ const EventBentoStatsGrid = ({
           />
         </div>
         <p className="ev-bento-desc">{checkinProgress.label}</p>
+        {eventData?.checkoutCount != null && (
+          <p className="ev-bento-desc">{eventData.checkoutCount} người đã check-out</p>
+        )}
       </BentoCardButton>
 
       <BentoCardButton cardKey="rating" activeKey={activeCard} onClick={onCardClick}>

@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const Payment = require('../models/Payment');
+const AppError = require('../utils/AppError');
 
 /**
  * Quản lý sức chứa sự kiện bằng thao tác atomic của MongoDB.
@@ -213,7 +214,29 @@ const commitReservedSlot = async (eventId, hadReservation) => {
   return Event.findOneAndUpdate({ _id: eventId }, { $inc: { registeredCount: 1 } }, { returnDocument: 'after' });
 };
 
+/**
+ * Không cho hạ số vé xuống dưới số người ĐÃ đăng ký. Nếu cho phép, những người
+ * đăng ký sau ngưỡng mới sẽ mất chỗ trong im lặng, còn sự kiện thì hiện "hết vé"
+ * với số âm còn lại. Chặn ngay lúc sửa để BTC thấy lỗi thay vì hỏng dữ liệu.
+ */
+const assertCapacityCoversRegistrations = (event, { capacity, totalTickets } = {}) => {
+  const registered = Math.max(0, Number(event?.registeredCount) || 0);
+  if (registered === 0) return;
+
+  const nextTotal =
+    Math.max(0, Number(totalTickets) || 0) || Math.max(0, Number(capacity) || 0);
+  if (!nextTotal) return;
+
+  if (nextTotal < registered) {
+    throw new AppError(
+      `Sự kiện đã có ${registered} người đăng ký nên không thể giảm số vé xuống ${nextTotal}. Số vé phải từ ${registered} trở lên.`,
+      400,
+    );
+  }
+};
+
 module.exports = {
+  assertCapacityCoversRegistrations,
   occupySlot,
   releaseOccupiedSlot,
   reserveSlot,

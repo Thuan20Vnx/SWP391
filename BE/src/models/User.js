@@ -103,6 +103,15 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  /**
+   * Hạn mức hủy vé trong ngày. Không đếm được từ EventRegistration.cancelledAt vì
+   * đăng ký lại sẽ ghi đè bản ghi cũ và xóa dấu vết — đúng kiểu spam cần chặn.
+   * day: 'YYYY-MM-DD' theo giờ Việt Nam.
+   */
+  ticketCancelQuota: {
+    day: { type: String, default: '' },
+    count: { type: Number, default: 0 },
+  },
 }, {
   timestamps: true
 });

@@ -76,6 +76,67 @@ export const ticketAudienceSummaryLabel = (ticketTypes = []) => {
   return '';
 };
 
+const clampPercent = (filled, total) => {
+  if (!total || total <= 0) return 0;
+  return Math.min(100, Math.round((Math.max(0, filled) / total) * 100));
+};
+
+/**
+ * Tách tiến độ đăng ký theo nhóm vé để thẻ sự kiện không gộp chung một thanh —
+ * gộp chung thì không biết hết chỗ là hết vé sinh viên hay vé khách.
+ *
+ * Trả về mode:
+ *   'split'  — có cả vé sinh viên lẫn vé khách, hiển thị hai thanh
+ *   'student'/'guest' — chỉ mở cho một nhóm, ghi rõ nhóm đó
+ *   'shared' — loại vé dùng chung ('Tất cả')
+ *   'legacy' — sự kiện cũ không khai báo loại vé, giữ thanh tổng như trước
+ */
+export const resolveTicketAudienceProgress = ({
+  ticketTypes = [],
+  capacity = 0,
+  registeredCount = 0,
+  studentRegisteredCount = 0,
+} = {}) => {
+  const rows = Array.isArray(ticketTypes) ? ticketTypes : [];
+  const qtyOf = (audience) =>
+    rows
+      .filter((t) => (t.audience || 'SV FPT') === audience)
+      .reduce((sum, t) => sum + Math.max(0, Number(t.qty) || 0), 0);
+
+  const studentTotal = qtyOf('SV FPT');
+  const guestTotal = qtyOf('Khách ngoài trường');
+  const sharedTotal = qtyOf('Tất cả');
+
+  const total = Math.max(0, Number(capacity) || 0);
+  const filled = Math.max(0, Number(registeredCount) || 0);
+  const studentFilled = Math.min(filled, Math.max(0, Number(studentRegisteredCount) || 0));
+  const guestFilled = Math.max(0, filled - studentFilled);
+
+  if (!rows.length) {
+    return { mode: 'legacy', groups: [] };
+  }
+  if (sharedTotal > 0 && studentTotal === 0 && guestTotal === 0) {
+    return {
+      mode: 'shared',
+      groups: [
+        { key: 'shared', label: 'Sinh viên và khách', filled, total: sharedTotal || total, percent: clampPercent(filled, sharedTotal || total) },
+      ],
+    };
+  }
+
+  const groups = [];
+  if (studentTotal > 0) {
+    groups.push({ key: 'student', label: 'Sinh viên', filled: studentFilled, total: studentTotal, percent: clampPercent(studentFilled, studentTotal) });
+  }
+  if (guestTotal > 0) {
+    groups.push({ key: 'guest', label: 'Khách ngoài trường', filled: guestFilled, total: guestTotal, percent: clampPercent(guestFilled, guestTotal) });
+  }
+
+  if (!groups.length) return { mode: 'legacy', groups: [] };
+  if (groups.length === 1) return { mode: groups[0].key, groups };
+  return { mode: 'split', groups };
+};
+
 export const totalTicketQty = (tickets = []) =>
   (tickets || []).reduce((sum, t) => sum + Math.max(0, Number(t.qty) || 0), 0);
 

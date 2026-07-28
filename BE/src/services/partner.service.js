@@ -3,6 +3,7 @@ const Partner = require('../models/Partner');
 const PartnerMember = require('../models/PartnerMember');
 const Contract = require('../models/Contract');
 const PartnerEventRequest = require('../models/PartnerEventRequest');
+const EventRegistration = require('../models/EventRegistration');
 const { formatEvent } = require('../utils/eventFormat');
 const {
   sanitizePartnerRequestForApi,
@@ -358,6 +359,15 @@ const getPartnerEventById = async (email, eventId) => {
   }
 
   const formatted = formatEvent(event);
+  // Event không lưu sẵn số lượt check-in/out, nên thẻ "Đã check-in" ở cổng đối tác
+  // luôn hiện 0 dù CTSV đã mở QR và sinh viên đã quét. Đếm trực tiếp như CTSV và
+  // trang chi tiết công khai vẫn làm — đi thẳng vào index {event, status}.
+  const [checkinCount, checkoutCount] = await Promise.all([
+    EventRegistration.countDocuments({ event: event._id, status: 'attended' }),
+    EventRegistration.countDocuments({ event: event._id, checkedOutAt: { $ne: null } }),
+  ]);
+  formatted.checkinCount = checkinCount;
+  formatted.checkoutCount = checkoutCount;
   const revenue = await computeEventPaidRevenue(event._id);
   const allowance = evaluateRequestAllowance(event.settlement?.requestLog || []);
   const ended = isEventEnded(event);

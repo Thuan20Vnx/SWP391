@@ -405,6 +405,7 @@ const Events = ({ showToast }) => {
               {stateFilter === 'postponed' && 'Không có sự kiện bị hoãn.'}
               {stateFilter === 'ongoing' && 'Không có sự kiện nào đang diễn ra.'}
               {stateFilter === 'upcoming' && 'Không có sự kiện nào sắp diễn ra.'}
+              {stateFilter === 'soldout' && 'Không có sự kiện nào đã hết vé.'}
               {clubFilter && ' CLB này chưa có sự kiện phù hợp bộ lọc hiện tại.'}
               {!clubFilter && organizerFilter !== 'all' && ' Thử đổi bộ lọc đơn vị tổ chức hoặc chủ đề.'}
             </p>

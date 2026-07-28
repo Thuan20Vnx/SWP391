@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const EventRegistration = require('../models/EventRegistration');
+const User = require('../models/User');
 const AppError = require('../utils/AppError');
 const {
   calculateTicketAmount,
@@ -217,7 +218,44 @@ const registerForEvent = async (user, eventId) => {
   };
 };
 
+/**
+ * Chống spam đăng ký rồi hủy liên tục (giữ chỗ ảo, làm nhiễu số liệu của BTC):
+ * mỗi tài khoản chỉ được hủy tối đa 3 lần mỗi ngày, hết hạn mức thì phải chờ sang
+ * ngày hôm sau. Mốc ngày tính theo giờ Việt Nam, không theo UTC.
+ */
+const CANCEL_LIMIT_PER_DAY = 3;
+
+const vnDayKey = (date = new Date()) =>
+  date.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+const readCancelQuota = async (userId) => {
+  const user = await User.findById(userId).select('ticketCancelQuota').lean();
+  const day = vnDayKey();
+  const quota = user?.ticketCancelQuota;
+  const used = quota?.day === day ? quota.count || 0 : 0;
+  return { day, used, remaining: Math.max(0, CANCEL_LIMIT_PER_DAY - used) };
+};
+
+const consumeCancelQuota = async (userId, day) => {
+  // Cộng atomic khi vẫn còn trong ngày, nếu sang ngày mới thì đặt lại từ 1.
+  const bumped = await User.updateOne(
+    { _id: userId, 'ticketCancelQuota.day': day },
+    { $inc: { 'ticketCancelQuota.count': 1 } },
+  );
+  if (!bumped.matchedCount) {
+    await User.updateOne({ _id: userId }, { $set: { ticketCancelQuota: { day, count: 1 } } });
+  }
+};
+
 const cancelRegistration = async (userId, eventId) => {
+  const quota = await readCancelQuota(userId);
+  if (quota.remaining <= 0) {
+    throw new AppError(
+      `Bạn đã hủy vé ${CANCEL_LIMIT_PER_DAY} lần trong hôm nay. Vui lòng thử lại vào ngày mai.`,
+      429,
+    );
+  }
+
   // Vé có phí không cho tự hủy: hủy sau khi đã trả tiền sẽ phát sinh hoàn tiền và
   // trạng thái "đã hủy nhưng đã thanh toán" gây kẹt luồng mua lại. Muốn đổi ý thì
   // liên hệ BTC. Vé miễn phí vẫn hủy bình thường.
@@ -263,7 +301,16 @@ const cancelRegistration = async (userId, eventId) => {
 
   invalidateRegisteredIdsCache(userId);
 
-  return { message: 'Đã hủy đăng ký sự kiện.' };
+  // Chỉ trừ hạn mức khi đã hủy thành công, để lần bấm bị lỗi không mất lượt.
+  await consumeCancelQuota(userId, quota.day);
+  const remaining = Math.max(0, quota.remaining - 1);
+
+  return {
+    message: remaining > 0
+      ? `Đã hủy đăng ký sự kiện. Hôm nay bạn còn ${remaining} lượt hủy.`
+      : 'Đã hủy đăng ký sự kiện. Bạn đã dùng hết lượt hủy hôm nay, mai mới hủy vé được tiếp.',
+    cancelQuota: { limit: CANCEL_LIMIT_PER_DAY, used: CANCEL_LIMIT_PER_DAY - remaining, remaining },
+  };
 };
 
 const registeredIdsCache = new Map();

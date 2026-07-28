@@ -9115,6 +9115,33 @@ a.event-discovery-card__btn {
   width: 100% !important;
 }
 
+/* Tiến độ tách theo nhóm vé (sinh viên / khách) */
+.event-discovery-card__progress-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.event-discovery-card__progress-groups .event-discovery-card__progress-labels {
+  margin-bottom: 6px;
+}
+
+.event-discovery-card__progress-audience {
+  font-weight: 700;
+  color: #374151;
+}
+
+.event-discovery-card__progress-groups .event-discovery-card__progress-track {
+  height: 6px;
+}
+
+.event-discovery-card__progress-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
 .event-discovery-card__price {
   display: flex;
   align-items: center;

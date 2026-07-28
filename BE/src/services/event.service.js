@@ -22,6 +22,7 @@ const { getCachedApprovedEvents, setCachedApprovedEvents } = require('../utils/e
 const { createAndBroadcast } = require('./notification.service');
 const { canClubImmediateDelete } = require('../constants/eventModeration');
 const { buildEditPayload, applyEditPayload } = require('../utils/eventEditPayload');
+const { assertCapacityCoversRegistrations } = require('./eventCapacity.service');
 const { assertEventScheduleDates } = require('../utils/dateValidation');
 const { assertNoVenueTimeConflict } = require('../utils/venueTimeConflict');
 const {
@@ -253,8 +254,10 @@ const notifyClubProposalDeletedToIcpdp = async (event, { clubName = '' } = {}) =
 
 const CLUB_META_FIELDS = 'name slug description memberCount eventsHeld coverImage logoText logoColor';
 
+// ticketTypes + studentRegisteredCount để thẻ sự kiện tách được tiến độ vé sinh viên
+// và vé khách; thiếu hai field này thì FE chỉ có tổng gộp, không biết ai còn chỗ.
 const EVENT_PUBLIC_LIST_META_FIELDS =
-  'title description category startDate endDate location capacity registeredCount ticketPrice eventState eventType source schoolOrganizerRole status clubId partnerId createdAt postponeReason coverFileExt registrationStartDate registrationEndDate';
+  'title description category startDate endDate location capacity registeredCount studentRegisteredCount ticketTypes ticketPrice eventState eventType source schoolOrganizerRole status clubId partnerId createdAt postponeReason coverFileExt registrationStartDate registrationEndDate';
 
 const PUBLIC_LIST_DESC_LIMIT = 320;
 const DEFAULT_LIST_LIMIT = 24;
@@ -330,9 +333,10 @@ const applyOrganizerFilter = (events, organizerId) => {
  * VÉ ĐƯỢC KHÔNG, không phải theo ngày diễn ra:
  *   ongoing   — đang cho đăng ký (đã mở đăng ký, còn vé, chưa đóng)
  *   upcoming  — mới chỉ công bố, chưa tới ngày mở đăng ký
- *   ended     — hết đường đăng ký: đã kết thúc, hết vé, hoặc đã đóng đăng ký
+ *   soldout   — còn trong hạn đăng ký nhưng đã bán hết vé
+ *   ended     — hết hạn: sự kiện đã diễn ra xong, hoặc đã quá hạn đăng ký
  *   postponed — bị hoãn
- * Thứ tự kiểm tra bên dưới khiến bốn nhóm rời nhau và phủ hết danh sách, nên tổng
+ * Thứ tự kiểm tra bên dưới khiến năm nhóm rời nhau và phủ hết danh sách, nên tổng
  * số của chúng luôn bằng số sự kiện ở "Tất cả".
  */
 const resolveRegistrationState = (event, now) => {
@@ -341,12 +345,14 @@ const resolveRegistrationState = (event, now) => {
   const end = new Date(event.endDate || 0).getTime();
   if (event.eventState === 'expired' || (!Number.isNaN(end) && end < now)) return 'ended';
 
-  const capacity = event.capacity ?? 0;
-  const registered = event.registeredCount ?? 0;
-  if (capacity > 0 && registered >= capacity) return 'ended';
-
   const regEnd = new Date(event.registrationEndDate || 0).getTime();
   if (event.registrationEndDate && !Number.isNaN(regEnd) && regEnd < now) return 'ended';
+
+  // Hết vé xét sau "hết hạn": sự kiện đã qua hạn thì nhãn "hết hạn" mới đúng, dù
+  // trước đó có bán hết vé hay không.
+  const capacity = event.capacity ?? 0;
+  const registered = event.registeredCount ?? 0;
+  if (capacity > 0 && registered >= capacity) return 'soldout';
 
   const regStart = new Date(event.registrationStartDate || 0).getTime();
   if (event.registrationStartDate && !Number.isNaN(regStart) && regStart > now) return 'upcoming';
@@ -365,6 +371,7 @@ const applyStateFilter = (events, stateId, registeredSet) => {
     const state = resolveRegistrationState(event, now);
     if (key === 'ongoing') return state === 'ongoing';
     if (key === 'upcoming') return state === 'upcoming';
+    if (key === 'soldout') return state === 'soldout';
     if (key === 'expired') return state === 'ended';
     if (key === 'postponed') return state === 'postponed';
     // 'open' (tương thích ngược): còn đăng ký được hoặc sắp mở đăng ký.
@@ -418,8 +425,10 @@ const resolveEventPhase = (event, now) => {
   const end = new Date(event.endDate || 0).getTime();
   const hasEnded = !Number.isNaN(end) && end < now;
 
-  if (event.eventState === 'expired' || hasEnded) return 'ended';
+  // Hoãn xét trước khi kết thúc: sự kiện bị hoãn không còn giữ mốc ngày cũ (giao diện
+  // hiển thị "TBA"), nên không được xếp lẫn xuống đáy cùng nhóm đã kết thúc.
   if (event.eventState === 'postponed') return 'postponed';
+  if (event.eventState === 'expired' || hasEnded) return 'ended';
   if (!Number.isNaN(start) && start <= now) return 'ongoing';
   return 'upcoming';
 };
@@ -766,6 +775,11 @@ const updateMyEvent = async (eventId, user, body, activeClubId = null) => {
   if (!title || !registrationStartDate || !startDate || !location || !capacity) {
     throw new AppError('Vui lòng điền đầy đủ thông tin bắt buộc!', 400);
   }
+
+  assertCapacityCoversRegistrations(event, {
+    capacity: resolvedCapacity,
+    totalTickets: resolvedTotalTickets,
+  });
 
   assertEventScheduleDates({
     registrationStartDate: new Date(registrationStartDate),
@@ -1463,6 +1477,7 @@ module.exports = {
   updateMyEvent,
   getPendingEvents,
   updateEventStatus,
+  notifyClubFollowersNewEvent,
   getApprovedEvents,
   getEventById,
   sendEventCover,
