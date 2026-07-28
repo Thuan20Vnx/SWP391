@@ -900,6 +900,52 @@ const sendEventStartingSoonEmail = async ({
   return sendMail({ to, subject: `Sắp diễn ra: ${eventTitle}`, html: htmlContent });
 };
 
+/**
+ * Xác nhận đăng ký vé miễn phí. Vé có phí đã có sendPaymentConfirmationEmail ở luồng
+ * thanh toán, còn vé miễn phí trước đây không gửi gì nên người đăng ký không có bất kỳ
+ * xác nhận nào trong hộp thư.
+ */
+const sendRegistrationConfirmationEmail = async ({
+  to,
+  fullname,
+  eventTitle,
+  eventStart,
+  eventEnd,
+  location,
+  eventUrl,
+  registeredAt,
+}) => {
+  const greeting = fullname ? `Xin chào ${fullname},` : 'Xin chào bạn,';
+  const calendarUrl = buildGoogleCalendarUrl({
+    title: eventTitle,
+    start: eventStart,
+    end: eventEnd,
+    details: `Sự kiện "${eventTitle}" trên F-Events.\n${eventUrl || ''}`,
+    location: location || '',
+  });
+
+  const htmlContent = buildEmailShell({
+    title: 'Xác nhận đăng ký vé — F-Events',
+    bodyHtml: `
+      <p style="margin:0 0 6px;font-size:13px;color:#f26f21;font-weight:600;">Đăng ký thành công</p>
+      <h1 style="margin:0 0 18px;font-size:22px;font-weight:700;color:#1e293b;line-height:1.3;">${eventTitle}</h1>
+      <p style="margin:0 0 6px;font-size:15px;line-height:24px;color:#334155;">${greeting}</p>
+      <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#334155;">Bạn đã giữ chỗ thành công cho sự kiện này. Vé điện tử của bạn nằm trong mục <strong style="color:#1e293b;">Sự kiện của tôi</strong> trên F-Events.</p>
+      ${infoCard(
+        (eventStart ? infoRow('Bắt đầu', fmtVnDateTime(eventStart)) : '') +
+        (location ? infoRow('Địa điểm', location) : '') +
+        infoRow('Loại vé', 'Miễn phí') +
+        (registeredAt ? infoRow('Thời gian đăng ký', fmtVnDateTime(registeredAt)) : '')
+      )}
+      ${eventUrl ? ctaButton(eventUrl, 'Xem chi tiết sự kiện') : ''}
+      ${eventStart ? ctaButton(calendarUrl, 'Thêm vào Google Calendar', '#1e293b') : ''}
+      <p style="margin:16px 0 0;font-size:13px;line-height:20px;color:#8a7b72;border-top:1px solid #f0e8e2;padding-top:18px;">Nhớ mang theo mã QR check-in khi tới sự kiện. Nếu không tham dự được, vui lòng hủy đăng ký sớm để nhường chỗ cho bạn khác.</p>
+    `,
+  });
+
+  return sendMail({ to, subject: `Xác nhận đăng ký: ${eventTitle}`, html: htmlContent });
+};
+
 // Email chung cho các thay đổi trạng thái đơn / timeline (đơn cần duyệt, được duyệt,
 // bị từ chối, yêu cầu chỉnh sửa...). Dùng lại khung thương hiệu F-Events.
 const sendStatusUpdateEmail = async ({ to, title, body, ctaUrl, ctaLabel }) => {
@@ -1070,6 +1116,7 @@ module.exports = {
   sendPartnerAdminNoticeEmail,
   sendPartnerCtsvReportEmail,
   sendPaymentConfirmationEmail,
+  sendRegistrationConfirmationEmail,
   sendPartnerSettlementRequestEmail,
   sendPartnerSettlementPaidEmail,
 };

@@ -15,6 +15,8 @@ const {
   removeEventFromGoogleCalendar,
 } = require('./calendar.service');
 const { occupySlot, releaseOccupiedSlot } = require('./eventCapacity.service');
+const { sendRegistrationConfirmationEmail } = require('./email.service');
+const { APP_URL } = require('../config/env');
 
 const formatEventForMyEvents = (registration) => {
   const event = registration.event;
@@ -187,6 +189,22 @@ const registerForEvent = async (user, eventId) => {
   const eventDoc = registration.event?.toObject
     ? registration.event.toObject()
     : registration.event;
+
+  // Gửi xác nhận ở nền: mail hỏng thì người dùng vẫn đăng ký được bình thường.
+  if (user.email && eventDoc?.title) {
+    sendRegistrationConfirmationEmail({
+      to: user.email,
+      fullname: user.fullname || user.name || user.email,
+      eventTitle: eventDoc.title,
+      eventStart: eventDoc.startDate,
+      eventEnd: eventDoc.endDate,
+      location: eventDoc.location || '',
+      eventUrl: `${APP_URL}/events/${String(eventDoc._id || eventId)}`,
+      registeredAt: registration.registeredAt,
+    }).catch((err) =>
+      console.warn('[Registration] gửi email xác nhận thất bại:', err.message),
+    );
+  }
 
   return {
     message,
