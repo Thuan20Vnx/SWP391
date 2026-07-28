@@ -13,6 +13,7 @@ const Partner = require('../models/Partner');
 const { resolvePartnerAvatarForAdmin } = require('../utils/partnerAvatar');
 const {
   ensurePrimaryPartnerMember,
+  ensurePartnerPrimaryAccount,
   listPartnerMembers,
   addPartnerMember,
   deactivatePartnerMember,
@@ -672,33 +673,17 @@ router.post('/partners', adminOnly, async (req, res) => {
       adminApprovedAt: new Date(),
     });
 
-    let accountCreated = false;
-    let defaultPassword = null;
-    if (primaryEmail) {
-      try {
-        const result = await addPartnerMember(
-          partner,
-          {
-            email: primaryEmail,
-            fullname: String(representative || name || '').trim(),
-            phone: String(phone || '').trim(),
-            title: String(representativeTitle || '').trim(),
-            activateNow: true,
-          },
-          req.authEmail,
-        );
-        accountCreated = true;
-        defaultPassword = result.defaultPassword;
-      } catch (memberErr) {
-        console.warn('admin create partner — account skipped:', memberErr.message);
-      }
+    const account = await ensurePartnerPrimaryAccount(partner, req.authEmail);
+    if (account.status === 'failed') {
+      console.warn('admin create partner — account skipped:', account.message);
     }
 
     return res.status(201).json({
       success: true,
       partner,
-      accountCreated,
-      ...(defaultPassword ? { defaultPassword } : {}),
+      accountCreated: account.status === 'created',
+      account,
+      ...(account.defaultPassword ? { defaultPassword: account.defaultPassword } : {}),
       message: 'Đã thêm đối tác vào hệ thống.',
     });
   } catch (error) {
@@ -818,9 +803,18 @@ router.patch('/partners/:id', adminOnly, async (req, res) => {
       },
     );
 
+    // Đổi email đại diện sang một email chưa có tài khoản thì trước đây không có gì
+    // xảy ra: không tạo tài khoản, không gửi mail, Admin cũng không được báo.
+    const account = await ensurePartnerPrimaryAccount(partner, req.authEmail);
+    if (account.status === 'failed') {
+      console.warn('admin update partner — account skipped:', account.message);
+    }
+
     return res.json({
       success: true,
       partner,
+      account,
+      ...(account.defaultPassword ? { defaultPassword: account.defaultPassword } : {}),
       message: 'Đã cập nhật thông tin đối tác.',
     });
   } catch (error) {

@@ -463,9 +463,10 @@ const EventManagementDetail = ({
     isIcpdpRole(getUserRole());
   const showSchoolPendingAdminBanner =
     isSchoolManagePortal && !isAdminEventView && eventData?.source === 'school' && isSchoolEventPendingAdmin(eventData);
+  // Yêu cầu điều phối chờ Admin đến từ cả CLB (sau khi IC-PDP duyệt) lẫn cấp trường,
+  // nên không được chặn theo source; isSchoolEventPendingAdmin đã tự lọc source='school'.
   const showAdminApprovalActions =
     isAdminEventView &&
-    eventData?.source === 'school' &&
     (isModerationPending(eventData) || isSchoolEventPendingAdmin(eventData));
   const adminApprovalIsModeration = showAdminApprovalActions && isModerationPending(eventData);
   const adminApprovalIsSubmit = showAdminApprovalActions && isSchoolEventPendingAdmin(eventData);

@@ -146,6 +146,14 @@ const AdminPartners = () => {
     }
   };
 
+  // BE tự tạo tài khoản cho email đại diện — báo lại cho Admin biết email đó có sẵn
+  // trong hệ thống hay vừa được tạo, thay vì im lặng như trước.
+  const reportAccountResult = (account) => {
+    if (!account?.message) return;
+    const tone = account.status === 'failed' ? 'error' : account.status === 'created' ? 'success' : 'info';
+    setTimeout(() => showToast?.(account.message, tone), 400);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (submitting) return;
@@ -162,6 +170,7 @@ const AdminPartners = () => {
         const res = await updateAdminPartner(editingId, payload);
         setPartners((prev) => prev.map((item) => (item._id === editingId ? res.partner : item)));
         showToast?.(t('admin.partners.toast.updated'), 'success');
+        reportAccountResult(res.account);
       } else {
         const res = await createAdminPartner(payload);
         setPartners((prev) => [res.partner, ...prev]);
@@ -170,6 +179,7 @@ const AdminPartners = () => {
         } else {
           showToast?.(t('admin.partners.toast.added'), 'success');
         }
+        reportAccountResult(res.account);
       }
       resetForm();
     } catch (err) {

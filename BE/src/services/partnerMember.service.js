@@ -120,6 +120,7 @@ const assertCanManagePartner = (partner) => {
 const addPartnerMember = async (partner, body, addedByEmail = '') => {
   assertCanManagePartner(partner);
 
+  const isPrimary = body.isPrimary === true;
   const email = String(body.email || '').trim().toLowerCase();
   const fullname = String(body.fullname || '').trim();
   const phone = String(body.phone || '').trim();
@@ -135,6 +136,7 @@ const addPartnerMember = async (partner, body, addedByEmail = '') => {
   }
 
   let user = await User.findOne({ email });
+  const accountExisted = Boolean(user);
   let issuedPassword = false;
   if (user) {
     if (STAFF_ROLES.has(user.role) || user.role === 'student') {
@@ -182,6 +184,7 @@ const addPartnerMember = async (partner, body, addedByEmail = '') => {
     existingMember.userId = user._id;
     existingMember.isActive = true;
     existingMember.addedByEmail = addedByEmail;
+    if (isPrimary) existingMember.isPrimary = true;
     await existingMember.save();
     member = existingMember;
   } else {
@@ -191,17 +194,67 @@ const addPartnerMember = async (partner, body, addedByEmail = '') => {
       fullname,
       phone,
       title,
-      isPrimary: false,
+      isPrimary,
       userId: user._id,
       isActive: true,
       addedByEmail,
     });
   }
 
+  // Chỉ một người đăng ký chính: các bản ghi cũ hạ xuống thành thành viên thường,
+  // nếu không danh sách sẽ có nhiều "primary" sau khi Admin đổi email đại diện.
+  if (isPrimary) {
+    await PartnerMember.updateMany(
+      { partnerId: partner._id, _id: { $ne: member._id }, isPrimary: true },
+      { $set: { isPrimary: false } },
+    );
+  }
+
   return {
     member: formatMember(member, user),
+    accountExisted,
+    accountCreated: !accountExisted,
     defaultPassword: issuedPassword ? DEFAULT_PARTNER_PASSWORD : null,
   };
+};
+
+/**
+ * Bảo đảm email đại diện của đối tác luôn có tài khoản đăng nhập.
+ * Admin đổi email đại diện (hoặc tạo đối tác mới) mà email đó chưa có tài khoản thì
+ * trước đây im lặng bỏ qua — đối tác không nhận được mail nào. Giờ tự tạo tài khoản,
+ * gửi mail kích hoạt, và trả về thông điệp để báo lại cho Admin.
+ */
+const ensurePartnerPrimaryAccount = async (partner, addedByEmail = '') => {
+  const email = String(partner.email || '').trim().toLowerCase();
+  if (!email) {
+    return { status: 'skipped', message: 'Đối tác chưa có email đại diện nên chưa tạo được tài khoản.' };
+  }
+
+  try {
+    const result = await addPartnerMember(
+      partner,
+      {
+        email,
+        fullname: String(partner.representative || partner.name || '').trim() || email,
+        phone: String(partner.phone || '').trim(),
+        title: String(partner.representativeTitle || '').trim(),
+        isPrimary: true,
+        activateNow: true,
+      },
+      addedByEmail,
+    );
+
+    return {
+      status: result.accountCreated ? 'created' : 'linked',
+      message: result.accountCreated
+        ? `Email ${email} chưa có trong hệ thống — đã tự tạo tài khoản đối tác và gửi mail kích hoạt.`
+        : `Email ${email} đã có tài khoản trên hệ thống — đã gắn làm người đăng ký chính.`,
+      defaultPassword: result.defaultPassword || null,
+      member: result.member,
+    };
+  } catch (err) {
+    return { status: 'failed', message: `Không tạo được tài khoản cho ${email}: ${err.message}` };
+  }
 };
 
 const deactivatePartnerMember = async (partner, memberId) => {
@@ -218,6 +271,7 @@ const deactivatePartnerMember = async (partner, memberId) => {
 
 module.exports = {
   ensurePrimaryPartnerMember,
+  ensurePartnerPrimaryAccount,
   listPartnerMembers,
   addPartnerMember,
   deactivatePartnerMember,
