@@ -48,6 +48,7 @@ const EventDiscoveryCard = ({
     isPending,
     registrationNotOpen,
     registrationClosed,
+    soldOut,
   } = event;
 
   const fillPercent = getFillPercent(filledSlots, totalSlots);
@@ -57,7 +58,8 @@ const EventDiscoveryCard = ({
   const isPostponed = cardState === 'postponed';
   const isRegistered = cardState === 'registered' || registered;
   const upcoming = registrationNotOpen && !isRegistered && !viewOnly;
-  const closed = registrationClosed && !isRegistered && !viewOnly;
+  const isSoldOut = Boolean(soldOut) && !isRegistered && !viewOnly;
+  const closed = (registrationClosed || isSoldOut) && !isRegistered && !viewOnly;
   const notOpen = upcoming || closed;
   const showProgress = !isPostponed;
   const hasManageAction = viewOnly && typeof onManage === 'function';

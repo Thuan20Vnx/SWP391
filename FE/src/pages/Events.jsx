@@ -403,7 +403,8 @@ const Events = ({ showToast }) => {
               {stateFilter === 'all' && 'Chưa có sự kiện nào phù hợp bộ lọc.'}
               {stateFilter === 'expired' && 'Chưa có sự kiện đã kết thúc trong bộ lọc này.'}
               {stateFilter === 'postponed' && 'Không có sự kiện bị hoãn.'}
-              {stateFilter === 'open' && 'Không có sự kiện đang mở đăng ký.'}
+              {stateFilter === 'ongoing' && 'Không có sự kiện nào đang diễn ra.'}
+              {stateFilter === 'upcoming' && 'Không có sự kiện nào sắp diễn ra.'}
               {clubFilter && ' CLB này chưa có sự kiện phù hợp bộ lọc hiện tại.'}
               {!clubFilter && organizerFilter !== 'all' && ' Thử đổi bộ lọc đơn vị tổ chức hoặc chủ đề.'}
             </p>

@@ -325,27 +325,27 @@ const applyOrganizerFilter = (events, organizerId) => {
   return events.filter((event) => resolveOrganizerType(event) === key);
 };
 
+/**
+ * Lọc theo giai đoạn, dùng chung resolveEventPhase với phần sắp xếp để bốn nhóm
+ * ongoing / upcoming / ended / postponed rời nhau và phủ hết danh sách — trước đây
+ * 'open' loại luôn sự kiện hết vé, nên sự kiện đầy chỗ mà chưa kết thúc không
+ * thuộc bộ lọc nào và chỉ hiện ở "Tất cả".
+ */
 const applyStateFilter = (events, stateId, registeredSet) => {
   const key = String(stateId || '').trim();
   if (!key || key === 'all') return events;
-  const now = new Date();
+  const now = Date.now();
 
   return events.filter((event) => {
-    if (key === 'postponed') return event.eventState === 'postponed';
-    if (key === 'expired') {
-      if (event.eventState === 'expired') return true;
-      const end = new Date(event.endDate);
-      return !Number.isNaN(end.getTime()) && end < now;
-    }
-    if (key === 'registered') {
-      return registeredSet.has(String(event._id));
-    }
-    if (event.eventState !== 'active') return false;
-    const end = new Date(event.endDate);
-    if (!Number.isNaN(end.getTime()) && end < now) return false;
-    const capacity = event.capacity ?? 0;
-    const registered = event.registeredCount ?? 0;
-    if (capacity > 0 && registered >= capacity) return false;
+    if (key === 'registered') return registeredSet.has(String(event._id));
+
+    const phase = resolveEventPhase(event, now);
+    if (key === 'ongoing') return phase === 'ongoing';
+    if (key === 'upcoming') return phase === 'upcoming';
+    if (key === 'expired') return phase === 'ended';
+    if (key === 'postponed') return phase === 'postponed';
+    // 'open' (tương thích ngược): mọi sự kiện chưa kết thúc và không bị hoãn.
+    if (key === 'open') return phase === 'ongoing' || phase === 'upcoming';
     return true;
   });
 };

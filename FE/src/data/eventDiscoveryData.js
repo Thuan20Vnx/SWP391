@@ -21,9 +21,12 @@ export const CATEGORY_FILTERS = [
   { id: 'art', label: 'Nghệ thuật', categories: ['Nghệ thuật', 'NGHỆ THUẬT', 'VĂN HÓA'] },
 ];
 
+// Tách "Đang mở" thành hai giai đoạn rõ ràng. Bốn nhóm này rời nhau và phủ hết
+// danh sách, nên tổng số của chúng bằng đúng số sự kiện ở "Tất cả".
 export const STATE_FILTERS = [
   { id: 'all', label: 'Tất cả' },
-  { id: 'open', label: 'Đang mở' },
+  { id: 'ongoing', label: 'Đang diễn ra' },
+  { id: 'upcoming', label: 'Sắp diễn ra' },
   { id: 'expired', label: 'Đã kết thúc' },
   { id: 'postponed', label: 'Bị hoãn' },
 ];
@@ -283,6 +286,9 @@ export const mapApiEventToCard = (event, { viewerRole = 'guest' } = {}) => {
     regEnd &&
     !Number.isNaN(regEnd.getTime()) &&
     Date.now() > regEnd.getTime();
+  // Hết vé mà vẫn để "Đăng ký ngay" thì bấm vào chỉ nhận lỗi — phải nói thẳng.
+  const soldOut =
+    !isRegistered && eventState === 'active' && totalSlots > 0 && filledSlots >= totalSlots;
 
   return {
     id: String(event._id || event.id || ''),
@@ -316,11 +322,14 @@ export const mapApiEventToCard = (event, { viewerRole = 'guest' } = {}) => {
       ? 'Đã đăng ký'
       : registrationNotOpen
         ? 'Sắp mở đăng ký'
-        : registrationClosed
-          ? 'Đã đóng đăng ký'
-          : primaryActionLabel,
+        : soldOut
+          ? 'Hết vé'
+          : registrationClosed
+            ? 'Đã đóng đăng ký'
+            : primaryActionLabel,
     registrationNotOpen: Boolean(registrationNotOpen),
     registrationClosed: Boolean(registrationClosed),
+    soldOut: Boolean(soldOut),
     registered: isRegistered,
     filterTags: [CATEGORY_TO_FILTER[category] || 'all'],
     listPrice,
