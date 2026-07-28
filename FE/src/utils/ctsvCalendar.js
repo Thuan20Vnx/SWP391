@@ -94,6 +94,7 @@ export const mapCtsvCalendarEvent = (ev) => {
     status: ev.status,
     statusKey,
     isPending,
+    isOwner: Boolean(ev.isOwner),
     colors: resolveEventColors(statusKey, isPending, source)
   };
 };

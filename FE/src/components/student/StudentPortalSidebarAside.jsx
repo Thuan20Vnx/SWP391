@@ -10,6 +10,10 @@ import DashboardSidebarNav from '../DashboardSidebarNav';
 import PartnerSidebarModeSwitch from '../partner/PartnerSidebarModeSwitch';
 import ClubSidebarModeSwitch from '../club/ClubSidebarModeSwitch';
 import { CLUB_SIDEBAR_MODE } from '../club/clubNavConfig';
+// Nút chuyển chế độ dùng class của cổng CLB/đối tác; các trang guest không đi qua
+// PartnerLayout/ClubManagerLayout nên phải tự nạp style, nếu không nút sẽ trắng trơn.
+import '../../styles/club-portal.css';
+import '../../styles/partner-portal.css';
 
 const StudentPortalSidebarAside = ({
   sidebarActive = false,

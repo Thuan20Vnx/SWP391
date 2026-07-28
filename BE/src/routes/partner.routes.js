@@ -14,6 +14,7 @@ const {
   buildPartnerStatsBundle,
   getPartnerEvents,
   getPartnerEventById,
+  getPartnerIdsByEmail,
   getPartnerSettlements,
   requestPartnerSettlement,
   getPartnerContracts,
@@ -163,10 +164,22 @@ router.get('/events', async (req, res) => {
 // PHẢI đặt trước '/events/:id' nếu không "calendar" sẽ bị khớp thành :id.
 router.get('/events/calendar', async (req, res) => {
   try {
-    const events = await Event.find({ status: { $in: ['approved', 'live', 'ended'] } })
-      .sort({ startDate: 1 })
-      .limit(500);
-    return res.json({ success: true, events: events.map(formatEvent) });
+    const [events, partnerIds] = await Promise.all([
+      Event.find({ status: { $in: ['approved', 'live', 'ended'] }, isDeleted: { $ne: true } })
+        .sort({ startDate: 1 })
+        .limit(500),
+      getPartnerIdsByEmail(req.authEmail)
+    ]);
+    const ownIds = new Set(partnerIds.map(String));
+    // isOwner để FE biết sự kiện nào mở được ở trang quản lý riêng của đối tác;
+    // sự kiện của trường/CLB chỉ xem được qua trang chi tiết công khai.
+    return res.json({
+      success: true,
+      events: events.map((doc) => ({
+        ...formatEvent(doc),
+        isOwner: ownIds.has(String(doc.partnerId))
+      }))
+    });
   } catch (error) {
     console.error('partner calendar:', error);
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ nội bộ!' });

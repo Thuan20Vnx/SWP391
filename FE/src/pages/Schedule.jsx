@@ -3,7 +3,6 @@ import StudentDashboardLayout from '../components/StudentDashboardLayout';
 import { API_BASE, getAuthHeaders } from '../utils/api';
 
 const WEEKDAYS = ['THỨ 2', 'THỨ 3', 'THỨ 4', 'THỨ 5', 'THỨ 6', 'THỨ 7', 'CN'];
-const VIEW_MODES = ['Tháng', 'Tuần', 'Ngày'];
 
 const EVENT_COLORS = ['#f26f21', '#0ea5e9', '#8b5cf6', '#f59e0b', '#16a34a', '#9333ea'];
 
@@ -35,7 +34,6 @@ const mapApiEventToSchedule = (event, index) => ({
 
 
 const Schedule = ({ showToast }) => {
-  const [viewMode, setViewMode] = useState('Tháng');
   const [viewDate, setViewDate] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -130,14 +128,6 @@ const Schedule = ({ showToast }) => {
 
   const isViewingCurrentMonth = viewYear === new Date().getFullYear() && viewMonth === new Date().getMonth();
 
-  const handleViewModeChange = (mode) => {
-    if (mode !== 'Tháng') {
-      showToast?.('Chế độ Tuần/Ngày đang được phát triển.', 'info');
-      return;
-    }
-    setViewMode(mode);
-  };
-
   return (
     <StudentDashboardLayout
       activeMenu="schedule"
@@ -163,19 +153,6 @@ const Schedule = ({ showToast }) => {
               Hôm nay
             </button>
           )}
-        </div>
-
-        <div className="student-view-toggle">
-          {VIEW_MODES.map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              className={`student-view-toggle__btn ${viewMode === mode ? 'student-view-toggle__btn--active' : ''}`}
-              onClick={() => handleViewModeChange(mode)}
-            >
-              {mode}
-            </button>
-          ))}
         </div>
       </div>
 
