@@ -326,11 +326,34 @@ const applyOrganizerFilter = (events, organizerId) => {
 };
 
 /**
- * Lọc theo giai đoạn, dùng chung resolveEventPhase với phần sắp xếp để bốn nhóm
- * ongoing / upcoming / ended / postponed rời nhau và phủ hết danh sách — trước đây
- * 'open' loại luôn sự kiện hết vé, nên sự kiện đầy chỗ mà chưa kết thúc không
- * thuộc bộ lọc nào và chỉ hiện ở "Tất cả".
+ * Nhóm hiển thị của các pill lọc trên trang Sự kiện — xét theo việc KHÁCH CÓ ĐĂNG KÝ
+ * VÉ ĐƯỢC KHÔNG, không phải theo ngày diễn ra:
+ *   ongoing   — đang cho đăng ký (đã mở đăng ký, còn vé, chưa đóng)
+ *   upcoming  — mới chỉ công bố, chưa tới ngày mở đăng ký
+ *   ended     — hết đường đăng ký: đã kết thúc, hết vé, hoặc đã đóng đăng ký
+ *   postponed — bị hoãn
+ * Thứ tự kiểm tra bên dưới khiến bốn nhóm rời nhau và phủ hết danh sách, nên tổng
+ * số của chúng luôn bằng số sự kiện ở "Tất cả".
  */
+const resolveRegistrationState = (event, now) => {
+  if (event.eventState === 'postponed') return 'postponed';
+
+  const end = new Date(event.endDate || 0).getTime();
+  if (event.eventState === 'expired' || (!Number.isNaN(end) && end < now)) return 'ended';
+
+  const capacity = event.capacity ?? 0;
+  const registered = event.registeredCount ?? 0;
+  if (capacity > 0 && registered >= capacity) return 'ended';
+
+  const regEnd = new Date(event.registrationEndDate || 0).getTime();
+  if (event.registrationEndDate && !Number.isNaN(regEnd) && regEnd < now) return 'ended';
+
+  const regStart = new Date(event.registrationStartDate || 0).getTime();
+  if (event.registrationStartDate && !Number.isNaN(regStart) && regStart > now) return 'upcoming';
+
+  return 'ongoing';
+};
+
 const applyStateFilter = (events, stateId, registeredSet) => {
   const key = String(stateId || '').trim();
   if (!key || key === 'all') return events;
@@ -339,13 +362,13 @@ const applyStateFilter = (events, stateId, registeredSet) => {
   return events.filter((event) => {
     if (key === 'registered') return registeredSet.has(String(event._id));
 
-    const phase = resolveEventPhase(event, now);
-    if (key === 'ongoing') return phase === 'ongoing';
-    if (key === 'upcoming') return phase === 'upcoming';
-    if (key === 'expired') return phase === 'ended';
-    if (key === 'postponed') return phase === 'postponed';
-    // 'open' (tương thích ngược): mọi sự kiện chưa kết thúc và không bị hoãn.
-    if (key === 'open') return phase === 'ongoing' || phase === 'upcoming';
+    const state = resolveRegistrationState(event, now);
+    if (key === 'ongoing') return state === 'ongoing';
+    if (key === 'upcoming') return state === 'upcoming';
+    if (key === 'expired') return state === 'ended';
+    if (key === 'postponed') return state === 'postponed';
+    // 'open' (tương thích ngược): còn đăng ký được hoặc sắp mở đăng ký.
+    if (key === 'open') return state === 'ongoing' || state === 'upcoming';
     return true;
   });
 };
@@ -383,6 +406,10 @@ const rankFeatured = (list) => {
  * Danh sách sự kiện với bộ lọc "Tất cả": xếp theo giai đoạn thay vì startDate
  * tăng dần, vì startDate tăng dần đẩy toàn bộ sự kiện đã kết thúc lên đầu.
  * Thứ tự: đang diễn ra → sắp diễn ra → tạm hoãn → đã kết thúc.
+ *
+ * Lưu ý: đây là giai đoạn THEO NGÀY DIỄN RA, khác resolveRegistrationState (theo
+ * khả năng đăng ký) dùng cho các pill lọc. Sắp xếp phải bám ngày thật, nếu không
+ * một sự kiện đang diễn ra nhưng đã đóng đăng ký sẽ bị đẩy xuống cuối trang.
  */
 const PHASE_ORDER = { ongoing: 0, upcoming: 1, postponed: 2, ended: 3 };
 
