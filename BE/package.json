@@ -11,6 +11,7 @@
     "seed": "node seed.js",
     "seed:events": "node seed-events.js",
     "seed:clubs": "node seed-clubs.js",
+    "seed:presentation": "node seed-presentation-demo.js",
     "seed:reviews": "node seed-event-reviews.js",
     "test:race": "node scripts/test-registration-race.js",
     "test:ratelimit": "node scripts/test-rate-limit.js",
