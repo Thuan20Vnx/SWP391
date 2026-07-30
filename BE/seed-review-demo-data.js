@@ -1,10 +1,17 @@
 /**
- * Seed đánh giá cho các sự kiện đã kết thúc, dùng tài khoản sinh viên sẵn có
- * trong hệ thống. Chỉ tài khoản đã check-in + check-out (status 'attended')
- * mới được tạo đánh giá — mô phỏng đúng luồng điểm danh thật (qrScanner.service.js).
+ * Seed đăng ký + check-in/out + đánh giá cho các sự kiện đã kết thúc, dùng
+ * TẤT CẢ tài khoản sẵn có trong hệ thống (trừ role 'partner' — đại diện
+ * doanh nghiệp, không phải cá nhân tham dự). Chỉ tài khoản đã check-in +
+ * check-out (status 'attended') mới được tạo đánh giá — mô phỏng đúng luồng
+ * điểm danh thật (qrScanner.service.js). Review không hiển thị role của
+ * người đánh giá trên FE (chỉ fullname), nên dùng cả tài khoản staff an toàn.
+ *
+ * Tôn trọng capacity: không bao giờ thêm đăng ký mới vượt quá event.capacity
+ * (nếu đã đủ/vượt từ trước thì bỏ qua, không thêm nữa).
  *
  * Idempotent: bỏ qua nếu user đã có review cho event đó (unique index user+event).
- * Không đụng tới đăng ký/đánh giá của tài khoản nào ngoài danh sách STUDENT_EMAILS.
+ * Chỉ đụng tới đăng ký/đánh giá của tài khoản trong ATTENDEE_POOL — không bao
+ * giờ sửa đăng ký của tài khoản khác (vd người dùng thật đã đăng ký thật).
  *
  * Chạy: node seed-review-demo-data.js
  */
@@ -17,17 +24,9 @@ const EventRegistration = require('./src/models/EventRegistration');
 const EventReview = require('./src/models/EventReview');
 const User = require('./src/models/User');
 
-const STUDENT_EMAILS = [
-  'nhatlinh@gmail.com',
-  'nhatlink888@gmail.com',
-  'kxnhan1507@gmail.com',
-  'tranxuanthuan443@gmail.com',
-  'tranxuanthuan888@gmail.com',
-  'student@gmail.com',
-  'club@gmail.com',
-];
-
-const MIN_REVIEWERS_PER_EVENT = 3;
+// Số người tham dự mục tiêu mỗi sự kiện (bị chặn thêm bởi capacity thật và
+// bởi kích thước ATTENDEE_POOL — không thể vượt quá số tài khoản có sẵn).
+const TARGET_ATTENDEES_PER_EVENT = 15;
 
 const COMMENTS = {
   5: [
@@ -106,9 +105,9 @@ const updateEventRatingStats = async (eventId) => {
 const main = async () => {
   await connectDB();
 
-  const students = await User.find({ email: { $in: STUDENT_EMAILS } }).select('_id email fullname').lean();
-  if (!students.length) {
-    throw new Error('Không tìm thấy tài khoản sinh viên nào trong STUDENT_EMAILS.');
+  const attendeePool = await User.find({ role: { $ne: 'partner' } }).select('_id email fullname').lean();
+  if (!attendeePool.length) {
+    throw new Error('Không tìm thấy tài khoản nào để dùng làm người tham dự.');
   }
 
   const now = new Date();
@@ -117,7 +116,7 @@ const main = async () => {
       { status: 'ended' },
       { endDate: { $lt: now }, status: { $in: ['approved', 'live', 'ended'] } },
     ],
-  }).select('title category endDate totalTickets').lean();
+  }).select('title category endDate totalTickets capacity').lean();
 
   let reviewsAdded = 0;
   let registrationsCreated = 0;
@@ -127,18 +126,24 @@ const main = async () => {
   for (const event of endedEvents) {
     const existingRegs = await EventRegistration.find({
       event: event._id,
-      user: { $in: students.map((s) => s._id) },
+      user: { $in: attendeePool.map((s) => s._id) },
       status: { $ne: 'cancelled' },
     });
 
     const registeredUserIds = new Set(existingRegs.map((r) => String(r.user)));
-    const missingCount = Math.max(0, MIN_REVIEWERS_PER_EVENT - existingRegs.length);
-    const candidates = students.filter((s) => !registeredUserIds.has(String(s._id))).slice(0, missingCount);
+    const capacity = Number(event.capacity) || 0;
+    // Không bao giờ đăng ký vượt capacity thật của sự kiện; nếu đã đủ/vượt từ
+    // trước (kể cả bởi người ngoài ATTENDEE_POOL) thì không thêm nữa.
+    const capRoom = capacity > 0 ? Math.max(0, capacity - existingRegs.length) : TARGET_ATTENDEES_PER_EVENT;
+    const missingCount = Math.max(0, Math.min(TARGET_ATTENDEES_PER_EVENT - existingRegs.length, capRoom));
+    const candidates = attendeePool
+      .filter((s) => !registeredUserIds.has(String(s._id)))
+      .slice(0, missingCount);
 
     const newRegs = [];
-    for (const student of candidates) {
+    for (const attendee of candidates) {
       const reg = await EventRegistration.create({
-        user: student._id,
+        user: attendee._id,
         event: event._id,
         status: 'registered',
         registeredAt: new Date(new Date(event.endDate).getTime() - 7 * 24 * 60 * 60 * 1000),
