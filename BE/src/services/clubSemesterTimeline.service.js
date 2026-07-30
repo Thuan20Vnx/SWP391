@@ -1,5 +1,5 @@
 const ClubSemesterTimeline = require('../models/ClubSemesterTimeline');
-const { resolveManagedClub, findManagedClubs } = require('./club.service');
+const { resolveManagedClub } = require('./club.service');
 const {
   buildSemesterLabel,
   formatClubSemesterTimeline,
@@ -266,21 +266,12 @@ const processScheduledTimelineDeletes = async () => {
 const listForClub = async (userId, activeClubId) => {
   await processScheduledTimelineDeletes();
   const club = await resolveClubForManager(userId, activeClubId);
-  const User = require('../models/User');
-  const user = await User.findById(userId).select('email').lean();
-  const managedClubs = await findManagedClubs(userId);
-  const managedClubIds = managedClubs.map((item) => item._id);
-  const filter = managedClubIds.length > 1
-    ? { clubId: club._id }
-    : {
-        $or: [
-          { clubId: club._id },
-          ...(user?.email
-            ? [{ submittedByEmail: String(user.email).trim().toLowerCase(), clubId: { $nin: managedClubIds } }]
-            : []),
-        ],
-      };
-  const rows = await ClubSemesterTimeline.find(filter)
+  // Chỉ lấy timeline thuộc đúng CLB đang quản lý. Trước đây có thêm nhánh khớp
+  // theo submittedByEmail để bù cho trường hợp chuyển nhượng chủ nhiệm, nhưng
+  // nó kéo luôn timeline của CLB KHÁC (nộp bởi cùng email ở một thời điểm khác)
+  // vào danh sách — hiển thị được nhưng hủy/sửa đều báo "Không tìm thấy timeline
+  // kỳ học!" vì action luôn kiểm tra đúng clubId.
+  const rows = await ClubSemesterTimeline.find({ clubId: club._id })
     .sort({ semesterYear: -1, createdAt: -1 });
   const formatted = await Promise.all(rows.map((row) => formatClubSemesterTimeline(row)));
   return formatted
