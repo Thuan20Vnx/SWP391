@@ -81,10 +81,13 @@ const ensureAccounts = async () => {
   return users;
 };
 
+// $setOnInsert only — CLB Fever already exists in production (real manager, real
+// stats). Must never overwrite an existing club's fields on re-run; only fills
+// these in the first time the doc is created.
 const ensureFeverClub = async (manager) => Club.findOneAndUpdate(
   { slug: 'fever' },
   {
-    $set: {
+    $setOnInsert: {
       slug: 'fever',
       name: 'CLB Fever',
       shortName: 'Fever',
