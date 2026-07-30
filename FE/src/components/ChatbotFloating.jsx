@@ -34,6 +34,16 @@ const HOME_GREETING =
 const ADMIN_GREETING =
   'Xin chào! Tôi là trợ lý ảo F-Events (Quản trị). Bạn cần hỗ trợ duyệt đề xuất, xử lý yêu cầu sửa/ẩn/xóa, hay tra cứu tài khoản?';
 
+// ChatbotFloating được các trang khác nhau tự render riêng (không phải một instance
+// toàn cục), nên điều hướng sang trang khác (vd. bấm gợi ý sự kiện) sẽ unmount rồi
+// mount lại component — mất state useState bình thường. Cache theo context ở module
+// scope để đoạn chat sống sót qua các lần điều hướng trong cùng phiên SPA.
+const chatHistoryCache = {};
+
+const buildInitialMessages = (context) => [
+  { sender: 'bot', text: context === 'admin' ? ADMIN_GREETING : HOME_GREETING, events: [] },
+];
+
 const renderMarkdownLite = (text) => {
   const lines = String(text || '').split('\n');
   const blocks = [];
@@ -122,11 +132,15 @@ const ChatbotFloating = ({
   edgeTopRef.current = edgeTop;
   const [isDragging, setIsDragging] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'bot', text: context === 'admin' ? ADMIN_GREETING : HOME_GREETING, events: [] },
-  ]);
+  const [chatMessages, setChatMessages] = useState(
+    () => chatHistoryCache[context] || buildInitialMessages(context)
+  );
   const [chatInput, setChatInput] = useState('');
   const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    chatHistoryCache[context] = chatMessages;
+  }, [chatMessages, context]);
 
   useEffect(() => {
     let prevWidth = window.innerWidth;

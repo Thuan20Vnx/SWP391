@@ -87,7 +87,9 @@ const buildChatInput = (history, context, dataBlock) => {
 
 const getReply = async ({ messages, context }) => {
   const [{ events } = {}, annList, weather] = await Promise.all([
-    eventService.getApprovedEvents({ skipPagination: true }),
+    // state: 'open' -> chỉ sự kiện còn đăng ký được hoặc sắp mở đăng ký (ongoing/upcoming),
+    // để chatbot không gợi ý sự kiện đã kết thúc/hết hạn.
+    eventService.getApprovedEvents({ skipPagination: true, state: 'open' }),
     Announcement.find(PUBLIC_ANNOUNCEMENT_FILTER)
       .select('title content publishedAt')
       .sort({ publishedAt: -1 })
