@@ -5,8 +5,10 @@ const AppError = require('../utils/AppError');
 const { sendLoginLockAlertEmail } = require('./email.service');
 
 const DEFAULT_ATTEMPTS_PER_TIER = 5;
-const TIER1_LOCK_MS = 30 * 1000;
-const DEFAULT_TIER2_LOCK_MS = 3 * 60 * 1000;
+// Khóa 3 mức cố định theo yêu cầu: lần 1 sai đủ ngưỡng khóa 15s, lần 2 khóa 30s,
+// lần 3 khóa vĩnh viễn + gửi email mở khóa (xem applyTierLock).
+const TIER1_LOCK_MS = 15 * 1000;
+const TIER2_LOCK_MS = 30 * 1000;
 const UNLOCK_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const DUMMY_PASSWORD_HASH = '$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW';
 
@@ -17,10 +19,9 @@ const getLockoutPolicy = async () => {
     const s = await getSecuritySettings();
     return {
       maxAttempts: Math.max(1, Number(s.maxLoginAttempts) || DEFAULT_ATTEMPTS_PER_TIER),
-      tier2LockMs: Math.max(1, Number(s.lockoutMinutes) || 3) * 60 * 1000,
     };
   } catch {
-    return { maxAttempts: DEFAULT_ATTEMPTS_PER_TIER, tier2LockMs: DEFAULT_TIER2_LOCK_MS };
+    return { maxAttempts: DEFAULT_ATTEMPTS_PER_TIER };
   }
 };
 
@@ -85,7 +86,7 @@ const assertLoginAllowed = async (email) => {
   }
 };
 
-const applyTierLock = async (record, userForEmail, tier2LockMs = DEFAULT_TIER2_LOCK_MS) => {
+const applyTierLock = async (record, userForEmail) => {
   if (record.penaltyStage === 0) {
     record.lockedUntil = new Date(Date.now() + TIER1_LOCK_MS);
     record.failedAttempts = 0;
@@ -95,7 +96,7 @@ const applyTierLock = async (record, userForEmail, tier2LockMs = DEFAULT_TIER2_L
   }
 
   if (record.penaltyStage === 1) {
-    record.lockedUntil = new Date(Date.now() + tier2LockMs);
+    record.lockedUntil = new Date(Date.now() + TIER2_LOCK_MS);
     record.failedAttempts = 0;
     record.penaltyStage = 2;
     await record.save();
@@ -141,9 +142,9 @@ const recordFailedLogin = async (email, userForEmail = null) => {
 
   record.failedAttempts += 1;
 
-  const { maxAttempts, tier2LockMs } = await getLockoutPolicy();
+  const { maxAttempts } = await getLockoutPolicy();
   if (record.failedAttempts >= maxAttempts) {
-    return applyTierLock(record, userForEmail, tier2LockMs);
+    return applyTierLock(record, userForEmail);
   }
 
   await record.save();
